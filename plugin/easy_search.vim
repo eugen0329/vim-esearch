@@ -79,7 +79,7 @@ fu! s:init_results_buffer(search_str)
   exe 'Dispatch! ag -Q --nogroup --nocolor --column "' . a:search_str  . '"'
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
-  let b:request.background = 0
+  let b:request.background = 1
 
   call s:cgetfile(b:request)
   call s:update_results(0)
@@ -150,9 +150,8 @@ fu! s:update_results(...)
     for i in l:qfrange
       let match_text  = b:qf[i].text
       let fname       = b:qf[i].fname
-      " let fname       = get(b:qf[i], 'fname', bufname(b:qf[i].bufnr))
-      call setline(i*s:elem_height + s:header_height,  i+1.'. '.fname . '  ' . b:qf[i].lnum . ' ' . b:qf[i].col )
-      call setline(i*s:elem_height + s:header_height+1, '  ' . match_text)
+      call setline(i*s:elem_height + s:header_height,  i+1.'. '.fname)
+      call setline(i*s:elem_height + s:header_height+1, '  ' . b:qf[i].lnum . ' ' . match_text)
       call setline(i*s:elem_height + s:header_height+2, '')
     endfor
   endif
