@@ -74,17 +74,17 @@ fu! s:init_results_buffer(search_str)
   setlocal nonumber
   let &updatetime = float2nr(s:updatetime)
 
-  nnoremap <silent><buffer> t     :call <sid>open('tabnew', 0)<cr>
-  nnoremap <silent><buffer> T     :call <SID>open('tabnew', 1, 'tabprevious')<CR>
-  nnoremap <silent><buffer> s     :call <SID>open('new', 0)<CR>
-  nnoremap <silent><buffer> S     :call <SID>open('new', 1, 'wincmd p')<CR>
-  nnoremap <silent><buffer> v     :call <SID>open('vnew',  0)<CR>
-  nnoremap <silent><buffer> V     :call <SID>open('new', 1, 'wincmd p')<CR>
-  nnoremap <silent><buffer> <CR>  :call <SID>open('tabnew', 0)<CR>
-  nnoremap <silent><buffer> <C-n> :call <SID>move(1)<CR>
-  nnoremap <silent><buffer> <C-p> :call <SID>move(-1)<CR>
+  call easysearch#init_mappings()
 
-  nnoremap <silent><buffer> [_esrch] <Nop>
+"   nnoremap <silent><buffer> t     :call <sid>open('tabnew', 0)<cr>
+"   nnoremap <silent><buffer> T     :call <SID>open('tabnew', 1, 'tabprevious')<CR>
+"   nnoremap <silent><buffer> s     :call <SID>open('new', 0)<CR>
+"   nnoremap <silent><buffer> S     :call <SID>open('new', 1, 'wincmd p')<CR>
+"   nnoremap <silent><buffer> v     :call <SID>open('vnew',  0)<CR>
+"   nnoremap <silent><buffer> V     :call <SID>open('new', 1, 'wincmd p')<CR>
+"   nnoremap <silent><buffer> <CR>  :call <SID>open('tabnew', 0)<CR>
+"   nnoremap <silent><buffer> <C-n> :call <SID>move(1)<CR>
+"   nnoremap <silent><buffer> <C-p> :call <SID>move(-1)<CR>
 
   exe 'Dispatch! ag -Q --nogroup --nocolor --column "' . a:search_str  . '"'
   let b:request = dispatch#request()
@@ -188,49 +188,6 @@ fu! s:escape_search_string(str)
   return substitute(a:str, '["#$%]', '\\\0', 'g')
 endfu
 
-fu! s:move(direction)
-  let cursorpos = getcurpos()
-  let ln = (cursorpos[1] - s:header_height) / s:elem_height
-
-  let ln_dest = ln + a:direction
-  if ln_dest >= 0 && ln_dest < len(b:qf)
-    call cursor((ln_dest) * s:elem_height + s:header_height, cursorpos[2])
-  endif
-endfu
-
-fu! s:open_in_new_tab(silent)
-  let cursorpos = getcurpos()
-  let ln = (cursorpos[1] - s:header_height) / s:elem_height
-
-  if ln < len(b:qf)
-    let new_cursor_pos = [b:qf[ln].lnum, b:qf[ln].col]
-    exe 'tabnew|b ' . b:qf[ln].bufnr
-    call cursor(new_cursor_pos)
-    if a:silent
-      exe 'silent tabprevious'
-    endif
-  endif
-endfu
-
-fu! s:open(cmd, silent, ...)
-  let cursorpos = getcurpos()
-  let ln = (cursorpos[1] - s:header_height) / s:elem_height
-
-  if ln < len(b:qf)
-    let new_cursor_pos = [str2nr(b:qf[ln].lnum), str2nr(b:qf[ln].col)]
-    let bufnr = get(b:qf[ln], 'bufnr', '')
-    if empty(bufnr)
-      exe a:cmd . '|e ' . b:qf[ln].fname
-    else
-      exe a:cmd . '|b ' . b:qf[ln].bufnr
-    endif
-    call cursor(new_cursor_pos)
-    if a:silent
-    "   " exe 'silent wincmd p'
-      exe a:1
-    endif
-  endif
-endfu
 
 fu! s:open_in_split(cmd, silent)
   let cursorpos = getcurpos()
