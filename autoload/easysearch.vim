@@ -48,14 +48,11 @@ fu! easysearch#map(map, plug)
   endif
 endfu
 
-
 fu! s:move(direction)
-  let cursorpos = getcurpos()
-  let ln = (cursorpos[1] - s:header_height) / s:elem_height
-
-  let ln_dest = ln + a:direction
-  if ln_dest >= 0 && ln_dest < len(b:qf)
-    call cursor((ln_dest) * s:elem_height + s:header_height, cursorpos[2])
+  if a:direction == 1
+    call search('^\d\+.*', 'W')
+  else
+    call search('^\d\+.*', 'Wb')
   endif
 endfu
 
