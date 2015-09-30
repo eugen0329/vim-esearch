@@ -57,7 +57,7 @@ fu! s:move(direction)
 endfu
 
 fu! s:open(cmd, silent, ...)
-  let cursorpos = getcurpos()
+  let cursorpos = getpos('.')
   let ln = (cursorpos[1] - s:header_height) / s:elem_height
 
   if ln < len(b:qf)

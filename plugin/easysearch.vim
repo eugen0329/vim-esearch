@@ -190,7 +190,7 @@ endfu
 
 
 fu! s:open_in_split(cmd, silent)
-  let cursorpos = getcurpos()
+  let cursorpos = getpos('.')
   let ln = (cursorpos[1] - s:header_height) / s:elem_height
 
   if ln < len(b:qf)
