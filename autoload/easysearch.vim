@@ -25,8 +25,8 @@ fu! easysearch#init_mappings()
   nnoremap <silent><buffer> <Plug>(easysearch-v)   :call <SID>open('vnew',  0)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('new', 1, 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('tabnew', 0)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cn)  :call <SID>move(1)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cp)  :call <SID>move(-1)<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>exe <SID>move(1)<Bar>norm! w<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>exe <SID>move(-1)<Bar>norm! w<CR>
   nnoremap <silent><buffer> [_esrch] <Nop>
 
   for plug in keys(s:custom_mappings)
@@ -49,11 +49,14 @@ fu! easysearch#map(map, plug)
 endfu
 
 fu! s:move(direction)
+  let pattern = '^\s\+\d\+\s\+\zs.*'
   if a:direction == 1
-    call search('^\s\{2}\d\+.*', 'W')
+    call search(pattern, 'W')
   else
-    call search('^\s\{2}\d\+.*', 'Wb')
+    call search(pattern, 'Wbe')
   endif
+
+  return '.'
 endfu
 
 fu! s:filename()
