@@ -11,6 +11,8 @@ let s:elem_height = 3
 noremap <silent><Plug>(easysearch) :<C-u>call <SID>easy_search(0)<CR>
 xnoremap <silent><Plug>(easysearch) :<C-u>call <SID>easy_search(1)<CR>
 
+command! -nargs=1 ESearch call <SID>init_results_buffer(<f-args>)
+
 if !hasmapto('<Plug>(easymotion-prefix)')
   map <leader>ff <Plug>(easysearch)
 endif
