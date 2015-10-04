@@ -3,7 +3,7 @@ if exists("b:current_syntax")
 endif
 
 syn match  easysearchTitle   "\%1l.*"
-syn match  easysearchfname   "\%>1l.*"
+syn match  easysearchFName   "\%>1l.*"
 syn match  easysearchContext "\%>1l\s\+.*"
 syn match  easysearchLnum    "\%>1l\s\+\d\+"
 

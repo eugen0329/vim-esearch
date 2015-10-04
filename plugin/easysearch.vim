@@ -123,7 +123,6 @@ fu! s:on_cursor_moved()
 endfu
 
 fu! s:update_results(...)
-  " try
   setlocal noreadonly
   setlocal modifiable
 
@@ -160,10 +159,6 @@ fu! s:update_results(...)
   setlocal nomodifiable
   setlocal nomodified
   let s:last_update_time = s:timenow()
-  " catch
-  "   echo v:exception
-  "   call getchar()
-  " endtry
 endfu
 
 fu! s:update_statusline()
@@ -220,19 +215,12 @@ function! s:cgetfile(request) abort
   try
     let &modelines = 0
     exe cd fnameescape(request.directory)
-    let &l:efm = request.format
-    let &l:makeprg = request.command
-    silent doautocmd QuickFixCmdPre cgetfile
-    " execute 'cgetfile '.fnameescape(request.file)
     let b:qf_file = readfile(fnameescape(request.file))
-    silent doautocmd QuickFixCmdPost cgetfile
   catch '^E40:'
     echohl Error | echo v:exception | echohl None
   finally
     let &modelines = modelines
     exe cd fnameescape(dir)
-    let &l:efm = efm
-    let &l:makeprg = makeprg
   endtry
 endfunction
 

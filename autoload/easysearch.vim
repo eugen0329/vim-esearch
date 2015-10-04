@@ -56,6 +56,15 @@ fu! s:move(direction)
   endif
 endfu
 
+fu! s:filename()
+  let lnum = search('^\%>1l\d\+', 'bcWn')
+  if lnum == 0
+    let lnum = search('^\%>1l\d\+', 'cWn')
+  endif
+
+  return matchstr(getline(lnum), '^\d\+\.\s\zs.\+')
+endfu
+
 fu! s:open(cmd, silent, ...)
   let cursorpos = getpos('.')
   let ln = (cursorpos[1] - s:header_height) / s:elem_height
@@ -64,13 +73,14 @@ fu! s:open(cmd, silent, ...)
     let new_cursor_pos = [str2nr(b:qf[ln].lnum), str2nr(b:qf[ln].col)]
     let bufnr = get(b:qf[ln], 'bufnr', '')
     if empty(bufnr)
-      exe a:cmd . '|e ' . b:qf[ln].fname
+      let fname = s:filename()
+      " exe a:cmd . '|e ' . b:qf[ln].fname
+      exe a:cmd . '|e ' . fname
     else
       exe a:cmd . '|b ' . b:qf[ln].bufnr
     endif
     call cursor(new_cursor_pos)
     if a:silent
-    "   " exe 'silent wincmd p'
       exe a:1
     endif
   endif
