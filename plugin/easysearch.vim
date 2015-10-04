@@ -163,7 +163,7 @@ fu! s:update_results(...)
       if filename != prev_filename
         call setline(line, '')
         let line += 1
-        call setline(line,  i+1.'. '.filename)
+        call setline(line, filename)
         let line += 1
       endif
       call setline(line, '  ' . b:qf[i].lnum . ' ' . s:trunc_str(match_text, 80))

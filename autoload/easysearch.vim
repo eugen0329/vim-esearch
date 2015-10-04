@@ -57,12 +57,12 @@ fu! s:move(direction)
 endfu
 
 fu! s:filename()
-  let lnum = search('^\%>1l\d\+', 'bcWn')
+  let lnum = search('^\%>1l[^ ]', 'bcWn')
   if lnum == 0
-    let lnum = search('^\%>1l\d\+', 'cWn')
+    let lnum = search('^\%>1l[^ ]', 'cWn')
   endif
 
-  return matchstr(getline(lnum), '^\d\+\.\s\zs.\+')
+  return matchstr(getline(lnum), '^\zs[^ ].\+')
 endfu
 
 fu! s:line_number()
