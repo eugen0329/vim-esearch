@@ -146,12 +146,21 @@ fu! s:update_results(...)
       let b:qf_entirely_parsed = 0
     endif
 
+    let line = 2
+    let prev_filename = -1
     for i in l:qfrange
       let match_text  = b:qf[i].text
-      let fname       = b:qf[i].fname
-      call setline(i*s:elem_height + s:header_height,  i+1.'. '.fname)
-      call setline(i*s:elem_height + s:header_height+1, '  ' . b:qf[i].lnum . ' ' . match_text)
-      call setline(i*s:elem_height + s:header_height+2, '')
+      let filename    = b:qf[i].fname
+
+      if filename != prev_filename
+        call setline(line, '')
+        let line += 1
+        call setline(line,  i+1.'. '.filename)
+        let line += 1
+      endif
+      call setline(line, '  ' . b:qf[i].lnum . ' ' . match_text)
+      let line += 1
+      let prev_filename = filename
     endfor
   endif
 

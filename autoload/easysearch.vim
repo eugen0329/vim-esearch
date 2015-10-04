@@ -50,9 +50,9 @@ endfu
 
 fu! s:move(direction)
   if a:direction == 1
-    call search('^\d\+.*', 'W')
+    call search('^\s\{2}\d\+.*', 'W')
   else
-    call search('^\d\+.*', 'Wb')
+    call search('^\s\{2}\d\+.*', 'Wb')
   endif
 endfu
 
@@ -75,22 +75,21 @@ fu! s:line_number()
 endfu
 
 fu! s:open(cmd, silent, ...)
-  let cursorpos = getpos('.')
-  let ln = (cursorpos[1] - s:header_height) / s:elem_height
+  " let cursorpos = getpos('.')
+  " let ln = (cursorpos[1] - s:header_height) / s:elem_height
 
-  if ln < len(b:qf)
+  " if ln < len(b:qf)
     " let new_cursor_pos = [str2nr(b:qf[ln].lnum), str2nr(b:qf[ln].col)]
     let new_cursor_pos = [s:line_number(), 1]
-    let bufnr = get(b:qf[ln], 'bufnr', '')
-    if empty(bufnr)
+    " let bufnr = get(b:qf[ln], 'bufnr', '')
+    " if empty(bufnr)
       let fname = s:filename()
       exe a:cmd . '|e ' . fname
-    else
-      exe a:cmd . '|b ' . b:qf[ln].bufnr
-    endif
-    " call cursor(new_cursor_pos)
-    if a:silent
-      exe a:1
-    endif
-  endif
+    " else
+    "   exe a:cmd . '|b ' . b:qf[ln].bufnr
+    " endif
+    call cursor(new_cursor_pos)
+
+    if a:silent | exe a:1 | endif
+  " endif
 endfu
