@@ -44,7 +44,7 @@ fu! s:init_results_buffer(search_str)
   else
     exe 'tabnew'
     let results_bufnr = bufnr('%')
-    exe 'file '.results_bufname
+    exe 'file "'.results_bufname.'"'
   endif
 
   let b:qf = []
@@ -75,16 +75,6 @@ fu! s:init_results_buffer(search_str)
   let &updatetime = float2nr(s:updatetime)
 
   call easysearch#init_mappings()
-
-"   nnoremap <silent><buffer> t     :call <sid>open('tabnew', 0)<cr>
-"   nnoremap <silent><buffer> T     :call <SID>open('tabnew', 1, 'tabprevious')<CR>
-"   nnoremap <silent><buffer> s     :call <SID>open('new', 0)<CR>
-"   nnoremap <silent><buffer> S     :call <SID>open('new', 1, 'wincmd p')<CR>
-"   nnoremap <silent><buffer> v     :call <SID>open('vnew',  0)<CR>
-"   nnoremap <silent><buffer> V     :call <SID>open('new', 1, 'wincmd p')<CR>
-"   nnoremap <silent><buffer> <CR>  :call <SID>open('tabnew', 0)<CR>
-"   nnoremap <silent><buffer> <C-n> :call <SID>move(1)<CR>
-"   nnoremap <silent><buffer> <C-p> :call <SID>move(-1)<CR>
 
   exe 'Dispatch! ag -Q --nogroup --nocolor --column "' . a:search_str  . '"'
   let b:request = dispatch#request()
