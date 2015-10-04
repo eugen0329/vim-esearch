@@ -122,6 +122,14 @@ fu! s:on_cursor_moved()
   endif
 endfu
 
+fu! s:trunc_str(str, size)
+  if len(a:str) > a:size
+    return a:str[:a:size] . '…'
+  endif
+
+  return a:str
+endfu
+
 fu! s:update_results(...)
   setlocal noreadonly
   setlocal modifiable
@@ -146,7 +154,7 @@ fu! s:update_results(...)
       let b:qf_entirely_parsed = 0
     endif
 
-    let line = 2
+    let line = line('$')
     let prev_filename = -1
     for i in l:qfrange
       let match_text  = b:qf[i].text
@@ -158,7 +166,7 @@ fu! s:update_results(...)
         call setline(line,  i+1.'. '.filename)
         let line += 1
       endif
-      call setline(line, '  ' . b:qf[i].lnum . ' ' . match_text)
+      call setline(line, '  ' . b:qf[i].lnum . ' ' . s:trunc_str(match_text, 80))
       let line += 1
       let prev_filename = filename
     endfor
