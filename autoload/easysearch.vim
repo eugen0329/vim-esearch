@@ -110,8 +110,9 @@ fu! easysearch#start(search_str)
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
 
-  call s:cgetfile(b:request)
-  call s:update_results(0)
+  if !s:cgetfile(b:request)
+    call s:update_results(0)
+  endif
 endfu
 
 fu! s:on_cursor_hold()
@@ -122,11 +123,10 @@ fu! s:on_cursor_hold()
     let b:request.background = 0
 
     call s:update_results(1)
-    call s:update_statusline()
   else
-    call s:cgetfile(b:request)
-    call s:update_results(0)
-    call s:update_statusline()
+    if !s:cgetfile(b:request)
+      call s:update_results(0)
+    endif
     call feedkeys('[_esrch]')
   endif
 endfu
@@ -143,11 +143,10 @@ fu! s:on_cursor_moved()
 
     call s:cgetfile(b:request)
     call s:update_results(1)
-    call s:update_statusline()
   else
-    call s:cgetfile(b:request)
-    call s:update_results(0)
-    call s:update_statusline()
+    if !s:cgetfile(b:request)
+      call s:update_results(0)
+    endif
   endif
 endfu
 
@@ -204,6 +203,7 @@ fu! s:update_results(...)
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
+  call s:update_statusline()
   let s:last_update_time = s:timenow()
 endfu
 
@@ -247,6 +247,8 @@ endfu
 
 function! s:cgetfile(request) abort
   let request = a:request
+  if !filereadable(fnameescape(request.file)) | return 1 | endif
+
   let efm = &l:efm
   let makeprg = &l:makeprg
   let compiler = get(b:, 'current_compiler', '')
@@ -263,6 +265,8 @@ function! s:cgetfile(request) abort
     let &modelines = modelines
     exe cd fnameescape(dir)
   endtry
+
+  return 0
 endfunction
 
 fu! s:parse_qf(from, to)
