@@ -19,15 +19,11 @@ fu! s:easy_search(visual)
     let initial_search_val = ''
   endif
 
-  let search_str = s:escape_search_string(input('pattern >>> ', initial_search_val))
+  let search_str = easysearch#util#escape_str(input('pattern >>> ', initial_search_val))
   if search_str == ''
     return ''
   endif
   call easysearch#start(search_str)
-endfu
-
-fu! s:escape_search_string(str)
-  return substitute(a:str, '["#$%]', '\\\0', 'g')
 endfu
 
 function! s:get_visual_selection()
