@@ -15,7 +15,7 @@ endif
 fu! s:easy_search(visual)
   if a:visual
     let initial_search_val = s:get_visual_selection()
-  elseif v:hlsearch
+  elseif get(v:, 'hlsearch', 0)
     let initial_search_val = getreg('/')
   else
     let initial_search_val = ''
