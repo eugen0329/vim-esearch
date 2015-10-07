@@ -110,22 +110,22 @@ fu! easysearch#start(search_str)
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
 
-  let s:last_update_time = s:timenow()
-  if !s:cgetfile(b:request)
+  let s:last_update_time = easysearch#util#timenow()
+  if !easysearch#util#cgetfile(b:request)
     call s:update_results(0)
   endif
 endfu
 
 fu! s:on_cursor_hold()
   let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
-  if !s:running(b:request.handler, b:request.pid) && qf_entirely_parsed
+  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
     exe 'au! EasysearchAutocommands'
     let &updatetime = float2nr(s:updatetime_bak)
     let b:request.background = 0
 
     call s:update_results(1)
   else
-    if !s:cgetfile(b:request)
+    if !easysearch#util#cgetfile(b:request)
       call s:update_results(0)
     endif
     call feedkeys('[_esrch]')
@@ -133,30 +133,22 @@ fu! s:on_cursor_hold()
 endfu
 
 fu! s:on_cursor_moved()
-  if  s:timenow() < &updatetime/1000.0 + s:last_update_time
+  if  easysearch#util#timenow() < &updatetime/1000.0 + s:last_update_time
     return -1
   endif
 
   let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
-  if !s:running(b:request.handler, b:request.pid) && qf_entirely_parsed
+  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
     exe 'au! EasysearchAutocommands'
     let &updatetime = float2nr(s:updatetime_bak)
 
-    call s:cgetfile(b:request)
+    call easysearch#util#cgetfile(b:request)
     call s:update_results(1)
   else
-    if !s:cgetfile(b:request)
+    if !easysearch#util#cgetfile(b:request)
       call s:update_results(0)
     endif
   endif
-endfu
-
-fu! s:trunc_str(str, size)
-  if len(a:str) > a:size
-    return a:str[:a:size] . '…'
-  endif
-
-  return a:str
 endfu
 
 fu! s:update_results(...)
@@ -164,7 +156,7 @@ fu! s:update_results(...)
   setlocal modifiable
 
   if b:last_index == len(b:qf) && len(b:qf_file) != 0
-    call extend(b:qf, s:parse_qf(b:last_index, len(b:qf_file)))
+    call extend(b:qf, easysearch#util#parse_results(b:last_index, len(b:qf_file)))
   endif
   let results_count = len(b:qf)
 
@@ -173,7 +165,7 @@ fu! s:update_results(...)
 
   let qf_len = len(b:qf)
   if qf_len > b:last_index
-    if s:running(b:request.handler, b:request.pid) || qf_len - b:last_index + 1 <= s:easysearch_batch_size
+    if easysearch#util#running(b:request.handler, b:request.pid) || qf_len - b:last_index + 1 <= s:easysearch_batch_size
       let qfrange = range(b:last_index, qf_len - 1)
       let b:last_index = qf_len
       let b:qf_entirely_parsed = 1
@@ -195,7 +187,7 @@ fu! s:update_results(...)
         call setline(line, filename)
         let line += 1
       endif
-      call setline(line, '  ' . b:qf[i].lnum . ' ' . s:trunc_str(match_text, 80))
+      call setline(line, '  ' . b:qf[i].lnum . ' ' . easysearch#util#trunc_str(match_text, 80))
       let line += 1
       let prev_filename = filename
     endfor
@@ -205,7 +197,7 @@ fu! s:update_results(...)
   setlocal nomodifiable
   setlocal nomodified
   call s:update_statusline()
-  let s:last_update_time = s:timenow()
+  let s:last_update_time = easysearch#util#timenow()
 endfu
 
 fu! s:update_statusline()
@@ -230,60 +222,6 @@ fu! s:open_in_split(cmd, silent)
   endif
 endfu
 
-fu! s:timenow()
-  let now = reltime()
-  return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
-endfu
-
-" Extracted from tpope/dispatch
-fu! s:request_status()
-  let request = b:request
-  try
-    let status = str2nr(readfile(request.file . '.complete', 1)[0])
-  catch
-    let status = -1
-  endtry
-  return status
-endfu
-
-function! s:cgetfile(request) abort
-  let request = a:request
-  if !filereadable(fnameescape(request.file)) | return 1 | endif
-
-  let efm = &l:efm
-  let makeprg = &l:makeprg
-  let compiler = get(b:, 'current_compiler', '')
-  let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
-  let dir = getcwd()
-  let modelines = &modelines
-  try
-    let &modelines = 0
-    exe cd fnameescape(request.directory)
-    let b:qf_file = readfile(fnameescape(request.file))
-  catch '^E40:'
-    echohl Error | echo v:exception | echohl None
-  finally
-    let &modelines = modelines
-    exe cd fnameescape(dir)
-  endtry
-
-  return 0
-endfunction
-
-fu! s:parse_qf(from, to)
-  if b:qf_file == [] | return [] | endif
-  let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
-  let results = []
-
-  for i in range(a:from, a:to - 1)
-    let el = matchlist(b:qf_file[i], r)[1:4]
-    if empty(el) | continue | endif
-    let new_result_elem = { 'fname': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3] }
-    call add(results, new_result_elem)
-  endfor
-  return results
-endfu
-
 fu! s:find_buf_loc(bufnr)
   for tabnr in range(1, tabpagenr('$'))
     if tabpagenr() == tabnr | continue | endif
@@ -298,23 +236,6 @@ fu! s:find_buf_loc(bufnr)
 
   return []
 endf
-
-function! s:running(handler, pid) abort
-  if empty(a:pid)
-    return 0
-  elseif exists('*dispatch#'.a:handler.'#running')
-    return dispatch#{a:handler}#running(a:pid)
-  elseif has('win32')
-    let tasklist_cmd = 'tasklist /fi "pid eq '.a:pid.'"'
-    if &shellxquote ==# '"'
-      let tasklist_cmd = substitute(tasklist_cmd, '"', "'", "g")
-    endif
-    return system(tasklist_cmd) =~# '==='
-  else
-    call system('kill -0 '.a:pid)
-    return !v:shell_error
-  endif
-endfunction
 
 fu! s:filename()
   let lnum = search('^\%>1l[^ ]', 'bcWn')
