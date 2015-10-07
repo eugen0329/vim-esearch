@@ -110,6 +110,7 @@ fu! easysearch#start(search_str)
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
 
+  let s:last_update_time = s:timenow()
   if !s:cgetfile(b:request)
     call s:update_results(0)
   endif
