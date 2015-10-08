@@ -187,7 +187,7 @@ fu! s:update_results(...)
         call setline(line, filename)
         let line += 1
       endif
-      call setline(line, '  ' . b:qf[i].lnum . ' ' . easysearch#util#trunc_str(match_text, 80))
+      call setline(line, '  '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(match_text, 80))
       let line += 1
       let prev_filename = filename
     endfor
