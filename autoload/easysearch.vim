@@ -26,7 +26,7 @@ fu! easysearch#init_mappings()
   nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('tabnew', 0)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>exe <SID>move(1)<Bar>norm! w<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>exe <SID>move(-1)<Bar>norm! w<CR>
-  nnoremap <silent><buffer> [_esrch] <Nop>
+  nnoremap <silent><buffer> <Plug>(easysearch-Nop) <Nop>
 
   for plug in keys(s:custom_mappings)
     exe 'nmap <buffer> ' . s:custom_mappings[plug] . ' ' . plug
@@ -128,7 +128,7 @@ fu! s:on_cursor_hold()
     if !easysearch#util#cgetfile(b:request)
       call s:update_results(0)
     endif
-    call feedkeys('[_esrch]')
+    call feedkeys('\<Plug>(easysearch-Nop)')
   endif
 endfu
 
@@ -208,24 +208,9 @@ fu! s:update_statusline()
   endif
 endfu
 
-fu! s:open_in_split(cmd, silent)
-  let cursorpos = getpos('.')
-  let ln = (cursorpos[1] - s:header_height) / s:elem_height
-
-  if ln < len(b:qf)
-    let new_cursor_pos = [b:qf[ln].lnum, b:qf[ln].col]
-    exe a:cmd . '|b ' . b:qf[ln].bufnr
-    call cursor(new_cursor_pos)
-    if a:silent
-      exe 'silent wincmd p'
-    endif
-  endif
-endfu
-
 fu! s:find_buf_loc(bufnr)
   for tabnr in range(1, tabpagenr('$'))
     if tabpagenr() == tabnr | continue | endif
-
     let buflist = tabpagebuflist(tabnr)
     if index(buflist, a:bufnr) >= 0
       for winnr in range(1, tabpagewinnr(tabnr, '$'))
