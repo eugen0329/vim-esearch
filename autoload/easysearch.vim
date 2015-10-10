@@ -268,6 +268,7 @@ fu! s:open(cmd, silent, ...)
   if !empty(fname)
     exe a:cmd . '|e ' . fname
     call cursor(new_cursor_pos)
+    norm! zz
     if a:silent | exe a:1 | endif
   endif
 endfu
