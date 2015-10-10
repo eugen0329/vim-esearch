@@ -251,7 +251,7 @@ fu! s:filename()
 endfu
 
 fu! s:line_number()
-  let pattern = '^\%>1l\s\s\d\+.*'
+  let pattern = '^\%>1l\s\+\d\+.*'
 
   if line('.') < 3 || match(getline('.'), '^[^ ].*') >= 0
     let lnum = search(pattern, 'cWn')
@@ -259,7 +259,7 @@ fu! s:line_number()
     let lnum = search(pattern, 'bcWn')
   endif
 
-  return matchstr(getline(lnum), '^\s\{2}\zs\d\+\ze.*')
+  return matchstr(getline(lnum), '^\s\+\zs\d\+\ze.*')
 endfu
 
 fu! s:open(cmd, silent, ...)
