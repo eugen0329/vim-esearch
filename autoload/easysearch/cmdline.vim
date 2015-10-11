@@ -1,5 +1,5 @@
 let s:mappings = {
-      \'<C-r><C-e>': '<Plug>(easysearch-regex)',
+      \'<Plug>(easysearch-regex)': '<C-r><C-e>',
       \}
 
 cnoremap <Plug>(easysearch-regex) <C-r>=<SID>invert('regex')<CR>
@@ -38,9 +38,10 @@ endfu
 
 fu! s:init_mappings()
   let mapargs =  {}
-  for map in keys(s:mappings)
-    let mapargs[map] = maparg('<C-r><C-e>', 'c', 0, 1)
-    exe "cmap " . map . ' ' . s:mappings[map]
+  for plug in keys(s:mappings)
+    let map = s:mappings[plug]
+    let mapargs[map] = maparg(map, 'c', 0, 1)
+    exe "cmap " . map . ' ' . plug
   endfor
 
   return mapargs
