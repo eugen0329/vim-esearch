@@ -24,6 +24,16 @@ fu! easysearch#cmdline#read(initial)
   return str
 endfu
 
+
+fu! easysearch#cmdline#map(map, plug)
+  if has_key(s:mappings, a:plug)
+    let s:mappings[a:plug] = a:map
+  else
+    echoerr 'Wrong action ' . plug
+  endif
+endfu
+
+
 fu! s:prompt()
   let r = g:esearch_settings.stringify('regex')
   return 'pattern '.r.'>> '
