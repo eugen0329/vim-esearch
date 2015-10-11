@@ -4,7 +4,7 @@ fu! easysearch#cmdline#read(initial)
   let s:cmdpos = len(s:cmdline) + 1
 
   while 1
-    let str = input('pattern '.g:esearch_settings['regex'].'>> ', s:cmdline)
+    let str = input(s:prompt(), s:cmdline)
     if s:int_pending
       let s:int_pending = 0
       let s:cmdline .= s:get_correction()
@@ -15,6 +15,11 @@ fu! easysearch#cmdline#read(initial)
   unlet s:int_pending
 
   return str
+endfu
+
+fu! s:prompt()
+  let r = g:esearch_settings.stringify('regex')
+  return 'pattern '.r.'>> '
 endfu
 
 fu! s:get_correction()

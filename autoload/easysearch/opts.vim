@@ -1,7 +1,8 @@
 fu! easysearch#opts#new(opts)
   return extend(a:opts, {
-        \'regex': 0,
-        \'invert': function('<SID>invert'),
+        \'regex':     0,
+        \'invert':    function('<SID>invert'),
+        \'stringify': function('<SID>stringify'),
         \}, 'keep')
 endfu
 
@@ -11,3 +12,9 @@ fu! s:invert(key) dict
   return option
 endfu
 
+fu! s:stringify(key) dict
+  if self[a:key]
+    return a:key[0]
+  endif
+  return '>'
+endfu
