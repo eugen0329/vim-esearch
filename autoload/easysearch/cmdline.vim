@@ -1,8 +1,14 @@
+let s:mappings = {
+      \'<C-r><C-e>': '<Plug>(easysearch-regex)',
+      \}
+
+cnoremap <Plug>(easysearch-regex) <C-r>=<SID>invert('regex')<CR>
+
 fu! easysearch#cmdline#read(initial)
   let s:int_pending = 0
   let s:cmdline = a:initial
   let s:cmdpos = len(s:cmdline) + 1
-  let old_mappings = s:init_mappings()
+  let old_mapargs = s:init_mappings()
   while 1
     let str = input(s:prompt(), s:cmdline)
     if s:int_pending
@@ -14,7 +20,7 @@ fu! easysearch#cmdline#read(initial)
   endwhile
   unlet s:int_pending
 
-  call s:restore_mappings(old_mappings)
+  call s:restore_mappings(old_mapargs)
   return str
 endfu
 
@@ -31,21 +37,23 @@ fu! s:get_correction()
 endfu
 
 fu! s:init_mappings()
-  let mappings =  {
-        \'<C-r><C-e>': maparg('<C-r><C-e>', 'c', 0, 1)
-        \}
-  exe "cnoremap <C-r><C-e> <C-r>=<SID>invert('regex')<CR>"
-  return mappings
+  let mapargs =  {}
+  for map in keys(s:mappings)
+    let mapargs[map] = maparg('<C-r><C-e>', 'c', 0, 1)
+    exe "cmap " . map . ' ' . s:mappings[map]
+  endfor
+
+  return mapargs
 endfu
 
-fu! s:restore_mappings(mappings)
-  for map in keys(a:mappings)
-    let maparg = a:mappings[map]
+fu! s:restore_mappings(mapargs)
+  for map in keys(a:mapargs)
+    let maparg = a:mapargs[map]
     if empty(maparg)
       exe 'cunmap '.map
     else
-      let cmd = 'silent '.maparg.mode.(maparg.noremap ? 'nore': '').'map '.maparg.lhs
-      let cmd .= maparg.rhs
+      let cmd  = 'silent ' . maparg.mode . (maparg.noremap ? 'nore': '')
+      let cmd .= 'map ' . maparg.lhs . maparg.rhs
       exe cmd
     endif
   endfor
