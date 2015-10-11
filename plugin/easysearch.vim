@@ -15,48 +15,22 @@ endif
 let g:esearch_settings = extend(get(g:, 'esearch_settings', {}), {
       \'regex': 0,
       \}, 'keep')
+cnoremap <C-r><C-e> <C-r>=easysearch#cmdline#invert('regex')<CR>
 
 fu! s:easy_search(visual)
   if a:visual
-    let s:cmdline = s:get_visual_selection()
+    let initial_pattern = s:get_visual_selection()
   elseif get(v:, 'hlsearch', 0)
-    let s:cmdline = getreg('/')
+    let initial_pattern = getreg('/')
   else
-    let s:cmdline = ''
+    let initial_pattern = ''
   endif
-  let s:cmdpos = len(s:cmdline) + 1
 
-  let s:int_pending = 0
-  while 1
-    let str = input('pattern '.g:esearch_settings['regex'].'>> ', s:cmdline . s:get_correction())
-    if s:int_pending | let s:int_pending = 0 | else | break | endif
-  endwhile
-  unlet s:int_pending
-
-  let search_str = easysearch#util#escape_str(str)
-  if search_str == ''
+  let str = easysearch#cmdline#read(initial_pattern)
+  if str == ''
     return ''
   endif
-  call easysearch#start(search_str)
-endfu
-
-cnoremap <C-r><C-e> <C-\>e<SID>set_search_option('regex')<CR>
-
-fu! s:get_correction()
-  if len(s:cmdline) + 1 != s:cmdpos
-    return repeat("\<Left>", len(s:cmdline) + 1 - s:cmdpos )
-  endif
-
-  return ''
-endfu
-
-fu! s:set_search_option(option)
-  let s:cmdline = getcmdline()
-  let s:cmdpos = getcmdpos()
-  let s:int_pending = 1
-  call g:esearch_settings.invert(a:option)
-  call feedkeys("\<C-c>", 'n')
-  return ''
+  call easysearch#start(easysearch#util#escape_str(str))
 endfu
 
 fu! g:esearch_settings.invert(key) dict
