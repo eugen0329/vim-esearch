@@ -13,7 +13,6 @@ if !hasmapto('<Plug>(easymotion-prefix)')
 endif
 
 let g:esearch_settings = easysearch#opts#new(get(g:, 'esearch_settings', {}))
-cnoremap <C-r><C-e> <C-r>=easysearch#cmdline#invert('regex')<CR>
 
 fu! s:easy_search(visual)
   if a:visual
