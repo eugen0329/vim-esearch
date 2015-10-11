@@ -29,7 +29,7 @@ fu! easysearch#cmdline#map(map, plug)
   if has_key(s:mappings, a:plug)
     let s:mappings[a:plug] = a:map
   else
-    echoerr 'Wrong action ' . plug
+    echoerr 'There is no such action: "' . a:plug . '"'
   endif
 endfu
 
