@@ -12,9 +12,7 @@ if !hasmapto('<Plug>(easymotion-prefix)')
   map <leader>ff <Plug>(easysearch)
 endif
 
-let g:esearch_settings = extend(get(g:, 'esearch_settings', {}), {
-      \'regex': 0,
-      \}, 'keep')
+let g:esearch_settings = easysearch#opts#new(get(g:, 'esearch_settings', {}))
 cnoremap <C-r><C-e> <C-r>=easysearch#cmdline#invert('regex')<CR>
 
 fu! s:easy_search(visual)
@@ -30,13 +28,7 @@ fu! s:easy_search(visual)
   if str == ''
     return ''
   endif
-  call easysearch#start(easysearch#util#escape_str(str))
-endfu
-
-fu! g:esearch_settings.invert(key) dict
-  let option = !self[a:key]
-  let self[a:key] = option
-  return option
+  return easysearch#start(easysearch#util#escape_str(str))
 endfu
 
 fu! s:get_visual_selection()
