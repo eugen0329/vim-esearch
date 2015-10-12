@@ -1,11 +1,13 @@
 let s:opts_map = {
-      \'regex':  { 'p': '-Q', 's': 'r' },
+      \'regex':   { 'p': '-Q', 's': 'r' },
+      \'case':    { 'p': '-s', 's': 'c' },
       \'default': { 'p': '',   's': '>' },
       \}
 
 fu! easysearch#opts#new(opts)
   return extend(a:opts, {
         \'regex':       0,
+        \'case':        0,
         \'invert':      function('<SID>invert'),
         \'stringify':   function('<SID>stringify'),
         \'parametrize': function('<SID>parametrize'),

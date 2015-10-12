@@ -106,7 +106,8 @@ fu! easysearch#start(search_str)
   call easysearch#init_mappings()
 
   let r = g:esearch_settings.parametrize('regex')
-  exe 'Dispatch! ag '. r .'--nogroup --nocolor --column "' . a:search_str  . '"'
+  let c = g:esearch_settings.parametrize('case')
+  exe 'Dispatch! ag '. r . ' ' . c . ' --nogroup --nocolor --column "' . a:search_str  . '"'
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1

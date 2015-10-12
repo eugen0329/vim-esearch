@@ -1,8 +1,10 @@
 let s:mappings = {
       \'<Plug>(easysearch-regex)': '<C-r><C-e>',
+      \'<Plug>(easysearch-case)': '<C-s>',
       \}
 
 cnoremap <Plug>(easysearch-regex) <C-r>=<SID>invert('regex')<CR>
+cnoremap <Plug>(easysearch-case) <C-r>=<SID>invert('case')<CR>
 
 fu! easysearch#cmdline#read(initial)
   let s:int_pending = 0
@@ -36,7 +38,8 @@ endfu
 
 fu! s:prompt()
   let r = g:esearch_settings.stringify('regex')
-  return 'pattern '.r.'>> '
+  let c = g:esearch_settings.stringify('case')
+  return 'pattern '.r.c.'> '
 endfu
 
 fu! s:get_correction()
