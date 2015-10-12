@@ -3,16 +3,15 @@ if exists('g:loaded_easy_search')
 endif
 let g:loaded_easy_search = 1
 
+let g:esearch_settings = easysearch#opts#new(get(g:, 'esearch_settings', {}))
+
 noremap <silent><Plug>(easysearch) :<C-u>call <SID>easy_search(0)<CR>
 xnoremap <silent><Plug>(easysearch) :<C-u>call <SID>easy_search(1)<CR>
-
-command! -nargs=1 ESearch call easysearch#start(<f-args>)
-
 if !hasmapto('<Plug>(easymotion-prefix)')
   map <leader>ff <Plug>(easysearch)
 endif
 
-let g:esearch_settings = easysearch#opts#new(get(g:, 'esearch_settings', {}))
+command! -nargs=1 ESearch call easysearch#start(<f-args>)
 
 fu! s:easy_search(visual)
   if a:visual

@@ -6,7 +6,7 @@ fu! easysearch#handlers#cursor_moved()
   let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
   if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
     exe 'au! EasysearchAutocommands'
-    " let &updatetime = float2nr(s:updatetime_bak)
+    let &updatetime = float2nr(b:updatetime_backup)
 
     call easysearch#util#cgetfile(b:request)
     call easysearch#win#update(1)
@@ -20,7 +20,7 @@ fu! easysearch#handlers#cursor_hold()
   let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
   if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
     exe 'au! EasysearchAutocommands'
-    " let &updatetime = float2nr(s:updatetime_bak)
+    let &updatetime = float2nr(b:updatetime_backup)
     let b:request.background = 0
 
     call easysearch#win#update(1)

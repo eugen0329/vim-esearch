@@ -10,6 +10,7 @@ fu! easysearch#opts#new(opts)
         \'regex':       0,
         \'case':        0,
         \'word':        0,
+        \'updatetime':  300.0,
         \'invert':      function('<SID>invert'),
         \'stringify':   function('<SID>stringify'),
         \'parametrize': function('<SID>parametrize'),

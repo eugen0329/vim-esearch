@@ -1,5 +1,4 @@
 let s:easysearch_batch_size = 1500
-let s:updatetime = 300.0
 let s:default_mappings = {
       \ '<Plug>(easysearch-T)': 'T',
       \ '<Plug>(easysearch-t)': 't',
@@ -20,18 +19,21 @@ fu! easysearch#win#init()
   setlocal nonumber
   setlocal buftype=nofile
   setlocal ft=esearch
-  let &updatetime = float2nr(s:updatetime)
+
+  let b:updatetime_backup = &updatetime
+  let &updatetime = float2nr(g:esearch_settings.updatetime)
 
   let b:qf = []
   let b:qf_file = []
   let b:qf_entirely_parsed = 0
   let b:last_index    = 0
-  " let s:updatetime_bak = &updatetime
 
   augroup EasysearchAutocommands
     au!
     au CursorMoved <buffer> call easysearch#handlers#cursor_moved()
     au CursorHold  <buffer> call easysearch#handlers#cursor_hold()
+    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
   augroup END
 
   call s:init_mappings()
