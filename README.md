@@ -1,26 +1,31 @@
 # Vim Easy Search
 
-Deep development version of the vim plugin performing pseudo-async recursive search in files.  
+Vim plugin performing pseudo-async recursive search in files.
 
 
 # Installation
-Currently only supported ag(https://github.com/ggreer/the_silver_searcher/), so
-you must to install it with by any preferred way.
+Currently only supported [Ag](https://github.com/ggreer/the_silver_searcher#readme), so
+you must to install it in any of the preferred methods.
 
 In your .vimrc:
 
+    " If you use NeoBundle
     NeoBundle  'tpope/vim-dispatch'
     NeoBundle  'eugen0329/vim-easy-search'
 
+    " If you use Plug
     Plug       'tpope/vim-dispatch'
     Plug       'eugen0329/vim-easy-search'
 
-    Bundle     'tpope/vim-dispatch'
-    Bundle     'eugen0329/vim-easy-search'
-
+    " If your plugin manager is Vundle
     Plugin     'tpope/vim-dispatch'
     Plugin     'eugen0329/vim-easy-search'
 
+Or with Pathogen:
+
+    cd ~/.vim/bundle
+    git clone git@github.com:tpope/vim-dispatch.git
+    git clone git@github.com:eugen0329/vim-easy-search.git
 
 
 # Usage
@@ -46,7 +51,6 @@ Also, you can use the following functionons to redefine default mappings.
     call easysearch#win#map('<C-p>',      '<Plug>(easysearch-cp)')
     call easysearch#win#map('<C-n>',      '<Plug>(easysearch-cn)')
     call easysearch#win#map('<CR>',       '<Plug>(easysearch-cr)')
-
 
     call easysearch#cmdline#map('<Plug>(easysearch-regex)', '<C-r><C-e>')
     call easysearch#cmdline#map('<Plug>(easysearch-case)',  '<C-s>')
