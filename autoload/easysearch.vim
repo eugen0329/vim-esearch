@@ -19,7 +19,7 @@ fu! easysearch#start(pattern)
   else
     exe 'tabnew'
     let results_bufnr = bufnr('%')
-    exe 'file "'.results_bufname.'"'
+    exe printf("file %s", results_bufname)
   endif
 
   " if line('$') > s:header_height
