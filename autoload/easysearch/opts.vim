@@ -1,8 +1,7 @@
 let s:opts_map = {
-      \'regex':   { 'p': '-Q', 's': 'r' },
-      \'case':    { 'p': '-s', 's': 'c' },
-      \'word':    { 'p': '-w', 's': 'w' },
-      \'default': { 'p': '',   's': '>' },
+      \'regex':   { 'p': ['-Q', ''], 's': ['>', 'r'] },
+      \'case':    { 'p': ['', '-s'], 's': ['>', 'c'] },
+      \'word':    { 'p': ['', '-w'], 's': ['>', 'w'] },
       \}
 
 fu! easysearch#opts#new(opts)
@@ -31,9 +30,6 @@ fu! s:parametrize(key) dict
   return s:transformed(self, a:key, 'p')
 endfu
 
-fu s:transformed(self, key, kind)
-  if a:self[a:key]
-    return s:opts_map[a:key][a:kind]
-  endif
-  return s:opts_map.default[a:kind]
+fu s:transformed(dict, key, kind)
+  return s:opts_map[a:key][a:kind][a:dict[a:key]]
 endfu
