@@ -1,5 +1,3 @@
-let s:header_height = 3
-
 fu! easysearch#map(map, plug)
   exe 'map '.a:map.' '.a:plug
 endfu

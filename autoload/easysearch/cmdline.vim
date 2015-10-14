@@ -1,7 +1,7 @@
 let s:mappings = {
-      \'<Plug>(easysearch-regex)': '<C-r><C-e>',
-      \'<Plug>(easysearch-case)': '<C-s>',
-      \'<Plug>(easysearch-word)': '<C-t>',
+      \'<Plug>(easysearch-regex)': '<C-s><C-r>',
+      \'<Plug>(easysearch-case)':  '<C-s><C-s>',
+      \'<Plug>(easysearch-word)':  '<C-s><C-w>',
       \}
 let s:dir_prompt = ''
 
