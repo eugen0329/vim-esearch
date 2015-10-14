@@ -3,11 +3,12 @@ let s:default_mappings = {
       \ '<Plug>(easysearch-T)': 'T',
       \ '<Plug>(easysearch-t)': 't',
       \ '<Plug>(easysearch-s)': 's',
-      \ '<Plug>(easysearch-v)': 'v',
       \ '<Plug>(easysearch-S)': 'S',
+      \ '<Plug>(easysearch-v)': 'v',
+      \ '<Plug>(easysearch-V)': 'V',
+      \ '<Plug>(easysearch-cr)': '<CR>',
       \ '<Plug>(easysearch-cp)': '<C-p>',
       \ '<Plug>(easysearch-cn)': '<C-n>',
-      \ '<Plug>(easysearch-cr)': '<CR>',
       \ }
 
 let s:mappings = {}
@@ -107,8 +108,8 @@ fu! s:init_mappings()
   nnoremap <silent><buffer> <Plug>(easysearch-s)   :call <SID>open('new', 0)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-S)   :call <SID>open('new', 1, 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-v)   :call <SID>open('vnew',  0)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('new', 1, 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('tabnew', 0)<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('vnew', 1, 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('edit', 0)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>exe <SID>move(1)<Bar>norm! w<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>exe <SID>move(-1)<Bar>norm! w<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-Nop) <Nop>
