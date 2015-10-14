@@ -13,6 +13,9 @@ let s:default_mappings = {
 let s:mappings = {}
 
 fu! easysearch#win#init()
+  setlocal noreadonly
+  setlocal modifiable
+  exe '1,$d'
   setlocal readonly
   setlocal nomodifiable
   setlocal noswapfile

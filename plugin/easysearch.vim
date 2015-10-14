@@ -13,7 +13,7 @@ endif
 
 command! -nargs=1 ESearch call easysearch#start(<f-args>)
 
-fu! s:easy_search(visual)
+fu! s:easy_search(visual, ...)
   if a:visual
     let initial_pattern = s:get_visual_selection()
   elseif get(v:, 'hlsearch', 0)
@@ -22,7 +22,7 @@ fu! s:easy_search(visual)
     let initial_pattern = ''
   endif
 
-  let str = easysearch#cmdline#read(initial_pattern)
+  let str = easysearch#cmdline#read(initial_pattern, (a:0 ? a:1 : ''))
   if str == ''
     return ''
   endif
@@ -36,5 +36,21 @@ fu! s:get_visual_selection()
   let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
   let lines[0] = lines[0][col1 - 1:]
   return join(lines, "\n")
+endfu
+
+call NERDTreeAddKeyMap({
+      \ 'key': '<C-f><C-f>',
+      \ 'override': 1,
+      \ 'callback': 'NERDTreeEsearchDir',
+      \ 'quickhelpText': 'open handler',
+      \ 'scope': 'Node' })
+
+fu! NERDTreeEsearchDir(node)
+  let path = a:node.path
+  if path.isDirectory && !a:node.isRoot()
+    call s:easy_search(0, path.str())
+  else
+    call s:easy_search(0)
+  endif
 endfu
 

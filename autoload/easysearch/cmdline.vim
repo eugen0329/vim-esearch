@@ -3,16 +3,18 @@ let s:mappings = {
       \'<Plug>(easysearch-case)': '<C-s>',
       \'<Plug>(easysearch-word)': '<C-t>',
       \}
+let s:dir_prompt = ''
 
 cnoremap <Plug>(easysearch-regex) <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(easysearch-case) <C-r>=<SID>invert('case')<CR>
 cnoremap <Plug>(easysearch-word) <C-r>=<SID>invert('word')<CR>
 
-fu! easysearch#cmdline#read(initial)
-  let s:int_pending = 0
+fu! easysearch#cmdline#read(initial, dir)
+  let old_mapargs = s:init_mappings()
+  let s:dir_prompt = s:dir_prompt(a:dir)
   let s:cmdline = a:initial
   let s:cmdpos = len(s:cmdline) + 1
-  let old_mapargs = s:init_mappings()
+  let s:int_pending = 0
   while 1
     let str = input(s:prompt(), s:cmdline)
     if s:int_pending
@@ -42,7 +44,14 @@ fu! s:prompt()
   let r = g:esearch_settings.stringify('regex')
   let c = g:esearch_settings.stringify('case')
   let w = g:esearch_settings.stringify('word')
-  return 'pattern '.r.c.w.' '
+  return s:dir_prompt.'pattern '.r.c.w.' '
+endfu
+
+fu! s:dir_prompt(dir)
+  if empty(a:dir)
+    return ''
+  endif
+  return 'Dir: '.substitute(a:dir , $PWD, '.', '')."\n"
 endfu
 
 fu! s:get_correction()

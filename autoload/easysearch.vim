@@ -22,11 +22,6 @@ fu! easysearch#start(pattern)
     exe printf("file %s", results_bufname)
   endif
 
-  " if line('$') > s:header_height
-  "   setlocal noreadonly
-  "   setlocal modifiable
-  "   exe s:header_height.',$d'
-  " endif
   call easysearch#win#init()
   exe 'Dispatch! '.s:request(a:pattern)
 
