@@ -1,10 +1,6 @@
-fu! easysearch#map(map, plug)
-  exe 'map '.a:map.' '.a:plug
-endfu
-
 fu! easysearch#pre(visual, ...)
   if a:visual
-    let initial_pattern = s:get_visual_selection()
+    let initial_pattern = s:visual_selection()
   elseif get(v:, 'hlsearch', 0)
     let initial_pattern = getreg('/')
   else
@@ -38,7 +34,7 @@ fu! easysearch#start(pattern, dir)
   endif
 
   call easysearch#win#init()
-  exe 'Dispatch! '.s:request(a:pattern, a:dir)
+  exe 'Dispatch! '.s:request_str(a:pattern, a:dir)
 
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
@@ -50,7 +46,22 @@ fu! easysearch#start(pattern, dir)
   endif
 endfu
 
-fu! s:request(pattern, dir)
+fu! easysearch#mappings()
+  if !exists('s:mappings')
+    let s:mappings = {
+          \ '<leader>ff': '<Plug>(easysearch)',
+          \ 'set': function('easysearch#util#set'),
+          \ 'with_val': function('easysearch#util#with_val'),
+          \ }
+  endif
+  return s:mappings
+endfu
+
+fu! easysearch#map(map, plug)
+  call easysearch#mappings().set(a:map, a:plug)
+endfu
+
+fu! s:request_str(pattern, dir)
   let r = g:esearch_settings.parametrize('regex')
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
@@ -72,7 +83,7 @@ fu! s:find_buf(bufnr)
   return []
 endf
 
-fu! s:get_visual_selection()
+fu! s:visual_selection()
   let [lnum1, col1] = getpos("'<")[1:2]
   let [lnum2, col2] = getpos("'>")[1:2]
   let lines = getline(lnum1, lnum2)
@@ -80,4 +91,3 @@ fu! s:get_visual_selection()
   let lines[0] = lines[0][col1 - 1:]
   return join(lines, "\n")
 endfu
-

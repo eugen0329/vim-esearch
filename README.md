@@ -35,11 +35,7 @@ cursor in split, vertical split and in tab accordingly. Use "shift" button to op
 
 # Customization
 
-Remap \<Plug\>(easysearch) to use custom easysearch entering mapping:
-
-    map <leader>ff <Plug>(easysearch)
-
-Also, you can use the following functionons to redefine default mappings.
+Use the following functionons to redefine default mappings.
 
     call easysearch#map('<leader>ff', '<Plug>(easysearch)')
 

@@ -1,9 +1,11 @@
-call NERDTreeAddKeyMap({
-      \ 'key': '<C-f><C-f>',
-      \ 'override': 1,
-      \ 'callback': 'NERDTreeEsearchDir',
-      \ 'quickhelpText': 'Search in dir',
-      \ 'scope': 'Node' })
+for map in keys(easysearch#mappings().with_val('"<Plug>(easysearch)"'))
+  call NERDTreeAddKeyMap({
+        \ 'key': map,
+        \ 'override': 1,
+        \ 'callback': 'NERDTreeEsearchDir',
+        \ 'quickhelpText': 'Search in dir',
+        \ 'scope': 'Node' })
+endfor
 
 fu! NERDTreeEsearchDir(node)
   let path = a:node.path

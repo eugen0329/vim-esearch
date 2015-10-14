@@ -84,3 +84,12 @@ fu! easysearch#util#running(handler, pid) abort
   endif
 endfu
 
+fu! easysearch#util#set(key, val) dict
+  let self[a:key] = a:val
+  return self
+endfu
+
+
+fu! easysearch#util#with_val(val) dict
+  return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
+endfu
