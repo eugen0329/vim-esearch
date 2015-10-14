@@ -4,6 +4,23 @@ fu! easysearch#map(map, plug)
   exe 'map '.a:map.' '.a:plug
 endfu
 
+fu! easysearch#pre(visual, ...)
+  if a:visual
+    let initial_pattern = s:get_visual_selection()
+  elseif get(v:, 'hlsearch', 0)
+    let initial_pattern = getreg('/')
+  else
+    let initial_pattern = ''
+  endif
+
+  let dir = a:0 ? a:1 : $PWD
+  let str = easysearch#cmdline#read(initial_pattern, dir)
+  if str == ''
+    return ''
+  endif
+  return easysearch#start(easysearch#util#escape_str(str), dir)
+endfu
+
 fu! easysearch#start(pattern, dir)
   let results_bufname = "Search:\ '" . substitute(a:pattern, ' ', '\ ', 'g') . "'"
 
@@ -56,3 +73,13 @@ fu! s:find_buf(bufnr)
 
   return []
 endf
+
+fu! s:get_visual_selection()
+  let [lnum1, col1] = getpos("'<")[1:2]
+  let [lnum2, col2] = getpos("'>")[1:2]
+  let lines = getline(lnum1, lnum2)
+  let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
+  let lines[0] = lines[0][col1 - 1:]
+  return join(lines, "\n")
+endfu
+
