@@ -22,11 +22,12 @@ fu! s:easy_search(visual, ...)
     let initial_pattern = ''
   endif
 
-  let str = easysearch#cmdline#read(initial_pattern, (a:0 ? a:1 : ''))
+  let dir = a:0 ? a:1 : $PWD
+  let str = easysearch#cmdline#read(initial_pattern, dir)
   if str == ''
     return ''
   endif
-  return easysearch#start(easysearch#util#escape_str(str))
+  return easysearch#start(easysearch#util#escape_str(str), dir)
 endfu
 
 fu! s:get_visual_selection()

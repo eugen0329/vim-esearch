@@ -4,7 +4,7 @@ fu! easysearch#map(map, plug)
   exe 'map '.a:map.' '.a:plug
 endfu
 
-fu! easysearch#start(pattern)
+fu! easysearch#start(pattern, dir)
   let results_bufname = "Search:\ '" . substitute(a:pattern, ' ', '\ ', 'g') . "'"
 
   let results_bufnr = bufnr('^'.results_bufname.'$')
@@ -23,7 +23,7 @@ fu! easysearch#start(pattern)
   endif
 
   call easysearch#win#init()
-  exe 'Dispatch! '.s:request(a:pattern)
+  exe 'Dispatch! '.s:request(a:pattern, a:dir)
 
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
@@ -35,11 +35,12 @@ fu! easysearch#start(pattern)
   endif
 endfu
 
-fu! s:request(pattern)
+fu! s:request(pattern, dir)
   let r = g:esearch_settings.parametrize('regex')
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
-  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column "' . a:pattern  . '"'
+  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column "' .
+        \ a:pattern  . '" "' . a:dir . '"'
 endfu
 
 fu! s:find_buf(bufnr)

@@ -48,7 +48,7 @@ fu! s:prompt()
 endfu
 
 fu! s:dir_prompt(dir)
-  if empty(a:dir)
+  if a:dir ==# $PWD
     return ''
   endif
   return 'Dir: '.substitute(a:dir , $PWD, '.', '')."\n"
