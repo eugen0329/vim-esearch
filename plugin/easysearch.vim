@@ -7,6 +7,7 @@ let g:esearch_settings = easysearch#opts#new(get(g:, 'esearch_settings', {}))
 
 noremap <silent><Plug>(easysearch) :<C-u>call easysearch#pre(0)<CR>
 xnoremap <silent><Plug>(easysearch) :<C-u>call easysearch#pre(1)<CR>
+
 let mappings = easysearch#mappings().dict()
 for map in keys(mappings)
   exe 'map ' . map . ' ' . mappings[map]

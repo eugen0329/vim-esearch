@@ -39,16 +39,17 @@ Use the following functionons to redefine default mappings.
 
     call easysearch#map('<leader>ff', '<Plug>(easysearch)')
 
-    call easysearch#win#map('t',          '<Plug>(easysearch-t)')
-    call easysearch#win#map('T',          '<Plug>(easysearch-T)')
-    call easysearch#win#map('s',          '<Plug>(easysearch-s)')
-    call easysearch#win#map('v',          '<Plug>(easysearch-v)')
-    call easysearch#win#map('S',          '<Plug>(easysearch-S)')
-    call easysearch#win#map('<C-p>',      '<Plug>(easysearch-cp)')
-    call easysearch#win#map('<C-n>',      '<Plug>(easysearch-cn)')
-    call easysearch#win#map('<CR>',       '<Plug>(easysearch-cr)')
+    call easysearch#win#map('t',     '<Plug>(easysearch-t)')
+    call easysearch#win#map('T',     '<Plug>(easysearch-T)')
+    call easysearch#win#map('s',     '<Plug>(easysearch-s)')
+    call easysearch#win#map('v',     '<Plug>(easysearch-v)')
+    call easysearch#win#map('V',     '<Plug>(easysearch-V)')
+    call easysearch#win#map('S',     '<Plug>(easysearch-S)')
+    call easysearch#win#map('<C-p>', '<Plug>(easysearch-cp)')
+    call easysearch#win#map('<C-n>', '<Plug>(easysearch-cn)')
+    call easysearch#win#map('<CR>',  '<Plug>(easysearch-cr)')
 
     " Mnemonics is "(s)et (r)egex, (s)et (c)ase sesnsitive option etc.
-    call easysearch#cmdline#map('<Plug>(easysearch-regex)', '<C-s><C-r>')
-    call easysearch#cmdline#map('<Plug>(easysearch-case)',  '<C-s><C-c>')
-    call easysearch#cmdline#map('<Plug>(easysearch-word)',  '<C-s><C-w>')
+    call easysearch#cmdline#map('<C-s><C-r>', '<Plug>(easysearch-regex)')
+    call easysearch#cmdline#map('<C-s><C-c>', '<Plug>(easysearch-case)')
+    call easysearch#cmdline#map('<C-s><C-w>', '<Plug>(easysearch-word)')
