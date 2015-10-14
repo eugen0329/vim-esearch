@@ -52,6 +52,7 @@ Also, you can use the following functionons to redefine default mappings.
     call easysearch#win#map('<C-n>',      '<Plug>(easysearch-cn)')
     call easysearch#win#map('<CR>',       '<Plug>(easysearch-cr)')
 
+    " Mnemonics is "(s)et (r)egex, (s)et (c)ase sesnsitive option etc.
     call easysearch#cmdline#map('<Plug>(easysearch-regex)', '<C-s><C-r>')
-    call easysearch#cmdline#map('<Plug>(easysearch-case)',  '<C-s><C-s>')
+    call easysearch#cmdline#map('<Plug>(easysearch-case)',  '<C-s><C-c>')
     call easysearch#cmdline#map('<Plug>(easysearch-word)',  '<C-s><C-w>')

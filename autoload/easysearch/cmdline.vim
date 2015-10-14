@@ -1,6 +1,6 @@
 let s:mappings = {
       \'<Plug>(easysearch-regex)': '<C-s><C-r>',
-      \'<Plug>(easysearch-case)':  '<C-s><C-s>',
+      \'<Plug>(easysearch-case)':  '<C-s><C-c>',
       \'<Plug>(easysearch-word)':  '<C-s><C-w>',
       \}
 let s:dir_prompt = ''
@@ -20,6 +20,7 @@ fu! easysearch#cmdline#read(initial, dir)
     if s:int_pending
       let s:int_pending = 0
       let s:cmdline .= s:get_correction()
+      redraw!
     else
       break
     endif
