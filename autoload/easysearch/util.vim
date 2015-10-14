@@ -89,6 +89,13 @@ fu! easysearch#util#set(key, val) dict
   return self
 endfu
 
+fu! easysearch#util#get(key) dict
+  return self[a:key]
+endfu
+
+fu! easysearch#util#dict() dict
+  return filter(copy(self), 'type(v:val) != '.type(function("tr")))
+endfu
 
 fu! easysearch#util#with_val(val) dict
   return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)

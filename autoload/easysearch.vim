@@ -51,6 +51,8 @@ fu! easysearch#mappings()
     let s:mappings = {
           \ '<leader>ff': '<Plug>(easysearch)',
           \ 'set': function('easysearch#util#set'),
+          \ 'get': function('easysearch#util#get'),
+          \ 'dict': function('easysearch#util#dict'),
           \ 'with_val': function('easysearch#util#with_val'),
           \ }
   endif
