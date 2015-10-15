@@ -30,11 +30,11 @@ fu! easysearch#start(pattern, dir)
   else
     exe 'tabnew'
     let results_bufnr = bufnr('%')
-    exe printf("file %s", results_bufname)
+    exe printf("file '%s'", results_bufname)
   endif
 
   call easysearch#win#init()
-  exe 'Dispatch! '.s:request_str(a:pattern, a:dir)
+  exe 'silent Dispatch! '.s:request_str(a:pattern, a:dir)
 
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
