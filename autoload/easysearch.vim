@@ -16,7 +16,7 @@ fu! easysearch#pre(visual, ...)
 endfu
 
 fu! easysearch#start(pattern, dir)
-  let results_bufname = "Search:\ '" . substitute(a:pattern, ' ', '\ ', 'g') . "'"
+  let results_bufname = fnameescape("Search: '".a:pattern."'")
 
   let results_bufnr = bufnr('^'.results_bufname.'$')
   if results_bufnr > 0
@@ -30,7 +30,7 @@ fu! easysearch#start(pattern, dir)
   else
     exe 'tabnew'
     let results_bufnr = bufnr('%')
-    exe printf("file '%s'", results_bufname)
+    exe "file ".results_bufname
   endif
 
   call easysearch#win#init()
