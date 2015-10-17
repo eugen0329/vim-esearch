@@ -37,19 +37,19 @@ cursor in split, vertical split and in tab accordingly. Use "shift" button to op
 
 Use the following functionons to redefine default mappings.
 
-    call easysearch#map('<leader>ff', '<Plug>(easysearch)')
+    call esearch#map('<leader>ff', '<Plug>(esearch)')
 
-    call easysearch#win#map('t',     '<Plug>(easysearch-t)')
-    call easysearch#win#map('T',     '<Plug>(easysearch-T)')
-    call easysearch#win#map('s',     '<Plug>(easysearch-s)')
-    call easysearch#win#map('v',     '<Plug>(easysearch-v)')
-    call easysearch#win#map('V',     '<Plug>(easysearch-V)')
-    call easysearch#win#map('S',     '<Plug>(easysearch-S)')
-    call easysearch#win#map('<C-p>', '<Plug>(easysearch-cp)')
-    call easysearch#win#map('<C-n>', '<Plug>(easysearch-cn)')
-    call easysearch#win#map('<CR>',  '<Plug>(easysearch-cr)')
+    call esearch#win#map('t',     '<Plug>(esearch-t)')
+    call esearch#win#map('T',     '<Plug>(esearch-T)')
+    call esearch#win#map('s',     '<Plug>(esearch-s)')
+    call esearch#win#map('v',     '<Plug>(esearch-v)')
+    call esearch#win#map('V',     '<Plug>(esearch-V)')
+    call esearch#win#map('S',     '<Plug>(esearch-S)')
+    call esearch#win#map('<C-p>', '<Plug>(esearch-cp)')
+    call esearch#win#map('<C-n>', '<Plug>(esearch-cn)')
+    call esearch#win#map('<CR>',  '<Plug>(esearch-cr)')
 
     " Mnemonics is "(s)et (r)egex, (s)et (c)ase sesnsitive option etc.
-    call easysearch#cmdline#map('<C-s><C-r>', '<Plug>(easysearch-regex)')
-    call easysearch#cmdline#map('<C-s><C-c>', '<Plug>(easysearch-case)')
-    call easysearch#cmdline#map('<C-s><C-w>', '<Plug>(easysearch-word)')
+    call esearch#cmdline#map('<C-s><C-r>', '<Plug>(esearch-regex)')
+    call esearch#cmdline#map('<C-s><C-c>', '<Plug>(esearch-case)')
+    call esearch#cmdline#map('<C-s><C-w>', '<Plug>(esearch-word)')
