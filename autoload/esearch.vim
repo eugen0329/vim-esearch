@@ -2,7 +2,7 @@ fu! esearch#pre(visual, ...)
   if a:visual && g:esearch_settings.use.visual
     let initial_pattern = s:visual_selection()
   elseif get(v:, 'hlsearch', 0) && g:esearch_settings.use.hlsearch
-    let initial_pattern = getreg('/')
+    let initial_pattern = esearch#converters#vim2pcre(getreg('/'))
   else
     let initial_pattern = ''
   endif

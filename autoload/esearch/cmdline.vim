@@ -5,9 +5,9 @@ let s:mappings = {
       \}
 let s:dir_prompt = ''
 
-cnoremap <Plug>(easysearch-regex) <C-r>=<SID>invert('regex')<CR>
-cnoremap <Plug>(easysearch-case) <C-r>=<SID>invert('case')<CR>
-cnoremap <Plug>(easysearch-word) <C-r>=<SID>invert('word')<CR>
+cnoremap <Plug>(esearch-regex) <C-r>=<SID>invert('regex')<CR>
+cnoremap <Plug>(esearch-case) <C-r>=<SID>invert('case')<CR>
+cnoremap <Plug>(esearch-word) <C-r>=<SID>invert('word')<CR>
 
 fu! esearch#cmdline#read(initial, dir)
   let old_mapargs = s:init_mappings()
