@@ -13,45 +13,6 @@ let s:default_mappings = {
 
 let s:mappings = {}
 
-fu! easysearch#win#init()
-  setlocal noreadonly
-  setlocal modifiable
-  exe '1,$d'
-  setlocal readonly
-  setlocal nomodifiable
-  setlocal noswapfile
-  setlocal nonumber
-  setlocal buftype=nofile
-  setlocal ft=esearch
-
-  let b:updatetime_backup = &updatetime
-  let &updatetime = float2nr(g:esearch_settings.updatetime)
-
-  let b:qf = []
-  let b:pwd = $PWD
-  let b:qf_file = []
-  let b:qf_entirely_parsed = 0
-  let b:last_index    = 0
-
-  augroup EasysearchAutocommands
-    au!
-    au CursorMoved <buffer> call easysearch#handlers#cursor_moved()
-    au CursorHold  <buffer> call easysearch#handlers#cursor_hold()
-    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
-  augroup END
-
-  call s:init_mappings()
-endfu
-
-fu! easysearch#win#map(map, plug)
-  if has_key(s:mappings, a:plug)
-    let s:mappings[a:plug] = a:map
-  else
-    echoerr 'There is no such action: "'.a:plug.'"'
-  endif
-endfu
-
 fu! easysearch#win#update()
   if easysearch#util#cgetfile(b:request)
     return 1
@@ -89,23 +50,44 @@ fu! easysearch#win#update()
   let b:last_update_time = easysearch#util#timenow()
 endfu
 
-fu! s:render_results(qfrange)
-  let line = line('$')
-  let prev_filename = ''
-  for i in a:qfrange
-    let match_text  = b:qf[i].text
-    let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
+fu! easysearch#win#init()
+  setlocal noreadonly
+  setlocal modifiable
+  exe '1,$d'
+  setlocal readonly
+  setlocal nomodifiable
+  setlocal noswapfile
+  setlocal nonumber
+  setlocal buftype=nofile
+  setlocal ft=esearch
 
-    if fname !=# prev_filename
-      call setline(line, '')
-      let line += 1
-      call setline(line, fname)
-      let line += 1
-    endif
-    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(match_text, 80))
-    let line += 1
-    let prev_filename = fname
-  endfor
+  let b:updatetime_backup = &updatetime
+  let &updatetime = float2nr(g:esearch_settings.updatetime)
+
+  let b:qf = []
+  let b:pwd = $PWD
+  let b:qf_file = []
+  let b:qf_entirely_parsed = 0
+  let b:last_index    = 0
+
+  augroup EasysearchAutocommands
+    au!
+    au CursorMoved <buffer> call easysearch#handlers#cursor_moved()
+    au CursorHold  <buffer> call easysearch#handlers#cursor_hold()
+    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
+  augroup END
+
+  call s:init_mappings()
+endfu
+
+
+fu! easysearch#win#map(map, plug)
+  if has_key(s:mappings, a:plug)
+    let s:mappings[a:plug] = a:map
+  else
+    echoerr 'There is no such action: "'.a:plug.'"'
+  endif
 endfu
 
 fu! s:init_mappings()
@@ -123,6 +105,24 @@ fu! s:init_mappings()
   call extend(s:mappings, s:default_mappings, 'keep')
   for plug in keys(s:mappings)
     exe 'nmap <buffer> ' . s:mappings[plug] . ' ' . plug
+  endfor
+endfu
+
+fu! s:render_results(qfrange)
+  let line = line('$') + 1
+  for i in a:qfrange
+    let match_text  = b:qf[i].text
+    let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
+
+    if fname !=# b:prev_filename
+      call setline(line, '')
+      let line += 1
+      call setline(line, fname)
+      let line += 1
+    endif
+    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(match_text, 80))
+    let line += 1
+    let b:prev_filename = fname
   endfor
 endfu
 

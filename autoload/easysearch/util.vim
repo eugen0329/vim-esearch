@@ -5,7 +5,12 @@ fu! easysearch#util#parse_results(from, to)
 
   for i in range(a:from, a:to - 1)
     let el = matchlist(b:qf_file[i], r)[1:4]
-    if empty(el) | continue | endif
+    if empty(el)
+      " if i == a:to - 1 
+        call add(b:b, [i, a:to -1, b:qf_file[i], el]) 
+      " endif
+      continue
+    endif
     let new_result_elem = { 'fname': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3] }
     call add(results, new_result_elem)
   endfor
@@ -50,7 +55,7 @@ fu! easysearch#util#cgetfile(request) abort
   let dir = getcwd()
   try
     exe cd fnameescape(request.directory)
-    let b:qf_file = readfile(fnameescape(request.file))
+    let b:qf_file = filter(readfile(fnameescape(request.file)), '!empty(v:val)')
   catch '^E40:'
     echohl Error | echo v:exception | echohl None
   finally

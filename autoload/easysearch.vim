@@ -27,13 +27,8 @@ fu! easysearch#start(pattern, dir)
 
   let b:last_update_time = easysearch#util#timenow()
   let b:handler_running = 0
+  let b:prev_filename = ''
 
-
-  let g:b = b:request.file
-  " for i in range(0, 3)
-  "   call add( g:b , [easysearch#util#running(b:request.handler, b:request.pid), easysearch#util#request_status()])
-  "   exe 'sleep 1'
-  " endfor
   if !easysearch#util#cgetfile(b:request)
     call easysearch#win#update()
   endif
