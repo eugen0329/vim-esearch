@@ -17,22 +17,7 @@ endfu
 
 fu! easysearch#start(pattern, dir)
   let results_bufname = escape(fnameescape("Search: `".a:pattern."`"), '.')
-
-  let results_bufnr = bufnr('^'.results_bufname.'$')
-  if results_bufnr > 0
-    let buf_loc = s:find_buf(results_bufnr)
-    if buf_loc != []
-      exe 'tabn ' . buf_loc[0]
-      exe buf_loc[1].'winc w'
-    else
-      exe 'tabnew|b ' . results_bufnr
-    endif
-  else
-    exe 'tabnew'
-    let results_bufnr = bufnr('%')
-    exe "file ".results_bufname
-  endif
-
+  call s:find_or_create_buf(results_bufname)
   call easysearch#win#init()
   exe 'silent Dispatch! '.s:request_str(a:pattern, a:dir)
 
@@ -69,6 +54,21 @@ fu! s:request_str(pattern, dir)
   let w = g:esearch_settings.parametrize('word')
   return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column "' .
         \ a:pattern  . '" "' . a:dir . '"'
+endfu
+
+fu! s:find_or_create_buf(bufname)
+  let bufnr = bufnr('^'.a:bufname.'$')
+  if bufnr > 0
+    let buf_loc = s:find_buf(bufnr)
+    if empty(buf_loc)
+      exe 'tabnew|b ' . bufnr
+    else
+      exe 'tabn ' . buf_loc[0]
+      exe buf_loc[1].'winc w'
+    endif
+  else
+    exe 'tabnew|file '.a:bufname
+  endif
 endfu
 
 fu! s:find_buf(bufnr)

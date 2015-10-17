@@ -28,7 +28,7 @@ fu! easysearch#win#init()
   let &updatetime = float2nr(g:esearch_settings.updatetime)
 
   let b:qf = []
-  let b:__abs_fpaths = {}
+  let b:pwd = $PWD
   let b:qf_file = []
   let b:qf_entirely_parsed = 0
   let b:last_index    = 0
@@ -83,7 +83,6 @@ fu! easysearch#win#update()
       let fname    = substitute(b:qf[i].fname, $PWD.'/', '', '')
 
       if fname != prev_filename
-        let b:__abs_fpaths[fname] =  b:qf[i].fname
         call setline(line, '')
         let line += 1
         call setline(line, fname)
@@ -146,12 +145,15 @@ fu! s:filename()
   let lnum = search('^\%>1l[^ ]', 'bcWn')
   if lnum == 0
     let lnum = search('^\%>1l[^ ]', 'cWn')
+    if lnum == 0 | return '' | endif
   endif
 
-  if lnum == 0
+  let filename = matchstr(getline(lnum), '^\zs[^ ].\+')
+  if empty(filename)
     return ''
+  else
+    return b:pwd . '/' . filename
   endif
-  return get(b:__abs_fpaths, matchstr(getline(lnum), '^\zs[^ ].\+'), '')
 endfu
 
 fu! s:line_number()

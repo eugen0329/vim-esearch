@@ -20,18 +20,15 @@ fu! easysearch#util#trunc_str(str, size)
   return a:str
 endfu
 
-
 fu! easysearch#util#escape_str(str)
   return substitute(a:str, '[#%]', '\\\0', 'g')
   " return shellescape(a:str)
 endfu
 
-
 fu! easysearch#util#timenow()
   let now = reltime()
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
-
 
 " Extracted from tpope/dispatch
 fu! easysearch#util#request_status()
