@@ -8,7 +8,6 @@ fu! easysearch#handlers#cursor_moved()
   if s:completed()
     call easysearch#handlers#finish()
   endif
-
 endfu
 
 fu! easysearch#handlers#cursor_hold()

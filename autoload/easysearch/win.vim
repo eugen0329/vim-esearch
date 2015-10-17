@@ -58,13 +58,14 @@ fu! easysearch#win#update()
   endif
   setlocal noreadonly
   setlocal modifiable
+
+  call setline(1, len(b:qf) . ' matches')
+  call setline(2, '')
+
   " if b:last_index == len(b:qf) && len(b:qf_file) != 0
   if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
     call extend(b:qf, easysearch#util#parse_results(b:last_index, len(b:qf_file)), 'keep')
   endif
-
-  call setline(1, len(b:qf) . ' matches')
-  call setline(2, '')
 
   let qf_len = len(b:qf)
   if qf_len > b:last_index
@@ -84,7 +85,7 @@ fu! easysearch#win#update()
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
-  call s:update_statusline()
+  " exe g:esearch_settings.update_statusline_cmd
   let b:last_update_time = easysearch#util#timenow()
 endfu
 
@@ -173,12 +174,3 @@ fu! s:line_number()
 
   return matchstr(getline(lnum), '^\s\+\zs\d\+\ze.*')
 endfu
-
-fu! s:update_statusline()
-  if exists('*lightline#update_once')
-    call lightline#update_once()
-  elseif exists('AirlineRefresh')
-    AirlineRefresh
-  endif
-endfu
-

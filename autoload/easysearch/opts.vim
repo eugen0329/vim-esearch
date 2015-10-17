@@ -6,13 +6,14 @@ let s:opts_map = {
 
 fu! easysearch#opts#new(opts)
   return extend(a:opts, {
-        \'regex':       0,
-        \'case':        0,
-        \'word':        0,
-        \'updatetime':  300.0,
-        \'invert':      function('<SID>invert'),
-        \'stringify':   function('<SID>stringify'),
-        \'parametrize': function('<SID>parametrize'),
+        \ 'regex':       0,
+        \ 'case':        0,
+        \ 'word':        0,
+        \ 'updatetime':  300.0,
+        \ 'update_statusline_cmd': s:update_statusline_cmd(),
+        \ 'invert':      function('<SID>invert'),
+        \ 'stringify':   function('<SID>stringify'),
+        \ 'parametrize': function('<SID>parametrize'),
         \}, 'keep')
 endfu
 
@@ -32,4 +33,14 @@ endfu
 
 fu s:transformed(dict, key, kind)
   return s:opts_map[a:key][a:kind][a:dict[a:key]]
+endfu
+
+fu! s:update_statusline_cmd()
+  if exists('*lightline#update_once')
+    return 'call lightline#update_once()'
+  elseif exists('AirlineRefresh')
+    return 'AirlineRefresh'
+  else
+    return ''
+  endif
 endfu
