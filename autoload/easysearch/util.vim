@@ -3,9 +3,11 @@ fu! easysearch#util#parse_results(from, to)
   let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
   let results = []
 
-  for i in range(a:from, a:to - 1)
+  for i in range(a:from, a:to)
     let el = matchlist(b:qf_file[i], r)[1:4]
     if empty(el)
+      echo [i, a:to - 1, b:qf_file[i], el]
+      call getchar()
       continue
     endif
     let new_result_elem = { 'fname': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3] }
@@ -24,7 +26,6 @@ endfu
 
 fu! easysearch#util#escape_str(str)
   return substitute(a:str, '[#%]', '\\\0', 'g')
-  " return shellescape(a:str)
 endfu
 
 fu! easysearch#util#timenow()

@@ -27,7 +27,6 @@ fu! easysearch#handlers#finish()
   setlocal noreadonly
   setlocal modifiable
   call setline(1, getline(1) . '. Finished.' )
-  call setline(2, '')
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified

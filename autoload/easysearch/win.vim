@@ -21,7 +21,7 @@ fu! easysearch#win#update()
   setlocal modifiable
 
   if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
-    call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)))
+    call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)-1))
   endif
 
   let qf_len = len(b:qf)
@@ -35,7 +35,7 @@ fu! easysearch#win#update()
     endif
 
     call s:render_results(qfrange)
-    call setline(1, printf(s:header, b:_es_iterator+1))
+    call setline(1, printf(s:header, b:_es_iterator))
   endif
 
   setlocal readonly
@@ -88,7 +88,7 @@ fu! easysearch#win#init()
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d'
-  call setline(1, printf(s:header, b:_es_iterator+1))
+  call setline(1, printf(s:header, b:_es_iterator))
   setlocal readonly
   setlocal nomodifiable
   setlocal noswapfile
