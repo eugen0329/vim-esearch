@@ -1,4 +1,3 @@
-let s:easysearch_batch_size = 1500
 let s:default_mappings = {
       \ '<Plug>(easysearch-T)': 'T',
       \ '<Plug>(easysearch-t)': 't',
@@ -21,7 +20,6 @@ fu! easysearch#win#update()
   setlocal modifiable
 
   call setline(1, len(b:qf) . ' matches')
-  call setline(2, '')
 
   " if b:last_index == len(b:qf) && len(b:qf_file) != 0
   if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
@@ -30,13 +28,13 @@ fu! easysearch#win#update()
 
   let qf_len = len(b:qf)
   if qf_len > b:last_index
-    if qf_len - b:last_index  < s:easysearch_batch_size
+    if qf_len - b:last_index  < g:esearch_settings.batch_size
       let qfrange = range(b:last_index, qf_len - 1)
       let b:last_index = qf_len
       " let b:qf_entirely_parsed = 1
     else
-      let qfrange = range(b:last_index, b:last_index + s:easysearch_batch_size - 1)
-      let b:last_index += s:easysearch_batch_size
+      let qfrange = range(b:last_index, b:last_index + g:esearch_settings.batch_size - 1)
+      let b:last_index += g:esearch_settings.batch_size
       let b:qf_entirely_parsed = 0
     endif
 
