@@ -20,9 +20,7 @@ fu! easysearch#win#update()
   setlocal noreadonly
   setlocal modifiable
 
-  if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
-    call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)-1))
-  endif
+  call s:extend_results()
 
   let qf_len = len(b:qf)
   if qf_len > b:_es_iterator
@@ -43,6 +41,18 @@ fu! easysearch#win#update()
   setlocal nomodified
   " exe g:esearch_settings.update_statusline_cmd
   let b:last_update_time = easysearch#util#timenow()
+endfu
+
+fu! s:extend_results()
+  if b:handler_running
+    if len(b:qf) < len(b:qf_file) - 1 && !empty(b:qf_file)
+      call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)-2))
+    endif
+  else
+    if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
+      call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)-1))
+    endif
+  endif
 endfu
 
 fu! s:render_results(qfrange)
@@ -84,6 +94,7 @@ fu! easysearch#win#init()
   let b:_es_iterator    = 0
   let b:handler_running = 0
   let b:prev_filename = ''
+  let b:broken_results = []
 
   setlocal noreadonly
   setlocal modifiable
