@@ -53,23 +53,25 @@ fu! easysearch#win#map(map, plug)
 endfu
 
 fu! easysearch#win#update()
+  if easysearch#util#cgetfile(b:request)
+    return 1
+  endif
   setlocal noreadonly
   setlocal modifiable
-
-  if b:last_index == len(b:qf) && len(b:qf_file) != 0
-    call extend(b:qf, easysearch#util#parse_results(b:last_index, len(b:qf_file)))
+  " if b:last_index == len(b:qf) && len(b:qf_file) != 0
+  if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
+    call extend(b:qf, easysearch#util#parse_results(b:last_index, len(b:qf_file)), 'keep')
   endif
-  let results_count = len(b:qf)
 
-  call setline(1, results_count . ' matches')
+  call setline(1, len(b:qf) . ' matches')
   call setline(2, '')
 
   let qf_len = len(b:qf)
   if qf_len > b:last_index
-    if easysearch#util#running(b:request.handler, b:request.pid) || qf_len - b:last_index + 1 <= s:easysearch_batch_size
+    if qf_len - b:last_index  < s:easysearch_batch_size
       let qfrange = range(b:last_index, qf_len - 1)
       let b:last_index = qf_len
-      let b:qf_entirely_parsed = 1
+      " let b:qf_entirely_parsed = 1
     else
       let qfrange = range(b:last_index, b:last_index + s:easysearch_batch_size - 1)
       let b:last_index += s:easysearch_batch_size
@@ -106,13 +108,13 @@ fu! s:render_results(qfrange)
 endfu
 
 fu! s:init_mappings()
-  nnoremap <silent><buffer> <Plug>(easysearch-t)   :call <sid>open('tabnew', 0)<cr>
-  nnoremap <silent><buffer> <Plug>(easysearch-T)   :call <SID>open('tabnew', 1, 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-s)   :call <SID>open('new', 0)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-S)   :call <SID>open('new', 1, 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-v)   :call <SID>open('vnew',  0)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('vnew', 1, 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('edit', 0)<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-t)   :call <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(easysearch-T)   :call <SID>open('tabnew', 'tabprevious')<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-s)   :call <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-S)   :call <SID>open('new', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-v)   :call <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('vnew', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('edit')<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-Nop) <Nop>
@@ -123,14 +125,14 @@ fu! s:init_mappings()
   endfor
 endfu
 
-fu! s:open(cmd, silent, ...)
+fu! s:open(cmd, ...)
   let new_cursor_pos = [s:line_number(), 1]
   let fname = s:filename()
   if !empty(fname)
-    exe a:cmd . '|e ' . fname
+    exe a:cmd . ' ' . fname
     call cursor(new_cursor_pos)
     norm! zz
-    if a:silent | exe a:1 | endif
+    if a:0 | exe a:1 | endif
   endif
 endfu
 
