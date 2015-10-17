@@ -138,7 +138,7 @@ endfu
 
 fu! s:move(direction)
   let pattern = '^\s\+\d\+\s\+.*'
-  if a:direction == 1
+  if line('.') < 4 || a:direction == 1
     call search(pattern, 'W')
   else
     call search(pattern, 'Wbe')
