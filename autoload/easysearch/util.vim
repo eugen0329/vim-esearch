@@ -6,9 +6,6 @@ fu! easysearch#util#parse_results(from, to)
   for i in range(a:from, a:to - 1)
     let el = matchlist(b:qf_file[i], r)[1:4]
     if empty(el)
-      " if i == a:to - 1 
-        call add(b:b, [i, a:to -1, b:qf_file[i], el]) 
-      " endif
       continue
     endif
     let new_result_elem = { 'fname': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3] }

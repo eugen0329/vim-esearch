@@ -10,7 +10,7 @@ fu! easysearch#opts#new(opts)
         \ 'case':        0,
         \ 'word':        0,
         \ 'updatetime':  300.0,
-        \ 'batch_size':  1000,
+        \ 'batch_size':  2000,
         \ 'update_statusline_cmd': s:update_statusline_cmd(),
         \ 'invert':      function('<SID>invert'),
         \ 'stringify':   function('<SID>stringify'),

@@ -21,7 +21,7 @@ fu! easysearch#handlers#cursor_hold()
 endfu
 
 fu! easysearch#handlers#finish()
-  au! EasysearchAutocommands
+  au! EasysearchAutocommands * <buffer>
   let &updatetime = float2nr(b:updatetime_backup)
 
   setlocal noreadonly
@@ -34,5 +34,5 @@ fu! easysearch#handlers#finish()
 endfu
 
 fu! s:completed()
-  return !b:handler_running && b:last_index == len(b:qf)
+  return !b:handler_running && b:_es_iterator == len(b:qf)
 endfu

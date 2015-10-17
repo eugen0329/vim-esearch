@@ -25,10 +25,6 @@ fu! easysearch#start(pattern, dir)
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
 
-  let b:last_update_time = easysearch#util#timenow()
-  let b:handler_running = 0
-  let b:prev_filename = ''
-
   if !easysearch#util#cgetfile(b:request)
     call easysearch#win#update()
   endif

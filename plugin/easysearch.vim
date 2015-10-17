@@ -14,5 +14,4 @@ for map in keys(mappings)
 endfor
 
 command! -nargs=1 ESearch call easysearch#start(<f-args>, $PWD)
-
-let g:b = 0
+let g:c = 0

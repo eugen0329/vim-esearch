@@ -11,6 +11,7 @@ let s:default_mappings = {
       \ }
 
 let s:mappings = {}
+let s:header = '%d matches'
 
 fu! easysearch#win#update()
   if easysearch#util#cgetfile(b:request)
@@ -19,26 +20,22 @@ fu! easysearch#win#update()
   setlocal noreadonly
   setlocal modifiable
 
-  call setline(1, len(b:qf) . ' matches')
-
-  " if b:last_index == len(b:qf) && len(b:qf_file) != 0
   if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
-    call extend(b:qf, easysearch#util#parse_results(b:last_index, len(b:qf_file)), 'keep')
+    call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)))
   endif
 
   let qf_len = len(b:qf)
-  if qf_len > b:last_index
-    if qf_len - b:last_index  < g:esearch_settings.batch_size
-      let qfrange = range(b:last_index, qf_len - 1)
-      let b:last_index = qf_len
-      " let b:qf_entirely_parsed = 1
+  if qf_len > b:_es_iterator
+    if qf_len - b:_es_iterator - 1 <= g:esearch_settings.batch_size
+      let qfrange = range(b:_es_iterator, qf_len - 1)
+      let b:_es_iterator = qf_len
     else
-      let qfrange = range(b:last_index, b:last_index + g:esearch_settings.batch_size - 1)
-      let b:last_index += g:esearch_settings.batch_size
-      let b:qf_entirely_parsed = 0
+      let qfrange = range(b:_es_iterator, b:_es_iterator + g:esearch_settings.batch_size - 1)
+      let b:_es_iterator += g:esearch_settings.batch_size
     endif
 
     call s:render_results(qfrange)
+    call setline(1, printf(s:header, b:_es_iterator+1))
   endif
 
   setlocal readonly
@@ -48,16 +45,34 @@ fu! easysearch#win#update()
   let b:last_update_time = easysearch#util#timenow()
 endfu
 
+fu! s:render_results(qfrange)
+  let line = line('$') + 1
+  for i in a:qfrange
+    let context  = b:qf[i].text
+    let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
+
+    if fname !=# b:prev_filename
+      call setline(line, '')
+      let line += 1
+      call setline(line, fname)
+      let line += 1
+    endif
+    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(context, 80))
+    let line += 1
+    let b:prev_filename = fname
+  endfor
+endfu
+
 fu! easysearch#win#init()
-  setlocal noreadonly
-  setlocal modifiable
-  exe '1,$d'
-  setlocal readonly
-  setlocal nomodifiable
-  setlocal noswapfile
-  setlocal nonumber
-  setlocal buftype=nofile
-  setlocal ft=esearch
+  augroup EasysearchAutocommands
+    au! * <buffer>
+    au CursorMoved <buffer> call easysearch#handlers#cursor_moved()
+    au CursorHold  <buffer> call easysearch#handlers#cursor_hold()
+    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
+  augroup END
+
+  call s:init_mappings()
 
   let b:updatetime_backup = &updatetime
   let &updatetime = float2nr(g:esearch_settings.updatetime)
@@ -66,17 +81,22 @@ fu! easysearch#win#init()
   let b:pwd = $PWD
   let b:qf_file = []
   let b:qf_entirely_parsed = 0
-  let b:last_index    = 0
+  let b:_es_iterator    = 0
+  let b:handler_running = 0
+  let b:prev_filename = ''
 
-  augroup EasysearchAutocommands
-    au!
-    au CursorMoved <buffer> call easysearch#handlers#cursor_moved()
-    au CursorHold  <buffer> call easysearch#handlers#cursor_hold()
-    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
-  augroup END
+  setlocal noreadonly
+  setlocal modifiable
+  exe '1,$d'
+  call setline(1, printf(s:header, b:_es_iterator+1))
+  setlocal readonly
+  setlocal nomodifiable
+  setlocal noswapfile
+  setlocal nonumber
+  setlocal buftype=nofile
+  setlocal ft=esearch
 
-  call s:init_mappings()
+  let b:last_update_time = easysearch#util#timenow()
 endfu
 
 
@@ -103,24 +123,6 @@ fu! s:init_mappings()
   call extend(s:mappings, s:default_mappings, 'keep')
   for plug in keys(s:mappings)
     exe 'nmap <buffer> ' . s:mappings[plug] . ' ' . plug
-  endfor
-endfu
-
-fu! s:render_results(qfrange)
-  let line = line('$') + 1
-  for i in a:qfrange
-    let match_text  = b:qf[i].text
-    let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
-
-    if fname !=# b:prev_filename
-      call setline(line, '')
-      let line += 1
-      call setline(line, fname)
-      let line += 1
-    endif
-    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(match_text, 80))
-    let line += 1
-    let b:prev_filename = fname
   endfor
 endfu
 
