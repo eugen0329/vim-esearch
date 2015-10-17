@@ -1,4 +1,4 @@
-for map in keys(easysearch#mappings().with_val('"<Plug>(easysearch)"'))
+for map in keys(esearch#mappings().with_val('"<Plug>(esearch)"'))
   call NERDTreeAddKeyMap({
         \ 'key': map,
         \ 'override': 1,
@@ -10,8 +10,8 @@ endfor
 fu! NERDTreeEsearchDir(node)
   let path = a:node.path
   if path.isDirectory && !a:node.isRoot()
-    call easysearch#pre(0, path.str())
+    call esearch#pre(0, path.str())
   else
-    call easysearch#pre(0)
+    call esearch#pre(0)
   endif
 endfu

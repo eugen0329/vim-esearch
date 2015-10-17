@@ -1,7 +1,7 @@
 let s:mappings = {
-      \'<Plug>(easysearch-regex)': '<C-s><C-r>',
-      \'<Plug>(easysearch-case)':  '<C-s><C-c>',
-      \'<Plug>(easysearch-word)':  '<C-s><C-w>',
+      \'<Plug>(esearch-regex)': '<C-s><C-r>',
+      \'<Plug>(esearch-case)':  '<C-s><C-c>',
+      \'<Plug>(esearch-word)':  '<C-s><C-w>',
       \}
 let s:dir_prompt = ''
 
@@ -9,7 +9,7 @@ cnoremap <Plug>(easysearch-regex) <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(easysearch-case) <C-r>=<SID>invert('case')<CR>
 cnoremap <Plug>(easysearch-word) <C-r>=<SID>invert('word')<CR>
 
-fu! easysearch#cmdline#read(initial, dir)
+fu! esearch#cmdline#read(initial, dir)
   let old_mapargs = s:init_mappings()
   let s:dir_prompt = s:dir_prompt(a:dir)
   let s:cmdline = a:initial
@@ -32,12 +32,8 @@ fu! easysearch#cmdline#read(initial, dir)
 endfu
 
 
-fu! easysearch#cmdline#map(map, plug)
-  " if has_key(s:mappings, a:plug)
+fu! esearch#cmdline#map(map, plug)
     let s:mappings[a:plug] = a:map
-  " else
-  "   echoerr 'There is no such action: "' . a:plug . '"'
-  " endif
 endfu
 
 

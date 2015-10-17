@@ -4,7 +4,7 @@ let s:opts_map = {
       \'word':    { 'p': ['', '-w'], 's': ['>', 'w'] },
       \}
 
-fu! easysearch#opts#new(opts)
+fu! esearch#opts#new(opts)
   return extend(a:opts, {
         \ 'regex':       0,
         \ 'case':        0,

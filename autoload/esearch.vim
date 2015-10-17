@@ -1,4 +1,4 @@
-fu! easysearch#pre(visual, ...)
+fu! esearch#pre(visual, ...)
   if a:visual && g:esearch_settings.use.visual
     let initial_pattern = s:visual_selection()
   elseif get(v:, 'hlsearch', 0) && g:esearch_settings.use.hlsearch
@@ -8,43 +8,43 @@ fu! easysearch#pre(visual, ...)
   endif
 
   let dir = a:0 ? a:1 : $PWD
-  let str = easysearch#cmdline#read(initial_pattern, dir)
+  let str = esearch#cmdline#read(initial_pattern, dir)
   if str == ''
     return ''
   endif
-  return easysearch#start(easysearch#util#escape_str(str), dir)
+  return esearch#start(esearch#util#escape_str(str), dir)
 endfu
 
-fu! easysearch#start(pattern, dir)
+fu! esearch#start(pattern, dir)
   let results_bufname = escape(fnameescape("Search: `".a:pattern."`"), '.')
   call s:find_or_create_buf(results_bufname)
-  call easysearch#win#init()
+  call esearch#win#init()
   exe 'silent Dispatch! '.s:request_str(a:pattern, a:dir)
 
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
 
-  if !easysearch#util#cgetfile(b:request)
-    call easysearch#win#update()
+  if !esearch#util#cgetfile(b:request)
+    call esearch#win#update()
   endif
 endfu
 
-fu! easysearch#mappings()
+fu! esearch#mappings()
   if !exists('s:mappings')
     let s:mappings = {
-          \ '<leader>ff': '<Plug>(easysearch)',
-          \ 'set': function('easysearch#util#set'),
-          \ 'get': function('easysearch#util#get'),
-          \ 'dict': function('easysearch#util#dict'),
-          \ 'with_val': function('easysearch#util#with_val'),
+          \ '<leader>ff': '<Plug>(esearch)',
+          \ 'set': function('esearch#util#set'),
+          \ 'get': function('esearch#util#get'),
+          \ 'dict': function('esearch#util#dict'),
+          \ 'with_val': function('esearch#util#with_val'),
           \ }
   endif
   return s:mappings
 endfu
 
-fu! easysearch#map(map, plug)
-  call easysearch#mappings().set(a:map, a:plug)
+fu! esearch#map(map, plug)
+  call esearch#mappings().set(a:map, a:plug)
 endfu
 
 fu! s:request_str(pattern, dir)

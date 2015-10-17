@@ -1,20 +1,20 @@
 let s:default_mappings = {
-      \ '<Plug>(easysearch-T)': 'T',
-      \ '<Plug>(easysearch-t)': 't',
-      \ '<Plug>(easysearch-s)': 's',
-      \ '<Plug>(easysearch-S)': 'S',
-      \ '<Plug>(easysearch-v)': 'v',
-      \ '<Plug>(easysearch-V)': 'V',
-      \ '<Plug>(easysearch-cr)': '<CR>',
-      \ '<Plug>(easysearch-cp)': '<C-p>',
-      \ '<Plug>(easysearch-cn)': '<C-n>',
+      \ '<Plug>(esearch-T)': 'T',
+      \ '<Plug>(esearch-t)': 't',
+      \ '<Plug>(esearch-s)': 's',
+      \ '<Plug>(esearch-S)': 'S',
+      \ '<Plug>(esearch-v)': 'v',
+      \ '<Plug>(esearch-V)': 'V',
+      \ '<Plug>(esearch-cr)': '<CR>',
+      \ '<Plug>(esearch-cp)': '<C-p>',
+      \ '<Plug>(esearch-cn)': '<C-n>',
       \ }
 
 let s:mappings = {}
 let s:header = '%d matches'
 
-fu! easysearch#win#update()
-  if easysearch#util#cgetfile(b:request)
+fu! esearch#win#update()
+  if esearch#util#cgetfile(b:request)
     return 1
   endif
   setlocal noreadonly
@@ -40,17 +40,17 @@ fu! easysearch#win#update()
   setlocal nomodifiable
   setlocal nomodified
   " exe g:esearch_settings.update_statusline_cmd
-  let b:last_update_time = easysearch#util#timenow()
+  let b:last_update_time = esearch#util#timenow()
 endfu
 
 fu! s:extend_results()
   if b:handler_running
     if len(b:qf) < len(b:qf_file) - 1 && !empty(b:qf_file)
-      call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)-2))
+      call extend(b:qf, esearch#util#parse_results(len(b:qf), len(b:qf_file)-2))
     endif
   else
     if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
-      call extend(b:qf, easysearch#util#parse_results(len(b:qf), len(b:qf_file)-1))
+      call extend(b:qf, esearch#util#parse_results(len(b:qf), len(b:qf_file)-1))
     endif
   endif
 endfu
@@ -67,17 +67,17 @@ fu! s:render_results(qfrange)
       call setline(line, fname)
       let line += 1
     endif
-    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(context, 80))
+    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.esearch#util#trunc_str(context, 80))
     let line += 1
     let b:prev_filename = fname
   endfor
 endfu
 
-fu! easysearch#win#init()
+fu! esearch#win#init()
   augroup EasysearchAutocommands
     au! * <buffer>
-    au CursorMoved <buffer> call easysearch#handlers#cursor_moved()
-    au CursorHold  <buffer> call easysearch#handlers#cursor_hold()
+    au CursorMoved <buffer> call esearch#handlers#cursor_moved()
+    au CursorHold  <buffer> call esearch#handlers#cursor_hold()
     au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
     au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
   augroup END
@@ -107,11 +107,11 @@ fu! easysearch#win#init()
   setlocal buftype=nofile
   setlocal ft=esearch
 
-  let b:last_update_time = easysearch#util#timenow()
+  let b:last_update_time = esearch#util#timenow()
 endfu
 
 
-fu! easysearch#win#map(map, plug)
+fu! esearch#win#map(map, plug)
   if has_key(s:mappings, a:plug)
     let s:mappings[a:plug] = a:map
   else
@@ -120,16 +120,16 @@ fu! easysearch#win#map(map, plug)
 endfu
 
 fu! s:init_mappings()
-  nnoremap <silent><buffer> <Plug>(easysearch-t)   :call <sid>open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(easysearch-T)   :call <SID>open('tabnew', 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-s)   :call <SID>open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-S)   :call <SID>open('new', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-v)   :call <SID>open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('vnew', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-Nop) <Nop>
+  nnoremap <silent><buffer> <Plug>(esearch-t)   :call <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-T)   :call <SID>open('tabnew', 'tabprevious')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-s)   :call <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-S)   :call <SID>open('new', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-v)   :call <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-V)   :call <SID>open('vnew', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-cr)  :call <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
   for plug in keys(s:mappings)

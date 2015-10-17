@@ -1,4 +1,4 @@
-fu! easysearch#util#parse_results(from, to)
+fu! esearch#util#parse_results(from, to)
   if empty(b:qf_file) | return [] | endif
   let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
   let results = []
@@ -17,7 +17,7 @@ fu! easysearch#util#parse_results(from, to)
   return results
 endfu
 
-fu! easysearch#util#trunc_str(str, size)
+fu! esearch#util#trunc_str(str, size)
   if len(a:str) > a:size
     return a:str[:a:size] . '…'
   endif
@@ -25,17 +25,17 @@ fu! easysearch#util#trunc_str(str, size)
   return a:str
 endfu
 
-fu! easysearch#util#escape_str(str)
+fu! esearch#util#escape_str(str)
   return substitute(a:str, '[#%]', '\\\0', 'g')
 endfu
 
-fu! easysearch#util#timenow()
+fu! esearch#util#timenow()
   let now = reltime()
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
 " Extracted from tpope/dispatch
-fu! easysearch#util#request_status()
+fu! esearch#util#request_status()
   let request = b:request
   try
     let status = str2nr(readfile(request.file . '.complete', 1)[0])
@@ -45,8 +45,8 @@ fu! easysearch#util#request_status()
   return status
 endfu
 
-fu! easysearch#util#cgetfile(request) abort
-  let b:handler_running = easysearch#util#running(b:request.handler, b:request.pid)
+fu! esearch#util#cgetfile(request) abort
+  let b:handler_running = esearch#util#running(b:request.handler, b:request.pid)
   let request = a:request
   if !filereadable(fnameescape(request.file)) | return 1 | endif
 
@@ -64,7 +64,7 @@ fu! easysearch#util#cgetfile(request) abort
   return 0
 endfu
 
-fu! easysearch#util#running(handler, pid) abort
+fu! esearch#util#running(handler, pid) abort
   if empty(a:pid)
     return 0
   elseif exists('*dispatch#'.a:handler.'#running')
@@ -81,19 +81,19 @@ fu! easysearch#util#running(handler, pid) abort
   endif
 endfu
 
-fu! easysearch#util#set(key, val) dict
+fu! esearch#util#set(key, val) dict
   let self[a:key] = a:val
   return self
 endfu
 
-fu! easysearch#util#get(key) dict
+fu! esearch#util#get(key) dict
   return self[a:key]
 endfu
 
-fu! easysearch#util#dict() dict
+fu! esearch#util#dict() dict
   return filter(copy(self), 'type(v:val) != '.type(function("tr")))
 endfu
 
-fu! easysearch#util#with_val(val) dict
+fu! esearch#util#with_val(val) dict
   return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
 endfu
