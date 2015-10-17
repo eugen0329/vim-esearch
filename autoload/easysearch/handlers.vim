@@ -1,27 +1,20 @@
 fu! easysearch#handlers#cursor_moved()
-  if  easysearch#util#timenow() < &updatetime/1000.0 + b:last_update_time
+  if easysearch#util#timenow() < &updatetime/1000.0 + b:last_update_time
     return -1
   endif
 
-  let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
+  call easysearch#win#update()
 
-  if !easysearch#util#cgetfile(b:request)
-    call easysearch#win#update()
-  endif
-  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
+  if s:completed()
     call easysearch#handlers#finish()
   endif
 
 endfu
 
 fu! easysearch#handlers#cursor_hold()
-  let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
+  call easysearch#win#update()
 
-  if !easysearch#util#cgetfile(b:request)
-    call easysearch#win#update()
-  endif
-
-  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
+  if s:completed()
     call easysearch#handlers#finish()
   else
     call feedkeys('\<Plug>(easysearch-Nop)')
@@ -39,4 +32,8 @@ fu! easysearch#handlers#finish()
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
+endfu
+
+fu! s:completed()
+  return !b:handler_running && b:last_index == len(b:qf)
 endfu

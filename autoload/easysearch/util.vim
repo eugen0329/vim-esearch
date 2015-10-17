@@ -42,23 +42,18 @@ fu! easysearch#util#request_status()
 endfu
 
 fu! easysearch#util#cgetfile(request) abort
+  let b:handler_running = easysearch#util#running(b:request.handler, b:request.pid)
   let request = a:request
   if !filereadable(fnameescape(request.file)) | return 1 | endif
 
-  let efm = &l:efm
-  let makeprg = &l:makeprg
-  let compiler = get(b:, 'current_compiler', '')
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let dir = getcwd()
-  let modelines = &modelines
   try
-    let &modelines = 0
     exe cd fnameescape(request.directory)
     let b:qf_file = readfile(fnameescape(request.file))
   catch '^E40:'
     echohl Error | echo v:exception | echohl None
   finally
-    let &modelines = modelines
     exe cd fnameescape(dir)
   endtry
 
