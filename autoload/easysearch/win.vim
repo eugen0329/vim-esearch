@@ -76,22 +76,7 @@ fu! easysearch#win#update()
       let b:qf_entirely_parsed = 0
     endif
 
-    let line = line('$')
-    let prev_filename = -1
-    for i in l:qfrange
-      let match_text  = b:qf[i].text
-      let fname    = substitute(b:qf[i].fname, $PWD.'/', '', '')
-
-      if fname != prev_filename
-        call setline(line, '')
-        let line += 1
-        call setline(line, fname)
-        let line += 1
-      endif
-      call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(match_text, 80))
-      let line += 1
-      let prev_filename = fname
-    endfor
+    call s:render_results(qfrange)
   endif
 
   setlocal readonly
@@ -99,6 +84,25 @@ fu! easysearch#win#update()
   setlocal nomodified
   call s:update_statusline()
   let b:last_update_time = easysearch#util#timenow()
+endfu
+
+fu! s:render_results(qfrange)
+  let line = line('$')
+  let prev_filename = ''
+  for i in a:qfrange
+    let match_text  = b:qf[i].text
+    let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
+
+    if fname !=# prev_filename
+      call setline(line, '')
+      let line += 1
+      call setline(line, fname)
+      let line += 1
+    endif
+    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.easysearch#util#trunc_str(match_text, 80))
+    let line += 1
+    let prev_filename = fname
+  endfor
 endfu
 
 fu! s:init_mappings()
@@ -109,8 +113,8 @@ fu! s:init_mappings()
   nnoremap <silent><buffer> <Plug>(easysearch-v)   :call <SID>open('vnew',  0)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-V)   :call <SID>open('vnew', 1, 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-cr)  :call <SID>open('edit', 0)<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>exe <SID>move(1)<Bar>norm! w<CR>
-  nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>exe <SID>move(-1)<Bar>norm! w<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
+  nnoremap <silent><buffer> <Plug>(easysearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
   nnoremap <silent><buffer> <Plug>(easysearch-Nop) <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
@@ -131,14 +135,14 @@ fu! s:open(cmd, silent, ...)
 endfu
 
 fu! s:move(direction)
-  let pattern = '^\s\+\d\+\s\+\zs.*'
+  let pattern = '^\s\+\d\+\s\+.*'
   if a:direction == 1
     call search(pattern, 'W')
   else
     call search(pattern, 'Wbe')
   endif
 
-  return '.'
+  return '.|norm! w'
 endfu
 
 fu! s:filename()
