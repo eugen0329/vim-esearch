@@ -1,7 +1,7 @@
 fu! easysearch#pre(visual, ...)
-  if a:visual
+  if a:visual && g:esearch_settings.use.visual
     let initial_pattern = s:visual_selection()
-  elseif get(v:, 'hlsearch', 0)
+  elseif get(v:, 'hlsearch', 0) && g:esearch_settings.use.hlsearch
     let initial_pattern = getreg('/')
   else
     let initial_pattern = ''

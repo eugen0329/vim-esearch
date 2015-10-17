@@ -11,6 +11,7 @@ fu! easysearch#opts#new(opts)
         \ 'word':        0,
         \ 'updatetime':  300.0,
         \ 'batch_size':  2000,
+        \ 'use': { 'visual': 1, 'hlsearch': 1 },
         \ 'update_statusline_cmd': s:update_statusline_cmd(),
         \ 'invert':      function('<SID>invert'),
         \ 'stringify':   function('<SID>stringify'),
