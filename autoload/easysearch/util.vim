@@ -22,7 +22,8 @@ endfu
 
 
 fu! easysearch#util#escape_str(str)
-  return substitute(a:str, '["#$%]', '\\\0', 'g')
+  return substitute(a:str, '[#%]', '\\\0', 'g')
+  " return shellescape(a:str)
 endfu
 
 

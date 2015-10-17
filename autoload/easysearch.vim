@@ -16,7 +16,7 @@ fu! easysearch#pre(visual, ...)
 endfu
 
 fu! easysearch#start(pattern, dir)
-  let results_bufname = fnameescape("Search: '".a:pattern."'")
+  let results_bufname = escape(fnameescape("Search: `".a:pattern."`"), '.')
 
   let results_bufnr = bufnr('^'.results_bufname.'$')
   if results_bufnr > 0
@@ -42,7 +42,7 @@ fu! easysearch#start(pattern, dir)
 
   let b:last_update_time = easysearch#util#timenow()
   if !easysearch#util#cgetfile(b:request)
-    call easysearch#win#update(0)
+    call easysearch#win#update()
   endif
 endfu
 

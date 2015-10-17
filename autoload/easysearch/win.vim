@@ -52,7 +52,7 @@ fu! easysearch#win#map(map, plug)
   endif
 endfu
 
-fu! easysearch#win#update(...)
+fu! easysearch#win#update()
   setlocal noreadonly
   setlocal modifiable
 
@@ -61,7 +61,7 @@ fu! easysearch#win#update(...)
   endif
   let results_count = len(b:qf)
 
-  call setline(1, results_count . ' matches' . (len(a:000) > 0 && a:1 == 1 ? '. Finished.' : ''))
+  call setline(1, results_count . ' matches')
   call setline(2, '')
 
   let qf_len = len(b:qf)

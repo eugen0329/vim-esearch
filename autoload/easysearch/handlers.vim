@@ -4,30 +4,39 @@ fu! easysearch#handlers#cursor_moved()
   endif
 
   let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
-  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
-    exe 'au! EasysearchAutocommands'
-    let &updatetime = float2nr(b:updatetime_backup)
 
-    call easysearch#util#cgetfile(b:request)
-    call easysearch#win#update(1)
-  else
-    if !easysearch#util#cgetfile(b:request)
-      call easysearch#win#update(0)
-    endif
+  if !easysearch#util#cgetfile(b:request)
+    call easysearch#win#update()
   endif
+  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
+    call easysearch#handlers#finish()
+  endif
+
 endfu
+
 fu! easysearch#handlers#cursor_hold()
   let qf_entirely_parsed = len(b:qf_file) == b:last_index && b:qf_entirely_parsed
-  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
-    exe 'au! EasysearchAutocommands'
-    let &updatetime = float2nr(b:updatetime_backup)
-    let b:request.background = 0
 
-    call easysearch#win#update(1)
+  if !easysearch#util#cgetfile(b:request)
+    call easysearch#win#update()
+  endif
+
+  if !easysearch#util#running(b:request.handler, b:request.pid) && qf_entirely_parsed
+    call easysearch#handlers#finish()
   else
-    if !easysearch#util#cgetfile(b:request)
-      call easysearch#win#update(0)
-    endif
     call feedkeys('\<Plug>(easysearch-Nop)')
   endif
+endfu
+
+fu! easysearch#handlers#finish()
+  au! EasysearchAutocommands
+  let &updatetime = float2nr(b:updatetime_backup)
+
+  setlocal noreadonly
+  setlocal modifiable
+  call setline(1, getline(1) . '. Finished.' )
+  call setline(2, '')
+  setlocal readonly
+  setlocal nomodifiable
+  setlocal nomodified
 endfu
