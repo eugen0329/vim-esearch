@@ -36,7 +36,9 @@ fu! esearch#start(exp, dir)
   let b:exp = a:exp
 
   if g:esearch_settings.highlight_match
-    let b:esearch_match = matchadd('EsearchMatch', '\%>2l\s\+\d\+\s.*\zs'.b:exp.vim)
+    let p = '\%>2l\s\+\d\+\s.*\zs'.b:exp.vim
+    if !g:esearch_settings.case | let p = '\c'.p | endif
+    let b:esearch_match = matchadd('EsearchMatch', p)
   endif
 
   if !esearch#util#cgetfile(b:request)

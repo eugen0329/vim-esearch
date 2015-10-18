@@ -58,8 +58,9 @@ endfu
 fu! s:render_results(qfrange)
   let line = line('$') + 1
   for i in a:qfrange
-    let context  = b:qf[i].text
     let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
+    let context  = esearch#util#trunc_str(b:qf[i].text,
+          \ g:esearch_settings.context_width)
 
     if fname !=# b:prev_filename
       call setline(line, '')
@@ -67,7 +68,7 @@ fu! s:render_results(qfrange)
       call setline(line, './'.fname)
       let line += 1
     endif
-    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.esearch#util#trunc_str(context, 80))
+    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.context)
     let b:_es_columns[line] = b:qf[i].col
     let line += 1
     let b:prev_filename = fname

@@ -11,6 +11,7 @@ fu! esearch#opts#new(opts)
         \ 'word':            0,
         \ 'updatetime':      300.0,
         \ 'batch_size':      2000,
+        \ 'context_width':   120,
         \ 'recover_regex':   1,
         \ 'highlight_match': 1,
         \ 'use': { 'visual': 1, 'hlsearch': 1 },
