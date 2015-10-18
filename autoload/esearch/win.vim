@@ -1,13 +1,13 @@
 let s:default_mappings = {
-      \ '<Plug>(esearch-T)': 'T',
-      \ '<Plug>(esearch-t)': 't',
-      \ '<Plug>(esearch-s)': 's',
-      \ '<Plug>(esearch-S)': 'S',
-      \ '<Plug>(esearch-v)': 'v',
-      \ '<Plug>(esearch-V)': 'V',
-      \ '<Plug>(esearch-cr)': '<CR>',
-      \ '<Plug>(esearch-cp)': '<C-p>',
-      \ '<Plug>(esearch-cn)': '<C-n>',
+      \ 'T': '<Plug>(esearch-T)',
+      \ 't': '<Plug>(esearch-t)',
+      \ 's': '<Plug>(esearch-s)',
+      \ 'S': '<Plug>(esearch-S)',
+      \ 'v': '<Plug>(esearch-v)',
+      \ 'V': '<Plug>(esearch-V)',
+      \ '<CR>': '<Plug>(esearch-cr)',
+      \ '<C-p>': '<Plug>(esearch-cp)',
+      \ '<C-n>': '<Plug>(esearch-cn)',
       \ }
 
 let s:mappings = {}
@@ -112,11 +112,11 @@ endfu
 
 
 fu! esearch#win#map(map, plug)
-  if has_key(s:mappings, a:plug)
-    let s:mappings[a:plug] = a:map
-  else
-    echoerr 'There is no such action: "'.a:plug.'"'
-  endif
+  " if has_key(s:mappings, a:plug)
+    let s:mappings[a:map] = a:plug
+  " else
+  "   echoerr 'There is no such action: "'.a:plug.'"'
+  " endif
 endfu
 
 fu! s:init_mappings()
@@ -132,8 +132,8 @@ fu! s:init_mappings()
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
-  for plug in keys(s:mappings)
-    exe 'nmap <buffer> ' . s:mappings[plug] . ' ' . plug
+  for map in keys(s:mappings)
+    exe 'nmap <buffer> ' . map . ' ' . s:mappings[map]
   endfor
 endfu
 
