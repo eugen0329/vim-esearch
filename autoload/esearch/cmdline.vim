@@ -73,6 +73,7 @@ fu! s:recover_regex()
       let s:cmdline = s:pattern.pcre
     else
       let s:pattern.literal = s:cmdline
+      let s:pattern.pcre = s:cmdline
     endif
   endif
 endfu

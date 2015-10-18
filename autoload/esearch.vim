@@ -27,6 +27,7 @@ fu! esearch#start(exp, dir)
   let results_bufname = escape(fnameescape("Search: `".pattern."`"), '.')
   call s:find_or_create_buf(results_bufname)
   call esearch#win#init()
+
   exe 'silent Dispatch! '.s:request_str(pattern, a:dir)
 
   let b:request = dispatch#request()
