@@ -1,7 +1,7 @@
 let s:mappings = {
-      \'<Plug>(esearch-regex)': '<C-s><C-r>',
-      \'<Plug>(esearch-case)':  '<C-s><C-c>',
-      \'<Plug>(esearch-word)':  '<C-s><C-w>',
+      \'<C-s><C-r>': '<Plug>(esearch-regex)',
+      \'<C-s><C-c>':  '<Plug>(esearch-case)',
+      \'<C-s><C-w>':  '<Plug>(esearch-word)',
       \}
 let s:dir_prompt = ''
 
@@ -33,7 +33,7 @@ endfu
 
 
 fu! esearch#cmdline#map(map, plug)
-    let s:mappings[a:plug] = a:map
+    let s:mappings[a:map] = a:plug
 endfu
 
 
@@ -60,10 +60,10 @@ endfu
 
 fu! s:init_mappings()
   let mapargs =  {}
-  for plug in keys(s:mappings)
-    let map = s:mappings[plug]
+  for map in keys(s:mappings)
+    " let map = s:mappings[plug]
     let mapargs[map] = maparg(map, 'c', 0, 1)
-    exe "cmap " . map . ' ' . plug
+    exe "cmap " . map . ' ' . s:mappings[map]
   endfor
 
   return mapargs
