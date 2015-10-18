@@ -30,7 +30,7 @@ Or with Pathogen:
 
 # Usage
 
-Type <leader>ff and insert a search pattern. Use "s", "v" and "t" buttons to open file under the
+Type \<leader\>ff and insert a search pattern. Use "s", "v" and "t" buttons to open file under the
 cursor in split, vertical split and in tab accordingly. Use "shift" button to open a file silently.
 
 # Customization
