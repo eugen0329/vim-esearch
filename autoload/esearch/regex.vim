@@ -1,10 +1,9 @@
-fu! esearch#converters#vim2pcre(exp)
+fu! esearch#regex#vim2pcre(exp)
   let exp = a:exp
-  " let exp = substitute(exp, '[^\]\?\zs\\([+{]\)', '\1', 'g')
+
   let exp = substitute(exp, '\\\([+{]\)', '\1', 'g')
 
   " word boundary
-  " let exp = substitute(exp, '[^]\?\zs\\[<>]', '', 'g')
   let exp = substitute(exp, '\\[<>]', '\\b', 'g')
 
   " grouping
@@ -16,8 +15,24 @@ fu! esearch#converters#vim2pcre(exp)
   return exp
 endfu
 
+fu! esearch#regex#vim_sanitize(exp)
+  let exp = a:exp
 
-fu! esearch#converters#pcre2vim(exp)
+  let exp = substitute(exp, '\\\([+{()<>]\)', '', 'g')
+
+
+  return exp
+endfu
+
+fu! esearch#regex#pcre_sanitize(exp)
+  let exp = a:exp
+
+  let exp = substitute(exp, '\\\([b]\)', '', 'g')
+
+  return exp
+endfu
+
+fu! esearch#regex#pcre2vim(exp)
   let exp = a:exp
   " let exp = substitute(exp, '[^\]\?\zs\\([+{]\)', '\1', 'g')
   let exp = substitute(exp, '\([+{]\)', '\\\1', 'g')

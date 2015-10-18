@@ -1,41 +1,81 @@
 let s:mappings = {
-      \'<C-s><C-r>': '<Plug>(esearch-regex)',
+      \'<C-s><C-r>':  '<Plug>(esearch-regex)',
       \'<C-s><C-c>':  '<Plug>(esearch-case)',
       \'<C-s><C-w>':  '<Plug>(esearch-word)',
       \}
 let s:dir_prompt = ''
 
 cnoremap <Plug>(esearch-regex) <C-r>=<SID>invert('regex')<CR>
-cnoremap <Plug>(esearch-case) <C-r>=<SID>invert('case')<CR>
-cnoremap <Plug>(esearch-word) <C-r>=<SID>invert('word')<CR>
+cnoremap <Plug>(esearch-case)  <C-r>=<SID>invert('case')<CR>
+cnoremap <Plug>(esearch-word)  <C-r>=<SID>invert('word')<CR>
 
-fu! esearch#cmdline#read(initial, dir)
+fu! esearch#cmdline#read(exp, dir)
   let old_mapargs = s:init_mappings()
   let s:dir_prompt = s:dir_prompt(a:dir)
-  let s:cmdline = a:initial
+  let s:pattern = a:exp
+  let s:cmdline = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
   let s:cmdpos = len(s:cmdline) + 1
-  let s:int_pending = 0
+
+  let s:interrupted = 0
   while 1
     let str = input(s:prompt(), s:cmdline)
-    if s:int_pending
-      let s:int_pending = 0
+
+    if s:interrupted
+      let s:interrupted = 0
       let s:cmdline .= s:get_correction()
       redraw!
     else
       break
     endif
   endwhile
-  unlet s:int_pending
+  unlet s:interrupted
 
-  call s:restore_mappings(old_mapargs)
-  return str
+  call s:recover_mappings(old_mapargs)
+
+  if empty(str)
+    return {}
+  endif
+
+  let str = esearch#util#escape_str(str)
+  if g:esearch_settings.regex
+    let s:pattern.pcre = str
+  else
+    let s:pattern.literal = str
+  endif
+  return s:pattern
 endfu
 
+fu! s:invert(option)
+  let s:interrupted = 1
+  let s:cmdpos = getcmdpos()
 
-fu! esearch#cmdline#map(map, plug)
-    let s:mappings[a:map] = a:plug
+  let s:cmdline = getcmdline()
+  if a:option == 'regex' && g:esearch_settings.recover_regex
+    call s:recover_regex()
+  endif
+
+  call g:esearch_settings.invert(a:option)
+  call feedkeys("\<C-c>", 'n')
+  return ''
 endfu
 
+fu! s:recover_regex()
+  if g:esearch_settings.regex
+    if s:cmdline == s:pattern.pcre
+      let s:cmdline = s:pattern.literal
+    else
+      let s:pattern.pcre = s:cmdline
+      let s:cmdline = esearch#regex#pcre_sanitize(s:cmdline)
+      let s:pattern.literal = s:cmdline
+    endif
+  else
+    if s:cmdline == s:pattern.literal
+      let s:cmdline = s:pattern.pcre
+    else
+      let s:pattern.literal = s:cmdline
+    endif
+  endif
+endfu
 
 fu! s:prompt()
   let r = g:esearch_settings.stringify('regex')
@@ -69,7 +109,7 @@ fu! s:init_mappings()
   return mapargs
 endfu
 
-fu! s:restore_mappings(mapargs)
+fu! s:recover_mappings(mapargs)
   for map in keys(a:mapargs)
     let maparg = a:mapargs[map]
     if empty(maparg)
@@ -82,11 +122,6 @@ fu! s:restore_mappings(mapargs)
   endfor
 endfu
 
-fu! s:invert(option)
-  let s:int_pending = 1
-  let s:cmdline = getcmdline()
-  let s:cmdpos = getcmdpos()
-  call g:esearch_settings.invert(a:option)
-  call feedkeys("\<C-c>", 'n')
-  return ''
+fu! esearch#cmdline#map(map, plug)
+    let s:mappings[a:map] = a:plug
 endfu

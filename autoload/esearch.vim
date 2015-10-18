@@ -1,25 +1,33 @@
 fu! esearch#pre(visual, ...)
-  if a:visual && g:esearch_settings.use.visual
-    let initial_pattern = s:visual_selection()
-  elseif get(v:, 'hlsearch', 0) && g:esearch_settings.use.hlsearch
-    let initial_pattern = esearch#regex#vim2pcre(getreg('/'))
-  else
-    let initial_pattern = ''
-  endif
-
   let dir = a:0 ? a:1 : $PWD
-  let str = esearch#cmdline#read(initial_pattern, dir)
-  if str == ''
+  let exp = esearch#cmdline#read(s:initial_pattern(a:visual), dir)
+  if empty(exp)
     return ''
   endif
-  return esearch#start(esearch#util#escape_str(str), dir)
+  return esearch#start(exp, dir)
 endfu
 
-fu! esearch#start(pattern, dir)
-  let results_bufname = escape(fnameescape("Search: `".a:pattern."`"), '.')
+fu! s:initial_pattern(visual)
+  if a:visual && g:esearch_settings.use.visual
+    let v = s:visual_selection()
+    return { 'vim': v, 'pcre': v, 'literal': v }
+  elseif get(v:, 'hlsearch', 0) && g:esearch_settings.use.hlsearch
+    let v = getreg('/')
+    return { 'vim': v,
+          \ 'pcre': esearch#regex#vim2pcre(v),
+          \ 'literal': esearch#regex#vim_sanitize(v)
+          \ }
+  else
+    return { 'vim': '', 'pcre': '', 'literal': '' }
+  endif
+endfu
+
+fu! esearch#start(exp, dir)
+  let pattern = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
+  let results_bufname = escape(fnameescape("Search: `".pattern."`"), '.')
   call s:find_or_create_buf(results_bufname)
   call esearch#win#init()
-  exe 'silent Dispatch! '.s:request_str(a:pattern, a:dir)
+  exe 'silent Dispatch! '.s:request_str(pattern, a:dir)
 
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
