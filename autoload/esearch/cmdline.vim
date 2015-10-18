@@ -39,8 +39,10 @@ fu! esearch#cmdline#read(exp, dir)
   let str = esearch#util#escape_str(str)
   if g:esearch_settings.regex
     let s:pattern.pcre = str
+    let s:pattern.vim = esearch#regex#pcre2vim(str)
   else
     let s:pattern.literal = str
+    let s:pattern.vim = str
   endif
   return s:pattern
 endfu

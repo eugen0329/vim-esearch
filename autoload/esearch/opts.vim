@@ -6,12 +6,13 @@ let s:opts_map = {
 
 fu! esearch#opts#new(opts)
   return extend(a:opts, {
-        \ 'regex':         0,
-        \ 'case':          0,
-        \ 'word':          0,
-        \ 'updatetime':    300.0,
-        \ 'batch_size':    2000,
-        \ 'recover_regex': 1,
+        \ 'regex':           0,
+        \ 'case':            0,
+        \ 'word':            0,
+        \ 'updatetime':      300.0,
+        \ 'batch_size':      2000,
+        \ 'recover_regex':   1,
+        \ 'highlight_match': 1,
         \ 'use': { 'visual': 1, 'hlsearch': 1 },
         \ 'update_statusline_cmd': s:update_statusline_cmd(),
         \ 'invert':      function('<SID>invert'),

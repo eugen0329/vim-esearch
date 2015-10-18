@@ -33,6 +33,14 @@ fu! esearch#start(exp, dir)
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
+  let b:exp = a:exp
+
+  if g:esearch_settings.highlight_match
+    " let b:esearch_match = matchadd('EsearchMatch', '\%>2l\%>4v'.b:exp.vim)
+    let b:esearch_match = matchadd('EsearchMatch', '\%>2l\s\+\d\+\s.*\zs'.b:exp.vim)
+    " let b:esearch_match = matchadd('EsearchMatch', '\%>2l\s\+\d\+\zs'.b:exp.vim)
+    " exe 'match EsearchMatch /\%>2l\%>4v'.b:exp.vim.'/'
+  endif
 
   if !esearch#util#cgetfile(b:request)
     call esearch#win#update()
