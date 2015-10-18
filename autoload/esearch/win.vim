@@ -141,7 +141,7 @@ fu! s:open(cmd, ...)
   let new_cursor_pos = [s:line_number(), 1]
   let fname = s:filename()
   if !empty(fname)
-    exe a:cmd . ' ' . fname
+    exe a:cmd . ' ' . fnameescape(fname)
     call cursor(new_cursor_pos)
     norm! zz
     if a:0 | exe a:1 | endif
