@@ -68,6 +68,7 @@ fu! s:render_results(qfrange)
       let line += 1
     endif
     call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.esearch#util#trunc_str(context, 80))
+    let b:_es_columns[line] = b:qf[i].col
     let line += 1
     let b:prev_filename = fname
   endfor
@@ -95,6 +96,7 @@ fu! esearch#win#init()
   let b:handler_running = 0
   let b:prev_filename = ''
   let b:broken_results = []
+  let b:_es_columns = {}
 
   setlocal noreadonly
   setlocal modifiable
@@ -138,7 +140,7 @@ fu! s:init_mappings()
 endfu
 
 fu! s:open(cmd, ...)
-  let new_cursor_pos = [s:line_number(), 1]
+  let new_cursor_pos = [s:line_number(), get(b:_es_columns, line('.'), 1)]
   let fname = s:filename()
   if !empty(fname)
     exe a:cmd . ' ' . fnameescape(fname)
