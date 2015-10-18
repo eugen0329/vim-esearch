@@ -64,7 +64,7 @@ fu! s:render_results(qfrange)
     if fname !=# b:prev_filename
       call setline(line, '')
       let line += 1
-      call setline(line, fname)
+      call setline(line, './'.fname)
       let line += 1
     endif
     call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.esearch#util#trunc_str(context, 80))
@@ -160,17 +160,17 @@ fu! s:move(direction)
 endfu
 
 fu! s:filename()
-  let lnum = search('^\%>1l[^ ]', 'bcWn')
+  let lnum = search('^\%>2l[^ ]', 'bcWn')
   if lnum == 0
-    let lnum = search('^\%>1l[^ ]', 'cWn')
+    let lnum = search('^\%>2l[^ ]', 'cWn')
     if lnum == 0 | return '' | endif
   endif
 
-  let filename = matchstr(getline(lnum), '^\zs[^ ].\+')
+  let filename = matchstr(getline(lnum), '^\zs[^ ].*')
   if empty(filename)
     return ''
   else
-    return b:pwd . '/' . filename
+    return b:pwd . '/' . substitute(filename, '^\./', '', '')
   endif
 endfu
 
