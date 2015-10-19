@@ -1,6 +1,6 @@
 fu! esearch#regex#new(visual, opts)
   if a:visual && a:opts.use.visual
-    let vexp = s:visual_selection()
+    let vexp = esearch#util#visual_selection()
     return { 'vim': vexp, 'pcre': vexp, 'literal': vexp }
   elseif get(v:, 'hlsearch', 0) && a:opts.use.hlsearch
     let vexp = getreg('/')

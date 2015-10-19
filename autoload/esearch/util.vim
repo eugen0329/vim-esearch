@@ -34,6 +34,16 @@ fu! esearch#util#timenow()
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
+fu! esearch#util#visual_selection()
+  let [lnum1, col1] = getpos("'<")[1:2]
+  let [lnum2, col2] = getpos("'>")[1:2]
+  let lines = getline(lnum1, lnum2)
+  let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
+  let lines[0] = lines[0][col1 - 1:]
+  return join(lines, "\n")
+endfu
+
+
 " Extracted from tpope/dispatch
 fu! esearch#util#request_status()
   let request = b:request
