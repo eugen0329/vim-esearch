@@ -14,6 +14,7 @@ fu! esearch#opts#new(opts)
         \ 'context_width':   120,
         \ 'recover_regex':   1,
         \ 'highlight_match': 1,
+        \ 'wordchars':      'a-z,A-Z,_',
         \ 'use': { 'visual': 1, 'hlsearch': 1 },
         \ 'update_statusline_cmd': s:update_statusline_cmd(),
         \ 'invert':      function('<SID>invert'),

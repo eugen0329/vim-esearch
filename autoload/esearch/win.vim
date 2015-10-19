@@ -99,6 +99,7 @@ fu! esearch#win#init()
   let b:broken_results = []
   let b:_es_columns = {}
 
+  let &iskeyword= g:esearch_settings.wordchars
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d'
