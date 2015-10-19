@@ -59,8 +59,10 @@ fu! s:render_results(qfrange)
   let line = line('$') + 1
   for i in a:qfrange
     let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
-    let context  = esearch#util#trunc_str(b:qf[i].text,
-          \ g:esearch_settings.context_width)
+    let context  = esearch#util#btrunc(b:qf[i].text,
+          \ match(b:qf[i].text, b:_es_exp.vim_str),
+          \ g:esearch_settings.context_width.l,
+          \ g:esearch_settings.context_width.r)
 
     if fname !=# b:prev_filename
       call setline(line, '')

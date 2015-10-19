@@ -17,7 +17,17 @@ fu! esearch#util#parse_results(from, to)
   return results
 endfu
 
-fu! esearch#util#trunc_str(str, size)
+fu! esearch#util#btrunc(str, center, lw, rw)
+  " om - omission, lw/rw - with from the left(right)
+  let om = '…'
+
+  let l = (a:lw > a:center ? 0 : a:center - a:lw + len(om))
+  let r = (len(a:str) <= a:center + a:rw ? len(a:str)-1 : a:center+a:rw-len(om))
+
+  return (l == 0 ? '' : om) . a:str[l : r] . (r == len(a:str)-1 ? '' : om)
+endfu
+
+fu! esearch#util#trunc(str, size)
   if len(a:str) > a:size
     return a:str[:a:size] . '…'
   endif
