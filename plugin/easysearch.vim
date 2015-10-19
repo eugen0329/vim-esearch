@@ -21,4 +21,4 @@ if !highlight_exists('EsearchMatch')
         \ "guifg=" . synIDattr(synIDtrans(hlID("DiffChange")), "fg", "gui")." "
 endif
 
-command! -nargs=1 ESearch call esearch#start(<f-args>, $PWD)
+" command! -nargs=1 ESearch call esearch#start(<f-args>, $PWD)

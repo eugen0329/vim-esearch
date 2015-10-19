@@ -1,3 +1,30 @@
+fu! esearch#regex#new(visual, opts)
+  if a:visual && a:opts.use.visual
+    let vexp = s:visual_selection()
+    return { 'vim': vexp, 'pcre': vexp, 'literal': vexp }
+  elseif get(v:, 'hlsearch', 0) && a:opts.use.hlsearch
+    let vexp = getreg('/')
+    return { 'vim': vexp,
+          \  'pcre': esearch#regex#vim2pcre(vexp),
+          \  'literal': esearch#regex#vim_sanitize(vexp)
+          \ }
+  else
+    return { 'vim': '', 'pcre': '', 'literal': '' }
+  endif
+endfu
+
+fu! esearch#regex#finalize(exp, opts)
+  let vexp = a:exp.vim
+  if a:opts.word
+    let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'
+  endif
+  if !a:opts.case
+    let vexp = '\c'.vexp
+  endif
+  let vexp = '\%>2l\s\+\d\+\s.*\zs'.vexp
+  return extend(a:exp, { 'vim': vexp })
+endfu
+
 fu! esearch#regex#vim2pcre(exp)
   let exp = a:exp
 

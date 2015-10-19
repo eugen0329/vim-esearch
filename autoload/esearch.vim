@@ -1,25 +1,12 @@
 fu! esearch#pre(visual, ...)
   let dir = a:0 ? a:1 : $PWD
-  let exp = esearch#cmdline#read(s:initial_pattern(a:visual), dir)
+  let initial_exp = esearch#regex#new(a:visual, g:esearch_settings)
+  let exp = esearch#cmdline#read(initial_exp, dir)
   if empty(exp)
     return ''
   endif
+  let exp = esearch#regex#finalize(exp, g:esearch_settings)
   return esearch#start(exp, dir)
-endfu
-
-fu! s:initial_pattern(visual)
-  if a:visual && g:esearch_settings.use.visual
-    let v = s:visual_selection()
-    return { 'vim': v, 'pcre': v, 'literal': v }
-  elseif get(v:, 'hlsearch', 0) && g:esearch_settings.use.hlsearch
-    let v = getreg('/')
-    return { 'vim': v,
-          \ 'pcre': esearch#regex#vim2pcre(v),
-          \ 'literal': esearch#regex#vim_sanitize(v)
-          \ }
-  else
-    return { 'vim': '', 'pcre': '', 'literal': '' }
-  endif
 endfu
 
 fu! esearch#start(exp, dir)
@@ -33,27 +20,15 @@ fu! esearch#start(exp, dir)
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
   let b:request.background = 1
-  let b:exp = a:exp
+  let b:_es_exp = a:exp
 
   if g:esearch_settings.highlight_match
-    call s:hlmatch()
+    let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim, -1)
   endif
 
   if !esearch#util#cgetfile(b:request)
     call esearch#win#update()
   endif
-endfu
-
-fu! s:hlmatch()
-  let p = b:exp.vim
-  if g:esearch_settings.word
-    let p = '\%(\<\|\>\)'.p.'\%(\<\|\>\)'
-  endif
-  if !g:esearch_settings.case
-    let p = '\c'.p
-  endif
-  let p = '\%>2l\s\+\d\+\s.*\zs'.p
-  let b:esearch_match = matchadd('EsearchMatch', p)
 endfu
 
 fu! esearch#mappings()
