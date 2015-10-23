@@ -65,13 +65,14 @@ fu! s:render_results(qfrange)
           \ g:esearch_settings.context_width.r)
 
     if fname !=# b:prev_filename
+      let b:_es_columns[fname] = {}
       call setline(line, '')
       let line += 1
       call setline(line, './'.fname)
       let line += 1
     endif
     call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.context)
-    let b:_es_columns[line] = b:qf[i].col
+    let b:_es_columns[fname][b:qf[i].lnum] = b:qf[i].col
     let line += 1
     let b:prev_filename = fname
   endfor
@@ -144,11 +145,12 @@ fu! s:init_mappings()
 endfu
 
 fu! s:open(cmd, ...)
-  let new_cursor_pos = [s:line_number(), get(b:_es_columns, line('.'), 1)]
   let fname = s:filename()
   if !empty(fname)
-    exe a:cmd . ' ' . fnameescape(fname)
-    call cursor(new_cursor_pos)
+    let ln = s:line_number()
+    let col = get(get(b:_es_columns, fname, {}), ln, 1)
+    exe a:cmd . ' ' . fnameescape(b:pwd . '/' . fname)
+    call cursor(ln, col)
     norm! zz
     if a:0 | exe a:1 | endif
   endif
@@ -176,7 +178,7 @@ fu! s:filename()
   if empty(filename)
     return ''
   else
-    return b:pwd . '/' . substitute(filename, '^\./', '', '')
+    return substitute(filename, '^\./', '', '')
   endif
 endfu
 
