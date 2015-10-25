@@ -21,8 +21,8 @@ fu! esearch#regex#finalize(exp, opts)
   if !a:opts.case
     let vexp = '\c'.vexp
   endif
-  let vexp = '\%>2l\s\+\d\+\s.*\zs'.vexp
-  return extend(a:exp, { 'vim': vexp, 'vim_str': a:exp.vim })
+  let vexp = '\%>2l\%(\s\+\d\+.*\)\@<='.vexp
+  return extend(a:exp, { 'vim_match': vexp })
 endfu
 
 fu! esearch#regex#vim2pcre(exp)

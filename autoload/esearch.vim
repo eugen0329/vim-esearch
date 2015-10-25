@@ -23,7 +23,7 @@ fu! esearch#start(exp, dir)
   let b:_es_exp = a:exp
 
   if g:esearch_settings.highlight_match
-    let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim, -1)
+    let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim_match, -1)
   endif
 
   if !esearch#util#cgetfile(b:request)
@@ -53,7 +53,7 @@ fu! s:request_str(pattern, dir)
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
   return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column "' .
-        \ a:pattern  . '" "' . a:dir . '"'
+        \ esearch#util#escape_str(a:pattern)  . '" "' . a:dir . '"'
 endfu
 
 fu! s:find_or_create_buf(bufname)
