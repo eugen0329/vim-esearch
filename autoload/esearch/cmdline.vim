@@ -41,7 +41,7 @@ fu! esearch#cmdline#read(exp, dir)
     let s:pattern.pcre = str
     let s:pattern.vim = esearch#regex#pcre2vim(str)
   else
-    let s:pattern.literal = substitute(str, '~', '\\~', 'g')
+    let s:pattern.literal = str
     let s:pattern.vim = substitute(substitute(str, '\\', '\\\\', 'g'), '\~', '\\~', 'g')
   endif
   return s:pattern
