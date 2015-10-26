@@ -1,6 +1,7 @@
 ## Vim Easy Search
 
 Vim plugin performing pseudo-async recursive search in files using the_silver_searcher
+
 **Note:** It is an alpha version yet.
 
 
@@ -15,12 +16,12 @@ If you use [NeoBundle](https://github.com/Shougo/neobundle.vim#readme):
     NeoBundle  'tpope/vim-dispatch'
     NeoBundle  'eugen0329/vim-easy-search'
 
-" If it's [Plug](https://github.com/junegunn/vim-plug#readme):
+If it's [Plug](https://github.com/junegunn/vim-plug#readme):
 
     Plug       'tpope/vim-dispatch'
     Plug       'eugen0329/vim-easy-search'
 
-" If [Vundle](https://github.com/junegunn/vim-plug#readme):
+If [Vundle](https://github.com/junegunn/vim-plug#readme):
 
     Plugin     'tpope/vim-dispatch'
     Plugin     'eugen0329/vim-easy-search'
@@ -44,8 +45,8 @@ line use `ctrl-s ctrl-c`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is "(s)e
 
 ## Customization
 
-##In you `~/.vimrc`
-Use the following functionons to redefine default mappings :
+In you `~/.vimrc`.
+Use the following functionons to redefine default mappings:
 
     call esearch#map('<leader>ff', '<Plug>(esearch)')
 
@@ -59,7 +60,6 @@ Use the following functionons to redefine default mappings :
     call esearch#win#map('<C-n>', '<Plug>(esearch-cn)')
     call esearch#win#map('<CR>',  '<Plug>(esearch-cr)')
 
-    " Mnemonics is "(s)et (r)egex, (s)et (c)ase sesnsitive option etc.
     call esearch#cmdline#map('<C-s><C-r>', '<Plug>(esearch-regex)')
     call esearch#cmdline#map('<C-s><C-c>', '<Plug>(esearch-case)')
     call esearch#cmdline#map('<C-s><C-w>', '<Plug>(esearch-word)')
