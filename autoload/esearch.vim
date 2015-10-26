@@ -100,7 +100,6 @@ fu! s:bufname_fomat()
       " Since we can't use '/' in filenames
       return "Search:  \u2215%s\u2215%s"
     else
-      " return "Search: %%r{%s}%s"
       return "Search: %%r{%s}%s"
     endif
   else
