@@ -35,17 +35,18 @@ Or with [Pathogen](https://github.com/tpope/vim-pathogen#readme):
 
 ## Usage
 
-Type \<leader\>ff and insert a search pattern. Use `s`, `v` and `t` buttons to open file under the
-cursor in split, vertical split and in tab accordingly. Use `shift` along with s, v and t buttons
-to open a file silently.
+Type `<leader>ff` and insert a search pattern (usually \<leader\> is `\`). Use `s`, `v` and `t` 
+buttons to open file under the cursor in split, vertical split and in tab accordingly. Use `shift`
+along with s, v and t buttons to open a file silently.
 
-To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command 
-line use `ctrl-s ctrl-c`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is "(s)et (r)egex, 
-(s)et (c)ase sesnsitive option etc).
+To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command
+line use `ctrl-s ctrl-c`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is "**s**et **r**egex,
+**s**et **c**ase sesnsitive option etc).
 
 ## Customization
 
 In you `~/.vimrc`.
+
 Use the following functionons to redefine default mappings:
 
     call esearch#map('<leader>ff', '<Plug>(esearch)')
@@ -70,16 +71,17 @@ To redefine results match highlight use:
 
 Initialize this variable to specify preferred behaviour:
 
-    " 'regex','case','word' - match with regular exression (or literally), match case sensitively,
-    " only match whole words (all this options disabled by default)
-    " 'updatetime','batch_size' - results update time intervals and maximum results
-    " count, appended at a time
-    " 'context_width' - count of cars displayed on either side of the match ('l','r' -
-    " left and right)
+    " 'regex','case','word' - match with regular exression (or literally), 
+    " match case sensitively, only match whole words
+    " (all of this options disabled by default)
+    " 'updatetime','batch_size' - results update time intervals and maximum 
+    " count of results, appended at a time
+    " 'context_width' - count of cars displayed on either sides of the match 
+    " ('l','r' - left and right)
     " 'highlight_context' - higlight matched text with EsearchMatch
     " 'nerdtree_plugin' - use "Search in NERDTree directory" feature
-    " 'use' - sources for the initial search value ('visual' - visual selection, 'hlsearch' -
-    " currently highlighted search result)
+    " 'use' - sources for the initial search value ('visual' - visual
+    " selection, 'hlsearch' - currently highlighted search result)
     let g:esearch_settings = {
           \ 'regex':           0,
           \ 'case':            0,
