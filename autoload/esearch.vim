@@ -11,7 +11,7 @@ endfu
 
 fu! esearch#start(exp, dir)
   let pattern = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
-  let results_bufname = escape(fnameescape("Search: `".pattern."`"), '.')
+  let results_bufname = s:results_bufname(pattern)
   call s:find_or_create_buf(results_bufname)
   call esearch#win#init()
 
@@ -29,6 +29,14 @@ fu! esearch#start(exp, dir)
   if !esearch#util#cgetfile(b:request)
     call esearch#win#update()
   endif
+endfu
+
+fu! s:results_bufname(pattern)
+  let format = s:bufname_fomat()
+  let modifiers = ''
+  let modifiers .= g:esearch_settings.case ? 'c' : ''
+  let modifiers .= g:esearch_settings.word ? 'w' : ''
+  return escape(fnameescape(printf(format, a:pattern, modifiers)), './')
 endfu
 
 fu! esearch#mappings()
@@ -53,7 +61,7 @@ fu! s:request_str(pattern, dir)
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
   return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column "' .
-        \ esearch#util#escape_str(a:pattern)  . '" "' . a:dir . '"'
+        \ esearch#util#shellescape(a:pattern)  . '" "' . a:dir . '"'
 endfu
 
 fu! s:find_or_create_buf(bufname)
@@ -84,3 +92,18 @@ fu! s:find_buf(bufnr)
 
   return []
 endf
+
+" Results bufname format getter
+fu! s:bufname_fomat()
+  if g:esearch_settings.regex
+    if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
+      " Since we can't use '/' in filenames
+      return "Search:  \u2215%s\u2215%s"
+    else
+      " return "Search: %%r{%s}%s"
+      return "Search: %%r{%s}%s"
+    endif
+  else
+    return "Search: `%s`%s"
+  endif
+endfu

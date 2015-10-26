@@ -35,7 +35,7 @@ fu! esearch#util#trunc(str, size)
   return a:str
 endfu
 
-fu! esearch#util#escape_str(str)
+fu! esearch#util#shellescape(str)
   return substitute(a:str, '[#%$]', '\\\0', 'g')
 endfu
 
