@@ -78,7 +78,7 @@ fu! s:render_results(qfrange)
   endfor
 endfu
 
-fu! esearch#win#init()
+fu! esearch#win#init(dir)
   augroup EasysearchAutocommands
     au! * <buffer>
     au CursorMoved <buffer> call esearch#handlers#cursor_moved()
@@ -93,7 +93,7 @@ fu! esearch#win#init()
   let &updatetime = float2nr(g:esearch_settings.updatetime)
 
   let b:qf = []
-  let b:pwd = $PWD
+  let b:pwd = a:dir
   let b:qf_file = []
   let b:qf_entirely_parsed = 0
   let b:_es_iterator    = 0

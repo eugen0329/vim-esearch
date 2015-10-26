@@ -13,7 +13,7 @@ fu! esearch#start(exp, dir)
   let pattern = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
   let results_bufname = s:results_bufname(pattern)
   call s:find_or_create_buf(results_bufname)
-  call esearch#win#init()
+  call esearch#win#init(a:dir)
 
   exe 'silent Dispatch! '.s:request_str(pattern, a:dir)
 
