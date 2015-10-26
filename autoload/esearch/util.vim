@@ -36,7 +36,7 @@ fu! esearch#util#trunc(str, size)
 endfu
 
 fu! esearch#util#escape_str(str)
-  return substitute(a:str, '[#%]', '\\\0', 'g')
+  return substitute(a:str, '[#%$]', '\\\0', 'g')
 endfu
 
 fu! esearch#util#timenow()

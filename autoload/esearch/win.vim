@@ -68,7 +68,7 @@ fu! s:render_results(qfrange)
       let b:_es_columns[fname] = {}
       call setline(line, '')
       let line += 1
-      call setline(line, './'.fname)
+      call setline(line, fname)
       let line += 1
     endif
     call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.context)

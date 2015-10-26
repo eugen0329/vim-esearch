@@ -15,6 +15,7 @@ endfu
 
 fu! esearch#regex#finalize(exp, opts)
   let vexp = a:exp.vim
+  let vexp = escape(vexp, '$')
   if a:opts.word
     let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'
   endif
@@ -46,6 +47,7 @@ fu! esearch#regex#vim_sanitize(exp)
   let exp = a:exp
 
   let exp = substitute(exp, '\\\([+{()<>]\)', '', 'g')
+  let exp = substitute(exp, '\\%', '%', 'g')
 
 
   return exp
