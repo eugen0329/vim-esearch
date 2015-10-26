@@ -1,15 +1,17 @@
 ## Vim Easy Search
 
-Vim plugin performing pseudo-async recursive search in files using the_silver_searcher
+Vim plugin performing pseudo-async recursive search in files using the
+[the_silver_searcher](https://github.com/ggreer/the_silver_searcher#readme) backend.
 
 **Note:** It is an alpha version yet.
 
 
 ## Installation
-Currently only supported [Ag](https://github.com/ggreer/the_silver_searcher#installing), so
-you must to install it in any of the preferred methods.
+Currently only supported **Ag**, so you need to
+[install](https://github.com/ggreer/the_silver_searcher#installing)
+it in any of the preferred methods.
 
-In your .vimrc:
+In your `.vimrc`:
 
 If you use [NeoBundle](https://github.com/Shougo/neobundle.vim#readme):
 
