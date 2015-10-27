@@ -14,26 +14,33 @@ it in any of the preferred methods.
 In your `.vimrc`:
 
 If you use [NeoBundle](https://github.com/Shougo/neobundle.vim#readme):
-
-    NeoBundle  'tpope/vim-dispatch'
-    NeoBundle  'eugen0329/vim-easy-search'
+```vim
+NeoBundle  'tpope/vim-dispatch'
+NeoBundle  'eugen0329/vim-easy-search'
+```
 
 If it's [Plug](https://github.com/junegunn/vim-plug#readme):
 
+```vim
     Plug       'tpope/vim-dispatch'
     Plug       'eugen0329/vim-easy-search'
+```
 
 If [Vundle](https://github.com/junegunn/vim-plug#readme):
 
+```vim
     Plugin     'tpope/vim-dispatch'
     Plugin     'eugen0329/vim-easy-search'
+```
 
 Or with [Pathogen](https://github.com/tpope/vim-pathogen#readme):
 
+```bash
     cd ~/.vim/bundle
     git clone git@github.com:tpope/vim-dispatch.git
     git clone git@github.com:eugen0329/vim-easy-search.git
 
+```
 
 ## Usage
 
@@ -51,6 +58,7 @@ In you `~/.vimrc`.
 
 Use the following functionons to redefine default mappings:
 
+```vim
     call esearch#map('<leader>ff', '<Plug>(esearch)')
 
     call esearch#win#map('t',     '<Plug>(esearch-t)')
@@ -66,24 +74,17 @@ Use the following functionons to redefine default mappings:
     call esearch#cmdline#map('<C-s><C-r>', '<Plug>(esearch-regex)')
     call esearch#cmdline#map('<C-s><C-c>', '<Plug>(esearch-case)')
     call esearch#cmdline#map('<C-s><C-w>', '<Plug>(esearch-word)')
+```
 
 To redefine results match highlight use:
 
-    hi EsearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
+```vim
+hi EsearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
+```
 
 Initialize this variable to specify preferred behaviour:
 
-    " 'regex','case','word' - match with regular exression (or literally), 
-    " match case sensitively, only match whole words
-    " (all of this options disabled by default)
-    " 'updatetime','batch_size' - results update time intervals and maximum 
-    " count of results, appended at a time
-    " 'context_width' - count of cars displayed on either sides of the match 
-    " ('l','r' - left and right)
-    " 'highlight_context' - higlight matched text with EsearchMatch
-    " 'nerdtree_plugin' - use "Search in NERDTree directory" feature
-    " 'use' - sources for the initial search value ('visual' - visual
-    " selection, 'hlsearch' - currently highlighted search result)
+```vim
     let g:esearch_settings = {
           \ 'regex':           0,
           \ 'case':            0,
@@ -99,3 +100,16 @@ Initialize this variable to specify preferred behaviour:
           \   'hlsearch': 1
           \   },
           \ }
+    " 'regex','case','word' - match with regular exression (or literally), 
+    " match case sensitively, only match whole words
+    " (all of this options disabled by default)
+    " 'updatetime','batch_size' - results update time intervals and maximum 
+    " count of results, appended at a time
+    " 'context_width' - count of cars displayed on either sides of the match 
+    " ('l','r' - left and right)
+    " 'highlight_context' - higlight matched text with EsearchMatch
+    " 'nerdtree_plugin' - use "Search in NERDTree directory" feature
+    " 'use' - sources for the initial search value ('visual' - visual
+    " selection, 'hlsearch' - currently highlighted search result)
+```
+
