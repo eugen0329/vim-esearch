@@ -22,24 +22,23 @@ NeoBundle  'eugen0329/vim-easy-search'
 If it's [Plug](https://github.com/junegunn/vim-plug#readme):
 
 ```vim
-    Plug       'tpope/vim-dispatch'
-    Plug       'eugen0329/vim-easy-search'
+Plug       'tpope/vim-dispatch'
+Plug       'eugen0329/vim-easy-search'
 ```
 
 If [Vundle](https://github.com/junegunn/vim-plug#readme):
 
 ```vim
-    Plugin     'tpope/vim-dispatch'
-    Plugin     'eugen0329/vim-easy-search'
+Plugin     'tpope/vim-dispatch'
+Plugin     'eugen0329/vim-easy-search'
 ```
 
 Or with [Pathogen](https://github.com/tpope/vim-pathogen#readme):
 
 ```bash
-    cd ~/.vim/bundle
-    git clone git@github.com:tpope/vim-dispatch.git
-    git clone git@github.com:eugen0329/vim-easy-search.git
-
+cd ~/.vim/bundle
+git clone git@github.com:tpope/vim-dispatch.git
+git clone git@github.com:eugen0329/vim-easy-search.git
 ```
 
 ## Usage
@@ -100,16 +99,20 @@ Initialize this variable to specify preferred behaviour:
           \   'hlsearch': 1
           \   },
           \ }
-    " 'regex','case','word' - match with regular exression (or literally), 
-    " match case sensitively, only match whole words
-    " (all of this options disabled by default)
-    " 'updatetime','batch_size' - results update time intervals and maximum 
-    " count of results, appended at a time
-    " 'context_width' - count of cars displayed on either sides of the match 
-    " ('l','r' - left and right)
-    " 'highlight_context' - higlight matched text with EsearchMatch
-    " 'nerdtree_plugin' - use "Search in NERDTree directory" feature
-    " 'use' - sources for the initial search value ('visual' - visual
-    " selection, 'hlsearch' - currently highlighted search result)
 ```
+
+'regex','case','word' - match with regular exression (or literally), 
+match case sensitively, only match whole words (all of this options disabled by default)
+'updatetime','batch_size' - results update time intervals and maximum 
+count of results, appended at a time
+
+'context_width' - count of cars displayed on either sides of the match 
+('l','r' - left and right)
+
+'highlight_context' - higlight matched text with EsearchMatch
+
+'nerdtree_plugin' - use "Search in NERDTree directory" feature
+
+'use' - sources for the initial search value ('visual' - visual
+selection, 'hlsearch' - currently highlighted search result)
 
