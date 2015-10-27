@@ -101,18 +101,14 @@ Initialize this variable to specify preferred behaviour:
           \ }
 ```
 
-'regex','case','word' - match with regular exression (or literally), 
-match case sensitively, only match whole words (all of this options disabled by default)
-'updatetime','batch_size' - results update time intervals and maximum 
-count of results, appended at a time
-
-'context_width' - count of cars displayed on either sides of the match 
-('l','r' - left and right)
-
-'highlight_context' - higlight matched text with EsearchMatch
-
-'nerdtree_plugin' - use "Search in NERDTree directory" feature
-
-'use' - sources for the initial search value ('visual' - visual
-selection, 'hlsearch' - currently highlighted search result)
-
+| Option              |     Description                                               |
+|---------------------|---------------------------------------------------------------|
+| 'regex'             | match with regular exression (or literally)                   |
+| 'case'              | match case sensitively                                        |
+| 'word'              | only match whole words                                        |
+| 'updatetime'        | results update time interval length                           |
+| 'batch_size'        | N results appended at a time                                  |
+| 'context_width'     | N chars displayed on either sides of the match                |
+| 'highlight_context' | higlight matched text with `EsearchMatch`                     |
+| 'nerdtree_plugin'   | use "Search in NERDTree directory" feature                    |
+| 'use'               | sources for the initial search value ('visual' - visual selection, 'hlsearch' - currently highlighted search result)  |
