@@ -34,6 +34,9 @@ fu! esearch#regex#vim2pcre(exp)
   " word boundary
   let exp = substitute(exp, '\\[<>]', '\\b', 'g')
 
+  " Remove \v \V (very magic)
+  let exp = substitute(exp, '\\[vV]', '', 'g')
+
   " grouping
   let exp = substitute(exp, '\\%(', '(', 'g')
   let exp = substitute(exp, '\\)', ')', 'g')
@@ -48,6 +51,9 @@ fu! esearch#regex#vim_sanitize(exp)
 
   let exp = substitute(exp, '\\\([+{()<>]\)', '', 'g')
   let exp = substitute(exp, '\\%', '%', 'g')
+
+  " Remove \v \V (very magic)
+  let exp = substitute(exp, '\\[vV]', '', 'g')
 
 
   return exp
