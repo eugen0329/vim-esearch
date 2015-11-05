@@ -10,7 +10,7 @@ if get(get(g:, 'esearch_settings', {}), 'nerdtree_plugin', 1)
 
   fu! NERDTreeEsearchDir(node)
     let path = a:node.path
-    if path.isDirectory && !a:node.isRoot()
+    if path.isDirectory && path.str() !=# getcwd()
       call esearch#pre(0, path.str())
     else
       call esearch#pre(0)
