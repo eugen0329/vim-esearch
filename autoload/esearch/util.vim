@@ -36,7 +36,8 @@ fu! esearch#util#trunc(str, size)
 endfu
 
 fu! esearch#util#shellescape(str)
-  return shellescape(a:str)
+  return shellescape(a:str, 1)
+  " return substitute(shellescape(a:str), '[%#]', '\\\0', 'g')
 endfu
 
 fu! esearch#util#timenow()
