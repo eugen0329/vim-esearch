@@ -14,6 +14,7 @@ fu! esearch#opts#new(opts)
         \ 'context_width':   { 'l': 60, 'r': 60 },
         \ 'recover_regex':   1,
         \ 'highlight_match': 1,
+        \ 'escape_special':  1,
         \ 'wordchars':      'a-z,A-Z,_',
         \ 'use': { 'visual': 1, 'hlsearch': 1 },
         \ 'nerdtree_plugin': 1,
