@@ -15,7 +15,8 @@ fu! esearch#start(exp, dir)
   call s:find_or_create_buf(results_bufname)
   call esearch#win#init(a:dir)
 
-  exe 'silent Dispatch! '.s:request_str(pattern, a:dir)
+  " call Db(s:request_str(pattern, a:dir))
+  exe 'Dispatch! '.s:request_str(pattern, a:dir)
 
   let b:request = dispatch#request()
   let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
@@ -60,8 +61,8 @@ fu! s:request_str(pattern, dir)
   let r = g:esearch_settings.parametrize('regex')
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
-  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column "' .
-        \ esearch#util#shellescape(a:pattern)  . '" "' . a:dir . '"'
+  return "ag ".r." ".c." ".w." --nogroup --nocolor --column " .
+        \ shellescape(a:pattern)  . " " . shellescape(a:dir)
 endfu
 
 fu! s:find_or_create_buf(bufname)
