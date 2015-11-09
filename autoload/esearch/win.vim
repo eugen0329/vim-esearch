@@ -112,6 +112,7 @@ fu! esearch#win#init(dir)
   setlocal noswapfile
   setlocal nonumber
   setlocal buftype=nofile
+  setlocal bufhidden=hide
   setlocal ft=esearch
 
   let b:last_update_time = esearch#util#timenow()
