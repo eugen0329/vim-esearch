@@ -3,6 +3,7 @@ let s:default_mappings = {
       \ 't': '<Plug>(esearch-t)',
       \ 's': '<Plug>(esearch-s)',
       \ 'S': '<Plug>(esearch-S)',
+      \ 'R': '<Plug>(esearch-R)',
       \ 'v': '<Plug>(esearch-v)',
       \ 'V': '<Plug>(esearch-V)',
       \ '<CR>': '<Plug>(esearch-cr)',
@@ -128,14 +129,16 @@ fu! esearch#win#map(map, plug)
 endfu
 
 fu! s:init_mappings()
-  nnoremap <silent><buffer> <Plug>(esearch-t)   :call <sid>open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-T)   :call <SID>open('tabnew', 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-s)   :call <SID>open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-S)   :call <SID>open('new', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-v)   :call <SID>open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-V)   :call <SID>open('vnew', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-cr)  :call <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-t)   :<C-U>call <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-T)   :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-s)   :<C-U>call <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-S)   :<C-U>call <SID>open('new', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-v)   :<C-U>call <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-V)   :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-cr)  :<C-U>call <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-R)   :<C-U>call <SID>reload()<CR>
   nnoremap <silent><buffer> <Plug>(esearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
 
@@ -143,6 +146,13 @@ fu! s:init_mappings()
   for map in keys(s:mappings)
     exe 'nmap <buffer> ' . map . ' ' . s:mappings[map]
   endfor
+endfu
+
+fu! s:reload()
+  if exists('b:_es_match')
+    call matchdelete(b:_es_match)
+  endif
+  return esearch#start(b:_es_exp, b:pwd)
 endfu
 
 fu! s:open(cmd, ...)

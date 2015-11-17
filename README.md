@@ -45,7 +45,8 @@ git clone git@github.com:eugen0329/vim-easy-search.git
 
 Type `<leader>ff` and insert a search pattern (usually \<leader\> is `\`). Use `s`, `v` and `t` 
 buttons to open file under the cursor in split, vertical split and in tab accordingly. Use `shift`
-along with s, v and t buttons to open a file silently.
+along with s, v and t buttons to open a file silently. Press `shift-r` to reload
+currrent results.
 
 To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command
 line use `ctrl-s ctrl-c`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is **S**et **R**egex,
