@@ -66,7 +66,9 @@ endfu
 
 fu! s:find_or_create_buf(bufname)
   let bufnr = bufnr('^'.a:bufname.'$')
-  if bufnr > 0
+  if bufnr == bufnr('%')
+    return 0
+  elseif bufnr > 0
     let buf_loc = s:find_buf(bufnr)
     if empty(buf_loc)
       exe 'tabnew|b ' . bufnr
