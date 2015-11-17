@@ -22,6 +22,10 @@ fu! esearch#start(exp, dir)
   let b:request.background = 1
   let b:_es_exp = a:exp
 
+  " matchdelete moved outside in case of dynamic .highlight_match change
+  if exists('b:_es_match')
+    call matchdelete(b:_es_match)
+  endif
   if g:esearch_settings.highlight_match
     let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim_match, -1)
   endif

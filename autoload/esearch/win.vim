@@ -136,7 +136,7 @@ fu! s:init_mappings()
   nnoremap <silent><buffer> <Plug>(esearch-v)   :<C-U>call <SID>open('vnew')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-V)   :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-cr)  :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-R)   :<C-U>call <SID>reload()<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-R)   :<C-U>call esearch#start(b:_es_exp, b:pwd)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
@@ -146,13 +146,6 @@ fu! s:init_mappings()
   for map in keys(s:mappings)
     exe 'nmap <buffer> ' . map . ' ' . s:mappings[map]
   endfor
-endfu
-
-fu! s:reload()
-  if exists('b:_es_match')
-    call matchdelete(b:_es_match)
-  endif
-  return esearch#start(b:_es_exp, b:pwd)
 endfu
 
 fu! s:open(cmd, ...)
