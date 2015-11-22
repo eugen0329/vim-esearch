@@ -168,7 +168,9 @@ fu! s:move(direction)
     call search(pattern, 'Wbe')
   endif
 
-  return '.|norm! w'
+  " return '.|norm! w' " Doesn't works if :set nostartofline, so:
+  call search('^', 'Wb', line('.')) " search start of the line
+  return 'norm! ww'
 endfu
 
 fu! s:filename()
