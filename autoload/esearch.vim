@@ -67,7 +67,7 @@ fu! s:request_str(pattern, dir)
   let r = g:esearch_settings.parametrize('regex')
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
-  return "ag ".r." ".c." ".w." --nogroup --nocolor --column " .
+  return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
         \ esearch#util#shellescape(a:pattern)  . " " . esearch#util#shellescape(a:dir)
 endfu
 
