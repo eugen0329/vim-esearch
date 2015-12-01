@@ -85,7 +85,8 @@ fu! esearch#win#init(dir)
     au CursorMoved <buffer> call esearch#handlers#cursor_moved()
     au CursorHold  <buffer> call esearch#handlers#cursor_hold()
     au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime
+    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+          \ let &updatetime = float2nr(g:esearch_settings.updatetime)
   augroup END
 
   call s:init_mappings()
