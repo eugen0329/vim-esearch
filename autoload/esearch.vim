@@ -43,7 +43,8 @@ fu! s:results_bufname(pattern)
   let modifiers = ''
   let modifiers .= g:esearch_settings.case ? 'c' : ''
   let modifiers .= g:esearch_settings.word ? 'w' : ''
-  return escape(fnameescape(printf(format, a:pattern, modifiers)), './')
+  let name = fnameescape(printf(format, a:pattern, modifiers))
+  return substitute(name, '["]', '\\\\\0', 'g')
 endfu
 
 fu! esearch#mappings()
