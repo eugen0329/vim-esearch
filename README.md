@@ -49,8 +49,8 @@ along with s, v and t buttons to open a file silently. Press `shift-r` to reload
 currrent results.
 
 To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command
-line use `ctrl-s ctrl-c`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is **S**et **R**egex,
-**S**et **C**ase sesnsitive option etc).
+line use `ctrl-s ctrl-s`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is **S**et **R**egex,
+**S**et ca**S**e sesnsitive option etc).
 
 ## Customization
 

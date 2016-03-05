@@ -1,6 +1,6 @@
 let s:mappings = {
       \'<C-s><C-r>':  '<Plug>(esearch-regex)',
-      \'<C-s><C-c>':  '<Plug>(esearch-case)',
+      \'<C-s><C-s>':  '<Plug>(esearch-case)',
       \'<C-s><C-w>':  '<Plug>(esearch-word)',
       \}
 let s:dir_prompt = ''
