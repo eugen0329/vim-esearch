@@ -9,7 +9,7 @@ cnoremap <Plug>(esearch-regex) <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(esearch-case)  <C-r>=<SID>invert('case')<CR>
 cnoremap <Plug>(esearch-word)  <C-r>=<SID>invert('word')<CR>
 
-fu! esearch#cmdline#read(exp, dir) abort
+fu! esearch#cmdline#_read(exp, dir) abort
   let old_mapargs = s:init_mappings()
   let s:dir_prompt = s:dir_prompt(a:dir)
   let s:pattern = a:exp

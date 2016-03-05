@@ -1,18 +1,19 @@
 let s:default_mappings = {
-      \ 'T': '<Plug>(esearch-T)',
-      \ 't': '<Plug>(esearch-t)',
-      \ 's': '<Plug>(esearch-s)',
-      \ 'S': '<Plug>(esearch-S)',
-      \ 'R': '<Plug>(esearch-R)',
-      \ 'v': '<Plug>(esearch-v)',
-      \ 'V': '<Plug>(esearch-V)',
-      \ '<CR>': '<Plug>(esearch-cr)',
-      \ '<C-p>': '<Plug>(esearch-cp)',
-      \ '<C-n>': '<Plug>(esearch-cn)',
+      \ 't':     '<Plug>(esearch-tab)',
+      \ 'T':     '<Plug>(esearch-tab-s)',
+      \ 'i':     '<Plug>(esearch-split)',
+      \ 'I':     '<Plug>(esearch-split-s)',
+      \ 's':     '<Plug>(esearch-vsplit)',
+      \ 'S':     '<Plug>(esearch-vsplit-s)',
+      \ 'R':     '<Plug>(esearch-reload)',
+      \ '<Enter>':  '<Plug>(esearch-open)',
+      \ 'o':     '<Plug>(esearch-open)',
+      \ '<C-p>': '<Plug>(esearch-next)',
+      \ '<C-n>': '<Plug>(esearch-prev)',
       \ }
-
-let s:mappings = {}
+" The first line. It contains information about the number of results
 let s:header = '%d matches'
+let s:mappings = {}
 
 fu! esearch#win#update() abort
   if esearch#util#cgetfile(b:request)
@@ -82,8 +83,8 @@ endfu
 fu! esearch#win#init(dir) abort
   augroup EasysearchAutocommands
     au! * <buffer>
-    au CursorMoved <buffer> call esearch#handlers#cursor_moved()
-    au CursorHold  <buffer> call esearch#handlers#cursor_hold()
+    au CursorMoved <buffer> call esearch#handlers#_cursor_moved()
+    au CursorHold  <buffer> call esearch#handlers#_cursor_hold()
     au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
     au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
           \ let &updatetime = float2nr(g:esearch_settings.updatetime)
@@ -130,17 +131,17 @@ fu! esearch#win#map(map, plug) abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-t)   :<C-U>call <sid>open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-T)   :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-s)   :<C-U>call <SID>open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-S)   :<C-U>call <SID>open('new', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-v)   :<C-U>call <SID>open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-V)   :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-cr)  :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-R)   :<C-U>call esearch#start(b:_es_exp, b:pwd)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-cn)  :<C-U>sil exe <SID>move(1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-cp)  :<C-U>sil exe <SID>move(-1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-tab)       :<C-U>call <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-tab-s)     :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-split)     :<C-U>call <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-split-s)   :<C-U>call <SID>open('new', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-vsplit)    :<C-U>call <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-vsplit-s)  :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-open)      :<C-U>call <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:_es_exp, b:pwd)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>move(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>move(-1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>move(-1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')

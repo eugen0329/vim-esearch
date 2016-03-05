@@ -1,18 +1,18 @@
 fu! esearch#pre(visual, ...) abort
   let dir = a:0 ? a:1 : $PWD
   let initial_exp = esearch#regex#new(a:visual, g:esearch_settings)
-  let exp = esearch#cmdline#read(initial_exp, dir)
+  let exp = esearch#cmdline#_read(initial_exp, dir)
   if empty(exp)
     return ''
   endif
   let exp = esearch#regex#finalize(exp, g:esearch_settings)
-  return esearch#start(exp, dir)
+  return esearch#_start(exp, dir)
 endfu
 
-fu! esearch#start(exp, dir) abort
+fu! esearch#_start(exp, dir) abort
   let pattern = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
-  let results_bufname = s:results_bufname(pattern)
-  call s:find_or_create_buf(results_bufname)
+  let outbufname = s:outbufname(pattern)
+  call s:find_or_create_buf(outbufname)
   call esearch#win#init(a:dir)
 
   exe 'Dispatch! '.s:request_str(pattern, a:dir)
@@ -38,7 +38,7 @@ fu! esearch#start(exp, dir) abort
   endif
 endfu
 
-fu! s:results_bufname(pattern) abort
+fu! s:outbufname(pattern) abort
   let format = s:bufname_fomat()
   let modifiers = ''
   let modifiers .= g:esearch_settings.case ? 'c' : ''
@@ -47,7 +47,7 @@ fu! s:results_bufname(pattern) abort
   return substitute(name, '["]', '\\\\\0', 'g')
 endfu
 
-fu! esearch#mappings() abort
+fu! esearch#_mappings() abort
   if !exists('s:mappings')
     let s:mappings = {
           \ '<leader>ff': '<Plug>(esearch)',
@@ -61,7 +61,7 @@ fu! esearch#mappings() abort
 endfu
 
 fu! esearch#map(map, plug) abort
-  call esearch#mappings().set(a:map, a:plug)
+  call esearch#_mappings().set(a:map, a:plug)
 endfu
 
 fu! s:request_str(pattern, dir) abort

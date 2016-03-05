@@ -1,4 +1,4 @@
-fu! esearch#handlers#cursor_moved() abort
+fu! esearch#handlers#_cursor_moved() abort
   if esearch#util#timenow() < &updatetime/1000.0 + b:last_update_time
     return -1
   endif
@@ -6,21 +6,21 @@ fu! esearch#handlers#cursor_moved() abort
   call esearch#win#update()
 
   if s:completed()
-    call esearch#handlers#finish()
+    call esearch#handlers#_finish()
   endif
 endfu
 
-fu! esearch#handlers#cursor_hold()
+fu! esearch#handlers#_cursor_hold()
   call esearch#win#update()
 
   if s:completed()
-    call esearch#handlers#finish()
+    call esearch#handlers#_finish()
   else
     call feedkeys('\<Plug>(easysearch-Nop)')
   endif
 endfu
 
-fu! esearch#handlers#finish() abort
+fu! esearch#handlers#_finish() abort
   au! EasysearchAutocommands * <buffer>
   let &updatetime = float2nr(b:updatetime_backup)
 
