@@ -1,4 +1,4 @@
-fu! esearch#util#parse_results(from, to)
+fu! esearch#util#parse_results(from, to) abort
   if empty(b:qf_file) | return [] | endif
   let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
   let results = []
@@ -17,7 +17,7 @@ fu! esearch#util#parse_results(from, to)
   return results
 endfu
 
-fu! esearch#util#btrunc(str, center, lw, rw)
+fu! esearch#util#btrunc(str, center, lw, rw) abort
   " om - omission, lw/rw - with from the left(right)
   let om = '…'
 
@@ -27,7 +27,7 @@ fu! esearch#util#btrunc(str, center, lw, rw)
   return (l == 0 ? '' : om) . a:str[l : r] . (r == len(a:str)-1 ? '' : om)
 endfu
 
-fu! esearch#util#trunc(str, size)
+fu! esearch#util#trunc(str, size) abort
   if len(a:str) > a:size
     return a:str[:a:size] . '…'
   endif
@@ -35,16 +35,16 @@ fu! esearch#util#trunc(str, size)
   return a:str
 endfu
 
-fu! esearch#util#shellescape(str)
+fu! esearch#util#shellescape(str) abort
   return shellescape(a:str, g:esearch_settings.escape_special)
 endfu
 
-fu! esearch#util#timenow()
+fu! esearch#util#timenow() abort
   let now = reltime()
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
-fu! esearch#util#visual_selection()
+fu! esearch#util#visual_selection() abort
   let [lnum1, col1] = getpos("'<")[1:2]
   let [lnum2, col2] = getpos("'>")[1:2]
   let lines = getline(lnum1, lnum2)
@@ -55,7 +55,7 @@ endfu
 
 
 " Extracted from tpope/dispatch
-fu! esearch#util#request_status()
+fu! esearch#util#request_status() abort
   let request = b:request
   try
     let status = str2nr(readfile(request.file . '.complete', 1)[0])
@@ -101,19 +101,19 @@ fu! esearch#util#running(handler, pid) abort
   endif
 endfu
 
-fu! esearch#util#set(key, val) dict
+fu! esearch#util#set(key, val) dict abort
   let self[a:key] = a:val
   return self
 endfu
 
-fu! esearch#util#get(key) dict
+fu! esearch#util#get(key) dict abort
   return self[a:key]
 endfu
 
-fu! esearch#util#dict() dict
+fu! esearch#util#dict() dict abort
   return filter(copy(self), 'type(v:val) != '.type(function("tr")))
 endfu
 
-fu! esearch#util#with_val(val) dict
+fu! esearch#util#with_val(val) dict abort
   return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
 endfu

@@ -14,7 +14,7 @@ let s:default_mappings = {
 let s:mappings = {}
 let s:header = '%d matches'
 
-fu! esearch#win#update()
+fu! esearch#win#update() abort
   if esearch#util#cgetfile(b:request)
     return 1
   endif
@@ -44,7 +44,7 @@ fu! esearch#win#update()
   let b:last_update_time = esearch#util#timenow()
 endfu
 
-fu! s:extend_results()
+fu! s:extend_results() abort
   if b:handler_running
     if len(b:qf) < len(b:qf_file) - 1 && !empty(b:qf_file)
       call extend(b:qf, esearch#util#parse_results(len(b:qf), len(b:qf_file)-2))
@@ -56,7 +56,7 @@ fu! s:extend_results()
   endif
 endfu
 
-fu! s:render_results(qfrange)
+fu! s:render_results(qfrange) abort
   let line = line('$') + 1
   for i in a:qfrange
     let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
@@ -79,7 +79,7 @@ fu! s:render_results(qfrange)
   endfor
 endfu
 
-fu! esearch#win#init(dir)
+fu! esearch#win#init(dir) abort
   augroup EasysearchAutocommands
     au! * <buffer>
     au CursorMoved <buffer> call esearch#handlers#cursor_moved()
@@ -121,7 +121,7 @@ fu! esearch#win#init(dir)
 endfu
 
 
-fu! esearch#win#map(map, plug)
+fu! esearch#win#map(map, plug) abort
   " if has_key(s:mappings, a:plug)
     let s:mappings[a:map] = a:plug
   " else
@@ -129,7 +129,7 @@ fu! esearch#win#map(map, plug)
   " endif
 endfu
 
-fu! s:init_mappings()
+fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-t)   :<C-U>call <sid>open('tabnew')<cr>
   nnoremap <silent><buffer> <Plug>(esearch-T)   :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-s)   :<C-U>call <SID>open('new')<CR>
@@ -149,7 +149,7 @@ fu! s:init_mappings()
   endfor
 endfu
 
-fu! s:open(cmd, ...)
+fu! s:open(cmd, ...) abort
   let fname = s:filename()
   if !empty(fname)
     let ln = s:line_number()
@@ -161,7 +161,7 @@ fu! s:open(cmd, ...)
   endif
 endfu
 
-fu! s:move(direction)
+fu! s:move(direction) abort
   let pattern = '^\s\+\d\+\s\+.*'
   if a:direction == 1
     call search(pattern . '\%>4l', 'W')
@@ -174,7 +174,7 @@ fu! s:move(direction)
   return 'norm! ww'
 endfu
 
-fu! s:filename()
+fu! s:filename() abort
   let lnum = search('^\%>2l[^ ]', 'bcWn')
   if lnum == 0
     let lnum = search('^\%>2l[^ ]', 'cWn')
@@ -189,7 +189,7 @@ fu! s:filename()
   endif
 endfu
 
-fu! s:line_number()
+fu! s:line_number() abort
   let pattern = '^\%>1l\s\+\d\+.*'
 
   if line('.') < 3 || match(getline('.'), '^[^ ].*') >= 0

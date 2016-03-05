@@ -1,4 +1,4 @@
-fu! esearch#pre(visual, ...)
+fu! esearch#pre(visual, ...) abort
   let dir = a:0 ? a:1 : $PWD
   let initial_exp = esearch#regex#new(a:visual, g:esearch_settings)
   let exp = esearch#cmdline#read(initial_exp, dir)
@@ -9,7 +9,7 @@ fu! esearch#pre(visual, ...)
   return esearch#start(exp, dir)
 endfu
 
-fu! esearch#start(exp, dir)
+fu! esearch#start(exp, dir) abort
   let pattern = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
   let results_bufname = s:results_bufname(pattern)
   call s:find_or_create_buf(results_bufname)
@@ -38,7 +38,7 @@ fu! esearch#start(exp, dir)
   endif
 endfu
 
-fu! s:results_bufname(pattern)
+fu! s:results_bufname(pattern) abort
   let format = s:bufname_fomat()
   let modifiers = ''
   let modifiers .= g:esearch_settings.case ? 'c' : ''
@@ -47,7 +47,7 @@ fu! s:results_bufname(pattern)
   return substitute(name, '["]', '\\\\\0', 'g')
 endfu
 
-fu! esearch#mappings()
+fu! esearch#mappings() abort
   if !exists('s:mappings')
     let s:mappings = {
           \ '<leader>ff': '<Plug>(esearch)',
@@ -60,11 +60,11 @@ fu! esearch#mappings()
   return s:mappings
 endfu
 
-fu! esearch#map(map, plug)
+fu! esearch#map(map, plug) abort
   call esearch#mappings().set(a:map, a:plug)
 endfu
 
-fu! s:request_str(pattern, dir)
+fu! s:request_str(pattern, dir) abort
   let r = g:esearch_settings.parametrize('regex')
   let c = g:esearch_settings.parametrize('case')
   let w = g:esearch_settings.parametrize('word')
@@ -72,7 +72,7 @@ fu! s:request_str(pattern, dir)
         \ esearch#util#shellescape(a:pattern)  . " " . esearch#util#shellescape(a:dir)
 endfu
 
-fu! s:find_or_create_buf(bufname)
+fu! s:find_or_create_buf(bufname) abort
   let bufnr = bufnr('^'.a:bufname.'$')
   if bufnr == bufnr('%')
     return 0
@@ -89,7 +89,7 @@ fu! s:find_or_create_buf(bufname)
   endif
 endfu
 
-fu! s:find_buf(bufnr)
+fu! s:find_buf(bufnr) abort
   for tabnr in range(1, tabpagenr('$'))
     if tabpagenr() == tabnr | continue | endif
     let buflist = tabpagebuflist(tabnr)
@@ -104,7 +104,7 @@ fu! s:find_buf(bufnr)
 endf
 
 " Results bufname format getter
-fu! s:bufname_fomat()
+fu! s:bufname_fomat() abort
   if g:esearch_settings.regex
     if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
       " Since we can't use '/' in filenames

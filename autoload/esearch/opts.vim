@@ -4,7 +4,7 @@ let s:opts_map = {
       \'word':    { 'p': ['',   '-w'], 's': ['>', 'w'] },
       \}
 
-fu! esearch#opts#new(opts)
+fu! esearch#opts#new(opts) abort
   return extend(a:opts, {
         \ 'regex':           0,
         \ 'case':            0,
@@ -25,25 +25,25 @@ fu! esearch#opts#new(opts)
         \}, 'keep')
 endfu
 
-fu! s:invert(key) dict
+fu! s:invert(key) dict abort
   let option = !self[a:key]
   let self[a:key] = option
   return option
 endfu
 
-fu! s:stringify(key) dict
+fu! s:stringify(key) dict abort
   return s:transformed(self, a:key, 's')
 endfu
 
-fu! s:parametrize(key) dict
+fu! s:parametrize(key) dict abort
   return s:transformed(self, a:key, 'p')
 endfu
 
-fu s:transformed(dict, key, kind)
+fu s:transformed(dict, key, kind) abort
   return s:opts_map[a:key][a:kind][a:dict[a:key]]
 endfu
 
-fu! s:update_statusline_cmd()
+fu! s:update_statusline_cmd() abort
   if exists('*lightline#update_once')
     return 'call lightline#update_once()'
   elseif exists('AirlineRefresh')

@@ -1,4 +1,4 @@
-fu! esearch#handlers#cursor_moved()
+fu! esearch#handlers#cursor_moved() abort
   if esearch#util#timenow() < &updatetime/1000.0 + b:last_update_time
     return -1
   endif
@@ -20,7 +20,7 @@ fu! esearch#handlers#cursor_hold()
   endif
 endfu
 
-fu! esearch#handlers#finish()
+fu! esearch#handlers#finish() abort
   au! EasysearchAutocommands * <buffer>
   let &updatetime = float2nr(b:updatetime_backup)
 

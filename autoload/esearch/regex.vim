@@ -1,4 +1,5 @@
-fu! esearch#regex#new(visual, opts)
+" GLOBAL TODO
+fu! esearch#regex#new(visual, opts) abort
   if a:visual && a:opts.use.visual
     let vexp = esearch#util#visual_selection()
     return { 'vim': vexp, 'pcre': vexp, 'literal': vexp }
@@ -13,7 +14,7 @@ fu! esearch#regex#new(visual, opts)
   endif
 endfu
 
-fu! esearch#regex#finalize(exp, opts)
+fu! esearch#regex#finalize(exp, opts) abort
   let vexp = a:exp.vim
   let vexp = escape(vexp, '$')
   if a:opts.word
@@ -26,7 +27,7 @@ fu! esearch#regex#finalize(exp, opts)
   return extend(a:exp, { 'vim_match': vexp })
 endfu
 
-fu! esearch#regex#vim2pcre(exp)
+fu! esearch#regex#vim2pcre(exp) abort
   let exp = a:exp
 
   let exp = substitute(exp, '\\\([+{]\)', '\1', 'g')
@@ -46,7 +47,7 @@ fu! esearch#regex#vim2pcre(exp)
   return exp
 endfu
 
-fu! esearch#regex#vim_sanitize(exp)
+fu! esearch#regex#vim_sanitize(exp) abort
   let exp = a:exp
 
   let exp = substitute(exp, '\\\([+{()<>]\)', '', 'g')
@@ -59,7 +60,7 @@ fu! esearch#regex#vim_sanitize(exp)
   return exp
 endfu
 
-fu! esearch#regex#pcre_sanitize(exp)
+fu! esearch#regex#pcre_sanitize(exp) abort
   let exp = a:exp
 
   let exp = substitute(exp, '\\\([b]\)', '', 'g')
@@ -67,7 +68,7 @@ fu! esearch#regex#pcre_sanitize(exp)
   return exp
 endfu
 
-fu! esearch#regex#pcre2vim(exp)
+fu! esearch#regex#pcre2vim(exp) abort
   let exp = a:exp
   " let exp = substitute(exp, '[^\]\?\zs\\([+{]\)', '\1', 'g')
   let exp = substitute(exp, '\([+{]\)', '\\\1', 'g')

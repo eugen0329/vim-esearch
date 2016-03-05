@@ -9,7 +9,7 @@ cnoremap <Plug>(esearch-regex) <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(esearch-case)  <C-r>=<SID>invert('case')<CR>
 cnoremap <Plug>(esearch-word)  <C-r>=<SID>invert('word')<CR>
 
-fu! esearch#cmdline#read(exp, dir)
+fu! esearch#cmdline#read(exp, dir) abort
   let old_mapargs = s:init_mappings()
   let s:dir_prompt = s:dir_prompt(a:dir)
   let s:pattern = a:exp
@@ -46,7 +46,7 @@ fu! esearch#cmdline#read(exp, dir)
   return s:pattern
 endfu
 
-fu! s:invert(option)
+fu! s:invert(option) abort
   let s:interrupted = 1
   let s:cmdpos = getcmdpos()
 
@@ -60,7 +60,7 @@ fu! s:invert(option)
   return ''
 endfu
 
-fu! s:recover_regex()
+fu! s:recover_regex() abort
   if g:esearch_settings.regex
     if s:cmdline == s:pattern.pcre
       let s:cmdline = s:pattern.literal
@@ -79,28 +79,28 @@ fu! s:recover_regex()
   endif
 endfu
 
-fu! s:prompt()
+fu! s:prompt() abort
   let r = g:esearch_settings.stringify('regex')
   let c = g:esearch_settings.stringify('case')
   let w = g:esearch_settings.stringify('word')
   return s:dir_prompt.'pattern '.r.c.w.' '
 endfu
 
-fu! s:dir_prompt(dir)
+fu! s:dir_prompt(dir) abort
   if a:dir ==# $PWD
     return ''
   endif
   return 'Dir: '.substitute(a:dir , $PWD, '.', '')."\n"
 endfu
 
-fu! s:get_correction()
+fu! s:get_correction() abort
   if len(s:cmdline) + 1 != s:cmdpos
     return repeat("\<Left>", len(s:cmdline) + 1 - s:cmdpos )
   endif
   return ''
 endfu
 
-fu! s:init_mappings()
+fu! s:init_mappings() abort
   let mapargs =  {}
   for map in keys(s:mappings)
     " let map = s:mappings[plug]
@@ -111,7 +111,7 @@ fu! s:init_mappings()
   return mapargs
 endfu
 
-fu! s:recover_mappings(mapargs)
+fu! s:recover_mappings(mapargs) abort
   for map in keys(a:mapargs)
     let maparg = a:mapargs[map]
     if empty(maparg)
@@ -124,6 +124,6 @@ fu! s:recover_mappings(mapargs)
   endfor
 endfu
 
-fu! esearch#cmdline#map(map, plug)
+fu! esearch#cmdline#map(map, plug) abort
     let s:mappings[a:map] = a:plug
 endfu
