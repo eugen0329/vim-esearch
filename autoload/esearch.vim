@@ -1,6 +1,6 @@
-fu! esearch#pre(visual, ...) abort
+fu! esearch#pre(visual_mode, ...) abort
   let dir = a:0 ? a:1 : $PWD
-  let initial_exp = esearch#regex#new(a:visual, g:esearch_settings)
+  let initial_exp = esearch#regex#build(g:esearch_settings.use, a:visual_mode)
   let exp = esearch#cmdline#_read(initial_exp, dir)
   if empty(exp)
     return ''

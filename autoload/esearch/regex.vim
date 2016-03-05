@@ -1,16 +1,19 @@
 " GLOBAL TODO
-fu! esearch#regex#new(visual, opts) abort
-  if a:visual && a:opts.use.visual
-    let vexp = esearch#util#visual_selection()
-    return { 'vim': vexp, 'pcre': vexp, 'literal': vexp }
-  elseif get(v:, 'hlsearch', 0) && a:opts.use.hlsearch
-    let vexp = getreg('/')
-    return { 'vim': vexp,
-          \  'pcre': esearch#regex#vim2pcre(vexp),
-          \  'literal': esearch#regex#vim_sanitize(vexp)
-          \ }
+fu! esearch#regex#build(use, visual_mode)
+  for source in a:use
+    let exp = s:{source}_exp(a:visual_mode)
+    if !empty(exp) | return exp | endif
+    unlet exp
+  endfor
+  return esearch#regex#new()
+endfu
+
+fu! esearch#regex#new(...) abort
+  let blank = { 'vim': '', 'pcre': '', 'literal': '' }
+  if a:0
+    return extend(a:1, blank, 'keep')
   else
-    return { 'vim': '', 'pcre': '', 'literal': '' }
+    return blank
   endif
 endfu
 
@@ -84,4 +87,25 @@ fu! esearch#regex#pcre2vim(exp) abort
   " let exp = substitute(exp, '\\%\d\+[vlc]', '', 'g')
 
   return exp
+endfu
+
+fu! s:visual_exp(visual_mode)
+  if a:visual_mode
+    let visual = esearch#util#visual_selection()
+    return esearch#regex#new({'vim': visual, 'pcre': visual, 'literal': visual})
+  else
+    return 0
+  endif
+endfu
+
+fu! s:hlsearch_exp(...)
+  if get(v:, 'hlsearch', 0)
+    let vexp = getreg('/')
+    return esearch#regex#new({ 'vim': vexp,
+          \  'pcre': esearch#regex#vim2pcre(vexp),
+          \  'literal': esearch#regex#vim_sanitize(vexp)
+          \ })
+  else
+    return 0
+  endif
 endfu

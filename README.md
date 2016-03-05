@@ -101,10 +101,7 @@ Initialize this variable to specify preferred behaviour:
           \ 'highlight_match': 1,
           \ 'nerdtree_plugin': 1,
           \ 'escape_special':  1,
-          \ 'use': { 
-          \   'visual': 1,
-          \   'hlsearch': 1
-          \   },
+          \ 'use': [ 'visual', 'hlsearch' ],
           \ }
 ```
 
@@ -119,4 +116,4 @@ Initialize this variable to specify preferred behaviour:
 | 'highlight_context' | higlight matched text with `EsearchMatch`                     |
 | 'nerdtree_plugin'   | use "Search in NERDTree directory" feature                    |
 | 'escape_special'    | escape vim special character such as #, %, \<cfile\> etc.  |
-| 'use'               | sources for the initial search value ('visual' - visual selection, 'hlsearch' - currently highlighted search result)  |
+| 'use'               | sources for the initial search value ('visual' - visual selection, 'hlsearch' - currently highlighted search result). NOTE Order affects the priority  |
