@@ -1,7 +1,8 @@
-fu! esearch#pre(visual_mode, ...) abort
+fu! esearch#pre(visualmode, ...) abort
   let dir = a:0 ? a:1 : $PWD
-  let initial_exp = esearch#regex#build(g:esearch_settings.use, a:visual_mode)
-  let exp = esearch#cmdline#_read(initial_exp, dir)
+  let build_opts = { 'visualmode': a:visualmode }
+  let g:esearch_last_exp = esearch#regex#build(g:esearch_settings.use, build_opts)
+  let exp = esearch#cmdline#_read(g:esearch_last_exp, dir)
   if empty(exp)
     return ''
   endif

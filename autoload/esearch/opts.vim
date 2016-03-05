@@ -16,7 +16,7 @@ fu! esearch#opts#new(opts) abort
         \ 'highlight_match': 1,
         \ 'escape_special':  1,
         \ 'wordchars':      'a-z,A-Z,_',
-        \ 'use': ['visual', 'hlsearch'],
+        \ 'use': ['visual', 'hlsearch', 'last'],
         \ 'nerdtree_plugin': 1,
         \ 'update_statusline_cmd': s:update_statusline_cmd(),
         \ 'invert':      function('<SID>invert'),

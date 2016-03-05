@@ -1,7 +1,7 @@
 " GLOBAL TODO
-fu! esearch#regex#build(use, visual_mode)
+fu! esearch#regex#build(use, opts)
   for name in a:use
-    let exp = esearch#source#{name}(a:visual_mode)
+    let exp = esearch#source#{name}(a:opts)
     if !empty(exp) | return exp | endif
     unlet exp
   endfor
