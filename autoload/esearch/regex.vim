@@ -23,10 +23,10 @@ fu! esearch#regex#finalize(exp, opts) abort
   if a:opts.word
     let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'
   endif
+  let vexp = '\%>3l\%(\s\+\d\+\s.*\)\@<='.vexp
   if !a:opts.case
     let vexp = '\c'.vexp
   endif
-  let vexp = '\%>2l\%(\s\+\d\+.*\)\@<='.vexp
   return extend(a:exp, { 'vim_match': vexp })
 endfu
 
