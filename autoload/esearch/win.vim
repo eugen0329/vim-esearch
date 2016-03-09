@@ -8,8 +8,8 @@ let s:default_mappings = {
       \ 'R':     '<Plug>(esearch-reload)',
       \ '<Enter>':  '<Plug>(esearch-open)',
       \ 'o':     '<Plug>(esearch-open)',
-      \ '<C-p>': '<Plug>(esearch-next)',
-      \ '<C-n>': '<Plug>(esearch-prev)',
+      \ '<C-n>': '<Plug>(esearch-next)',
+      \ '<C-p>': '<Plug>(esearch-prev)',
       \ }
 " The first line. It contains information about the number of results
 let s:header = '%d matches'
@@ -139,9 +139,8 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-vsplit-s)  :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-open)      :<C-U>call <SID>open('edit')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:_es_exp, b:pwd)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>move(1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>move(-1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>move(-1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>jump(0)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>jump(1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
@@ -162,12 +161,12 @@ fu! s:open(cmd, ...) abort
   endif
 endfu
 
-fu! s:move(direction) abort
+fu! s:jump(downwards) abort
   let pattern = '^\s\+\d\+\s\+.*'
-  if a:direction == 1
+  if a:downwards
     call search(pattern . '\%>4l', 'W')
   else
-    call search(pattern, 'Wbe')
+    call search(pattern, line('.') < 3 ? 'W' : 'Wbe')
   endif
 
   " return '.|norm! w' " Doesn't works if :set nostartofline, so:
