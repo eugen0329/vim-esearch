@@ -26,12 +26,12 @@ fu! esearch#win#update() abort
 
   let qf_len = len(b:qf)
   if qf_len > b:_es_iterator
-    if qf_len - b:_es_iterator - 1 <= g:esearch_settings.batch_size
+    if qf_len - b:_es_iterator - 1 <= g:esearch.batch_size
       let qfrange = range(b:_es_iterator, qf_len - 1)
       let b:_es_iterator = qf_len
     else
-      let qfrange = range(b:_es_iterator, b:_es_iterator + g:esearch_settings.batch_size - 1)
-      let b:_es_iterator += g:esearch_settings.batch_size
+      let qfrange = range(b:_es_iterator, b:_es_iterator + g:esearch.batch_size - 1)
+      let b:_es_iterator += g:esearch.batch_size
     endif
 
     call s:render_results(qfrange)
@@ -41,7 +41,7 @@ fu! esearch#win#update() abort
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
-  " exe g:esearch_settings.update_statusline_cmd
+  " exe g:esearch.update_statusline_cmd
   let b:last_update_time = esearch#util#timenow()
 endfu
 
@@ -63,8 +63,8 @@ fu! s:render_results(qfrange) abort
     let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
     let context  = esearch#util#btrunc(b:qf[i].text,
           \ match(b:qf[i].text, b:_es_exp.vim),
-          \ g:esearch_settings.context_width.l,
-          \ g:esearch_settings.context_width.r)
+          \ g:esearch.context_width.l,
+          \ g:esearch.context_width.r)
 
     if fname !=# b:prev_filename
       let b:_es_columns[fname] = {}
@@ -87,13 +87,13 @@ fu! esearch#win#init(dir) abort
     au CursorHold  <buffer> call esearch#handlers#_cursor_hold()
     au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
     au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
-          \ let &updatetime = float2nr(g:esearch_settings.updatetime)
+          \ let &updatetime = float2nr(g:esearch.updatetime)
   augroup END
 
   call s:init_mappings()
 
   let b:updatetime_backup = &updatetime
-  let &updatetime = float2nr(g:esearch_settings.updatetime)
+  let &updatetime = float2nr(g:esearch.updatetime)
 
   let b:qf = []
   let b:pwd = a:dir
@@ -105,7 +105,7 @@ fu! esearch#win#init(dir) abort
   let b:broken_results = []
   let b:_es_columns = {}
 
-  let &iskeyword= g:esearch_settings.wordchars
+  let &iskeyword= g:esearch.wordchars
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d'

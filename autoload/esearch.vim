@@ -1,17 +1,17 @@
 fu! esearch#pre(visualmode, ...) abort
   let dir = a:0 ? a:1 : $PWD
   let build_opts = { 'visualmode': a:visualmode }
-  let g:esearch_last_exp = esearch#regex#build(g:esearch_settings.use, build_opts)
+  let g:esearch_last_exp = esearch#regex#build(g:esearch.use, build_opts)
   let exp = esearch#cmdline#_read(g:esearch_last_exp, dir)
   if empty(exp)
     return ''
   endif
-  let exp = esearch#regex#finalize(exp, g:esearch_settings)
+  let exp = esearch#regex#finalize(exp, g:esearch)
   return esearch#_start(exp, dir)
 endfu
 
 fu! esearch#_start(exp, dir) abort
-  let pattern = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
+  let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let outbufname = s:outbufname(pattern)
   call s:find_or_create_buf(outbufname)
   call esearch#win#init(a:dir)
@@ -30,7 +30,7 @@ fu! esearch#_start(exp, dir) abort
     catch /E803:/
     endtry
   endif
-  if g:esearch_settings.highlight_match
+  if g:esearch.highlight_match
     let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim_match, -1)
   endif
 
@@ -42,8 +42,8 @@ endfu
 fu! s:outbufname(pattern) abort
   let format = s:bufname_fomat()
   let modifiers = ''
-  let modifiers .= g:esearch_settings.case ? 'c' : ''
-  let modifiers .= g:esearch_settings.word ? 'w' : ''
+  let modifiers .= g:esearch.case ? 'c' : ''
+  let modifiers .= g:esearch.word ? 'w' : ''
   let name = fnameescape(printf(format, a:pattern, modifiers))
   return substitute(name, '["]', '\\\\\0', 'g')
 endfu
@@ -66,9 +66,9 @@ fu! esearch#map(map, plug) abort
 endfu
 
 fu! s:request_str(pattern, dir) abort
-  let r = g:esearch_settings.parametrize('regex')
-  let c = g:esearch_settings.parametrize('case')
-  let w = g:esearch_settings.parametrize('word')
+  let r = g:esearch.parametrize('regex')
+  let c = g:esearch.parametrize('case')
+  let w = g:esearch.parametrize('word')
   return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
         \ esearch#util#shellescape(a:pattern)  . " " . esearch#util#shellescape(a:dir)
 endfu
@@ -106,7 +106,7 @@ endf
 
 " Results bufname format getter
 fu! s:bufname_fomat() abort
-  if g:esearch_settings.regex
+  if g:esearch.regex
     if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
       " Since we can't use '/' in filenames
       return "Search:  \u2215%s\u2215%s"

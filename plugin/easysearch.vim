@@ -3,7 +3,7 @@ if exists('g:loaded_easy_search')
 endif
 let g:loaded_easy_search = 1
 
-let g:esearch_settings = esearch#opts#new(get(g:, 'esearch_settings', {}))
+let g:esearch = esearch#opts#new(get(g:, 'esearch', {}))
 
 noremap <silent><Plug>(esearch) :<C-u>call esearch#pre(0)<CR>
 xnoremap <silent><Plug>(esearch) :<C-u>call esearch#pre(1)<CR>

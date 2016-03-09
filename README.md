@@ -90,7 +90,7 @@ hi EsearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
 Initialize this variable to specify preferred behaviour:
 
 ```vim
-    let g:esearch_settings = {
+    let g:esearch = {
           \ 'regex':           0,
           \ 'case':            0,
           \ 'word':            0,

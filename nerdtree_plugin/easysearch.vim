@@ -1,4 +1,4 @@
-if get(get(g:, 'esearch_settings', {}), 'nerdtree_plugin', 1)
+if get(get(g:, 'esearch', {}), 'nerdtree_plugin', 1)
   for map in keys(esearch#_mappings().with_val('"<Plug>(esearch)"'))
     call NERDTreeAddKeyMap({
           \ 'key': map,

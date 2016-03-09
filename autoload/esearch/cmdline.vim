@@ -13,7 +13,7 @@ fu! esearch#cmdline#_read(exp, dir) abort
   let old_mapargs = s:init_mappings()
   let s:dir_prompt = s:dir_prompt(a:dir)
   let s:pattern = a:exp
-  let s:cmdline = g:esearch_settings.regex ? a:exp.pcre : a:exp.literal
+  let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let s:cmdpos = len(s:cmdline) + 1
 
   let s:interrupted = 0
@@ -36,7 +36,7 @@ fu! esearch#cmdline#_read(exp, dir) abort
     return {}
   endif
 
-  if g:esearch_settings.regex
+  if g:esearch.regex
     let s:pattern.pcre = str
     let s:pattern.vim = esearch#regex#pcre2vim(str)
   else
@@ -51,17 +51,17 @@ fu! s:invert(option) abort
   let s:cmdpos = getcmdpos()
 
   let s:cmdline = getcmdline()
-  if a:option == 'regex' && g:esearch_settings.recover_regex
+  if a:option == 'regex' && g:esearch.recover_regex
     call s:recover_regex()
   endif
 
-  call g:esearch_settings.invert(a:option)
+  call g:esearch.invert(a:option)
   call feedkeys("\<C-c>", 'n')
   return ''
 endfu
 
 fu! s:recover_regex() abort
-  if g:esearch_settings.regex
+  if g:esearch.regex
     if s:cmdline == s:pattern.pcre
       let s:cmdline = s:pattern.literal
     else
@@ -80,9 +80,9 @@ fu! s:recover_regex() abort
 endfu
 
 fu! s:prompt() abort
-  let r = g:esearch_settings.stringify('regex')
-  let c = g:esearch_settings.stringify('case')
-  let w = g:esearch_settings.stringify('word')
+  let r = g:esearch.stringify('regex')
+  let c = g:esearch.stringify('case')
+  let w = g:esearch.stringify('word')
   return s:dir_prompt.'pattern '.r.c.w.' '
 endfu
 

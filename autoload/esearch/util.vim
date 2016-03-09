@@ -36,7 +36,7 @@ fu! esearch#util#trunc(str, size) abort
 endfu
 
 fu! esearch#util#shellescape(str) abort
-  return shellescape(a:str, g:esearch_settings.escape_special)
+  return shellescape(a:str, g:esearch.escape_special)
 endfu
 
 fu! esearch#util#timenow() abort
