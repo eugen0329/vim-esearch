@@ -20,10 +20,13 @@ endfu
 fu! esearch#regex#finalize(exp, opts) abort
   let vexp = a:exp.vim
   let vexp = escape(vexp, '$')
+
   if a:opts.word
     let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'
   endif
-  let vexp = '\%>3l\%(\s\+\d\+\s.*\)\@<='.vexp
+
+  " To avoid matching pseudo LineNr
+  let vexp = '\%>1l\%(\s\+\d\+\s.*\)\@<='.vexp
   if !a:opts.case
     let vexp = '\c'.vexp
   endif
