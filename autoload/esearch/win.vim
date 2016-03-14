@@ -164,7 +164,7 @@ endfu
 fu! s:jump(downwards) abort
   let pattern = '^\s\+\d\+\s\+.*'
   if a:downwards
-    call search(pattern . '\%>4l', 'W')
+    call search(pattern . (line('.') < 3 ? '\%>3l' : '\%>4l'), 'W')
   else
     call search(pattern, line('.') < 3 ? 'W' : 'Wbe')
   endif
