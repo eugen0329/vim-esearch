@@ -16,7 +16,8 @@ fu! esearch#opts#new(opts) abort
         \ 'wordchars':      'a-z,A-Z,_',
         \ 'use': ['visual', 'hlsearch', 'last'],
         \ 'nerdtree_plugin': 1,
-        \ 'invert':      function('<SID>invert'),
+        \ 'invert':           function('<SID>invert'),
+        \ 'require':          function('esearch#util#require'),
         \}, 'keep')
 endfu
 

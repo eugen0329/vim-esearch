@@ -22,7 +22,7 @@ fu! esearch#_start(exp, dir, opencmd) abort
   let cmd = esearch#adapter#{g:esearch.adapter}#cmd(pattern, a:dir)
   let request = esearch#backend#{g:esearch.backend}#init(cmd)
   call esearch#out#{g:esearch.out}#init(
-        \ g:esearch.backend, request, a:exp, s:outbufname(pattern), a:dir, a:opencmd)
+        \ g:esearch.adapter, g:esearch.backend, request, a:exp, s:outbufname(pattern), a:dir, a:opencmd)
 endfu
 
 fu! s:outbufname(pattern) abort

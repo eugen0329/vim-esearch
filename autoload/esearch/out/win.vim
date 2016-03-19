@@ -15,7 +15,8 @@ let s:default_mappings = {
 let s:header = '%d matches'
 let s:mappings = {}
 
-fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
+" TODO wrap arguments with hash
+fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
 
   augroup ESearchWinAutocmds
@@ -48,6 +49,7 @@ fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
   let b:esearch = {
         \ 'out':                 'win',
         \ 'exp':                 a:exp,
+        \ 'adapter':             a:adapter,
         \ 'backend':             a:backend,
         \ 'request':             a:request,
         \ 'parsed':              [],
@@ -138,7 +140,7 @@ fu! s:extend_results() abort
   if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
     let from = len(b:esearch.parsed)
     let to = len(b:esearch.unparsed)-1
-    let parsed = esearch#adapter#ag#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
+    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
     call extend(b:esearch.parsed, parsed)
   endif
 endfu

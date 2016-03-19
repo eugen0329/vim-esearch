@@ -80,3 +80,9 @@ endfu
 fu! esearch#util#with_val(val) dict abort
   return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
 endfu
+
+
+fu! esearch#util#require(...) dict abort
+  " PP a:000
+  return filter(copy(self), 'index(a:000, v:key) >= 0')
+endfu
