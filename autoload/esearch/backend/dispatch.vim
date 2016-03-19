@@ -7,11 +7,9 @@ fu! esearch#backend#dispatch#init(cmd) abort
   return request
 endfu
 
-fu! esearch#backend#dispatch#init_events(group) abort
-  exe 'augroup ' . a:group
-    au CursorMoved <buffer> call s:_on_cursor_moved()
-    au CursorHold  <buffer> call s:_on_cursor_hold()
-  augroup END
+fu! esearch#backend#dispatch#init_events() abort
+  au CursorMoved <buffer> call s:_on_cursor_moved()
+  au CursorHold  <buffer> call s:_on_cursor_hold()
 endfu
 
 fu! s:read_data() abort
@@ -36,10 +34,37 @@ fu! s:read_data() abort
   return file_content
 endfu
 
+
+function! s:running(handler, pid) abort
+  if empty(a:pid)
+    return 0
+  elseif exists('*dispatch#'.a:handler.'#running')
+    return dispatch#{a:handler}#running(a:pid)
+  elseif has('win32')
+    let tasklist_cmd = 'tasklist /fi "pid eq '.a:pid.'"'
+    if &shellxquote ==# '"'
+      let tasklist_cmd = substitute(tasklist_cmd, '"', "'", "g")
+    endif
+    return system(tasklist_cmd) =~# '==='
+  else
+    call system('kill -0 '.a:pid)
+    return !v:shell_error
+  endif
+endfunction
+
 " TODO
 fu! s:completed(data)
-  let parsed_count = b:esearch._lines_iterator + len(b:esearch.__broken_results)
-  return !b:esearch.handler_running && b:esearch._lines_iterator == len(b:esearch.parsed)  && len(a:data) ==# parsed_count
+  let nparsed = b:esearch._lines_iterator
+
+  if len(a:data) == nparsed + 1 && esearch#adapter#ag#is_broken_result(a:data[nparsed])
+    let nbroken = 1
+  else
+    let nbroken = 0
+  endif
+
+  let handler_running = s:running(b:esearch.request.handler, b:esearch.request.pid)
+
+  return !handler_running && b:esearch._lines_iterator == len(b:esearch.parsed)  && len(a:data) ==# nparsed + nbroken
 endfu
 
 fu! s:_on_cursor_moved() abort
@@ -61,3 +86,9 @@ fu! s:_on_cursor_hold()
     call feedkeys('\<Plug>(easysearch-Nop)')
   endif
 endfu
+
+
+function! esearch#backend#dispatch#sid()  "{{{2
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>

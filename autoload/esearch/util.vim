@@ -1,22 +1,3 @@
-fu! esearch#util#parse_results(file, from, to, broken_results) abort
-  if empty(a:file) | return [] | endif
-  let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
-  let results = []
-
-  for i in range(a:from, a:to)
-    let el = matchlist(a:file[i], r)[1:4]
-    if empty(el)
-      if index(a:broken_results, a:file[i]) < 0
-        call add(a:broken_results, a:file[i])
-      endif
-      continue
-    endif
-    let new_elem = { 'fname': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3] }
-    call add(results, new_elem)
-  endfor
-  return results
-endfu
-
 fu! esearch#util#flatten(list)
   let flatten = []
   for elem in a:list

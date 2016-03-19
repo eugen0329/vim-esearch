@@ -42,7 +42,8 @@ fu! s:job_handler(job_id, data, event) abort
 endfu
 
 
-fu! esearch#backend#nvim#init_events(request) abort
+" call esearch#backend#{a:backend}#init_events()
+fu! esearch#backend#nvim#init_events() abort
   return 0
 endfu
 

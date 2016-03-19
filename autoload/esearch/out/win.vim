@@ -18,14 +18,13 @@ let s:mappings = {}
 fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
 
-  let group = 'ESearchWinAutocmds'
   augroup ESearchWinAutocmds
     au! * <buffer>
     au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
     au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
           \ let &updatetime = float2nr(g:esearch.updatetime)
+    call esearch#backend#{a:backend}#init_events()
   augroup END
-  call esearch#backend#{a:backend}#init_events(group)
 
   call s:init_mappings()
 
@@ -140,7 +139,7 @@ fu! s:extend_results() abort
   if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
     let from = len(b:esearch.parsed)
     let to = len(b:esearch.unparsed)-1
-    let parsed = esearch#util#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
+    let parsed = esearch#adapter#ag#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
     call extend(b:esearch.parsed, parsed)
   endif
 endfu
