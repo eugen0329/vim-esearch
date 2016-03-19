@@ -61,20 +61,20 @@ Use the following functionons to redefine default mappings:
 ```vim
     call esearch#map('<leader>ff', '<Plug>(esearch)')
 
-    call esearch#win#map('t',       '<Plug>(<Plug>(esearch-tab)')
-    call esearch#win#map('i',       '<Plug>(<Plug>(esearch-split)')
-    call esearch#win#map('s',       '<Plug>(<Plug>(esearch-vsplit)')
-    call esearch#win#map('<Enter>', '<Plug>(esearch-open)')
-    call esearch#win#map('o',       '<Plug>(esearch-open)')
+    call esearch#out#win#map('t',       '<Plug>(esearch-tab)')
+    call esearch#out#win#map('i',       '<Plug>(esearch-split)')
+    call esearch#out#win#map('s',       '<Plug>(esearch-vsplit)')
+    call esearch#out#win#map('<Enter>', '<Plug>(esearch-open)')
+    call esearch#out#win#map('o',       '<Plug>(esearch-open)')
 
     " Open silently (keep focus on the results window)
-    call esearch#win#map('T',     '<Plug>(<Plug>(esearch-tab-s)')
-    call esearch#win#map('I',     '<Plug>(<Plug>(esearch-split-s)')
-    call esearch#win#map('S',     '<Plug>(<Plug>(esearch-vsplit-s)')
+    call esearch#out#win#map('T',     '<Plug>(esearch-tab-s)')
+    call esearch#out#win#map('I',     '<Plug>(esearch-split-s)')
+    call esearch#out#win#map('S',     '<Plug>(esearch-vsplit-s)')
 
     " Move cursor with snapping
-    call esearch#win#map('<C-p>', '<Plug>(esearch-prev)')
-    call esearch#win#map('<C-n>', '<Plug>(esearch-next)')
+    call esearch#out#win#map('<C-p>', '<Plug>(esearch-prev)')
+    call esearch#out#win#map('<C-n>', '<Plug>(esearch-next)')
 
     call esearch#cmdline#map('<C-s><C-r>', '<Plug>(esearch-regex)')
     call esearch#cmdline#map('<C-s><C-s>', '<Plug>(esearch-case)')

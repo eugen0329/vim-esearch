@@ -3,7 +3,7 @@ fu! esearch#handlers#_cursor_moved() abort
     return -1
   endif
 
-  call esearch#win#update()
+  call esearch#out#win#update()
 
   if s:completed()
     call esearch#handlers#_finish()
@@ -11,7 +11,7 @@ fu! esearch#handlers#_cursor_moved() abort
 endfu
 
 fu! esearch#handlers#_cursor_hold()
-  call esearch#win#update()
+  call esearch#out#win#update()
 
   if s:completed()
     call esearch#handlers#_finish()

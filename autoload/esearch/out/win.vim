@@ -15,7 +15,7 @@ let s:default_mappings = {
 let s:header = '%d matches'
 let s:mappings = {}
 
-fu! esearch#win#update() abort
+fu! esearch#out#win#update() abort
   if esearch#util#cgetfile(b:request)
     return 1
   endif
@@ -80,7 +80,7 @@ fu! s:render_results(qfrange) abort
   endfor
 endfu
 
-fu! esearch#win#init(dir) abort
+fu! esearch#out#win#init(dir) abort
   augroup EasysearchAutocommands
     au! * <buffer>
     au CursorMoved <buffer> call esearch#handlers#_cursor_moved()
@@ -122,7 +122,7 @@ fu! esearch#win#init(dir) abort
 endfu
 
 
-fu! esearch#win#map(map, plug) abort
+fu! esearch#out#win#map(map, plug) abort
   " if has_key(s:mappings, a:plug)
     let s:mappings[a:map] = a:plug
   " else

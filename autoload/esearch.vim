@@ -14,7 +14,7 @@ fu! esearch#_start(exp, dir) abort
   let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let outbufname = s:outbufname(pattern)
   call s:find_or_create_buf(outbufname)
-  call esearch#win#init(a:dir)
+  call esearch#out#win#init(a:dir)
 
   exe 'Dispatch! '.s:request_str(pattern, a:dir)
 
@@ -35,7 +35,7 @@ fu! esearch#_start(exp, dir) abort
   endif
 
   if !esearch#util#cgetfile(b:request)
-    call esearch#win#update()
+    call esearch#out#win#update()
   endif
 endfu
 
