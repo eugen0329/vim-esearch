@@ -11,7 +11,7 @@ if get(get(g:, 'esearch', {}), 'nerdtree_plugin', 1)
   fu! NERDTreeEsearchDir(node) abort
     let path = a:node.path
     if path.isDirectory && path.str() !=# getcwd()
-      call esearch#pre(0, path.str())
+      call esearch#pre(0, {'dir':path.str()})
     else
       call esearch#pre(0)
     endif

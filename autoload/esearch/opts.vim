@@ -6,6 +6,8 @@ let s:opts_map = {
 
 fu! esearch#opts#new(opts) abort
   return extend(a:opts, {
+        \ 'out':             'win',
+        \ 'backend':         'dispatch',
         \ 'regex':           0,
         \ 'case':            0,
         \ 'word':            0,

@@ -21,8 +21,8 @@ fu! esearch#source#hlsearch(...)
 endfu
 
 fu! esearch#source#last(...)
-  if exists('g:esearch_last_exp')
-    return g:esearch_last_exp
+  if exists('g:esearch')
+    return get(g:esearch, '_last_exp', 0)
   else
     return 0
   endif

@@ -1,39 +1,27 @@
-fu! esearch#pre(opencmd, visualmode, ...) abort
-  let dir = a:0 ? a:1 : $PWD
-  let build_opts = { 'visualmode': a:visualmode }
-  let g:esearch_last_exp = esearch#regex#build(g:esearch.use, build_opts)
-  let exp = esearch#cmdline#_read(g:esearch_last_exp, dir)
+fu! esearch#pre(visualmode, ...) abort
+  if a:0
+    let options = a:1
+    let dir = get(options, 'dir', $PWD)
+  else
+    let dir = $PWD
+  endif
+
+  let g:esearch.last_exp = esearch#regex#build(g:esearch.use, {'visualmode': a:visualmode})
+
+  let exp = esearch#cmdline#_read(g:esearch.last_exp, dir)
   if empty(exp)
     return ''
   endif
   let exp = esearch#regex#finalize(exp, g:esearch)
-  return esearch#_start(exp, dir, a:opencmd)
+  return esearch#_start(exp, dir, g:esearch#out#win#open)
 endfu
 
 fu! esearch#_start(exp, dir, opencmd) abort
   let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
-  let outbufname = s:outbufname(pattern)
-  call esearch#out#win#init(outbufname, a:dir, a:opencmd)
 
-  exe 'Dispatch! '.s:request_str(pattern, a:dir)
-
-  let b:request = dispatch#request()
-  let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
-  let b:request.background = 1
-  let b:_es_exp = a:exp
-
-  " matchdelete moved outside in case of dynamic .highlight_match change
-  if exists('b:_es_match')
-    try
-      call matchdelete(b:_es_match)
-    catch /E803:/
-    endtry
-  endif
-  if g:esearch.highlight_match
-    let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim_match, -1)
-  endif
-
-  call esearch#out#win#update()
+  call esearch#out#{g:esearch.out}#init(a:exp, s:outbufname(pattern), a:dir, a:opencmd)
+  call esearch#backend#{g:esearch.backend}#init(s:request_str(pattern, a:dir))
+  call esearch#out#{g:esearch.out}#update()
 endfu
 
 fu! s:outbufname(pattern) abort

@@ -5,8 +5,8 @@ let g:loaded_easy_search = 1
 
 let g:esearch = esearch#opts#new(get(g:, 'esearch', {}))
 
-noremap <silent><Plug>(esearch) :<C-u>call esearch#pre(g:esearch#out#win#open, 0)<CR>
-xnoremap <silent><Plug>(esearch) :<C-u>call esearch#pre(g:esearch#out#win#open, 1)<CR>
+noremap <silent><Plug>(esearch) :<C-u>call esearch#pre(0)<CR>
+xnoremap <silent><Plug>(esearch) :<C-u>call esearch#pre(1)<CR>
 
 let mappings = esearch#_mappings().dict()
 for map in keys(mappings)

@@ -16,7 +16,7 @@ let s:header = '%d matches'
 let s:mappings = {}
 let g:esearch#out#win#open = get(g: , 'esearch#out#win#open', 'tabnew')
 
-fu! esearch#out#win#init(bufname, cwd, opencmd) abort
+fu! esearch#out#win#init(exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
 
   augroup EasysearchAutocommands
@@ -34,6 +34,8 @@ fu! esearch#out#win#init(bufname, cwd, opencmd) abort
   let &updatetime = float2nr(g:esearch.updatetime)
 
   let b:esearch = {
+        \ 'exp':               a:exp,
+        \ 'backend':           'dispatch',
         \ 'parsed':            [],
         \ 'unparsed':          [],
         \ 'parsing_completed': 0,
@@ -57,6 +59,17 @@ fu! esearch#out#win#init(bufname, cwd, opencmd) abort
   setlocal buftype=nofile
   setlocal bufhidden=hide
   setlocal ft=esearch
+
+  " matchdelete is moved outside in case of dynamic .highlight_match change
+  if 0 && exists('b:_es_match')
+    try
+      call matchdelete(b:esearch.exp.vim_match)
+    catch /E803:/
+    endtry
+  endif
+  if g:esearch.highlight_match
+    let b:_es_match = matchadd('EsearchMatch', b:esearch.exp.vim_match, -1)
+  endif
 
   let b:last_update_time = esearch#util#timenow()
 endfu
@@ -96,7 +109,7 @@ endf
 
 fu! esearch#out#win#update() abort
   try
-    let b:esearch.unparsed = esearch#util#cgetfile(b:request)
+    let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#getfile(b:request)
   catch
     echohl Error | echo v:exception | echohl None
     return 1
@@ -148,7 +161,7 @@ fu! s:render_results(parsed_range) abort
   for i in a:parsed_range
     let fname    = substitute(b:esearch.parsed[i].fname, b:esearch.cwd.'/', '', '')
     let context  = esearch#util#btrunc(b:esearch.parsed[i].text,
-          \ match(b:esearch.parsed[i].text, b:_es_exp.vim),
+          \ match(b:esearch.parsed[i].text, b:esearch.exp.vim),
           \ g:esearch.context_width.l,
           \ g:esearch.context_width.r)
 
@@ -178,7 +191,7 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-vsplit)    :<C-U>call <SID>open('vnew')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-vsplit-s)  :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-open)      :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:_es_exp, b:esearch.cwd)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:esearch.exp, b:esearch.cwd)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>jump(0)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>jump(1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
