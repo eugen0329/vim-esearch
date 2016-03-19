@@ -1,4 +1,4 @@
-fu! esearch#pre(visualmode, ...) abort
+fu! esearch#pre(opencmd, visualmode, ...) abort
   let dir = a:0 ? a:1 : $PWD
   let build_opts = { 'visualmode': a:visualmode }
   let g:esearch_last_exp = esearch#regex#build(g:esearch.use, build_opts)
@@ -7,13 +7,13 @@ fu! esearch#pre(visualmode, ...) abort
     return ''
   endif
   let exp = esearch#regex#finalize(exp, g:esearch)
-  return esearch#_start(exp, dir)
+  return esearch#_start(exp, dir, a:opencmd)
 endfu
 
-fu! esearch#_start(exp, dir) abort
+fu! esearch#_start(exp, dir, opencmd) abort
   let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let outbufname = s:outbufname(pattern)
-  call esearch#out#win#init(outbufname, a:dir)
+  call esearch#out#win#init(outbufname, a:dir, a:opencmd)
 
   exe 'Dispatch! '.s:request_str(pattern, a:dir)
 

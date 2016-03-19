@@ -16,8 +16,8 @@ let s:header = '%d matches'
 let s:mappings = {}
 let g:esearch#out#win#open = get(g: , 'esearch#out#win#open', 'tabnew')
 
-fu! esearch#out#win#init(bufname, cwd) abort
-  call s:find_or_create_buf(a:bufname, g:esearch#out#win#open)
+fu! esearch#out#win#init(bufname, cwd, opencmd) abort
+  call s:find_or_create_buf(a:bufname, a:opencmd)
 
   augroup EasysearchAutocommands
     au! * <buffer>
@@ -138,7 +138,7 @@ fu! s:extend_results() abort
     if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
       let parsed = esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed),
             \ len(b:esearch.unparsed)-1, b:esearch.__broken_results)
-      call extend(b:esearch.parsed, )
+      call extend(b:esearch.parsed, parsed)
     endif
   endif
 endfu
