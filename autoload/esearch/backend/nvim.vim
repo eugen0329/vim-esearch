@@ -24,17 +24,19 @@ fu! s:job_handler(job_id, data, event) abort
   let job = s:jobs[a:job_id]
   let data = a:data
 
-  if a:event ==# 'stdout'
-    if !empty(data) && data[0] !=# "\n" && !empty(job.data)
-      let job.data[-1] .= data[0]
-      call remove(data, 0)
-    endif
-    let job.data += filter(a:data, '"" !=# v:val')
-  elseif a:event ==# 'stderr'
+  if a:event ==# 'stderr'
     echo 'ERROR'
-  else
+    return 1
+  elseif a:event ==# 'exit'
     let job.request.finished = 1
+    return 0
   endif
+
+  if !empty(data) && data[0] !=# "\n" && !empty(job.data)
+    let job.data[-1] .= data[0]
+    call remove(data, 0)
+  endif
+  let job.data += filter(a:data, '"" !=# v:val')
 endfu
 
 
