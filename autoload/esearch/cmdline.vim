@@ -9,7 +9,7 @@ cnoremap <Plug>(esearch-regex) <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(esearch-case)  <C-r>=<SID>invert('case')<CR>
 cnoremap <Plug>(esearch-word)  <C-r>=<SID>invert('word')<CR>
 
-fu! esearch#cmdline#_read(exp, dir) abort
+fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
   let s:dir_prompt = s:dir_prompt(a:dir)
   let s:pattern = a:exp
@@ -18,7 +18,7 @@ fu! esearch#cmdline#_read(exp, dir) abort
 
   let s:interrupted = 0
   while 1
-    let str = input(s:prompt(), s:cmdline)
+    let str = input(s:prompt(a:options), s:cmdline)
 
     if s:interrupted
       let s:interrupted = 0
@@ -79,10 +79,10 @@ fu! s:recover_regex() abort
   endif
 endfu
 
-fu! s:prompt() abort
-  let r = g:esearch.stringify('regex')
-  let c = g:esearch.stringify('case')
-  let w = g:esearch.stringify('word')
+fu! s:prompt(options) abort
+  let r = a:options.stringify('regex')
+  let c = a:options.stringify('case')
+  let w = a:options.stringify('word')
   return s:dir_prompt.'pattern '.r.c.w.' '
 endfu
 

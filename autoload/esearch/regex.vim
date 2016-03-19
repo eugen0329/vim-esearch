@@ -1,5 +1,5 @@
 " GLOBAL TODO
-fu! esearch#regex#build(use, opts)
+fu! esearch#regex#pick(use, opts)
   for name in a:use
     let exp = esearch#source#{name}(a:opts)
     if !empty(exp) | return exp | endif

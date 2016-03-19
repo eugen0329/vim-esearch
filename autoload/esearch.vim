@@ -6,9 +6,9 @@ fu! esearch#pre(visualmode, ...) abort
     let dir = $PWD
   endif
 
-  let g:esearch.last_exp = esearch#regex#build(g:esearch.use, {'visualmode': a:visualmode})
+  let g:esearch.last_exp = esearch#regex#pick(g:esearch.use, {'visualmode': a:visualmode})
 
-  let exp = esearch#cmdline#_read(g:esearch.last_exp, dir)
+  let exp = esearch#cmdline#_read(g:esearch.last_exp, dir, esearch#adapter#ag#options())
   if empty(exp)
     return ''
   endif
@@ -19,8 +19,8 @@ endfu
 fu! esearch#_start(exp, dir, opencmd) abort
   let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
 
-  let str = s:request_str(pattern, a:dir)
-  let request = esearch#backend#{g:esearch.backend}#init(s:request_str(pattern, a:dir))
+  let cmd = esearch#adapter#{g:esearch.adapter}#cmd(pattern, a:dir)
+  let request = esearch#backend#{g:esearch.backend}#init(cmd)
   call esearch#out#{g:esearch.out}#init(
         \ g:esearch.backend, request, a:exp, s:outbufname(pattern), a:dir, a:opencmd)
   silent call esearch#out#{g:esearch.out}#update()
@@ -50,14 +50,6 @@ endfu
 
 fu! esearch#map(map, plug) abort
   call esearch#_mappings().set(a:map, a:plug)
-endfu
-
-fu! s:request_str(pattern, dir) abort
-  let r = g:esearch.parametrize('regex')
-  let c = g:esearch.parametrize('case')
-  let w = g:esearch.parametrize('word')
-  return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
-        \ esearch#util#shellescape(a:pattern)  . " " . esearch#util#shellescape(a:dir)
 endfu
 
 " Results bufname format getter
