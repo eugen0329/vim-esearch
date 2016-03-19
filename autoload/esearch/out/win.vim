@@ -14,7 +14,6 @@ let s:default_mappings = {
 " The first line. It contains information about the number of results
 let s:header = '%d matches'
 let s:mappings = {}
-let g:esearch#out#win#open = get(g: , 'esearch#out#win#open', 'tabnew')
 
 fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
@@ -302,6 +301,7 @@ fu! s:on_finish() abort
 endfu
 
 fu! s:completed()
-    return esearch#backend#{b:esearch.backend}#finished(b:esearch.request)  &&
-      \ len(esearch#backend#{b:esearch.backend}#data(b:esearch.request)) ==# b:esearch._lines_iterator
+  let parsed_count = b:esearch._lines_iterator + len(b:esearch.__broken_results)
+  return esearch#backend#{b:esearch.backend}#finished(b:esearch.request)  &&
+        \ len(esearch#backend#{b:esearch.backend}#data(b:esearch.request)) ==# parsed_count
 endfu
