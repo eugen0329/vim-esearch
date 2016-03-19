@@ -16,7 +16,7 @@ let s:header = '%d matches'
 let s:mappings = {}
 let g:esearch#out#win#open = get(g: , 'esearch#out#win#open', 'tabnew')
 
-fu! esearch#out#win#init(exp, bufname, cwd, opencmd) abort
+fu! esearch#out#win#init(backend, exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
 
   augroup EasysearchAutocommands
@@ -33,18 +33,34 @@ fu! esearch#out#win#init(exp, bufname, cwd, opencmd) abort
   let b:updatetime_backup = &updatetime
   let &updatetime = float2nr(g:esearch.updatetime)
 
+  setlocal ft=esearch
+  " Refresh match highlight
+  if g:esearch.highlight_match
+    " matchdelete is moved outside in case of dynamic .highlight_match change
+    if exists('b:esearch')
+      try
+        call matchdelete(b:esearch._match_highlight_id)
+      catch /E803:/
+      endtry
+    endif
+
+    let match_highlight_id = matchadd('EsearchMatch', a:exp.vim_match, -1)
+  endif
+
   let b:esearch = {
-        \ 'exp':               a:exp,
-        \ 'backend':           'dispatch',
-        \ 'parsed':            [],
-        \ 'unparsed':          [],
-        \ 'parsing_completed': 0,
-        \ 'cwd':               a:cwd,
-        \ 'handler_running':   0,
-        \ 'prev_filename':     '',
-        \ '_lines_iterator':   0,
-        \ '_columns':          {},
-        \ '__broken_results':  [],
+        \ 'exp':                 a:exp,
+        \ 'backend':             a:backend,
+        \ 'parsed':              [],
+        \ 'unparsed':            [],
+        \ 'parsing_completed':   0,
+        \ 'cwd':                 a:cwd,
+        \ 'handler_running':     0,
+        \ 'prev_filename':       '',
+        \ '_lines_iterator':     0,
+        \ '_columns':            {},
+        \ '_match_highlight_id': match_highlight_id,
+        \ '_last_update_time':   esearch#util#timenow(),
+        \ '__broken_results':    [],
         \}
 
   let &iskeyword= g:esearch.wordchars
@@ -58,20 +74,6 @@ fu! esearch#out#win#init(exp, bufname, cwd, opencmd) abort
   setlocal nonumber
   setlocal buftype=nofile
   setlocal bufhidden=hide
-  setlocal ft=esearch
-
-  " matchdelete is moved outside in case of dynamic .highlight_match change
-  if 0 && exists('b:_es_match')
-    try
-      call matchdelete(b:esearch.exp.vim_match)
-    catch /E803:/
-    endtry
-  endif
-  if g:esearch.highlight_match
-    let b:_es_match = matchadd('EsearchMatch', b:esearch.exp.vim_match, -1)
-  endif
-
-  let b:last_update_time = esearch#util#timenow()
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
@@ -105,8 +107,6 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
-
-
 fu! esearch#out#win#update() abort
   try
     let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#getfile(b:request)
@@ -137,7 +137,7 @@ fu! esearch#out#win#update() abort
   setlocal nomodifiable
   setlocal nomodified
   " exe g:esearch.update_statusline_cmd
-  let b:last_update_time = esearch#util#timenow()
+  let b:esearch._last_update_time = esearch#util#timenow()
 endfu
 
 fu! s:extend_results() abort
@@ -269,7 +269,7 @@ fu! s:jump(downwards) abort
 endfu
 
 fu! s:on_cursor_moved() abort
-  if esearch#util#timenow() < &updatetime/1000.0 + b:last_update_time
+  if esearch#util#timenow() < &updatetime/1000.0 + b:esearch._last_update_time
     return -1
   endif
 
