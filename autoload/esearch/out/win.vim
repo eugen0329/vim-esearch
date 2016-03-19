@@ -110,7 +110,7 @@ endf
 
 fu! esearch#out#win#update() abort
   try
-    let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#getfile(b:esearch.request)
+    let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#data(b:esearch.request)
   catch
     echohl Error | echo v:exception | echohl None
     return 1
@@ -302,5 +302,6 @@ fu! s:on_finish() abort
 endfu
 
 fu! s:completed()
-  return !b:esearch.handler_running && b:esearch._lines_iterator == len(b:esearch.parsed)
+    return esearch#backend#{b:esearch.backend}#finished(b:esearch.request)  &&
+      \ len(esearch#backend#{b:esearch.backend}#data(b:esearch.request)) ==# b:esearch._lines_iterator
 endfu

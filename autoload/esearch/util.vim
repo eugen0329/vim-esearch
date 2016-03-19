@@ -17,6 +17,36 @@ fu! esearch#util#parse_results(file, from, to, broken_results) abort
   return results
 endfu
 
+fu! esearch#util#flatten(list)
+  let flatten = []
+  for elem in a:list
+    if type(elem) == type([])
+      call extend(flatten, esearch#util#flatten(elem))
+    else
+      call add(flatten, elem)
+    endif
+    unlet elem
+  endfor
+  return flatten
+endfu
+
+function! esearch#util#uniq(list) abort
+  let i = 0
+  let seen = {}
+  while i < len(a:list)
+    if (a:list[i] ==# '' && exists('empty')) || has_key(seen,a:list[i])
+      call remove(a:list,i)
+    elseif a:list[i] ==# ''
+      let i += 1
+      let empty = 1
+    else
+      let seen[a:list[i]] = 1
+      let i += 1
+    endif
+  endwhile
+  return a:list
+endfunction
+
 fu! esearch#util#btrunc(str, center, lw, rw) abort
   " om - omission, lw/rw - with from the left(right)
   let om = '…'

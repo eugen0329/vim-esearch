@@ -1,9 +1,15 @@
-fu! esearch#backend#dispatch#init(request) abort
-  silent exe 'Dispatch! '.a:request
+fu! esearch#backend#dispatch#init(cmd) abort
+  silent exe 'Dispatch! '.a:cmd
   let request = dispatch#request()
   let request.format = '%f:%l:%c:%m,%f:%l:%m'
   let request.background = 1
+  let request.backend = 'dispatch'
   return request
+endfu
+
+fu! esearch#backend#dispatch#finished(request) abort
+  " TODO
+  return !b:esearch.handler_running && b:esearch._lines_iterator == len(b:esearch.parsed)
 endfu
 
 " Extracted from tpope/dispatch
@@ -34,7 +40,7 @@ fu! esearch#backend#dispatch#status() abort
   return status
 endfu
 
-fu! esearch#backend#dispatch#getfile(request) abort
+fu! esearch#backend#dispatch#data(request) abort
   let request = a:request
   if !filereadable(fnameescape(request.file))
     throw "Can't open file for reading" . request.file
