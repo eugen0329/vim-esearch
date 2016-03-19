@@ -15,7 +15,9 @@ let s:default_mappings = {
 let s:header = '%d matches'
 let s:mappings = {}
 
-fu! esearch#out#win#init(cwd) abort
+fu! esearch#out#win#init(bufname, cwd) abort
+  call s:find_or_create_buf(a:bufname)
+
   augroup EasysearchAutocommands
     au! * <buffer>
     au CursorMoved <buffer> call s:on_cursor_moved()
@@ -57,6 +59,39 @@ fu! esearch#out#win#init(cwd) abort
 
   let b:last_update_time = esearch#util#timenow()
 endfu
+
+fu! s:find_or_create_buf(bufname) abort
+  let bufnr = bufnr('^'.a:bufname.'$')
+  if bufnr == bufnr('%')
+    return 0
+  elseif bufnr > 0
+    let buf_loc = s:find_buf(bufnr)
+    if empty(buf_loc)
+      exe 'tabnew|b ' . bufnr
+    else
+      exe 'tabn ' . buf_loc[0]
+      exe buf_loc[1].'winc w'
+    endif
+  else
+    exe 'tabnew|file '.a:bufname
+  endif
+endfu
+
+fu! s:find_buf(bufnr) abort
+  for tabnr in range(1, tabpagenr('$'))
+    if tabpagenr() == tabnr | continue | endif
+    let buflist = tabpagebuflist(tabnr)
+    if index(buflist, a:bufnr) >= 0
+      for winnr in range(1, tabpagewinnr(tabnr, '$'))
+        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
+      endfor
+    endif
+  endfor
+
+  return []
+endf
+
+
 
 fu! esearch#out#win#update() abort
   try

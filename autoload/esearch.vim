@@ -13,8 +13,7 @@ endfu
 fu! esearch#_start(exp, dir) abort
   let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let outbufname = s:outbufname(pattern)
-  call s:find_or_create_buf(outbufname)
-  call esearch#out#win#init(a:dir)
+  call esearch#out#win#init(outbufname, a:dir)
 
   exe 'Dispatch! '.s:request_str(pattern, a:dir)
 
@@ -70,37 +69,6 @@ fu! s:request_str(pattern, dir) abort
   return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
         \ esearch#util#shellescape(a:pattern)  . " " . esearch#util#shellescape(a:dir)
 endfu
-
-fu! s:find_or_create_buf(bufname) abort
-  let bufnr = bufnr('^'.a:bufname.'$')
-  if bufnr == bufnr('%')
-    return 0
-  elseif bufnr > 0
-    let buf_loc = s:find_buf(bufnr)
-    if empty(buf_loc)
-      exe 'tabnew|b ' . bufnr
-    else
-      exe 'tabn ' . buf_loc[0]
-      exe buf_loc[1].'winc w'
-    endif
-  else
-    exe 'tabnew|file '.a:bufname
-  endif
-endfu
-
-fu! s:find_buf(bufnr) abort
-  for tabnr in range(1, tabpagenr('$'))
-    if tabpagenr() == tabnr | continue | endif
-    let buflist = tabpagebuflist(tabnr)
-    if index(buflist, a:bufnr) >= 0
-      for winnr in range(1, tabpagewinnr(tabnr, '$'))
-        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
-      endfor
-    endif
-  endfor
-
-  return []
-endf
 
 " Results bufname format getter
 fu! s:bufname_fomat() abort
