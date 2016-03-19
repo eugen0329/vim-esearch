@@ -19,8 +19,9 @@ endfu
 fu! esearch#_start(exp, dir, opencmd) abort
   let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
 
-  call esearch#out#{g:esearch.out}#init(g:esearch.backend, a:exp, s:outbufname(pattern), a:dir, a:opencmd)
-  call esearch#backend#{g:esearch.backend}#init(s:request_str(pattern, a:dir))
+  let request = esearch#backend#{g:esearch.backend}#init(s:request_str(pattern, a:dir))
+  call esearch#out#{g:esearch.out}#init(
+        \ g:esearch.backend, request, a:exp, s:outbufname(pattern), a:dir, a:opencmd)
   silent call esearch#out#{g:esearch.out}#update()
 endfu
 

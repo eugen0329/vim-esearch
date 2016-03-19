@@ -1,9 +1,9 @@
 fu! esearch#backend#dispatch#init(request) abort
-  exe 'Dispatch! '.a:request
-  let b:request = dispatch#request()
-  let b:request.format = '%f:%l:%c:%m,%f:%l:%m'
-  let b:request.background = 1
-  return b:request
+  silent exe 'Dispatch! '.a:request
+  let request = dispatch#request()
+  let request.format = '%f:%l:%c:%m,%f:%l:%m'
+  let request.background = 1
+  return request
 endfu
 
 " Extracted from tpope/dispatch
@@ -24,10 +24,8 @@ fu! esearch#backend#dispatch#running(handler, pid) abort
   endif
 endfu
 
-
-
 fu! esearch#backend#dispatch#status() abort
-  let request = b:request
+  let request = b:esearch.request
   try
     let status = str2nr(readfile(request.file . '.complete', 1)[0])
   catch

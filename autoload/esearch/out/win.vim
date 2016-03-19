@@ -16,7 +16,7 @@ let s:header = '%d matches'
 let s:mappings = {}
 let g:esearch#out#win#open = get(g: , 'esearch#out#win#open', 'tabnew')
 
-fu! esearch#out#win#init(backend, exp, bufname, cwd, opencmd) abort
+fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
 
   augroup EasysearchAutocommands
@@ -50,6 +50,7 @@ fu! esearch#out#win#init(backend, exp, bufname, cwd, opencmd) abort
   let b:esearch = {
         \ 'exp':                 a:exp,
         \ 'backend':             a:backend,
+        \ 'request':             a:request,
         \ 'parsed':              [],
         \ 'unparsed':            [],
         \ 'parsing_completed':   0,
@@ -83,13 +84,13 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   elseif bufnr > 0
     let buf_loc = s:find_buf(bufnr)
     if empty(buf_loc)
-      exe a:opencmd.'|b ' . bufnr
+      silent exe a:opencmd.'|b ' . bufnr
     else
-      exe 'tabn ' . buf_loc[0]
+      silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
   else
-    exe a:opencmd.'|file '.a:bufname
+    silent  exe a:opencmd.'|file '.a:bufname
   endif
 endfu
 
@@ -109,7 +110,7 @@ endf
 
 fu! esearch#out#win#update() abort
   try
-    let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#getfile(b:request)
+    let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#getfile(b:esearch.request)
   catch
     echohl Error | echo v:exception | echohl None
     return 1
