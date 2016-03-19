@@ -53,6 +53,7 @@ fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) 
         \ 'backend':             a:backend,
         \ 'request':             a:request,
         \ 'parsed':              [],
+        \ 'parsed_count':        0,
         \ 'unparsed':            [],
         \ 'cwd':                 a:cwd,
         \ 'prev_filename':       '',
@@ -63,7 +64,7 @@ fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) 
         \ '__broken_results':    [],
         \}
 
-  let &iskeyword= g:esearch.wordchars
+  let &iskeyword = g:esearch.wordchars
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d'
@@ -113,13 +114,13 @@ fu! esearch#out#win#update(data, ...) abort
 
   call s:extend_results()
 
-  let parsed_count = len(b:esearch.parsed)
+  let parsed_count = b:esearch.parsed_count
   if parsed_count > b:esearch._lines_iterator
     if ignore_batches || parsed_count - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
-      let parsed_range = range(b:esearch._lines_iterator, parsed_count - 1)
+      let parsed_range = [b:esearch._lines_iterator, parsed_count - 1]
       let b:esearch._lines_iterator = parsed_count
     else
-      let parsed_range = range(b:esearch._lines_iterator, b:esearch._lines_iterator + g:esearch.batch_size - 1)
+      let parsed_range = [b:esearch._lines_iterator, b:esearch._lines_iterator + g:esearch.batch_size - 1]
       let b:esearch._lines_iterator += g:esearch.batch_size
     endif
 
@@ -141,18 +142,19 @@ fu! s:extend_results() abort
     let from = len(b:esearch.parsed)
     let to = len(b:esearch.unparsed)-1
     let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
+    " TODO replace b:esearch.parsed with b:esearch.parsed_count
     call extend(b:esearch.parsed, parsed)
+    let b:esearch.parsed_count = len(b:esearch.parsed)
   endif
 endfu
 
 fu! s:render_results(parsed_range) abort
   let line = line('$') + 1
-  for i in a:parsed_range
+  let i = a:parsed_range[0]
+  let limit = a:parsed_range[1] + 1
+  while i < limit
     let fname    = substitute(b:esearch.parsed[i].fname, b:esearch.cwd.'/', '', '')
-    let context  = esearch#util#btrunc(b:esearch.parsed[i].text,
-                                     \ match(b:esearch.parsed[i].text, b:esearch.exp.vim),
-                                     \ g:esearch.context_width.l,
-                                     \ g:esearch.context_width.r)
+    let context  = s:context(b:esearch.parsed[i].text)
 
     if fname !=# b:esearch.prev_filename
       call setline(line, '')
@@ -162,9 +164,18 @@ fu! s:render_results(parsed_range) abort
     endif
     call setline(line, ' '.printf('%3d', b:esearch.parsed[i].lnum).' '.context)
     let b:esearch._columns[line] = b:esearch.parsed[i].col
-    let line += 1
     let b:esearch.prev_filename = fname
-  endfor
+    let line += 1
+    let i    += 1
+  endwhile
+endfu
+
+fu! s:context(line)
+  return esearch#util#btrunc(a:line,
+                           \ match(a:line, b:esearch.exp.vim),
+                           \ g:esearch.context_width.l,
+                           \ g:esearch.context_width.r)
+
 endfu
 
 fu! esearch#out#win#map(map, plug) abort
