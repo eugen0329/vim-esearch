@@ -49,9 +49,12 @@ fu! s:job_handler(job_id, data, event) abort
   endif
 endfu
 
+fu! s:abort_job(buf)
+  call jobstop(getbufvar(a:buf, 'esearch').request.job_id)
+endfu
 
 fu! esearch#backend#nvim#init_events() abort
-  return 0
+  au BufUnload <buffer> call s:abort_job(str2nr(expand('<abuf>')))
 endfu
 
 fu! esearch#backend#nvim#data(request) abort
