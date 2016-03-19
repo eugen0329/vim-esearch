@@ -52,9 +52,7 @@ fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
         \ 'request':             a:request,
         \ 'parsed':              [],
         \ 'unparsed':            [],
-        \ 'parsing_completed':   0,
         \ 'cwd':                 a:cwd,
-        \ 'handler_running':     0,
         \ 'prev_filename':       '',
         \ '_lines_iterator':     0,
         \ '_columns':            {},
@@ -155,14 +153,13 @@ fu! s:render_results(parsed_range) abort
                                      \ g:esearch.context_width.r)
 
     if fname !=# b:esearch.prev_filename
-      let b:esearch._columns[fname] = {}
       call setline(line, '')
       let line += 1
       call setline(line, fname)
       let line += 1
     endif
     call setline(line, ' '.printf('%3d', b:esearch.parsed[i].lnum).' '.context)
-    let b:esearch._columns[fname][b:esearch.parsed[i].lnum] = b:esearch.parsed[i].col
+    let b:esearch._columns[line] = b:esearch.parsed[i].col
     let line += 1
     let b:esearch.prev_filename = fname
   endfor
@@ -195,7 +192,7 @@ fu! s:open(cmd, ...) abort
   let fname = s:filename()
   if !empty(fname)
     let ln = s:line_number()
-    let col = get(get(b:esearch._columns, fname, {}), ln, 1)
+    let col = get(b:esearch._columns, line('.'), 1)
     exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
     call cursor(ln, col)
     norm! zz
@@ -259,6 +256,7 @@ endfu
 
 fu! esearch#out#win#on_finish() abort
   au! ESearchWinAutocmds * <buffer>
+  unlet b:esearch.parsed b:esearch.unparsed
   let &updatetime = float2nr(b:updatetime_backup)
 
   setlocal noreadonly
