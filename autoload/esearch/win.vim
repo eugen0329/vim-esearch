@@ -163,15 +163,29 @@ endfu
 
 fu! s:jump(downwards) abort
   let pattern = '^\s\+\d\+\s\+.*'
+
   if a:downwards
-    call search(pattern . (line('.') < 3 ? '\%>3l' : '\%>4l'), 'W')
+    " If one result - move cursor on it, else - move the next
+    let pattern .= line('$') <= 4 ? '\%>3l' : '\%>4l'
+    call search(pattern, 'W')
   else
-    call search(pattern, line('.') < 3 ? 'W' : 'Wbe')
+    " If cursor is in gutter between result groups(empty line)
+    if '' ==# getline(line('.'))
+      call search(pattern, 'Wb')
+    endif
+    " If no results behind - jump the first, else - previous
+    call search(pattern, line('.') < 4 ? '' : 'Wbe')
   endif
 
-  " return '.|norm! w' " Doesn't works if :set nostartofline, so:
-  call search('^', 'Wb', line('.')) " search start of the line
-  return 'norm! ww'
+
+  call search('^', 'Wb', line('.'))
+  " If there is no results - do nothing
+  if line('$') == 1
+    return ''
+  else
+    " search start of the line
+    return 'norm! ww'
+  endif
 endfu
 
 fu! s:filename() abort
