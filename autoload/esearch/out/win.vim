@@ -107,16 +107,15 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
-fu! esearch#out#win#update(data) abort
+fu! esearch#out#win#update(data, ...) abort
+  let ignore_batches = a:0 && a:1
   let b:esearch.unparsed = a:data
-  setlocal noreadonly
-  setlocal modifiable
 
   call s:extend_results()
 
   let parsed_count = len(b:esearch.parsed)
   if parsed_count > b:esearch._lines_iterator
-    if parsed_count - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
+    if ignore_batches || parsed_count - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
       let parsed_range = range(b:esearch._lines_iterator, parsed_count - 1)
       let b:esearch._lines_iterator = parsed_count
     else
@@ -124,13 +123,15 @@ fu! esearch#out#win#update(data) abort
       let b:esearch._lines_iterator += g:esearch.batch_size
     endif
 
+    setlocal noreadonly
+    setlocal modifiable
     call s:render_results(parsed_range)
     call setline(1, printf(s:header, b:esearch._lines_iterator))
+    setlocal readonly
+    setlocal nomodifiable
+    setlocal nomodified
   endif
 
-  setlocal readonly
-  setlocal nomodifiable
-  setlocal nomodified
   " exe g:esearch.update_statusline_cmd
   let b:esearch._last_update_time = esearch#util#timenow()
 endfu
@@ -149,9 +150,9 @@ fu! s:render_results(parsed_range) abort
   for i in a:parsed_range
     let fname    = substitute(b:esearch.parsed[i].fname, b:esearch.cwd.'/', '', '')
     let context  = esearch#util#btrunc(b:esearch.parsed[i].text,
-          \ match(b:esearch.parsed[i].text, b:esearch.exp.vim),
-          \ g:esearch.context_width.l,
-          \ g:esearch.context_width.r)
+                                     \ match(b:esearch.parsed[i].text, b:esearch.exp.vim),
+                                     \ g:esearch.context_width.l,
+                                     \ g:esearch.context_width.r)
 
     if fname !=# b:esearch.prev_filename
       let b:esearch._columns[fname] = {}

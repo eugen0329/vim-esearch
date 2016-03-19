@@ -8,6 +8,7 @@ fu! esearch#opts#new(opts) abort
         \ 'word':            0,
         \ 'updatetime':      300.0,
         \ 'batch_size':      2000,
+        \ 'ticks':           40,
         \ 'context_width':   { 'l': 60, 'r': 60 },
         \ 'recover_regex':   1,
         \ 'highlight_match': 1,
