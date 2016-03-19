@@ -1,4 +1,4 @@
-fu! esearch#util#parse_results(file, from, to) abort
+fu! esearch#util#parse_results(file, from, to, broken_results) abort
   if empty(a:file) | return [] | endif
   let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
   let results = []
@@ -6,8 +6,8 @@ fu! esearch#util#parse_results(file, from, to) abort
   for i in range(a:from, a:to)
     let el = matchlist(a:file[i], r)[1:4]
     if empty(el)
-      if index(b:broken_results, a:file[i]) < 0
-        call add(b:broken_results, a:file[i])
+      if index(a:broken_results, a:file[i]) < 0
+        call add(a:broken_results, a:file[i])
       endif
       continue
     endif

@@ -14,9 +14,10 @@ let s:default_mappings = {
 " The first line. It contains information about the number of results
 let s:header = '%d matches'
 let s:mappings = {}
+let g:esearch#out#win#open = get(g: , 'esearch#out#win#open', 'tabnew')
 
 fu! esearch#out#win#init(bufname, cwd) abort
-  call s:find_or_create_buf(a:bufname)
+  call s:find_or_create_buf(a:bufname, g:esearch#out#win#open)
 
   augroup EasysearchAutocommands
     au! * <buffer>
@@ -60,20 +61,20 @@ fu! esearch#out#win#init(bufname, cwd) abort
   let b:last_update_time = esearch#util#timenow()
 endfu
 
-fu! s:find_or_create_buf(bufname) abort
+fu! s:find_or_create_buf(bufname, opencmd) abort
   let bufnr = bufnr('^'.a:bufname.'$')
   if bufnr == bufnr('%')
     return 0
   elseif bufnr > 0
     let buf_loc = s:find_buf(bufnr)
     if empty(buf_loc)
-      exe 'tabnew|b ' . bufnr
+      exe a:opencmd.'|b ' . bufnr
     else
       exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
   else
-    exe 'tabnew|file '.a:bufname
+    exe a:opencmd.'|file '.a:bufname
   endif
 endfu
 
@@ -129,11 +130,15 @@ endfu
 fu! s:extend_results() abort
   if b:esearch.handler_running
     if len(b:esearch.parsed) < len(b:esearch.unparsed) - 1 && !empty(b:esearch.unparsed)
-      call extend(b:esearch.parsed, esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed), len(b:esearch.unparsed)-2))
+      let parsed = esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed),
+            \ len(b:esearch.unparsed)-2, b:esearch.__broken_results)
+      call extend(b:esearch.parsed, parsed)
     endif
   else
     if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
-      call extend(b:esearch.parsed, esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed), len(b:esearch.unparsed)-1))
+      let parsed = esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed),
+            \ len(b:esearch.unparsed)-1, b:esearch.__broken_results)
+      call extend(b:esearch.parsed, )
     endif
   endif
 endfu
