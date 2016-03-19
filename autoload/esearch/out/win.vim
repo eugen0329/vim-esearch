@@ -15,6 +15,48 @@ let s:default_mappings = {
 let s:header = '%d matches'
 let s:mappings = {}
 
+fu! esearch#out#win#init(cwd) abort
+  augroup EasysearchAutocommands
+    au! * <buffer>
+    au CursorMoved <buffer> call s:on_cursor_moved()
+    au CursorHold  <buffer> call s:on_cursor_hold()
+    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+          \ let &updatetime = float2nr(g:esearch.updatetime)
+  augroup END
+
+  call s:init_mappings()
+
+  let b:updatetime_backup = &updatetime
+  let &updatetime = float2nr(g:esearch.updatetime)
+
+  let b:qf = []
+  let b:esearch = {}
+  let b:esearch.cwd = a:cwd
+  let b:qf_file = []
+  let b:qf_entirely_parsed = 0
+  let b:_es_iterator    = 0
+  let b:handler_running = 0
+  let b:prev_filename = ''
+  let b:broken_results = []
+  let b:esearch._columns = {}
+
+  let &iskeyword= g:esearch.wordchars
+  setlocal noreadonly
+  setlocal modifiable
+  exe '1,$d'
+  call setline(1, printf(s:header, b:_es_iterator))
+  setlocal readonly
+  setlocal nomodifiable
+  setlocal noswapfile
+  setlocal nonumber
+  setlocal buftype=nofile
+  setlocal bufhidden=hide
+  setlocal ft=esearch
+
+  let b:last_update_time = esearch#util#timenow()
+endfu
+
 fu! esearch#out#win#update() abort
   if esearch#util#cgetfile(b:request)
     return 1
@@ -60,74 +102,28 @@ endfu
 fu! s:render_results(qfrange) abort
   let line = line('$') + 1
   for i in a:qfrange
-    let fname    = substitute(b:qf[i].fname, b:pwd.'/', '', '')
+    let fname    = substitute(b:qf[i].fname, b:esearch.cwd.'/', '', '')
     let context  = esearch#util#btrunc(b:qf[i].text,
           \ match(b:qf[i].text, b:_es_exp.vim),
           \ g:esearch.context_width.l,
           \ g:esearch.context_width.r)
 
     if fname !=# b:prev_filename
-      let b:_es_columns[fname] = {}
+      let b:esearch._columns[fname] = {}
       call setline(line, '')
       let line += 1
       call setline(line, fname)
       let line += 1
     endif
     call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.context)
-    let b:_es_columns[fname][b:qf[i].lnum] = b:qf[i].col
+    let b:esearch._columns[fname][b:qf[i].lnum] = b:qf[i].col
     let line += 1
     let b:prev_filename = fname
   endfor
 endfu
 
-fu! esearch#out#win#init(dir) abort
-  augroup EasysearchAutocommands
-    au! * <buffer>
-    au CursorMoved <buffer> call esearch#handlers#_cursor_moved()
-    au CursorHold  <buffer> call esearch#handlers#_cursor_hold()
-    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
-          \ let &updatetime = float2nr(g:esearch.updatetime)
-  augroup END
-
-  call s:init_mappings()
-
-  let b:updatetime_backup = &updatetime
-  let &updatetime = float2nr(g:esearch.updatetime)
-
-  let b:qf = []
-  let b:pwd = a:dir
-  let b:qf_file = []
-  let b:qf_entirely_parsed = 0
-  let b:_es_iterator    = 0
-  let b:handler_running = 0
-  let b:prev_filename = ''
-  let b:broken_results = []
-  let b:_es_columns = {}
-
-  let &iskeyword= g:esearch.wordchars
-  setlocal noreadonly
-  setlocal modifiable
-  exe '1,$d'
-  call setline(1, printf(s:header, b:_es_iterator))
-  setlocal readonly
-  setlocal nomodifiable
-  setlocal noswapfile
-  setlocal nonumber
-  setlocal buftype=nofile
-  setlocal bufhidden=hide
-  setlocal ft=esearch
-
-  let b:last_update_time = esearch#util#timenow()
-endfu
-
-
 fu! esearch#out#win#map(map, plug) abort
-  " if has_key(s:mappings, a:plug)
-    let s:mappings[a:map] = a:plug
-  " else
-  "   echoerr 'There is no such action: "'.a:plug.'"'
-  " endif
+  let s:mappings[a:map] = a:plug
 endfu
 
 fu! s:init_mappings() abort
@@ -138,7 +134,7 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-vsplit)    :<C-U>call <SID>open('vnew')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-vsplit-s)  :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-open)      :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:_es_exp, b:pwd)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:_es_exp, b:esearch.cwd)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>jump(0)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>jump(1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
@@ -153,38 +149,11 @@ fu! s:open(cmd, ...) abort
   let fname = s:filename()
   if !empty(fname)
     let ln = s:line_number()
-    let col = get(get(b:_es_columns, fname, {}), ln, 1)
-    exe a:cmd . ' ' . fnameescape(b:pwd . '/' . fname)
+    let col = get(get(b:esearch._columns, fname, {}), ln, 1)
+    exe a:cmd . ' ' . fnameescape(b:esearch.pwd . '/' . fname)
     call cursor(ln, col)
     norm! zz
     if a:0 | exe a:1 | endif
-  endif
-endfu
-
-fu! s:jump(downwards) abort
-  let pattern = '^\s\+\d\+\s\+.*'
-
-  if a:downwards
-    " If one result - move cursor on it, else - move the next
-    let pattern .= line('$') <= 4 ? '\%>3l' : '\%>4l'
-    call search(pattern, 'W')
-  else
-    " If cursor is in gutter between result groups(empty line)
-    if '' ==# getline(line('.'))
-      call search(pattern, 'Wb')
-    endif
-    " If no results behind - jump the first, else - previous
-    call search(pattern, line('.') < 4 ? '' : 'Wbe')
-  endif
-
-
-  call search('^', 'Wb', line('.'))
-  " If there is no results - do nothing
-  if line('$') == 1
-    return ''
-  else
-    " search start of the line
-    return 'norm! ww'
   endif
 endfu
 
@@ -213,4 +182,67 @@ fu! s:line_number() abort
   endif
 
   return matchstr(getline(lnum), '^\s\+\zs\d\+\ze.*')
+endfu
+
+fu! s:jump(downwards) abort
+  let pattern = '^\s\+\d\+\s\+.*'
+  let last_line = line('$')
+
+  if a:downwards
+    " If one result - move cursor on it, else - move the next
+    let pattern .= last_line <= 4 ? '\%>3l' : '\%>4l'
+    call search(pattern, 'W')
+  else
+    " If cursor is in gutter between result groups(empty line)
+    if '' ==# getline(line('.'))
+      call search(pattern, 'Wb')
+    endif
+    " If no results behind - jump the first, else - previous
+    call search(pattern, line('.') < 4 ? '' : 'Wbe')
+  endif
+
+  call search('^', 'Wb', line('.'))
+  " If there is no results - do nothing
+  if last_line == 1
+    return ''
+  else
+    " search the start of the line
+    return 'norm! ww'
+  endif
+endfu
+
+fu! s:on_cursor_moved() abort
+  if esearch#util#timenow() < &updatetime/1000.0 + b:last_update_time
+    return -1
+  endif
+
+  call esearch#out#win#update()
+
+  if s:completed() | call s:on_finish() | endif
+endfu
+
+fu! s:on_cursor_hold()
+  call esearch#out#win#update()
+
+  if s:completed()
+    call s:on_finish()
+  else
+    call feedkeys('\<Plug>(easysearch-Nop)')
+  endif
+endfu
+
+fu! s:on_finish() abort
+  au! EasysearchAutocommands * <buffer>
+  let &updatetime = float2nr(b:updatetime_backup)
+
+  setlocal noreadonly
+  setlocal modifiable
+  call setline(1, getline(1) . '. Finished.' )
+  setlocal readonly
+  setlocal nomodifiable
+  setlocal nomodified
+endfu
+
+fu! s:completed()
+  return !b:handler_running && b:_es_iterator == len(b:qf)
 endfu
