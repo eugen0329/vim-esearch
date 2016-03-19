@@ -1,13 +1,13 @@
-fu! esearch#util#parse_results(from, to) abort
-  if empty(b:qf_file) | return [] | endif
+fu! esearch#util#parse_results(file, from, to) abort
+  if empty(a:file) | return [] | endif
   let r = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
   let results = []
 
   for i in range(a:from, a:to)
-    let el = matchlist(b:qf_file[i], r)[1:4]
+    let el = matchlist(a:file[i], r)[1:4]
     if empty(el)
-      if index(b:broken_results, b:qf_file[i]) < 0 
-        call add(b:broken_results, b:qf_file[i])
+      if index(b:broken_results, a:file[i]) < 0
+        call add(b:broken_results, a:file[i])
       endif
       continue
     endif
@@ -66,22 +66,23 @@ fu! esearch#util#request_status() abort
 endfu
 
 fu! esearch#util#cgetfile(request) abort
-  let b:handler_running = esearch#util#running(b:request.handler, b:request.pid)
   let request = a:request
-  if !filereadable(fnameescape(request.file)) | return 1 | endif
+  if !filereadable(fnameescape(request.file))
+    throw "Can't open file for reading" . request.file
+  endif
+  let b:handler_running = esearch#util#running(b:request.handler, b:request.pid)
+  let file_content = []
 
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'
   let dir = getcwd()
   try
     exe cd fnameescape(request.directory)
-    let b:qf_file = filter(readfile(fnameescape(request.file)), '!empty(v:val)')
-  catch '^E40:'
-    echohl Error | echo v:exception | echohl None
+    let file_content = filter(readfile(fnameescape(request.file)), '!empty(v:val)')
   finally
     exe cd fnameescape(dir)
   endtry
 
-  return 0
+  return file_content
 endfu
 
 fu! esearch#util#running(handler, pid) abort

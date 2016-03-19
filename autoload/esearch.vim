@@ -34,9 +34,7 @@ fu! esearch#_start(exp, dir) abort
     let b:_es_match = matchadd('EsearchMatch', b:_es_exp.vim_match, -1)
   endif
 
-  if !esearch#util#cgetfile(b:request)
-    call esearch#out#win#update()
-  endif
+  call esearch#out#win#update()
 endfu
 
 fu! s:outbufname(pattern) abort

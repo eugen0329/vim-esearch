@@ -58,9 +58,12 @@ fu! esearch#out#win#init(cwd) abort
 endfu
 
 fu! esearch#out#win#update() abort
-  if esearch#util#cgetfile(b:request)
+  try
+    let b:qf_file = esearch#util#cgetfile(b:request)
+  catch
+    echohl Error | echo v:exception | echohl None
     return 1
-  endif
+  endtry
   setlocal noreadonly
   setlocal modifiable
 
@@ -90,11 +93,11 @@ endfu
 fu! s:extend_results() abort
   if b:handler_running
     if len(b:qf) < len(b:qf_file) - 1 && !empty(b:qf_file)
-      call extend(b:qf, esearch#util#parse_results(len(b:qf), len(b:qf_file)-2))
+      call extend(b:qf, esearch#util#parse_results(b:qf_file, len(b:qf), len(b:qf_file)-2))
     endif
   else
     if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
-      call extend(b:qf, esearch#util#parse_results(len(b:qf), len(b:qf_file)-1))
+      call extend(b:qf, esearch#util#parse_results(b:qf_file, len(b:qf), len(b:qf_file)-1))
     endif
   endif
 endfu
@@ -150,7 +153,7 @@ fu! s:open(cmd, ...) abort
   if !empty(fname)
     let ln = s:line_number()
     let col = get(get(b:esearch._columns, fname, {}), ln, 1)
-    exe a:cmd . ' ' . fnameescape(b:esearch.pwd . '/' . fname)
+    exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
     call cursor(ln, col)
     norm! zz
     if a:0 | exe a:1 | endif
