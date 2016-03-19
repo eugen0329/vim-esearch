@@ -18,14 +18,14 @@ let s:mappings = {}
 fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
   call s:find_or_create_buf(a:bufname, a:opencmd)
 
-  augroup EasysearchAutocommands
+  let group = 'ESearchWinAutocmds'
+  augroup ESearchWinAutocmds
     au! * <buffer>
-    au CursorMoved <buffer> call s:on_cursor_moved()
-    au CursorHold  <buffer> call s:on_cursor_hold()
     au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
     au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
           \ let &updatetime = float2nr(g:esearch.updatetime)
   augroup END
+  call esearch#backend#{a:backend}#init_events(group)
 
   call s:init_mappings()
 
@@ -47,6 +47,7 @@ fu! esearch#out#win#init(backend, request, exp, bufname, cwd, opencmd) abort
   endif
 
   let b:esearch = {
+        \ 'out':                 'win',
         \ 'exp':                 a:exp,
         \ 'backend':             a:backend,
         \ 'request':             a:request,
@@ -107,13 +108,8 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
-fu! esearch#out#win#update() abort
-  try
-    let b:esearch.unparsed = esearch#backend#{b:esearch.backend}#data(b:esearch.request)
-  catch
-    echohl Error | echo v:exception | echohl None
-    return 1
-  endtry
+fu! esearch#out#win#update(data) abort
+  let b:esearch.unparsed = a:data
   setlocal noreadonly
   setlocal modifiable
 
@@ -141,18 +137,11 @@ fu! esearch#out#win#update() abort
 endfu
 
 fu! s:extend_results() abort
-  if b:esearch.handler_running
-    if len(b:esearch.parsed) < len(b:esearch.unparsed) - 1 && !empty(b:esearch.unparsed)
-      let parsed = esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed),
-            \ len(b:esearch.unparsed)-2, b:esearch.__broken_results)
-      call extend(b:esearch.parsed, parsed)
-    endif
-  else
-    if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
-      let parsed = esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed),
-            \ len(b:esearch.unparsed)-1, b:esearch.__broken_results)
-      call extend(b:esearch.parsed, parsed)
-    endif
+  if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
+    let from = len(b:esearch.parsed)
+    let to = len(b:esearch.unparsed)-1
+    let parsed = esearch#util#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
+    call extend(b:esearch.parsed, parsed)
   endif
 endfu
 
@@ -268,28 +257,8 @@ fu! s:jump(downwards) abort
   endif
 endfu
 
-fu! s:on_cursor_moved() abort
-  if esearch#util#timenow() < &updatetime/1000.0 + b:esearch._last_update_time
-    return -1
-  endif
-
-  call esearch#out#win#update()
-
-  if s:completed() | call s:on_finish() | endif
-endfu
-
-fu! s:on_cursor_hold()
-  call esearch#out#win#update()
-
-  if s:completed()
-    call s:on_finish()
-  else
-    call feedkeys('\<Plug>(easysearch-Nop)')
-  endif
-endfu
-
-fu! s:on_finish() abort
-  au! EasysearchAutocommands * <buffer>
+fu! esearch#out#win#on_finish() abort
+  au! ESearchWinAutocmds * <buffer>
   let &updatetime = float2nr(b:updatetime_backup)
 
   setlocal noreadonly
@@ -298,10 +267,4 @@ fu! s:on_finish() abort
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
-endfu
-
-fu! s:completed()
-  let parsed_count = b:esearch._lines_iterator + len(b:esearch.__broken_results)
-  return esearch#backend#{b:esearch.backend}#finished(b:esearch.request)  &&
-        \ len(esearch#backend#{b:esearch.backend}#data(b:esearch.request)) ==# parsed_count
 endfu

@@ -29,7 +29,7 @@ fu! s:job_handler(job_id, data, event) abort
     return 1
   elseif a:event ==# 'exit'
     let job.request.finished = 1
-    return 0
+    return esearch#out#{b:esearch.out}#on_finish()
   endif
 
   if !empty(data) && data[0] !=# "\n" && !empty(job.data)
@@ -37,8 +37,14 @@ fu! s:job_handler(job_id, data, event) abort
     call remove(data, 0)
   endif
   let job.data += filter(a:data, '"" !=# v:val')
+
+  call esearch#out#{b:esearch.out}#update(job.data)
 endfu
 
+
+fu! esearch#backend#nvim#init_events(request) abort
+  return 0
+endfu
 
 fu! esearch#backend#nvim#data(request) abort
   return s:jobs[a:request.job_id].data
