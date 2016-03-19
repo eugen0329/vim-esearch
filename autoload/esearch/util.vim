@@ -70,7 +70,6 @@ fu! esearch#util#cgetfile(request) abort
   if !filereadable(fnameescape(request.file))
     throw "Can't open file for reading" . request.file
   endif
-  let b:handler_running = esearch#util#running(b:request.handler, b:request.pid)
   let file_content = []
 
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd' : 'cd'

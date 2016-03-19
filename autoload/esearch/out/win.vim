@@ -30,22 +30,23 @@ fu! esearch#out#win#init(cwd) abort
   let b:updatetime_backup = &updatetime
   let &updatetime = float2nr(g:esearch.updatetime)
 
-  let b:qf = []
-  let b:esearch = {}
-  let b:esearch.cwd = a:cwd
-  let b:qf_file = []
-  let b:qf_entirely_parsed = 0
-  let b:_es_iterator    = 0
-  let b:handler_running = 0
-  let b:prev_filename = ''
-  let b:broken_results = []
-  let b:esearch._columns = {}
+  let b:esearch = {
+        \ 'parsed':            [],
+        \ 'unparsed':          [],
+        \ 'parsing_completed': 0,
+        \ 'cwd':               a:cwd,
+        \ 'handler_running':   0,
+        \ 'prev_filename':     '',
+        \ '_lines_iterator':   0,
+        \ '_columns':          {},
+        \ '__broken_results':  [],
+        \}
 
   let &iskeyword= g:esearch.wordchars
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d'
-  call setline(1, printf(s:header, b:_es_iterator))
+  call setline(1, printf(s:header, b:esearch._lines_iterator))
   setlocal readonly
   setlocal nomodifiable
   setlocal noswapfile
@@ -59,7 +60,7 @@ endfu
 
 fu! esearch#out#win#update() abort
   try
-    let b:qf_file = esearch#util#cgetfile(b:request)
+    let b:esearch.unparsed = esearch#util#cgetfile(b:request)
   catch
     echohl Error | echo v:exception | echohl None
     return 1
@@ -69,18 +70,18 @@ fu! esearch#out#win#update() abort
 
   call s:extend_results()
 
-  let qf_len = len(b:qf)
-  if qf_len > b:_es_iterator
-    if qf_len - b:_es_iterator - 1 <= g:esearch.batch_size
-      let qfrange = range(b:_es_iterator, qf_len - 1)
-      let b:_es_iterator = qf_len
+  let parsed_count = len(b:esearch.parsed)
+  if parsed_count > b:esearch._lines_iterator
+    if parsed_count - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
+      let parsed_range = range(b:esearch._lines_iterator, parsed_count - 1)
+      let b:esearch._lines_iterator = parsed_count
     else
-      let qfrange = range(b:_es_iterator, b:_es_iterator + g:esearch.batch_size - 1)
-      let b:_es_iterator += g:esearch.batch_size
+      let parsed_range = range(b:esearch._lines_iterator, b:esearch._lines_iterator + g:esearch.batch_size - 1)
+      let b:esearch._lines_iterator += g:esearch.batch_size
     endif
 
-    call s:render_results(qfrange)
-    call setline(1, printf(s:header, b:_es_iterator))
+    call s:render_results(parsed_range)
+    call setline(1, printf(s:header, b:esearch._lines_iterator))
   endif
 
   setlocal readonly
@@ -91,37 +92,37 @@ fu! esearch#out#win#update() abort
 endfu
 
 fu! s:extend_results() abort
-  if b:handler_running
-    if len(b:qf) < len(b:qf_file) - 1 && !empty(b:qf_file)
-      call extend(b:qf, esearch#util#parse_results(b:qf_file, len(b:qf), len(b:qf_file)-2))
+  if b:esearch.handler_running
+    if len(b:esearch.parsed) < len(b:esearch.unparsed) - 1 && !empty(b:esearch.unparsed)
+      call extend(b:esearch.parsed, esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed), len(b:esearch.unparsed)-2))
     endif
   else
-    if len(b:qf) < len(b:qf_file) && !empty(b:qf_file)
-      call extend(b:qf, esearch#util#parse_results(b:qf_file, len(b:qf), len(b:qf_file)-1))
+    if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
+      call extend(b:esearch.parsed, esearch#util#parse_results(b:esearch.unparsed, len(b:esearch.parsed), len(b:esearch.unparsed)-1))
     endif
   endif
 endfu
 
-fu! s:render_results(qfrange) abort
+fu! s:render_results(parsed_range) abort
   let line = line('$') + 1
-  for i in a:qfrange
-    let fname    = substitute(b:qf[i].fname, b:esearch.cwd.'/', '', '')
-    let context  = esearch#util#btrunc(b:qf[i].text,
-          \ match(b:qf[i].text, b:_es_exp.vim),
+  for i in a:parsed_range
+    let fname    = substitute(b:esearch.parsed[i].fname, b:esearch.cwd.'/', '', '')
+    let context  = esearch#util#btrunc(b:esearch.parsed[i].text,
+          \ match(b:esearch.parsed[i].text, b:_es_exp.vim),
           \ g:esearch.context_width.l,
           \ g:esearch.context_width.r)
 
-    if fname !=# b:prev_filename
+    if fname !=# b:esearch.prev_filename
       let b:esearch._columns[fname] = {}
       call setline(line, '')
       let line += 1
       call setline(line, fname)
       let line += 1
     endif
-    call setline(line, ' '.printf('%3d', b:qf[i].lnum).' '.context)
-    let b:esearch._columns[fname][b:qf[i].lnum] = b:qf[i].col
+    call setline(line, ' '.printf('%3d', b:esearch.parsed[i].lnum).' '.context)
+    let b:esearch._columns[fname][b:esearch.parsed[i].lnum] = b:esearch.parsed[i].col
     let line += 1
-    let b:prev_filename = fname
+    let b:esearch.prev_filename = fname
   endfor
 endfu
 
@@ -247,5 +248,5 @@ fu! s:on_finish() abort
 endfu
 
 fu! s:completed()
-  return !b:handler_running && b:_es_iterator == len(b:qf)
+  return !b:esearch.handler_running && b:esearch._lines_iterator == len(b:esearch.parsed)
 endfu
