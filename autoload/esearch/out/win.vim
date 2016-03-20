@@ -17,67 +17,57 @@ let s:mappings = {}
 let s:file_entry = '^\s\+\d\+\s\+.*'
 
 " TODO wrap arguments with hash
-fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) abort
-  call s:find_or_create_buf(a:bufname, a:opencmd)
+fu! esearch#out#win#init(opts) abort
+  call s:find_or_create_buf(a:opts.bufname, g:esearch#out#win#open)
 
-  augroup ESearchWinAutocmds
-    au! * <buffer>
-    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
-          \ let &updatetime = float2nr(g:esearch.updatetime)
-    call esearch#backend#{a:backend}#init_events()
-  augroup END
-
-  call s:init_mappings()
-  call s:init_commands()
-
-
-  let b:updatetime_backup = &updatetime
-  let &updatetime = float2nr(g:esearch.updatetime)
-
-  setlocal ft=esearch
   " Refresh match highlight
+  setlocal ft=esearch
   if g:esearch.highlight_match
-    " matchdelete is moved outside in case of dynamic .highlight_match change
     if exists('b:esearch')
       try
         call matchdelete(b:esearch._match_highlight_id)
       catch /E803:/
       endtry
     endif
-
-    let match_highlight_id = matchadd('EsearchMatch', a:exp.vim_match, -1)
+    let match_highlight_id = matchadd('EsearchMatch', a:opts.exp.vim_match, -1)
   endif
 
-  let b:esearch = {
-        \ 'out':                 'win',
-        \ 'exp':                 a:exp,
-        \ 'adapter':             a:adapter,
-        \ 'backend':             a:backend,
-        \ 'request':             a:request,
-        \ 'parsed':              [],
-        \ 'parsed_count':        0,
-        \ 'unparsed':            [],
-        \ 'cwd':                 a:cwd,
-        \ 'prev_filename':       '',
-        \ '_lines_iterator':     0,
-        \ '_columns':            {},
-        \ '_match_highlight_id': match_highlight_id,
-        \ '_last_update_time':   esearch#util#timenow(),
-        \ '__broken_results':    [],
-        \}
+  let b:updatetime_backup = &updatetime
+  let &updatetime = float2nr(g:esearch.updatetime)
+  augroup ESearchWinAutocmds
+    au! * <buffer>
+    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+          \ let &updatetime = float2nr(g:esearch.updatetime)
+    call esearch#backend#{a:opts.backend}#init_events()
+  augroup END
+
+  call s:init_mappings()
+  call s:init_commands()
 
   let &iskeyword = g:esearch.wordchars
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d'
-  call setline(1, printf(s:header, b:esearch._lines_iterator))
+  call setline(1, printf(s:header, 0))
   setlocal readonly
   setlocal nomodifiable
   setlocal noswapfile
   setlocal nonumber
   setlocal buftype=nofile
   setlocal bufhidden=hide
+
+  let b:esearch = extend(a:opts, {
+        \ 'parsed':              [],
+        \ 'parsed_count':        0,
+        \ 'unparsed':            [],
+        \ 'prev_filename':       '',
+        \ '_lines_iterator':     0,
+        \ '_columns':            {},
+        \ '_match_highlight_id': match_highlight_id,
+        \ '_last_update_time':   esearch#util#timenow(),
+        \ '__broken_results':    [],
+        \})
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
@@ -212,7 +202,7 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-vsplit)    :<C-U>call <SID>open('vnew')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-vsplit-s)  :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-open)      :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#_start(b:esearch.exp, b:esearch.cwd)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#init(b:esearch)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>jump(0)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>jump(1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>

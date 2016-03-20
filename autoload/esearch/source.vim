@@ -1,3 +1,12 @@
+fu! esearch#source#pick_exp(use, opts)
+  for name in a:use
+    let exp = esearch#source#{name}(a:opts)
+    if !empty(exp) | return exp | endif
+    unlet exp
+  endfor
+  return esearch#regex#new()
+endfu
+
 fu! esearch#source#visual(opts)
   if get(a:opts, 'visualmode', 0)
     let visual = esearch#util#visual_selection()

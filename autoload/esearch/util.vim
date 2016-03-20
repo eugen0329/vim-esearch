@@ -81,8 +81,13 @@ fu! esearch#util#with_val(val) dict abort
   return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
 endfu
 
-
 fu! esearch#util#require(...) dict abort
-  " PP a:000
   return filter(copy(self), 'index(a:000, v:key) >= 0')
+endfu
+
+fu! esearch#util#set_default(key, default) dict abort
+  if !has_key(self, a:key)
+    let self[a:key] = a:default
+  endif
+  return self
 endfu

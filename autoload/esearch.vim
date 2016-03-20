@@ -1,32 +1,41 @@
-fu! esearch#pre(visualmode, ...) abort
-  if a:0
-    let options = a:1
-    let dir = get(options, 'dir', $PWD)
-  else
-    let dir = $PWD
+fu! esearch#init(...)
+  let opts = a:0 ? a:1 : {}
+  let source_params = {'visualmode': get(opts, 'visualmode', 0)}
+  let g:esearch.last_exp = esearch#source#pick_exp(g:esearch.use, source_params)
+
+  call extend(opts, {
+        \ 'set_default': function('esearch#util#set_default'),
+        \ 'require': function('esearch#util#require')
+        \})
+
+  call opts.set_default('cwd', $PWD)
+  call opts.set_default('adapter', g:esearch.adapter)
+
+  if !has_key(opts, 'exp')
+    let opts.exp = esearch#cmdline#_read(g:esearch.last_exp, opts.cwd, esearch#adapter#{opts.adapter}#options())
+    if empty(opts.exp)
+      return 1
+    endif
+    let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
   endif
 
-  let g:esearch.last_exp = esearch#regex#pick(g:esearch.use, {'visualmode': a:visualmode})
+  let pattern = g:esearch.regex ? opts.exp.pcre : opts.exp.literal
+  let cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd)
 
-  let exp = esearch#cmdline#_read(g:esearch.last_exp, dir, esearch#adapter#ag#options())
-  if empty(exp)
-    return ''
-  endif
-  let exp = esearch#regex#finalize(exp, g:esearch)
-  return esearch#_start(exp, dir, g:esearch#out#win#open)
-endfu
+  call opts.set_default('backend', g:esearch.backend)
+  let request = esearch#backend#{opts.backend}#init(cmd)
 
-fu! esearch#_start(exp, dir, opencmd) abort
-  let pattern = g:esearch.regex ? a:exp.pcre : a:exp.literal
+  call opts.set_default('out', g:esearch.out)
+  let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out'), {
+        \ 'bufname': s:outbufname(pattern),
+        \ 'request': request,
+        \})
 
-  let cmd = esearch#adapter#{g:esearch.adapter}#cmd(pattern, a:dir)
-  let request = esearch#backend#{g:esearch.backend}#init(cmd)
-  call esearch#out#{g:esearch.out}#init(
-        \ g:esearch.adapter, g:esearch.backend, request, a:exp, s:outbufname(pattern), a:dir, a:opencmd)
+  call esearch#out#{opts.out}#init(out_params)
 endfu
 
 fu! s:outbufname(pattern) abort
-  let format = s:bufname_fomat()
+  let format = s:bufname_format()
   let modifiers = ''
   let modifiers .= g:esearch.case ? 'c' : ''
   let modifiers .= g:esearch.word ? 'w' : ''
@@ -52,7 +61,7 @@ fu! esearch#map(map, plug) abort
 endfu
 
 " Results bufname format getter
-fu! s:bufname_fomat() abort
+fu! s:bufname_format() abort
   if g:esearch.regex
     if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
       " Since we can't use '/' in filenames

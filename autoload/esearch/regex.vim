@@ -1,13 +1,4 @@
 " GLOBAL TODO
-fu! esearch#regex#pick(use, opts)
-  for name in a:use
-    let exp = esearch#source#{name}(a:opts)
-    if !empty(exp) | return exp | endif
-    unlet exp
-  endfor
-  return esearch#regex#new()
-endfu
-
 fu! esearch#regex#new(...) abort
   let blank = { 'vim': '', 'pcre': '', 'literal': '' }
   if a:0

@@ -64,11 +64,3 @@ endfu
 fu! s:abort_job(buf)
   call jobstop(getbufvar(a:buf, 'esearch').request.job_id)
 endfu
-
-" fu! esearch#backend#nvim#data(request) abort
-"   return s:jobs[a:request.job_id].data
-" endfu
-
-" fu! esearch#backend#nvim#finished(request) abort
-"   return s:jobs[a:request.job_id].request.finished
-" endfu
