@@ -64,3 +64,8 @@ fu! s:bufname_fomat() abort
     return "Search: `%s`%s"
   endif
 endfu
+
+" fu! esearch#log(...)
+"   PP a:000
+"   call getchar()
+" endfu
