@@ -219,7 +219,7 @@ fu! s:open(cmd, ...) abort
     let ln = s:line_number()
     let col = get(b:esearch._columns, line('.'), 1)
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
-    exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+    silent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
     call cursor(ln, col)
     norm! zz
     if a:0 | exe a:1 | endif
