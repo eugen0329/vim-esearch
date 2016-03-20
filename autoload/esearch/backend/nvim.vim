@@ -30,7 +30,6 @@ fu! s:exit_handler(job_id, data, event)
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let s:ignore_batches = 1
-  echo self.tick
   call esearch#out#{b:esearch.out}#update(job.data, s:ignore_batches)
   call esearch#out#{b:esearch.out}#on_finish()
 endfu

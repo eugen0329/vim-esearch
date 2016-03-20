@@ -14,8 +14,12 @@ let s:comments = {
       \ '<Plug>(esearch-cmdline-help)':  'Show this message',
       \}
 
-let s:dir_prompt = ''
-let g:esearch#cmdline#help_prompt = get(g:, 'esearch#cmdline#help_prompt', 1)
+if !exists('g:esearch#cmdline#dir_icon')
+  let g:esearch#cmdline#dir_icon = ' '
+endif
+if !exists('g:esearch#cmdline#help_prompt')
+  let g:esearch#cmdline#help_prompt = 1
+endif
 
 cnoremap <Plug>(esearch-regex)        <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(esearch-case)         <C-r>=<SID>invert('case')<CR>
@@ -24,7 +28,7 @@ cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>list_help()<CR>
 
 fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
-  let s:dir_prompt = s:dir_prompt(a:dir)
+  " let s:dir_prompt = s:dir_prompt(a:dir)
   let s:pattern = a:exp
   let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let s:cmdpos = len(s:cmdline) + 1
@@ -32,6 +36,7 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   let s:interrupted = 0
   let s:list_help = 0
   while 1
+    call s:dir_prompt(a:dir)
     let str = input(s:prompt(a:options), s:cmdline)
 
     if s:interrupted
@@ -75,7 +80,6 @@ fu! s:list_help()
   return ''
 endfu
 
-" TODO refactoring
 fu! s:help() abort
   let help_plug = "<Plug>(esearch-cmdline-help)"
   let help_map = '"'. help_plug .'"'
@@ -147,14 +151,16 @@ fu! s:prompt(options) abort
     let help = ''
   endif
 
-  return s:dir_prompt.'pattern'.help.' '.r.c.w.' '
+  return 'pattern'.help.' '.r.c.w.' '
 endfu
 
 fu! s:dir_prompt(dir) abort
   if a:dir ==# $PWD
-    return ''
+    return 0
   endif
-  return 'Dir: '.substitute(a:dir , $PWD, '.', '')."\n"
+  call esearch#util#highlight('Normal', 'In ')
+  call esearch#util#highlight('Directory', g:esearch#cmdline#dir_icon.substitute(a:dir , $PWD.'/', '', ''))
+  call esearch#util#highlight('Normal', '')
 endfu
 
 fu! s:get_correction() abort
@@ -167,7 +173,6 @@ endfu
 fu! s:init_mappings() abort
   let mapargs =  {}
   for map in keys(s:mappings.dict())
-    " let map = s:mappings[plug]
     let mapargs[map] = maparg(map, 'c', 0, 1)
     exe "cmap " . map . ' ' . s:mappings[map]
   endfor
