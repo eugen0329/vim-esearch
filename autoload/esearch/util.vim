@@ -65,6 +65,10 @@ fu! esearch#util#timenow() abort
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
+fu! esearch#util#has_unicode()
+  return &termencoding ==# 'utf-8' || &encoding ==# 'utf-8'
+endfu
+
 fu! esearch#util#visual_selection() abort
   let [lnum1, col1] = getpos("'<")[1:2]
   let [lnum2, col2] = getpos("'>")[1:2]

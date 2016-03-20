@@ -15,41 +15,40 @@ let s:comments = {
       \}
 
 if !exists('g:esearch#cmdline#dir_icon')
-  let g:esearch#cmdline#dir_icon = ' '
+  let g:esearch#cmdline#dir_icon = "🗀 "
 endif
 if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
 endif
 
-cnoremap <Plug>(esearch-regex)        <C-r>=<SID>invert('regex')<CR>
-cnoremap <Plug>(esearch-case)         <C-r>=<SID>invert('case')<CR>
-cnoremap <Plug>(esearch-word)         <C-r>=<SID>invert('word')<CR>
-cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>list_help()<CR>
+cnoremap <Plug>(esearch-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
+cnoremap <Plug>(esearch-case)         <C-r>=<SID>run('s:invert', 'case')<CR>
+cnoremap <Plug>(esearch-word)         <C-r>=<SID>run('s:invert', 'word')<CR>
+cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('s:help')<CR>
 
+" TODO refactoring
 fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
-  " let s:dir_prompt = s:dir_prompt(a:dir)
   let s:pattern = a:exp
   let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
   let s:cmdpos = len(s:cmdline) + 1
 
   let s:interrupted = 0
   let s:list_help = 0
+  let s:pending = []
   while 1
     call s:dir_prompt(a:dir)
     let str = input(s:prompt(a:options), s:cmdline)
 
-    if s:interrupted
-      if s:list_help
-        call s:help()
-        let s:list_help = 0
-      endif
-      let s:interrupted = 0
-      let s:cmdline .= s:get_correction()
-      redraw!
-    else
+    if empty(s:pending)
       break
     endif
+    for handler in s:pending
+      call call(handler.funcref, handler.args)
+    endfor
+    let s:pending = []
+    let s:cmdline .= s:get_correction()
+    redraw!
   endwhile
   unlet s:interrupted
 
@@ -107,17 +106,19 @@ fu! s:help() abort
   call getchar()
 endfu
 
-fu! s:invert(option) abort
-  let s:interrupted = 1
+fu! s:run(func, ...)
+  call add(s:pending, {'funcref': function(a:func), 'args': a:000})
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
+  call feedkeys("\<C-c>", 'n')
+  return ''
+endfu
+
+fu! s:invert(option) abort
   if a:option == 'regex' && g:esearch.recover_regex
     call s:recover_regex()
   endif
-
   call g:esearch.invert(a:option)
-  call feedkeys("\<C-c>", 'n')
-  return ''
 endfu
 
 fu! s:recover_regex() abort
