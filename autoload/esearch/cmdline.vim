@@ -1,13 +1,26 @@
 let s:mappings = {
-      \'<C-s><C-r>':  '<Plug>(esearch-regex)',
-      \'<C-s><C-s>':  '<Plug>(esearch-case)',
-      \'<C-s><C-w>':  '<Plug>(esearch-word)',
+      \ '<C-s><C-r>':  '<Plug>(esearch-regex)',
+      \ '<C-s><C-s>':  '<Plug>(esearch-case)',
+      \ '<C-s><C-w>':  '<Plug>(esearch-word)',
+      \ '<C-s><C-h>':  '<Plug>(esearch-cmdline-help)',
+      \ 'key':         function('esearch#util#key'),
+      \ 'dict':        function('esearch#util#dict'),
+      \ 'without_val':        function('esearch#util#without_val'),
       \}
-let s:dir_prompt = ''
+let s:comments = {
+      \ '<Plug>(esearch-regex)': 'Toggle regex(r) or literal(>) match',
+      \ '<Plug>(esearch-case)':  'Toggle case sensitive(c) or insensitive(>) match',
+      \ '<Plug>(esearch-word)':  'Toggle only whole words matching(w)',
+      \ '<Plug>(esearch-cmdline-help)':  'Show this message',
+      \}
 
-cnoremap <Plug>(esearch-regex) <C-r>=<SID>invert('regex')<CR>
-cnoremap <Plug>(esearch-case)  <C-r>=<SID>invert('case')<CR>
-cnoremap <Plug>(esearch-word)  <C-r>=<SID>invert('word')<CR>
+let s:dir_prompt = ''
+let g:esearch#cmdline#help_prompt = get(g:, 'esearch#cmdline#help_prompt', 1)
+
+cnoremap <Plug>(esearch-regex)        <C-r>=<SID>invert('regex')<CR>
+cnoremap <Plug>(esearch-case)         <C-r>=<SID>invert('case')<CR>
+cnoremap <Plug>(esearch-word)         <C-r>=<SID>invert('word')<CR>
+cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>help()<CR>
 
 fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
@@ -46,10 +59,36 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   return s:pattern
 endfu
 
+" TODO refactoring
+fu! s:help() abort
+  let s:interrupted = 1
+  let s:cmdpos = getcmdpos()
+  let s:cmdline = getcmdline()
+
+  let help_map = "'<Plug>(esearch-cmdline-help)'"
+  let help_plug = "<Plug>(esearch-cmdline-help)"
+
+  let msg= ''
+  for [m, plug] in items(s:mappings.without_val(help_map).dict())
+    let msg .= printf("%10s:\t%s\n", esearch#util#stringify_mapping(m), s:comments[plug])
+  endfor
+  let msg .= printf("%10s:\t%s\n", esearch#util#stringify_mapping(s:mappings.key(help_map)), s:comments[help_plug])
+
+  if esearch#cmdline#help_prompt
+    let vimrc_path = '' ==# $MYVIMRC ? 'your vimrc' : $MYVIMRC
+    let msg .= "\nAdd `let esearch#cmdline#help_prompt = 0` to ".vimrc_path." to disable the help prompt"
+  endif
+
+  echo msg
+  call getchar()
+
+  call feedkeys("\<C-c>", 'n')
+  return ''
+endfu
+
 fu! s:invert(option) abort
   let s:interrupted = 1
   let s:cmdpos = getcmdpos()
-
   let s:cmdline = getcmdline()
   if a:option == 'regex' && g:esearch.recover_regex
     call s:recover_regex()
@@ -83,7 +122,15 @@ fu! s:prompt(options) abort
   let r = a:options.stringify('regex')
   let c = a:options.stringify('case')
   let w = a:options.stringify('word')
-  return s:dir_prompt.'pattern '.r.c.w.' '
+
+  if g:esearch#cmdline#help_prompt
+    let mapping = s:mappings.key('"<Plug>(esearch-cmdline-help)"')
+    let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to list help)'
+  else
+    let help = ''
+  endif
+
+  return s:dir_prompt.'pattern'.help.' '.r.c.w.' '
 endfu
 
 fu! s:dir_prompt(dir) abort
@@ -102,7 +149,7 @@ endfu
 
 fu! s:init_mappings() abort
   let mapargs =  {}
-  for map in keys(s:mappings)
+  for map in keys(s:mappings.dict())
     " let map = s:mappings[plug]
     let mapargs[map] = maparg(map, 'c', 0, 1)
     exe "cmap " . map . ' ' . s:mappings[map]

@@ -46,6 +46,16 @@ fu! esearch#util#trunc(str, size) abort
   return a:str
 endfu
 
+fu! esearch#util#stringify_mapping(map)
+  let str = substitute(a:map, '<[Cc]-\([^>]\)>', 'Ctrl-\1 ', 'g')
+  let str = substitute(str, '<[Ss]-\([^>]\)>', 'Alt-\1 ', 'g')
+  let str = substitute(str, '<[AMam]-\([^>]\)>', 'Alt-\1 ', 'g')
+  " TODO check if unicod is allowed
+  let str = substitute(str, '<[Dd]-\([^>]\)>', '⌘-\1 ', 'g')
+  let str = substitute(str, '\s\+$', '', 'g')
+  return str
+endfu
+
 fu! esearch#util#shellescape(str) abort
   return shellescape(a:str, g:esearch.escape_special)
 endfu
@@ -79,6 +89,18 @@ endfu
 
 fu! esearch#util#with_val(val) dict abort
   return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
+endfu
+
+fu! esearch#util#key(val) dict abort
+  return get(keys(filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)), 0, 0)
+endfu
+
+fu! esearch#util#withou(key) dict abort
+  return filter(copy(self), 'v:key !=# '.a:val)
+endfu
+
+fu! esearch#util#without_val(val) dict abort
+  return filter(copy(self), 'type(v:val) != type('.a:val.') || v:val!=# '.a:val)
 endfu
 
 fu! esearch#util#require(...) dict abort
