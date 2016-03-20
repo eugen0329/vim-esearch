@@ -11,12 +11,12 @@ endif
 
 noremap  <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
 xnoremap <silent><Plug>(esearch) :<C-u>call esearch#init({'visualmode': 1})<CR>
-" noremap <silent><Plug>(esearch) :<C-u>call esearch#pre(0)<CR>
-" xnoremap <silent><Plug>(esearch) :<C-u>call esearch#pre(1)<CR>
 
 let mappings = esearch#_mappings().dict()
 for map in keys(mappings)
   exe 'map ' . map . ' ' . mappings[map]
 endfor
 
-hi link ESearchSubstitute DiffChange
+if !hlexists('ESearchSubstitute')
+  hi link ESearchSubstitute DiffChange
+endif
