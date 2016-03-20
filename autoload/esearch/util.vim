@@ -113,3 +113,11 @@ fu! esearch#util#set_default(key, default) dict abort
   endif
   return self
 endfu
+
+fu! esearch#util#highlight(highlight, str)
+  exe "echohl " . a:highlight . "| echon " . strtrans(string(a:str))
+endfu
+
+function! s:echo_color(str)
+  return 
+endfunction

@@ -20,7 +20,7 @@ let g:esearch#cmdline#help_prompt = get(g:, 'esearch#cmdline#help_prompt', 1)
 cnoremap <Plug>(esearch-regex)        <C-r>=<SID>invert('regex')<CR>
 cnoremap <Plug>(esearch-case)         <C-r>=<SID>invert('case')<CR>
 cnoremap <Plug>(esearch-word)         <C-r>=<SID>invert('word')<CR>
-cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>help()<CR>
+cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>list_help()<CR>
 
 fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
@@ -30,10 +30,15 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   let s:cmdpos = len(s:cmdline) + 1
 
   let s:interrupted = 0
+  let s:list_help = 0
   while 1
     let str = input(s:prompt(a:options), s:cmdline)
 
     if s:interrupted
+      if s:list_help
+        call s:help()
+        let s:list_help = 0
+      endif
       let s:interrupted = 0
       let s:cmdline .= s:get_correction()
       redraw!
@@ -59,31 +64,43 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   return s:pattern
 endfu
 
-" TODO refactoring
-fu! s:help() abort
+fu! s:list_help()
   let s:interrupted = 1
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
 
-  let help_map = "'<Plug>(esearch-cmdline-help)'"
-  let help_plug = "<Plug>(esearch-cmdline-help)"
-
-  let msg= ''
-  for [m, plug] in items(s:mappings.without_val(help_map).dict())
-    let msg .= printf("%10s:\t%s\n", esearch#util#stringify_mapping(m), s:comments[plug])
-  endfor
-  let msg .= printf("%10s:\t%s\n", esearch#util#stringify_mapping(s:mappings.key(help_map)), s:comments[help_plug])
-
-  if esearch#cmdline#help_prompt
-    let vimrc_path = '' ==# $MYVIMRC ? 'your vimrc' : $MYVIMRC
-    let msg .= "\nAdd `let esearch#cmdline#help_prompt = 0` to ".vimrc_path." to disable the help prompt"
-  endif
-
-  echo msg
-  call getchar()
+  let s:list_help = 1
 
   call feedkeys("\<C-c>", 'n')
   return ''
+endfu
+
+" TODO refactoring
+fu! s:help() abort
+  let help_plug = "<Plug>(esearch-cmdline-help)"
+  let help_map = '"'. help_plug .'"'
+
+  for [m, plug] in items(s:mappings.without_val(help_map).dict())
+    call esearch#util#highlight('Title', printf('%10s:', esearch#util#stringify_mapping(m)))
+    call esearch#util#highlight('Normal', '  '.s:comments[plug])
+    echo ""
+  endfor
+  let map = printf("%10s:", esearch#util#stringify_mapping(s:mappings.key(help_map)))
+  call esearch#util#highlight('Title', map)
+  call esearch#util#highlight('Normal', '  '.s:comments[help_plug])
+
+  if g:esearch#cmdline#help_prompt
+    echo "\n"
+    call esearch#util#highlight('Normal',    'Add `')
+    call esearch#util#highlight('Statement', 'let ')
+    call esearch#util#highlight('Identifier', 'esearch#cmdline#help_prompt')
+    call esearch#util#highlight('Operator', ' = ')
+    call esearch#util#highlight('Normal', '0` to ')
+    call esearch#util#highlight('Bold', '' ==# $MYVIMRC ? 'your vimrc' : $MYVIMRC)
+    call esearch#util#highlight('Normal', ' to disable help prompt')
+  endif
+
+  call getchar()
 endfu
 
 fu! s:invert(option) abort
