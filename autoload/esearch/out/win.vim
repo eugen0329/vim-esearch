@@ -14,6 +14,7 @@ let s:default_mappings = {
 " The first line. It contains information about the number of results
 let s:header = '%d matches'
 let s:mappings = {}
+let s:file_entry = '^\s\+\d\+\s\+.*'
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) abort
@@ -28,6 +29,8 @@ fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) 
   augroup END
 
   call s:init_mappings()
+  call s:init_commands()
+
 
   let b:updatetime_backup = &updatetime
   let &updatetime = float2nr(g:esearch.updatetime)
@@ -75,6 +78,57 @@ fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) 
   setlocal nonumber
   setlocal buftype=nofile
   setlocal bufhidden=hide
+endfu
+
+" TODO improve with noautocmd
+" TODO add highlight of the replaced text
+fu! esearch#out#win#substitute(args, from, to)
+  " echo [a:args, a:from, a:to]
+  let last_modified_tab = tabpagenr()
+
+  let line = a:from
+  if a:from > a:to
+    let limit = a:from + 1
+  else
+    let limit = a:to + 1
+  endif
+
+  let pushed = 0
+  let root = tabpagenr()
+
+  while line < limit
+    if getline(line) =~# s:file_entry
+      let not_found = 0
+
+      exe line
+      call s:open('$tabnew')
+
+      try
+        exe 's'a:args
+      catch /E486:/
+        let not_found = 1
+      endtry
+
+      if not_found
+        let useless_tab = tabpagenr()
+        noautocmd exe 'tabn'.root
+        noautocmd exe 'tabclose'.useless_tab
+      else
+        let last_modified_tab = tabpagenr()
+        noautocmd exe 'tabn'.root
+        if !pushed
+          let pushed = 1
+          " Push current search tab to the right (penultimate position,
+          " before the newly opened) for more convenience
+          noautocmd exe 'tabm '.(tabpagenr('$') - 2)
+        endif
+      endif
+
+    endif
+    let line += 1
+  endwhile
+
+  exe 'tabn'last_modified_tab
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
@@ -182,6 +236,19 @@ fu! esearch#out#win#map(map, plug) abort
   let s:mappings[a:map] = a:plug
 endfu
 
+fu! s:init_commands() abort
+  command! -nargs=1 -range=0 -bar -buffer ESubstitute
+        \ call esearch#out#win#substitute(<q-args>, <line1>, <line2>)
+
+  if exists(':E') != 2
+    command! -nargs=1 -range=0 -bar -buffer E
+          \ call esearch#out#win#substitute(<q-args>, <line1>, <line2>)
+  elseif exists(':ES') != 2
+    command! -nargs=1 -range=0 -bar -buffer ES
+          \ call esearch#out#win#substitute(<q-args>, <line1>, <line2>)
+  endif
+endfu
+
 fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-tab)       :<C-U>call <sid>open('tabnew')<cr>
   nnoremap <silent><buffer> <Plug>(esearch-tab-s)     :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
@@ -206,6 +273,8 @@ fu! s:open(cmd, ...) abort
   if !empty(fname)
     let ln = s:line_number()
     let col = get(b:esearch._columns, line('.'), 1)
+    " if not silent open
+    let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
     call cursor(ln, col)
     norm! zz
@@ -241,7 +310,7 @@ fu! s:line_number() abort
 endfu
 
 fu! s:jump(downwards) abort
-  let pattern = '^\s\+\d\+\s\+.*'
+  let pattern = s:file_entry
   let last_line = line('$')
 
   if a:downwards

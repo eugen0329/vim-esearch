@@ -16,3 +16,5 @@ let mappings = esearch#_mappings().dict()
 for map in keys(mappings)
   exe 'map ' . map . ' ' . mappings[map]
 endfor
+
+hi link ESearchSubstitute DiffChange
