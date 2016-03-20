@@ -80,68 +80,6 @@ fu! esearch#out#win#init(adapter, backend, request, exp, bufname, cwd, opencmd) 
   setlocal bufhidden=hide
 endfu
 
-" TODO add highlight of the replaced text
-fu! esearch#out#win#substitute(args, from, to)
-  let line = a:from
-  let limit = a:from > a:to ? a:from + 1 : a:to + 1
-
-  let pushed = 0
-  let root = tabpagenr()
-  let last_modified_tab = tabpagenr()
-  let opened_files = {}
-  let prev_filename = ''
-  let disable_autocmd = 'noautocmd '
-
-  while line < limit
-    exe line
-    " call esearch#log({'line': line, 'line(".")': line('.'), 'getline(line)': getline(line),
-    "       \ '=~s:file_entry': getline(line) =~# s:file_entry, 'root': root, 
-    "       \ 'tabpagenr': tabpagenr(), 'pushed': pushed})
-    redraw!
-    if getline(line) =~# s:file_entry
-      let not_found = 0
-
-      let filename = s:filename()
-      " call esearch#log({'filename': filename, 'opened_files': opened_files, 'line_number': s:line_number()})
-      let already_opened = has_key(opened_files, filename)
-      if already_opened
-        exe disable_autocmd.'tabn'.opened_files[filename].'|'.s:line_number()
-      else
-        call s:open('$tabnew')
-        let opened_files[filename] = tabpagenr()
-      endif
-
-      try
-        exe 's'a:args
-      catch /E486:/
-        let not_found = 1
-      catch
-        echo 'Error'
-      endtry
-
-      if not_found && !already_opened
-        let useless_tab = tabpagenr() 
-        exe disable_autocmd.'tabn'.root
-        exe disable_autocmd.'tabclose'.useless_tab
-      else
-        let last_modified_tab = tabpagenr()
-        exe disable_autocmd.'tabn'.root
-        if !pushed
-          let pushed = 1
-          " Push current search tab to the right (penultimate position,
-          " before the newly opened) for more convenience
-          let root = tabpagenr('$') - 1
-          exe disable_autocmd.'tabm '.(root - 1 )
-        endif
-      endif
-
-    endif
-    let line += 1
-  endwhile
-
-  exe 'tabn'last_modified_tab
-endfu
-
 fu! s:find_or_create_buf(bufname, opencmd) abort
   let bufnr = bufnr('^'.a:bufname.'$')
   if bufnr == bufnr('%')
@@ -248,15 +186,21 @@ fu! esearch#out#win#map(map, plug) abort
 endfu
 
 fu! s:init_commands() abort
+  let s:win = {
+        \ 'line_number': function('s:line_number'),
+        \ 'open':        function('s:open'),
+        \ 'filename': function('s:filename'),
+        \ 'file_entry': s:file_entry
+        \}
   command! -nargs=1 -range=0 -bar -buffer ESubstitute
-        \ call esearch#out#win#substitute(<q-args>, <line1>, <line2>)
+        \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
 
   if exists(':E') != 2
     command! -nargs=1 -range=0 -bar -buffer E
-          \ call esearch#out#win#substitute(<q-args>, <line1>, <line2>)
+          \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
   elseif exists(':ES') != 2
     command! -nargs=1 -range=0 -bar -buffer ES
-          \ call esearch#out#win#substitute(<q-args>, <line1>, <line2>)
+          \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
   endif
 endfu
 
