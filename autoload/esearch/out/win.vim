@@ -27,7 +27,7 @@ let s:default_mappings = {
       \ '<S-k>': '<Plug>(esearch-prev-file)',
       \ }
 " The first line. It contains information about the number of results
-let s:header = '%d matches'
+let s:header = 'Matches in %d lines'
 let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'

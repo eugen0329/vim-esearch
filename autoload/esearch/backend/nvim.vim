@@ -13,6 +13,7 @@ fu! esearch#backend#nvim#init(cmd) abort
         \ 'job_id':   job_id,
         \ 'finished':   0,
         \ 'backend': 'nvim',
+        \ 'command': a:cmd,
         \ 'parts': []
         \}
   let s:jobs[job_id] = { 'data': [], 'request': request }
@@ -41,8 +42,11 @@ fu! s:exit(job_id, data, event)
   call esearch#out#{b:esearch.out}#on_finish()
 endfu
 
+" TODO write expansion for commands
+" g:esearch.expand_special has no affect due to josbstart is a function
+" (e.g dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(cmd)
-  return a:cmd
+  return string(a:cmd)
 endfu
 
 fu! s:stdout(job_id, data, event) abort

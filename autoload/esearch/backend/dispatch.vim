@@ -1,5 +1,5 @@
 fu! esearch#backend#dispatch#init(cmd) abort
-  silent exe 'Dispatch! '.a:cmd
+  exe dispatch#compile_command(1, a:cmd, -1)
   let request = dispatch#request()
   let request.format = '%f:%l:%c:%m,%f:%l:%m'
   let request.background = 1
