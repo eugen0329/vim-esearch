@@ -219,7 +219,12 @@ fu! s:open(cmd, ...) abort
     let ln = s:line_number()
     let col = get(b:esearch._columns, line('.'), 1)
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
-    silent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+    try
+      exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+    catch
+      echo v:exception . ' at ' . v:throwpoint
+    endtry
+
     call cursor(ln, col)
     norm! zz
     if a:0 | exe a:1 | endif
@@ -282,7 +287,8 @@ endfu
 
 fu! esearch#out#win#on_finish() abort
   au! ESearchWinAutocmds * <buffer>
-  unlet b:esearch.parsed b:esearch.unparsed
+  unlet b:esearch.parsed b:esearch.unparsed b:esearch.prev_filename
+        \ b:esearch._lines_iterator  b:esearch._last_update_time
   let &updatetime = float2nr(b:updatetime_backup)
 
   setlocal noreadonly
