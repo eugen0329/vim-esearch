@@ -1,3 +1,16 @@
+" NOTE 1 (unsilent when opening files)
+" We expect to receive the following if use #substitute#do over files with an
+" existing swap:
+" |0 files changed
+" |The following files has unresolved swapfiles
+" |    file_with_existed_swap.foo
+" But instead:
+" |0 files changed
+" |The following files has unresolved swapfiles
+" |"Search: `query`" [readonly] line 5 of 25 --20%-- col 12
+"
+" Have no idea why it's so (and time to deal) ...
+
 let s:default_mappings = {
       \ 't':     '<Plug>(esearch-tab)',
       \ 'T':     '<Plug>(esearch-tab-s)',
@@ -220,9 +233,12 @@ fu! s:open(cmd, ...) abort
     let col = get(b:esearch._columns, line('.'), 1)
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
-      exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+      " See NOTE 1
+      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+    catch /E325:/
+      " ignore warnings about swapfiles (let user and #substitute handle them)
     catch
-      echo v:exception . ' at ' . v:throwpoint
+      unsilent echo v:exception . ' at ' . v:throwpoint
     endtry
 
     call cursor(ln, col)
@@ -264,6 +280,7 @@ fu! s:jump(downwards) abort
 
   if a:downwards
     " If one result - move cursor on it, else - move the next
+    " bypassing the first entry line
     let pattern .= last_line <= 4 ? '\%>3l' : '\%>4l'
     call search(pattern, 'W')
   else
