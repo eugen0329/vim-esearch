@@ -1,3 +1,7 @@
+if !exists('esearch#substitute#swapchoice')
+  let g:esearch#substitute#swapchoice = ''
+endif
+
 fu! esearch#substitute#do(args, from, to, out)
   let line = a:from
   let limit = a:from > a:to ? a:from + 1 : a:to + 1
@@ -27,13 +31,25 @@ fu! esearch#substitute#do(args, from, to, out)
       let target_line = a:out.line_number()
       let already_opened = has_key(opened_files, filename)
 
+      " Goto already opened file or open new
       if already_opened
         exe noautocmd.'tabn'.opened_files[filename].'|'.target_line
       else
-        exe 'au ESearchSubstituteSwap SwapExists *'.filename.' call s:handle_swap(escape(expand("<afile>"), " "), '.bufnr.')'
+        if !empty('g:esearch#substitute#swapchoice')
+          exe 'au ESearchSubstituteSwap SwapExists *'.filename.' call s:make_swap_choise(escape(expand("<afile>"), " "), '.bufnr.')'
+        endif
         call a:out.open('$tabnew')
-        " besearch.swapfiles initializes in s:handle_swap event, binded below
-        if exists('besearch.swapfiles') && index(besearch.swapfiles, filename) >= 0
+
+        " NOTE besearch.unresolved_swapfiles initializes in s:make_swap_choise event, binded below
+        "
+        " If swap files exists ||
+        " user has selected v:swapchoice ==# 'q' (window was closed manually) ||
+        " if (O)pen Read-Only swap option ||
+        " D(i)ff option was selected (enabled by Recover.vim)
+        if (exists('besearch.unresolved_swapfiles') && index(besearch.unresolved_swapfiles, filename) >= 0) ||
+              \ index(values(opened_files), tabpagenr()) >= 0 ||
+              \ &readonly ||
+              \ &diff
           let line += 1
           continue
         else
@@ -66,9 +82,10 @@ fu! esearch#substitute#do(args, from, to, out)
     let line += 1
   endwhile
 
-  call s:statistics(opened_files, get(besearch, 'swapfiles', 0))
+  call s:statistics(opened_files, get(besearch, 'unresolved_swapfiles', 0))
+
   call s:cleanup(besearch)
-  exe 'tabn'last_modified_tab
+  exe 'tabn '.last_modified_tab
 endfu
 
 fu! s:substitute(args) abort
@@ -100,40 +117,44 @@ fu! s:clear_hightligh()
   unlet b:esearch
 endfu
 
-" Disables swap resolving and saves swap to b:esearch.swapfiles list
-fu! s:handle_swap(fname, esearch_buf)
+" Disables swap resolving and saves swap to b:esearch.unresolved_swapfiles list
+fu! s:make_swap_choise(fname, esearch_buf)
+  " call getchar()
   let esearch = getbufvar(a:esearch_buf, 'esearch')
-  if type(esearch) !=# type({})
-    let g:ok = [a:fname, a:esearch_buf]
+  if !has_key(esearch, 'unresolved_swapfiles')
+    let esearch.unresolved_swapfiles = []
   endif
-  if !has_key(esearch, 'swapfiles')
-    let esearch.swapfiles = []
+  if index(esearch.unresolved_swapfiles, a:fname) < 0
+    call add(esearch.unresolved_swapfiles, a:fname)
   endif
-  if index(esearch.swapfiles, a:fname) < 0
-    call add(esearch.swapfiles, a:fname)
-  endif
+  " PP
   " 'o'   Open read-only
   " 'e'   Edit anyway
   " 'r'   Recover
   " 'd'   Delete swapfile
   " 'q'   Quit
   " 'a'   Abort
-  let v:swapchoice = 'q'
+  let v:swapchoice = g:esearch#substitute#swapchoice
 endfu
 
 fu! s:cleanup(besearch)
-  if has_key(a:besearch, 'swapfiles')
-    unlet a:besearch.swapfiles
+  if has_key(a:besearch, 'unresolved_swapfiles')
+    unlet a:besearch.unresolved_swapfiles
   endif
+  augroup ESearchSubstituteSwap
+    au!
+  augroup END
 endfu
 
-fu! s:statistics(opened_files, swapfiles)
+fu! s:statistics(opened_files, unresolved_swapfiles)
   echo len(a:opened_files) . ' files changed'
-  if !empty(a:swapfiles)
+
+  let unresolved_swapfiles = a:unresolved_swapfiles
+  if !empty(a:unresolved_swapfiles)
     echo ''
-    call esearch#util#highlight('Title', 'The following files has unresolved swapfiles', 1)
-    for sf in a:swapfiles
-      echo "\t".sf
+    call esearch#util#highlight('Title', 'The following files has unresolved swapfiles', 0)
+    for name in unresolved_swapfiles
+      echo "\t".name
     endfor
   endif
 endfu

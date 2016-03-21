@@ -118,9 +118,9 @@ fu! esearch#util#set_default(key, default) dict abort
   return self
 endfu
 
-fu! esearch#util#highlight(highlight, str, reset)
+fu! esearch#util#highlight(highlight, str, keep)
   exe "echohl " . a:highlight . "| echon " . strtrans(string(a:str))
-  if a:reset
+  if !a:keep
     echohl 'Normal'
   endif
 endfu
