@@ -124,3 +124,16 @@ fu! esearch#util#highlight(highlight, str, ...)
     echohl 'Normal'
   endif
 endfu
+
+
+" Used to build adapter query query
+fu! esearch#util#parametrize(key, ...) dict abort
+  let option_index = g:esearch[a:key]
+  return self[a:key]['p'][option_index]
+endfu
+
+" Used in cmdline prompt
+fu! esearch#util#stringify(key, ...) dict abort
+  let option_index = g:esearch[a:key]
+  return self[a:key]['s'][option_index]
+endfu

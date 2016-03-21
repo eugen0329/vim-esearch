@@ -59,7 +59,7 @@ endfunction
 fu! s:completed(data)
   let nparsed = b:esearch._lines_iterator
 
-  if len(a:data) == nparsed + 1 && esearch#adapter#ag#is_broken_result(a:data[nparsed])
+  if len(a:data) == nparsed + 1 && esearch#adapter#{b:esearch.adapter}#is_broken_result(a:data[nparsed])
     let nbroken = 1
   else
     let nbroken = 0
@@ -91,7 +91,7 @@ fu! s:_on_cursor_hold()
 endfu
 
 
-function! esearch#backend#dispatch#sid()  "{{{2
+function! esearch#backend#dispatch#sid()
   return maparg('<SID>', 'n')
 endfunction
 nnoremap <SID>  <SID>

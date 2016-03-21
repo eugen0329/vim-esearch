@@ -1,25 +1,25 @@
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
-fu! esearch#adapter#ag#options()
+fu! esearch#adapter#ag#options() abort
   if !exists('s:options')
     let s:options = {
     \ 'regex':   { 'p': ['-Q', ''],   's': ['>', 'r'] },
     \ 'case':    { 'p': ['-i', '-s'], 's': ['>', 'c'] },
     \ 'word':    { 'p': ['',   '-w'], 's': ['>', 'w'] },
-    \ 'stringify':   function('<SID>stringify'),
-    \ 'parametrize': function('<SID>parametrize'),
+    \ 'stringify':   function('esearch#util#stringify'),
+    \ 'parametrize': function('esearch#util#parametrize'),
     \}
   endif
   return s:options
 endfu
 
-fu! esearch#adapter#ag#cmd(pattern, dir, escape) abort
-  let r = s:options.parametrize('regex')
-  let c = s:options.parametrize('case')
-  let w = s:options.parametrize('word')
+fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
+  let options = a:0 ? a:1 : esearch#adapter#ag#options()
+  let r = options.parametrize('regex')
+  let c = options.parametrize('case')
+  let w = options.parametrize('word')
   return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
         \ a:escape(a:pattern)  . " " . a:escape(a:dir)
-        " \ a:escape(a:pattern)  . " " . a:escape(a:dir)
 endfu
 
 fu! esearch#adapter#ag#is_broken_result(line)
@@ -60,3 +60,7 @@ fu! s:stringify(key, ...) dict abort
   return self[a:key]['s'][option_index]
 endfu
 
+function! esearch#adapter#ag#sid()
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>
