@@ -338,7 +338,19 @@ fu! esearch#out#win#on_finish() abort
 
   setlocal noreadonly
   setlocal modifiable
-  call setline(1, getline(1) . '. Finished.' )
+
+  if has_key(b:esearch.request, 'errors')
+    call setline(1, 'ERRORS (' .len(b:esearch.request.errors).')')
+    let line = 2
+    for err in b:esearch.request.errors
+      call setline(line, "\t".join(err, '. '))
+      let line += 1
+    endfor
+    " norm! gggqG
+  else
+    call setline(1, getline(1) . '. Finished.' )
+  endif
+
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified

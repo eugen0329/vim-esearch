@@ -2,9 +2,9 @@ let s:jobs = {}
 
 fu! esearch#backend#nvim#init(cmd) abort
   let job_id = jobstart(a:cmd, {
-          \ 'on_stdout': function('s:out_handler'),
-          \ 'on_stderr': function('s:err_handler'),
-          \ 'on_exit':   function('s:exit_handler'),
+          \ 'on_stdout': function('s:stdout'),
+          \ 'on_stderr': function('s:stderr'),
+          \ 'on_exit':   function('s:exit'),
           \ 'ticks':     g:esearch.ticks,
           \ 'tick':      0,
           \ })
@@ -19,11 +19,18 @@ fu! esearch#backend#nvim#init(cmd) abort
   return request
 endfu
 
-fu! s:err_handler(job_id, data, event)
-  echo 'ERROR'
+fu! s:stderr(job_id, data, event)
+  if !exists('b:esearch')
+    return 0
+  endif
+  let job = s:jobs[a:job_id]
+  if !has_key(job.request, 'errors')
+    let job.request.errors = []
+  endif
+  call add(job.request.errors, a:data)
 endfu
 
-fu! s:exit_handler(job_id, data, event)
+fu! s:exit(job_id, data, event)
   if !exists('b:esearch')
     return 0
   endif
@@ -38,7 +45,7 @@ fu! esearch#backend#nvim#escape_cmd(cmd)
   return a:cmd
 endfu
 
-fu! s:out_handler(job_id, data, event) abort
+fu! s:stdout(job_id, data, event) abort
   if !exists('b:esearch')
     return 0
   endif
