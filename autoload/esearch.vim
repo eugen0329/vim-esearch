@@ -19,10 +19,12 @@ fu! esearch#init(...)
     let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
   endif
 
-  let pattern = g:esearch.regex ? opts.exp.pcre : opts.exp.literal
-  let cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd)
-
   call opts.set_default('backend', g:esearch.backend)
+  let EscapeFunc = function('esearch#backend#'.opts.backend.'#escape_cmd')
+  let pattern = g:esearch.regex ? opts.exp.pcre : opts.exp.literal
+
+  let cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd, EscapeFunc)
+
   let request = esearch#backend#{opts.backend}#init(cmd)
 
   call opts.set_default('out', g:esearch.out)

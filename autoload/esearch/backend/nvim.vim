@@ -34,6 +34,10 @@ fu! s:exit_handler(job_id, data, event)
   call esearch#out#{b:esearch.out}#on_finish()
 endfu
 
+fu! esearch#backend#nvim#escape_cmd(cmd)
+  return a:cmd
+endfu
+
 fu! s:out_handler(job_id, data, event) abort
   if !exists('b:esearch')
     return 0

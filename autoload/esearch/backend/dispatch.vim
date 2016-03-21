@@ -34,6 +34,9 @@ fu! s:read_data() abort
   return file_content
 endfu
 
+fu! esearch#backend#dispatch#escape_cmd(cmd)
+  return esearch#util#shellescape(a:cmd)
+endfu
 
 function! s:running(handler, pid) abort
   if empty(a:pid)

@@ -13,12 +13,12 @@ fu! esearch#adapter#ag#options()
   return s:options
 endfu
 
-fu! esearch#adapter#ag#cmd(pattern, dir) abort
+fu! esearch#adapter#ag#cmd(pattern, dir, escape) abort
   let r = s:options.parametrize('regex')
   let c = s:options.parametrize('case')
   let w = s:options.parametrize('word')
   return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
-        \ esearch#util#shellescape(a:pattern)  . " " . esearch#util#shellescape(a:dir)
+        \ a:escape(a:pattern)  . " " . a:escape(a:dir)
 endfu
 
 fu! esearch#adapter#ag#is_broken_result(line)

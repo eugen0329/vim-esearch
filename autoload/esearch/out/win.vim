@@ -294,7 +294,6 @@ fu! s:file_jump(downwards) abort
   endif
 endfu
 
-
 fu! s:jump(downwards) abort
   let pattern = s:file_entry_pattern
   let last_line = line('$')
