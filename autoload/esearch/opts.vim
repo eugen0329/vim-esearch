@@ -21,10 +21,12 @@ fu! esearch#opts#new(opts) abort
   if !has_key(opts, 'adapter')
     if executable('ag')
       let opts.adapter = 'ag'
+    elseif executable('pt')
+      let opts.adapter = 'pt'
     elseif executable('ack')
       let opts.adapter = 'ack'
     elseif executable('grep')
-      " TODO
+      let opts.adapter = 'grep'
     endif
   endif
   return opts

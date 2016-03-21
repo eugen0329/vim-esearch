@@ -26,7 +26,7 @@ fu! esearch#adapter#ag#is_broken_result(line)
   return empty(matchlist(a:line, s:format)[1:4])
 endfu
 
-fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results) abort
+fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
   if empty(a:raw) | return [] | endif
   let format = s:format
   let results = []

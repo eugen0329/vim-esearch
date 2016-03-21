@@ -150,7 +150,8 @@ fu! s:extend_results() abort
   if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
     let from = len(b:esearch.parsed)
     let to = len(b:esearch.unparsed)-1
-    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(b:esearch.unparsed, from, to, b:esearch.__broken_results)
+    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
+          \ b:esearch.unparsed, from, to, b:esearch.__broken_results, b:esearch.exp.vim)
     " TODO replace b:esearch.parsed with b:esearch.parsed_count
     call extend(b:esearch.parsed, parsed)
     let b:esearch.parsed_count = len(b:esearch.parsed)
