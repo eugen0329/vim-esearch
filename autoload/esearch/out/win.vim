@@ -23,11 +23,14 @@ let s:default_mappings = {
       \ 'o':     '<Plug>(esearch-open)',
       \ '<C-n>': '<Plug>(esearch-next)',
       \ '<C-p>': '<Plug>(esearch-prev)',
+      \ '<S-j>': '<Plug>(esearch-next-file)',
+      \ '<S-k>': '<Plug>(esearch-prev-file)',
       \ }
 " The first line. It contains information about the number of results
 let s:header = '%d matches'
 let s:mappings = {}
-let s:file_entry = '^\s\+\d\+\s\+.*'
+let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
+let s:filename_pattern = '^[^ ]' " '\%>2l'
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
@@ -193,7 +196,7 @@ fu! s:init_commands() abort
         \ 'line_number': function('s:line_number'),
         \ 'open':        function('s:open'),
         \ 'filename': function('s:filename'),
-        \ 'file_entry': s:file_entry
+        \ 'file_entry_pattern': s:file_entry_pattern
         \}
   command! -nargs=1 -range=0 -bar -buffer ESubstitute
         \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
@@ -218,6 +221,8 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#init(b:esearch)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>jump(0)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>jump(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev-file) :<C-U>sil cal <SID>file_jump(0)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next-file) :<C-U>sil cal <SID>file_jump(1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
@@ -248,9 +253,10 @@ fu! s:open(cmd, ...) abort
 endfu
 
 fu! s:filename() abort
-  let lnum = search('^\%>2l[^ ]', 'bcWn')
+  let pattern = s:filename_pattern . '\%>2l'
+  let lnum = search(pattern, 'bcWn')
   if lnum == 0
-    let lnum = search('^\%>2l[^ ]', 'cWn')
+    let lnum = search(pattern, 'cWn')
     if lnum == 0 | return '' | endif
   endif
 
@@ -274,8 +280,23 @@ fu! s:line_number() abort
   return matchstr(getline(lnum), '^\s\+\zs\d\+\ze.*')
 endfu
 
+fu! s:file_jump(downwards) abort
+  let pattern = s:filename_pattern . '\%>2l'
+
+  if a:downwards
+    if !search(pattern, 'W') && !s:is_filename()
+      call search(pattern,  'Wbe')
+    endif
+  else
+    if !search(pattern,  'Wbe') && !s:is_filename()
+      call search(pattern, 'W')
+    endif
+  endif
+endfu
+
+
 fu! s:jump(downwards) abort
-  let pattern = s:file_entry
+  let pattern = s:file_entry_pattern
   let last_line = line('$')
 
   if a:downwards
@@ -300,6 +321,14 @@ fu! s:jump(downwards) abort
     " search the start of the line
     return 'norm! ww'
   endif
+endfu
+
+fu! s:is_file_entry()
+  return line('.') =~# s:file_entry_pattern
+endfu
+
+fu! s:is_filename()
+  return getline(line('.')) =~# s:filename_pattern
 endfu
 
 fu! esearch#out#win#on_finish() abort
