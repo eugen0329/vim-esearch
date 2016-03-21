@@ -1,8 +1,7 @@
 fu! esearch#opts#new(opts) abort
-  return extend(a:opts, {
+  let opts = extend(a:opts, {
         \ 'out':             'win',
         \ 'backend':         has('nvim') ? 'nvim' : 'dispatch',
-        \ 'adapter':         'ag',
         \ 'regex':           0,
         \ 'case':            0,
         \ 'word':            0,
@@ -19,6 +18,16 @@ fu! esearch#opts#new(opts) abort
         \ 'invert':           function('<SID>invert'),
         \ 'require':          function('esearch#util#require'),
         \}, 'keep')
+  if !has_key(opts, 'adapter')
+    if executable('ag')
+      let opts.adapter = 'ag'
+    elseif executable('ack')
+      let opts.adapter = 'ack'
+    elseif executable('grep')
+      " TODO
+    endif
+  endif
+  return opts
 endfu
 
 fu! s:invert(key) dict abort
