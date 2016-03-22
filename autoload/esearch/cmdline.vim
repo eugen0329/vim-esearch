@@ -38,10 +38,11 @@ if !exists('g:esearch#cmdline#fallback_keys')
 endif
 
 " This chars can cause undefined behavior when used as part of a string sent as
-" input()'s {text} argument
-let s:select_cancell_chars = [
+" input()'s {text} argument and need to be handled separately
+let s:select_cancelling_chars = [
       \ "\<Esc>",
       \ "\<C-c>",
+      \ "\<Enter>",
       \]
 
 if !exists('g:esearch#cmdline#select_initial')
@@ -59,31 +60,36 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   let s:pattern = a:exp
   let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
 
+  let enter_was_pressed = 0
   if !empty(s:cmdline) && g:esearch#cmdline#select_initial
-    let s:cmdline = s:handle_initial_select(s:cmdline, a:dir, a:options)
+    " TODO
+    let [s:cmdline, enter_was_pressed] = s:handle_initial_select(s:cmdline, a:dir, a:options)
     redraw!
   endif
 
-  let s:cmdpos = len(s:cmdline) + 1
-
-  let s:interrupted = 0
-  let s:list_help = 0
-  let s:pending = []
-  while 1
-    call s:dir_prompt(a:dir)
-    let str = input(s:prompt(a:options), s:cmdline)
-
-    if empty(s:pending)
-      break
-    endif
-    for handler in s:pending
-      call call(handler.funcref, handler.args)
-    endfor
+  if enter_was_pressed
+    let str = s:cmdline
+  else
+    let s:cmdpos = len(s:cmdline) + 1
+    let s:interrupted = 0
+    let s:list_help = 0
     let s:pending = []
-    let s:cmdline .= s:get_correction()
-    redraw!
-  endwhile
-  unlet s:interrupted
+    while 1
+      call s:dir_prompt(a:dir)
+      let str = input(s:prompt(a:options), s:cmdline)
+
+      if empty(s:pending)
+        break
+      endif
+      for handler in s:pending
+        call call(handler.funcref, handler.args)
+      endfor
+      let s:pending = []
+      let s:cmdline .= s:get_correction()
+      redraw!
+    endwhile
+    unlet s:interrupted
+  endif
 
   call s:recover_mappings(old_mapargs)
 
@@ -102,6 +108,7 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, options)
+  let enter_is_pressed = 0
   call s:dir_prompt(a:dir)
   call esearch#util#highlight('Normal', s:prompt(a:options))
   " Replace \n with \s like input function argumen {text} do
@@ -116,8 +123,9 @@ fu! s:handle_initial_select(cmdline, dir, options)
   let printable = strtrans(char)
 
   if index(g:esearch#cmdline#fallback_keys, char) >= 0
-    if index(s:select_cancell_chars, char) >= 0
-      return a:cmdline
+    if index(s:select_cancelling_chars, char) >= 0)
+      let enter_is_pressed = (char == "\<Enter>" ? 1 : 0)
+      return [a:cmdline, enter_is_pressed]
     endif
 
     let is_fallback = 1
@@ -132,7 +140,7 @@ fu! s:handle_initial_select(cmdline, dir, options)
 
   let cmdline =  is_fallback ? a:cmdline . char : char
 
-  return cmdline
+  return [cmdline, enter_is_pressed]
 endfu
 
 fu! s:list_help()
