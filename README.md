@@ -1,4 +1,6 @@
-## Vim Easy Search
+## Vim ESearch
+
+[![Build Status](https://travis-ci.org/eugen0329/vim-esearch.svg?branch=master)](https://travis-ci.org/eugen0329/vim-esearch)
 
 Vim plugin performing pseudo-async recursive search in files using the
 [the_silver_searcher](https://github.com/ggreer/the_silver_searcher#readme) backend.
