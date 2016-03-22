@@ -1,5 +1,6 @@
 fu! esearch#opts#new(opts) abort
-  let opts = extend(a:opts, {
+  let opts = a:opts
+  let opts = extend(opts, {
         \ 'out':             'win',
         \ 'backend':         has('nvim') ? 'nvim' : 'dispatch',
         \ 'regex':           0,

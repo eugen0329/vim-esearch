@@ -11,6 +11,8 @@ fu! esearch#init(...)
   call opts.set_default('cwd', $PWD)
   call opts.set_default('adapter', g:esearch.adapter)
 
+  " echo opts
+  " call getchar()
   if !has_key(opts, 'exp')
     let opts.exp = esearch#cmdline#_read(g:esearch.last_exp, opts.cwd, esearch#adapter#{opts.adapter}#options())
     if empty(opts.exp)
@@ -53,7 +55,7 @@ fu! esearch#_mappings() abort
           \ 'get': function('esearch#util#get'),
           \ 'dict': function('esearch#util#dict'),
           \ 'with_val': function('esearch#util#with_val'),
-          \ }
+          \}
   endif
   return s:mappings
 endfu
@@ -76,7 +78,7 @@ fu! s:bufname_format() abort
   endif
 endfu
 
-" fu! esearch#log(...)
-"   PP a:000
-"   call getchar()
-" endfu
+function! esearch#sid()
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>

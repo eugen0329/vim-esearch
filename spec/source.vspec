@@ -1,0 +1,31 @@
+source test/spec_helper.vim
+
+context '#source'
+  describe '#visual'
+    before
+      let g:visual = 'visual content'
+      new
+      put! = g:visual
+    end
+
+    after
+      close!
+    end
+
+    it 'fails with exception outside visualmode'
+      Expect expr { esearch#source#visual({'visualmode':1}) } to_throw 'list index out of range'
+    end
+
+    it 'return regex called in visualmode'
+      silent exe "norm ggv$:\<C-u>let exp = esearch#source#visual({'visualmode':1})\<CR>"
+      Expect exp ==# esearch#regex#new({'vim': g:visual, 'pcre': g:visual, 'literal': g:visual})
+    end
+
+    it "return blank exp if 'visualmode':1 is not passed"
+      silent exe "norm! ggv$:\<C-u>let exp1 = esearch#source#visual({})\<CR>"
+      silent exe "norm! ggv$:\<C-u>let exp2 = esearch#source#visual({'visualmode':0})\<CR>"
+      Expect exp1 to_be_empty
+      Expect exp2 to_be_empty
+    end
+  end
+end
