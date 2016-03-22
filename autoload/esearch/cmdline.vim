@@ -1,7 +1,7 @@
 let s:mappings = {
       \ '<C-s><C-r>':  '<Plug>(esearch-toggle-regex)',
       \ '<C-s><C-s>':  '<Plug>(esearch-toggle-case)',
-      \ '<C-s><C-w>':  '<Plug>(esearch-toggle-regex)',
+      \ '<C-s><C-w>':  '<Plug>(esearch-toggle-word)',
       \ '<C-s><C-h>':  '<Plug>(esearch-cmdline-help)',
       \ 'key':         function('esearch#util#key'),
       \ 'dict':        function('esearch#util#dict'),
@@ -10,7 +10,7 @@ let s:mappings = {
 let s:comments = {
       \ '<Plug>(esearch-toggle-regex)': 'Toggle regex(r) or literal(>) match',
       \ '<Plug>(esearch-toggle-case)':  'Toggle case sensitive(c) or insensitive(>) match',
-      \ '<Plug>(esearch-toggle-regex)':  'Toggle only whole words matching(w)',
+      \ '<Plug>(esearch-toggle-word)':  'Toggle only whole words matching(w)',
       \ '<Plug>(esearch-cmdline-help)':  'Show this message',
       \}
 
@@ -23,7 +23,7 @@ endif
 
 cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
 cnoremap <Plug>(esearch-toggle-case)         <C-r>=<SID>run('s:invert', 'case')<CR>
-cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'word')<CR>
+cnoremap <Plug>(esearch-toggle-word)        <C-r>=<SID>run('s:invert', 'word')<CR>
 cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 
 " TODO refactoring

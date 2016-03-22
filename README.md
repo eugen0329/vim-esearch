@@ -70,36 +70,7 @@ Use the following functions to redefine default mappings:
 To redefine results match highlight use:
 
 ###Colors
+
 ```vim
 hi ESearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
 ```
-
-> Initialize this variable to specify preferred behaviour:
-
-> ```vim
->     let g:esearch = {
->           \ 'regex':           0,
->           \ 'case':            0,
->           \ 'word':            0,
->           \ 'updatetime':      300.0,
->           \ 'batch_size':      2000,
->           \ 'context_width':   { 'l': 60, 'r': 60 },
->           \ 'recover_regex':   1,
->           \ 'highlight_match': 1,
->           \ 'nerdtree_plugin': 1,
->           \ 'escape_special':  1,
->           \ 'use': [ 'visual', 'hlsearch', 'last' ],
->           \ }
-> ```
-
-> | Option              |     Description                                               |
-> |---------------------|---------------------------------------------------------------|
-> | 'regex'             | match with regular exression (or literally)                   |
-> | 'case'              | match case sensitively                                        |
-> | 'word'              | only match whole words                                        |
-> | 'batch_size'        | N results appended at a time                                  |
-> | 'context_width'     | N chars displayed on either sides of the match                |
-> | 'highlight_context' | higlight matched text with `ESearchMatch`                     |
-> | 'nerdtree_plugin'   | use "Search in NERDTree directory" feature                    |
-> | 'escape_special'    | escape vim special character such as #, %, \<cfile\> etc.  |
-> | 'use'               | sources for the initial search value ('visual' - visual selection, 'last' - previous search expr, 'hlsearch' - currently highlighted search result). NOTE Order affects the priority  |
