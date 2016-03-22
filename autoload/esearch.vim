@@ -1,6 +1,9 @@
 fu! esearch#init(...)
   let opts = a:0 ? a:1 : {}
-  let source_params = {'visualmode': get(opts, 'visualmode', 0)}
+  let source_params = {
+        \ 'visualmode': get(opts, 'visualmode', 0),
+        \ 'selectmaphandle': get(opts, 'selectmaphandle', 0)
+        \}
   let g:esearch.last_exp = esearch#source#pick_exp(g:esearch.use, source_params)
 
   call extend(opts, {

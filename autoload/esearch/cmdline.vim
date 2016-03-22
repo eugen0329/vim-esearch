@@ -21,11 +21,13 @@ endif
 if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
 endif
-if !exists('g:esearch#cmdline#fallback_keys')
-  let g:esearch#cmdline#fallback_keys = [
+
+if !exists('g:esearch#cmdline#select_cancelling_chars')
+  let g:esearch#cmdline#select_cancelling_chars = [
         \ "\<C-a>",
         \ "\<C-e>",
         \ "\<C-c>",
+        \ "\<C-s>",
         \ "\<Esc>",
         \ "\<Enter>",
         \ "\<M-b>",
@@ -39,7 +41,7 @@ endif
 
 " This chars can cause undefined behavior when used as part of a string sent as
 " input()'s {text} argument and need to be handled separately
-let s:select_cancelling_chars = [
+let s:select_cancelling_special_chars = [
       \ "\<Esc>",
       \ "\<C-c>",
       \ "\<Enter>",
@@ -51,20 +53,30 @@ endif
 
 cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
 cnoremap <Plug>(esearch-toggle-case)         <C-r>=<SID>run('s:invert', 'case')<CR>
-cnoremap <Plug>(esearch-toggle-word)        <C-r>=<SID>run('s:invert', 'word')<CR>
+cnoremap <Plug>(esearch-toggle-word)         <C-r>=<SID>run('s:invert', 'word')<CR>
 cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 
-" TODO refactoring
+" TODO MAJOR PRIO refactoring
 fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
   let s:pattern = a:exp
-  let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
+  if get(a:options, 'selectmaphandle', 0)
+    let s:cmdline = ''
+  else
+    let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
+  endif
 
+  let handle_map = 0
   let enter_was_pressed = 0
-  if !empty(s:cmdline) && g:esearch#cmdline#select_initial
+
+  if !get(a:options, 'selectmaphandle', 0) && !empty(s:cmdline) && g:esearch#cmdline#select_initial
     " TODO
-    let [s:cmdline, enter_was_pressed] = s:handle_initial_select(s:cmdline, a:dir, a:options)
+    let [s:cmdline, enter_was_pressed, handle_map] = s:handle_initial_select(s:cmdline, a:dir, a:options)
     redraw!
+    if handle_map
+      exe "norm :call esearch#init({'selectmaphandle': 1})\<CR>".s:cmdline
+      return 0
+    endif
   endif
 
   if enter_was_pressed
@@ -108,6 +120,7 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, options)
+  let handle_map = 0
   let enter_is_pressed = 0
   call s:dir_prompt(a:dir)
   call esearch#util#highlight('Normal', s:prompt(a:options))
@@ -122,25 +135,30 @@ fu! s:handle_initial_select(cmdline, dir, options)
   endif
   let printable = strtrans(char)
 
-  if index(g:esearch#cmdline#fallback_keys, char) >= 0
-    if index(s:select_cancelling_chars, char) >= 0
+  if index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
+    if index(s:select_cancelling_special_chars, char) >= 0
       let enter_is_pressed = (char == "\<Enter>" ? 1 : 0)
-      return [a:cmdline, enter_is_pressed]
+      let handle_map = 0
+      return [a:cmdline, enter_is_pressed, handle_map]
     endif
 
     let is_fallback = 1
 
-    let map_rhs = esearch#util#map_rhs(printable)
-    if !empty(map_rhs)
-      let char = map_rhs
+    let map_name = esearch#util#map_name(printable)
+    if !empty(map_name)
+      let handle_map = 1
     endif
   else
     let is_fallback = 0
   endif
 
-  let cmdline =  is_fallback ? a:cmdline . char : char
+  if handle_map
+    let cmdline =  substitute(a:cmdline, "\n", ' ', 'g') . char
+  else
+    let cmdline =  is_fallback ? a:cmdline . char : char
+  endif
 
-  return [cmdline, enter_is_pressed]
+  return [cmdline, enter_is_pressed, handle_map]
 endfu
 
 fu! s:list_help()
