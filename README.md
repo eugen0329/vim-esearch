@@ -15,7 +15,7 @@ native \*nix util [grep](http://linux.die.net/man/1/grep).
 
 In your [~/.config/nvim/init.vim](https://neovim.io/doc/user/nvim_from_vim.html) or `.vimrc`:
 ```vim
-Plugin     'eugen0329/vim-easy-search'
+Plugin 'eugen0329/vim-easy-search'
 ```
 
 **NOTE**
