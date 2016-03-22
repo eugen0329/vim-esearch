@@ -14,11 +14,25 @@ let s:comments = {
       \ '<Plug>(esearch-cmdline-help)':  'Show this message',
       \}
 
+
 if !exists('g:esearch#cmdline#dir_icon')
   let g:esearch#cmdline#dir_icon = "🗀 "
 endif
 if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
+endif
+if !exists('g:esearch#cmdline#fallback_keys')
+  let g:esearch#cmdline#fallback_keys = [
+        \ "\<C-a>",
+        \ "\<C-e>",
+        \ "\<Left>",
+        \ "\<Right>",
+        \ "\<Up>",
+        \ "\<Down>",
+        \ ]
+endif
+if !exists('g:esearch#cmdline#select_initial')
+  let g:esearch#cmdline#select_initial = 1
 endif
 
 cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
@@ -31,6 +45,11 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
   let s:pattern = a:exp
   let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
+
+  if !empty(s:cmdline) && g:esearch#cmdline#select_initial
+    let s:cmdline = s:select(s:cmdline, a:dir, a:options)
+  endif
+
   let s:cmdpos = len(s:cmdline) + 1
 
   let s:interrupted = 0
@@ -66,6 +85,17 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
     let s:pattern.vim = substitute(substitute(str, '\\', '\\\\', 'g'), '\~', '\\~', 'g')
   endif
   return s:pattern
+endfu
+
+fu! s:select(cmdline, dir, options)
+  call s:dir_prompt(a:dir)
+  call esearch#util#highlight('Normal', s:prompt(a:options))
+  " Replace newlines with ' ' like input prompt do
+  call esearch#util#highlight('Visual', substitute(a:cmdline, "\n", ' ', 'g'), 0)
+  let char = nr2char(getchar())
+  let cmdline = index(g:esearch#cmdline#fallback_keys, char) >= 0 ? a:cmdline . char : char
+  redraw!
+  return cmdline
 endfu
 
 fu! s:list_help()
