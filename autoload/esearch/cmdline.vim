@@ -123,7 +123,7 @@ fu! s:handle_initial_select(cmdline, dir, options)
   let printable = strtrans(char)
 
   if index(g:esearch#cmdline#fallback_keys, char) >= 0
-    if index(s:select_cancelling_chars, char) >= 0)
+    if index(s:select_cancelling_chars, char) >= 0
       let enter_is_pressed = (char == "\<Enter>" ? 1 : 0)
       return [a:cmdline, enter_is_pressed]
     endif
