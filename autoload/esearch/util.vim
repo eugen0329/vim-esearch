@@ -46,16 +46,6 @@ fu! esearch#util#trunc(str, size) abort
   return a:str
 endfu
 
-fu! esearch#util#stringify_mapping(map)
-  let str = substitute(a:map, '<[Cc]-\([^>]\)>', 'Ctrl-\1 ', 'g')
-  let str = substitute(str, '<[Ss]-\([^>]\)>', 'Alt-\1 ', 'g')
-  let str = substitute(str, '<[AMam]-\([^>]\)>', 'Alt-\1 ', 'g')
-  " TODO check if unicod is allowed
-  let str = substitute(str, '<[Dd]-\([^>]\)>', '⌘-\1 ', 'g')
-  let str = substitute(str, '\s\+$', '', 'g')
-  return str
-endfu
-
 fu! esearch#util#shellescape(str) abort
   return shellescape(a:str, g:esearch.escape_special)
 endfu
@@ -137,3 +127,71 @@ fu! esearch#util#stringify(key, ...) dict abort
   let option_index = g:esearch[a:key]
   return self[a:key]['s'][option_index]
 endfu
+
+fu! esearch#util#highlight_attr(group, mode, what, default)
+  let attr = synIDattr(synIDtrans(hlID(a:group)), a:what, a:mode)
+  if attr ==# -1 || attr ==# ''
+    return a:default
+  endif
+  return attr
+endfu
+
+fu! esearch#util#stringify_mapping(map)
+  let str = substitute(a:map, '<[Cc]-\([^>]\)>', 'ctrl-\1 ', 'g')
+  let str = substitute(str, '<[Ss]-\([^>]\)>', 'shift-\1 ', 'g')
+  let str = substitute(str, '<[AMam]-\([^>]\)>', 'alt-\1 ', 'g')
+  let str = substitute(str, '<[Dd]-\([^>]\)>', 'cmd-\1 ', 'g')
+  let str = substitute(str, '\s\+$', '', 'g')
+  return str
+endfu
+
+fu! esearch#util#destringify_mapping(map)
+  let str = substitute(a:map, 'ctrl',           'C', 'g')
+  let str = substitute(str,   '\%(alt\|meta\)', 'M', 'g')
+  let str = substitute(str,   'shift',          'S', 'g')
+  let str = substitute(str,   'cmd',            'D', 'g')
+  let str = join(map(filter(split(str,' '), 'v:val !=# ""'),'"<".v:val.">"'),'')
+  return str
+endfu
+
+fu! esearch#util#map_name(printable)
+  let len = strlen(a:printable)
+  let without_last_char = a:printable[:len-2]
+  let last_char = a:printable[len-1]
+
+  if strtrans("\<M-a>")[:-2] == without_last_char
+    return "<M-".last_char.">"
+  elseif strtrans("\<F1>")[:-2] == without_last_char
+    return "<F".last_char.">"
+  elseif strtrans("\<S-F1>")[:-2] == without_last_char
+    return "<S-f".last_char.">"
+  elseif strtrans("\<S-F1>")[:-2] == without_last_char
+    return "<S-f".last_char.">"
+  elseif strtrans("\<C-a>")[:-2] == without_last_char
+    return "<C-".last_char.">"
+  endif
+
+  return ''
+endfu
+
+" TODO handle <expr> mappings
+fu! esearch#util#map_rhs(printable)
+  let printable = a:printable
+
+  " We can't fetch maparg neither with l:char nor with strtrans(l:char)
+  let mapname = esearch#util#map_name(printable)
+  if !empty(mapname)
+
+    " Vim can't expand mappings if we have mapping like
+    " maparg('<M-f>', 'c') == '<S-Left>' and "\<M-f>" send to
+    " input() as an initial {text} argument, so we try to do it manually
+    let maparg = maparg(mapname, 'c')
+    if !empty(maparg)
+      " let char = eval('"\'.maparg.'"')
+      return eval('"\'.maparg.'"')
+    endif
+  endif
+
+  return ''
+endfu
+

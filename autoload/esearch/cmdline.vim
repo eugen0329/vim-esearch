@@ -25,12 +25,25 @@ if !exists('g:esearch#cmdline#fallback_keys')
   let g:esearch#cmdline#fallback_keys = [
         \ "\<C-a>",
         \ "\<C-e>",
+        \ "\<C-c>",
+        \ "\<Esc>",
+        \ "\<Enter>",
+        \ "\<M-b>",
+        \ "\<M-f>",
         \ "\<Left>",
         \ "\<Right>",
         \ "\<Up>",
         \ "\<Down>",
         \ ]
 endif
+
+" This chars can cause undefined behavior when used as part of a string sent as
+" input()'s {text} argument
+let s:select_cancell_chars = [
+      \ "\<Esc>",
+      \ "\<C-c>",
+      \]
+
 if !exists('g:esearch#cmdline#select_initial')
   let g:esearch#cmdline#select_initial = 1
 endif
@@ -47,7 +60,8 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
 
   if !empty(s:cmdline) && g:esearch#cmdline#select_initial
-    let s:cmdline = s:select(s:cmdline, a:dir, a:options)
+    let s:cmdline = s:handle_initial_select(s:cmdline, a:dir, a:options)
+    redraw!
   endif
 
   let s:cmdpos = len(s:cmdline) + 1
@@ -87,14 +101,37 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   return s:pattern
 endfu
 
-fu! s:select(cmdline, dir, options)
+fu! s:handle_initial_select(cmdline, dir, options)
   call s:dir_prompt(a:dir)
   call esearch#util#highlight('Normal', s:prompt(a:options))
-  " Replace newlines with ' ' like input prompt do
+  " Replace \n with \s like input function argumen {text} do
   call esearch#util#highlight('Visual', substitute(a:cmdline, "\n", ' ', 'g'), 0)
-  let char = nr2char(getchar())
-  let cmdline = index(g:esearch#cmdline#fallback_keys, char) >= 0 ? a:cmdline . char : char
-  redraw!
+
+  let char = getchar()
+
+  " If contains multibyte it will be wrapped as a string (else - number)
+  if type(char) !=# type('')
+    let char = nr2char(char)
+  endif
+  let printable = strtrans(char)
+
+  if index(g:esearch#cmdline#fallback_keys, char) >= 0
+    if index(s:select_cancell_chars, char) >= 0
+      return a:cmdline
+    endif
+
+    let is_fallback = 1
+
+    let map_rhs = esearch#util#map_rhs(printable)
+    if !empty(map_rhs)
+      let char = map_rhs
+    endif
+  else
+    let is_fallback = 0
+  endif
+
+  let cmdline =  is_fallback ? a:cmdline . char : char
+
   return cmdline
 endfu
 
