@@ -1,16 +1,16 @@
 let s:mappings = {
-      \ '<C-s><C-r>':  '<Plug>(esearch-regex)',
-      \ '<C-s><C-s>':  '<Plug>(esearch-case)',
-      \ '<C-s><C-w>':  '<Plug>(esearch-word)',
+      \ '<C-s><C-r>':  '<Plug>(esearch-toggle-regex)',
+      \ '<C-s><C-s>':  '<Plug>(esearch-toggle-case)',
+      \ '<C-s><C-w>':  '<Plug>(esearch-toggle-regex)',
       \ '<C-s><C-h>':  '<Plug>(esearch-cmdline-help)',
       \ 'key':         function('esearch#util#key'),
       \ 'dict':        function('esearch#util#dict'),
       \ 'without_val':        function('esearch#util#without_val'),
       \}
 let s:comments = {
-      \ '<Plug>(esearch-regex)': 'Toggle regex(r) or literal(>) match',
-      \ '<Plug>(esearch-case)':  'Toggle case sensitive(c) or insensitive(>) match',
-      \ '<Plug>(esearch-word)':  'Toggle only whole words matching(w)',
+      \ '<Plug>(esearch-toggle-regex)': 'Toggle regex(r) or literal(>) match',
+      \ '<Plug>(esearch-toggle-case)':  'Toggle case sensitive(c) or insensitive(>) match',
+      \ '<Plug>(esearch-toggle-regex)':  'Toggle only whole words matching(w)',
       \ '<Plug>(esearch-cmdline-help)':  'Show this message',
       \}
 
@@ -21,10 +21,10 @@ if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
 endif
 
-cnoremap <Plug>(esearch-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
-cnoremap <Plug>(esearch-case)         <C-r>=<SID>run('s:invert', 'case')<CR>
-cnoremap <Plug>(esearch-word)         <C-r>=<SID>run('s:invert', 'word')<CR>
-cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('s:help')<CR>
+cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
+cnoremap <Plug>(esearch-toggle-case)         <C-r>=<SID>run('s:invert', 'case')<CR>
+cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'word')<CR>
+cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 
 " TODO refactoring
 fu! esearch#cmdline#_read(exp, dir, options) abort
@@ -194,6 +194,6 @@ fu! s:recover_mappings(mapargs) abort
   endfor
 endfu
 
-fu! esearch#cmdline#map(map, plug) abort
-    let s:mappings[a:map] = a:plug
+fu! esearch#cmdline#map(lhs, rhs) abort
+  let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu

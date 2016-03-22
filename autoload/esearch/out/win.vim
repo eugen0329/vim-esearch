@@ -13,11 +13,11 @@
 
 let s:default_mappings = {
       \ 't':     '<Plug>(esearch-tab)',
-      \ 'T':     '<Plug>(esearch-tab-s)',
+      \ 'T':     '<Plug>(esearch-tab-silent)',
       \ 'i':     '<Plug>(esearch-split)',
-      \ 'I':     '<Plug>(esearch-split-s)',
+      \ 'I':     '<Plug>(esearch-split-silent)',
       \ 's':     '<Plug>(esearch-vsplit)',
-      \ 'S':     '<Plug>(esearch-vsplit-s)',
+      \ 'S':     '<Plug>(esearch-vsplit-silent)',
       \ 'R':     '<Plug>(esearch-reload)',
       \ '<Enter>':  '<Plug>(esearch-open)',
       \ 'o':     '<Plug>(esearch-open)',
@@ -45,7 +45,7 @@ fu! esearch#out#win#init(opts) abort
       catch /E803:/
       endtry
     endif
-    let match_highlight_id = matchadd('EsearchMatch', a:opts.exp.vim_match, -1)
+    let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
   endif
 
   let b:updatetime_backup = &updatetime
@@ -188,8 +188,8 @@ fu! s:context(line)
 
 endfu
 
-fu! esearch#out#win#map(map, plug) abort
-  let s:mappings[a:map] = a:plug
+fu! esearch#out#win#map(lhs, rhs) abort
+  let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
 
 fu! s:init_commands() abort
@@ -212,19 +212,19 @@ fu! s:init_commands() abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-tab)       :<C-U>call <sid>open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-tab-s)     :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-split)     :<C-U>call <SID>open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-split-s)   :<C-U>call <SID>open('new', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-vsplit)    :<C-U>call <SID>open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-vsplit-s)  :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-open)      :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-reload)    :<C-U>call esearch#init(b:esearch)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev)      :<C-U>sil exe <SID>jump(0)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next)      :<C-U>sil exe <SID>jump(1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev-file) :<C-U>sil cal <SID>file_jump(0)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next-file) :<C-U>sil cal <SID>file_jump(1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-Nop) <Nop>
+  nnoremap <silent><buffer> <Plug>(esearch-tab)           :<C-U>call <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-tab-silent)    :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-split)         :<C-U>call <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-split-silent)  :<C-U>call <SID>open('new', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-vsplit)        :<C-U>call <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-vsplit-silent) :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-open)          :<C-U>call <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-reload)        :<C-U>call esearch#init(b:esearch)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev)          :<C-U>sil exe <SID>jump(0)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next)          :<C-U>sil exe <SID>jump(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev-file)     :<C-U>sil cal <SID>file_jump(0)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next-file)     :<C-U>sil cal <SID>file_jump(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-Nop)           <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
   for map in keys(s:mappings)
