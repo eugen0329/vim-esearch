@@ -194,10 +194,10 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_number': function('s:line_number'),
-        \ 'open':        function('s:open'),
-        \ 'filename': function('s:filename'),
-        \ 'file_entry_pattern': s:file_entry_pattern
+        \ 'line_number':   function('s:line_number'),
+        \ 'open':          function('s:open'),
+        \ 'filename':      function('s:filename'),
+        \ 'is_file_entry': function('s:is_file_entry')
         \}
   command! -nargs=1 -range=0 -bar -buffer ESubstitute
         \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
@@ -324,7 +324,7 @@ fu! s:jump(downwards) abort
 endfu
 
 fu! s:is_file_entry()
-  return line('.') =~# s:file_entry_pattern
+  return getline(line('.')) =~# s:file_entry_pattern
 endfu
 
 fu! s:is_filename()

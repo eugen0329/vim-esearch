@@ -23,7 +23,7 @@ fu! esearch#substitute#do(args, from, to, out)
   while line < limit
     exe noautocmd.'tabn '.root
     exe line
-    if getline(line) =~# a:out.file_entry
+    if a:out.is_file_entry()
       let not_found = 0
 
       let filename = a:out.filename()
