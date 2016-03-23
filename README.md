@@ -7,9 +7,9 @@ SublimeText, Atom et al.
 
 ## Installation
 ESearch has builtin support for
-[The Silver Searcher](https://github.com/ggreer/the_silver_searcher#installing)(Ag),
+[Ag](https://github.com/ggreer/the_silver_searcher#installing)(The Silver Searcher),
 [Ack](http://beyondgrep.com/install/),
-[The Platinum Searcher](https://github.com/monochromegane/the_platinum_searcher#installation) and
+[pt](https://github.com/monochromegane/the_platinum_searcher#installation)(The Platinum Searcher) and
 native \*nix util [grep](http://linux.die.net/man/1/grep).
 
 
@@ -20,7 +20,7 @@ Plugin 'eugen0329/vim-easy-search'
 
 **NOTE**
 [Plugin](https://github.com/VundleVim/Vundle.vim) command can be replaced with
-another plugin manager you use([Plug](https://github.com/junegunn/vim-plug#installation),
+another command of plugin manager you use([Plug](https://github.com/junegunn/vim-plug#installation),
 [NeoBundle](https://github.com/Shougo/neobundle.vim#1-install-neobundle))
 
 ## Usage
@@ -31,8 +31,8 @@ along with s, v and t buttons to open a file silently. Press `shift-r` to reload
 currrent results.
 
 To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command
-line use `ctrl-s ctrl-s`, `ctrl-s ctrl-w` or `ctrl-s ctrl-r` (mnemonics is **S**et **R**egex,
-**S**et ca**S**e sesnsitive option etc).
+line use `ctrl-o ctrl-r`, `ctrl-o ctrl-s` or `ctrl-o ctrl-w` (mnemonics is set **O**ption: **R**egex,
+case **S**esnsitive, **W**ord regex).
 
 ## Customization
 
@@ -61,10 +61,10 @@ Use the following functions to redefine default mappings:
     call esearch#out#win#map('<C-p>', 'prev')
     call esearch#out#win#map('<C-k>', 'prev-file')
 
-    call esearch#cmdline#map('<C-s><C-r>', 'toggle-regex')
-    call esearch#cmdline#map('<C-s><C-s>', 'toggle-case')
-    call esearch#cmdline#map('<C-s><C-w>', 'toggle-word')
-    call esearch#cmdline#map('<C-s><C-h>', 'cmdline-help')
+    call esearch#cmdline#map('<C-o><C-r>', 'toggle-regex')
+    call esearch#cmdline#map('<C-o><C-s>', 'toggle-case')
+    call esearch#cmdline#map('<C-o><C-w>', 'toggle-word')
+    call esearch#cmdline#map('<C-o><C-h>', 'cmdline-help')
 ```
 
 To redefine results match highlight use:
