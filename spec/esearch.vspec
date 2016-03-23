@@ -1,0 +1,22 @@
+runtime! spec/spec_helper.vim
+runtime! syntax/esearch.vim
+runtime! plugin/easysearch.vim
+
+call vspec#hint({'sid': 'esearch#sid()'})
+
+describe '#init'
+  before
+    new
+  end
+
+  after
+    close!
+  end
+
+  it 'initializes with directory'
+    exe "norm! :call esearch#init()\<CR>lorem\<CR>"
+    Expect bufname('%') =~ 'Search'
+    Expect getline(1) !~ 'Error'
+    Expect b:esearch.cwd ==# getcwd()
+  end
+end

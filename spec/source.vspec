@@ -1,4 +1,4 @@
-source spec/spec_helper.vim
+runtime! spec/spec_helper.vim
 
 context '#source'
   describe '#visual'

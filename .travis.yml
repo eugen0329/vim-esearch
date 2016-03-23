@@ -1,3 +1,8 @@
+before_install:
+  - sudo add-apt-repository ppa:neovim-ppa/unstable
+  - sudo apt-get update
+  - sudo apt-get install neovim
+
 language: ruby
 rvm:
   - 2.2.2
