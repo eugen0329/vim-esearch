@@ -12,12 +12,12 @@ hi link easysearchFName Directory
 hi link easysearchContext Normal
 hi link easysearchLnum LineNr
 
-if !highlight_exists('EsearchMatch')
-  exe "hi EsearchMatch cterm=bold gui=bold " .
-        \ "ctermbg=".synIDattr(synIDtrans(hlID("DiffChange")), "bg", "cterm")." ".
-        \ "ctermfg=".synIDattr(synIDtrans(hlID("DiffChange")), "fg", "cterm")." ".
-        \ "guibg=" . synIDattr(synIDtrans(hlID("DiffChange")), "bg", "gui")." ".
-        \ "guifg=" . synIDattr(synIDtrans(hlID("DiffChange")), "fg", "gui")." "
+if !highlight_exists('ESearch')
+  exe "hi ESearchMatch cterm=bold gui=bold " .
+        \ "ctermbg=".esearch#util#highlight_attr("MoreMsg", "bg", "cterm", 239 )." ".
+        \ "ctermfg=".esearch#util#highlight_attr("MoreMsg", "fg", "cterm", 15 )." ".
+        \ "guibg=" . esearch#util#highlight_attr("MoreMsg", "bg", "gui",   '#005FFF')." ".
+        \ "guifg=" . esearch#util#highlight_attr("MoreMsg", "fg", "gui",   '#FFFFFF')." "
 endif
 
 let b:current_syntax = "esearch"
