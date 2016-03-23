@@ -1,6 +1,7 @@
 runtime! spec/spec_helper.vim
 runtime! syntax/esearch.vim
 runtime! plugin/easysearch.vim
+runtime! plugin/dispatch.vim
 
 call vspec#hint({'sid': 'esearch#sid()'})
 
