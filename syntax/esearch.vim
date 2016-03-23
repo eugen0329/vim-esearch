@@ -12,7 +12,7 @@ hi link easysearchFName Directory
 hi link easysearchContext Normal
 hi link easysearchLnum LineNr
 
-if !highlight_exists('ESearch')
+if !highlight_exists('ESearchMatch')
   exe "hi ESearchMatch cterm=bold gui=bold " .
         \ "ctermbg=".esearch#util#highlight_attr("MoreMsg", "bg", "cterm", 239 )." ".
         \ "ctermfg=".esearch#util#highlight_attr("MoreMsg", "fg", "cterm", 15 )." ".
