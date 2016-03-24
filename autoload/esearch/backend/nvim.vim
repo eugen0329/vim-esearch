@@ -20,15 +20,44 @@ fu! esearch#backend#nvim#init(cmd) abort
   return request
 endfu
 
+fu! s:stdout(job_id, data, event) abort
+  if !exists('b:esearch')
+    return 0
+  endif
+
+  let job = s:jobs[a:job_id]
+  let data = a:data
+
+  " Parse data
+  if !empty(data) && data[0] !=# "\n" && !empty(job.data)
+    let job.data[-1] .= data[0]
+    call remove(data, 0)
+  endif
+  let job.data += filter(data, '"" !=# v:val')
+
+  " Reduce buffer updates to prevent long cursor lock
+  let self.tick = self.tick + 1
+  if self.tick % self.ticks == 1
+    call esearch#out#{b:esearch.out}#update(job.data)
+  endif
+endfu
+
+
 fu! s:stderr(job_id, data, event)
   if !exists('b:esearch')
     return 0
   endif
   let job = s:jobs[a:job_id]
+  let data = a:data
   if !has_key(job.request, 'errors')
     let job.request.errors = []
   endif
-  call add(job.request.errors, a:data)
+
+  if !empty(data) && data[0] !=# "\n" && !empty(job.request.errors)
+    let job.request.errors[-1] .= data[0]
+    call remove(data, 0)
+  endif
+  let job.request.errors += filter(data, '"" !=# v:val')
 endfu
 
 fu! s:exit(job_id, data, event)
@@ -44,31 +73,9 @@ endfu
 
 " TODO write expansion for commands
 " g:esearch.expand_special has no affect due to josbstart is a function
-" (e.g dispatch uses cmdline, where #,%,... can be expanded)
+" (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(cmd)
   return string(a:cmd)
-endfu
-
-fu! s:stdout(job_id, data, event) abort
-  if !exists('b:esearch')
-    return 0
-  endif
-
-  let job = s:jobs[a:job_id]
-  let data = a:data
-
-  " Parse data
-  if !empty(data) && data[0] !=# "\n" && !empty(job.data)
-    let job.data[-1] .= data[0]
-    call remove(data, 0)
-  endif
-  let job.data += filter(a:data, '"" !=# v:val')
-
-  " Reduce buffer updates to prevent long cursor lock
-  let self.tick = self.tick + 1
-  if self.tick % self.ticks == 1
-    call esearch#out#{b:esearch.out}#update(job.data)
-  endif
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
