@@ -5,7 +5,7 @@ context 'esearch' do
   let(:win_open_quota) { 4 }
 
   after(:each) do |example|
-    unless example.exception.nil?
+    if example.exception.nil?
       cmd('let g:prettyprint_width = 160')
 
       puts 'FIRST LINE:', line(1)
@@ -13,7 +13,7 @@ context 'esearch' do
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
 
-      dump('g:esearch')
+      dump('g:eseach')
       puts "\n"*2, "#"*10, "B:ESEARCH"
       dump('b:esearch.without("request")')
       puts "\n"*2, "#"*10, "REQUEST"

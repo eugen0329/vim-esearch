@@ -6,7 +6,7 @@ module Support
         if exists('*prettyprint#prettyprint')
           puts expr("prettyprint#prettyprint(#{what})")
         else
-          puts expr(whar)
+          puts expr(what)
         end
       end
 
