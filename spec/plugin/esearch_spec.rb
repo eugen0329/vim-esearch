@@ -1,6 +1,8 @@
+require 'spec_helper'
+
 context 'esearch' do
   describe '#init' do
-    it 'runs without args' do
+    it 'works without args' do
       press ':call esearch#init()<Enter>asd<Enter>'
       expect { line(1) =~ /Finish/i }.to become_true_within(2.second), '123'
       expect(bufname("%")).to match(/Search/)
