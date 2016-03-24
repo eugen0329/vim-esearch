@@ -85,7 +85,7 @@ fu! s:_on_cursor_hold()
     call s:stderr()
     call esearch#out#{b:esearch.out}#on_finish()
   else
-    call feedkeys('\<Plug>(easysearch-Nop)')
+    call esearch#out#{b:esearch.out}#trigger_key_press()
   endif
 endfu
 

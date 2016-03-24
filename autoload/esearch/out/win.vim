@@ -122,6 +122,10 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
+fu! esearch#out#win#trigger_key_press()
+  call feedkeys("\<Plug>(esearch-Nop)")
+endfu
+
 fu! esearch#out#win#update(data, ...) abort
   let ignore_batches = a:0 && a:1
   let b:esearch.unparsed = a:data
