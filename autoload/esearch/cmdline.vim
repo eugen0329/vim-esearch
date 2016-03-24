@@ -252,9 +252,10 @@ fu! s:dir_prompt(dir) abort
   if a:dir ==# $PWD
     return 0
   endif
+  let dir = g:esearch#cmdline#dir_icon.substitute(a:dir , $PWD.'/', '', '')
   call esearch#util#highlight('Normal', 'In ')
-  call esearch#util#highlight('Directory', g:esearch#cmdline#dir_icon.substitute(a:dir , $PWD.'/', '', ''))
-  call esearch#util#highlight('Normal', '')
+  call esearch#util#highlight('Directory', dir, 0)
+  echo ''
 endfu
 
 fu! s:get_correction() abort
