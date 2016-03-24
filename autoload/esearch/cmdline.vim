@@ -14,7 +14,6 @@ let s:comments = {
       \ '<Plug>(esearch-cmdline-help)':  'Show this message',
       \}
 
-
 if !exists('g:esearch#cmdline#dir_icon')
   let g:esearch#cmdline#dir_icon = "🗀 "
 endif
@@ -83,7 +82,6 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
     let str = s:cmdline
   else
     let s:cmdpos = len(s:cmdline) + 1
-    let s:interrupted = 0
     let s:list_help = 0
     let s:pending = []
     while 1
@@ -100,7 +98,6 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
       let s:cmdline .= s:get_correction()
       redraw!
     endwhile
-    unlet s:interrupted
   endif
 
   call s:recover_mappings(old_mapargs)
@@ -162,7 +159,6 @@ fu! s:handle_initial_select(cmdline, dir, options)
 endfu
 
 fu! s:list_help()
-  let s:interrupted = 1
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
 

@@ -32,6 +32,11 @@ let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 
+if !has_key(g:, 'esearch#out#win#open')
+  let g:esearch#out#win#open = 'tabnew'
+endif
+
+
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.bufname, g:esearch#out#win#open)

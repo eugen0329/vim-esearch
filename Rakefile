@@ -8,5 +8,5 @@ task :dump do
 end
 
 task :test do
-  sh 'bundle exec vim-flavor test spec/*.vspec'
+  sh 'bundle exec rspec spec'
 end
