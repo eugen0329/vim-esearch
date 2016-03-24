@@ -3,7 +3,11 @@ module Support
     module DSL
 
       def dump(what)
-        puts expr("prettyprint#prettyprint(#{what})")
+        if exists('*prettyprint#prettyprint')
+          puts expr("prettyprint#prettyprint(#{what})")
+        else
+          puts expr(whar)
+        end
       end
 
       def try_cmd(str)

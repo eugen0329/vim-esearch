@@ -8,8 +8,7 @@ context 'esearch' do
     unless example.exception.nil?
       cmd('let g:prettyprint_width = 160')
 
-      puts 
-      puts 'FIRST LINE', line(1)
+      puts 'FIRST LINE:', line(1)
       puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
