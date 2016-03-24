@@ -1,4 +1,10 @@
 fu! esearch#init(...)
+  if !exists('g:loaded_esearch_config')
+    let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})
+    if empty(g:esearch) | return 1 | endif
+    let g:loaded_esearch_config = 1
+  endif
+
   let opts = a:0 ? a:1 : {}
   let source_params = {
         \ 'visualmode': get(opts, 'visualmode', 0),
@@ -24,6 +30,7 @@ fu! esearch#init(...)
     let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
   endif
 
+  call opts.set_default('batch_size', g:esearch.batch_size)
   call opts.set_default('backend', g:esearch.backend)
   let EscapeFunc = function('esearch#backend#'.opts.backend.'#escape_cmd')
   let pattern = g:esearch.regex ? opts.exp.pcre : opts.exp.literal
@@ -33,7 +40,7 @@ fu! esearch#init(...)
   let request = esearch#backend#{opts.backend}#init(cmd)
 
   call opts.set_default('out', g:esearch.out)
-  let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out'), {
+  let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size'), {
         \ 'bufname': s:outbufname(pattern),
         \ 'request': request,
         \})

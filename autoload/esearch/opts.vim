@@ -1,5 +1,30 @@
 fu! esearch#opts#new(opts) abort
   let opts = copy(a:opts)
+
+  if !has_key(opts, 'backend')
+    if has('nvim') && exists('*jobstart')
+      let opts.backend = 'nvim'
+    elseif esearch#util#has_vimproc()
+      let opts.backend = 'vimproc'
+    else
+      call esearch#util#highlight('Error', 'ESearch plugin requires NeoVim job control or Vimproc plugin installed', 0)
+      echo "See:\n\thttps://neovim.io/doc/user/job_control.html\n\thttps://github.com/Shougo/vimproc.vim"
+      return 0
+    endif
+  endif
+
+  if !has_key(opts, 'adapter')
+    if executable('ag')
+      let opts.adapter = 'ag'
+    elseif executable('pt')
+      let opts.adapter = 'pt'
+    elseif executable('ack')
+      let opts.adapter = 'ack'
+    elseif executable('grep')
+      let opts.adapter = 'grep'
+    endif
+  endif
+
   let opts = extend(opts, {
         \ 'out':             'win',
         \ 'regex':           0,
@@ -18,28 +43,6 @@ fu! esearch#opts#new(opts) abort
         \ 'invert':           function('<SID>invert'),
         \ 'require':          function('esearch#util#require'),
         \}, 'keep')
-  if !has_key(opts, 'adapter')
-    if executable('ag')
-      let opts.adapter = 'ag'
-    elseif executable('pt')
-      let opts.adapter = 'pt'
-    elseif executable('ack')
-      let opts.adapter = 'ack'
-    elseif executable('grep')
-      let opts.adapter = 'grep'
-    endif
-  endif
-
-  if !has_key(opts, 'backend')
-    if has('nvim') && exists('*jobstart')
-      let opts.backend = 'nvim'
-    elseif esearch#util#has_vimproc()
-      let opts.backend = 'vimproc'
-    else
-      call esearch#util#highlight('Error', 'ESearch requires NeoVim job control or Vimproc plugin installed', '')
-      echo "See:\n\thttps://neovim.io/doc/user/job_control.html\n\thttps://github.com/Shougo/vimproc.vim"
-    endif
-  endif
 
   return opts
 endfu

@@ -78,7 +78,7 @@ fu! esearch#util#get(key) dict abort
 endfu
 
 fu! esearch#util#dict() dict abort
-  return filter(copy(self), 'type(v:val) != '.type(fu("tr")))
+  return filter(copy(self), 'type(v:val) != '.type(function("tr")))
 endfu
 
 fu! esearch#util#with_val(val) dict abort
@@ -110,7 +110,7 @@ endfu
 
 fu! esearch#util#highlight(highlight, str, ...)
   exe "echohl " . a:highlight . "| echon " . strtrans(string(a:str))
-  if a:0 && !empty(a:1)
+  if a:0 && empty(a:1)
     echohl 'Normal'
   endif
 endfu

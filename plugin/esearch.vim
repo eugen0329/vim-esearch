@@ -1,9 +1,7 @@
-if exists('g:loaded_easy_search')
+if exists('g:loaded_esearch')
   finish
 endif
 let g:loaded_easy_search = 1
-
-let g:esearch = esearch#opts#new(get(g:, 'esearch', {}))
 
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
