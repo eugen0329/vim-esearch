@@ -26,15 +26,15 @@ context 'esearch' do
         exists('b:esearch')
       end
       expected.to become_true_within(win_open_quota.second),
-        "Expect ESearch win will be opened in #{win_open_quota}"
+        "Expected ESearch win will be opened in #{win_open_quota}"
 
       puts expr('b:esearch.cwd')
       puts expr('$PWD')
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
 
       puts line(1)
-      expect { line(1) =~ /Finish/i }.to become_true_within(30.second)
-      expect { line(1) !~ /Error/i }.to be_truthy
+      expect { line(1) =~ /Finish/i }.to become_true_within(30.second),
+        "Expected first line become to match /Finish/, got #{line(1)}"
       expect(bufname("%")).to match(/Search/)
     end
 
