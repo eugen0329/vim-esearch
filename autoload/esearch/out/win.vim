@@ -344,7 +344,7 @@ fu! esearch#out#win#on_finish() abort
     call setline(1, 'ERRORS (' .len(b:esearch.request.errors).')')
     let line = 2
     for err in b:esearch.request.errors
-      call setline(line, "\t".join(err, '. '))
+      call setline(line, "\t".err)
       let line += 1
     endfor
     " norm! gggqG

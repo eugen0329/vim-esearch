@@ -11,7 +11,7 @@ fu! esearch#util#flatten(list)
   return flatten
 endfu
 
-function! esearch#util#uniq(list) abort
+fu! esearch#util#uniq(list) abort
   let i = 0
   let seen = {}
   while i < len(a:list)
@@ -26,7 +26,7 @@ function! esearch#util#uniq(list) abort
     endif
   endwhile
   return a:list
-endfunction
+endfu
 
 fu! esearch#util#btrunc(str, center, lw, rw) abort
   " om - omission, lw/rw - with from the left(right)
@@ -78,7 +78,7 @@ fu! esearch#util#get(key) dict abort
 endfu
 
 fu! esearch#util#dict() dict abort
-  return filter(copy(self), 'type(v:val) != '.type(function("tr")))
+  return filter(copy(self), 'type(v:val) != '.type(fu("tr")))
 endfu
 
 fu! esearch#util#with_val(val) dict abort
@@ -110,11 +110,10 @@ endfu
 
 fu! esearch#util#highlight(highlight, str, ...)
   exe "echohl " . a:highlight . "| echon " . strtrans(string(a:str))
-  if a:0 && !a:1
+  if a:0 && !empty(a:1)
     echohl 'Normal'
   endif
 endfu
-
 
 " Used to build adapter query query
 fu! esearch#util#parametrize(key, ...) dict abort
@@ -195,3 +194,14 @@ fu! esearch#util#map_rhs(printable)
   return ''
 endfu
 
+fu! esearch#util#has_vimproc() abort
+  if !exists('s:exists_vimproc')
+    try
+      call vimproc#version()
+      let s:exists_vimproc = 1
+    catch
+      let s:exists_vimproc = 0
+    endtry
+  endif
+  return s:exists_vimproc
+endfu

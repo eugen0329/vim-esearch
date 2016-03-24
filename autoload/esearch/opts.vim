@@ -1,8 +1,7 @@
 fu! esearch#opts#new(opts) abort
-  let opts = a:opts
+  let opts = copy(a:opts)
   let opts = extend(opts, {
         \ 'out':             'win',
-        \ 'backend':         has('nvim') ? 'nvim' : 'dispatch',
         \ 'regex':           0,
         \ 'case':            0,
         \ 'word':            0,
@@ -30,6 +29,18 @@ fu! esearch#opts#new(opts) abort
       let opts.adapter = 'grep'
     endif
   endif
+
+  if !has_key(opts, 'backend')
+    if has('nvim') && exists('*jobstart')
+      let opts.backend = 'nvim'
+    elseif esearch#util#has_vimproc()
+      let opts.backend = 'vimproc'
+    else
+      call esearch#util#highlight('Error', 'ESearch requires NeoVim job control or Vimproc plugin installed', '')
+      echo "See:\n\thttps://neovim.io/doc/user/job_control.html\n\thttps://github.com/Shougo/vimproc.vim"
+    endif
+  endif
+
   return opts
 endfu
 
