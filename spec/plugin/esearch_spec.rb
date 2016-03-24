@@ -10,8 +10,14 @@ context 'esearch' do
 
   describe '#init' do
     it 'works without args' do
-      press ':call esearch#init()<Enter>asd<Enter>'
-      sleep 1
+      # press ':call esearch#init()<Enter>asd<Enter>'
+
+      cmd("let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})")
+      cmd("let g:exp = { 'vim': 't', 'pcre': 't', 'literal': 't' }")
+      cmd("let g:exp = esearch#regex#finalize(g:exp, g:esearch)")
+      puts cmd("try | call esearch#init({'exp': g:exp}) | catch | echo v:exception | endtry")
+
+
       puts expr('bufnr("$")')
       expect { press("<Nop>");exists('b:esearch') }.to become_true_within(4.second)
       expect { line(1) =~ /Finish/i }.to become_true_within(2.second)

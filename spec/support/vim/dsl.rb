@@ -10,6 +10,10 @@ module Support
         vim.normal(keys)
       end
 
+      def cmd(str)
+        vim.command(str)
+      end
+
       def bufname(str)
         expr("bufname('#{str}')")
       end
