@@ -123,7 +123,8 @@ fu! s:find_buf(bufnr) abort
 endf
 
 fu! esearch#out#win#trigger_key_press()
-  call feedkeys("\<Plug>(esearch-Nop)")
+  " call feedkeys("\<Plug>(esearch-Nop)")
+  call feedkeys("g\<ESC>", 'n')
 endfu
 
 fu! esearch#out#win#update(data, ...) abort
