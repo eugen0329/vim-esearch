@@ -1,8 +1,12 @@
 require 'spec_helper'
 
 context 'esearch' do
-  describe '#init' do
 
+  it 'can be tested' do
+    expect(has('clientserver')).to be_truthy
+  end
+
+  describe '#init' do
     it 'works without args' do
       press ':call esearch#init()<Enter>asd<Enter>'
       expect { exists('b:esearch') }.to become_true_within(1.second)

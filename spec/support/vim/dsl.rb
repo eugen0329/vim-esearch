@@ -22,6 +22,10 @@ module Support
         expr("exists('#{str}')").to_i != 0
       end
 
+      def has(str)
+        expr("has('#{str}')").to_i != 0
+      end
+
     end
   end
 end
