@@ -19,7 +19,6 @@ context 'esearch' do
       cmd("let g:exp = esearch#regex#finalize(g:exp, g:esearch)")
       puts cmd("try | call esearch#init({'exp': g:exp}) | catch | echo v:exception | endtry")
 
-
       puts expr('bufnr("$")')
 
       expected = expect do
@@ -34,7 +33,7 @@ context 'esearch' do
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
 
       puts expr('&ut')
-      expect { line(1) =~ /Finish/i }.to become_true_within(40.second)
+      expect { line(1) =~ /Finish/i }.to become_true_within(120.second)
       expect(bufname("%")).to match(/Search/)
     end
 
