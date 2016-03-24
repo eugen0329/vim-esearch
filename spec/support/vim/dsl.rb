@@ -2,6 +2,14 @@ module Support
   module Vim
     module DSL
 
+      def dump(what)
+        puts expr("prettyprint#prettyprint(#{what})")
+      end
+
+      def try_cmd(str)
+        cmd("try | #{cmd} | catch | echo v:exception | endtry")
+      end
+
       def expr(str)
         vim.echo(str)
       end
@@ -11,7 +19,11 @@ module Support
       end
 
       def cmd(str)
-        vim.command(str)
+        begin
+          vim.command(str)
+        rescue Vimrunner::InvalidCommandError => e
+          return e.message
+        end
       end
 
       def bufname(str)

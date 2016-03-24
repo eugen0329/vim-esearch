@@ -1,8 +1,26 @@
 require 'spec_helper'
+require 'json'
 
 context 'esearch' do
   let(:win_open_quota) { 4 }
-  
+
+  after(:each) do |example|
+    unless example.exception.nil?
+      cmd('let g:prettyprint_width = 160')
+
+      puts 
+      puts 'FIRST LINE', line(1)
+      puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
+      puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
+
+
+      dump('g:esearch')
+      puts "\n"*2, "#"*10, "B:ESEARCH"
+      dump('b:esearch.without("request")')
+      puts "\n"*2, "#"*10, "REQUEST"
+      dump('b:esearch.request')
+    end
+  end
 
   it 'can be tested' do
     expect(has('clientserver')).to be_truthy
@@ -17,9 +35,8 @@ context 'esearch' do
       cmd("let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})")
       cmd("let g:exp = { 'vim': 'lorem_ipsum', 'pcre': 'lorem_ipsum', 'literal': 'lorem_ipsum' }")
       cmd("let g:exp = esearch#regex#finalize(g:exp, g:esearch)")
-      puts cmd("try | call esearch#init({'exp': g:exp}) | catch | echo v:exception | endtry")
+      cmd("try | call esearch#init({'exp': g:exp}) | catch | echo v:exception | endtry")
 
-      puts expr('bufnr("$")')
 
       expected = expect do
         press("<Nop>") # to skip "Press ENTER or type command to continue" prompt
@@ -28,11 +45,7 @@ context 'esearch' do
       expected.to become_true_within(win_open_quota.second),
         "Expected ESearch win will be opened in #{win_open_quota}"
 
-      puts expr('b:esearch.cwd')
-      puts expr('$PWD')
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
-
-      puts line(1)
       expect { line(1) =~ /Finish/i }.to become_true_within(90.second),
         "Expected first line to match /Finish/, got #{line(1)}"
       expect(bufname("%")).to match(/Search/)

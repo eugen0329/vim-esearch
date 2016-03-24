@@ -89,8 +89,8 @@ fu! esearch#util#key(val) dict abort
   return get(keys(filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)), 0, 0)
 endfu
 
-fu! esearch#util#withou(key) dict abort
-  return filter(copy(self), 'v:key !=# '.a:val)
+fu! esearch#util#without(key) dict abort
+  return filter(copy(self), 'v:key !=# "'.a:key.'"')
 endfu
 
 fu! esearch#util#without_val(val) dict abort

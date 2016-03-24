@@ -1,4 +1,5 @@
 before_install: |
+  git clone https://github.com/thinca/vim-prettyprint.git
   git clone https://github.com/Shougo/vimproc.vim
   cd vimproc.vim
   make

@@ -88,6 +88,7 @@ fu! esearch#out#win#init(opts) abort
         \ '_match_highlight_id': match_highlight_id,
         \ '_last_update_time':   esearch#util#timenow(),
         \ '__broken_results':    [],
+        \ 'without': function('esearch#util#without')
         \})
 endfu
 
