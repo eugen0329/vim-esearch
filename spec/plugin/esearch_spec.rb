@@ -11,8 +11,8 @@ context 'esearch' do
   describe '#init' do
     it 'works without args' do
       press ':call esearch#init()<Enter>asd<Enter>'
-      sleep 2
-      puts exp('ls')
+      sleep 1
+      puts expr('bufnr("$")')
       expect { press("<Nop>");exists('b:esearch') }.to become_true_within(4.second)
       expect { line(1) =~ /Finish/i }.to become_true_within(2.second)
       expect(bufname("%")).to match(/Search/)
