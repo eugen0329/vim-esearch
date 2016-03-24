@@ -52,16 +52,10 @@ endfunction
 fu! s:completed(data)
   let nparsed = b:esearch._lines_iterator
 
-  if len(a:data) == nparsed + 1 && esearch#adapter#{b:esearch.adapter}#is_broken_result(a:data[nparsed])
-    let nbroken = 1
-  else
-    let nbroken = 0
-  endif
-
   " let handler_running = s:running(b:esearch.request.handler, b:esearch.request.pid)
-  let handler_running = !b:esearch.request.pipe.stdout.eof
+  let eof = b:esearch.request.pipe.stdout.eof
 
-  return !handler_running && b:esearch._lines_iterator == len(b:esearch.parsed)
+  return eof && b:esearch._lines_iterator == len(b:esearch.parsed)
 endfu
 
 fu! s:_on_cursor_moved() abort

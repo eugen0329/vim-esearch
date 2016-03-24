@@ -129,7 +129,7 @@ endfu
 
 fu! esearch#out#win#update(data, ...) abort
   let ignore_batches = a:0 && a:1
-  let b:esearch.unparsed = a:data
+  let b:esearch.unparsed += a:data
 
   call s:extend_results()
 
