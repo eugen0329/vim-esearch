@@ -14,4 +14,5 @@ addons:
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-script: xvfb-run rake ci
+  - sleep 3 # give xvfb some time to start
+script: rake ci

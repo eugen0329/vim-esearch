@@ -7,5 +7,8 @@ task :dump do
 end
 
 task :test do
-  sh 'bundle exec rspec spec'
+  cmd = 'rspec spec'
+  puts "Starting to run #{cmd}..."
+  system("export DISPLAY=:99.0 && bundle exec #{cmd}")
+  raise "#{cmd} failed!" unless $?.exitstatus == 0
 end
