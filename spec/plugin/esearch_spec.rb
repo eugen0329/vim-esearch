@@ -2,11 +2,13 @@ require 'spec_helper'
 
 context 'esearch' do
   describe '#init' do
+
     it 'works without args' do
       press ':call esearch#init()<Enter>asd<Enter>'
-      expect { line(1) =~ /Finish/i }.to become_true_within(2.second), '123'
+      expect { exists('b:esearch') }.to become_true_within(1.second)
+      expect { line(1) =~ /Finish/i }.to become_true_within(2.second)
       expect(bufname("%")).to match(/Search/)
-      expect(expr('b:esearch.cwd')).to eq(expr('getcwd()'))
+      expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
     end
 
     it 'fails with adapter error' do

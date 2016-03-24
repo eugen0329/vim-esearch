@@ -18,6 +18,10 @@ module Support
         expr("getline(#{number})")
       end
 
+      def exists(str)
+        expr("exists('#{str}')").to_i != 0
+      end
+
     end
   end
 end
