@@ -21,7 +21,7 @@ fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
   let w = options.parametrize('word')
   " -r: no follow symbolic links
   " -I: Process a binary file as if it did not contain matching data
-  return "grep ".r." ".c." ".w." -I -r -n --exclude-dir=.{git,svn,hg} -- " .
+  return "grep ".r." ".c." ".w." -r -n --exclude-dir=.{git,svn,hg} -- " .
         \ a:escape(a:pattern)  . " " . a:escape(a:dir)
 endfu
 

@@ -32,8 +32,9 @@ context 'esearch' do
       puts expr('$PWD')
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
 
-      puts expr('&ut')
-      expect { line(1) =~ /Finish/i }.to become_true_within(120.second)
+      puts line(1)
+      expect { line(1) =~ /Finish/i }.to become_true_within(30.second)
+      expect { line(1) !~ /Error/i }.to be_truthy
       expect(bufname("%")).to match(/Search/)
     end
 

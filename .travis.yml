@@ -2,6 +2,7 @@ before_install: |
   git clone https://github.com/Shougo/vimproc.vim
   cd vimproc.vim
   make
+  cd -
 language: ruby
 rvm:
   - 2.2.2
