@@ -5,7 +5,7 @@ context 'esearch' do
   let(:win_open_quota) { 4 }
 
   after(:each) do |example|
-    if example.exception.nil?
+    unless example.exception.nil?
       cmd('let g:prettyprint_width = 160')
 
       puts 'FIRST LINE:', line(1)
@@ -23,8 +23,6 @@ context 'esearch' do
       dump('&rtp')
 
       puts "\n"*2, "#"*10, "RTP"
-      puts expr('&compatible')
-      puts expr('[esearch#util#has_vimproc(), exists("*vimproc#version"), exists("*vimproc#popen2")]')
       puts cmd('scriptnames')
     end
   end
