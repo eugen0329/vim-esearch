@@ -351,7 +351,7 @@ fu! esearch#out#win#on_finish() abort
   setlocal noreadonly
   setlocal modifiable
 
-  if has_key(b:esearch.request, 'errors')
+  if has_key(b:esearch.request, 'errors') && len(b:esearch.request.errors)
     call setline(1, 'ERRORS (' .len(b:esearch.request.errors).')')
     let line = 2
     for err in b:esearch.request.errors

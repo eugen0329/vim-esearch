@@ -1,10 +1,6 @@
 before_install: |
-  sudo apt-get install silversearcher-ag
-  git clone https://github.com/thinca/vim-prettyprint.git
-  git clone https://github.com/Shougo/vimproc.vim
-  cd vimproc.vim
-  make
-  cd -
+  # sudo apt-get install silversearcher-ag
+  bash ./install_dependencies.sh
 language: ruby
 rvm:
   - 2.2.2

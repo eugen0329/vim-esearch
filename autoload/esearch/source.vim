@@ -1,9 +1,12 @@
 fu! esearch#source#pick_exp(use, opts)
-  for name in a:use
+  let use = type(a:use) == type('') ? [a:use] : a:use
+
+  for name in use
     let exp = esearch#source#{name}(a:opts)
     if !empty(exp) | return exp | endif
     unlet exp
   endfor
+
   return esearch#regex#new()
 endfu
 
@@ -35,4 +38,16 @@ fu! esearch#source#last(...)
   else
     return 0
   endif
+endfu
+
+fu! esearch#source#filename(...)
+  let w = expand('%')
+endfu
+
+fu! esearch#source#cword(...)
+  let w = expand('<cword>')
+  return esearch#regex#new({'vim': w, 'pcre': w, 'literal': w})
+endfu
+fu! esearch#source#word_under_cursor(...)
+  return call('esearch#source#cword', a:000)
 endfu

@@ -13,29 +13,31 @@ context 'esearch' do
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
 
-      dump('g:eseach')
+      puts "\n"*2, "#"*10, "G:ESEARCH"
+      dump('g:esearch')
       puts "\n"*2, "#"*10, "B:ESEARCH"
-      dump('b:esearch.without("request")')
+      dump('b:esearch')
       puts "\n"*2, "#"*10, "REQUEST"
       dump('b:esearch.request')
+      puts "\n"*2, "#"*10, "RTP"
+      dump('&rtp')
+
+      puts "\n"*2, "#"*10, "RTP"
+      puts expr('&compatible')
+      puts expr('[esearch#util#has_vimproc(), exists("*vimproc#version"), exists("*vimproc#popen2")]')
+      puts cmd('scriptnames')
     end
   end
 
   it 'can be tested' do
     expect(has('clientserver')).to be_truthy
-    meet_requirements = has('nvim') != 0 || expr('esearch#util#has_vimproc()') != 0
+    meet_requirements = has('nvim') || bool_expr('esearch#util#has_vimproc()')
     expect(meet_requirements).to be_truthy
   end
 
   describe '#init' do
     it 'works without args' do
-      # press ':call esearch#init()<Enter>asd<Enter>'
-
-      cmd("let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})")
-      cmd("let g:exp = { 'vim': 'lorem_ipsum', 'pcre': 'lorem_ipsum', 'literal': 'lorem_ipsum' }")
-      cmd("let g:exp = esearch#regex#finalize(g:exp, g:esearch)")
-      cmd("try | call esearch#init({'exp': g:exp}) | catch | echo v:exception | endtry")
-
+      press ':call esearch#init()<Enter>asd<Enter>'
 
       expected = expect do
         press("<Nop>") # to skip "Press ENTER or type command to continue" prompt
@@ -45,7 +47,7 @@ context 'esearch' do
         "Expected ESearch win will be opened in #{win_open_quota}"
 
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
-      expect { line(1) =~ /Finish/i }.to become_true_within(90.second),
+      expect { line(1) =~ /Finish/i }.to become_true_within(15.second),
         "Expected first line to match /Finish/, got #{line(1)}"
       expect(bufname("%")).to match(/Search/)
     end

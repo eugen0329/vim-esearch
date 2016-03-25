@@ -42,6 +42,7 @@ fu! esearch#opts#new(opts) abort
         \ 'nerdtree_plugin': 1,
         \ 'invert':           function('<SID>invert'),
         \ 'require':          function('esearch#util#require'),
+        \ 'errors':          [],
         \}, 'keep')
 
   return opts

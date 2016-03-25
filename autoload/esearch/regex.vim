@@ -68,7 +68,8 @@ endfu
 fu! esearch#regex#pcre2vim(exp) abort
   let exp = a:exp
   " let exp = substitute(exp, '[^\]\?\zs\\([+{]\)', '\1', 'g')
-  let exp = substitute(exp, '\([+{]\)', '\\\1', 'g')
+  " let exp = substitute(exp, '\([+{]\)', '\\\1', 'g')
+  let exp = substitute(exp, '\([+]\)', '\\\1', 'g')
 
   " word boundary
   " let exp = substitute(exp, '[^]\?\zs\\[<>]', '', 'g')

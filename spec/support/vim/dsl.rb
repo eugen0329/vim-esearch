@@ -18,6 +18,10 @@ module Support
         vim.echo(str)
       end
 
+      def bool_expr(str)
+        vim.echo(str).to_i == 1
+      end
+
       def press(keys)
         vim.normal(keys)
       end
@@ -39,11 +43,11 @@ module Support
       end
 
       def exists(str)
-        expr("exists('#{str}')").to_i != 0
+        expr("exists('#{str}')").to_i == 1
       end
 
       def has(str)
-        expr("has('#{str}')").to_i != 0
+        expr("has('#{str}')").to_i == 1
       end
 
     end
