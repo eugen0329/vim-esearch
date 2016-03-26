@@ -26,6 +26,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
   return request
 endfu
 
+" TODO encoding
 fu! s:stdout(job_id, data, event) abort
   if !exists('b:esearch')
     return 0
@@ -35,18 +36,21 @@ fu! s:stdout(job_id, data, event) abort
   let data = a:data
 
   " Parse data
-  if !empty(data) && data[0] !=# "\n" && !empty(job.request.data)
+  if !empty(data) && !empty(job.request.data)
     let job.request.data[-1] .= data[0]
     call remove(data, 0)
   endif
   " call esearch#out#{b:esearch.out}#merge_data()
-  let job.request.data += filter(data, '"" !=# v:val')
+  if self.pty
+    call map(data, "substitute(v:val, '\\r$', '', '')")
+  endif
+  let data = filter(data, '"" !=# v:val')
+  let job.request.data += data
 
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
   if self.tick % self.ticks == 1
-    call esearch#out#{b:esearch.out}#update([])
-    " let job.data = []
+    call esearch#out#{b:esearch.out}#update()
   endif
 endfu
 
@@ -74,7 +78,7 @@ fu! s:exit(job_id, data, event)
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let ignore_batches = 1
-  call esearch#out#{b:esearch.out}#update(job.data, ignore_batches)
+  call esearch#out#{b:esearch.out}#update(ignore_batches)
   call esearch#out#{b:esearch.out}#on_finish()
 endfu
 

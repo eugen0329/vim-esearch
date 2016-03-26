@@ -130,7 +130,7 @@ fu! esearch#out#win#merge_data(data)
   let b:esearch.data += a:data
 endfu
 
-fu! esearch#out#win#update(data, ...) abort
+fu! esearch#out#win#update(...) abort
   let ignore_batches = a:0 && a:1
 
   " let b:esearch.data += esearch#adapter#{b:esearch.adapter}#parse_results(
