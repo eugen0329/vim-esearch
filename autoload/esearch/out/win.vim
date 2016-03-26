@@ -75,11 +75,8 @@ fu! esearch#out#win#init(opts) abort
   setlocal bufhidden=hide
 
   let b:esearch = extend(a:opts, {
-        \ 'parsed':              [],
-        \ 'parsed_count':        0,
-        \ 'unparsed':            [],
         \ 'prev_filename':       '',
-        \ '_lines_iterator':     0,
+        \ 'data_ptr':     0,
         \ '_columns':            {},
         \ '_match_highlight_id': match_highlight_id,
         \ '_last_update_time':   esearch#util#timenow(),
@@ -133,40 +130,36 @@ endfu
 fu! esearch#out#win#update(...) abort
   let ignore_batches = a:0 && a:1
 
-  " let b:esearch.data += esearch#adapter#{b:esearch.adapter}#parse_results(
-  "       \ a:data, 0, len(a:data) -1, b:esearch.__broken_results, b:esearch.exp.vim)
-
-  let data_size = len(b:esearch.request.data)
-  if data_size > b:esearch._lines_iterator
-    if ignore_batches || data_size - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
-      let from = b:esearch._lines_iterator
-      let to = data_size - 1
-      let b:esearch._lines_iterator = data_size
+  let data = b:esearch.request.data
+  let data_size = len(data)
+  if data_size > b:esearch.data_ptr
+    if ignore_batches || data_size - b:esearch.data_ptr - 1 <= g:esearch.batch_size
+      let [from,to] = [b:esearch.data_ptr, data_size - 1]
+      let b:esearch.data_ptr = data_size
     else
-      let from = b:esearch._lines_iterator
-      let to = b:esearch._lines_iterator + g:esearch.batch_size - 1
-      let b:esearch._lines_iterator += g:esearch.batch_size
+      let [from, to] = [b:esearch.data_ptr, b:esearch.data_ptr + g:esearch.batch_size - 1]
+      let b:esearch.data_ptr += g:esearch.batch_size
     endif
+
+    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
+          \ data, from, to, b:esearch.__broken_results, b:esearch.exp.vim)
+
 
     setlocal noreadonly
     setlocal modifiable
-    call s:render_results(from, to)
-    call setline(1, printf(s:header, b:esearch._lines_iterator))
+    call s:render_results(parsed)
+    call setline(1, printf(s:header, b:esearch.data_ptr))
     setlocal readonly
     setlocal nomodifiable
     setlocal nomodified
   endif
 
-  " exe g:esearch.update_statusline_cmd
   let b:esearch._last_update_time = esearch#util#timenow()
 endfu
 
-fu! s:render_results(from, to) abort
+fu! s:render_results(parsed) abort
   let line = line('$') + 1
-
-  let data = b:esearch.request.data
-  let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
-        \ data, a:from, a:to, b:esearch.__broken_results, b:esearch.exp.vim)
+  let parsed = a:parsed
 
   let i = 0
   let limit = len(parsed)
@@ -194,7 +187,6 @@ fu! s:context(line)
                            \ match(a:line, b:esearch.exp.vim),
                            \ g:esearch.context_width.l,
                            \ g:esearch.context_width.r)
-
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
@@ -342,8 +334,8 @@ endfu
 
 fu! esearch#out#win#on_finish() abort
   au! ESearchWinAutocmds * <buffer>
-  unlet b:esearch.parsed b:esearch.unparsed b:esearch.prev_filename
-        \ b:esearch._lines_iterator  b:esearch._last_update_time
+  unlet b:esearch.prev_filename b:esearch.request.data
+        \ b:esearch.data_ptr  b:esearch._last_update_time
 
   setlocal noreadonly
   setlocal modifiable
@@ -363,16 +355,4 @@ fu! esearch#out#win#on_finish() abort
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
-endfu
-
-fu! s:extend_results() abort
-  if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
-    let from = len(b:esearch.parsed)
-    let to = len(b:esearch.unparsed)-1
-    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
-          \ b:esearch.unparsed, from, to, b:esearch.__broken_results, b:esearch.exp.vim)
-    " TODO replace b:esearch.parsed with b:esearch.parsed_count
-    call extend(b:esearch.parsed, parsed)
-    let b:esearch.parsed_count = len(b:esearch.parsed)
-  endif
 endfu

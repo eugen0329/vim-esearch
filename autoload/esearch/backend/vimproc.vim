@@ -2,6 +2,16 @@ if !exists('g:esearch#backend#vimproc#updatetime')
   let g:esearch#backend#vimproc#updatetime = 300.0
 endif
 
+if !exists('g:esearch#backend#vimproc#read_timeout')
+  let g:esearch#backend#vimproc#read_timeout = 100.0
+endif
+
+" Errors handles after
+if !exists('g:esearch#backend#vimproc#read_errors_timeout')
+  let g:esearch#backend#vimproc#read_errors_timeout =
+        \ g:esearch#backend#vimproc#read_timeout * 5
+endif
+
 fu! esearch#backend#vimproc#init(cmd, pty) abort
   let pipe = vimproc#popen3(
         \ vimproc#util#iconv(a:cmd, &encoding, 'char'), a:pty)
@@ -12,6 +22,7 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'backend': 'vimproc',
         \ 'pipe': pipe,
         \ 'data': [],
+        \ 'errors': [],
         \}
 
   return request
@@ -19,46 +30,23 @@ endfu
 
 fu! s:read_data() abort
   let request = b:esearch.request
-  let pipe = request.pipe
-
-  let stderr = pipe.stderr
-  if !stderr.eof
-    let errors = filter(
-          \ stderr.read_lines(-1, b:esearch.batch_size), "v:val !~ '^\\s*$'")
-    if !empty(errors)
-      let b:esearch.request.errors += errors
-    endif
-  endif
-
-  let stdout = pipe.stdout
-
-  let data = stdout.read_lines(-1, b:esearch.batch_size)
+  let data = request.pipe.stdout.read_lines(-1, g:esearch#backend#vimproc#read_timeout)
   let request.data += data
-
-  if stdout.eof
-    " let [request.cond, request.status] = pipe.waitpid()
-  endif
 endfu
-
-" TODO write better errors handling
-" fu! s:stderr()
-"   let pipe = b:esearch.request.pipe
-
-"   if cond ==# 'error' || status !=# 0
-"     let b:esearch.request.errors = b:esearch.unparsed + b:esearch.parsed
-"     return 1
-"   endif
-
-"   return 0
-" endfu
 
 fu! esearch#backend#vimproc#escape_cmd(cmd)
   return esearch#util#shellescape(a:cmd)
 endfu
 
-function! s:running(finish) abort
-  return readfile(a:finish)[0] ==# '1'
-endfunction
+fu! s:read_errors()
+  let stderr = b:esearch.request.pipe.stderr
+  if !stderr.eof
+    let errors = filter(
+          \ stderr.read_lines(-1, g:esearch#backend#vimproc#read_errors_timeout),
+          \ "v:val !~ '^\\s*$'")
+    let b:esearch.request.errors += errors
+  endif
+endfu
 
 fu! s:_on_cursor_moved() abort
   if esearch#util#timenow() < &updatetime/1000.0 + b:esearch._last_update_time
@@ -69,6 +57,7 @@ fu! s:_on_cursor_moved() abort
   call esearch#out#{b:esearch.out}#update()
 
   if s:completed(b:esearch.request.data)
+    call s:read_errors()
     let &updatetime = float2nr(b:updatetime_backup)
     call esearch#out#{b:esearch.out}#on_finish()
   endif
@@ -79,6 +68,7 @@ fu! s:_on_cursor_hold()
   call esearch#out#{b:esearch.out}#update()
 
   if s:completed(b:esearch.request.data)
+    call s:read_errors()
     let &updatetime = float2nr(b:updatetime_backup)
     call esearch#out#{b:esearch.out}#on_finish()
   else
@@ -95,9 +85,8 @@ nnoremap <SID>  <SID>
 
 " TODO
 fu! s:completed(data)
-  let nparsed = b:esearch._lines_iterator
-  let eof = b:esearch.request.pipe.stdout.eof
-  return eof && b:esearch._lines_iterator == len(b:esearch.parsed)
+  return b:esearch.request.pipe.stdout.eof &&
+        \ b:esearch.data_ptr == len(b:esearch.request.data)
 endfu
 
 
