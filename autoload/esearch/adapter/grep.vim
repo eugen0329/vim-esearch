@@ -54,6 +54,10 @@ fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) a
   return results
 endfu
 
+fu! esearch#adapter#pt#requires_pty()
+  return 1
+endfu
+
 " Used to build the query
 fu! s:parametrize(key, ...) dict abort
   let option_index = g:esearch[a:key]

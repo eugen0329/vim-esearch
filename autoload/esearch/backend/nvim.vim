@@ -1,15 +1,17 @@
 let s:jobs = {}
+
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
 endif
 
-fu! esearch#backend#nvim#init(cmd) abort
+fu! esearch#backend#nvim#init(cmd, pty) abort
   let job_id = jobstart(a:cmd, {
           \ 'on_stdout': function('s:stdout'),
           \ 'on_stderr': function('s:stderr'),
           \ 'on_exit':   function('s:exit'),
-          \ 'ticks':     g:esearch#backend#nvim#ticks,
-          \ 'tick':      0,
+          \ 'pty': a:pty,
+          \ 'tick': 0,
+          \ 'ticks': g:esearch#backend#nvim#ticks,
           \ })
 
   let request = {
@@ -17,9 +19,10 @@ fu! esearch#backend#nvim#init(cmd) abort
         \ 'finished':   0,
         \ 'backend': 'nvim',
         \ 'command': a:cmd,
-        \ 'parts': []
+        \ 'data': []
         \}
   let s:jobs[job_id] = { 'data': [], 'request': request }
+
   return request
 endfu
 
@@ -32,19 +35,20 @@ fu! s:stdout(job_id, data, event) abort
   let data = a:data
 
   " Parse data
-  if !empty(data) && data[0] !=# "\n" && !empty(job.data)
-    let job.data[-1] .= data[0]
+  if !empty(data) && data[0] !=# "\n" && !empty(job.request.data)
+    let job.request.data[-1] .= data[0]
     call remove(data, 0)
   endif
-  let job.data += filter(data, '"" !=# v:val')
+  " call esearch#out#{b:esearch.out}#merge_data()
+  let job.request.data += filter(data, '"" !=# v:val')
 
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
   if self.tick % self.ticks == 1
-    call esearch#out#{b:esearch.out}#update(job.data)
+    call esearch#out#{b:esearch.out}#update([])
+    " let job.data = []
   endif
 endfu
-
 
 fu! s:stderr(job_id, data, event)
   if !exists('b:esearch')
@@ -69,8 +73,8 @@ fu! s:exit(job_id, data, event)
   endif
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
-  let s:ignore_batches = 1
-  call esearch#out#{b:esearch.out}#update(job.data, s:ignore_batches)
+  let ignore_batches = 1
+  call esearch#out#{b:esearch.out}#update(job.data, ignore_batches)
   call esearch#out#{b:esearch.out}#on_finish()
 endfu
 

@@ -12,20 +12,21 @@
 " Have no idea why it's so (and time to deal) ...
 
 let s:default_mappings = {
-      \ 't':     '<Plug>(esearch-tab)',
-      \ 'T':     '<Plug>(esearch-tab-silent)',
-      \ 'i':     '<Plug>(esearch-split)',
-      \ 'I':     '<Plug>(esearch-split-silent)',
-      \ 's':     '<Plug>(esearch-vsplit)',
-      \ 'S':     '<Plug>(esearch-vsplit-silent)',
-      \ 'R':     '<Plug>(esearch-reload)',
-      \ '<Enter>':  '<Plug>(esearch-open)',
-      \ 'o':     '<Plug>(esearch-open)',
-      \ '<C-n>': '<Plug>(esearch-next)',
-      \ '<C-p>': '<Plug>(esearch-prev)',
-      \ '<S-j>': '<Plug>(esearch-next-file)',
-      \ '<S-k>': '<Plug>(esearch-prev-file)',
+      \ 't':       '<Plug>(esearch-tab)',
+      \ 'T':       '<Plug>(esearch-tab-silent)',
+      \ 'i':       '<Plug>(esearch-split)',
+      \ 'I':       '<Plug>(esearch-split-silent)',
+      \ 's':       '<Plug>(esearch-vsplit)',
+      \ 'S':       '<Plug>(esearch-vsplit-silent)',
+      \ 'R':       '<Plug>(esearch-reload)',
+      \ '<Enter>': '<Plug>(esearch-open)',
+      \ 'o':       '<Plug>(esearch-open)',
+      \ '<C-n>':   '<Plug>(esearch-next)',
+      \ '<C-p>':   '<Plug>(esearch-prev)',
+      \ '<S-j>':   '<Plug>(esearch-next-file)',
+      \ '<S-k>':   '<Plug>(esearch-prev-file)',
       \ }
+
 " The first line. It contains information about the number of results
 let s:header = 'Matches in %d lines'
 let s:mappings = {}
@@ -83,7 +84,9 @@ fu! esearch#out#win#init(opts) abort
         \ '_match_highlight_id': match_highlight_id,
         \ '_last_update_time':   esearch#util#timenow(),
         \ '__broken_results':    [],
-        \ 'without': function('esearch#util#without')
+        \ 'errors':              [],
+        \ 'data':                [],
+        \ 'without':             function('esearch#util#without')
         \})
 endfu
 
@@ -123,25 +126,31 @@ fu! esearch#out#win#trigger_key_press()
   call feedkeys("g\<ESC>", 'n')
 endfu
 
+fu! esearch#out#win#merge_data(data)
+  let b:esearch.data += a:data
+endfu
+
 fu! esearch#out#win#update(data, ...) abort
   let ignore_batches = a:0 && a:1
-  let b:esearch.unparsed += a:data
 
-  call s:extend_results()
+  " let b:esearch.data += esearch#adapter#{b:esearch.adapter}#parse_results(
+  "       \ a:data, 0, len(a:data) -1, b:esearch.__broken_results, b:esearch.exp.vim)
 
-  let parsed_count = b:esearch.parsed_count
-  if parsed_count > b:esearch._lines_iterator
-    if ignore_batches || parsed_count - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
-      let parsed_range = [b:esearch._lines_iterator, parsed_count - 1]
-      let b:esearch._lines_iterator = parsed_count
+  let data_size = len(b:esearch.request.data)
+  if data_size > b:esearch._lines_iterator
+    if ignore_batches || data_size - b:esearch._lines_iterator - 1 <= g:esearch.batch_size
+      let from = b:esearch._lines_iterator
+      let to = data_size - 1
+      let b:esearch._lines_iterator = data_size
     else
-      let parsed_range = [b:esearch._lines_iterator, b:esearch._lines_iterator + g:esearch.batch_size - 1]
+      let from = b:esearch._lines_iterator
+      let to = b:esearch._lines_iterator + g:esearch.batch_size - 1
       let b:esearch._lines_iterator += g:esearch.batch_size
     endif
 
     setlocal noreadonly
     setlocal modifiable
-    call s:render_results(parsed_range)
+    call s:render_results(from, to)
     call setline(1, printf(s:header, b:esearch._lines_iterator))
     setlocal readonly
     setlocal nomodifiable
@@ -152,25 +161,19 @@ fu! esearch#out#win#update(data, ...) abort
   let b:esearch._last_update_time = esearch#util#timenow()
 endfu
 
-fu! s:extend_results() abort
-  if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
-    let from = len(b:esearch.parsed)
-    let to = len(b:esearch.unparsed)-1
-    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
-          \ b:esearch.unparsed, from, to, b:esearch.__broken_results, b:esearch.exp.vim)
-    " TODO replace b:esearch.parsed with b:esearch.parsed_count
-    call extend(b:esearch.parsed, parsed)
-    let b:esearch.parsed_count = len(b:esearch.parsed)
-  endif
-endfu
-
-fu! s:render_results(parsed_range) abort
+fu! s:render_results(from, to) abort
   let line = line('$') + 1
-  let i = a:parsed_range[0]
-  let limit = a:parsed_range[1] + 1
+
+  let data = b:esearch.request.data
+  let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
+        \ data, a:from, a:to, b:esearch.__broken_results, b:esearch.exp.vim)
+
+  let i = 0
+  let limit = len(parsed)
+
   while i < limit
-    let fname    = substitute(b:esearch.parsed[i].fname, b:esearch.cwd.'/', '', '')
-    let context  = s:context(b:esearch.parsed[i].text)
+    let fname    = substitute(parsed[i].fname, b:esearch.cwd.'/', '', '')
+    let context  = s:context(parsed[i].text)
 
     if fname !=# b:esearch.prev_filename
       call setline(line, '')
@@ -178,8 +181,8 @@ fu! s:render_results(parsed_range) abort
       call setline(line, fname)
       let line += 1
     endif
-    call setline(line, ' '.printf('%3d', b:esearch.parsed[i].lnum).' '.context)
-    let b:esearch._columns[line] = b:esearch.parsed[i].col
+    call setline(line, ' '.printf('%3d', parsed[i].lnum).' '.context)
+    let b:esearch._columns[line] = parsed[i].col
     let b:esearch.prev_filename = fname
     let line += 1
     let i    += 1
@@ -360,4 +363,16 @@ fu! esearch#out#win#on_finish() abort
   setlocal readonly
   setlocal nomodifiable
   setlocal nomodified
+endfu
+
+fu! s:extend_results() abort
+  if len(b:esearch.parsed) < len(b:esearch.unparsed) && !empty(b:esearch.unparsed)
+    let from = len(b:esearch.parsed)
+    let to = len(b:esearch.unparsed)-1
+    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
+          \ b:esearch.unparsed, from, to, b:esearch.__broken_results, b:esearch.exp.vim)
+    " TODO replace b:esearch.parsed with b:esearch.parsed_count
+    call extend(b:esearch.parsed, parsed)
+    let b:esearch.parsed_count = len(b:esearch.parsed)
+  endif
 endfu

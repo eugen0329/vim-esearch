@@ -30,6 +30,9 @@ fu! esearch#adapter#ack#parse_results(...) abort
   return call('esearch#adapter#ag#parse_results', a:000)
 endfu
 
+fu! esearch#adapter#ack#requires_pty()
+  return 1
+endfu
 
 function! esearch#adapter#ack#sid()
   return maparg('<SID>', 'n')

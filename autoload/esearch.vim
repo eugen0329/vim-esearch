@@ -37,7 +37,8 @@ fu! esearch#init(...)
 
   let cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd, EscapeFunc)
 
-  let request = esearch#backend#{opts.backend}#init(cmd)
+  let requires_pty = esearch#adapter#{opts.adapter}#requires_pty()
+  let request = esearch#backend#{opts.backend}#init(cmd, requires_pty)
 
   call opts.set_default('out', g:esearch.out)
   let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size'), {
