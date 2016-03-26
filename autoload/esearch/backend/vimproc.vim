@@ -6,7 +6,7 @@ if !exists('g:esearch#backend#vimproc#read_timeout')
   let g:esearch#backend#vimproc#read_timeout = 100.0
 endif
 
-" Errors handles after
+" Errors are handled after
 if !exists('g:esearch#backend#vimproc#read_errors_timeout')
   let g:esearch#backend#vimproc#read_errors_timeout =
         \ g:esearch#backend#vimproc#read_timeout * 5
