@@ -1,3 +1,7 @@
+if !exists('g:esearch#backend#vimproc#updatetime')
+  let g:esearch#backend#vimproc#updatetime = 300.0
+endif
+
 fu! esearch#backend#vimproc#init(cmd) abort
   let pipe = vimproc#popen2(
         \ vimproc#util#iconv(a:cmd, &encoding, 'char'), 1)
@@ -15,6 +19,13 @@ endfu
 fu! esearch#backend#vimproc#init_events() abort
   au CursorMoved <buffer> call s:_on_cursor_moved()
   au CursorHold  <buffer> call s:_on_cursor_hold()
+
+  let b:updatetime_backup = &updatetime
+  au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+
+  let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
+  au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+        \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
 endfu
 
 fu! s:stdout() abort
@@ -67,6 +78,8 @@ fu! s:_on_cursor_moved() abort
   call esearch#out#{b:esearch.out}#update(data)
   if s:completed(data)
     call s:stderr()
+
+    let &updatetime = float2nr(b:updatetime_backup)
     call esearch#out#{b:esearch.out}#on_finish()
   endif
 endfu
@@ -77,6 +90,7 @@ fu! s:_on_cursor_hold()
 
   if s:completed(data)
     call s:stderr()
+    let &updatetime = float2nr(b:updatetime_backup)
     call esearch#out#{b:esearch.out}#on_finish()
   else
     call esearch#out#{b:esearch.out}#trigger_key_press()

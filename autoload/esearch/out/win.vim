@@ -53,13 +53,8 @@ fu! esearch#out#win#init(opts) abort
     let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
   endif
 
-  let b:updatetime_backup = &updatetime
-  let &updatetime = float2nr(g:esearch.updatetime)
   augroup ESearchWinAutocmds
     au! * <buffer>
-    au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-    au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
-          \ let &updatetime = float2nr(g:esearch.updatetime)
     call esearch#backend#{a:opts.backend}#init_events()
   augroup END
 
@@ -346,7 +341,6 @@ fu! esearch#out#win#on_finish() abort
   au! ESearchWinAutocmds * <buffer>
   unlet b:esearch.parsed b:esearch.unparsed b:esearch.prev_filename
         \ b:esearch._lines_iterator  b:esearch._last_update_time
-  let &updatetime = float2nr(b:updatetime_backup)
 
   setlocal noreadonly
   setlocal modifiable

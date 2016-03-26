@@ -1,11 +1,14 @@
 let s:jobs = {}
+if !exists('g:esearch#backend#nvim#ticks')
+  let g:esearch#backend#nvim#ticks = 3
+endif
 
 fu! esearch#backend#nvim#init(cmd) abort
   let job_id = jobstart(a:cmd, {
           \ 'on_stdout': function('s:stdout'),
           \ 'on_stderr': function('s:stderr'),
           \ 'on_exit':   function('s:exit'),
-          \ 'ticks':     g:esearch.ticks,
+          \ 'ticks':     g:esearch#backend#nvim#ticks,
           \ 'tick':      0,
           \ })
 
