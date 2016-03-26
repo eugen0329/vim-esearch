@@ -2,39 +2,29 @@ if !exists('g:esearch#backend#vimproc#updatetime')
   let g:esearch#backend#vimproc#updatetime = 300.0
 endif
 
-fu! esearch#backend#vimproc#init(cmd) abort
-  let pipe = vimproc#popen2(
-        \ vimproc#util#iconv(a:cmd, &encoding, 'char'), 1)
+fu! esearch#backend#vimproc#init(cmd, pty) abort
+  let pipe = vimproc#popen3(
+        \ vimproc#util#iconv(a:cmd, &encoding, 'char'), a:pty)
   call pipe.stdin.close()
 
   let request = {
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
-        \ 'pipe': pipe
+        \ 'pipe': pipe,
+        \ 'data': [],
         \}
 
   return request
 endfu
 
-fu! esearch#backend#vimproc#init_events() abort
-  au CursorMoved <buffer> call s:_on_cursor_moved()
-  au CursorHold  <buffer> call s:_on_cursor_hold()
-
-  let b:updatetime_backup = &updatetime
-  au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
-
-  let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
-  au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
-        \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
-endfu
-
 fu! s:read_data() abort
-  let pipe = b:esearch.request.pipe
+  let request = b:esearch.request
+  let pipe = request.pipe
 
   let stderr = pipe.stderr
   if !stderr.eof
     let errors = filter(
-          \ stderr.read_lines(-1, b:esearch.batch_size/3), "v:val !~ '^\\s*$'")
+          \ stderr.read_lines(-1, b:esearch.batch_size), "v:val !~ '^\\s*$'")
     if !empty(errors)
       let b:esearch.request.errors += errors
     endif
@@ -42,15 +32,12 @@ fu! s:read_data() abort
 
   let stdout = pipe.stdout
 
-  let data = filter(
-        \ stdout.read_lines(-1, b:esearch.batch_size), "v:val !~ '^\\s*$'")
+  let data = stdout.read_lines(-1, b:esearch.batch_size)
+  let request.data += data
 
   if stdout.eof
-    let request = b:esearc.request
-    let [request.cond, request.status] = pipe.waitpid()
+    " let [request.cond, request.status] = pipe.waitpid()
   endif
-
-  return data
 endfu
 
 " TODO write better errors handling
@@ -77,22 +64,21 @@ fu! s:_on_cursor_moved() abort
   if esearch#util#timenow() < &updatetime/1000.0 + b:esearch._last_update_time
     return -1
   endif
-  let data = s:read_data()
 
-  call esearch#out#{b:esearch.out}#update(data)
-  if s:completed(data)
-    " call s:stderr()
+  call s:read_data()
+  call esearch#out#{b:esearch.out}#update()
+
+  if s:completed(b:esearch.request.data)
     let &updatetime = float2nr(b:updatetime_backup)
     call esearch#out#{b:esearch.out}#on_finish()
   endif
 endfu
 
 fu! s:_on_cursor_hold()
-  let data = s:read_data()
-  call esearch#out#{b:esearch.out}#update(data)
+  call s:read_data()
+  call esearch#out#{b:esearch.out}#update()
 
-  if s:completed(data)
-    " call s:stderr()
+  if s:completed(b:esearch.request.data)
     let &updatetime = float2nr(b:updatetime_backup)
     call esearch#out#{b:esearch.out}#on_finish()
   else
@@ -114,3 +100,15 @@ fu! s:completed(data)
   return eof && b:esearch._lines_iterator == len(b:esearch.parsed)
 endfu
 
+
+fu! esearch#backend#vimproc#init_events() abort
+  au CursorMoved <buffer> call s:_on_cursor_moved()
+  au CursorHold  <buffer> call s:_on_cursor_hold()
+
+  let b:updatetime_backup = &updatetime
+  au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+
+  let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
+  au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+        \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
+endfu

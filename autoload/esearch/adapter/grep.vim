@@ -54,7 +54,7 @@ fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) a
   return results
 endfu
 
-fu! esearch#adapter#pt#requires_pty()
+fu! esearch#adapter#grep#requires_pty()
   return 1
 endfu
 
