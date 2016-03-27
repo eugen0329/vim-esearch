@@ -7,14 +7,8 @@ fu! esearch#opts#new(opts) abort
     elseif esearch#util#has_vimproc()
       let opts.backend = 'vimproc'
     else
-      call esearch#util#highlight('Error', 'ESearch plugin requires NeoVim job control or Vimproc plugin installed', 0)
-      echo ''
-      call esearch#util#highlight('Normal', 'Please, install NeoVim or add `')
-      call esearch#util#echom_plug_manager_cmd('Shougo/vimproc.vim')
-      call esearch#util#highlight('Normal', '` to ')
-      call esearch#util#highlight('Bold', '' ==# $MYVIMRC ? 'your vimrc' : $MYVIMRC, 0)
-      echo "See:\n\thttps://neovim.io/doc/user/job_control.html\n\thttps://github.com/Shougo/vimproc.vim"
-      return 0
+      call esearch#help#backend_dependencies()
+      return {}
     endif
   endif
 

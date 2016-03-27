@@ -115,6 +115,15 @@ fu! esearch#util#highlight(highlight, str, ...)
   endif
 endfu
 
+
+fu! esearch#util#hlecho(groups)
+  for group in a:groups
+    let str = len(group) == 1 ? '' : '| echon ' . string(group[1])
+    let highlight = 'echohl ' . group[0]
+    exe  highlight . str
+  endfor
+endfu
+
 " Used to build adapter query query
 fu! esearch#util#parametrize(key, ...) dict abort
   let option_index = g:esearch[a:key]
@@ -206,22 +215,16 @@ fu! esearch#util#has_vimproc() abort
   return s:exists_vimproc
 endfu
 
-fu! esearch#util#echom_plug_manager_cmd(plug)
+fu! esearch#util#recognize_plug_manager()
   if exists('*plug#begin')
-    call esearch#util#highlight('Cleared', 'Plug ')
-    call esearch#util#highlight('String', "'".a:plug."'", 0)
+    return 'Vundle'
   elseif exists('*neobundle#begin')
-    call esearch#util#highlight('Cleared', 'NeoBundle ')
-    call esearch#util#highlight('String', "'".a:plug."'", 0)
+    return 'NeoBundle'
   elseif exists('*dein#begin')
-    call esearch#util#highlight('Statement', 'call')
-    call esearch#util#highlight('Cleared', ' dein#add')
-    call esearch#util#highlight('Delimiter', '(')
-    call esearch#util#highlight('String', "'".a:plug."'")
-    call esearch#util#highlight('Delimiter', ')', 0)
+    return 'Dein'
   elseif exists('*vundle#begin')
-    call esearch#util#highlight('Cleared', 'Plug ')
-    call esearch#util#highlight('String', "'".a:plug."'", 0)
+    return 'Vundle'
   elseif exists('*pathogen#infect')
+    return 'Pathogen'
   endif
 endfu

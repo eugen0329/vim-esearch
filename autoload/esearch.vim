@@ -1,9 +1,9 @@
 fu! esearch#init(...)
   if !exists('g:loaded_esearch_config')
     let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})
+    if empty(g:esearch) | return 1 | endif
     let g:loaded_esearch_config = 1
   endif
-  if empty(g:esearch) | return 1 | endif
 
   let opts = a:0 ? a:1 : {}
   let source_params = {
