@@ -89,6 +89,9 @@ fu! s:completed(data)
         \ b:esearch.data_ptr == len(b:esearch.request.data)
 endfu
 
+fu! s:abort_job(buf)
+  call getbufvar(a:buf, 'esearch').request.pipe.kill(g:vimproc#SIGTERM)
+endfu
 
 fu! esearch#backend#vimproc#init_events() abort
   au CursorMoved <buffer> call s:_on_cursor_moved()
@@ -100,4 +103,6 @@ fu! esearch#backend#vimproc#init_events() abort
   let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
   au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
         \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
+
+  au BufUnload <buffer> call s:abort_job(str2nr(expand('<abuf>')))
 endfu
