@@ -205,3 +205,23 @@ fu! esearch#util#has_vimproc() abort
   endif
   return s:exists_vimproc
 endfu
+
+fu! esearch#util#echom_plug_manager_cmd(plug)
+  if exists('*plug#begin')
+    call esearch#util#highlight('Cleared', 'Plug ')
+    call esearch#util#highlight('String', "'".a:plug."'", 0)
+  elseif exists('*neobundle#begin')
+    call esearch#util#highlight('Cleared', 'NeoBundle ')
+    call esearch#util#highlight('String', "'".a:plug."'", 0)
+  elseif exists('*dein#begin')
+    call esearch#util#highlight('Statement', 'call')
+    call esearch#util#highlight('Cleared', ' dein#add')
+    call esearch#util#highlight('Delimiter', '(')
+    call esearch#util#highlight('String', "'".a:plug."'")
+    call esearch#util#highlight('Delimiter', ')', 0)
+  elseif exists('*vundle#begin')
+    call esearch#util#highlight('Cleared', 'Plug ')
+    call esearch#util#highlight('String', "'".a:plug."'", 0)
+  elseif exists('*pathogen#infect')
+  endif
+endfu

@@ -1,9 +1,9 @@
 fu! esearch#init(...)
   if !exists('g:loaded_esearch_config')
     let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})
-    if empty(g:esearch) | return 1 | endif
     let g:loaded_esearch_config = 1
   endif
+  if empty(g:esearch) | return 1 | endif
 
   let opts = a:0 ? a:1 : {}
   let source_params = {
@@ -20,8 +20,6 @@ fu! esearch#init(...)
   call opts.set_default('cwd', $PWD)
   call opts.set_default('adapter', g:esearch.adapter)
 
-  " echo opts
-  " call getchar()
   if !has_key(opts, 'exp')
     let opts.exp = esearch#cmdline#_read(g:esearch.last_exp, opts.cwd, esearch#adapter#{opts.adapter}#options())
     if empty(opts.exp)
