@@ -98,7 +98,7 @@ fu! esearch#util#without_val(val) dict abort
 endfu
 
 fu! esearch#util#require(...) dict abort
-  return filter(copy(self), 'index(a:000, v:key) >= 0')
+  return filter(deepcopy(self), 'index(a:000, v:key) >= 0')
 endfu
 
 fu! esearch#util#set_default(key, default) dict abort

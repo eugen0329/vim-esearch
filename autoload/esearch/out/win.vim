@@ -58,7 +58,7 @@ fu! esearch#out#win#init(opts) abort
   augroup ESearchWinAutocmds
     au! * <buffer>
     for [func_name, event] in items(a:opts.request.events)
-      exe printf('au User %s call esearch#out#win#%s()', event, func_name)
+      exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
     endfor
     call esearch#backend#{a:opts.backend}#init_events()
   augroup END
@@ -69,7 +69,7 @@ fu! esearch#out#win#init(opts) abort
   let &iskeyword = g:esearch.wordchars
   setlocal noreadonly
   setlocal modifiable
-  exe '1,$d'
+  exe '1,$d_'
   call setline(1, printf(s:header, 0))
   setlocal readonly
   setlocal nomodifiable
@@ -80,7 +80,7 @@ fu! esearch#out#win#init(opts) abort
 
   let b:esearch = extend(a:opts, {
         \ 'prev_filename':       '',
-        \ 'data_ptr':     0,
+        \ 'ignore_batches':     0,
         \ '_columns':            {},
         \ '_match_highlight_id': match_highlight_id,
         \ '__broken_results':    [],
@@ -88,6 +88,14 @@ fu! esearch#out#win#init(opts) abort
         \ 'data':                [],
         \ 'without':             function('esearch#util#without')
         \})
+
+  let b:esearch.request.out_attached = 1
+  let b:esearch.request.data_ptr = 0
+  let b:esearch.request.out_finish = function('s:render_finished')
+endfu
+
+fu! s:render_finished() dict abort
+  return self.data_ptr == len(self.data)
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
@@ -121,44 +129,45 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
-fu! esearch#out#win#trigger_key_press()
+fu! esearch#out#win#trigger_key_press(...)
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
 endfu
 
-fu! esearch#out#win#merge_data(data)
-  let b:esearch.data += a:data
-endfu
+fu! esearch#out#win#update(bufnr) abort
+  if a:bufnr != bufnr('%')
+    return 1
+  endif
 
-fu! esearch#out#win#update(...) abort
-  let ignore_batches = a:0 && a:1
+  let esearch = getbufvar(a:bufnr, 'esearch')
+  let ignore_batches = esearch.ignore_batches
+  let request = esearch.request
 
-  let data = b:esearch.request.data
+  let data = esearch.request.data
   let data_size = len(data)
-  if data_size > b:esearch.data_ptr
-    if ignore_batches || data_size - b:esearch.data_ptr - 1 <= g:esearch.batch_size
-      let [from,to] = [b:esearch.data_ptr, data_size - 1]
-      let b:esearch.data_ptr = data_size
+  if data_size > request.data_ptr
+    if ignore_batches || data_size - request.data_ptr - 1 <= esearch.batch_size
+      let [from,to] = [request.data_ptr, data_size - 1]
+      let request.data_ptr = data_size
     else
-      let [from, to] = [b:esearch.data_ptr, b:esearch.data_ptr + g:esearch.batch_size - 1]
-      let b:esearch.data_ptr += g:esearch.batch_size
+      let [from, to] = [request.data_ptr, request.data_ptr + esearch.batch_size - 1]
+      let request.data_ptr += esearch.batch_size
     endif
 
-    let parsed = esearch#adapter#{b:esearch.adapter}#parse_results(
-          \ data, from, to, b:esearch.__broken_results, b:esearch.exp.vim)
-
+    let parsed = esearch#adapter#{esearch.adapter}#parse_results(
+          \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
     setlocal noreadonly
     setlocal modifiable
-    call s:render_results(parsed)
-    call setline(1, printf(s:header, b:esearch.data_ptr))
+    call s:render_results(parsed, esearch)
+    call setline(1, printf(s:header, request.data_ptr))
     setlocal readonly
     setlocal nomodifiable
     setlocal nomodified
   endif
 endfu
 
-fu! s:render_results(parsed) abort
+fu! s:render_results(parsed, esearch) abort
   let line = line('$') + 1
   let parsed = a:parsed
 
@@ -166,26 +175,28 @@ fu! s:render_results(parsed) abort
   let limit = len(parsed)
 
   while i < limit
-    let fname    = substitute(parsed[i].fname, b:esearch.cwd.'/', '', '')
-    let context  = s:context(parsed[i].text)
+    let fname    = substitute(parsed[i].fname, a:esearch.cwd.'/', '', '')
+    let context  = s:context(parsed[i].text, a:esearch)
 
-    if fname !=# b:esearch.prev_filename
+    if fname !=# a:esearch.prev_filename
       call setline(line, '')
       let line += 1
       call setline(line, fname)
       let line += 1
     endif
+
     call setline(line, ' '.printf('%3d', parsed[i].lnum).' '.context)
-    let b:esearch._columns[line] = parsed[i].col
-    let b:esearch.prev_filename = fname
+    let a:esearch._columns[line] = parsed[i].col
+    let a:esearch.prev_filename = fname
     let line += 1
     let i    += 1
   endwhile
 endfu
 
-fu! s:context(line)
+fu! s:context(line, esearch)
+  " TODO g: replace with a:
   return esearch#util#btrunc(a:line,
-                           \ match(a:line, b:esearch.exp.vim),
+                           \ match(a:line, a:esearch.exp.vim),
                            \ g:esearch.context_width.l,
                            \ g:esearch.context_width.r)
 endfu
@@ -333,23 +344,25 @@ fu! s:is_filename()
   return getline(line('.')) =~# s:filename_pattern
 endfu
 
-fu! esearch#out#win#finish() abort
-  au! ESearchWinAutocmds * <buffer>
-  for [func_name, event] in items(b:esearch.request.events)
+fu! esearch#out#win#finish(bufnr) abort
+  let esearch = getbufvar(a:bufnr, 'esearch')
+  " let esearch.ignore_batches = 1
+
+  au! ESearchWinAutocmds *
+  for [func_name, event] in items(esearch.request.events)
     exe printf('au! ESearchWinAutocmds User %s ', event)
   endfor
 
-  let ignore_batches = 1
-  call esearch#out#win#update(ignore_batches)
+  call esearch#out#win#update(a:bufnr)
 
-  unlet b:esearch.prev_filename b:esearch.data_ptr
+  " unlet esearch.prev_filename "esearch.data_ptr
   setlocal noreadonly
   setlocal modifiable
 
-  if has_key(b:esearch.request, 'errors') && len(b:esearch.request.errors)
-    call setline(1, 'ERRORS (' .len(b:esearch.request.errors).')')
+  if has_key(esearch.request, 'errors') && len(esearch.request.errors)
+    call setline(1, 'ERRORS (' .len(esearch.request.errors).')')
     let line = 2
-    for err in b:esearch.request.errors
+    for err in esearch.request.errors
       call setline(line, "\t".err)
       let line += 1
     endfor

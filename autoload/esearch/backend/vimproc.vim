@@ -23,6 +23,7 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
   let request = {
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
+        \ 'out_attached': 0,
         \ 'pipe': pipe,
         \ 'data': [],
         \ 'errors': [],
@@ -36,16 +37,19 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
 
   exe 'aug ESearchVimproc'.s:requests_counter
     au!
-    
+    exe 'au CursorMoved * call s:_on_cursor_moved('.s:requests_counter.')'
+    exe 'au CursorHold  * call s:_on_cursor_hold('.s:requests_counter.')'
   aug END
-  let s:requests[s:requests_counter] = { 'request': request }
+
+  " let s:requests[s:requests_counter] = { 'request': request }
+  let s:requests[s:requests_counter] = request
   let s:requests_counter += 1
 
   return request
 endfu
 
-fu! s:read_data() abort
-  let request = b:esearch.request
+fu! s:read_data(request) abort
+  let request = a:request
   let data = request.pipe.stdout.read_lines(-1, g:esearch#backend#vimproc#read_timeout)
   let request.data += data
 endfu
@@ -54,44 +58,48 @@ fu! esearch#backend#vimproc#escape_cmd(cmd)
   return esearch#util#shellescape(a:cmd)
 endfu
 
-fu! s:read_errors()
-  let stderr = b:esearch.request.pipe.stderr
+fu! s:read_errors(request)
+  let stderr = a:request.pipe.stderr
   if !stderr.eof
     let errors = filter(
           \ stderr.read_lines(-1, g:esearch#backend#vimproc#read_errors_timeout),
           \ "v:val !~ '^\\s*$'")
-    let b:esearch.request.errors += errors
+    let a:request.errors += errors
   endif
 endfu
 
 fu! s:_on_cursor_moved(...) abort
-  if esearch#util#timenow() < &updatetime/1000.0 + b:esearch.request._last_update_time
+  let request = s:requests[a:1]
+
+  if esearch#util#timenow() < &updatetime/1000.0 + request._last_update_time
     return -1
   endif
 
-  call s:read_data()
-  exe 'do User '.b:esearch.request.events.update
-  let besearch.request._last_update_time = esearch#util#timenow()
+  call s:read_data(request)
+  exe 'do User '.request.events.update
+  let request._last_update_time = esearch#util#timenow()
 
-  if s:completed(b:esearch.request.data)
-    call s:read_errors()
-    let &updatetime = float2nr(b:updatetime_backup)
-    exe 'do User '.b:esearch.request.events.finish
+  if s:completed(request)
+    call s:finish(request)
   endif
 endfu
 
+fu! s:finish(request)
+  call s:read_errors(a:request)
+  " let &updatetime = float2nr(b:updatetime_backup)
+  exe 'do User '.a:request.events.finish
+endfu
+
 fu! s:_on_cursor_hold(...)
-  call s:read_data()
+  let request = s:requests[a:1]
+  call s:read_data(request)
 
-  let besearch = b:esearch
-  let events = besearch.request.events
+  let events = request.events
   exe 'do User '.events.update
-  let besearch.request._last_update_time = esearch#util#timenow()
+  let request._last_update_time = esearch#util#timenow()
 
-  if s:completed(b:esearch.request.data)
-    call s:read_errors()
-    let &updatetime = float2nr(b:updatetime_backup)
-    exe 'do User '.events.finish
+  if s:completed(request)
+    call s:finish(request)
   else
     exe 'do User '.events.trigger_key_press
   endif
@@ -103,9 +111,9 @@ endfunction
 nnoremap <SID>  <SID>
 
 " TODO
-fu! s:completed(data)
-  return b:esearch.request.pipe.stdout.eof &&
-        \ b:esearch.data_ptr == len(b:esearch.request.data)
+fu! s:completed(request)
+  return a:request.pipe.stdout.eof &&
+        \ (!a:request.out_attached || a:request.out_finish())
 endfu
 
 fu! esearch#backend#vimproc#abort(request) abort
@@ -113,14 +121,18 @@ fu! esearch#backend#vimproc#abort(request) abort
 endfu
 
 fu! esearch#backend#vimproc#init_events() abort
-  au CursorMoved <buffer> call s:_on_cursor_moved()
-  au CursorHold  <buffer> call s:_on_cursor_hold()
+  " exe 'au CursorMoved <buffer> call s:_on_cursor_moved()'
+  " exe 'au CursorHold  <buffer> call s:_on_cursor_hold()'
 
   let b:updatetime_backup = &updatetime
-  au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+  " au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
+  au BufLeave    <buffer> let  &updatetime = getbufvar(str2nr(expand('<abuf>')), 'updatetime_backup')
+
 
   let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
-  au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+  " au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
+  "       \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
+  au BufEnter    <buffer> call setbufvar(str2nr(expand('<abuf>')), 'updatetime_backup', &updatetime) |
         \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
 
 
