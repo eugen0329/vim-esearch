@@ -20,19 +20,24 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ vimproc#util#iconv(a:cmd, &encoding, 'char'), a:pty)
   call pipe.stdin.close()
 
-
   let request = {
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
         \ 'pipe': pipe,
         \ 'data': [],
         \ 'errors': [],
+        \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
         \   'finish':            'ESearchVimProcFinish'.s:requests_counter,
         \   'update':            'ESearchVimProcUpdate'.s:requests_counter,
         \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:requests_counter
         \ }
         \}
+
+  exe 'aug ESearchVimproc'.s:requests_counter
+    au!
+    
+  aug END
   let s:requests[s:requests_counter] = { 'request': request }
   let s:requests_counter += 1
 
@@ -59,13 +64,14 @@ fu! s:read_errors()
   endif
 endfu
 
-fu! s:_on_cursor_moved() abort
-  if esearch#util#timenow() < &updatetime/1000.0 + b:esearch._last_update_time
+fu! s:_on_cursor_moved(...) abort
+  if esearch#util#timenow() < &updatetime/1000.0 + b:esearch.request._last_update_time
     return -1
   endif
 
   call s:read_data()
   exe 'do User '.b:esearch.request.events.update
+  let besearch.request._last_update_time = esearch#util#timenow()
 
   if s:completed(b:esearch.request.data)
     call s:read_errors()
@@ -74,11 +80,13 @@ fu! s:_on_cursor_moved() abort
   endif
 endfu
 
-fu! s:_on_cursor_hold()
+fu! s:_on_cursor_hold(...)
   call s:read_data()
 
-  let events = b:esearch.request.events
+  let besearch = b:esearch
+  let events = besearch.request.events
   exe 'do User '.events.update
+  let besearch.request._last_update_time = esearch#util#timenow()
 
   if s:completed(b:esearch.request.data)
     call s:read_errors()

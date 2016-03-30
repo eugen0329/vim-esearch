@@ -83,7 +83,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'data_ptr':     0,
         \ '_columns':            {},
         \ '_match_highlight_id': match_highlight_id,
-        \ '_last_update_time':   esearch#util#timenow(),
         \ '__broken_results':    [],
         \ 'errors':              [],
         \ 'data':                [],
@@ -157,8 +156,6 @@ fu! esearch#out#win#update(...) abort
     setlocal nomodifiable
     setlocal nomodified
   endif
-
-  let b:esearch._last_update_time = esearch#util#timenow()
 endfu
 
 fu! s:render_results(parsed) abort
@@ -345,8 +342,7 @@ fu! esearch#out#win#finish() abort
   let ignore_batches = 1
   call esearch#out#win#update(ignore_batches)
 
-  unlet b:esearch.prev_filename b:esearch.data_ptr  b:esearch._last_update_time
-
+  unlet b:esearch.prev_filename b:esearch.data_ptr
   setlocal noreadonly
   setlocal modifiable
 
