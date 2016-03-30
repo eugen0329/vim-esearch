@@ -105,11 +105,6 @@ fu! s:_on_cursor_hold(request_id)
   endif
 endfu
 
-function! esearch#backend#vimproc#sid()
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>
-
 fu! s:completed(request)
   return a:request.pipe.stdout.eof &&
         \ (!a:request.out_attached || a:request.out_finish())
@@ -130,3 +125,12 @@ fu! esearch#backend#vimproc#init_events() abort
   au BufUnload <buffer>
         \ call esearch#backend#vimproc#abort(getbufvar(str2nr(expand('<abuf>')), 'esearch').request)
 endfu
+
+
+function! esearch#backend#vimproc#sid()
+  return maparg('<SID>', 'n')
+endfunction
+function! esearch#backend#vimproc#scope()
+  return s:
+endfunction
+nnoremap <SID>  <SID>

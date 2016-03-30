@@ -15,18 +15,26 @@ context 'esearch' do
 
       puts "\n"*2, "#"*10, "G:ESEARCH"
       dump('g:esearch')
-      puts "\n"*2, "#"*10, "B:ESEARCH"
-      dump('b:esearch')
+      puts "\n"*2, "#"*10, "B:ESEARCH.without('request')"
+      dump('b:esearch.without("request")')
       puts "\n"*2, "#"*10, "REQUEST"
       dump('b:esearch.request')
       puts "\n"*2, "#"*10, "RTP"
       dump('&rtp')
 
+      puts "\n"*2, "#"*10, "[UPDATETIME]"
+      dump('&ut')
+
       puts "\n"*2, "#"*10, "SCRIPTNAMES"
       puts cmd('scriptnames')
 
-      puts "\n"*2, "#"*10, "[UPDATETIME]"
-      dump('&ut')
+      puts "\n"*2, "#"*10, "au User"
+      puts cmd('au User')
+
+      sc = expr("esearch#backend#vimproc#scope()")
+      s = expr("esearch#backend#vimproc#sid()")
+      puts "\n"*2, "#"*10, "s:completed(s:requests[0])"
+      puts expr("#{s}completed(#{sc}.requests[0])")
     end
   end
 
