@@ -35,6 +35,8 @@ context 'esearch' do
       s = expr("esearch#backend#vimproc#sid()")
       puts "\n"*2, "#"*10, "s:completed(s:requests[0])"
       puts expr("#{s}completed(#{sc}.requests[0])")
+      puts "\n"*2, "#"*10, "[len(request.data), request.data_ptr, request.out_finish()]"
+      puts expr("[len(#{sc}.requests[0]), #{sc}.requests[0].data_ptr, #{sc}.requests[0].out_finish()]")
     end
   end
 
