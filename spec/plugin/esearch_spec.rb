@@ -38,6 +38,7 @@ context 'esearch' do
 
   describe '#init' do
     it 'works without args' do
+      press 'cd spec/fixtures/plugin/<Enter>'
       press ':call esearch#init()<Enter>asd<Enter>'
 
       expected = expect do
@@ -48,8 +49,7 @@ context 'esearch' do
         "Expected ESearch win will be opened in #{win_open_quota}"
 
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
-      expect { line(1) =~ /Finish/i }.to become_true_within(60.second),
-        "Expected first line to match /Finish/, got #{line(1)}"
+      expect { line(1) =~ /Finish/i }.to become_true_within(120.second), -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
       expect(bufname("%")).to match(/Search/)
     end
 
