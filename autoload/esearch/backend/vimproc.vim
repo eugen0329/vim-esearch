@@ -17,12 +17,23 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ vimproc#util#iconv(a:cmd, &encoding, 'char'), a:pty)
   call pipe.stdin.close()
 
+  if !exists('s:request_counter')
+    let s:request_counter = 0
+  endif
+
+  let s:request_counter += 1
+
   let request = {
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
         \ 'pipe': pipe,
         \ 'data': [],
         \ 'errors': [],
+        \ 'events': {
+        \   'finish':            'ESearchVimProcFinish'.s:request_counter,
+        \   'update':            'ESearchVimProcUpdate'.s:request_counter,
+        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:request_counter
+        \ }
         \}
 
   return request
@@ -54,25 +65,27 @@ fu! s:_on_cursor_moved() abort
   endif
 
   call s:read_data()
-  call esearch#out#{b:esearch.out}#update()
+  exe 'doau User '.b:esearch.request.events.update
 
   if s:completed(b:esearch.request.data)
     call s:read_errors()
     let &updatetime = float2nr(b:updatetime_backup)
-    call esearch#out#{b:esearch.out}#on_finish()
+    exe 'doau User '.b:esearch.request.events.finish
   endif
 endfu
 
 fu! s:_on_cursor_hold()
   call s:read_data()
-  call esearch#out#{b:esearch.out}#update()
+
+  let events = b:esearch.request.events
+  exe 'doau User '.events.update
 
   if s:completed(b:esearch.request.data)
     call s:read_errors()
     let &updatetime = float2nr(b:updatetime_backup)
-    call esearch#out#{b:esearch.out}#on_finish()
+    exe 'doau User '.events.finish
   else
-    call esearch#out#{b:esearch.out}#trigger_key_press()
+    exe 'doau User '.events.trigger_key_press
   endif
 endfu
 

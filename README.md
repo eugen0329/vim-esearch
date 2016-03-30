@@ -7,13 +7,13 @@ SublimeText, Atom et al.
 
 ## Installation
 ESearch has builtin support for
-[Ag](https://github.com/ggreer/the_silver_searcher#installing)(The Silver Searcher),
-[Ack](http://beyondgrep.com/install/),
+[ag](https://github.com/ggreer/the_silver_searcher#installing)(The Silver Searcher),
+[ack](http://beyondgrep.com/install/),
 [pt](https://github.com/monochromegane/the_platinum_searcher#installation)(The Platinum Searcher) and
 native \*nix util [grep](http://linux.die.net/man/1/grep).
 
 
-In your [~/.config/nvim/init.vim](https://neovim.io/doc/user/nvim_from_vim.html) or `.vimrc`:
+In your [~/.config/nvim/init.vim](https://neovim.io/doc/user/nvim_from_vim.html) or `~/.vimrc`:
 ```vim
 Plugin 'eugen0329/vim-esearch'
 ```
@@ -37,7 +37,7 @@ case **S**esnsitive, **W**ord regex).
 ## Customization
 
 ###Mappings
-In `~/.config/nvim/init.vim` / `.vimrc`:
+In `~/.config/nvim/init.vim` / `~/.vimrc`:
 
 Use the following functions to redefine default mappings:
 

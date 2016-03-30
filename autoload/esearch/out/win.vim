@@ -50,12 +50,16 @@ fu! esearch#out#win#init(opts) abort
         call matchdelete(b:esearch._match_highlight_id)
       catch /E803:/
       endtry
+      unlet b:esearch
     endif
     let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
   endif
 
   augroup ESearchWinAutocmds
     au! * <buffer>
+    for [func_name, event] in items(a:opts.request.events)
+      exe printf('au User %s call esearch#out#win#%s()', event, func_name)
+    endfor
     call esearch#backend#{a:opts.backend}#init_events()
   augroup END
 
@@ -332,10 +336,16 @@ fu! s:is_filename()
   return getline(line('.')) =~# s:filename_pattern
 endfu
 
-fu! esearch#out#win#on_finish() abort
+fu! esearch#out#win#finish() abort
   au! ESearchWinAutocmds * <buffer>
-  unlet b:esearch.prev_filename b:esearch.request.data
-        \ b:esearch.data_ptr  b:esearch._last_update_time
+  for [func_name, event] in items(b:esearch.request.events)
+    exe printf('au! ESearchWinAutocmds User %s ', event)
+  endfor
+
+  let ignore_batches = 1
+  call esearch#out#win#update(ignore_batches)
+
+  unlet b:esearch.prev_filename b:esearch.data_ptr  b:esearch._last_update_time
 
   setlocal noreadonly
   setlocal modifiable
