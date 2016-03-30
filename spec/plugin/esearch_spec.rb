@@ -22,8 +22,11 @@ context 'esearch' do
       puts "\n"*2, "#"*10, "RTP"
       dump('&rtp')
 
-      puts "\n"*2, "#"*10, "RTP"
+      puts "\n"*2, "#"*10, "SCRIPTNAMES"
       puts cmd('scriptnames')
+
+      puts "\n"*2, "#"*10, "[UPDATETIME]"
+      dump('&ut')
     end
   end
 
@@ -45,7 +48,7 @@ context 'esearch' do
         "Expected ESearch win will be opened in #{win_open_quota}"
 
       expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
-      expect { line(1) =~ /Finish/i }.to become_true_within(15.second),
+      expect { line(1) =~ /Finish/i }.to become_true_within(60.second),
         "Expected first line to match /Finish/, got #{line(1)}"
       expect(bufname("%")).to match(/Search/)
     end
