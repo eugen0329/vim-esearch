@@ -121,20 +121,12 @@ fu! esearch#backend#vimproc#abort(request) abort
 endfu
 
 fu! esearch#backend#vimproc#init_events() abort
-  " exe 'au CursorMoved <buffer> call s:_on_cursor_moved()'
-  " exe 'au CursorHold  <buffer> call s:_on_cursor_hold()'
-
   let b:updatetime_backup = &updatetime
-  " au BufLeave    <buffer> let  &updatetime = b:updatetime_backup
   au BufLeave    <buffer> let  &updatetime = getbufvar(str2nr(expand('<abuf>')), 'updatetime_backup')
 
-
   let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
-  " au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
-  "       \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
   au BufEnter    <buffer> call setbufvar(str2nr(expand('<abuf>')), 'updatetime_backup', &updatetime) |
         \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
-
 
   au BufUnload <buffer>
         \ call esearch#backend#vimproc#abort(getbufvar(str2nr(expand('<abuf>')), 'esearch').request)

@@ -129,7 +129,7 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
-fu! esearch#out#win#trigger_key_press(...)
+fu! esearch#out#win#trigger_key_press(_)
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
 endfu
@@ -194,11 +194,10 @@ fu! s:render_results(parsed, esearch) abort
 endfu
 
 fu! s:context(line, esearch)
-  " TODO g: replace with a:
   return esearch#util#btrunc(a:line,
                            \ match(a:line, a:esearch.exp.vim),
-                           \ g:esearch.context_width.l,
-                           \ g:esearch.context_width.r)
+                           \ a:esearch.context_width.l,
+                           \ a:esearch.context_width.r)
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
@@ -344,18 +343,37 @@ fu! s:is_filename()
   return getline(line('.')) =~# s:filename_pattern
 endfu
 
-fu! esearch#out#win#finish(bufnr) abort
-  let esearch = getbufvar(a:bufnr, 'esearch')
-  " let esearch.ignore_batches = 1
+" Use this function for #backend#nvim. It has no truly async handlers, so data
+" needs to be updated entirely (instantly or with BufEnter autocmd, if results
+" buffer isn't current buffer)
+fu! esearch#out#win#forced_finish(bufnr)
+  if a:bufnr != bufnr('%')
+    exe 'aug ESearchWinAutocmds'
+      let nr = string(a:bufnr)
+      exe printf('au BufEnter <buffer=%s> call esearch#out#win#finish(%s)', nr, nr)
+    aug END
+    return 1
+  else
+    call esearch#out#win#finish(a:bufnr)
+  endif
+endfu
 
-  au! ESearchWinAutocmds *
+fu! esearch#out#win#finish(bufnr) abort
+  if a:bufnr != bufnr('%')
+    return 1
+  endif
+
+  let esearch = getbufvar(a:bufnr, 'esearch')
+
+  au! ESearchWinAutocmds * <buffer>
   for [func_name, event] in items(esearch.request.events)
     exe printf('au! ESearchWinAutocmds User %s ', event)
   endfor
 
+  " Update using all remaining request.data
+  let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  " unlet esearch.prev_filename "esearch.data_ptr
   setlocal noreadonly
   setlocal modifiable
 

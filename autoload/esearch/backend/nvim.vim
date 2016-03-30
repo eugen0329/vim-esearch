@@ -22,7 +22,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'data':     [],
         \ 'finished': 0,
         \ 'events': {
-        \   'finish': 'ESearchNVimFinish'.job_id,
+        \   'forced_finish': 'ESearchNVimFinish'.job_id,
         \   'update': 'ESearchNVimUpdate'.job_id
         \ }
         \}
@@ -74,7 +74,7 @@ fu! s:exit(job_id, status, event)
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  exe 'do User '.job.request.events.finish
+  exe 'do User '.job.request.events.forced_finish
 endfu
 
 " TODO write expansion for commands

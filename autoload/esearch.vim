@@ -39,7 +39,7 @@ fu! esearch#init(...)
   let request = esearch#backend#{opts.backend}#init(cmd, requires_pty)
 
   call opts.set_default('out', g:esearch.out)
-  call opts.set_default('out', g:esearch.context_width)
+  call opts.set_default('context_width', g:esearch.context_width)
   let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size', 'context_width'), {
         \ 'bufname': s:outbufname(pattern),
         \ 'request': request,
