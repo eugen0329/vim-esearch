@@ -43,7 +43,7 @@ context 'esearch' do
 
       cmd "let g:esearch = { 'batch_size': 2, 'backend': 'vimproc', 'adapter': 'grep'}"
 
-      press ':call esearch#init()<Enter>asd<Enter>'
+      press ':call esearch#init()<Enter>lorem<Enter>'
 
       expected = expect do
         press("<Nop>") # to skip "Press ENTER or type command to continue" prompt
@@ -52,7 +52,7 @@ context 'esearch' do
       expected.to become_true_within(win_open_quota.second),
         "Expected ESearch win will be opened in #{win_open_quota}"
 
-      expect(expr('b:esearch.cwd')).to eq(expr('$PWD'))
+      expect(expr('b:esearch.cwd')).to eq(expr('getcwd()'))
       expect { line(1) =~ /Finish/i }.to become_true_within(120.second), -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
       expect(bufname("%")).to match(/Search/)
     end

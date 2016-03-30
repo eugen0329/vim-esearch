@@ -17,7 +17,7 @@ fu! esearch#init(...)
         \ 'require': function('esearch#util#require')
         \})
 
-  call opts.set_default('cwd', $PWD)
+  call opts.set_default('cwd', getcwd())
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
