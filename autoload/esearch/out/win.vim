@@ -97,6 +97,10 @@ fu! esearch#out#win#init(opts) abort
 endfu
 
 fu! s:is_entirely_parsed() dict abort
+  if !has_key(g:, 'test')
+    let g:test = []
+  endif
+  call add(g:test, [self, get(self, 'data_ptr', -1), get(self, 'data', -1)])
   return self.data_ptr == len(self.data)
 endfu
 

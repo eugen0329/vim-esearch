@@ -106,6 +106,11 @@ fu! s:_on_cursor_hold(request_id)
 endfu
 
 fu! s:completed(request) abort
+  if !has_key(g:, 'test')
+    let g:test = []
+  endif
+
+  call add(g:test, {'has_key(a:request, "out_finish")': has_key(a:request, "out_finish")})
   return a:request.pipe.stdout.eof &&
         \ (!a:request.out_attached || a:request.out_finish())
 endfu

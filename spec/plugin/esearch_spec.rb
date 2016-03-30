@@ -40,6 +40,7 @@ context 'esearch' do
       puts cmd("echo [#{sc}.requests[0].data_ptr]")
       puts cmd("echo has_key(#{sc}.requests[0], 'out_finish')")
       puts cmd("echo [#{sc}.requests[0].out_finish()]")
+      dump('g:test')
     end
   end
 
