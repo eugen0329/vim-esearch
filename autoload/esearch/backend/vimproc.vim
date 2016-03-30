@@ -110,7 +110,6 @@ function! esearch#backend#vimproc#sid()
 endfunction
 nnoremap <SID>  <SID>
 
-" TODO
 fu! s:completed(request)
   return a:request.pipe.stdout.eof &&
         \ (!a:request.out_attached || a:request.out_finish())

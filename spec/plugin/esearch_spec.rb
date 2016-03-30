@@ -38,7 +38,11 @@ context 'esearch' do
 
   describe '#init' do
     it 'works without args' do
-      press 'cd spec/fixtures/plugin/<Enter>'
+      press ':cd $PWD<ENTER>'
+      press ':cd spec/fixtures/plugin/<ENTER>'
+
+      cmd "let g:esearch = { 'batch_size': 2, 'backend': 'vimproc', 'adapter': 'grep'}"
+
       press ':call esearch#init()<Enter>asd<Enter>'
 
       expected = expect do
