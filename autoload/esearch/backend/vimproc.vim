@@ -68,8 +68,8 @@ fu! s:read_errors(request)
   endif
 endfu
 
-fu! s:_on_cursor_moved(...) abort
-  let request = s:requests[a:1]
+fu! s:_on_cursor_moved(request_id) abort
+  let request = s:requests[a:request_id]
 
   if esearch#util#timenow() < &updatetime/1000.0 + request._last_update_time
     return -1
@@ -90,8 +90,8 @@ fu! s:finish(request)
   exe 'do User '.a:request.events.finish
 endfu
 
-fu! s:_on_cursor_hold(...)
-  let request = s:requests[a:1]
+fu! s:_on_cursor_hold(request_id)
+  let request = s:requests[a:request_id]
   call s:read_data(request)
 
   let events = request.events

@@ -89,12 +89,14 @@ fu! esearch#out#win#init(opts) abort
         \ 'without':             function('esearch#util#without')
         \})
 
-  let b:esearch.request.out_attached = 1
-  let b:esearch.request.data_ptr = 0
-  let b:esearch.request.out_finish = function('s:render_finished')
+  call extend(b:esearch.request, {
+        \ 'out_attached': 1,
+        \ 'data_ptr':     0,
+        \ 'out_finish':   function('s:is_entirely_parsed')
+        \})
 endfu
 
-fu! s:render_finished() dict abort
+fu! s:is_entirely_parsed() dict abort
   return self.data_ptr == len(self.data)
 endfu
 
