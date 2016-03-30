@@ -36,7 +36,9 @@ context 'esearch' do
       puts "\n"*2, "#"*10, "s:completed(s:requests[0])"
       puts expr("#{s}completed(#{sc}.requests[0])")
       puts "\n"*2, "#"*10, "[len(request.data), request.data_ptr, request.out_finish()]"
-      puts expr("[len(#{sc}.requests[0]), #{sc}.requests[0].data_ptr, #{sc}.requests[0].out_finish()]")
+      puts cmd("echo [len(#{sc}.requests[0])]")
+      puts cmd("echo [#{sc}.requests[0].data_ptr]")
+      puts cmd("echo [#{sc}.requests[0].out_finish()]")
     end
   end
 
@@ -63,7 +65,7 @@ context 'esearch' do
         "Expected ESearch win will be opened in #{win_open_quota}"
 
       expect(expr('b:esearch.cwd')).to eq(expr('getcwd()'))
-      expect { line(1) =~ /Finish/i }.to become_true_within(120.second), -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
+      expect { line(1) =~ /Finish/i }.to become_true_within(20.second), -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
       expect(bufname("%")).to match(/Search/)
     end
 

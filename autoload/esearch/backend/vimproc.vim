@@ -105,7 +105,7 @@ fu! s:_on_cursor_hold(request_id)
   endif
 endfu
 
-fu! s:completed(request)
+fu! s:completed(request) abort
   return a:request.pipe.stdout.eof &&
         \ (!a:request.out_attached || a:request.out_finish())
 endfu
