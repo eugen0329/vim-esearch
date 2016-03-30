@@ -12,16 +12,14 @@ if !exists('g:esearch#backend#vimproc#read_errors_timeout')
         \ g:esearch#backend#vimproc#read_timeout * 5
 endif
 
+let s:requests = {}
+let s:requests_counter = 0
+
 fu! esearch#backend#vimproc#init(cmd, pty) abort
   let pipe = vimproc#popen3(
         \ vimproc#util#iconv(a:cmd, &encoding, 'char'), a:pty)
   call pipe.stdin.close()
 
-  if !exists('s:request_counter')
-    let s:request_counter = 0
-  endif
-
-  let s:request_counter += 1
 
   let request = {
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
@@ -30,11 +28,13 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'data': [],
         \ 'errors': [],
         \ 'events': {
-        \   'finish':            'ESearchVimProcFinish'.s:request_counter,
-        \   'update':            'ESearchVimProcUpdate'.s:request_counter,
-        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:request_counter
+        \   'finish':            'ESearchVimProcFinish'.s:requests_counter,
+        \   'update':            'ESearchVimProcUpdate'.s:requests_counter,
+        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:requests_counter
         \ }
         \}
+  let s:requests[s:requests_counter] = { 'request': request }
+  let s:requests_counter += 1
 
   return request
 endfu
@@ -65,12 +65,12 @@ fu! s:_on_cursor_moved() abort
   endif
 
   call s:read_data()
-  exe 'doau User '.b:esearch.request.events.update
+  exe 'do User '.b:esearch.request.events.update
 
   if s:completed(b:esearch.request.data)
     call s:read_errors()
     let &updatetime = float2nr(b:updatetime_backup)
-    exe 'doau User '.b:esearch.request.events.finish
+    exe 'do User '.b:esearch.request.events.finish
   endif
 endfu
 
@@ -78,23 +78,21 @@ fu! s:_on_cursor_hold()
   call s:read_data()
 
   let events = b:esearch.request.events
-  exe 'doau User '.events.update
+  exe 'do User '.events.update
 
   if s:completed(b:esearch.request.data)
     call s:read_errors()
     let &updatetime = float2nr(b:updatetime_backup)
-    exe 'doau User '.events.finish
+    exe 'do User '.events.finish
   else
-    exe 'doau User '.events.trigger_key_press
+    exe 'do User '.events.trigger_key_press
   endif
 endfu
-
 
 function! esearch#backend#vimproc#sid()
   return maparg('<SID>', 'n')
 endfunction
 nnoremap <SID>  <SID>
-
 
 " TODO
 fu! s:completed(data)
@@ -102,8 +100,8 @@ fu! s:completed(data)
         \ b:esearch.data_ptr == len(b:esearch.request.data)
 endfu
 
-fu! s:abort_job(buf)
-  call getbufvar(a:buf, 'esearch').request.pipe.kill(g:vimproc#SIGTERM)
+fu! esearch#backend#vimproc#abort(request) abort
+  return a:request.pipe.kill(g:vimproc#SIGTERM)
 endfu
 
 fu! esearch#backend#vimproc#init_events() abort
@@ -117,5 +115,7 @@ fu! esearch#backend#vimproc#init_events() abort
   au BufEnter    <buffer> let  b:updatetime_backup = &updatetime |
         \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
 
-  au BufUnload <buffer> call s:abort_job(str2nr(expand('<abuf>')))
+
+  au BufUnload <buffer>
+        \ call esearch#backend#vimproc#abort(getbufvar(str2nr(expand('<abuf>')), 'esearch').request)
 endfu

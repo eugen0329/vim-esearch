@@ -17,10 +17,10 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
 
   let request = {
         \ 'job_id':   job_id,
-        \ 'finished':   0,
-        \ 'backend': 'nvim',
-        \ 'command': a:cmd,
-        \ 'data': [],
+        \ 'backend':  'nvim',
+        \ 'command':  a:cmd,
+        \ 'data':     [],
+        \ 'finished': 0,
         \ 'events': {
         \   'finish': 'ESearchNVimFinish'.job_id,
         \   'update': 'ESearchNVimUpdate'.job_id
@@ -52,7 +52,7 @@ fu! s:stdout(job_id, data, event) abort
   let self.tick = self.tick + 1
   if self.tick % self.ticks == 1
     " call esearch#out#{b:esearch.out}#update()
-    exe 'doau User '.job.request.events.update
+    exe 'do User '.job.request.events.update
   endif
 endfu
 
@@ -74,7 +74,7 @@ fu! s:exit(job_id, status, event)
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  exe 'doau User '.job.request.events.finish
+  exe 'do User '.job.request.events.finish
 endfu
 
 " TODO write expansion for commands
@@ -85,11 +85,12 @@ fu! esearch#backend#nvim#escape_cmd(cmd)
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
-  au BufUnload <buffer> call s:abort_job(str2nr(expand('<abuf>')))
+  au BufUnload <buffer>
+        \ call eserach#backend#nvim#abort(getbufvar(str2nr(expand('<abuf>')), 'esearch').request)
 endfu
 
-fu! s:abort_job(buf)
-  call jobstop(getbufvar(a:buf, 'esearch').request.job_id)
+fu! esearch#backend#nvim#abort(request) abort
+  return jobstop(a:request.job_id)
 endfu
 
 fu! esearch#backend#nvim#events(request)
