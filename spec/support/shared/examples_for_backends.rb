@@ -1,4 +1,4 @@
-RSpec.shared_examples "a backend" do |backend, test_queries|
+RSpec.shared_examples 'a backend' do |backend, test_queries|
   before :each do
     press ':cd $PWD<ENTER>'
     press ':cd spec/fixtures/backend/<ENTER>'
