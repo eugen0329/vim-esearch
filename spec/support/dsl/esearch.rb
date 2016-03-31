@@ -3,10 +3,16 @@ module Support
     module ESearch
 
       def esearch_settings(options)
-        options.each do |name, value|
-          # TODO
-          vim.command("if !exists('g:esearch') | let g:esearch = {'#{name}': '#{value}'} | else | let g:esearch.#{name} = '#{value}' | endif")
-        end
+        elems = options.map { |name, val| "'#{name}': '#{val}'" }
+        dict = "{ #{elems.join(',')} }"
+
+        vim.command(%{
+          if !exists('g:esearch')
+            let g:esearch = #{dict}
+          else
+            call extend(g:esearch, #{dict})
+          endif
+        })
       end
     end
   end
