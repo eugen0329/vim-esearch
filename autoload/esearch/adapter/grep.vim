@@ -4,9 +4,9 @@ fu! esearch#adapter#grep#options() abort
   if !exists('s:options')
     " -P: pcre
     let s:options = {
-    \ 'regex':   { 'p': ['', '-P'],   's': ['>', 'r'] },
-    \ 'case':    { 'p': ['-i', ''],   's': ['>', 'c'] },
-    \ 'word':    { 'p': ['',   '-w'], 's': ['>', 'w'] },
+    \ 'regex': { 'p': ['--fixed-strings', '--perl-regexp'], 's': ['>', 'r'] },
+    \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
+    \ 'word':  { 'p': ['',                '--word-regexp'], 's': ['>', 'w'] },
     \ 'stringify':   function('esearch#util#stringify'),
     \ 'parametrize': function('esearch#util#parametrize'),
     \}

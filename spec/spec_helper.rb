@@ -2,16 +2,15 @@ require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
-require_relative 'support/vim/dsl'
+require 'retryable'
 Dir[File.expand_path('spec/support/**/*.rb')].each {|f| require f}
 
 Vimrunner::RSpec.configure do |config|
-  config.reuse_server = false
+  config.reuse_server = true
 
   plug_path    = Pathname.new(File.expand_path('../../', __FILE__))
-  vimproc_path = plug_path.join('../', 'vimproc.vim')
   vimproc_path = plug_path.join('.dep', 'vimproc.vim')
-  pp_path = plug_path.join('.dep', 'vim-prettyprint')
+  pp_path      = plug_path.join('.dep', 'vim-prettyprint')
 
   config.start_vim do
     vim = Vimrunner.start_gvim
@@ -23,5 +22,6 @@ Vimrunner::RSpec.configure do |config|
 end
 
 RSpec.configure do |config|
-  config.include Support::Vim::DSL
+  config.include Support::DSL::Vim
+  config.include Support::DSL::ESearch
 end

@@ -1,6 +1,6 @@
 module Support
-  module Vim
-    module DSL
+  module DSL
+    module Vim
 
       def dump(what)
         # if exists('*prettyprint#prettyprint')
@@ -27,10 +27,12 @@ module Support
       end
 
       def cmd(str)
-        begin
-          vim.command(str)
-        rescue Vimrunner::InvalidCommandError => e
-          return e.message
+        max_retries = 2
+        cb = ->(e) {  puts "WARNING: #{e.message}" }
+        on = [Vimrunner::InvalidCommandError]
+
+        Retryable.retryable(tries: max_retries, sleep: 1, on: on, exception_cb: cb) do
+          return vim.command(str)
         end
       end
 
