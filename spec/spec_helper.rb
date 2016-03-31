@@ -3,10 +3,10 @@ require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
 require_relative 'support/vim/dsl'
-Dir[File.expand_path('spec/support/matchers/*.rb')].each {|f| require f}
+Dir[File.expand_path('spec/support/**/*.rb')].each {|f| require f}
 
 Vimrunner::RSpec.configure do |config|
-  config.reuse_server = true
+  config.reuse_server = false
 
   plug_path    = Pathname.new(File.expand_path('../../', __FILE__))
   vimproc_path = plug_path.join('../', 'vimproc.vim')
