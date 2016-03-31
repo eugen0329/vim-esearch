@@ -35,12 +35,16 @@ context 'esearch' do
       s = expr("esearch#backend#vimproc#sid()")
       puts "\n"*2, "#"*10, "s:completed(s:requests[0])"
       puts expr("#{s}completed(#{sc}.requests[0])")
-      puts "\n"*2, "#"*10, "[len(request.data), request.data_ptr, has ->, request.out_finish()]"
+      puts "\n"*2, "#"*10, "[len(request.data), request.data_ptr, exists ->, type ->, request.out_finish()]"
       puts cmd("echo [len(#{sc}.requests[0].data)]")
       puts cmd("echo [#{sc}.requests[0].data_ptr]")
       puts cmd("echo has_key(#{sc}.requests[0], 'out_finish')")
+      puts cmd("echo [type(#{sc}.requests[0].out_finish)]")
       puts cmd("echo [#{sc}.requests[0].out_finish()]")
-      dump('g:test')
+
+      puts "\n"*2, "#"*10, "ECHO [exists ->, G:TEST]"
+      puts cmd('echo [has_key(g:, "test")]')
+      puts cmd('echo [g:test]')
     end
   end
 
@@ -67,7 +71,7 @@ context 'esearch' do
         "Expected ESearch win will be opened in #{win_open_quota}"
 
       expect(expr('b:esearch.cwd')).to eq(expr('getcwd()'))
-      expect { line(1) =~ /Finish/i }.to become_true_within(20.second), -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
+      expect { line(1) =~ /Finish/i }.to become_true_within(10.second), -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
       expect(bufname("%")).to match(/Search/)
     end
 

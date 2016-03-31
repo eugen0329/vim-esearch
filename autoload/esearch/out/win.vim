@@ -92,16 +92,8 @@ fu! esearch#out#win#init(opts) abort
   call extend(b:esearch.request, {
         \ 'out_attached': 1,
         \ 'data_ptr':     0,
-        \ 'out_finish':   function('s:is_entirely_parsed')
+        \ 'out_finish':   function("esearch#out#win#_is_render_finished")
         \})
-endfu
-
-fu! s:is_entirely_parsed() dict abort
-  if !has_key(g:, 'test')
-    let g:test = []
-  endif
-  call add(g:test, [self, get(self, 'data_ptr', -1), get(self, 'data', -1)])
-  return self.data_ptr == len(self.data)
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
@@ -135,7 +127,7 @@ fu! s:find_buf(bufnr) abort
   return []
 endf
 
-fu! esearch#out#win#trigger_key_press(_)
+fu! esearch#out#win#trigger_key_press(...)
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
 endfu
@@ -399,3 +391,9 @@ fu! esearch#out#win#finish(bufnr) abort
   setlocal nomodifiable
   setlocal nomodified
 endfu
+
+" For some reasons s:_is_render_finished fails in Travis
+fu! esearch#out#win#_is_render_finished() dict abort
+  return self.data_ptr == len(self.data)
+endfu
+
