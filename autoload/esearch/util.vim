@@ -1,3 +1,34 @@
+if !exists('g:esearch#util#use_setbufline')
+  let g:esearch#util#use_setbufline = 1
+endif
+
+
+
+if g:esearch#util#use_setbufline
+  fu! esearch#util#setline(expr, lnum, text)
+    let oldnr = winnr()
+    let winnr = bufwinnr(a:expr)
+
+    if oldnr != winnr
+      if winnr == -1
+        noau silent exec "sp ".escape(bufname(bufnr(a:expr)), ' \`')
+        noau silent call setline(a:lnum, a:text)
+        noau silent hide
+      else
+        noau exec   winnr.'wincmd w'
+        noau silent call setline(a:lnum, a:text)
+      endif
+    else
+      silent! call setline(a:lnum, a:text)
+    endif
+    exec oldnr.'wincmd w'
+  endfu
+else
+  " fu! esearch#util#setline(_, lnum, text)
+  "   return setline(a:lnum, a:text)
+  " endfu
+endif
+
 fu! esearch#util#flatten(list)
   let flatten = []
   for elem in a:list

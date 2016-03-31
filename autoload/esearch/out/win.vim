@@ -70,7 +70,9 @@ fu! esearch#out#win#init(opts) abort
   setlocal noreadonly
   setlocal modifiable
   exe '1,$d_'
-  call setline(1, printf(s:header, 0))
+  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0))
+  " Disable undo
+  setlocal undolevels=-1
   setlocal readonly
   setlocal nomodifiable
   setlocal noswapfile
@@ -133,7 +135,8 @@ fu! esearch#out#win#trigger_key_press(...)
 endfu
 
 fu! esearch#out#win#update(bufnr) abort
-  if a:bufnr != bufnr('%')
+  if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
+    call add(g:test, [g:esearch#util#use_setbufline, a:bufnr, bufnr('%'), !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')])
     return 1
   endif
 
@@ -155,17 +158,17 @@ fu! esearch#out#win#update(bufnr) abort
     let parsed = esearch#adapter#{esearch.adapter}#parse_results(
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
-    setlocal noreadonly
-    setlocal modifiable
-    call s:render_results(parsed, esearch)
-    call setline(1, printf(s:header, request.data_ptr))
-    setlocal readonly
-    setlocal nomodifiable
-    setlocal nomodified
+    call setbufvar(a:bufnr, '&readonly',   0)
+    call setbufvar(a:bufnr, '&modifiable', 1)
+    call s:render_results(a:bufnr, parsed, esearch)
+    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr))
+    call setbufvar(a:bufnr, '&readonly', 1)
+    call setbufvar(a:bufnr, '&modifiable', 0)
+    call setbufvar(a:bufnr, '&modified', 0)
   endif
 endfu
 
-fu! s:render_results(parsed, esearch) abort
+fu! s:render_results(bufnr, parsed, esearch) abort
   let line = line('$') + 1
   let parsed = a:parsed
 
@@ -177,13 +180,13 @@ fu! s:render_results(parsed, esearch) abort
     let context  = s:context(parsed[i].text, a:esearch)
 
     if fname !=# a:esearch.prev_filename
-      call setline(line, '')
+      call esearch#util#setline(a:bufnr, line, '')
       let line += 1
-      call setline(line, fname)
+      call esearch#util#setline(a:bufnr, line, fname)
       let line += 1
     endif
 
-    call setline(line, ' '.printf('%3d', parsed[i].lnum).' '.context)
+    call esearch#util#setline(a:bufnr, line, ' '.printf('%3d', parsed[i].lnum).' '.context)
     let a:esearch._columns[line] = parsed[i].col
     let a:esearch.prev_filename = fname
     let line += 1
@@ -357,7 +360,7 @@ fu! esearch#out#win#forced_finish(bufnr)
 endfu
 
 fu! esearch#out#win#finish(bufnr) abort
-  if a:bufnr != bufnr('%')
+  if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
     return 1
   endif
 
@@ -372,24 +375,24 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  setlocal noreadonly
-  setlocal modifiable
+  call setbufvar(a:bufnr, '&readonly',   0)
+  call setbufvar(a:bufnr, '&modifiable', 1)
 
   if has_key(esearch.request, 'errors') && len(esearch.request.errors)
-    call setline(1, 'ERRORS (' .len(esearch.request.errors).')')
+    call esearch#util#setline(a:bufnr, 1, 'ERRORS (' .len(esearch.request.errors).')')
     let line = 2
     for err in esearch.request.errors
-      call setline(line, "\t".err)
+      call esearch#util#setline(a:bufnr, line, "\t".err)
       let line += 1
     endfor
     " norm! gggqG
   else
-    call setline(1, getline(1) . '. Finished.' )
+    call esearch#util#setline(a:bufnr, 1, getbufline(a:bufnr, 1)[0] . '. Finished.' )
   endif
 
-  setlocal readonly
-  setlocal nomodifiable
-  setlocal nomodified
+  call setbufvar(a:bufnr, '&readonly',   1)
+  call setbufvar(a:bufnr, '&modifiable', 0)
+  call setbufvar(a:bufnr, '&modified',   0)
 endfu
 
 " For some reasons s:_is_render_finished fails in Travis
