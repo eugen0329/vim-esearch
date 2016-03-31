@@ -2,7 +2,8 @@ module Vimrunner
   class Client
 
     def multiline_command(commands)
-      send(:command, commands.gsub("\n", '|'))
+      converted = commands.sub(/(\n\s*)+$/, '').sub(/^(\s*\n)+/, '').gsub("\n", '<CR>')
+      send(:command, converted)
     end
   end
 end
