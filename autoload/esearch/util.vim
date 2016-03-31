@@ -19,9 +19,9 @@ if g:esearch#util#use_setbufline
         noau silent call setline(a:lnum, a:text)
       endif
     else
-      silent! call setline(a:lnum, a:text)
+      noau silent! call setline(a:lnum, a:text)
     endif
-    exec oldnr.'wincmd w'
+    noau exec oldnr.'wincmd w'
   endfu
 else
   " fu! esearch#util#setline(_, lnum, text)

@@ -13,7 +13,7 @@ if !exists('g:esearch#backend#vimproc#read_errors_timeout')
 endif
 
 let s:requests = {}
-let s:requests_counter = 0
+let s:last_request_id = 0
 
 fu! esearch#backend#vimproc#init(cmd, pty) abort
   let pipe = vimproc#popen3(
@@ -29,21 +29,20 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'errors': [],
         \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
-        \   'finish':            'ESearchVimProcFinish'.s:requests_counter,
-        \   'update':            'ESearchVimProcUpdate'.s:requests_counter,
-        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:requests_counter
+        \   'finish':            'ESearchVimProcFinish'.s:last_request_id,
+        \   'update':            'ESearchVimProcUpdate'.s:last_request_id,
+        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:last_request_id
         \ }
         \}
 
-  exe 'aug ESearchVimproc'.s:requests_counter
+  exe 'aug ESearchVimproc'.s:last_request_id
     au!
-    exe 'au CursorMoved * call s:_on_cursor_moved('.s:requests_counter.')'
-    exe 'au CursorHold  * call s:_on_cursor_hold('.s:requests_counter.')'
+    exe 'au CursorMoved * call s:_on_cursor_moved('.s:last_request_id.')'
+    exe 'au CursorHold  * call s:_on_cursor_hold('.s:last_request_id.')'
   aug END
 
-  " let s:requests[s:requests_counter] = { 'request': request }
-  let s:requests[s:requests_counter] = request
-  let s:requests_counter += 1
+  let s:requests[s:last_request_id] = request
+  let s:last_request_id += 1
 
   return request
 endfu

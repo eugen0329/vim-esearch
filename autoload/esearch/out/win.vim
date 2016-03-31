@@ -75,6 +75,7 @@ fu! esearch#out#win#init(opts) abort
   setlocal undolevels=-1
   setlocal readonly
   setlocal nomodifiable
+  setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
   setlocal buftype=nofile
@@ -136,7 +137,6 @@ endfu
 
 fu! esearch#out#win#update(bufnr) abort
   if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
-    call add(g:test, [g:esearch#util#use_setbufline, a:bufnr, bufnr('%'), !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')])
     return 1
   endif
 
@@ -158,13 +158,13 @@ fu! esearch#out#win#update(bufnr) abort
     let parsed = esearch#adapter#{esearch.adapter}#parse_results(
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
-    call setbufvar(a:bufnr, '&readonly',   0)
-    call setbufvar(a:bufnr, '&modifiable', 1)
+    call setbufvar(a:bufnr, '&ro',   0)
+    call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
     call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr))
-    call setbufvar(a:bufnr, '&readonly', 1)
-    call setbufvar(a:bufnr, '&modifiable', 0)
-    call setbufvar(a:bufnr, '&modified', 0)
+    call setbufvar(a:bufnr, '&ro', 1)
+    call setbufvar(a:bufnr, '&ma', 0)
+    call setbufvar(a:bufnr, '&mod', 0)
   endif
 endfu
 
@@ -375,8 +375,8 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  call setbufvar(a:bufnr, '&readonly',   0)
-  call setbufvar(a:bufnr, '&modifiable', 1)
+  call setbufvar(a:bufnr, '&ro',   0)
+  call setbufvar(a:bufnr, '&ma', 1)
 
   if has_key(esearch.request, 'errors') && len(esearch.request.errors)
     call esearch#util#setline(a:bufnr, 1, 'ERRORS (' .len(esearch.request.errors).')')
@@ -390,9 +390,9 @@ fu! esearch#out#win#finish(bufnr) abort
     call esearch#util#setline(a:bufnr, 1, getbufline(a:bufnr, 1)[0] . '. Finished.' )
   endif
 
-  call setbufvar(a:bufnr, '&readonly',   1)
-  call setbufvar(a:bufnr, '&modifiable', 0)
-  call setbufvar(a:bufnr, '&modified',   0)
+  call setbufvar(a:bufnr, '&ro',   1)
+  call setbufvar(a:bufnr, '&ma', 0)
+  call setbufvar(a:bufnr, '&mod',   0)
 endfu
 
 " For some reasons s:_is_render_finished fails in Travis
