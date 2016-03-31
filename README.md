@@ -7,9 +7,9 @@ SublimeText, Atom et al.
 
 ## Installation
 ESearch has builtin support for
-[ag](https://github.com/ggreer/the_silver_searcher#installing)(The Silver Searcher),
+[ag](https://github.com/ggreer/the_silver_searcher#installing) (The Silver Searcher),
 [ack](http://beyondgrep.com/install/),
-[pt](https://github.com/monochromegane/the_platinum_searcher#installation)(The Platinum Searcher) and
+[pt](https://github.com/monochromegane/the_platinum_searcher#installation) (The Platinum Searcher) and
 native \*nix util [grep](http://linux.die.net/man/1/grep).
 
 
@@ -20,7 +20,7 @@ Plugin 'eugen0329/vim-esearch'
 
 **NOTE**
 [Plugin](https://github.com/VundleVim/Vundle.vim) command can be replaced with
-another command of plugin manager you use([Plug](https://github.com/junegunn/vim-plug#installation),
+another command of plugin manager you use ([Plug](https://github.com/junegunn/vim-plug#installation),
 [NeoBundle](https://github.com/Shougo/neobundle.vim#1-install-neobundle))
 
 ## Usage

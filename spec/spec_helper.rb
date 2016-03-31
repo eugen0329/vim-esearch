@@ -14,6 +14,7 @@ Vimrunner::RSpec.configure do |config|
 
   config.start_vim do
     vim = Vimrunner.start_gvim
+    sleep 1
     vim.add_plugin(plug_path,    plug_path.join('plugin', 'esearch.vim'))
     vim.add_plugin(vimproc_path, vimproc_path.join('plugin', 'vimproc.vim'))
     vim.add_plugin(pp_path,      vimproc_path.join('plugin', 'prettyprint.vim'))

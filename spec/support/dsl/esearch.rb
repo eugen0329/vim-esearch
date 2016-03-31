@@ -6,7 +6,7 @@ module Support
         elems = options.map { |name, val| "'#{name}': '#{val}'" }
         dict = "{ #{elems.join(',')} }"
 
-        vim.command(%{
+        vim.multiline_command(%{
           if !exists('g:esearch')
             let g:esearch = #{dict}
           else
