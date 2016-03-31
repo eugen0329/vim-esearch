@@ -100,6 +100,7 @@ fu! esearch#out#win#init(opts) abort
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
+  " let bufnr = bufnr('^'.escape(a:bufname, ' \`<>').'$')
   let bufnr = bufnr('^'.a:bufname.'$')
   if bufnr == bufnr('%')
     return 0

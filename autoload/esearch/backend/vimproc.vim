@@ -23,6 +23,7 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
   let request = {
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
+        \ 'command': a:cmd,
         \ 'out_attached': 0,
         \ 'pipe': pipe,
         \ 'data': [],

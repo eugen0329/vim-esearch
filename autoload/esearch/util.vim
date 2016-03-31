@@ -78,7 +78,9 @@ fu! esearch#util#trunc(str, size) abort
 endfu
 
 fu! esearch#util#shellescape(str) abort
+  return fnameescape(a:str)
   return shellescape(a:str, g:esearch.escape_special)
+  return fnameescape(shellescape(a:str, g:esearch.escape_special))
 endfu
 
 fu! esearch#util#timenow() abort

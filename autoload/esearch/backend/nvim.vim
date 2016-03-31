@@ -41,7 +41,7 @@ fu! s:stdout(job_id, data, event) abort
     let job.request.data[-1] .= data[0]
     call remove(data, 0)
   endif
-  " call esearch#out#{b:esearch.out}#merge_data()
+
   if self.pty
     call map(data, "substitute(v:val, '\\r$', '', '')")
   endif
@@ -51,7 +51,6 @@ fu! s:stdout(job_id, data, event) abort
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
   if self.tick % self.ticks == 1
-    " call esearch#out#{b:esearch.out}#update()
     exe 'do User '.job.request.events.update
   endif
 endfu
@@ -81,7 +80,7 @@ endfu
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(cmd)
-  return string(a:cmd)
+  return esearch#util#shellescape(a:cmd)
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
@@ -91,8 +90,4 @@ endfu
 
 fu! esearch#backend#nvim#abort(request) abort
   return jobstop(a:request.job_id)
-endfu
-
-fu! esearch#backend#nvim#events(request)
-  let id = a:request.job_id
 endfu

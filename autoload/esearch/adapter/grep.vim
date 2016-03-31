@@ -22,7 +22,7 @@ fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
   " -r: no follow symbolic links
   " -I: Process a binary file as if it did not contain matching data
   return "grep ".r." ".c." ".w." -r -n --exclude-dir=.{git,svn,hg} -- " .
-        \ a:escape(a:pattern)  . " " . a:escape(a:dir)
+        \ a:escape(a:pattern)  . " " . fnameescape(a:dir)
 endfu
 
 fu! esearch#adapter#grep#is_broken_result(line)

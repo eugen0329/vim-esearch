@@ -19,7 +19,7 @@ fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
   let c = options.parametrize('case')
   let w = options.parametrize('word')
   return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
-        \ a:escape(a:pattern)  . " " . a:escape(a:dir)
+        \ a:escape(a:pattern)  . " " . fnameescape(a:dir)
 endfu
 
 fu! esearch#adapter#ag#is_broken_result(line)

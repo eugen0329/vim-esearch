@@ -19,7 +19,7 @@ fu! esearch#adapter#ack#cmd(pattern, dir, escape, ...) abort
   let c = options.parametrize('case')
   let w = options.parametrize('word')
   return "ack ".r." ".c." ".w." -s --nogroup --nocolor --column -- " .
-        \ a:escape(a:pattern)  . " " . a:escape(a:dir)
+        \ a:escape(a:pattern)  . " " . fnameescape(a:dir)
 endfu
 
 fu! esearch#adapter#ack#is_broken_result(...) abort
