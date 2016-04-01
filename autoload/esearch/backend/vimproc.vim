@@ -86,7 +86,10 @@ endfu
 
 fu! s:finish(request, request_id)
   call s:read_errors(a:request)
-  " let &updatetime = float2nr(b:updatetime_backup)
+  if has_key(a:request, 'bufnr')
+    let ut_bak = float2nr(getbufvar(a:request.bufnr, 'updatetime_backup'))
+    call setbufvar(a:request.bufnr, '&ut', ut_bak)
+  endif
   exe 'do User '.a:request.events.finish
   exe 'au! ESearchVimproc'.a:request_id
 endfu

@@ -94,6 +94,7 @@ fu! esearch#out#win#init(opts) abort
         \})
 
   call extend(b:esearch.request, {
+        \ 'bufnr':     bufnr('%'),
         \ 'data_ptr':     0,
         \ 'out_finish':   function("esearch#out#win#_is_render_finished")
         \})
@@ -358,7 +359,7 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   if esearch.request.async
-    au! ESearchWinAutocmds * <buffer>
+    exe printf('au! ESearchWinAutocmds * <buffer=%s>', string(a:bufnr))
     for [func_name, event] in items(esearch.request.events)
       exe printf('au! ESearchWinAutocmds User %s ', event)
     endfor
