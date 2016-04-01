@@ -40,23 +40,32 @@ fu! esearch#init(...)
 
   call opts.set_default('out', g:esearch.out)
   call opts.set_default('context_width', g:esearch.context_width)
+
+  let unescaped_title = s:title(pattern)
+  let title = s:escape_title(unescaped_title)
+
   let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size', 'context_width'), {
-        \ 'bufname': s:outbufname(pattern),
+        \ 'bufname': title,
+        \ 'unescaped_title': unescaped_title,
         \ 'request': request,
         \})
 
   call esearch#out#{opts.out}#init(out_params)
 endfu
 
-fu! s:outbufname(pattern) abort
+fu! s:escape_title(title)
+  let name = fnameescape(a:title)
+  let name = substitute(name, '["]', '\\\\\0', 'g')
+  " let name = substitute(name, "[']", '\\\\\0', 'g')
+  return escape(name, "<")
+endfu
+
+fu! s:title(pattern) abort
   let format = s:bufname_format()
   let modifiers = ''
   let modifiers .= g:esearch.case ? 'c' : ''
   let modifiers .= g:esearch.word ? 'w' : ''
-  let name = fnameescape(printf(format, a:pattern, modifiers))
-  let name = substitute(name, '["]', '\\\\\0', 'g')
-  " let name = substitute(name, "[']", '\\\\\0', 'g')
-  return escape(name, "<")
+  return printf(format, a:pattern, modifiers)
 endfu
 
 fu! esearch#_mappings() abort
@@ -81,12 +90,12 @@ fu! s:bufname_format() abort
   if g:esearch.regex
     if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
       " Since we can't use '/' in filenames
-      return "Search:  \u2215%s\u2215%s"
+      return "Search  \u2215%s\u2215%s"
     else
-      return "Search: %%r{%s}%s"
+      return "Search %%r{%s}%s"
     endif
   else
-    return "Search: `%s`%s"
+    return "Search `%s`%s"
   endif
 endfu
 

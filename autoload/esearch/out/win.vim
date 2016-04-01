@@ -94,7 +94,6 @@ fu! esearch#out#win#init(opts) abort
         \})
 
   call extend(b:esearch.request, {
-        \ 'out_attached': 1,
         \ 'data_ptr':     0,
         \ 'out_finish':   function("esearch#out#win#_is_render_finished")
         \})
@@ -110,7 +109,7 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   if bufnr == bufnr('%')
     return 0
   elseif bufnr > 0
-    let buf_loc = s:find_buf(bufnr)
+    let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
       silent exe a:opencmd.'|b ' . bufnr
     else
@@ -121,20 +120,6 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
     silent  exe a:opencmd.'|file '.a:bufname
   endif
 endfu
-
-fu! s:find_buf(bufnr) abort
-  for tabnr in range(1, tabpagenr('$'))
-    if tabpagenr() == tabnr | continue | endif
-    let buflist = tabpagebuflist(tabnr)
-    if index(buflist, a:bufnr) >= 0
-      for winnr in range(1, tabpagewinnr(tabnr, '$'))
-        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
-      endfor
-    endif
-  endfor
-
-  return []
-endf
 
 fu! esearch#out#win#trigger_key_press(...)
   " call feedkeys("\<Plug>(esearch-Nop)")
@@ -182,19 +167,19 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   let limit = len(parsed)
 
   while i < limit
-    let fname    = substitute(parsed[i].fname, a:esearch.cwd.'/', '', '')
+    let filename    = substitute(parsed[i].filename, a:esearch.cwd.'/', '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
-    if fname !=# a:esearch.prev_filename
+    if filename !=# a:esearch.prev_filename
       call esearch#util#setline(a:bufnr, line, '')
       let line += 1
-      call esearch#util#setline(a:bufnr, line, fname)
+      call esearch#util#setline(a:bufnr, line, filename)
       let line += 1
     endif
 
-    call esearch#util#setline(a:bufnr, line, ' '.printf('%3d', parsed[i].lnum).' '.context)
+    call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, context))
     let a:esearch._columns[line] = parsed[i].col
-    let a:esearch.prev_filename = fname
+    let a:esearch.prev_filename = filename
     let line += 1
     let i    += 1
   endwhile

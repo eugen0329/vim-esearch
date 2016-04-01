@@ -47,7 +47,7 @@ fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) a
     else
       let col = match(el[2], pattern) + 1
       if !col | let col = 1 | endif
-      call add(results, {'fname': el[0], 'lnum': el[1], 'col': col, 'text': el[2]})
+      call add(results, {'filename': el[0], 'lnum': el[1], 'col': col, 'text': el[2]})
     endif
     let i += 1
   endwhile

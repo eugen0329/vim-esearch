@@ -24,10 +24,27 @@ if g:esearch#util#use_setbufline
     noau exec oldnr.'wincmd w'
   endfu
 else
-  " fu! esearch#util#setline(_, lnum, text)
-  "   return setline(a:lnum, a:text)
-  " endfu
+  fu! esearch#util#setline(_, lnum, text)
+    return setline(a:lnum, a:text)
+  endfu
 endif
+
+
+
+fu! esearch#util#bufloc(bufnr) abort
+  for tabnr in range(1, tabpagenr('$'))
+    if tabpagenr() == tabnr | continue | endif
+    let buflist = tabpagebuflist(tabnr)
+    if index(buflist, a:bufnr) >= 0
+      for winnr in range(1, tabpagewinnr(tabnr, '$'))
+        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
+      endfor
+    endif
+  endfor
+
+  return []
+endf
+
 
 fu! esearch#util#flatten(list)
   let flatten = []

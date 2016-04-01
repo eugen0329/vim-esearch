@@ -45,7 +45,7 @@ fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
         call add(a:broken_results, a:raw[i])
       endif
     else
-      call add(results, {'fname': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3]})
+      call add(results, {'filename': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3]})
     endif
     let i += 1
   endwhile
