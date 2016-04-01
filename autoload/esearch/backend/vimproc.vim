@@ -24,7 +24,6 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
         \ 'command': a:cmd,
-        \ 'out_attached': 0,
         \ 'pipe': pipe,
         \ 'data': [],
         \ 'errors': [],
@@ -81,14 +80,15 @@ fu! s:_on_cursor_moved(request_id) abort
   let request._last_update_time = esearch#util#timenow()
 
   if s:completed(request)
-    call s:finish(request)
+    call s:finish(request, a:request_id)
   endif
 endfu
 
-fu! s:finish(request)
+fu! s:finish(request, request_id)
   call s:read_errors(a:request)
   " let &updatetime = float2nr(b:updatetime_backup)
   exe 'do User '.a:request.events.finish
+  exe 'au! ESearchVimproc'.a:request_id
 endfu
 
 fu! s:_on_cursor_hold(request_id)
@@ -100,7 +100,7 @@ fu! s:_on_cursor_hold(request_id)
   let request._last_update_time = esearch#util#timenow()
 
   if s:completed(request)
-    call s:finish(request)
+    call s:finish(request, a:request_id)
   else
     exe 'do User '.events.trigger_key_press
   endif
@@ -112,7 +112,7 @@ fu! s:completed(request) abort
   endif
 
   return a:request.pipe.stdout.eof &&
-        \ (!a:request.out_attached || a:request.out_finish())
+        \ (!has_key(a:request, 'out_finish') || a:request.out_finish())
 endfu
 
 fu! esearch#backend#vimproc#abort(request) abort
