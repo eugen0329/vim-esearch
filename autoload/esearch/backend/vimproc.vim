@@ -28,6 +28,7 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'pipe': pipe,
         \ 'data': [],
         \ 'errors': [],
+        \ 'async': 1,
         \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
         \   'finish':            'ESearchVimProcFinish'.s:last_request_id,

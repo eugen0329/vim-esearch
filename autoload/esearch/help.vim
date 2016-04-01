@@ -1,3 +1,7 @@
+if !exists('g:esearch#cmdline#help_prompt')
+  let g:esearch#cmdline#help_prompt = 1
+endif
+
 fu! esearch#help#cmdline(mappings, comments) abort
   let mappings = a:mappings
   let comments = a:comments
@@ -32,12 +36,13 @@ fu! esearch#help#backend_dependencies()
 
 
   call esearch#util#hlecho([
-        \['Error',    "ESearch plugin requires NeoVim job control or Vimproc plugin installed"],
+        \['Error',    "To access async features, ESearch requires NeoVim job control or Vimproc plugin installed"],
         \['Norma', "\n"],
         \['Normal', 'Please, install NeoVim or ']]
         \ + plug_install +
         \[['Normal', "\n"],
-        \['Normal', "See:\n\thttps://neovim.io/doc/user/job_control.html\n\thttps://github.com/Shougo/vimproc.vim"]])
+        \['Normal', "See:\n\thttps://neovim.io/doc/user/job_control.html\n\thttps://github.com/Shougo/vimproc.vim"]
+        \])
 endfu
 
 fu! s:plug_install_cmd(plug, manager)

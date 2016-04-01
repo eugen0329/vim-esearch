@@ -21,6 +21,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'command':  a:cmd,
         \ 'data':     [],
         \ 'finished': 0,
+        \ 'async': 1,
         \ 'events': {
         \   'forced_finish': 'ESearchNVimFinish'.job_id,
         \   'update': 'ESearchNVimUpdate'.job_id

@@ -37,7 +37,6 @@ if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
 
-
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.bufname, g:esearch#out#win#open)
@@ -55,13 +54,15 @@ fu! esearch#out#win#init(opts) abort
     let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
   endif
 
-  augroup ESearchWinAutocmds
-    au! * <buffer>
-    for [func_name, event] in items(a:opts.request.events)
-      exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
-    endfor
-    call esearch#backend#{a:opts.backend}#init_events()
-  augroup END
+  if a:opts.request.async
+    augroup ESearchWinAutocmds
+      au! * <buffer>
+      for [func_name, event] in items(a:opts.request.events)
+        exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
+      endfor
+      call esearch#backend#{a:opts.backend}#init_events()
+    augroup END
+  endif
 
   call s:init_mappings()
   call s:init_commands()
@@ -97,6 +98,10 @@ fu! esearch#out#win#init(opts) abort
         \ 'data_ptr':     0,
         \ 'out_finish':   function("esearch#out#win#_is_render_finished")
         \})
+
+  if !b:esearch.request.async
+    call esearch#out#win#finish(bufnr('%'))
+  endif
 endfu
 
 fu! s:find_or_create_buf(bufname, opencmd) abort
@@ -367,10 +372,12 @@ fu! esearch#out#win#finish(bufnr) abort
 
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  au! ESearchWinAutocmds * <buffer>
-  for [func_name, event] in items(esearch.request.events)
-    exe printf('au! ESearchWinAutocmds User %s ', event)
-  endfor
+  if esearch.request.async
+    au! ESearchWinAutocmds * <buffer>
+    for [func_name, event] in items(esearch.request.events)
+      exe printf('au! ESearchWinAutocmds User %s ', event)
+    endfor
+  endif
 
   " Update using all remaining request.data
   let esearch.ignore_batches = 1
