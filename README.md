@@ -3,9 +3,10 @@
 [![Build Status](https://travis-ci.org/eugen0329/vim-esearch.svg?branch=master)](https://travis-ci.org/eugen0329/vim-esearch)
 [![Code Climate](https://codeclimate.com/github/eugen0329/vim-esearch/badges/gpa.svg)](https://codeclimate.com/github/eugen0329/vim-esearch)
 
-
 NeoVim/Vim plugin performing project-wide async search and replace, similar to
 SublimeText, Atom et al.
+
+![ESearch Demo gif](https://github.com/eugen0329/vim-esearch/blob/master/.github/demo.gif)
 
 ### Features
 * Builtin support for superfast engines like
@@ -16,6 +17,7 @@ native \*nix util [grep](http://linux.die.net/man/1/grep).
 * Live updating of results as in Emacs, SublimeText and similar (requires NeoVim's [job control](https://neovim.io/doc/user/job_control.html) or [vimproc](https://github.com/Shougo/vimproc.vim#install) to be installed).
 * Special esearch window or [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) list, habitual for all, can be used as an output target.
 * Search-and-Replace feature with the same syntax as builtin [:substitute](https://neovim.io/doc/user/change.html#:substitute) command (Example `:1,5ESubstitute/from/to/gc`).
+* Collaborates with [nerdtree](https://github.com/scrooloose/nerdtree) to provide search in a specific directory.
 
 ## Installation
 
