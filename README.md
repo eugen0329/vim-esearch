@@ -17,7 +17,7 @@ native \*nix util [grep](http://linux.die.net/man/1/grep).
 * Live updating of results as in Emacs, SublimeText and similar (requires NeoVim's [job control](https://neovim.io/doc/user/job_control.html) or [vimproc](https://github.com/Shougo/vimproc.vim#install) to be installed).
 * Special esearch window or [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) list, habitual for all, can be used as an output target.
 * Search-and-Replace feature with the same syntax as builtin [:substitute](https://neovim.io/doc/user/change.html#:substitute) command (Example `:1,5ESubstitute/from/to/gc`).
-* Collaborates with [nerdtree](https://github.com/scrooloose/nerdtree) to provide search in a specific directory.
+* Collaborates with [nerdtree](https://github.com/scrooloose/nerdtree#intro) to provide search in a specific directory.
 
 ## Installation
 
@@ -33,7 +33,7 @@ another command of the plugin manager you use ([Plug](https://github.com/junegun
 
 ## Usage
 
-Type `<leader>ff` and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#<Leader>) is `\`). Use `s`, `v` and `t` 
+Type `<leader>ff` and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#\<Leader>) is `\`). Use `s`, `v` and `t` 
 buttons to open file under the cursor in split, vertical split and in tab accordingly. Use `shift`
 along with s, v and t buttons to open a file silently. Press `shift-r` to reload
 currrent results.
