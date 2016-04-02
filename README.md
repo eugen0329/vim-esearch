@@ -33,7 +33,7 @@ another command of the plugin manager you use ([Plug](https://github.com/junegun
 
 ## Usage
 
-Type `<leader>ff` and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#\<Leader>) is `\`). Use `s`, `v` and `t` 
+Type `<leader>ff` and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#mapleader) is `\`). Use `s`, `v` and `t` 
 buttons to open file under the cursor in split, vertical split and in tab accordingly. Use `shift`
 along with s, v and t buttons to open a file silently. Press `shift-r` to reload
 currrent results.
