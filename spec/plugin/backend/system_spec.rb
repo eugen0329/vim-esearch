@@ -1,4 +1,6 @@
 require 'spec_helper'
+require 'plugin/shared_examples/backend.rb'
+require 'plugin/shared_contexts/dumpable.rb'
 
 # TODO consider merge adapters in adapters_spec.rb
 context 'esearch' do
