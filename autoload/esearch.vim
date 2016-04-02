@@ -61,7 +61,7 @@ fu! s:escape_title(title) abort
 endfu
 
 fu! s:title(pattern) abort
-  let format = s:bufname_format()
+  let format = s:title_format()
   let modifiers = ''
   let modifiers .= g:esearch.case ? 'c' : ''
   let modifiers .= g:esearch.word ? 'w' : ''
@@ -82,11 +82,11 @@ fu! esearch#_mappings() abort
 endfu
 
 fu! esearch#map(map, plug) abort
-  call esearch#_mappings().set(a:map, a:plug)
+  call esearch#_mappings().set(a:map, printf('<Plug>(%s)', a:plug))
 endfu
 
 " Results bufname format getter
-fu! s:bufname_format() abort
+fu! s:title_format() abort
   if g:esearch.regex
     if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
       " Since we can't use '/' in filenames
