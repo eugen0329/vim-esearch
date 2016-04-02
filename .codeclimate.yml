@@ -1,10 +1,19 @@
 engines:
   vint:
     enabled: true
+  bundler-audit:
+    enabled: true
+  fixme:
+    enabled: true
+    config:
+      strings:
+        - BUG
 
 ratings:
    paths:
    - '**.vim'
+   - Gemfile.lock
 
 exclude_paths:
 - .dep/**/*
+- spec/**/*
