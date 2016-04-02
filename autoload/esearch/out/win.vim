@@ -96,7 +96,7 @@ fu! esearch#out#win#init(opts) abort
   call extend(b:esearch.request, {
         \ 'bufnr':     bufnr('%'),
         \ 'data_ptr':     0,
-        \ 'out_finish':   function("esearch#out#win#_is_render_finished")
+        \ 'out_finish':   function('esearch#out#win#_is_render_finished')
         \})
 
   if !b:esearch.request.async
@@ -122,7 +122,7 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   endif
 endfu
 
-fu! esearch#out#win#trigger_key_press(...)
+fu! esearch#out#win#trigger_key_press(...) abort
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
 endfu
@@ -186,7 +186,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   endwhile
 endfu
 
-fu! s:context(line, esearch)
+fu! s:context(line, esearch) abort
   return esearch#util#btrunc(a:line,
                            \ match(a:line, a:esearch.exp.vim),
                            \ a:esearch.context_width.l,
@@ -328,18 +328,18 @@ fu! s:jump(downwards) abort
   endif
 endfu
 
-fu! s:is_file_entry()
+fu! s:is_file_entry() abort
   return getline(line('.')) =~# s:file_entry_pattern
 endfu
 
-fu! s:is_filename()
+fu! s:is_filename() abort
   return getline(line('.')) =~# s:filename_pattern
 endfu
 
 " Use this function for #backend#nvim. It has no truly async handlers, so data
 " needs to be updated entirely (instantly or with BufEnter autocmd, if results
 " buffer isn't current buffer)
-fu! esearch#out#win#forced_finish(bufnr)
+fu! esearch#out#win#forced_finish(bufnr) abort
   if a:bufnr != bufnr('%')
     exe 'aug ESearchWinAutocmds'
       let nr = string(a:bufnr)

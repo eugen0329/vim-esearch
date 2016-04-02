@@ -1,4 +1,4 @@
-fu! esearch#source#pick_exp(use, opts)
+fu! esearch#source#pick_exp(use, opts) abort
   let use = type(a:use) == type('') ? [a:use] : a:use
 
   for name in use
@@ -10,7 +10,7 @@ fu! esearch#source#pick_exp(use, opts)
   return esearch#regex#new()
 endfu
 
-fu! esearch#source#visual(opts)
+fu! esearch#source#visual(opts) abort
   if get(a:opts, 'visualmode', 0)
     let visual = esearch#util#visual_selection()
     return esearch#regex#new({'vim': visual, 'pcre': visual, 'literal': visual})
@@ -19,7 +19,7 @@ fu! esearch#source#visual(opts)
   endif
 endfu
 
-fu! esearch#source#hlsearch(...)
+fu! esearch#source#hlsearch(...) abort
   if get(v:, 'hlsearch', 0)
     let vexp = getreg('/')
     return esearch#regex#new({
@@ -32,7 +32,7 @@ fu! esearch#source#hlsearch(...)
   endif
 endfu
 
-fu! esearch#source#last(...)
+fu! esearch#source#last(...) abort
   if exists('g:esearch')
     return get(g:esearch, '_last_exp', 0)
   else
@@ -40,14 +40,14 @@ fu! esearch#source#last(...)
   endif
 endfu
 
-fu! esearch#source#filename(...)
+fu! esearch#source#filename(...) abort
   let w = expand('%')
 endfu
 
-fu! esearch#source#cword(...)
+fu! esearch#source#cword(...) abort
   let w = expand('<cword>')
   return esearch#regex#new({'vim': w, 'pcre': w, 'literal': w})
 endfu
-fu! esearch#source#word_under_cursor(...)
+fu! esearch#source#word_under_cursor(...) abort
   return call('esearch#source#cword', a:000)
 endfu

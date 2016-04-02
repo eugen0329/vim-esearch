@@ -15,7 +15,7 @@ let s:comments = {
       \}
 
 if !exists('g:esearch#cmdline#dir_icon')
-  let g:esearch#cmdline#dir_icon = "🗀 "
+  let g:esearch#cmdline#dir_icon = '🗀 '
 endif
 if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
@@ -116,7 +116,7 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   return s:pattern
 endfu
 
-fu! s:handle_initial_select(cmdline, dir, options)
+fu! s:handle_initial_select(cmdline, dir, options) abort
   let handle_map = 0
   let enter_is_pressed = 0
   call s:dir_prompt(a:dir)
@@ -134,7 +134,7 @@ fu! s:handle_initial_select(cmdline, dir, options)
 
   if index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
     if index(s:select_cancelling_special_chars, char) >= 0
-      let enter_is_pressed = (char == "\<Enter>" ? 1 : 0)
+      let enter_is_pressed = (char ==# "\<Enter>" ? 1 : 0)
       let handle_map = 0
       return [a:cmdline, enter_is_pressed, handle_map]
     endif
@@ -158,7 +158,7 @@ fu! s:handle_initial_select(cmdline, dir, options)
   return [cmdline, enter_is_pressed, handle_map]
 endfu
 
-fu! s:list_help()
+fu! s:list_help() abort
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
 
@@ -173,7 +173,7 @@ fu! s:help() abort
   call getchar()
 endfu
 
-fu! s:run(func, ...)
+fu! s:run(func, ...) abort
   call add(s:pending, {'funcref': function(a:func), 'args': a:000})
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
@@ -182,7 +182,7 @@ fu! s:run(func, ...)
 endfu
 
 fu! s:invert(option) abort
-  if a:option == 'regex' && g:esearch.recover_regex
+  if a:option ==# 'regex' && g:esearch.recover_regex
     call s:recover_regex()
   endif
   call g:esearch.invert(a:option)
@@ -243,7 +243,7 @@ fu! s:init_mappings() abort
   let mapargs =  {}
   for map in keys(s:mappings.dict())
     let mapargs[map] = maparg(map, 'c', 0, 1)
-    exe "cmap " . map . ' ' . s:mappings[map]
+    exe 'cmap ' . map . ' ' . s:mappings[map]
   endfor
 
   return mapargs

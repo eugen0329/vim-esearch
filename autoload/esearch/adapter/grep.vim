@@ -21,11 +21,11 @@ fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
   let w = options.parametrize('word')
   " -r: no follow symbolic links
   " -I: Process a binary file as if it did not contain matching data
-  return "grep ".r." ".c." ".w." -r -n --exclude-dir=.{git,svn,hg} -- " .
-        \ a:escape(a:pattern)  . " " . fnameescape(a:dir)
+  return 'grep '.r.' '.c.' '.w.' -r -n --exclude-dir=.{git,svn,hg} -- ' .
+        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 
-fu! esearch#adapter#grep#is_broken_result(line)
+fu! esearch#adapter#grep#is_broken_result(line) abort
   return empty(matchlist(a:line, s:format)[1:3])
 endfu
 
@@ -54,7 +54,7 @@ fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) a
   return results
 endfu
 
-fu! esearch#adapter#grep#requires_pty()
+fu! esearch#adapter#grep#requires_pty() abort
   return 1
 endfu
 

@@ -18,15 +18,15 @@ fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return "ag ".r." ".c." ".w." --nogroup --nocolor --column -- " .
-        \ a:escape(a:pattern)  . " " . fnameescape(a:dir)
+  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column -- ' .
+        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 
-fu! esearch#adapter#ag#is_broken_result(line)
+fu! esearch#adapter#ag#is_broken_result(line) abort
   return empty(matchlist(a:line, s:format)[1:4])
 endfu
 
-fu! esearch#adapter#ag#requires_pty()
+fu! esearch#adapter#ag#requires_pty() abort
   return 1
 endfu
 
@@ -64,7 +64,7 @@ fu! s:stringify(key, ...) dict abort
   return self[a:key]['s'][option_index]
 endfu
 
-function! esearch#adapter#ag#sid()
+function! esearch#adapter#ag#sid() abort
   return maparg('<SID>', 'n')
 endfunction
 nnoremap <SID>  <SID>

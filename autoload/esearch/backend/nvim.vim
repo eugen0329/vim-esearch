@@ -33,7 +33,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
 endfu
 
 " TODO encoding
-fu! s:stdout(job_id, data, event) abort
+fu! s:stdout(job_id, data, event) dict abort
   let job = s:jobs[a:job_id]
   let data = a:data
 
@@ -46,7 +46,7 @@ fu! s:stdout(job_id, data, event) abort
   if self.pty
     call map(data, "substitute(v:val, '\\r$', '', '')")
   endif
-  let data = filter(data, '"" !=# v:val')
+  let data = filter(data, "'' !=# v:val")
   let job.request.data += data
 
   " Reduce buffer updates to prevent long cursor lock
@@ -56,7 +56,7 @@ fu! s:stdout(job_id, data, event) abort
   endif
 endfu
 
-fu! s:stderr(job_id, data, event)
+fu! s:stderr(job_id, data, event) dict abort
   let job = s:jobs[a:job_id]
   let data = a:data
   if !has_key(job.request, 'errors')
@@ -67,10 +67,10 @@ fu! s:stderr(job_id, data, event)
     let job.request.errors[-1] .= data[0]
     call remove(data, 0)
   endif
-  let job.request.errors += filter(data, '"" !=# v:val')
+  let job.request.errors += filter(data, "'' !=# v:val")
 endfu
 
-fu! s:exit(job_id, status, event)
+fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
@@ -80,7 +80,7 @@ endfu
 " TODO write expansion for commands
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
-fu! esearch#backend#nvim#escape_cmd(cmd)
+fu! esearch#backend#nvim#escape_cmd(cmd) abort
   return esearch#util#shellescape(a:cmd)
 endfu
 

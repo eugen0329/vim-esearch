@@ -2,7 +2,7 @@ if !exists('esearch#substitute#swapchoice')
   let g:esearch#substitute#swapchoice = ''
 endif
 
-fu! esearch#substitute#do(args, from, to, out)
+fu! esearch#substitute#do(args, from, to, out) abort
   let line = a:from
   let limit = a:from > a:to ? a:from + 1 : a:to + 1
 
@@ -109,7 +109,7 @@ fu! s:init_highlights(target_line) abort
   call add(b:esearch.matchids, matchadd('DiffChange', '\%'.a:target_line.'l', -1))
 endfu
 
-fu! s:clear_hightligh()
+fu! s:clear_hightligh() abort
   au! ESearchSubstituteHL * <buffer>
   for m in b:esearch.matchids
     call matchdelete(m)
@@ -118,7 +118,7 @@ fu! s:clear_hightligh()
 endfu
 
 " Disables swap resolving and saves swap to b:esearch.unresolved_swapfiles list
-fu! s:make_swap_choise(fname, esearch_buf)
+fu! s:make_swap_choise(fname, esearch_buf) abort
   " call getchar()
   let esearch = getbufvar(a:esearch_buf, 'esearch')
   if !has_key(esearch, 'unresolved_swapfiles')
@@ -137,7 +137,7 @@ fu! s:make_swap_choise(fname, esearch_buf)
   let v:swapchoice = g:esearch#substitute#swapchoice
 endfu
 
-fu! s:cleanup(besearch)
+fu! s:cleanup(besearch) abort
   if has_key(a:besearch, 'unresolved_swapfiles')
     unlet a:besearch.unresolved_swapfiles
   endif
@@ -146,13 +146,13 @@ fu! s:cleanup(besearch)
   augroup END
 endfu
 
-fu! s:statistics(opened_files, unresolved_swapfiles)
+fu! s:statistics(opened_files, unresolved_swapfiles) abort
   echo len(a:opened_files) . ' files changed'
 
   let unresolved_swapfiles = a:unresolved_swapfiles
   if !empty(a:unresolved_swapfiles)
     echo ''
-    call esearch#util#hlecho([['Title', "The following files has unresolved swapfiles"], ['Normal']])
+    call esearch#util#hlecho([['Title', 'The following files has unresolved swapfiles'], ['Normal']])
     for name in unresolved_swapfiles
       echo "\t".name
     endfor

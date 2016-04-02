@@ -18,8 +18,8 @@ fu! esearch#adapter#ack#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return "ack ".r." ".c." ".w." -s --nogroup --nocolor --column -- " .
-        \ a:escape(a:pattern)  . " " . fnameescape(a:dir)
+  return 'ack '.r.' '.c.' '.w.' -s --nogroup --nocolor --column -- ' .
+        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 
 fu! esearch#adapter#ack#is_broken_result(...) abort
@@ -30,11 +30,11 @@ fu! esearch#adapter#ack#parse_results(...) abort
   return call('esearch#adapter#ag#parse_results', a:000)
 endfu
 
-fu! esearch#adapter#ack#requires_pty()
+fu! esearch#adapter#ack#requires_pty() abort
   return 1
 endfu
 
-function! esearch#adapter#ack#sid()
+function! esearch#adapter#ack#sid() abort
   return maparg('<SID>', 'n')
 endfunction
 nnoremap <SID>  <SID>

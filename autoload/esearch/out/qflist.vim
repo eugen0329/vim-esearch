@@ -22,13 +22,13 @@ fu! esearch#out#qflist#init(opts) abort
 
   call extend(b:esearch.request, {
         \ 'data_ptr':     0,
-        \ 'out_finish':   function("esearch#out#qflist#_is_render_finished")
+        \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
         \})
 
   au BufReadPost <buffer> let w:quickfix_title = b:esearch.unescaped_title
 endfu
 
-fu! esearch#out#qflist#trigger_key_press(...)
+fu! esearch#out#qflist#trigger_key_press(...) abort
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
 endfu
@@ -67,11 +67,11 @@ fu! esearch#out#qflist#update(bufnr) abort
   endif
 endfu
 
-fu! esearch#out#qflist#forced_finish(bufnr)
+fu! esearch#out#qflist#forced_finish(bufnr) abort
   call esearch#out#qflist#finish(a:bufnr)
 endfu
 
-fu! esearch#out#qflist#finish(bufnr)
+fu! esearch#out#qflist#finish(bufnr) abort
 
   let esearch = getbufvar(a:bufnr, 'esearch')
 

@@ -2,16 +2,14 @@ if !exists('g:esearch#util#use_setbufline')
   let g:esearch#util#use_setbufline = 1
 endif
 
-
-
 if g:esearch#util#use_setbufline
-  fu! esearch#util#setline(expr, lnum, text)
+  fu! esearch#util#setline(expr, lnum, text) abort
     let oldnr = winnr()
     let winnr = bufwinnr(a:expr)
 
     if oldnr != winnr
-      if winnr == -1
-        noau silent exec "sp ".escape(bufname(bufnr(a:expr)), ' \`')
+      if winnr ==# -1
+        noau silent exec 'sp '.escape(bufname(bufnr(a:expr)), ' \`')
         noau silent call setline(a:lnum, a:text)
         noau silent hide
       else
@@ -24,7 +22,7 @@ if g:esearch#util#use_setbufline
     noau exec oldnr.'wincmd w'
   endfu
 else
-  fu! esearch#util#setline(_, lnum, text)
+  fu! esearch#util#setline(_, lnum, text) abort
     return setline(a:lnum, a:text)
   endfu
 endif
@@ -46,7 +44,7 @@ fu! esearch#util#bufloc(bufnr) abort
 endf
 
 
-fu! esearch#util#flatten(list)
+fu! esearch#util#flatten(list) abort
   let flatten = []
   for elem in a:list
     if type(elem) == type([])
@@ -105,7 +103,7 @@ fu! esearch#util#timenow() abort
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
-fu! esearch#util#has_unicode()
+fu! esearch#util#has_unicode() abort
   return &termencoding ==# 'utf-8' || &encoding ==# 'utf-8'
 endfu
 
@@ -113,7 +111,7 @@ fu! esearch#util#visual_selection() abort
   let [lnum1, col1] = getpos("'<")[1:2]
   let [lnum2, col2] = getpos("'>")[1:2]
   let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
+  let lines[-1] = lines[-1][: col2 - (&selection ==# 'inclusive' ? 1 : 2)]
   let lines[0] = lines[0][col1 - 1:]
   return join(lines, "\n")
 endfu
@@ -128,7 +126,7 @@ fu! esearch#util#get(key) dict abort
 endfu
 
 fu! esearch#util#dict() dict abort
-  return filter(copy(self), 'type(v:val) != '.type(function("tr")))
+  return filter(copy(self), 'type(v:val) != '.type(function('tr')))
 endfu
 
 fu! esearch#util#with_val(val) dict abort
@@ -158,15 +156,15 @@ fu! esearch#util#set_default(key, default) dict abort
   return self
 endfu
 
-fu! esearch#util#highlight(highlight, str, ...)
-  exe "echohl " . a:highlight . "| echon " . strtrans(string(a:str))
+fu! esearch#util#highlight(highlight, str, ...) abort
+  exe 'echohl ' . a:highlight . '| echon ' . strtrans(string(a:str))
   if a:0 && empty(a:1)
     echohl 'Normal'
   endif
 endfu
 
 
-fu! esearch#util#hlecho(groups)
+fu! esearch#util#hlecho(groups) abort
   for group in a:groups
     let str = len(group) == 1 ? '' : '| echon ' . string(group[1])
     let highlight = 'echohl ' . group[0]
@@ -186,7 +184,7 @@ fu! esearch#util#stringify(key, ...) dict abort
   return self[a:key]['s'][option_index]
 endfu
 
-fu! esearch#util#highlight_attr(group, mode, what, default)
+fu! esearch#util#highlight_attr(group, mode, what, default) abort
   let attr = synIDattr(synIDtrans(hlID(a:group)), a:what, a:mode)
   if attr ==# -1 || attr ==# ''
     return a:default
@@ -194,7 +192,7 @@ fu! esearch#util#highlight_attr(group, mode, what, default)
   return attr
 endfu
 
-fu! esearch#util#stringify_mapping(map)
+fu! esearch#util#stringify_mapping(map) abort
   let str = substitute(a:map, '<[Cc]-\([^>]\)>', 'ctrl-\1 ', 'g')
   let str = substitute(str, '<[Ss]-\([^>]\)>', 'shift-\1 ', 'g')
   let str = substitute(str, '<[AMam]-\([^>]\)>', 'alt-\1 ', 'g')
@@ -203,37 +201,37 @@ fu! esearch#util#stringify_mapping(map)
   return str
 endfu
 
-fu! esearch#util#destringify_mapping(map)
+fu! esearch#util#destringify_mapping(map) abort
   let str = substitute(a:map, 'ctrl',           'C', 'g')
   let str = substitute(str,   '\%(alt\|meta\)', 'M', 'g')
   let str = substitute(str,   'shift',          'S', 'g')
   let str = substitute(str,   'cmd',            'D', 'g')
-  let str = join(map(filter(split(str,' '), 'v:val !=# ""'),'"<".v:val.">"'),'')
+  let str = join(map(filter(split(str,' '), "v:val !=# ''"),"'<'.v:val.'>'"),'')
   return str
 endfu
 
-fu! esearch#util#map_name(printable)
+fu! esearch#util#map_name(printable) abort
   let len = strlen(a:printable)
   let without_last_char = a:printable[:len-2]
   let last_char = a:printable[len-1]
 
   if strtrans("\<M-a>")[:-2] == without_last_char
-    return "<M-".last_char.">"
+    return '<M-'.last_char.'>'
   elseif strtrans("\<F1>")[:-2] == without_last_char
-    return "<F".last_char.">"
+    return '<F'.last_char.'>'
   elseif strtrans("\<S-F1>")[:-2] == without_last_char
-    return "<S-f".last_char.">"
+    return '<S-f'.last_char.'>'
   elseif strtrans("\<S-F1>")[:-2] == without_last_char
-    return "<S-f".last_char.">"
+    return '<S-f'.last_char.'>'
   elseif strtrans("\<C-a>")[:-2] == without_last_char
-    return "<C-".last_char.">"
+    return '<C-'.last_char.'>'
   endif
 
   return ''
 endfu
 
 " TODO handle <expr> mappings
-fu! esearch#util#map_rhs(printable)
+fu! esearch#util#map_rhs(printable) abort
   let printable = a:printable
 
   " We can't fetch maparg neither with l:char nor with strtrans(l:char)
@@ -265,7 +263,7 @@ fu! esearch#util#has_vimproc() abort
   return s:exists_vimproc
 endfu
 
-fu! esearch#util#recognize_plug_manager()
+fu! esearch#util#recognize_plug_manager() abort
   if exists('*plug#begin')
     return 'Vundle'
   elseif exists('*neobundle#begin')

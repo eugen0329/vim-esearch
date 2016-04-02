@@ -54,16 +54,16 @@ fu! s:read_data(request) abort
   let request.data += data
 endfu
 
-fu! esearch#backend#vimproc#escape_cmd(cmd)
+fu! esearch#backend#vimproc#escape_cmd(cmd) abort
   return esearch#util#shellescape(a:cmd)
 endfu
 
-fu! s:read_errors(request)
+fu! s:read_errors(request) abort
   let stderr = a:request.pipe.stderr
   if !stderr.eof
     let errors = filter(
           \ stderr.read_lines(-1, g:esearch#backend#vimproc#read_errors_timeout),
-          \ "v:val !~ '^\\s*$'")
+          \ "v:val !~# '^\\s*$'")
     let a:request.errors += errors
   endif
 endfu
@@ -84,7 +84,7 @@ fu! s:_on_cursor_moved(request_id) abort
   endif
 endfu
 
-fu! s:finish(request, request_id)
+fu! s:finish(request, request_id) abort
   call s:read_errors(a:request)
   if has_key(a:request, 'bufnr')
     let ut_bak = float2nr(getbufvar(a:request.bufnr, 'updatetime_backup'))
@@ -94,7 +94,7 @@ fu! s:finish(request, request_id)
   exe 'au! ESearchVimproc'.a:request_id
 endfu
 
-fu! s:_on_cursor_hold(request_id)
+fu! s:_on_cursor_hold(request_id) abort
   let request = s:requests[a:request_id]
   call s:read_data(request)
 
@@ -135,10 +135,10 @@ fu! esearch#backend#vimproc#init_events() abort
 endfu
 
 
-function! esearch#backend#vimproc#sid()
+function! esearch#backend#vimproc#sid() abort
   return maparg('<SID>', 'n')
 endfunction
-function! esearch#backend#vimproc#scope()
+function! esearch#backend#vimproc#scope() abort
   return s:
 endfunction
 nnoremap <SID>  <SID>

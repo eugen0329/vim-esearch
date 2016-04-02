@@ -1,4 +1,4 @@
-fu! esearch#init(...)
+fu! esearch#init(...) abort
   if !exists('g:loaded_esearch_config')
     let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})
     if empty(g:esearch) | return 1 | endif
@@ -53,11 +53,11 @@ fu! esearch#init(...)
   call esearch#out#{opts.out}#init(out_params)
 endfu
 
-fu! s:escape_title(title)
+fu! s:escape_title(title) abort
   let name = fnameescape(a:title)
   let name = substitute(name, '["]', '\\\\\0', 'g')
   " let name = substitute(name, "[']", '\\\\\0', 'g')
-  return escape(name, "<")
+  return escape(name, '<')
 endfu
 
 fu! s:title(pattern) abort
@@ -92,14 +92,14 @@ fu! s:bufname_format() abort
       " Since we can't use '/' in filenames
       return "Search  \u2215%s\u2215%s"
     else
-      return "Search %%r{%s}%s"
+      return 'Search %%r{%s}%s'
     endif
   else
-    return "Search `%s`%s"
+    return 'Search `%s`%s'
   endif
 endfu
 
-function! esearch#sid()
+function! esearch#sid() abort
   return maparg('<SID>', 'n')
 endfunction
 nnoremap <SID>  <SID>

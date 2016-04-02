@@ -8,9 +8,9 @@ fu! esearch#backend#system#init(cmd, pty) abort
 endfu
 
 
-fu! esearch#backend#system#escape_cmd(cmd)
+fu! esearch#backend#system#escape_cmd(cmd) abort
   return esearch#util#shellescape(a:cmd)
 endfu
 
-fu! esearch#backend#system#init_events()
+fu! esearch#backend#system#init_events() abort
 endfu

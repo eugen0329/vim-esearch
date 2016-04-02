@@ -5,7 +5,7 @@ endif
 fu! esearch#help#cmdline(mappings, comments) abort
   let mappings = a:mappings
   let comments = a:comments
-  let help_plug = "<Plug>(esearch-cmdline-help)"
+  let help_plug = '<Plug>(esearch-cmdline-help)'
   let help_map = '"'. help_plug .'"'
 
   for [m, plug] in items(mappings.without_val(help_map).dict())
@@ -14,7 +14,7 @@ fu! esearch#help#cmdline(mappings, comments) abort
           \ ['Normal', '  '.comments[plug]."\n"]])
   endfor
 
-  let map = printf("%10s:", esearch#util#stringify_mapping(mappings.key(help_map)))
+  let map = printf('%10s:', esearch#util#stringify_mapping(mappings.key(help_map)))
   call esearch#util#hlecho([ ['Title', map], ['Normal', '  '.comments[help_plug]] ])
 
   if g:esearch#cmdline#help_prompt
@@ -29,14 +29,14 @@ fu! esearch#help#cmdline(mappings, comments) abort
   endif
 endfu
 
-fu! esearch#help#backend_dependencies()
+fu! esearch#help#backend_dependencies() abort
   " let plug_manager = esearch#util#recognize_plug_manager()
   let plug_manager = 'Pathogen'
   let plug_install = s:plug_install_cmd('Shougo/vimproc.vim', plug_manager)
 
 
   call esearch#util#hlecho([
-        \['Error',    "To access async features, ESearch requires NeoVim job control or Vimproc plugin installed"],
+        \['Error',    'To access async features, ESearch requires NeoVim job control or Vimproc plugin installed'],
         \['Norma', "\n"],
         \['Normal', 'Please, install NeoVim or ']]
         \ + plug_install +
@@ -45,13 +45,13 @@ fu! esearch#help#backend_dependencies()
         \])
 endfu
 
-fu! s:plug_install_cmd(plug, manager)
+fu! s:plug_install_cmd(plug, manager) abort
   if a:manager ==# 'Pathogen'
     return [['Normal', 'execute'], ['Bold', '`cd ~/.vim/bundle && git clone https://github.com/Shougo/vimproc.vim`']]
   else
 
     let myvimrc = '' ==# $MYVIMRC ? 'your vimrc' : $MYVIMRC
-    if a:manager =~ 'Plug\|Vundle\|NeoBundle'
+    if a:manager =~? 'Plug\|Vundle\|NeoBundle'
       let cmds = { 'Plug': 'Plug', 'NeoBundle': 'NeoBundle', 'Vundle': 'Plugin' }
       let vimrc_cmd = [['Cleared', cmds[a:manager].' '], ['String', "'".a:plug."'"]]
     else " a:manager == 'Dein'
