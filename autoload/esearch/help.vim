@@ -6,7 +6,7 @@ fu! esearch#help#cmdline(mappings, comments) abort
   let mappings = a:mappings
   let comments = a:comments
   let help_plug = '<Plug>(esearch-cmdline-help)'
-  let help_map = '"'. help_plug .'"'
+  let help_map = help_plug
 
   for [m, plug] in items(mappings.without_val(help_map).dict())
     call esearch#util#hlecho([

@@ -1,5 +1,5 @@
 if get(get(g:, 'esearch', {}), 'nerdtree_plugin', 1)
-  for map in keys(esearch#_mappings().with_val('"<Plug>(esearch)"'))
+  for map in keys(esearch#_mappings().with_val('<Plug>(esearch)'))
     call NERDTreeAddKeyMap({
           \ 'key': map,
           \ 'override': 1,

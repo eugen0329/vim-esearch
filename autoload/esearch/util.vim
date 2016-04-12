@@ -130,19 +130,22 @@ fu! esearch#util#dict() dict abort
 endfu
 
 fu! esearch#util#with_val(val) dict abort
-  return filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)
+  let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
+  return filter(copy(self), 'type(v:val) == type('.val.') && v:val==# '.val)
+endfu
+
+fu! esearch#util#without_val(val) dict abort
+  let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
+  return filter(copy(self), 'type(v:val) != type('.val.') || v:val!=# '.val)
 endfu
 
 fu! esearch#util#key(val) dict abort
-  return get(keys(filter(copy(self), 'type(v:val) == type('.a:val.') && v:val==# '.a:val)), 0, 0)
+  let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
+  return get(keys(filter(copy(self), 'type(v:val) == type('.val.') && v:val==# '.val)), 0, 0)
 endfu
 
 fu! esearch#util#without(key) dict abort
   return filter(copy(self), 'v:key !=# "'.a:key.'"')
-endfu
-
-fu! esearch#util#without_val(val) dict abort
-  return filter(copy(self), 'type(v:val) != type('.a:val.') || v:val!=# '.a:val)
 endfu
 
 fu! esearch#util#require(...) dict abort
