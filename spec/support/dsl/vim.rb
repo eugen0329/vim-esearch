@@ -19,10 +19,17 @@ module Support
       end
 
       #TODO
-      def press_output(cmd)
-        press(":let g:__redirected_output__ = '_'<Enter>")
-        press(":redir => g:__redirected_output__<Enter>")
-        press(":try<CR>#{cmd}:catch<CR>:echo 'Error: '.v:exception.' at '.v:throwpoint<CR>:endtry<CR>")
+      def output(keys)
+        vim.multiline_command(%{
+          if exists('g:__redirected_output__')
+            unlet g:__redirected_output__
+          endif
+          let g:__redirected_output__ = '_'
+        })
+        press(":redir => g:__redirected_output__<CR>")
+        type(":try<CR>")
+        type(keys)
+        type(":catch<CR>:echo 'Error: '.v:exception.' at '.v:throwpoint<CR>:endtry<CR>")
         press(":redir END<CR>")
         expr("g:__redirected_output__")
       end
@@ -33,6 +40,10 @@ module Support
 
       def press(keys)
         vim.normal(keys)
+      end
+
+      def type(keys)
+        vim.type(keys)
       end
 
       def cmd(str)

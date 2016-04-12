@@ -36,7 +36,7 @@ fu! esearch#help#backend_dependencies() abort
 
   call esearch#util#hlecho([
         \['Error',    'To access async features, ESearch requires NeoVim job control or Vimproc plugin installed'],
-        \['Norma', "\n"],
+        \['Normal', "\n"],
         \['Normal', 'Please, install NeoVim or ']]
         \ + plug_install +
         \[['Normal', "\n"],

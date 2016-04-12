@@ -55,6 +55,7 @@ cnoremap <Plug>(esearch-toggle-case)         <C-r>=<SID>run('s:invert', 'case')<
 cnoremap <Plug>(esearch-toggle-word)         <C-r>=<SID>run('s:invert', 'word')<CR>
 cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 
+
 " TODO MAJOR PRIO refactoring
 fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   let old_mapargs = s:init_mappings()
@@ -88,7 +89,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     let s:pending = []
     while 1
       call s:dir_prompt(a:cmdline_opts.cwd)
-      let str = input(s:prompt(a:adapter_options), s:cmdline)
+      let str = input(s:prompt(a:adapter_options), s:cmdline, 'custom,esearch#cmdline#buff_compl')
 
       if empty(s:pending)
         break
@@ -267,3 +268,7 @@ endfu
 fu! esearch#cmdline#map(lhs, rhs) abort
   let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
+
+function! esearch#cmdline#buff_compl(...)
+  return join(sort(esearch#util#uniq(filter(split(join(getline(1, '$')), '\W'), '!empty(v:val)')), 1), "\n")
+endfunction
