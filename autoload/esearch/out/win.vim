@@ -68,13 +68,11 @@ fu! esearch#out#win#init(opts) abort
   call s:init_commands()
 
   let &iskeyword = g:esearch.wordchars
-  setlocal noreadonly
   setlocal modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0))
   " Disable undo
   setlocal undolevels=-1
-  setlocal readonly
   setlocal nomodifiable
   setlocal nobackup
   setlocal noswapfile
@@ -150,11 +148,9 @@ fu! esearch#out#win#update(bufnr) abort
     let parsed = esearch#adapter#{esearch.adapter}#parse_results(
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
-    call setbufvar(a:bufnr, '&ro',   0)
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
     call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr))
-    call setbufvar(a:bufnr, '&ro', 1)
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
@@ -369,7 +365,6 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  call setbufvar(a:bufnr, '&ro',   0)
   call setbufvar(a:bufnr, '&ma', 1)
 
   if has_key(esearch.request, 'errors') && len(esearch.request.errors)
@@ -384,7 +379,6 @@ fu! esearch#out#win#finish(bufnr) abort
     call esearch#util#setline(a:bufnr, 1, getbufline(a:bufnr, 1)[0] . '. Finished.' )
   endif
 
-  call setbufvar(a:bufnr, '&ro',   1)
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod',   0)
 endfu
