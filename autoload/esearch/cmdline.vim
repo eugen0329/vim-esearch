@@ -215,7 +215,7 @@ fu! s:prompt(adapter_options) abort
   let w = a:adapter_options.stringify('word')
 
   if g:esearch#cmdline#help_prompt
-    let mapping = s:mappings.key('"<Plug>(esearch-cmdline-help)"')
+    let mapping = s:mappings.key('<Plug>(esearch-cmdline-help)')
     let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to list help)'
   else
     let help = ''

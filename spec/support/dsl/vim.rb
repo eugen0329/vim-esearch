@@ -18,6 +18,15 @@ module Support
         vim.echo(str)
       end
 
+      #TODO
+      def press_output(cmd)
+        press(":let g:__redirected_output__ = '_'<Enter>")
+        press(":redir => g:__redirected_output__<Enter>")
+        press(":try<CR>#{cmd}:catch<CR>:echo 'Error: '.v:exception.' at '.v:throwpoint<CR>:endtry<CR>")
+        press(":redir END<CR>")
+        expr("g:__redirected_output__")
+      end
+
       def bool_expr(str)
         vim.echo(str).to_i == 1
       end
