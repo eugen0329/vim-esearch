@@ -59,7 +59,7 @@ cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 fu! esearch#cmdline#_read(exp, dir, options) abort
   let old_mapargs = s:init_mappings()
   let s:pattern = a:exp
-  if get(a:options, 'selectmaphandle', 0)
+  if get(a:options, 'blank_cmdline', 0)
     let s:cmdline = ''
   else
     let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
@@ -68,12 +68,12 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   let handle_map = 0
   let enter_was_pressed = 0
 
-  if !get(a:options, 'selectmaphandle', 0) && !empty(s:cmdline) && g:esearch#cmdline#select_initial
+  if !get(a:options, 'select_initial', 0) && !empty(s:cmdline) && g:esearch#cmdline#select_initial
     " TODO
     let [s:cmdline, enter_was_pressed, handle_map] = s:handle_initial_select(s:cmdline, a:dir, a:options)
     redraw!
     if handle_map
-      exe "norm :call esearch#init({'selectmaphandle': 1})\<CR>".s:cmdline
+      exe "norm :call esearch#init({'select_initial': 1, 'blank_cmdline': 1})\<CR>".s:cmdline
       return 0
     endif
   endif

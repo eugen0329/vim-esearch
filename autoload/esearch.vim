@@ -8,7 +8,8 @@ fu! esearch#init(...) abort
   let opts = a:0 ? a:1 : {}
   let source_params = {
         \ 'visualmode': get(opts, 'visualmode', 0),
-        \ 'selectmaphandle': get(opts, 'selectmaphandle', 0)
+        \ 'select_initial': get(opts, 'select_initial', 1),
+        \ 'blank_cmdline': get(opts, 'blank_cmdline', 0),
         \}
   let g:esearch.last_exp = esearch#source#pick_exp(g:esearch.use, source_params)
 
