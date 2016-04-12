@@ -56,21 +56,23 @@ cnoremap <Plug>(esearch-toggle-word)         <C-r>=<SID>run('s:invert', 'word')<
 cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 
 " TODO MAJOR PRIO refactoring
-fu! esearch#cmdline#_read(exp, dir, options) abort
+fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   let old_mapargs = s:init_mappings()
-  let s:pattern = a:exp
-  if get(a:options, 'blank_cmdline', 0)
+  let s:pattern = a:cmdline_opts.exp
+
+  if a:cmdline_opts.blank_cmdline
     let s:cmdline = ''
   else
-    let s:cmdline = g:esearch.regex ? a:exp.pcre : a:exp.literal
+    let s:cmdline = g:esearch.regex ? a:cmdline_opts.exp.pcre : a:cmdline_opts.exp.literal
   endif
 
   let handle_map = 0
   let enter_was_pressed = 0
 
-  if !get(a:options, 'select_initial', 0) && !empty(s:cmdline) && g:esearch#cmdline#select_initial
+  if !get(a:adapter_options, 'select_initial', 0) && !empty(s:cmdline) && g:esearch#cmdline#select_initial
     " TODO
-    let [s:cmdline, enter_was_pressed, handle_map] = s:handle_initial_select(s:cmdline, a:dir, a:options)
+    let [s:cmdline, enter_was_pressed, handle_map] =
+          \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
     if handle_map
       exe "norm :call esearch#init({'select_initial': 1, 'blank_cmdline': 1})\<CR>".s:cmdline
@@ -85,8 +87,8 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
     let s:list_help = 0
     let s:pending = []
     while 1
-      call s:dir_prompt(a:dir)
-      let str = input(s:prompt(a:options), s:cmdline)
+      call s:dir_prompt(a:cmdline_opts.cwd)
+      let str = input(s:prompt(a:adapter_options), s:cmdline)
 
       if empty(s:pending)
         break
@@ -116,11 +118,11 @@ fu! esearch#cmdline#_read(exp, dir, options) abort
   return s:pattern
 endfu
 
-fu! s:handle_initial_select(cmdline, dir, options) abort
+fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   let handle_map = 0
   let enter_is_pressed = 0
   call s:dir_prompt(a:dir)
-  call esearch#util#highlight('Normal', s:prompt(a:options))
+  call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
   " Replace \n with \s like input function argumen {text} do
   call esearch#util#highlight('Visual', substitute(a:cmdline, "\n", ' ', 'g'), 0)
 
@@ -207,10 +209,10 @@ fu! s:recover_regex() abort
   endif
 endfu
 
-fu! s:prompt(options) abort
-  let r = a:options.stringify('regex')
-  let c = a:options.stringify('case')
-  let w = a:options.stringify('word')
+fu! s:prompt(adapter_options) abort
+  let r = a:adapter_options.stringify('regex')
+  let c = a:adapter_options.stringify('case')
+  let w = a:adapter_options.stringify('word')
 
   if g:esearch#cmdline#help_prompt
     let mapping = s:mappings.key('"<Plug>(esearch-cmdline-help)"')

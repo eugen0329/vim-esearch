@@ -8,8 +8,6 @@ fu! esearch#init(...) abort
   let opts = a:0 ? a:1 : {}
   let source_params = {
         \ 'visualmode': get(opts, 'visualmode', 0),
-        \ 'select_initial': get(opts, 'select_initial', 1),
-        \ 'blank_cmdline': get(opts, 'blank_cmdline', 0),
         \}
   let g:esearch.last_exp = esearch#source#pick_exp(g:esearch.use, source_params)
 
@@ -22,7 +20,14 @@ fu! esearch#init(...) abort
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
-    let opts.exp = esearch#cmdline#_read(g:esearch.last_exp, opts.cwd, esearch#adapter#{opts.adapter}#options())
+    let adapter_opts = esearch#adapter#{opts.adapter}#options()
+    let cmdline_opts = {
+          \ 'cwd': opts.cwd,
+          \ 'exp': g:esearch.last_exp,
+          \ 'select_initial': get(opts, 'select_initial', 1),
+          \ 'blank_cmdline': get(opts, 'blank_cmdline', 0),
+          \}
+    let opts.exp = esearch#cmdline#read(cmdline_opts, adapter_opts)
     if empty(opts.exp)
       return 1
     endif
