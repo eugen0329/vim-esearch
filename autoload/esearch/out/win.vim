@@ -248,7 +248,7 @@ fu! s:open(cmd, ...) abort
       unsilent echo v:exception . ' at ' . v:throwpoint
     endtry
 
-    call cursor(ln, col)
+    keepjumps call cursor(ln, col)
     norm! zz
     if a:0 | exe a:1 | endif
   endif
