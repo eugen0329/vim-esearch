@@ -2,6 +2,7 @@ fu! esearch#backend#system#init(cmd, pty) abort
   let request = {
         \ 'data': split(system(a:cmd), "\n"),
         \ 'async': 0,
+        \ 'finished': 1
         \}
 
   return request

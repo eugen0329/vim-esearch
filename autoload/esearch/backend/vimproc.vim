@@ -28,6 +28,7 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'data': [],
         \ 'errors': [],
         \ 'async': 1,
+        \ 'finished': 0,
         \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
         \   'finish':            'ESearchVimProcFinish'.s:last_request_id,
@@ -90,6 +91,7 @@ fu! s:finish(request, request_id) abort
     let ut_bak = float2nr(getbufvar(a:request.bufnr, 'updatetime_backup'))
     call setbufvar(a:request.bufnr, '&ut', ut_bak)
   endif
+  let a:request.finished = 1
   exe 'do User '.a:request.events.finish
   exe 'au! ESearchVimproc'.a:request_id
 endfu
@@ -118,8 +120,9 @@ fu! s:completed(request) abort
         \ (!has_key(a:request, 'out_finish') || a:request.out_finish())
 endfu
 
-fu! esearch#backend#vimproc#abort(request) abort
-  return a:request.pipe.kill(g:vimproc#SIGTERM)
+fu! esearch#backend#vimproc#abort(bufnr) abort
+  let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  return empty(esearch) ?  0 : a:request.pipe.kill(g:vimproc#SIGTERM)
 endfu
 
 fu! esearch#backend#vimproc#init_events() abort
@@ -131,7 +134,7 @@ fu! esearch#backend#vimproc#init_events() abort
         \ let &updatetime = float2nr(g:esearch#backend#vimproc#updatetime)
 
   au BufUnload <buffer>
-        \ call esearch#backend#vimproc#abort(getbufvar(str2nr(expand('<abuf>')), 'esearch').request)
+        \ call esearch#backend#vimproc#abort(str2nr(expand('<abuf>')))
 endfu
 
 

@@ -29,6 +29,7 @@ if !exists('g:esearch#cmdline#select_cancelling_chars')
         \ "\<C-o>",
         \ "\<Esc>",
         \ "\<Enter>",
+        \ "\<Tab>",
         \ "\<M-b>",
         \ "\<M-f>",
         \ "\<Left>",
