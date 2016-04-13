@@ -36,11 +36,14 @@ let s:filename_pattern = '^[^ ]' " '\%>2l'
 if !exists('g:esearch#out#win#context_syntax_highlight')
   let g:esearch#out#win#context_syntax_highlight = 0
 endif
-let s:syntax_types = {
+let s:syntax_regexps = {
       \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
       \ 'light_eruby': '\%(\.erb\)$',
       \ 'yaml': '\%(yaml\|\.yml\)$',
       \}
+if exists('g:esearch#out#win#syntax_regeps')
+  call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
+endif
 
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
@@ -181,7 +184,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
     if filename !=# a:esearch.prev_filename
       if g:esearch#out#win#context_syntax_highlight
-        for [s,r] in items(s:syntax_types)
+        for [s,r] in items(s:syntax_regexps)
           if filename =~ r
             if index(a:esearch.syn_regions_loaded, s) < 0
               let c = s:load_context_syntax(s)
