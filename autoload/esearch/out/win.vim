@@ -33,6 +33,15 @@ let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 
+if !exists('g:esearch#out#win#context_syntax_highlight')
+  let g:esearch#out#win#context_syntax_highlight = 0
+endif
+let s:syntax_types = {
+      \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
+      \ 'light_eruby': '\%(\.erb\)$',
+      \ 'yaml': '\%(yaml\|\.yml\)$',
+      \}
+
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
@@ -44,7 +53,7 @@ fu! esearch#out#win#init(opts) abort
   " Refresh match highlight
   setlocal ft=esearch
   if g:esearch.highlight_match
-    if exists('b:esearch')
+    if exists('b:esearch') && b:esearch._match_highlight_id > 0
       try
         call matchdelete(b:esearch._match_highlight_id)
       catch /E803:/
@@ -52,6 +61,8 @@ fu! esearch#out#win#init(opts) abort
       unlet b:esearch
     endif
     let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
+  else
+    let match_highlight_id = -1
   endif
 
   if a:opts.request.async
@@ -88,6 +99,7 @@ fu! esearch#out#win#init(opts) abort
         \ '__broken_results':    [],
         \ 'errors':              [],
         \ 'data':                [],
+        \ 'syn_regions_loaded':                [],
         \ 'without':             function('esearch#util#without')
         \})
 
@@ -168,11 +180,34 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let context  = s:context(parsed[i].text, a:esearch)
 
     if filename !=# a:esearch.prev_filename
+      if g:esearch#out#win#context_syntax_highlight
+        for [s,r] in items(s:syntax_types)
+          if filename =~ r
+            if index(a:esearch.syn_regions_loaded, s) < 0
+              let c = s:load_context_syntax(s)
+              call add(a:esearch.syn_regions_loaded, s)
+            else
+              let c = '@'.toupper(s)
+            endif
+            break
+          endif
+        endfor
+      endif
+
+      " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%4dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
       call esearch#util#setline(a:bufnr, line, '')
       let line += 1
       call esearch#util#setline(a:bufnr, line, filename)
       let line += 1
+
+      " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%%%dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
+      if exists('c')
+        exe printf('syntax region context%s '
+              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(s), line, c)
+        unlet c
+      endif
     endif
+
 
     call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, context))
     let a:esearch._columns[line] = parsed[i].col
@@ -180,6 +215,24 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let line += 1
     let i    += 1
   endwhile
+endfu
+
+fu! s:load_context_syntax(ft)
+  let c = '@' . toupper(a:ft)
+
+  if exists('b:current_syntax')
+    let syntax_save = b:current_syntax
+    unlet b:current_syntax
+  endif
+
+  exe 'syntax include' c 'syntax/' . a:ft . '.vim'
+
+  if exists('syntax_save')
+    let b:current_syntax = syntax_save
+  elseif exists('b:current_syntax')
+    unlet b:current_syntax
+  endif
+  return c
 endfu
 
 fu! s:context(line, esearch) abort

@@ -76,6 +76,9 @@ endfu
 
 fu! esearch#_mappings() abort
   if !exists('s:mappings')
+    " let s:_mappings = [
+    "       \ { 'lhs':  '', 'lhs': '', 'comment'}
+    "       \]
     let s:mappings = {
           \ '<leader>ff': '<Plug>(esearch)',
           \ 'set': function('esearch#util#set'),
