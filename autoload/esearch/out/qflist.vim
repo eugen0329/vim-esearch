@@ -5,6 +5,15 @@ fu! esearch#out#qflist#init(opts) abort
   if a:opts.request.async
     call esearch#out#qflist#setup_autocmds(a:opts)
   endif
+  augroup ESearchQFListNameHack
+    " TODO improve
+    au!
+    au FileType qf
+          \ if exists('w:quickfix_title') && exists('g:esearch_qf') && g:esearch_qf.unescaped_title =~# w:quickfix_title |
+          \   let w:quickfix_title = g:esearch_qf.unescaped_title |
+          \ endif
+  augroup END
+
   let g:esearch_qf = extend(a:opts, {
         \ 'ignore_batches':     0,
         \ 'unescaped_title':    ':'.a:opts.unescaped_title,
@@ -19,6 +28,11 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'data_ptr':     0,
         \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
         \})
+
+
+  if !g:esearch_qf.request.async
+    call esearch#out#qflist#finish()
+  endif
 endfu
 
 fu! esearch#out#qflist#setup_autocmds(opts)
@@ -37,11 +51,6 @@ fu! esearch#out#qflist#setup_autocmds(opts)
       au FileType qf
             \ if exists('g:esearch_qf') && !g:esearch_qf.request.finished && esearch#util#qftype(bufnr('%')) ==# 'qf' |
             \   call esearch#out#qflist#setup_autocmds(g:esearch_qf) |
-            \ endif
-      " TODO improve
-      au FileType qf
-            \ if exists('w:quickfix_title') && exists('g:esearch_qf') && g:esearch_qf.unescaped_title =~# w:quickfix_title |
-            \   let w:quickfix_title = g:esearch_qf.unescaped_title |
             \ endif
     endif
   augroup END
