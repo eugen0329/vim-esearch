@@ -2,7 +2,7 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
   ADAPTERS = ['grep', 'ag', 'ack']
 
   ADAPTERS.each do |adapter|
-    context "#{adapter} adapter" do
+    context "with #{adapter} adapter" do
       before :each do
         press ':cd $PWD<Enter>'
         press ':cd spec/fixtures/backend/<Enter>'
