@@ -33,13 +33,14 @@ another command of the plugin manager you use ([Plug](https://github.com/junegun
 
 ## Usage
 
-Type `<leader>ff` and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#mapleader) is `\`). Use `s`, `v` and `t` 
-buttons to open file under the cursor in split, vertical split and in tab accordingly. Use `shift`
-along with s, v and t buttons to open a file silently. Press `shift-r` to reload
+Type `<leader>ff` and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#mapleader) is <kbd>\\</kbd>).
+Use <kbd>s</kbd>, <kbd>v</kbd> and <kbd>t</kbd> buttons to open file under the
+cursor in split, vertical split and in tab accordingly. Use <kbd>Shift</kbd>
+along with <kbd>s</kbd>, <kbd>v</kbd> and <kbd>t</kbd> buttons to open a file silently. Press <kbd>Shift-r</kbd> to reload
 currrent results.
 
 To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command
-line use `ctrl-o ctrl-r`, `ctrl-o ctrl-s` or `ctrl-o ctrl-w` (mnemonics is set **O**ption: **R**egex,
+line use <kbd>Ctrl-o</kbd><kbd>Ctrl-r</kbd>, <kbd>Ctrl-o</kbd><kbd>Ctrl-s</kbd> or <kbd>Ctrl-o</kbd><kbd>Ctrl-w</kbd> (mnemonics is set **O**ption: **R**egex,
 case **S**esnsitive, **W**ord regex).
 
 ## Customization
