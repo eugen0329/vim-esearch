@@ -6,6 +6,8 @@ rvm:
   - 2.2.2
 sudo: false
 cache: bundler
+os:
+  - linux
 addons:
   apt:
     packages:
