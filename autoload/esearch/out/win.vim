@@ -119,8 +119,18 @@ endfu
 
 " TODO
 fu! s:find_or_create_buf(bufname, opencmd) abort
+
+
   let escaped = s:escape_title(a:bufname)
-  let escaped_for_bufnr = substitute(escape(a:bufname, '*?\{}[]'), '["/]', '\\\\\0', 'g')
+  let escaped_for_bufnr = substitute(escape(a:bufname, '*?\{}[]'), '["]', '\\\\\0', 'g')
+
+  if esearch#util#has_unicode()
+    let escaped = substitute(escaped, '/', "\u2215", 'g')
+    let escaped_for_bufnr = substitute(escaped_for_bufnr, '/', "\u2215", 'g')
+  else
+    let escaped_for_bufnr = substitute(escaped_for_bufnr, '/', '\\\\/', 'g')
+    let escaped = substitute(escaped, '/', '\\\\/', 'g')
+  endif
 
   let bufnr = bufnr('^'.escaped_for_bufnr.'$')
   if bufnr == bufnr('%')
@@ -140,7 +150,7 @@ endfu
 
 fu! s:escape_title(title) abort
   let name = fnameescape(a:title)
-  let name = substitute(name, '["/]', '\\\\\0', 'g')
+  let name = substitute(name, '["]', '\\\\\0', 'g')
   return escape(name, '=')
 endfu
 

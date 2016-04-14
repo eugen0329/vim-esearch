@@ -15,7 +15,11 @@ let s:comments = {
       \}
 
 if !exists('g:esearch#cmdline#dir_icon')
-  let g:esearch#cmdline#dir_icon = '🗀 '
+  if esearch#util#has_unicode()
+    let g:esearch#cmdline#dir_icon = '🗀 '
+  else
+    let g:esearch#cmdline#dir_icon = 'D '
+  endif
 endif
 if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
@@ -230,7 +234,7 @@ fu! s:dir_prompt(dir) abort
   if a:dir ==# $PWD
     return 0
   endif
-  let dir = g:esearch#cmdline#dir_icon.substitute(a:dir , $PWD.'/', '', '')
+  let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
   echo ''

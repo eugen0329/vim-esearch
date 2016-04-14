@@ -135,7 +135,7 @@ fu! esearch#util#timenow() abort
 endfu
 
 fu! esearch#util#has_unicode() abort
-  return &termencoding ==# 'utf-8' || &encoding ==# 'utf-8'
+  return has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 endfu
 
 fu! esearch#util#visual_selection() abort

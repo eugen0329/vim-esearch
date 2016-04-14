@@ -88,7 +88,7 @@ endfu
 " Results bufname format getter
 fu! s:title_format() abort
   if g:esearch.regex
-    if (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
+    if esearch#util#has_unicode()
       " Since we can't use '/' in filenames
       return "Search  \u2215%s\u2215%s"
     else
