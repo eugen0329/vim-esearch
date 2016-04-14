@@ -14,8 +14,7 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
       end
 
 
-      ['<', '>', '"', "'", '(', ')', '(', '[', ']', "`", '$', '^', '++', '**', '==', '//', '\\\\', '\/']
-        .each do |test_query|
+      File.readlines('spec/fixtures/backend/test.txt').map(&:chomp).each do |test_query|
         it "properly escapes `#{test_query}`" do
           press ":call esearch#init()<Enter>#{test_query}<Enter>"
 

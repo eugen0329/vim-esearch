@@ -433,7 +433,7 @@ fu! esearch#out#win#finish(bufnr) abort
 
   call setbufvar(a:bufnr, '&ma', 1)
 
-  if len(esearch.request.errors) || esearch.request.status !=# 0
+  if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
     let errors = esearch.request.data + esearch.request.errors
     call esearch#util#setline(a:bufnr, 1, 'ERRORS (' .len(errors).')')
     let line = 2
