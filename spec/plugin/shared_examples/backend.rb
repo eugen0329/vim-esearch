@@ -1,5 +1,5 @@
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  ADAPTERS = ['grep', 'ag']
+  ADAPTERS = ['grep', 'ag', 'ack']
 
   ADAPTERS.each do |adapter|
     context "#{adapter} adapter" do
@@ -20,9 +20,9 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
           press ":call esearch#init()<Enter>#{test_query}<Enter>"
 
           expected = expect {
-            press("<Nop>") # preto skip "Press ENTER or type command to continue" prompt
+            press("j") # preto skip "Press ENTER or type command to continue" prompt
             bufname("%") =~ /Search/
-          }.to become_true_within(3.second)
+          }.to become_true_within(5.second)
 
           expect { line(1) =~ /Finish/i }.to become_true_within(10.seconds),
             -> { "Expected first line to match /Finish/, got `#{line(1)}`" }

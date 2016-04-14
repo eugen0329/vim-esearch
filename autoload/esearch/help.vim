@@ -14,7 +14,7 @@ fu! esearch#help#cmdline(mappings, comments) abort
   endfor
 
   let map = printf('%10s:', esearch#util#stringify_mapping(mappings.key(help_map)))
-  call esearch#util#hlecho([ ['Title', map], ['Normal', '  '.comments[help_plug]] ])
+  call esearch#util#hlecho([ ['Title', map], ['Normal', '  '.comments[help_map]] ])
 
   if g:esearch#cmdline#help_prompt
     call esearch#util#hlecho([
