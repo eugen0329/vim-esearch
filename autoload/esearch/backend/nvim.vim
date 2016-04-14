@@ -20,7 +20,9 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'backend':  'nvim',
         \ 'command':  a:cmd,
         \ 'data':     [],
+        \ 'errors':     [],
         \ 'finished': 0,
+        \ 'status': 0,
         \ 'async': 1,
         \ 'events': {
         \   'forced_finish': 'ESearchNVimFinish'.job_id,
@@ -81,7 +83,7 @@ endfu
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(cmd) abort
-  return esearch#util#shellescape(a:cmd)
+  return escape(esearch#util#shellescape(a:cmd), '()')
 endfu
 
 fu! esearch#backend#nvim#init_events() abort

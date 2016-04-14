@@ -433,10 +433,11 @@ fu! esearch#out#win#finish(bufnr) abort
 
   call setbufvar(a:bufnr, '&ma', 1)
 
-  if has_key(esearch.request, 'errors') && len(esearch.request.errors)
-    call esearch#util#setline(a:bufnr, 1, 'ERRORS (' .len(esearch.request.errors).')')
+  if len(esearch.request.errors) || esearch.request.status !=# 0
+    let errors = esearch.request.data + esearch.request.errors
+    call esearch#util#setline(a:bufnr, 1, 'ERRORS (' .len(errors).')')
     let line = 2
-    for err in esearch.request.errors
+    for err in errors
       call esearch#util#setline(a:bufnr, line, "\t".err)
       let line += 1
     endfor

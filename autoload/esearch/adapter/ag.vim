@@ -3,9 +3,9 @@ let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 fu! esearch#adapter#ag#options() abort
   if !exists('s:options')
     let s:options = {
-    \ 'regex':   { 'p': ['-Q', ''],   's': ['>', 'r'] },
-    \ 'case':    { 'p': ['-i', '-s'], 's': ['>', 'c'] },
-    \ 'word':    { 'p': ['',   '-w'], 's': ['>', 'w'] },
+    \ 'regex':   { 'p': ['--literal', ''],   's': ['>', 'r'] },
+    \ 'case':    { 'p': ['--ignore-case', '--case-sensitive'], 's': ['>', 'c'] },
+    \ 'word':    { 'p': ['',   '--word-regex'], 's': ['>', 'w'] },
     \ 'stringify':   function('esearch#util#stringify'),
     \ 'parametrize': function('esearch#util#parametrize'),
     \}
