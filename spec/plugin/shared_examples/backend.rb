@@ -1,5 +1,5 @@
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  ADAPTERS = ['grep']
+  ADAPTERS = ['grep', 'ag']
 
   ADAPTERS.each do |adapter|
     context "#{adapter} adapter" do
