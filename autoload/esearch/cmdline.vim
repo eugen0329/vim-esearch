@@ -94,7 +94,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     let s:pending = []
     while 1
       call s:dir_prompt(a:cmdline_opts.cwd)
-      let str = input(s:prompt(a:adapter_options), s:cmdline, 'custom,esearch#cmdline#buff_compl')
+      let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
 
       if empty(s:pending)
         break
@@ -274,6 +274,47 @@ fu! esearch#cmdline#map(lhs, rhs) abort
   let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
 
-function! esearch#cmdline#buff_compl(...)
-  return join(sort(esearch#util#uniq(filter(split(join(getline(1, '$')), '\W'), '!empty(v:val)')), 1), "\n")
+" borrowed from oblique and incsearch
+fu! esearch#cmdline#buff_compl(A, C, ...)
+  let chars = map(split(a:A, '.\zs'), 'escape(v:val, "\\[]^$.*")')
+  let fuzzy_pat = join(
+    \ extend(map(chars[0 : -2], 'v:val . "[^" .v:val. "]\\{-}"'),
+    \ chars[-1:-1]), '')
+
+  let spell_pat = a:A
+  let spell_save = &spell
+  let &spell = 1
+  try
+    let spell_pat = substitute(spell_pat, '\k\+', '\=s:spell_suggests(submatch(0))', 'g')
+  finally
+    let &spell = spell_save
+  endtry
+
+  " exacat, part, spell suggest, fuzzy
+  let e = []
+  let p = []
+  let s = []
+  let f = []
+  for w in esearch#util#buff_words()
+    if w == a:A
+      call add(e, w)
+    elseif w =~ a:A
+      call add(p, w)
+    elseif len(a:A) > 2 && w =~ spell_pat
+      call add(s, w)
+    elseif len(a:A) > 2 && w =~ fuzzy_pat
+      call add(f, w)
+    endif
+  endfor
+
+  call sort(esearch#util#uniq(f), 'esearch#util#compare_len')
+  call sort(esearch#util#uniq(s), 'esearch#util#compare_len')
+  call sort(esearch#util#uniq(e), 'esearch#util#compare_len')
+  call sort(esearch#util#uniq(p), 'esearch#util#compare_len')
+  return e + p + s + f
+endfu
+
+function! s:spell_suggests(word) abort
+  return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfunction
+

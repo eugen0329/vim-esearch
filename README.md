@@ -14,6 +14,7 @@ SublimeText, Atom et al.
 [ack](http://beyondgrep.com/install/),
 [pt](https://github.com/monochromegane/the_platinum_searcher#installation) (_The Platinum Searcher_) along with the
 native \*nix util [grep](http://linux.die.net/man/1/grep).
+* Advanced pattern input prompt with fuzzy- and spell suggestion-driven completion.
 * Live updating of results as in Emacs, SublimeText and similar (requires NeoVim's [job control](https://neovim.io/doc/user/job_control.html) or [vimproc](https://github.com/Shougo/vimproc.vim#install) to be installed).
 * Special esearch window or [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) list, habitual for all, can be used as an output target.
 * Search-and-Replace feature with the same syntax as builtin [:substitute](https://neovim.io/doc/user/change.html#:substitute) command (Example `:1,5ESubstitute/from/to/gc`).

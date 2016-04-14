@@ -310,3 +310,25 @@ fu! esearch#util#recognize_plug_manager() abort
     return 'Pathogen'
   endif
 endfu
+
+fu! esearch#util#compare_len(first, second)
+  let a = len(a:first)
+  let b = len(a:second)
+  return a == b ? 0 : a > b ? 1 : -1
+endfu
+
+" abolish.vim
+fu! esearch#util#buff_words()
+  let words = []
+  let lnum = line('w0')
+  while lnum <= line('w$')
+    let line = getline(lnum)
+    let col = 0
+    while match(line,'\<\k\k\+\>',col) != -1
+      let words += [matchstr(line,'\<\k\k\+\>',col)]
+      let col = matchend(line,'\<\k\k\+\>',col)
+    endwhile
+    let lnum += 1
+  endwhile
+  return words
+endfu
