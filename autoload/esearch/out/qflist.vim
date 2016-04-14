@@ -1,5 +1,5 @@
 fu! esearch#out#qflist#init(opts) abort
-  call setqflist([], '', a:opts.unescaped_title)
+  call setqflist([], '', a:opts.title)
   copen
 
   if a:opts.request.async
@@ -9,14 +9,14 @@ fu! esearch#out#qflist#init(opts) abort
     " TODO improve
     au!
     au FileType qf
-          \ if exists('w:quickfix_title') && exists('g:esearch_qf') && g:esearch_qf.unescaped_title =~# w:quickfix_title |
-          \   let w:quickfix_title = g:esearch_qf.unescaped_title |
+          \ if exists('w:quickfix_title') && exists('g:esearch_qf') && g:esearch_qf.title =~# w:quickfix_title |
+          \   let w:quickfix_title = g:esearch_qf.title |
           \ endif
   augroup END
 
   let g:esearch_qf = extend(a:opts, {
         \ 'ignore_batches':     0,
-        \ 'unescaped_title':    ':'.a:opts.unescaped_title,
+        \ 'title':    ':'.a:opts.title,
         \ '__broken_results':    [],
         \ 'errors':              [],
         \ 'data':                [],
@@ -113,10 +113,10 @@ fu! esearch#out#qflist#finish() abort
   let esearch.ignore_batches = 1
   call esearch#out#qflist#update()
 
-  let esearch.unescaped_title = esearch.unescaped_title . '. Finished.'
+  let esearch.title = esearch.title . '. Finished.'
 
   if esearch#util#qftype(bufnr('%')) ==# 'qf'
-    let w:quickfix_title = esearch.unescaped_title
+    let w:quickfix_title = esearch.title
   else
     let bufnr = esearch#util#qfbufnr()
     if bufnr !=# -1
@@ -125,7 +125,7 @@ fu! esearch#out#qflist#finish() abort
         if index(buflist, bufnr) >= 0
           for winnr in range(1, tabpagewinnr(tabnr, '$'))
             if buflist[winnr - 1] == bufnr
-              call settabwinvar(tabnr, winnr, 'quickfix_title', esearch.unescaped_title)
+              call settabwinvar(tabnr, winnr, 'quickfix_title', esearch.title)
             endif
           endfor
         endif

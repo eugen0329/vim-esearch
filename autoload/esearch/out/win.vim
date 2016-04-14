@@ -51,7 +51,7 @@ endif
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
-  call s:find_or_create_buf(a:opts.bufname, g:esearch#out#win#open)
+  call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
 
   " Refresh match highlight
   setlocal ft=esearch
@@ -117,9 +117,12 @@ fu! esearch#out#win#init(opts) abort
   endif
 endfu
 
+" TODO
 fu! s:find_or_create_buf(bufname, opencmd) abort
-  " let bufnr = bufnr('^'.escape(a:bufname, ' \`<>').'$')
-  let bufnr = bufnr('^'.a:bufname.'$')
+  let escaped = s:escape_title(a:bufname)
+  let escaped_for_bufnr = substitute(escape(a:bufname, '*?'), '["]', '\\\\\0', 'g')
+
+  let bufnr = bufnr('^'.escaped_for_bufnr.'$')
   if bufnr == bufnr('%')
     return 0
   elseif bufnr > 0
@@ -131,9 +134,17 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
       exe buf_loc[1].'winc w'
     endif
   else
-    silent  exe a:opencmd.'|file '.a:bufname
+    silent  exe a:opencmd.'|file '.escaped
   endif
 endfu
+
+fu! s:escape_title(title) abort
+  let name = fnameescape(a:title)
+  let name = substitute(name, '["]', '\\\\\0', 'g')
+  " let name = substitute(name, "[']", '\\\\\0', 'g')
+  return escape(name, '=')
+endfu
+
 
 fu! esearch#out#win#trigger_key_press(...) abort
   " call feedkeys("\<Plug>(esearch-Nop)")

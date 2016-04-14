@@ -47,23 +47,14 @@ fu! esearch#init(...) abort
   call opts.set_default('out', g:esearch.out)
   call opts.set_default('context_width', g:esearch.context_width)
 
-  let unescaped_title = s:title(pattern)
-  let title = s:escape_title(unescaped_title)
+  let title = s:title(pattern)
 
   let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size', 'context_width'), {
-        \ 'bufname': title,
-        \ 'unescaped_title': unescaped_title,
+        \ 'title': title,
         \ 'request': request,
         \})
 
   call esearch#out#{opts.out}#init(out_params)
-endfu
-
-fu! s:escape_title(title) abort
-  let name = fnameescape(a:title)
-  let name = substitute(name, '["]', '\\\\\0', 'g')
-  " let name = substitute(name, "[']", '\\\\\0', 'g')
-  return escape(name, '<')
 endfu
 
 fu! s:title(pattern) abort
