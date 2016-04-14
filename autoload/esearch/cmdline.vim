@@ -115,7 +115,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     let s:pattern.vim = esearch#regex#pcre2vim(str)
   else
     let s:pattern.literal = str
-    let s:pattern.vim = '\V'.str
+    let s:pattern.vim = '\V'.escape(str, '\')
   endif
   return s:pattern
 endfu

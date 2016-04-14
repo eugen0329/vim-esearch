@@ -120,7 +120,7 @@ endfu
 " TODO
 fu! s:find_or_create_buf(bufname, opencmd) abort
   let escaped = s:escape_title(a:bufname)
-  let escaped_for_bufnr = substitute(escape(a:bufname, '*?'), '["]', '\\\\\0', 'g')
+  let escaped_for_bufnr = substitute(escape(a:bufname, '*?\'), '["/]', '\\\\\0', 'g')
 
   let bufnr = bufnr('^'.escaped_for_bufnr.'$')
   if bufnr == bufnr('%')
@@ -140,8 +140,7 @@ endfu
 
 fu! s:escape_title(title) abort
   let name = fnameescape(a:title)
-  let name = substitute(name, '["]', '\\\\\0', 'g')
-  " let name = substitute(name, "[']", '\\\\\0', 'g')
+  let name = substitute(name, '["/]', '\\\\\0', 'g')
   return escape(name, '=')
 endfu
 
