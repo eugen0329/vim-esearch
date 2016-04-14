@@ -1,13 +1,14 @@
+sudo: required
+dist: trusty
+os:
+  - linux
 before_install: |
   # sudo apt-get install silversearcher-ag
   bash ./install_dependencies.sh
 language: ruby
 rvm:
   - 2.2.2
-sudo: false
 cache: bundler
-os:
-  - linux
 addons:
   apt:
     packages:
