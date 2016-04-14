@@ -276,14 +276,14 @@ fu! s:init_commands() abort
         \ 'filename':      function('s:filename'),
         \ 'is_file_entry': function('s:is_file_entry')
         \}
-  command! -nargs=1 -range=0 -bar -buffer ESubstitute
+  command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ESubstitute
         \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
 
   if exists(':E') != 2
-    command! -nargs=1 -range=0 -bar -buffer E
+    command! -nargs=1 -range=0 -bar -buffer -complete=custom,esearch#substitute#complete E
           \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
   elseif exists(':ES') != 2
-    command! -nargs=1 -range=0 -bar -buffer ES
+    command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ES
           \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
   endif
 endfu

@@ -159,3 +159,27 @@ fu! s:statistics(opened_files, unresolved_swapfiles) abort
   endif
 endfu
 
+" From abolish.vim
+function! esearch#substitute#complete(A,L,P)
+  if a:A =~ '^[/?]\k\+$'
+    let char = strpart(a:A,0,1)
+    return join(map(s:words(),'char . v:val'),"\n")
+  elseif a:A =~# '^\k\+$'
+    return join(s:words(),"\n")
+  endif
+endfunction
+
+function! s:words()
+  let words = []
+  let lnum = line('w0')
+  while lnum <= line('w$')
+    let line = getline(lnum)
+    let col = 0
+    while match(line,'\<\k\k\+\>',col) != -1
+      let words += [matchstr(line,'\<\k\k\+\>',col)]
+      let col = matchend(line,'\<\k\k\+\>',col)
+    endwhile
+    let lnum += 1
+  endwhile
+  return words
+endfunction
