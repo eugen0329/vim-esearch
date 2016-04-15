@@ -7,11 +7,19 @@ syn match  esearchFName   '^\%>2l.*'
 syn match  esearchContext '^\%>2l\s\+.*'
 syn match  esearchLnum    '^\%>2l\s\+\d\+'
 
+
+
+
+exe 'syn match esearchOmission "\%(^\%>3l\s\+\d\+\s\)\@<=\V'. g:esearch#util#trunc_omission.'"'
+exe 'syn match esearchOmission "\V'. g:esearch#util#trunc_omission.'\$"'
+
 hi link esearchTitle Title
 hi link esearchContext Normal
 hi link esearchLnum LineNr
 
-
+if !hlexists('esearchOmission')
+  hi esearchOmission ctermfg=yellow
+endif
 
 exe 'hi esearchFName cterm=bold gui=bold ' .
       \ 'ctermbg='.esearch#util#highlight_attr('Directory', 'bg', 'cterm', 0).' '.
@@ -19,7 +27,7 @@ exe 'hi esearchFName cterm=bold gui=bold ' .
       \ 'guibg=' . esearch#util#highlight_attr('Directory', 'bg', 'gui',   '#005FFF').' '.
       \ 'guifg=' . esearch#util#highlight_attr('Directory', 'fg', 'gui',   '#FFFFFF').' '
 
-if !highlight_exists('ESearchMatch')
+if !hlexists('ESearchMatch')
   exe 'hi ESearchMatch cterm=bold gui=bold ' .
         \ 'ctermbg='.esearch#util#highlight_attr('MoreMsg', 'bg', 'cterm', 239 ).' '.
         \ 'ctermfg='.esearch#util#highlight_attr('MoreMsg', 'fg', 'cterm', 15 ).' '.

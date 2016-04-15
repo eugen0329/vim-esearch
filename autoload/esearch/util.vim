@@ -2,6 +2,10 @@ if !exists('g:esearch#util#use_setbufline')
   let g:esearch#util#use_setbufline = 1
 endif
 
+if !exists('g:esearch#util#trunc_omission')
+  let g:esearch#util#trunc_omission = '⦚'
+endif
+
 if g:esearch#util#use_setbufline
   fu! esearch#util#setline(expr, lnum, text) abort
     let oldnr = winnr()
@@ -107,7 +111,7 @@ endfu
 
 fu! esearch#util#btrunc(str, center, lw, rw) abort
   " om - omission, lw/rw - with from the left(right)
-  let om = '…'
+  let om = g:esearch#util#trunc_omission
 
   let l = (a:lw > a:center ? 0 : a:center - a:lw + len(om))
   let r = (len(a:str) <= a:center + a:rw ? len(a:str)-1 : a:center+a:rw-len(om))
