@@ -330,5 +330,5 @@ fu! esearch#util#buff_words()
     endwhile
     let lnum += 1
   endwhile
-  return words
+  return esearch#util#uniq(words)
 endfu

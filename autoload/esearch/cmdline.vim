@@ -290,28 +290,39 @@ fu! esearch#cmdline#buff_compl(A, C, ...)
     let &spell = spell_save
   endtry
 
-  " exacat, part, spell suggest, fuzzy
+  " exacat, part, spell suggest, fuzzy, begin with
   let e = []
   let p = []
   let s = []
   let f = []
-  for w in esearch#util#buff_words()
+  let b = []
+
+  let words = esearch#util#buff_words()
+  " because of less typos in small words
+  let word_len = strlen(a:A)
+  if word_len < 4
+    call filter(words, 'word_len <= strlen(v:val)')
+  endif
+
+  for w in words
     if w == a:A
       call add(e, w)
+    elseif w =~ '^'.a:A
+      call add(b, w)
     elseif w =~ a:A
       call add(p, w)
-    elseif len(a:A) > 2 && w =~ spell_pat
+    elseif word_len > 2 && w =~ spell_pat
       call add(s, w)
-    elseif len(a:A) > 2 && w =~ fuzzy_pat
+    elseif word_len > 2 && w =~ fuzzy_pat
       call add(f, w)
     endif
   endfor
 
-  call sort(esearch#util#uniq(f), 'esearch#util#compare_len')
-  call sort(esearch#util#uniq(s), 'esearch#util#compare_len')
-  call sort(esearch#util#uniq(e), 'esearch#util#compare_len')
-  call sort(esearch#util#uniq(p), 'esearch#util#compare_len')
-  return e + p + s + f
+  call sort(f, 'esearch#util#compare_len')
+  call sort(s, 'esearch#util#compare_len')
+  call sort(e, 'esearch#util#compare_len')
+  call sort(p, 'esearch#util#compare_len')
+  return e + b + p + s + f
 endfu
 
 function! s:spell_suggests(word) abort
