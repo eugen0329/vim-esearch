@@ -297,10 +297,10 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-vsplit-silent) :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-open)          :<C-U>call <SID>open('edit')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-reload)        :<C-U>call esearch#init(b:esearch)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev)          :<C-U>sil exe <SID>jump(0)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next)          :<C-U>sil exe <SID>jump(1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev-file)     :<C-U>sil cal <SID>file_jump(0)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next-file)     :<C-U>sil cal <SID>file_jump(1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev)          :<C-U>sil exe <SID>jump(0, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next)          :<C-U>sil exe <SID>jump(1, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-Nop)           <Nop>
 
   call extend(s:mappings, s:default_mappings, 'keep')
@@ -358,37 +358,45 @@ fu! s:line_number() abort
   return matchstr(getline(lnum), '^\s\+\zs\d\+\ze.*')
 endfu
 
-fu! s:file_jump(downwards) abort
+fu! s:file_jump(downwards, count) abort
   let pattern = s:filename_pattern . '\%>2l'
+  let times = a:count
 
-  if a:downwards
-    if !search(pattern, 'W') && !s:is_filename()
-      call search(pattern,  'Wbe')
+  while times > 0
+    if a:downwards
+      if !search(pattern, 'W') && !s:is_filename()
+        call search(pattern,  'Wbe')
+      endif
+    else
+      if !search(pattern,  'Wbe') && !s:is_filename()
+        call search(pattern, 'W')
+      endif
     endif
-  else
-    if !search(pattern,  'Wbe') && !s:is_filename()
-      call search(pattern, 'W')
-    endif
-  endif
+    let times -= 1
+  endwhile
 endfu
 
-fu! s:jump(downwards) abort
+fu! s:jump(downwards, count) abort
   let pattern = s:file_entry_pattern
   let last_line = line('$')
+  let times = a:count
 
-  if a:downwards
-    " If one result - move cursor on it, else - move the next
-    " bypassing the first entry line
-    let pattern .= last_line <= 4 ? '\%>3l' : '\%>4l'
-    call search(pattern, 'W')
-  else
-    " If cursor is in gutter between result groups(empty line)
-    if '' ==# getline(line('.'))
-      call search(pattern, 'Wb')
+  while times > 0
+    if a:downwards
+      " If one result - move cursor on it, else - move the next
+      " bypassing the first entry line
+      let pattern .= last_line <= 4 ? '\%>3l' : '\%>4l'
+      call search(pattern, 'W')
+    else
+      " If cursor is in gutter between result groups(empty line)
+      if '' ==# getline(line('.'))
+        call search(pattern, 'Wb')
+      endif
+      " If no results behind - jump the first, else - previous
+      call search(pattern, line('.') < 4 ? '' : 'Wbe')
     endif
-    " If no results behind - jump the first, else - previous
-    call search(pattern, line('.') < 4 ? '' : 'Wbe')
-  endif
+    let times -= 1
+  endwhile
 
   call search('^', 'Wb', line('.'))
   " If there is no results - do nothing
