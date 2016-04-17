@@ -36,6 +36,12 @@ let s:filename_pattern = '^[^ ]' " '\%>2l'
 if !exists('g:esearch#out#win#context_syntax_highlight')
   let g:esearch#out#win#context_syntax_highlight = 0
 endif
+
+if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
+  let s:blank_line_fold = 0
+else
+  let s:blank_line_fold = '<1'
+endif
 let s:syntax_regexps = {
       \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
       \ 'light_eruby': '\%(\.erb\)$',
@@ -44,7 +50,6 @@ let s:syntax_regexps = {
 if exists('g:esearch#out#win#syntax_regeps')
   call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
 endif
-
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
@@ -91,8 +96,13 @@ fu! esearch#out#win#init(opts) abort
   setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
+  setlocal nobuflisted
+  setlocal foldcolumn=0
   setlocal buftype=nofile
   setlocal bufhidden=hide
+  setlocal foldexpr=esearch#out#win#foldexpr()
+  setlocal foldtext=esearch#out#win#foldtext()
+  setlocal foldmethod=expr
 
   let b:esearch = extend(a:opts, {
         \ 'prev_filename':       '',
@@ -344,6 +354,27 @@ fu! s:filename() abort
   else
     return substitute(filename, '^\./', '', '')
   endif
+endfu
+
+fu! esearch#out#win#foldtext()
+  let filename = getline(v:foldstart)
+  let last_line = getline(v:foldend)
+  let lines_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
+
+  let winwidth = winwidth(0) - &foldcolumn - (&number ? strwidth(string(line('$'))) + 1 : 0)
+  let lines_count_str = lines_count . ' line(s)'
+
+  let expansion = repeat('-', winwidth - strwidth(filename.lines_count_str))
+
+  return filename . expansion . lines_count_str
+endfu
+
+fu! esearch#out#win#foldexpr()
+  let line = getline(v:lnum)
+  if line =~# s:file_entry_pattern || line =~# s:filename_pattern
+    return 1
+  endif
+  return s:blank_line_fold
 endfu
 
 fu! s:line_number() abort
