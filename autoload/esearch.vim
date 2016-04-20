@@ -9,7 +9,8 @@ fu! esearch#init(...) abort
   let source_params = {
         \ 'visualmode': get(opts, 'visualmode', 0),
         \}
-  let g:esearch.last_exp = esearch#source#pick_exp(g:esearch.use, source_params)
+  let initial = get(opts, 'use', g:esearch.use)
+  let g:esearch.last_exp = esearch#source#pick_exp(initial, source_params)
 
   call extend(opts, {
         \ 'set_default': function('esearch#util#set_default'),
@@ -72,6 +73,7 @@ fu! esearch#_mappings() abort
     "       \]
     let s:mappings = {
           \ '<leader>ff': '<Plug>(esearch)',
+          \ '<leader>fw': '<Plug>(esearch-word-under-cursor)',
           \ 'set': function('esearch#util#set'),
           \ 'get': function('esearch#util#get'),
           \ 'dict': function('esearch#util#dict'),

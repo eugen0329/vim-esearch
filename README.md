@@ -52,7 +52,10 @@ In `~/.config/nvim/init.vim` / `~/.vimrc`:
 Use the following functions to redefine default mappings:
 
 ```vim
+    " Start esearch prompt autofilled with one of g:esearch.use initial patterns
     call esearch#map('<leader>ff', 'esearch')
+    " Start esearch autofilled with word under the cursor
+    call esearch#map('<leader>fw', 'esearch-word-under-cursor')
 
     call esearch#out#win#map('t',       'tab')
     call esearch#out#win#map('i',       'split')
