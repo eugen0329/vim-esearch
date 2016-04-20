@@ -49,7 +49,8 @@ case **S**esnsitive, **W**ord regex).
 ###Mappings
 In `~/.config/nvim/init.vim` / `~/.vimrc`:
 
-Use the following functions to redefine default mappings:
+Use the following functions to redefine default mappings (**NOTE** default
+mapping are listed as an example here):
 
 ```vim
     " Start esearch prompt autofilled with one of g:esearch.use initial patterns
