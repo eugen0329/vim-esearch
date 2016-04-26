@@ -248,7 +248,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   endwhile
 endfu
 
-fu! s:load_context_syntax(ft)
+fu! s:load_context_syntax(ft) abort
   let c = '@' . toupper(a:ft)
 
   if exists('b:current_syntax')
@@ -354,7 +354,7 @@ fu! s:filename() abort
   endif
 endfu
 
-fu! esearch#out#win#foldtext()
+fu! esearch#out#win#foldtext() abort
   let filename = getline(v:foldstart)
   let last_line = getline(v:foldend)
   let lines_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
@@ -367,7 +367,7 @@ fu! esearch#out#win#foldtext()
   return filename . expansion . lines_count_str
 endfu
 
-fu! esearch#out#win#foldexpr()
+fu! esearch#out#win#foldexpr() abort
   let line = getline(v:lnum)
   if line =~# s:file_entry_pattern || line =~# s:filename_pattern
     return 1

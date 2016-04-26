@@ -35,7 +35,7 @@ fu! esearch#out#qflist#init(opts) abort
   endif
 endfu
 
-fu! esearch#out#qflist#setup_autocmds(opts)
+fu! esearch#out#qflist#setup_autocmds(opts) abort
   augroup ESearchQFListAutocmds
     au! * <buffer>
     for [func_name, event] in items(a:opts.request.events)

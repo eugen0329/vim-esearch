@@ -160,8 +160,8 @@ fu! s:statistics(opened_files, unresolved_swapfiles) abort
 endfu
 
 " From abolish.vim
-fu! esearch#substitute#complete(A,L,P)
-  if a:A =~ '^[/?]\k*$'
+fu! esearch#substitute#complete(A,L,P) abort
+  if a:A =~# '^[/?]\k*$'
     let char = strpart(a:A,0,1)
     return join(map(esearch#util#buff_words(),'char . v:val'),"\n")
   elseif a:A =~# '^\k\+$'

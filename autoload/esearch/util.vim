@@ -315,14 +315,14 @@ fu! esearch#util#recognize_plug_manager() abort
   endif
 endfu
 
-fu! esearch#util#compare_len(first, second)
+fu! esearch#util#compare_len(first, second) abort
   let a = len(a:first)
   let b = len(a:second)
   return a == b ? 0 : a > b ? 1 : -1
 endfu
 
 " abolish.vim
-fu! esearch#util#buff_words()
+fu! esearch#util#buff_words() abort
   let words = []
   let lnum = line('w0')
   while lnum <= line('w$')
