@@ -72,7 +72,7 @@ let g:esearch = {
 
 * __'adapter'__<br>
   Adapter is a system-wide executable, which is used to dispatch your search
-  request. Currentle available adapters are `'ag'`, `'ack'`, `'pt'` and `'grep'`.
+  request. Currently available adapters are `'ag'`, `'ack'`, `'pt'` and `'grep'`.
 * __'backend'__<br>
   Backend is a strategy, which is used to collaborate with an adapter. Currently available:
   async backends - `'nvim'`, `'vimproc'`, and vim builtin system() func call based backend
@@ -82,8 +82,8 @@ let g:esearch = {
   So not to hang your vim while updating results, ESearch uses batches. Thus,
   `'batch_size'` refers to the number of result lines can be processed at one time
 * __'use'__<br>
-  With this option you can specify initial search request string, which will be
-  picked from a specific source. Order is relevant for priorities of this sources usage. To always start with an empty input set this option to `[]`. Sources are:
+  With this option you can specify the initial search request string, which will be
+  picked from a specific source. Order is relevant for priorities of this sources usage. To always start with an empty input - set this option to `[]`. Sources are:
     * _'visual'_<br>
       Selected text. Only available from the visual mode.
     * _'hlsearch'_<br>
