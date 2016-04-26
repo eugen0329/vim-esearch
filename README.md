@@ -46,6 +46,42 @@ case **S**esnsitive, **W**ord regex).
 
 ## Customization
 
+### General Configs
+
+Global ESearch configuration example:
+
+```vim
+let g:esearch = {
+  \ 'adapter':    'ag',
+  \ 'backend':    'vimproc',
+  \ 'batch_size': 1000,
+  \ 'use':        ['visual', 'hlsearch', 'last'],
+  \}
+```
+
+* __'adapter'__<br>
+  Adapter is a system-wide executable, which is used to dispatch your search
+  request. Currentle available adapters are `'ag'`, `'ack'`, `'pt'` and `'grep'`.
+* __'backend'__<br>
+  Backend is a strategy, which is used to collaborate with an adapter. Currently available:
+  async backends - `'nvim'`, `'vimproc'`, and vim builtin system() func call based backend
+  `'system'`<br>
+  _NOTE_ `'nvim'` and `'vimproc'` requires [NeoVim](https://github.com/neovim/neovim#readme) and  [vimproc](https://github.com/Shougo/vimproc.vim#install) respectively.
+* __'batch_size'__<br>
+  So not to hang your vim while updating results, ESearch uses batches. Thus,
+  `'batch_size'` refers to the number of result lines can be processed at one time
+* __'use'__<br>
+  With this option you can specify initial search request string, which will be
+  picked from a specific source. Order is relevant for priorities of this sources usage. To always start with an empty input set this option to `[]`. Sources are:
+    * _'visual'_<br>
+      To pick the selected text. Only available from the visual mode.
+    * _'hlsearch'_<br>
+      Use currently highlighted search in buffer (with `/`)
+    * _'last'_<br>
+      Previously use search result
+    * _'word_under_cursor'_<br>
+      Pick a word under the cursor.<br>
+
 ###Mappings
 In `~/.config/nvim/init.vim` / `~/.vimrc`:
 
