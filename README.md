@@ -85,13 +85,13 @@ let g:esearch = {
   With this option you can specify initial search request string, which will be
   picked from a specific source. Order is relevant for priorities of this sources usage. To always start with an empty input set this option to `[]`. Sources are:
     * _'visual'_<br>
-      To pick the selected text. Only available from the visual mode.
+      Selected text. Only available from the visual mode.
     * _'hlsearch'_<br>
-      Use currently highlighted search in buffer (with `/`)
+      Currentl search (with `/`) highlight
     * _'last'_<br>
-      Previously used ESearch pattern result
+      Previously used ESearch pattern
     * _'word_under_cursor'_<br>
-      Pick a word under the cursor.<br>
+      A word under the cursor.<br>
 
 ###Mappings
 In `~/.config/nvim/init.vim` / `~/.vimrc`:
