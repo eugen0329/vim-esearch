@@ -8,6 +8,17 @@ SublimeText, Atom et al.
 
 ![ESearch Demo gif](https://github.com/eugen0329/vim-esearch/blob/master/.github/demo.gif)
 
+---
+1. [Features](#features)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [Customization](#customization)  
+4.1. [General Configs](#general-configs)  
+4.2. [Mappings](#mappings)  
+4.3. [Colors](#colors)  
+
+---
+
 ### Features
 * Builtin support for superfast engines like
 [ag](https://github.com/ggreer/the_silver_searcher#installing) (_The Silver Searcher_),
