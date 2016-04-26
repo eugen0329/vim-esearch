@@ -78,7 +78,7 @@ let g:esearch = {
     * _'hlsearch'_<br>
       Use currently highlighted search in buffer (with `/`)
     * _'last'_<br>
-      Previously use search result
+      Previously used ESearch pattern result
     * _'word_under_cursor'_<br>
       Pick a word under the cursor.<br>
 

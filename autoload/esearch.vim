@@ -10,7 +10,7 @@ fu! esearch#init(...) abort
         \ 'visualmode': get(opts, 'visualmode', 0),
         \}
   let initial = get(opts, 'use', g:esearch.use)
-  let g:esearch.last_exp = esearch#source#pick_exp(initial, source_params)
+  let g:esearch._last_exp = esearch#source#pick_exp(initial, source_params)
 
   call extend(opts, {
         \ 'set_default': function('esearch#util#set_default'),
@@ -24,7 +24,7 @@ fu! esearch#init(...) abort
     let adapter_opts = esearch#adapter#{opts.adapter}#options()
     let cmdline_opts = {
           \ 'cwd': opts.cwd,
-          \ 'exp': g:esearch.last_exp,
+          \ 'exp': g:esearch._last_exp,
           \ 'select_initial': get(opts, 'select_initial', 1),
           \ 'blank_cmdline': get(opts, 'blank_cmdline', 0),
           \}
