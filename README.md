@@ -65,6 +65,7 @@ Global ESearch configuration example:
 let g:esearch = {
   \ 'adapter':    'ag',
   \ 'backend':    'vimproc',
+  \ 'out':        'win',
   \ 'batch_size': 1000,
   \ 'use':        ['visual', 'hlsearch', 'last'],
   \}
@@ -78,6 +79,8 @@ let g:esearch = {
   async backends - `'nvim'`, `'vimproc'`, and vim builtin system() func call based backend
   `'system'`<br>
   _NOTE_ `'nvim'` and `'vimproc'` requires [NeoVim](https://github.com/neovim/neovim#readme) and  [vimproc](https://github.com/Shougo/vimproc.vim#install) respectively.
+* __'out'__<br>
+  Results output target: `'win'` - ESearch window (see [demo](#vim-esearch)) or `'qflist'` - [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) window
 * __'batch_size'__<br>
   So not to hang your vim while updating results, ESearch uses batches. Thus,
   `'batch_size'` refers to the number of result lines can be processed at one time
