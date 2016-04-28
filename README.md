@@ -87,13 +87,13 @@ let g:esearch = {
 * __'use'__<br>
   With this option you can specify the initial search request string, which will be
   picked from a specific source. Order is relevant for priorities of this sources usage. To always start with an empty input - set this option to `[]`. Sources are:
-    * _'visual'_<br>
+    * `'visual'`<br>
       Selected text. Only available from the visual mode.
-    * _'hlsearch'_<br>
-      Currentl search (with `/`) highlight
-    * _'last'_<br>
+    * `'hlsearch'`<br>
+      Current search (with /) highlight
+    * `'last'`<br>
       Previously used ESearch pattern
-    * _'word_under_cursor'_<br>
+    * `'word_under_cursor'`<br>
       A word under the cursor.<br>
 
 ###Mappings
