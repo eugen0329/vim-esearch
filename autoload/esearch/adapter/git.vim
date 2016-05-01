@@ -1,6 +1,6 @@
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
-fu! esearch#adapter#grep#options() abort
+fu! esearch#adapter#git#options() abort
   if !exists('s:options')
     " -P: pcre
     let s:options = {
@@ -14,22 +14,20 @@ fu! esearch#adapter#grep#options() abort
   return s:options
 endfu
 
-fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#grep#options()
+fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
+  let options = a:0 ? a:1 : esearch#adapter#git#options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  " -r: recursive, no follow symbolic links
-  " -I: Process a binary file as if it did not contain matching data
-  return 'grep '.r.' '.c.' '.w.' -r --line-number --exclude-dir=.{git,svn,hg} -- ' .
+  return 'git --no-pager grep '.r.' '.c.' '.w.' --no-color --line-number -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 
-fu! esearch#adapter#grep#is_broken_result(line) abort
+fu! esearch#adapter#git#is_broken_result(line) abort
   return empty(matchlist(a:line, s:format)[1:3])
 endfu
 
-fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) abort
+fu! esearch#adapter#git#parse_results(raw, from, to, broken_results, pattern) abort
   if empty(a:raw) | return [] | endif
   let format = s:format
   let results = []
@@ -54,7 +52,7 @@ fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) a
   return results
 endfu
 
-fu! esearch#adapter#grep#requires_pty() abort
+fu! esearch#adapter#git#requires_pty() abort
   return 1
 endfu
 
