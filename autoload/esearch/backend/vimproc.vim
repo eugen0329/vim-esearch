@@ -92,6 +92,7 @@ fu! s:finish(request, request_id) abort
     let ut_bak = float2nr(getbufvar(a:request.bufnr, 'updatetime_backup'))
     call setbufvar(a:request.bufnr, '&ut', ut_bak)
   endif
+  let [a:request.cond, a:request.status] = a:request.pipe.waitpid()
   let a:request.finished = 1
   exe 'do User '.a:request.events.finish
   exe 'au! ESearchVimproc'.a:request_id
