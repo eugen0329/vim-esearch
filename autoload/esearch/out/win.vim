@@ -100,6 +100,7 @@ fu! esearch#out#win#init(opts) abort
   setlocal foldcolumn=0
   setlocal buftype=nofile
   setlocal bufhidden=hide
+  setlocal foldlevel=2
   setlocal foldexpr=esearch#out#win#foldexpr()
   setlocal foldtext=esearch#out#win#foldtext()
   setlocal foldmethod=expr
