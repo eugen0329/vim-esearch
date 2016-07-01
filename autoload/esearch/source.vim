@@ -51,3 +51,15 @@ endfu
 fu! esearch#source#word_under_cursor(...) abort
   return call('esearch#source#cword', a:000)
 endfu
+
+fu! esearch#source#clipboard()
+  return getreg('"')
+endfu
+
+fu! esearch#source#system_clipboard()
+  return getreg('+')
+endfu
+
+fu! esearch#source#system_selection_clipboard()
+  return getreg('+')
+endfu

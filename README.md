@@ -94,6 +94,12 @@ let g:esearch = {
       Current search (with /) highlight
     * `'last'`<br>
       Previously used ESearch pattern
+    * `'clipboard'`<br>
+      Text yanked with <kbd>y</kbd>, deleted with <kbd>s</kbd>, <kbd>l</kbd> etc.<br>
+    * `'system_clipboard'`<br>
+      Text you copied with <kbd>Ctrl-c</kbd> or cut with <kbd>Ctrl-x</kbd>.<br>
+    * `'system_selection_clipboard'`<br>
+      Text selected with mouse or other similar method (only works on Linux).<br>
     * `'word_under_cursor'`<br>
       A word under the cursor.<br>
 
