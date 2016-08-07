@@ -1,0 +1,173 @@
+*vim_esearch.txt*  NeoVim/Vim plugin performing project-wide async search 
+and replace, similar to SublimeText, Atom et al.
+
+USAGE                                   *vim-esearch*
+
+Type <leader>ff and insert a search pattern (usually
+[<leader>](https://neovim.io/doc/user/map.html#mapleader) is \).  Use s, v and
+t buttons to open file under the cursor in split, vertical split and in tab
+accordingly. Use Shift along with s, v and t buttons to open a file silently.
+Press Shift-r to reload currrent results.
+
+To switch between case-sensitive/insensitive, whole-word-match and
+regex/literal pattern in command line use <C-o><C-r>, <C-o><C-s> or <C-o><C-w>
+(mnemonics is set Option: Regex, case Sesnsitive, Word regex).
+
+
+CUSTOMIZATION                           *vim-esearch-customization*
+
+                                        *g:esearch*
+Use |g:esearch| variable to tweak esearch settings.
+Example:
+>
+  let g:esearch = {
+    \ 'adapter':    'ag',
+    \ 'backend':    'vimproc',
+    \ 'out':        'win',
+    \ 'batch_size': 1000,
+    \ 'use':        ['visual', 'hlsearch', 'last'],
+    \}
+<
+Note: don't set values if you don't need to override default behaviour.
+
+                                        *Esearch-adapter*
+Adapter is a system-wide executable, which is used to dispatch your search
+request. Currently available adapters are 'ag', 'ack', 'pt', 'git' and 'grep'.
+To set this option use |g:esearch|.
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  let g:esearch.adapter = 'grep'
+<
+
+                                        *Esearch-backend*
+Backend is a strategy, which is used to collaborate with an adapter. Currently
+available: async backends - 'nvim', 'vimproc', and vim builtin system() func
+call based backend 'system'
+To set this option use |g:esearch|.
+
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  let g:esearch.backend = 'system'
+<
+
+NOTE 'nvim' and 'vimproc' requires |job-control| and
+https://github.com/Shougo/vimproc.vim respectively.
+
+
+
+                                        *Esearch-out*
+Results output target: 'win' - ESearch window or 'qflist' - quickfix window
+To set this option use |g:esearch|.
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  let g:esearch.out = 'win'
+<
+                                        *Esearch-batch_size*
+So not to hang your vim while updating results, ESearch uses batches. Thus,
+'batch_size' refers to the number of result lines can be processed at one
+time.
+To set this option use |g:esearch|
+
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  let g:esearch.batch_size = 3000
+<
+
+
+                                        *Esearch-use*
+Array of sources whereby you can specify an initial search request string,
+which will be picked from a specific source. To always start with an empty
+input - set this option to [].
+To set this option use |g:esearch|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  let g:eseach.use = ['visual', 'hlsearch', 'last']
+<
+NOTE: order is relevant for priorities of this sources usage. Thus if the
+'visual' found - that it will be used as an initial input string despite
+'hlsearch', 'last' or any other sources are listed after the 'visual'.
+
+USE OPTIONS                                   *Esearch-use* *vim-esearch-sources*
+
+                                              *Esearch-use-visual*
+Currently selected text. Only available from the visual mode.
+To set this option use |Esearch-use|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  if !has_key(g:esearch, 'use') | let g:esearch.use = [] | endif
+  call add(g:eseach.use, 'visual')
+<
+
+                                              *Esearch-use-hlsearch*
+Current search (with |/|) highlight.
+To set this option use |Esearch-use|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  if !has_key(g:esearch, 'use') | let g:esearch.use = [] | endif
+  call add(g:eseach.use, 'hlsearch')
+<
+
+                                              *Esearch-use-clipboard*
+Text yanked with |y|, deleted with |s|, |l| etc.
+To set this option use |Esearch-use|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  if !has_key(g:esearch, 'use') | let g:esearch.use = [] | endif
+  call add(g:eseach.use, 'clipboard')
+<
+                                              *Esearch-use-system_clipboard*
+
+Text you copied with Ctrl-c or cut with Ctrl-x.
+To set this option use |Esearch-use|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  if !has_key(g:esearch, 'use') | let g:esearch.use = [] | endif
+  call add(g:eseach.use, 'system_clipboard')
+<
+
+                                              *Esearch-use-system_selection_clipboard*
+Text selected with mouse or other similar method (only works on Linux).
+To set this option use |Esearch-use|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  if !has_key(g:esearch, 'use') | let g:esearch.use = [] | endif
+  call add(g:eseach.use, 'system_selection_clipboard')
+<
+
+                                            *Esearch-use-word_under_cursor*
+A word under the cursor.
+To set this option use |Esearch-use|
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  if !has_key(g:esearch, 'use') | let g:esearch.use = [] | endif
+  call add(g:eseach.use, 'word_under_cursor')
+<
+
+ABOUT                                   *vim-esearch-about*
+
+The latest version is available at:
+https://github.com/eugen0329/vim-esearch
+
+vim:tw=78:et:ft=help:norl:
