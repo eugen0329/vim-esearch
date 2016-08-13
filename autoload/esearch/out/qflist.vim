@@ -1,5 +1,5 @@
 fu! esearch#out#qflist#init(opts) abort
-  call setqflist([], '', a:opts.title)
+  call setqflist([], '')
   copen
 
   if a:opts.request.async
