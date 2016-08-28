@@ -6,7 +6,7 @@
 NeoVim/Vim plugin performing project-wide async search and replace, similar to
 SublimeText, Atom et al.
 
-![ESearch Demo gif](https://github.com/eugen0329/vim-esearch/blob/master/.github/demo.gif)
+![ESearch Demo gif](https://raw.githubusercontent.com/eugen0329/vim-esearch/master/.github/demo.gif)
 
 ---
 1. [Features](#features)
