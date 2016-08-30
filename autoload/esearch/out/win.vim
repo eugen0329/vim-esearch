@@ -147,13 +147,13 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   elseif bufnr > 0
     let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
-      silent exe a:opencmd.'|b ' . bufnr
+      silent exe join(filter([a:opencmd, 'b ' . bufnr], '!empty(v:val)'), '|')
     else
       silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
   else
-    silent  exe a:opencmd.'|file '.escaped
+    silent  exe join(filter([a:opencmd, 'file ' . escaped], '!empty(v:val)'), '|')
   endif
 endfu
 
