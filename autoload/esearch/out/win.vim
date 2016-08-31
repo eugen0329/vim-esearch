@@ -142,8 +142,10 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   endif
 
   let bufnr = bufnr('^'.escaped_for_bufnr.'$')
+  " if current buffer
   if bufnr == bufnr('%')
     return 0
+  " if buffer exists
   elseif bufnr > 0
     let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
@@ -152,8 +154,9 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
       silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
+  " if buffer doesn't exists
   else
-    silent  exe join(filter([a:opencmd, 'file ' . escaped], '!empty(v:val)'), '|')
+    silent  exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
   endif
 endfu
 
