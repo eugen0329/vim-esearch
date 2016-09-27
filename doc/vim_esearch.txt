@@ -1,7 +1,19 @@
 *vim_esearch.txt*  NeoVim/Vim plugin performing project-wide async search 
 and replace, similar to SublimeText, Atom et al.
 
+CONTENTS                                *vim-esearch-help-contents*
+
+Usage          |vim-esearch-usage|
+  Commands       |vim-esearch-commands|
+  Key mappings   |vim-esearch-key-mappings|
+Customization  |vim-esearch-customization|
+About         |vim-esearch-about|
+
+================================================================================
 USAGE                                   *vim-esearch*
+
+--------------------------------------------------------------------------------
+KEY MAPPINGS                            *vim-esearch-key-mappings*
 
 Type <leader>ff and insert a search pattern (usually
 [<leader>](https://neovim.io/doc/user/map.html#mapleader) is \).  Use s, v and
@@ -14,6 +26,16 @@ regex/literal pattern in command line use <C-o><C-r>, <C-o><C-s> or <C-o><C-w>
 (mnemonics is set Option: Regex, case Sesnsitive, Word regex).
 
 
+--------------------------------------------------------------------------------
+COMMANDS                                *vim-esearch-commands*
+
+:[range]ES[ubstitute]/{pattern}/{string}/[flags]
+  For each line in [range] (across all files) replace a match of {pattern}
+  with {string}.
+
+  NOTE Only available within |vim-esearch-out-win|
+
+================================================================================
 CUSTOMIZATION                           *vim-esearch-customization*
 
                                         *g:esearch*
@@ -59,7 +81,8 @@ https://github.com/Shougo/vimproc.vim respectively.
 
 
 
-                                        *Esearch-out*
+                                        *Esearch-out*  *vim-esearch-out-win*
+
 Results output target: 'win' - ESearch window or 'qflist' - quickfix window
 To set this option use |g:esearch|.
 
@@ -165,6 +188,7 @@ Example:
   call add(g:eseach.use, 'word_under_cursor')
 <
 
+================================================================================
 ABOUT                                   *vim-esearch-about*
 
 The latest version is available at:
