@@ -33,15 +33,16 @@ let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 
-if !exists('g:esearch#out#win#context_syntax_highlight')
-  let g:esearch#out#win#context_syntax_highlight = 0
-endif
-
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
 else
   let s:blank_line_fold = '<1'
 endif
+
+if !exists('g:esearch#out#win#context_syntax_highlight')
+  let g:esearch#out#win#context_syntax_highlight = 0
+endif
+
 let s:syntax_regexps = {
       \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
       \ 'light_eruby': '\%(\.erb\)$',

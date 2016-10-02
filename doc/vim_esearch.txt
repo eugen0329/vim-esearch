@@ -7,6 +7,9 @@ Usage          |vim-esearch-usage|
   Commands       |vim-esearch-commands|
   Key mappings   |vim-esearch-key-mappings|
 Customization  |vim-esearch-customization|
+  General        |vim-esearch-customization-general|
+  Window         |vim-esearch-customization-window|
+  Cmdline        |vim-esearch-customization-cmdline|
 About         |vim-esearch-about|
 
 ================================================================================
@@ -38,7 +41,9 @@ COMMANDS                                *vim-esearch-commands*
 ================================================================================
 CUSTOMIZATION                           *vim-esearch-customization*
 
-                                        *g:esearch*
+--------------------------------------------------------------------------------
+GENERAL                                 *vim-esearch-customization-general*
+
 Use |g:esearch| variable to tweak esearch settings.
 Example:
 >
@@ -63,7 +68,6 @@ Example:
   let g:esearch.adapter = 'grep'
 <
 
-                                        *Esearch-backend*
 Backend is a strategy, which is used to collaborate with an adapter. Currently
 available: async backends - 'nvim', 'vimproc', and vim builtin system() func
 call based backend 'system'
@@ -75,11 +79,8 @@ Example:
   if !exists('g:esearch') | let g:esearch = {} | endif
   let g:esearch.backend = 'system'
 <
-
 NOTE 'nvim' and 'vimproc' requires |job-control| and
 https://github.com/Shougo/vimproc.vim respectively.
-
-
 
                                         *Esearch-out*  *vim-esearch-out-win*
 
@@ -103,8 +104,6 @@ Example:
   if !exists('g:esearch') | let g:esearch = {} | endif
   let g:esearch.batch_size = 3000
 <
-
-
                                         *Esearch-use*
 Array of sources whereby you can specify an initial search request string,
 which will be picked from a specific source. To always start with an empty
@@ -188,6 +187,104 @@ Example:
   call add(g:eseach.use, 'word_under_cursor')
 <
 
+--------------------------------------------------------------------------------
+WINDOW                                 *vim-esearch-customization-window*
+
+esearch#out#win#map()                   *esearch#out#win#map()*
+  Use this function to redefine default mappings within
+  |vim-esearch-out-win|.
+
+  NOTE default mapping are listed as an example here
+>
+  call esearch#out#win#map('t',       'tab')
+  call esearch#out#win#map('i',       'split')
+  call esearch#out#win#map('s',       'vsplit')
+  call esearch#out#win#map('<Enter>', 'open')
+  call esearch#out#win#map('o',       'open')
+
+  "    Open silently (keep focus on the results window)
+  call esearch#out#win#map('T', 'tab-silent')
+  call esearch#out#win#map('I', 'split-silent')
+  call esearch#out#win#map('S', 'vsplit-silent')
+
+  "    Move cursor with snapping
+  call esearch#out#win#map('<C-n>', 'next')
+  call esearch#out#win#map('<C-j>', 'next-file')
+  call esearch#out#win#map('<C-p>', 'prev')
+  call esearch#out#win#map('<C-k>', 'prev-file')
+<
+g:esearch#out#win#open              *g:esearch#out#win#open*
+  Command which is used to open new ESearch window.
+>
+  let g:esearch#out#win#open = 'tabnew'
+<
+
+g:esearch#out#win#context_syntax_highlight    *g:esearch#out#win#context_syntax_highlight*
+  Highlight code context with appropriate syntax which is determined according
+  to |g:esearch#out#win#syntax_regeps|
+
+  NOTE This feature is experimental. Use it at your own risk
+  NOTE You need to use lightweight syntaxes so not to prevent performance
+  overhead.
+>
+  let g:esearch#out#win#context_syntax_highlight = 0
+<
+
+g:esearch#out#win#syntax_regeps    *g:esearch#out#win#syntax_regeps*
+  Regular expressions to determine experimental context syntax highlight.
+  See |g:esearch#out#win#context_syntax_highlight|.
+>
+  let g:esearch#out#win#syntax_regeps = {
+  \ 'yaml': '\%(yaml\|\.yml\)$',
+  \}
+<
+--------------------------------------------------------------------------------
+CMDLINE                                 *vim-esearch-customization-cmdline*
+
+esearch#out#cmdline#map()              *esearch#out#cmdline#map()*
+  Use this function to redefine default mappings inside cmdline
+
+  NOTE default mapping are listed as an example here
+>
+  call esearch#cmdline#map('<C-o><C-r>', 'toggle-regex')
+  call esearch#cmdline#map('<C-o><C-s>', 'toggle-case')
+  call esearch#cmdline#map('<C-o><C-w>', 'toggle-word')
+  call esearch#cmdline#map('<C-o><C-h>', 'cmdline-help')
+<
+g:esearch#cmdline#dir_icon              *g:esearch#cmdline#dir_icon*
+  Icon which will be displayed before directory name when you search within
+  directory that is differs from the current directory.
+>
+  let g:esearch#cmdline#dir_icon = 'D '
+<
+g:esearch#cmdline#select_initial              *g:esearch#cmdline#select_initial* *vim-esearch-cmdline-select*
+  Select initial request string in cmdline like other editors do. If you press
+  any key except of listed in |g:esearch#cmdline#select_cancelling_chars|, you
+  cmdline will be overwrited with it.
+>
+  let g:esearch#cmdline#select_initial = 1
+<
+g:esearch#cmdline#select_cancelling_chars              *g:esearch#cmdline#select_cancelling_chars*
+  Keys which will be used to disable |vim-esearch-cmdline-select|.
+
+  NOTE default keys are listed as an example here.
+>
+  let g:esearch#cmdline#select_cancelling_chars = [
+        \ "\<C-a>",
+        \ "\<C-e>",
+        \ "\<C-c>",
+        \ "\<C-o>",
+        \ "\<Esc>",
+        \ "\<Enter>",
+        \ "\<Tab>",
+        \ "\<M-b>",
+        \ "\<M-f>",
+        \ "\<Left>",
+        \ "\<Right>",
+        \ "\<Up>",
+        \ "\<Down>",
+        \ ]
+<
 ================================================================================
 ABOUT                                   *vim-esearch-about*
 
