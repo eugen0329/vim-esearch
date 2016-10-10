@@ -24,6 +24,7 @@ SublimeText, Atom et al.
 [ag](https://github.com/ggreer/the_silver_searcher#installing) (_The Silver Searcher_),
 [ack](http://beyondgrep.com/install/),
 [pt](https://github.com/monochromegane/the_platinum_searcher#installation) (_The Platinum Searcher_),
+[rg](https://github.com/BurntSushi/ripgrep#installation) (_ripgrep_),
 [git-grep](https://git-scm.com/docs/git-grep) along with the
 native \*nix util [grep](http://linux.die.net/man/1/grep).
 * Advanced pattern input prompt with fuzzy- and spell suggestion-driven completion.

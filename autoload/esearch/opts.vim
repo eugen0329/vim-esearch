@@ -13,7 +13,9 @@ fu! esearch#opts#new(opts) abort
   endif
 
   if !has_key(opts, 'adapter')
-    if executable('ag')
+    if executable('rg')
+      let opts.adapter = 'rg'
+    elseif executable('ag')
       let opts.adapter = 'ag'
     elseif executable('pt')
       let opts.adapter = 'pt'
