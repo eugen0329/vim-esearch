@@ -74,7 +74,7 @@ let g:esearch = {
 
 * __'adapter'__<br>
   Adapter is a system-wide executable, which is used to dispatch your search
-  request. Currently available adapters are `'ag'`, `'ack'`, `'pt'`, `'git'` and `'grep'`.
+  request. Currently available adapters are `'ag'`, `'ack'`, `'pt'`, 'rg', `'git'` and `'grep'`.
 * __'backend'__<br>
   Backend is a strategy, which is used to collaborate with an adapter. Currently available:
   async backends - `'nvim'`, `'vimproc'`, and vim builtin system() func call based backend
