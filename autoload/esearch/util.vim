@@ -183,7 +183,7 @@ fu! esearch#util#without(key) dict abort
   return filter(copy(self), 'v:key !=# "'.a:key.'"')
 endfu
 
-fu! esearch#util#require(...) dict abort
+fu! esearch#util#slice(...) dict abort
   return filter(deepcopy(self), 'index(a:000, v:key) >= 0')
 endfu
 

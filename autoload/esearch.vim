@@ -14,7 +14,7 @@ fu! esearch#init(...) abort
 
   call extend(opts, {
         \ 'set_default': function('esearch#util#set_default'),
-        \ 'require': function('esearch#util#require')
+        \ 'slice': function('esearch#util#slice')
         \})
 
   call opts.set_default('cwd', getcwd())
@@ -50,7 +50,7 @@ fu! esearch#init(...) abort
 
   let title = s:title(pattern)
 
-  let out_params = extend(opts.require('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size', 'context_width'), {
+  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size', 'context_width'), {
         \ 'title': title,
         \ 'request': request,
         \})
