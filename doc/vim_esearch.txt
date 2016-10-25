@@ -59,7 +59,7 @@ Note: don't set values if you don't need to override default behaviour.
 
                                         *Esearch-adapter*
 Adapter is a system-wide executable, which is used to dispatch your search
-request. Currently available adapters are 'ag', 'ack', 'pt', 'git' and 'grep'.
+request. Currently available adapters are 'ag', 'ack', 'pt', 'rg', 'git' and 'grep'.
 To set this option use |g:esearch|.
 
 Example:
