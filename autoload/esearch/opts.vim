@@ -13,12 +13,12 @@ fu! esearch#opts#new(opts) abort
   endif
 
   if !has_key(opts, 'adapter')
-    if executable('rg')
-      let opts.adapter = 'rg'
-    elseif executable('ag')
+    if executable('ag')
       let opts.adapter = 'ag'
     elseif executable('pt')
       let opts.adapter = 'pt'
+    elseif executable('rg')
+      let opts.adapter = 'rg'
     elseif executable('ack')
       let opts.adapter = 'ack'
     elseif !system('git rev-parse --is-inside-work-tree &>/dev/null') && !v:shell_error
