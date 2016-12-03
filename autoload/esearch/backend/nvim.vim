@@ -1,22 +1,24 @@
 let s:jobs = {}
+let s:incrementable_internal_id = 0
 
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
 endif
 
 fu! esearch#backend#nvim#init(cmd, pty) abort
-  let job_id = jobstart(['sh', '-c', a:cmd], {
-          \ 'on_stdout': function('s:stdout'),
-          \ 'on_stderr': function('s:stderr'),
-          \ 'on_exit':   function('s:exit'),
-          \ 'pty': a:pty,
-          \ 'tick': 0,
-          \ 'ticks': g:esearch#backend#nvim#ticks,
-          \ })
-  call jobclose(job_id, 'stdin')
-
   let request = {
-        \ 'job_id':   job_id,
+        \ 'internal_job_id': s:incrementable_internal_id,
+        \ 'jobstart_args': {
+        \   'cmd': ['sh', '-c', a:cmd],
+        \   'opts': {
+        \     'on_stdout': function('s:stdout'),
+        \     'on_stderr': function('s:stderr'),
+        \     'on_exit':   function('s:exit'),
+        \     'pty': 0,
+        \     'tick': 0,
+        \     'ticks': g:esearch#backend#nvim#ticks,
+        \   },
+        \ },
         \ 'backend':  'nvim',
         \ 'command':  a:cmd,
         \ 'data':     [],
@@ -26,13 +28,20 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'status': 0,
         \ 'async': 1,
         \ 'events': {
-        \   'forced_finish': 'ESearchNVimFinish'.job_id,
-        \   'update': 'ESearchNVimUpdate'.job_id
+        \   'forced_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
+        \   'update': 'ESearchNVimUpdate'.s:incrementable_internal_id
         \ }
         \}
-  let s:jobs[job_id] = { 'data': [], 'request': request }
+
+  let s:incrementable_internal_id += 1
 
   return request
+endfu
+
+fu! esearch#backend#nvim#run(request) abort
+  let job_id = jobstart(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+  call jobclose(job_id, 'stdin')
+  let s:jobs[job_id] = { 'data': [], 'request': a:request }
 endfu
 
 " TODO encoding

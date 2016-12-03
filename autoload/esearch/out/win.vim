@@ -80,6 +80,7 @@ fu! esearch#out#win#init(opts) abort
   if a:opts.request.async
     augroup ESearchWinAutocmds
       au! * <buffer>
+      " Events can be: update, finish etc.
       for [func_name, event] in items(a:opts.request.events)
         exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
       endfor
@@ -94,8 +95,7 @@ fu! esearch#out#win#init(opts) abort
   setlocal modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0))
-  " Disable undo
-  setlocal undolevels=-1
+  setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
   setlocal noswapfile
@@ -127,6 +127,8 @@ fu! esearch#out#win#init(opts) abort
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
         \})
 
+  call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
+
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))
   endif
@@ -154,14 +156,14 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
     let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
       silent exe 'bw ' . bufnr
-      silent  exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
+      silent exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
     else
       silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
   " if buffer doesn't exists
   else
-    silent  exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
+    silent exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
   endif
 endfu
 
@@ -190,7 +192,7 @@ fu! esearch#out#win#update(bufnr) abort
   let data_size = len(data)
   if data_size > request.data_ptr
     if ignore_batches || data_size - request.data_ptr - 1 <= esearch.batch_size
-      let [from,to] = [request.data_ptr, data_size - 1]
+      let [from, to] = [request.data_ptr, data_size - 1]
       let request.data_ptr = data_size
     else
       let [from, to] = [request.data_ptr, request.data_ptr + esearch.batch_size - 1]
