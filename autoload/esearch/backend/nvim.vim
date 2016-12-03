@@ -94,9 +94,17 @@ endfu
 
 fu! esearch#backend#nvim#init_events() abort
   au BufUnload <buffer>
-        \ call eserach#backend#nvim#abort(getbufvar(str2nr(expand('<abuf>')), 'esearch').request)
+        \ call eserach#backend#nvim#abort(str2nr(expand('<abuf>')))
 endfu
 
-fu! esearch#backend#nvim#abort(request) abort
-  return jobstop(a:request.job_id)
+fu! esearch#backend#nvim#abort(bufnr) abort
+  let esearch = getbufvar(a:bufnr, 'esearch', 0)
+
+  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]
+    try
+      call jobstop(esearch.request.job_id)
+    catch /E900:/
+      " E900: Invalid job id
+    endtry
+  endif
 endfu
