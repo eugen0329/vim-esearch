@@ -40,9 +40,9 @@ fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
 
   while i < limit
     let el = matchlist(a:raw[i], format)[1:4]
-    if empty(el)
+    if len(el) != 4
       if index(a:broken_results, a:raw[i]) < 0
-        call add(a:broken_results, a:raw[i])
+        call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
       endif
     else
       call add(results, {'filename': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3]})

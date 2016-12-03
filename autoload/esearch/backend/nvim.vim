@@ -20,6 +20,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'backend':  'nvim',
         \ 'command':  a:cmd,
         \ 'data':     [],
+        \ 'intermediate':     '',
         \ 'errors':     [],
         \ 'finished': 0,
         \ 'status': 0,
@@ -39,10 +40,15 @@ fu! s:stdout(job_id, data, event) dict abort
   let job = s:jobs[a:job_id]
   let data = a:data
 
-  " Parse data
-  if !empty(data) && !empty(job.request.data)
-    let job.request.data[-1] .= data[0]
-    call remove(data, 0)
+  " If there is incomplete line from the last s:stduout call
+  if !empty(job.request.intermediate) && !empty(data)
+    let data[0] = job.request.intermediate . data[0]
+    let job.request.intermediate = ''
+  endif
+
+  " If the last line is incomplete:
+  if !empty(data) && data[-1] !~# '\r$'
+    let job.request.intermediate = remove(data, -1)
   endif
 
   if self.pty

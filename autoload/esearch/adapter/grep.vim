@@ -55,7 +55,7 @@ fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) a
 endfu
 
 fu! esearch#adapter#grep#requires_pty() abort
-  return 1
+  return 0
 endfu
 
 " Used to build the query
