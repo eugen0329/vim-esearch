@@ -1,6 +1,6 @@
 fu! esearch#backend#system#init(cmd, pty) abort
   let request = {
-        \ 'data': split(system(a:cmd), "\n"),
+        \ 'command': a:cmd,
         \ 'errors': [],
         \ 'async': 0,
         \ 'status': 0,
@@ -8,6 +8,10 @@ fu! esearch#backend#system#init(cmd, pty) abort
         \}
 
   return request
+endfu
+
+fu! esearch#backend#system#run(request) abort
+  let a:request.data = split(system(a:request.command), "\n")
 endfu
 
 fu! esearch#backend#system#escape_cmd(cmd) abort

@@ -13,47 +13,46 @@ if !exists('g:esearch#backend#vimproc#read_errors_timeout')
 endif
 
 let s:requests = {}
-let s:last_request_id = 0
+let s:incrementable_internal_id = 0
 
 fu! esearch#backend#vimproc#init(cmd, pty) abort
-  let pipe = vimproc#popen3(
-        \ vimproc#util#iconv(a:cmd, &encoding, 'char'), a:pty)
-  call pipe.stdin.close()
-
   let request = {
+        \ 'internal_id': s:incrementable_internal_id,
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
         \ 'command': a:cmd,
-        \ 'pipe': pipe,
         \ 'data': [],
         \ 'errors': [],
         \ 'async': 1,
+        \ 'pty': a:pty,
         \ 'status': 0,
         \ 'finished': 0,
         \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
-        \   'finish':            'ESearchVimProcFinish'.s:last_request_id,
-        \   'update':            'ESearchVimProcUpdate'.s:last_request_id,
-        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:last_request_id
+        \   'finish':            'ESearchVimProcFinish'.s:incrementable_internal_id,
+        \   'update':            'ESearchVimProcUpdate'.s:incrementable_internal_id,
+        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:incrementable_internal_id
         \ }
         \}
 
-  exe 'aug ESearchVimproc'.s:last_request_id
-    au!
-    exe 'au CursorMoved * call s:_on_cursor_moved('.s:last_request_id.')'
-    exe 'au CursorHold  * call s:_on_cursor_hold('.s:last_request_id.')'
-  aug END
-
-  let s:requests[s:last_request_id] = request
-  let s:last_request_id += 1
+  let s:requests[s:incrementable_internal_id] = request
+  let s:incrementable_internal_id += 1
 
   return request
 endfu
 
-fu! s:read_data(request) abort
-  let request = a:request
-  let data = request.pipe.stdout.read_lines(-1, g:esearch#backend#vimproc#read_timeout)
-  let request.data += data
+fu! esearch#backend#vimproc#run(request) abort
+  let pipe = vimproc#popen3(
+        \ vimproc#util#iconv(a:request.command, &encoding, 'char'), a:request.pty)
+  call pipe.stdin.close()
+
+  let a:request.pipe = pipe
+
+  exe 'aug ESearchVimproc'.a:request.internal_id
+    au!
+    exe 'au CursorMoved * call s:_on_cursor_moved('.a:request.internal_id.')'
+    exe 'au CursorHold  * call s:_on_cursor_hold('. a:request.internal_id.')'
+  aug END
 endfu
 
 fu! esearch#backend#vimproc#escape_cmd(cmd) abort
@@ -111,6 +110,12 @@ fu! s:_on_cursor_hold(request_id) abort
   else
     exe 'do User '.events.trigger_key_press
   endif
+endfu
+
+fu! s:read_data(request) abort
+  let request = a:request
+  let data = request.pipe.stdout.read_lines(-1, g:esearch#backend#vimproc#read_timeout)
+  let request.data += data
 endfu
 
 fu! s:completed(request) abort

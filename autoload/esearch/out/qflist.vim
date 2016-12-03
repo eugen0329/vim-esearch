@@ -1,4 +1,8 @@
 fu! esearch#out#qflist#init(opts) abort
+  if has_key(g:, 'esearch_qf')
+    call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
+  end
+
   call setqflist([], '')
   copen
 
@@ -29,6 +33,7 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
         \})
 
+  call esearch#backend#{g:esearch_qf.backend}#run(g:esearch_qf.request)
 
   if !g:esearch_qf.request.async
     call esearch#out#qflist#finish()
