@@ -10,10 +10,14 @@ fu! esearch#backend#system#init(cmd, pty) abort
   return request
 endfu
 
-
 fu! esearch#backend#system#escape_cmd(cmd) abort
   return esearch#util#shellescape(a:cmd)
 endfu
 
+fu! esearch#backend#system#abort(...) abort
+  " dummy function to meet the api
+endfu
+
 fu! esearch#backend#system#init_events() abort
+  " dummy function to meet the api
 endfu
