@@ -22,7 +22,7 @@ fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'git --no-pager grep '.r.' '.c.' '.w.' --no-color --line-number -- ' .
+  return 'git --no-pager grep '.r.' '.c.' '.w.' --no-color --line-number ' .
         \ g:esearch#adapter#git#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
