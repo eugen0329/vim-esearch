@@ -67,6 +67,12 @@ Example:
   if !exists('g:esearch') | let g:esearch = {} | endif
   let g:esearch.adapter = 'grep'
 <
+NOTE You can addotionally provide custom configs for an each adapter.
+
+Example:
+>
+  let g:esearch#adapter#ack#options = '--sort-files'
+<
 
 Backend is a strategy, which is used to collaborate with an adapter. Currently
 available: async backends - 'nvim', 'vimproc', and vim builtin system() func

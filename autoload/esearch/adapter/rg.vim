@@ -1,6 +1,10 @@
 " TODO reduce duplication with #ag
 
-fu! esearch#adapter#rg#options() abort
+if !exists('g:esearch#adapter#rg#options')
+  let g:esearch#adapter#rg#options = ''
+endif
+
+fu! esearch#adapter#rg#_options() abort
   if !exists('s:options')
     let s:options = {
     \ 'regex':   { 'p': ['--fixed-strings', ''], 's': ['>', 'r'] },
@@ -14,11 +18,12 @@ fu! esearch#adapter#rg#options() abort
 endfu
 
 fu! esearch#adapter#rg#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#rg#options()
+  let options = a:0 ? a:1 : esearch#adapter#rg#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
   return 'rg '.r.' '.c.' '.w.' --no-heading --color=never --column -- ' .
+        \ g:esearch#adapter#rg#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 

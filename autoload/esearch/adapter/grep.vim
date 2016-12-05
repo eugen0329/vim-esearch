@@ -1,8 +1,11 @@
+if !exists('g:esearch#adapter#grep#options')
+  let g:esearch#adapter#grep#options = ''
+endif
+
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
-fu! esearch#adapter#grep#options() abort
+fu! esearch#adapter#grep#_options() abort
   if !exists('s:options')
-    " -P: pcre
     let s:options = {
     \ 'regex': { 'p': ['--fixed-strings', '--perl-regexp'], 's': ['>', 'r'] },
     \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
@@ -15,13 +18,14 @@ fu! esearch#adapter#grep#options() abort
 endfu
 
 fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#grep#options()
+  let options = a:0 ? a:1 : esearch#adapter#grep#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
   " -r: recursive, no follow symbolic links
   " -I: Process a binary file as if it did not contain matching data
   return 'grep '.r.' '.c.' '.w.' -r --line-number --exclude-dir=.{git,svn,hg} -- ' .
+        \ g:esearch#adapter#grep#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 
