@@ -28,7 +28,7 @@ let s:default_mappings = {
       \ }
 
 " The first line. It contains information about the number of results
-let s:header = 'Matches in %d lines'
+let s:header = 'Matches in %d lines, %d file(s)'
 let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
@@ -94,7 +94,7 @@ fu! esearch#out#win#init(opts) abort
   let &iskeyword = g:esearch.wordchars
   setlocal modifiable
   exe '1,$d_'
-  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0))
+  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, 0))
   setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
@@ -122,6 +122,7 @@ fu! esearch#out#win#init(opts) abort
         \})
 
   call extend(b:esearch.request, {
+        \ 'files_count': 0,
         \ 'bufnr':     bufnr('%'),
         \ 'data_ptr':     0,
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
@@ -204,7 +205,7 @@ fu! esearch#out#win#update(bufnr) abort
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
-    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr))
+    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr, request.files_count))
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
@@ -222,6 +223,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let context  = s:context(parsed[i].text, a:esearch)
 
     if filename !=# a:esearch.prev_filename
+      let a:esearch.request.files_count += 1
       if g:esearch#out#win#context_syntax_highlight
         for [s,r] in items(s:syntax_regexps)
           if filename =~ r
