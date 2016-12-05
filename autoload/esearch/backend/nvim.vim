@@ -27,6 +27,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'finished': 0,
         \ 'status': 0,
         \ 'async': 1,
+        \ 'aborted': 0,
         \ 'events': {
         \   'forced_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
         \   'update': 'ESearchNVimUpdate'.s:incrementable_internal_id
@@ -91,7 +92,9 @@ fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  exe 'do User '.job.request.events.forced_finish
+  if !job.request.aborted
+    exe 'do User '.job.request.events.forced_finish
+  endif
 endfu
 
 " TODO write expansion for commands
@@ -108,6 +111,7 @@ endfu
 
 fu! esearch#backend#nvim#abort(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  let esearch.request.aborted = 1
 
   if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]
     try

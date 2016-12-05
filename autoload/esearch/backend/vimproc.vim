@@ -27,6 +27,7 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'pty': a:pty,
         \ 'status': 0,
         \ 'finished': 0,
+        \ 'aborted': 0,
         \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
         \   'finish':            'ESearchVimProcFinish'.s:incrementable_internal_id,
@@ -93,7 +94,9 @@ fu! s:finish(request, request_id) abort
   endif
   let [a:request.cond, a:request.status] = a:request.pipe.waitpid()
   let a:request.finished = 1
-  exe 'do User '.a:request.events.finish
+  if !a:request.aborted
+    exe 'do User '.a:request.events.finish
+  endif
   exe 'au! ESearchVimproc'.a:request_id
 endfu
 
@@ -129,6 +132,7 @@ endfu
 
 fu! esearch#backend#vimproc#abort(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  let esearch.request.aborted = 1
   return empty(esearch) ?  0 : esearch.request.pipe.kill(g:vimproc#SIGTERM)
 endfu
 
