@@ -40,6 +40,14 @@ fu! esearch#source#last(...) abort
   endif
 endfu
 
+fu! esearch#source#current(...) abort
+  if exists('b:esearch')
+    return get(b:esearch, 'exp', 0)
+  else
+    return 0
+  endif
+endfu
+
 fu! esearch#source#filename(...) abort
   let w = expand('%')
 endfu

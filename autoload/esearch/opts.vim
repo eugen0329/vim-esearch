@@ -41,7 +41,7 @@ fu! esearch#opts#new(opts) abort
         \ 'highlight_match': 1,
         \ 'escape_special':  1,
         \ 'wordchars':      'a-z,A-Z,_',
-        \ 'use': ['visual', 'hlsearch', 'last'],
+        \ 'use': ['visual', 'hlsearch', 'current', 'last'],
         \ 'nerdtree_plugin': 1,
         \ 'invert':           function('<SID>invert'),
         \ 'slice':          function('esearch#util#slice'),
