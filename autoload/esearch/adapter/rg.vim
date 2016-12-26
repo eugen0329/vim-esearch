@@ -22,7 +22,7 @@ fu! esearch#adapter#rg#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'rg '.r.' '.c.' '.w.' --no-heading --color=never --column ' .
+  return 'rg '.r.' '.c.' '.w.' --no-heading --color=never --line-number --column ' .
         \ g:esearch#adapter#rg#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
