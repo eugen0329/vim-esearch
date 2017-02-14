@@ -110,7 +110,7 @@ Example:
   if !exists('g:esearch') | let g:esearch = {} | endif
   let g:esearch.batch_size = 3000
 <
-                                        *Esearch-use*
+                                        *Esearch-use* *vim-esearch-sources*
 Array of sources whereby you can specify an initial search request string,
 which will be picked from a specific source. To always start with an empty
 input - set this option to [].
@@ -124,8 +124,6 @@ Example:
 NOTE: order is relevant for priorities of this sources usage. Thus if the
 'visual' found - that it will be used as an initial input string despite
 'hlsearch', 'last' or any other sources are listed after the 'visual'.
-
-USE OPTIONS                                   *Esearch-use* *vim-esearch-sources*
 
                                               *Esearch-use-visual*
 Currently selected text. Only available from the visual mode.
