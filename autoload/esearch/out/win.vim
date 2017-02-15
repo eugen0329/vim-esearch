@@ -91,7 +91,6 @@ fu! esearch#out#win#init(opts) abort
   call s:init_mappings()
   call s:init_commands()
 
-  let &iskeyword = g:esearch.wordchars
   setlocal modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, 0))
