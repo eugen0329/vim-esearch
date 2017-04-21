@@ -25,8 +25,7 @@ fu! esearch#init(...) abort
     let cmdline_opts = {
           \ 'cwd': opts.cwd,
           \ 'exp': g:esearch._last_search,
-          \ 'select_initial': get(opts, 'select_initial', 1),
-          \ 'blank_cmdline': get(opts, 'blank_cmdline', 0),
+          \ 'empty_cmdline': get(opts, 'empty_cmdline', 0),
           \}
     let opts.exp = esearch#cmdline#read(cmdline_opts, adapter_opts)
     if empty(opts.exp)
