@@ -58,6 +58,8 @@ endif
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
+
+  " Stop previous search process first
   if has_key(b:, 'esearch')
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
   end
