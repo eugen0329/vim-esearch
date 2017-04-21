@@ -64,6 +64,8 @@ cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 " TODO MAJOR PRIO refactoring
 " a:adapter_options is used to display adapter config in the prompt (>>>)
 fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
+  " Preparing cmdline
+  """""""""""""""""""""""""""
   let old_mapargs = s:init_mappings()
   let s:pattern = a:cmdline_opts.exp
 
@@ -72,12 +74,13 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   else
     let s:cmdline = g:esearch.regex ? a:cmdline_opts.exp.pcre : a:cmdline_opts.exp.literal
   endif
+  """""""""""""""""""""""""""
 
-  let special_key_was_pressed = 0
+  " Initial selection handling
+  """""""""""""""""""""""""""
   let enter_was_pressed = 0
 
   if !empty(s:cmdline) && g:esearch#cmdline#select_initial
-    " TODO
     let [s:cmdline, enter_was_pressed, special_key_was_pressed] =
           \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
@@ -89,36 +92,19 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
       exe "norm :call esearch#init({'empty_cmdline': 1})\<CR>".s:cmdline
       return 0
     endif
-  endif
+  else
 
+  endif
+  """""""""""
+
+  " Reading string from user
+  """""""""""""""""""""""""""
   if enter_was_pressed
     let str = s:cmdline
   else
-    let s:cmdpos = len(s:cmdline) + 1
-    let s:list_help = 0
-    let s:events = []
-
-    " Main loop
-    """""""""""
-    while 1
-      call s:render_directory_prompt(a:cmdline_opts.cwd)
-      let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
-
-      if empty(s:events)
-        break
-      endif
-
-      for handler in s:events
-        call call(handler.funcref, handler.args)
-      endfor
-
-      let s:events = []
-      let s:cmdline .= s:restore_cursor_position()
-
-      redraw!
-    endwhile
-
+    let str = s:main_loop(a:cmdline_opts, a:adapter_options)
   endif
+  """""""""""""""""""""""""""
 
   call s:recover_mappings(old_mapargs)
 
@@ -126,6 +112,8 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     return {}
   endif
 
+  " Build search expression
+  """""""""""""""""""""""""""
   if g:esearch.regex
     let s:pattern.pcre = str
     let s:pattern.vim = esearch#regex#pcre2vim(str)
@@ -133,8 +121,36 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     let s:pattern.literal = str
     let s:pattern.vim = '\V'.escape(str, '\')
   endif
+  """""""""""""""""""""""""""
 
   return s:pattern
+endfu
+
+fu! s:main_loop(cmdline_opts, adapter_options) abort
+  let s:cmdpos = len(s:cmdline) + 1
+  let s:list_help = 0
+  let s:events = []
+
+  " Main loop
+  """""""""""
+  while 1
+    call s:render_directory_prompt(a:cmdline_opts.cwd)
+    let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
+
+    if empty(s:events)
+      break
+    endif
+
+    for handler in s:events
+      call call(handler.funcref, handler.args)
+    endfor
+
+    let s:events = []
+    let s:cmdline .= s:restore_cursor_position()
+
+    redraw!
+  endwhile
+  return str
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
@@ -355,4 +371,3 @@ endfu
 function! s:spell_suggests(word) abort
   return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfunction
-
