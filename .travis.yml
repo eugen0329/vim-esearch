@@ -6,7 +6,11 @@ os:
 language: ruby
 rvm:
   - 2.2.2
-cache: bundler
+
+cache:
+  bundler: true
+  directories:
+    - $HOME/.rvm
 
 install:
   - bash install_dependencies.sh
