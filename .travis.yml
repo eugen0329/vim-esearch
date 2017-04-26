@@ -10,6 +10,7 @@ cache: bundler
 
 install:
   - bash install_dependencies.sh
+  - bundle install
 
 addons:
   apt:

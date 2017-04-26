@@ -35,7 +35,7 @@ def settings_dependent_context(type, settings)
     it "finds `#{test_query}`" do
       press ":call esearch#init()<Enter>#{test_query}<Enter>"
 
-      expected = expect {
+      expect {
         press("j") # preto skip "Press ENTER or type command to continue" prompt
         bufname("%") =~ /Search/
       }.to become_true_within(5.second)
