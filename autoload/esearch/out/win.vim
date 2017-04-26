@@ -219,8 +219,14 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   let i = 0
   let limit = len(parsed)
 
+  if has('win32')
+    let sub_expression = substitute(a:esearch.cwd, '\\', '\\\\', 'g').'\\'
+  else
+    let sub_expression = a:esearch.cwd.'/'
+  endif
+
   while i < limit
-    let filename    = substitute(parsed[i].filename, a:esearch.cwd.'/', '', '')
+    let filename    = substitute(parsed[i].filename, sub_expression, '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
     if filename !=# a:esearch.prev_filename
