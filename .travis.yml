@@ -9,7 +9,7 @@ rvm:
 cache: bundler
 
 install:
-  - bash .ci/install_dependencies.sh
+  - bash install_dependencies.sh
 
 addons:
   apt:
