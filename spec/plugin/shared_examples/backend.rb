@@ -1,9 +1,9 @@
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  ADAPTERS = ['grep', 'ag', 'rg', 'ack', 'git']
+  ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
 
   ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
-      before :each do
+      before do
         press ':cd $PWD<Enter>'
         press ':cd spec/fixtures/backend/<Enter>'
         esearch_settings(backend: backend, adapter: adapter)
@@ -35,7 +35,7 @@ def settings_dependent_context(type, settings)
     it "finds `#{test_query}`" do
       press ":call esearch#init()<Enter>#{test_query}<Enter>"
 
-      expected = expect {
+      expect {
         press("j") # preto skip "Press ENTER or type command to continue" prompt
         bufname("%") =~ /Search/
       }.to become_true_within(5.second)
