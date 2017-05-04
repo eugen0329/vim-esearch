@@ -106,7 +106,7 @@ endfu
 
 fu! esearch#backend#nvim#init_events() abort
   au BufUnload <buffer>
-        \ call eserach#backend#nvim#abort(str2nr(expand('<abuf>')))
+        \ call esearch#backend#nvim#abort(str2nr(expand('<abuf>')))
 endfu
 
 fu! esearch#backend#nvim#abort(bufnr) abort
