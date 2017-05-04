@@ -110,7 +110,8 @@ fu! esearch#backend#nvim#init_events() abort
 endfu
 
 fu! esearch#backend#nvim#abort(bufnr) abort
-  let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  " FIXME unify with out#qflist
+  let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
   let esearch.request.aborted = 1
 
   if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]

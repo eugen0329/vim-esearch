@@ -18,8 +18,7 @@ fu! esearch#out#qflist#init(opts) abort
           \ endif
   augroup END
 
-
-  call s:init_mappings()
+  call s:init_commands()
 
   let g:esearch_qf = extend(a:opts, {
         \ 'ignore_batches':     0,
@@ -189,7 +188,7 @@ fu! s:open(cmd, ...) abort
 
     try
       " See #win NOTE 1
-      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+      unsilent exe a:cmd . ' ' . fnameescape(g:esearch_qf.cwd . '/' . fname)
     catch /E325:/
       " ignore warnings about swapfiles (let user and #substitute handle them)
     catch
