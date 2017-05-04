@@ -3,7 +3,7 @@ fu! esearch#out#qflist#init(opts) abort
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
   end
 
-  call setqflist([], '')
+  call setqflist([])
   copen
 
   if a:opts.request.async
