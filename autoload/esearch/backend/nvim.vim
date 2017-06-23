@@ -101,7 +101,9 @@ endfu
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(cmd) abort
-  return escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = substitute(cmd, '>', '\\>', 'g')
+  return cmd
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
