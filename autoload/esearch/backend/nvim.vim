@@ -124,3 +124,11 @@ fu! esearch#backend#nvim#abort(bufnr) abort
     endtry
   endif
 endfu
+
+function! esearch#backend#nvim#_context() abort
+  return s:
+endfunction
+function! esearch#backend#nvim#_sid() abort
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>

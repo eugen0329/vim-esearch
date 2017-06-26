@@ -1,5 +1,5 @@
-" NOTE 1 (unsilent when opening files)
 " We expect to receive the following if use #substitute#do over files with an
+" NOTE 1 (unsilent when opening files)
 " existing swap:
 " |0 files changed
 " |The following files has unresolved swapfiles
@@ -54,6 +54,9 @@ endif
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
+if !has_key(g:, 'esearch#out#win#buflisted')
+  let g:esearch#out#win#buflisted = 0
+endif
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
@@ -101,7 +104,7 @@ fu! esearch#out#win#init(opts) abort
   setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
-  setlocal nobuflisted
+  let &buflisted = g:esearch#out#win#buflisted
   setlocal foldcolumn=0
   setlocal buftype=nofile
   setlocal bufhidden=hide
@@ -158,14 +161,14 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
     let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
       silent exe 'bw ' . bufnr
-      silent exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
+      silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
     else
       silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
   " if buffer doesn't exists
   else
-    silent exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
+    silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
   endif
 endfu
 
