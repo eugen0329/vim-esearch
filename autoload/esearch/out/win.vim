@@ -185,10 +185,9 @@ fu! esearch#out#win#trigger_key_press(...) abort
 endfu
 
 fu! esearch#out#win#update(bufnr) abort
-  if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
-    return 1
-  endif
-
+  " if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
+  "   return 1
+  " endif
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
@@ -484,10 +483,9 @@ fu! esearch#out#win#forced_finish(bufnr) abort
 endfu
 
 fu! esearch#out#win#finish(bufnr) abort
-  if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
-    return 1
-  endif
-
+  " if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
+  "   return 1
+  " endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   if esearch.request.async

@@ -1,35 +1,36 @@
-if !exists('g:esearch#util#use_setbufline')
-  let g:esearch#util#use_setbufline = 1
-endif
-
+" if !exists('g:esearch#util#use_setbufline')
+"   let g:esearch#util#use_setbufline = 0
+" endif
 if !exists('g:esearch#util#trunc_omission')
   let g:esearch#util#trunc_omission = '⦚'
 endif
 
-if g:esearch#util#use_setbufline
-  fu! esearch#util#setline(expr, lnum, text) abort
-    let oldnr = winnr()
-    let winnr = bufwinnr(a:expr)
+"" Disagreeably inefficient. Consider to implement #setbuflines instead to reduce redundant buffer switches
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+" if g:esearch#util#use_setbufline
+"   fu! esearch#util#setline(expr, lnum, text) abort
+"     let oldnr = winnr()
+"     let winnr = bufwinnr(a:expr)
 
-    if oldnr != winnr
-      if winnr ==# -1
-        noau silent exec 'sp '.escape(bufname(bufnr(a:expr)), ' \`')
-        noau silent call setline(a:lnum, a:text)
-        noau silent hide
-      else
-        noau exec   winnr.'wincmd w'
-        noau silent call setline(a:lnum, a:text)
-      endif
-    else
-      noau silent! call setline(a:lnum, a:text)
-    endif
-    noau exec oldnr.'wincmd w'
-  endfu
-else
+"     if oldnr != winnr
+"       if winnr ==# -1
+"         noau silent exec 'sp '.escape(bufname(bufnr(a:expr)), ' \`')
+"         noau silent call setline(a:lnum, a:text)
+"         noau silent hide
+"       else
+"         noau exec   winnr.'wincmd w'
+"         noau silent call setline(a:lnum, a:text)
+"       endif
+"     else
+"       noau silent! call setline(a:lnum, a:text)
+"     endif
+"     noau exec oldnr.'wincmd w'
+"   endfu
+" else
   fu! esearch#util#setline(_, lnum, text) abort
     return setline(a:lnum, a:text)
   endfu
-endif
+" endif
 
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
