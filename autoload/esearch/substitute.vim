@@ -92,6 +92,7 @@ fu! s:substitute(args) abort
   try
     exe 's'a:args
   catch /E486:/
+    " no matches found
     return 1
   endtry
   return 0

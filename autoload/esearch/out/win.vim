@@ -185,9 +185,10 @@ fu! esearch#out#win#trigger_key_press(...) abort
 endfu
 
 fu! esearch#out#win#update(bufnr) abort
-  " if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
-  "   return 1
-  " endif
+  " prevent updates when outside of the window
+  if a:bufnr != bufnr('%')
+    return 1
+  endif
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
@@ -472,6 +473,7 @@ endfu
 " buffer isn't current buffer)
 fu! esearch#out#win#forced_finish(bufnr) abort
   if a:bufnr != bufnr('%')
+    " Bind event to finish the search as soon as the buffer is enter
     exe 'aug ESearchWinAutocmds'
       let nr = string(a:bufnr)
       exe printf('au BufEnter <buffer=%s> call esearch#out#win#finish(%s)', nr, nr)
@@ -483,9 +485,10 @@ fu! esearch#out#win#forced_finish(bufnr) abort
 endfu
 
 fu! esearch#out#win#finish(bufnr) abort
-  " if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
-  "   return 1
-  " endif
+  " prevent updates when outside of the window
+  if a:bufnr != bufnr('%')
+    return 1
+  endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   if esearch.request.async
