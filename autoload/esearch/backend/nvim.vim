@@ -103,6 +103,7 @@ endfu
 fu! esearch#backend#nvim#escape_cmd(cmd) abort
   let cmd = escape(esearch#util#shellescape(a:cmd), '()')
   let cmd = substitute(cmd, '>', '\\>', 'g')
+  let cmd = substitute(cmd, '&', '\\&', 'g')
   return cmd
 endfu
 
