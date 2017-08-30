@@ -105,10 +105,11 @@ fu! s:title_format() abort
 endfu
 
 fu! s:init_lazy_global_config() abort
-  if !exists('g:loaded_esearch_config')
-    let g:esearch = esearch#opts#new(exists('g:esearch') ? g:esearch : {})
+  let global_esearch = exists('g:esearch') ? g:esearch : {}
+  if !has_key(global_esearch, '__lazy_loaded')
+    let g:esearch = esearch#opts#new(global_esearch)
     if empty(g:esearch) | return 1 | endif
-    let g:loaded_esearch_config = 1
+    let g:esearch.__lazy_loaded = 1
   endif
 endfu
 
