@@ -1,6 +1,10 @@
+if !exists('g:esearch#adapter#ag#options')
+  let g:esearch#adapter#ag#options = ''
+endif
+
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
-fu! esearch#adapter#ag#options() abort
+fu! esearch#adapter#ag#_options() abort
   if !exists('s:options')
     let s:options = {
     \ 'regex':   { 'p': ['--literal', ''],   's': ['>', 'r'] },
@@ -14,11 +18,12 @@ fu! esearch#adapter#ag#options() abort
 endfu
 
 fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#ag#options()
+  let options = a:0 ? a:1 : esearch#adapter#ag#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column -- ' .
+  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
+        \ g:esearch#adapter#ag#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 

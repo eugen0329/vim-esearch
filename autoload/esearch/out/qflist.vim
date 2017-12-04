@@ -3,7 +3,7 @@ fu! esearch#out#qflist#init(opts) abort
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
   end
 
-  call setqflist([], '')
+  call setqflist([])
   copen
 
   if a:opts.request.async
@@ -17,6 +17,8 @@ fu! esearch#out#qflist#init(opts) abort
           \   let w:quickfix_title = g:esearch_qf.title |
           \ endif
   augroup END
+
+  call s:init_commands()
 
   let g:esearch_qf = extend(a:opts, {
         \ 'ignore_batches':     0,
@@ -147,3 +149,65 @@ fu! esearch#out#qflist#_is_render_finished() dict abort
   return self.data_ptr == len(self.data)
 endfu
 
+fu! s:init_commands() abort
+  let s:win = {
+        \ 'line_number':   function('s:line_number'),
+        \ 'open':          function('s:open'),
+        \ 'filename':      function('s:filename'),
+        \ 'is_file_entry': function('s:is_file_entry')
+        \}
+  command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ESubstitute
+        \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
+
+  if exists(':E') != 2
+    command! -nargs=1 -range=0 -bar -buffer -complete=custom,esearch#substitute#complete E
+          \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
+  elseif exists(':ES') != 2
+    command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ES
+          \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
+  endif
+endfu
+
+" Required for ESubstitute
+fu! s:line_number() abort
+  let qf = getqflist()
+  let qfln = line('.')
+
+  return qf[qfln-1].lnum
+endfu
+
+fu! s:open(cmd, ...) abort
+  let fname = s:filename()
+  if !empty(fname)
+    let qf = getqflist()
+    let qfln = line('.')
+    let ln = qf[qfln-1].lnum
+    let col = qf[qfln-1].col
+
+    let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
+
+    try
+      " See #win NOTE 1
+      unsilent exe a:cmd . ' ' . fnameescape(g:esearch_qf.cwd . '/' . fname)
+    catch /E325:/
+      " ignore warnings about swapfiles (let user and #substitute handle them)
+    catch
+      unsilent echo v:exception . ' at ' . v:throwpoint
+    endtry
+
+    keepjumps call cursor(ln, col)
+    norm! zz
+    if a:0 | exe a:1 | endif
+  endif
+endfu
+
+fu! s:filename() abort
+  let qf = getqflist()
+  let qfln = line('.')
+
+  return bufname(qf[qfln-1].bufnr)
+endfu
+
+fu! s:is_file_entry() abort
+  return 1 " always true
+endfu

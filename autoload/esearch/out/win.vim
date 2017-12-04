@@ -1,5 +1,5 @@
-" NOTE 1 (unsilent when opening files)
 " We expect to receive the following if use #substitute#do over files with an
+" NOTE 1 (unsilent when opening files)
 " existing swap:
 " |0 files changed
 " |The following files has unresolved swapfiles
@@ -28,7 +28,7 @@ let s:default_mappings = {
       \ }
 
 " The first line. It contains information about the number of results
-let s:header = 'Matches in %d lines'
+let s:header = 'Matches in %d lines, %d file(s)'
 let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
@@ -54,10 +54,15 @@ endif
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
+if !has_key(g:, 'esearch#out#win#buflisted')
+  let g:esearch#out#win#buflisted = 0
+endif
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
+
+  " Stop previous search process first
   if has_key(b:, 'esearch')
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
   end
@@ -91,16 +96,15 @@ fu! esearch#out#win#init(opts) abort
   call s:init_mappings()
   call s:init_commands()
 
-  let &iskeyword = g:esearch.wordchars
   setlocal modifiable
   exe '1,$d_'
-  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0))
+  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, 0))
   setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
-  setlocal nobuflisted
+  let &buflisted = g:esearch#out#win#buflisted
   setlocal foldcolumn=0
   setlocal buftype=nofile
   setlocal bufhidden=hide
@@ -122,6 +126,7 @@ fu! esearch#out#win#init(opts) abort
         \})
 
   call extend(b:esearch.request, {
+        \ 'files_count': 0,
         \ 'bufnr':     bufnr('%'),
         \ 'data_ptr':     0,
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
@@ -155,15 +160,15 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   elseif bufnr > 0
     let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
-      silent exe 'bwipeout ' . bufnr
-      silent exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
+      silent exe 'bw ' . bufnr
+      silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
     else
       silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
   " if buffer doesn't exists
   else
-    silent exe join(filter([a:opencmd, 'e ' . escaped], '!empty(v:val)'), '|')
+    silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
   endif
 endfu
 
@@ -180,10 +185,10 @@ fu! esearch#out#win#trigger_key_press(...) abort
 endfu
 
 fu! esearch#out#win#update(bufnr) abort
-  if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
+  " prevent updates when outside of the window
+  if a:bufnr != bufnr('%')
     return 1
   endif
-
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
@@ -204,7 +209,7 @@ fu! esearch#out#win#update(bufnr) abort
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
-    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr))
+    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr, request.files_count))
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
@@ -217,11 +222,18 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   let i = 0
   let limit = len(parsed)
 
+  if has('win32')
+    let sub_expression = substitute(a:esearch.cwd, '\\', '\\\\', 'g').'\\'
+  else
+    let sub_expression = a:esearch.cwd.'/'
+  endif
+
   while i < limit
-    let filename    = substitute(parsed[i].filename, a:esearch.cwd.'/', '', '')
+    let filename    = substitute(parsed[i].filename, sub_expression, '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
     if filename !=# a:esearch.prev_filename
+      let a:esearch.request.files_count += 1
       if g:esearch#out#win#context_syntax_highlight
         for [s,r] in items(s:syntax_regexps)
           if filename =~ r
@@ -461,6 +473,7 @@ endfu
 " buffer isn't current buffer)
 fu! esearch#out#win#forced_finish(bufnr) abort
   if a:bufnr != bufnr('%')
+    " Bind event to finish the search as soon as the buffer is enter
     exe 'aug ESearchWinAutocmds'
       let nr = string(a:bufnr)
       exe printf('au BufEnter <buffer=%s> call esearch#out#win#finish(%s)', nr, nr)
@@ -472,10 +485,10 @@ fu! esearch#out#win#forced_finish(bufnr) abort
 endfu
 
 fu! esearch#out#win#finish(bufnr) abort
-  if !g:esearch#util#use_setbufline && a:bufnr != bufnr('%')
+  " prevent updates when outside of the window
+  if a:bufnr != bufnr('%')
     return 1
   endif
-
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   if esearch.request.async

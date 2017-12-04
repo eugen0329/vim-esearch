@@ -6,7 +6,7 @@ fu! esearch#substitute#do(args, from, to, out) abort
   let line = a:from
   let limit = a:from > a:to ? a:from + 1 : a:to + 1
 
-  let besearch = b:esearch
+  let besearch = get(b:, 'esearch', {})
 
   let bufnr = bufnr('%')
   let pushed_right = 0
@@ -92,6 +92,7 @@ fu! s:substitute(args) abort
   try
     exe 's'a:args
   catch /E486:/
+    " no matches found
     return 1
   endtry
   return 0

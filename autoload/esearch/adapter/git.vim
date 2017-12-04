@@ -1,8 +1,11 @@
+if !exists('g:esearch#adapter#git#options')
+  let g:esearch#adapter#git#options = ''
+endif
+
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
-fu! esearch#adapter#git#options() abort
+fu! esearch#adapter#git#_options() abort
   if !exists('s:options')
-    " -P: pcre
     let s:options = {
     \ 'regex': { 'p': ['--fixed-strings', '--perl-regexp'], 's': ['>', 'r'] },
     \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
@@ -15,11 +18,12 @@ fu! esearch#adapter#git#options() abort
 endfu
 
 fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#git#options()
+  let options = a:0 ? a:1 : esearch#adapter#git#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'git --no-pager grep '.r.' '.c.' '.w.' --no-color --line-number -- ' .
+  return 'git --no-pager grep '.r.' '.c.' '.w.' --no-color --line-number ' .
+        \ g:esearch#adapter#git#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
 

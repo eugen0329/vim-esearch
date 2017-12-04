@@ -34,7 +34,15 @@ endfu
 
 fu! esearch#source#last(...) abort
   if exists('g:esearch')
-    return get(g:esearch, '_last_exp', 0)
+    return get(g:esearch, '_last_search', 0)
+  else
+    return 0
+  endif
+endfu
+
+fu! esearch#source#current(...) abort
+  if exists('b:esearch')
+    return get(b:esearch, 'exp', 0)
   else
     return 0
   endif

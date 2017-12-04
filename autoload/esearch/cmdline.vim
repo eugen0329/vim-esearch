@@ -62,51 +62,49 @@ cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
 
 
 " TODO MAJOR PRIO refactoring
+" a:adapter_options is used to display adapter config in the prompt (>>>)
 fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
+  " Preparing cmdline
+  """""""""""""""""""""""""""
   let old_mapargs = s:init_mappings()
   let s:pattern = a:cmdline_opts.exp
 
-  if a:cmdline_opts.blank_cmdline
+  if a:cmdline_opts.empty_cmdline
     let s:cmdline = ''
   else
     let s:cmdline = g:esearch.regex ? a:cmdline_opts.exp.pcre : a:cmdline_opts.exp.literal
   endif
+  """""""""""""""""""""""""""
 
-  let handle_map = 0
+  " Initial selection handling
+  """""""""""""""""""""""""""
   let enter_was_pressed = 0
 
-  if !get(a:adapter_options, 'select_initial', 0) && !empty(s:cmdline) && g:esearch#cmdline#select_initial
-    " TODO
-    let [s:cmdline, enter_was_pressed, handle_map] =
+  if !empty(s:cmdline) && g:esearch#cmdline#select_initial
+    let [s:cmdline, enter_was_pressed, special_key_was_pressed] =
           \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
-    if handle_map
-      exe "norm :call esearch#init({'select_initial': 1, 'blank_cmdline': 1})\<CR>".s:cmdline
+
+    if special_key_was_pressed
+      " Reopen cmdline and set input using keypress emulations
+      " Such a veird way is needed to handle special keys listed in
+      " the g:esearch#cmdline#select_cancelling_chars
+      exe "norm :call esearch#init({'empty_cmdline': 1})\<CR>".s:cmdline
       return 0
     endif
-  endif
+  else
 
+  endif
+  """""""""""
+
+  " Reading string from user
+  """""""""""""""""""""""""""
   if enter_was_pressed
     let str = s:cmdline
   else
-    let s:cmdpos = len(s:cmdline) + 1
-    let s:list_help = 0
-    let s:pending = []
-    while 1
-      call s:dir_prompt(a:cmdline_opts.cwd)
-      let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
-
-      if empty(s:pending)
-        break
-      endif
-      for handler in s:pending
-        call call(handler.funcref, handler.args)
-      endfor
-      let s:pending = []
-      let s:cmdline .= s:get_correction()
-      redraw!
-    endwhile
+    let str = s:main_loop(a:cmdline_opts, a:adapter_options)
   endif
+  """""""""""""""""""""""""""
 
   call s:recover_mappings(old_mapargs)
 
@@ -114,6 +112,8 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     return {}
   endif
 
+  " Build search expression
+  """""""""""""""""""""""""""
   if g:esearch.regex
     let s:pattern.pcre = str
     let s:pattern.vim = esearch#regex#pcre2vim(str)
@@ -121,49 +121,91 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     let s:pattern.literal = str
     let s:pattern.vim = '\V'.escape(str, '\')
   endif
+  """""""""""""""""""""""""""
+
   return s:pattern
 endfu
 
+fu! s:main_loop(cmdline_opts, adapter_options) abort
+  let s:cmdpos = len(s:cmdline) + 1
+  let s:list_help = 0
+  let s:events = []
+
+  " Main loop
+  """""""""""
+  while 1
+    call s:render_directory_prompt(a:cmdline_opts.cwd)
+    let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
+
+    if empty(s:events)
+      break
+    endif
+
+    for handler in s:events
+      call call(handler.funcref, handler.args)
+    endfor
+
+    let s:events = []
+    let s:cmdline .= s:restore_cursor_position()
+
+    redraw!
+  endwhile
+  return str
+endfu
+
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
-  let handle_map = 0
-  let enter_is_pressed = 0
-  call s:dir_prompt(a:dir)
+  let special_key_was_pressed = 0
+  let enter_was_pressed = 0
+  call s:render_directory_prompt(a:dir)
+
+  " Render virtual interface
+  """""""""""""""""""""""""""
   call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
-  " Replace \n with \s like input function argumen {text} do
-  call esearch#util#highlight('Visual', substitute(a:cmdline, "\n", ' ', 'g'), 0)
+  " Replace \n with \s like *input()* function argumen {text} do
+  let virtual_cmdline = substitute(a:cmdline, "\n", ' ', 'g')
+  call esearch#util#highlight('Visual', virtual_cmdline, 0)
+  """""""""""""""""""""""""""
 
+  " Read char from user
+  """""""""""""""""""""""""""
   let char = getchar()
-
-  " If contains multibyte it will be wrapped as a string (else - number)
+  " getchar() results example:
+  "   KeyPress | getchar()     | Type
+  "   <M-c>    | '<80><fc>^Hc' | String
+  "     a      |     97        | Integer
+  "     b      |     98        | Integer
+  " Convert everything to String
   if type(char) !=# type('')
     let char = nr2char(char)
   endif
-  let printable = strtrans(char)
+  """""""""""""""""""""""""""
 
   if index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
+    " Handle VERY special characters (<Enter>, <Esc> or <C-c>)
+    " """"""""""""""""""""""""""""""""""""""""""""""""""""""
     if index(s:select_cancelling_special_chars, char) >= 0
-      let enter_is_pressed = (char ==# "\<Enter>" ? 1 : 0)
-      let handle_map = 0
-      return [a:cmdline, enter_is_pressed, handle_map]
+      let enter_was_pressed = (char ==# "\<Enter>" ? 1 : 0)
+      let special_key_was_pressed = 0
+      return [a:cmdline, enter_was_pressed, special_key_was_pressed]
     endif
+    " """"""""""""""""""""""""""""""""""""""""""""""""""""""
 
-    let is_fallback = 1
+    let preserve_cmdline = 1
 
-    let map_name = esearch#util#map_name(printable)
-    if !empty(map_name)
-      let handle_map = 1
+    if !empty(esearch#util#map_name(char))
+      let special_key_was_pressed = 1
     endif
   else
-    let is_fallback = 0
+    let preserve_cmdline = 0
   endif
 
-  if handle_map
-    let cmdline =  substitute(a:cmdline, "\n", ' ', 'g') . char
+  if special_key_was_pressed
+    let cmdline =  virtual_cmdline . char
   else
-    let cmdline =  is_fallback ? a:cmdline . char : char
+    let cmdline =  preserve_cmdline ? a:cmdline . char : char
   endif
 
-  return [cmdline, enter_is_pressed, handle_map]
+  return [cmdline, enter_was_pressed, special_key_was_pressed]
 endfu
 
 fu! s:list_help() abort
@@ -182,7 +224,7 @@ fu! s:help() abort
 endfu
 
 fu! s:run(func, ...) abort
-  call add(s:pending, {'funcref': function(a:func), 'args': a:000})
+  call add(s:events, {'funcref': function(a:func), 'args': a:000})
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
   call feedkeys("\<C-c>", 'n')
@@ -230,17 +272,18 @@ fu! s:prompt(adapter_options) abort
   return 'pattern'.help.' '.r.c.w.' '
 endfu
 
-fu! s:dir_prompt(dir) abort
+fu! s:render_directory_prompt(dir) abort
   if a:dir ==# $PWD
     return 0
   endif
+
   let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
   echo ''
 endfu
 
-fu! s:get_correction() abort
+fu! s:restore_cursor_position() abort
   if len(s:cmdline) + 1 != s:cmdpos
     return repeat("\<Left>", len(s:cmdline) + 1 - s:cmdpos )
   endif
@@ -328,4 +371,3 @@ endfu
 function! s:spell_suggests(word) abort
   return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfunction
-

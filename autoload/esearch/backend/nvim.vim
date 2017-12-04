@@ -27,6 +27,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'finished': 0,
         \ 'status': 0,
         \ 'async': 1,
+        \ 'aborted': 0,
         \ 'events': {
         \   'forced_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
         \   'update': 'ESearchNVimUpdate'.s:incrementable_internal_id
@@ -91,23 +92,30 @@ fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  exe 'do User '.job.request.events.forced_finish
+  if !job.request.aborted
+    exe 'do User '.job.request.events.forced_finish
+  endif
 endfu
 
 " TODO write expansion for commands
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(cmd) abort
-  return escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = substitute(cmd, '>', '\\>', 'g')
+  let cmd = substitute(cmd, '&', '\\&', 'g')
+  return cmd
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
   au BufUnload <buffer>
-        \ call eserach#backend#nvim#abort(str2nr(expand('<abuf>')))
+        \ call esearch#backend#nvim#abort(str2nr(expand('<abuf>')))
 endfu
 
 fu! esearch#backend#nvim#abort(bufnr) abort
-  let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  " FIXME unify with out#qflist
+  let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  let esearch.request.aborted = 1
 
   if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]
     try
@@ -117,3 +125,11 @@ fu! esearch#backend#nvim#abort(bufnr) abort
     endtry
   endif
 endfu
+
+function! esearch#backend#nvim#_context() abort
+  return s:
+endfunction
+function! esearch#backend#nvim#_sid() abort
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>
