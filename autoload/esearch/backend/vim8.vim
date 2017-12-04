@@ -6,22 +6,27 @@ endif
 
 let s:job_id_counter = 0
 
+let s:jobs = {}
+let s:incrementable_internal_id = 0
+
+if !exists('g:esearch#backend#vim8#ticks')
+  let g:esearch#backend#vim8#ticks = 3
+endif
 
 fu! esearch#backend#vim8#init(cmd, pty) abort
-  let job_id = s:job_id_counter
-  let s:job_id_counter += 1
-
-  let job =  job_start(['sh', '-c', a:cmd], {
-          \ 'out_cb':   {job,data->s:stdout(job_id, split(data, "\n"), 'stdout')},
-          \ 'err_cb':     {job,data->s:stderr(job_id, split(data, "\n"), 'stderr')},
-          \ 'exit_cb':    {job,status->s:exit(job_id, status, 'exit')},
-          \ 'mode': 'raw',
-          \ 'in_io': 'null',
-          \ })
-
+  " \     'mode': 'raw',
   let request = {
-        \ 'job_id':   job_id,
-        \ 'job':      job,
+        \ 'internal_job_id': s:incrementable_internal_id,
+        \ 'jobstart_args': {
+        \   'cmd': ['sh', '-c', a:cmd],
+        \   'opts': {
+        \     'out_cb': function('s:stdout', [s:incrementable_internal_id]),
+        \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
+        \     'in_io': 'null',
+        \   },
+        \ },
+        \ 'tick': 0,
+        \ 'ticks': g:esearch#backend#vim8#ticks,
         \ 'backend':  'vim8',
         \ 'command':  a:cmd,
         \ 'data':     [],
@@ -30,24 +35,27 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'finished': 0,
         \ 'status': 0,
         \ 'async': 1,
+        \ 'aborted': 0,
         \ 'events': {
-        \   'forced_finish': 'ESearchVim8Finish'.job_id,
-        \   'update': 'ESearchVim8Update'.job_id
+        \   'forced_finish': 'ESearchvim8Finish'.s:incrementable_internal_id,
+        \   'update': 'ESearchvim8Update'.s:incrementable_internal_id
         \ }
         \}
-  let s:jobs[job_id] = { 'data': [], 'request': request }
+
+  let s:incrementable_internal_id += 1
 
   return request
 endfu
 
-let g:data =  []
+fu! esearch#backend#vim8#run(request) abort
+  let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
+  let a:request.job_id = job_start(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+endfu
 
 " TODO encoding
-fu! s:stdout(job_id, data, event)  abort
+fu! s:stdout(job_id, job, data) abort
   let job = s:jobs[a:job_id]
-  let data = a:data
-
-  call add(g:data, data)
+  let data = split(a:data, "\n", 1)
 
   " If there is incomplete line from the last s:stduout call
   if !empty(job.request.intermediate) && !empty(data)
@@ -55,27 +63,31 @@ fu! s:stdout(job_id, data, event)  abort
     let job.request.intermediate = ''
   endif
 
-  " If the last line is incomplete:
-  if !empty(data) && data[-1] !~# '\r$'
-    let job.request.intermediate = remove(data, -1)
+  let data = filter(data, "'' !=# v:val")
+
+  if data[-1] ==# 'DETACH'
+    call remove(data, -1)
+    let detach = 1
+  else
+    let detach = 0
   endif
 
-  " if self.pty
-    " call map(data, "substitute(v:val, '\\r$', '', '')")
-  " endif
-  let data = filter(data, "'' !=# v:val")
   let job.request.data += data
 
   " Reduce buffer updates to prevent long cursor lock
-  " let self.tick = self.tick + 1
-  " if self.tick % self.ticks == 1
+  let job.request.tick = job.request.tick + 1
+  if job.request.tick % job.request.ticks == 1
     exe 'do User '.job.request.events.update
-  " endif
+  endif
+
+  if detach
+    call s:exit(a:job_id, a:job, 0)
+  endif
 endfu
 
-fu! s:stderr(job_id, data, event)  abort
+fu! s:stderr(job_id, job, data) abort
   let job = s:jobs[a:job_id]
-  let data = a:data
+  let data = split(a:data, "\n", 1)
   if !has_key(job.request, 'errors')
     let job.request.errors = []
   endif
@@ -87,37 +99,50 @@ fu! s:stderr(job_id, data, event)  abort
   let job.request.errors += filter(data, "'' !=# v:val")
 endfu
 
-fu! s:exit(job_id, status, event) abort
+fu! s:exit(job_id, job, status) abort
   let job = s:jobs[a:job_id]
-  " let job.request.finished = 1
-  " let job.request.status = a:status
-  exe 'do User '.job.request.events.forced_finish
+  if let job.request.finished = 1 | return | endif
+  let job.request.finished = 1
+  let job.request.status = a:status
+  if !job.request.aborted
+    exe 'do User '.job.request.events.forced_finish
+  endif
 endfu
 
 " TODO write expansion for commands
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#vim8#escape_cmd(cmd) abort
-  return escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = substitute(cmd, '>', '\\>', 'g')
+  let cmd = substitute(cmd, '&', '\\&', 'g')
+  return cmd
 endfu
 
 fu! esearch#backend#vim8#init_events() abort
   au BufUnload <buffer>
-        \ call eserach#backend#vim8#abort(str2nr(expand('<abuf>')))
+        \ call esearch#backend#vim8#abort(str2nr(expand('<abuf>')))
 endfu
 
-" fu! esearch#backend#vim8#abort(request) abort
-"   return jobstop(a:request.job_id)
-" endfu
 fu! esearch#backend#vim8#abort(bufnr) abort
-  let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  return
+  " FIXME unify with out#qflist
+  let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  let esearch.request.aborted = 1
 
- " && jobwait([esearch.request.job_id], 0) != [-3]
-  if !empty(esearch) && has_key(esearch.request, 'job')
+  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]
     try
-      call job_stop(esearch.request.job)
+      call jobstop(esearch.request.job_id)
     catch /E900:/
       " E900: Invalid job id
     endtry
   endif
 endfu
+
+function! esearch#backend#vim8#_context() abort
+  return s:
+endfunction
+function! esearch#backend#vim8#_sid() abort
+  return maparg('<SID>', 'n')
+endfunction
+nnoremap <SID>  <SID>
