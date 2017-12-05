@@ -5,6 +5,8 @@ if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
 endif
 
+let s:NVIM_JOB_IS_INVALID = -3
+
 fu! esearch#backend#nvim#init(cmd, pty) abort
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
@@ -117,7 +119,7 @@ fu! esearch#backend#nvim#abort(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
   let esearch.request.aborted = 1
 
-  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]
+  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
     try
       call jobstop(esearch.request.job_id)
     catch /E900:/
