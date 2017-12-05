@@ -4,7 +4,7 @@ fu! esearch#opts#new(opts) abort
   if !has_key(opts, 'backend')
     if has('nvim') && exists('*jobstart')
       let opts.backend = 'nvim'
-    elseif has('patch-8.0.0039') && has('job')
+    elseif has('job')
       let opts.backend = 'vim8'
     elseif esearch#util#has_vimproc()
       let opts.backend = 'vimproc'
