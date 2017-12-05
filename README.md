@@ -78,7 +78,7 @@ let g:esearch = {
   request. Currently available adapters are `'ag'`, `'ack'`, `'pt'`, 'rg', `'git'` and `'grep'`.
 * __'backend'__<br>
   Backend is a strategy, which is used to collaborate with an adapter. Currently available:
-  async backends - `'nvim'`, `'vimproc'`, and vim builtin system() func call based backend
+  async backends - `'nvim'`, `'vimproc'`, `'vim8'`, and vim builtin system() func call based backend
   `'system'`<br>
   _NOTE_ `'nvim'` and `'vimproc'` requires [NeoVim](https://github.com/neovim/neovim#readme) and  [vimproc](https://github.com/Shougo/vimproc.vim#install) respectively.
 * __'out'__<br>

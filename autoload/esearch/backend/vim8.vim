@@ -1,7 +1,7 @@
 let s:jobs = {}
 
 if !exists('g:esearch#backend#vim8#ticks')
-  let g:esearch#backend#vim8#ticks = 3
+  let g:esearch#backend#vim8#ticks = 100
 endif
 
 let s:job_id_counter = 0
@@ -14,7 +14,6 @@ if !exists('g:esearch#backend#vim8#ticks')
 endif
 
 fu! esearch#backend#vim8#init(cmd, pty) abort
-  " \     'mode': 'raw',
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
@@ -55,24 +54,11 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let job = s:jobs[a:job_id]
+  " as callback can still be triggered with buffered data
+  if job.request.aborted | return | endif
+
   let data = split(a:data, "\n", 1)
-
-  " If there is incomplete line from the last s:stduout call
-  if !empty(job.request.intermediate) && !empty(data)
-    let data[0] = job.request.intermediate . data[0]
-    let job.request.intermediate = ''
-  endif
-
-  let data = filter(data, "'' !=# v:val")
-
-  if data[-1] ==# 'DETACH'
-    call remove(data, -1)
-    let detach = 1
-  else
-    let detach = 0
-  endif
-
-  let job.request.data += data
+  let job.request.data += filter(data, "'' !=# v:val")
 
   " Reduce buffer updates to prevent long cursor lock
   let job.request.tick = job.request.tick + 1
@@ -80,7 +66,7 @@ fu! s:stdout(job_id, job, data) abort
     exe 'do User '.job.request.events.update
   endif
 
-  if detach
+  if ch_info(job.request.job_id).out_status ==# 'closed'
     call s:exit(a:job_id, a:job, 0)
   endif
 endfu
@@ -101,12 +87,11 @@ endfu
 
 fu! s:exit(job_id, job, status) abort
   let job = s:jobs[a:job_id]
-  if let job.request.finished = 1 | return | endif
+  if job.request.finished || job.request.aborted | return | endif
   let job.request.finished = 1
   let job.request.status = a:status
-  if !job.request.aborted
-    exe 'do User '.job.request.events.forced_finish
-  endif
+
+  exe 'do User '.job.request.events.forced_finish
 endfu
 
 " TODO write expansion for commands
@@ -125,17 +110,16 @@ fu! esearch#backend#vim8#init_events() abort
 endfu
 
 fu! esearch#backend#vim8#abort(bufnr) abort
-  return
   " FIXME unify with out#qflist
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  if empty(esearch)
+    return -1
+  endif
   let esearch.request.aborted = 1
 
-  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [-3]
-    try
-      call jobstop(esearch.request.job_id)
-    catch /E900:/
-      " E900: Invalid job id
-    endtry
+  if has_key(esearch.request, 'job_id') && job_status(esearch.request.job_id) ==# 'run'
+    call ch_close(esearch.request.job_id)
+    return job_stop(esearch.request.job_id, "kill")
   endif
 endfu
 

@@ -75,7 +75,7 @@ Example:
 <
 
 Backend is a strategy, which is used to collaborate with an adapter. Currently
-available: async backends - 'nvim', 'vimproc', and vim builtin system() func
+available: async backends - 'nvim', 'vimproc', 'vim8', and vim builtin system() func
 call based backend 'system'
 To set this option use |g:esearch|.
 
