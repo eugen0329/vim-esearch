@@ -104,7 +104,7 @@ let g:esearch = {
     * `'word_under_cursor'`<br>
       A word under the cursor.<br>
 
-###Mappings
+### Mappings
 In `~/.config/nvim/init.vim` / `~/.vimrc`:
 
 Use the following functions to redefine default mappings (**NOTE** default
@@ -141,7 +141,7 @@ mapping are listed as an example here):
 
 To redefine results match highlight use:
 
-###Colors
+### Colors
 
 ```vim
 hi ESearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
