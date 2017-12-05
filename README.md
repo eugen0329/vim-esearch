@@ -28,7 +28,7 @@ SublimeText, Atom et al.
 [git-grep](https://git-scm.com/docs/git-grep) along with the
 native \*nix util [grep](http://linux.die.net/man/1/grep).
 * Advanced pattern input prompt with fuzzy- and spell suggestion-driven completion.
-* Live updating of results as in Emacs, SublimeText and similar (requires NeoVim's [job control](https://neovim.io/doc/user/job_control.html) or [vimproc](https://github.com/Shougo/vimproc.vim#install) to be installed).
+* Live updating of results as in Emacs, SublimeText and similar (requires [Vim 8](http://vimhelp.appspot.com/eval.txt.html#Job) / [NeoVim](https://neovim.io/doc/user/job_control.html) job control or [vimproc](https://github.com/Shougo/vimproc.vim#install) to be installed).
 * Special esearch window or [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) list, habitual for all, can be used as an output target.
 * Search-and-Replace feature with the same syntax as builtin [:substitute](https://neovim.io/doc/user/change.html#:substitute) command (Example `:1,5ESubstitute/from/to/gc`).
 * Collaborates with [nerdtree](https://github.com/scrooloose/nerdtree#intro) to provide search in a specific directory.
