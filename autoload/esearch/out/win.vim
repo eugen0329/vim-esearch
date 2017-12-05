@@ -11,6 +11,7 @@
 "
 " Have no idea why it's so (and time to deal) ...
 
+let g:aaa = []
 let s:default_mappings = {
       \ 't':       '<Plug>(esearch-tab)',
       \ 'T':       '<Plug>(esearch-tab-silent)',
@@ -60,6 +61,8 @@ endif
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
+
+  let g:aaa =[]
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
 
   " Stop previous search process first
@@ -89,6 +92,8 @@ fu! esearch#out#win#init(opts) abort
       for [func_name, event] in items(a:opts.request.events)
         exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
       endfor
+      let a:opts.request.cbs += [function('esearch#out#win#update', [bufnr('%')])]
+      let a:opts.request.cbs += [function('esearch#out#win#forced_finish', [bufnr('%')])]
       call esearch#backend#{a:opts.backend}#init_events()
     augroup END
   endif
@@ -124,6 +129,8 @@ fu! esearch#out#win#init(opts) abort
         \ 'syn_regions_loaded':                [],
         \ 'without':             function('esearch#util#without')
         \})
+
+  let a:opts.request.esearch = b:esearch
 
   call extend(b:esearch.request, {
         \ 'files_count': 0,
@@ -184,12 +191,17 @@ fu! esearch#out#win#trigger_key_press(...) abort
   call feedkeys("g\<ESC>", 'n')
 endfu
 
-fu! esearch#out#win#update(bufnr) abort
+fu! esearch#out#win#update(bufnr, ...) abort
   " prevent updates when outside of the window
   if a:bufnr != bufnr('%')
+    let aaa += ['-1']
     return 1
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
+  " if len(a:000)
+    let esearch = a:1
+  " endif
+  
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
 
@@ -207,6 +219,8 @@ fu! esearch#out#win#update(bufnr) abort
     let parsed = esearch#adapter#{esearch.adapter}#parse_results(
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
+
+    let g:aaa += [['ignore_batches', ignore_batches, len(data), len(parsed),[from, to] ] ]
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
     call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr, request.files_count))
@@ -232,8 +246,8 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let filename    = substitute(parsed[i].filename, sub_expression, '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
-    if filename !=# a:esearch.prev_filename
       let a:esearch.request.files_count += 1
+      if filename !=# a:esearch.prev_filename
       if g:esearch#out#win#context_syntax_highlight
         for [s,r] in items(s:syntax_regexps)
           if filename =~ r
@@ -471,25 +485,26 @@ endfu
 " Use this function for #backend#nvim. It has no truly async handlers, so data
 " needs to be updated entirely (instantly or with BufEnter autocmd, if results
 " buffer isn't current buffer)
-fu! esearch#out#win#forced_finish(bufnr) abort
+fu! esearch#out#win#forced_finish(bufnr, esearch) abort
   if a:bufnr != bufnr('%')
     " Bind event to finish the search as soon as the buffer is enter
     exe 'aug ESearchWinAutocmds'
       let nr = string(a:bufnr)
-      exe printf('au BufEnter <buffer=%s> call esearch#out#win#finish(%s)', nr, nr)
+      " exe printf('au BufEnter <buffer=%s> call esearch#out#win#finish(%s)', nr, nr)
     aug END
     return 1
   else
-    call esearch#out#win#finish(a:bufnr)
+    call esearch#out#win#finish(a:bufnr, a:esearch)
   endif
 endfu
 
-fu! esearch#out#win#finish(bufnr) abort
+fu! esearch#out#win#finish(bufnr, esearch) abort
   " prevent updates when outside of the window
   if a:bufnr != bufnr('%')
     return 1
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
+  let esearch = a:esearch
 
   if esearch.request.async
     exe printf('au! ESearchWinAutocmds * <buffer=%s>', string(a:bufnr))
@@ -500,7 +515,8 @@ fu! esearch#out#win#finish(bufnr) abort
 
   " Update using all remaining request.data
   let esearch.ignore_batches = 1
-  call esearch#out#win#update(a:bufnr)
+  let g:aaa += [124521]
+  call esearch#out#win#update(a:bufnr, esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)
 

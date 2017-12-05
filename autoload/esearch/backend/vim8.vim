@@ -1,20 +1,13 @@
-let s:jobs = {}
-
-if !exists('g:esearch#backend#vim8#ticks')
-  let g:esearch#backend#vim8#ticks = 3
-endif
-
 let s:job_id_counter = 0
 
 let s:jobs = {}
 let s:incrementable_internal_id = 0
 
 if !exists('g:esearch#backend#vim8#ticks')
-  let g:esearch#backend#vim8#ticks = 3
+  let g:esearch#backend#vim8#ticks = 0
 endif
 
 fu! esearch#backend#vim8#init(cmd, pty) abort
-  " \     'mode': 'raw',
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
@@ -22,7 +15,9 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \   'opts': {
         \     'out_cb': function('s:stdout', [s:incrementable_internal_id]),
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
-        \     'in_io': 'null',
+        \     'exit_cb': function('s:exit', [s:incrementable_internal_id]),
+   \     'in_io': 'null',
+   \     'out_mode': 'nl',
         \   },
         \ },
         \ 'tick': 0,
@@ -36,8 +31,10 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'status': 0,
         \ 'async': 1,
         \ 'aborted': 0,
+        \ 'cbs': [],
         \ 'events': {
-        \   'forced_finish': 'ESearchvim8Finish'.s:incrementable_internal_id,
+        \   'forced_finish': 'ESearchvim8ForcedFinish'.s:incrementable_internal_id,
+        \   'finish': 'ESearchvim8Finish'.s:incrementable_internal_id,
         \   'update': 'ESearchvim8Update'.s:incrementable_internal_id
         \ }
         \}
@@ -49,7 +46,7 @@ endfu
 
 fu! esearch#backend#vim8#run(request) abort
   let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
-  let a:request.job_id = job_start(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+  let a:request.job = job_start(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
 endfu
 
 " TODO encoding
@@ -63,26 +60,32 @@ fu! s:stdout(job_id, job, data) abort
     let job.request.intermediate = ''
   endif
 
-  let data = filter(data, "'' !=# v:val")
+  " let data = filter(data, "'' !=# v:val")
 
-  if data[-1] ==# 'DETACH'
-    call remove(data, -1)
-    let detach = 1
-  else
-    let detach = 0
-  endif
+  " let status = job_info(job.request.job).status
+" || (!empty(status) && status ==# 'dead')
+  " if data[-1] ==# 'DETACH'
+  "   call remove(data, -1)
+  "   let detach = 1
+  " else
+  "   let detach = 0
+  " endif
 
   let job.request.data += data
 
   " Reduce buffer updates to prevent long cursor lock
   let job.request.tick = job.request.tick + 1
+  " let g:detach = detach
   if job.request.tick % job.request.ticks == 1
-    exe 'do User '.job.request.events.update
+ " || detach
+    " exe 'do User '.job.request.events.update
+    call job.request.cbs[0](job.request.esearch)
+    " exe 'do User '.job.request.events.update
   endif
 
-  if detach
-    call s:exit(a:job_id, a:job, 0)
-  endif
+  " if detach
+  "   call s:exit(a:job_id, a:job, 0)
+  " endif
 endfu
 
 fu! s:stderr(job_id, job, data) abort
@@ -101,11 +104,15 @@ endfu
 
 fu! s:exit(job_id, job, status) abort
   let job = s:jobs[a:job_id]
-  if let job.request.finished = 1 | return | endif
+  if job.request.finished ==# 1 | return | endif
+
+  " exe 'do User '.job.request.events.update
+
   let job.request.finished = 1
   let job.request.status = a:status
   if !job.request.aborted
-    exe 'do User '.job.request.events.forced_finish
+    call job.request.cbs[-1](job.request.esearch)
+    " exe 'do User '.job.request.events.finish
   endif
 endfu
 

@@ -87,7 +87,6 @@ fu! esearch#out#qflist#update() abort
     let parsed = esearch#adapter#{esearch.adapter}#parse_results(
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
-
     for p in parsed
       let p.filename = fnamemodify(p.filename, ':~:.')
     endfor
