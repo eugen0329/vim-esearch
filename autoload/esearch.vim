@@ -1,5 +1,7 @@
 fu! esearch#init(...) abort
-  call s:init_lazy_global_config()
+  if s:init_lazy_global_config() != 0
+    return 1
+  endif
 
   " Prepare argv
   """""""""""""""
@@ -106,11 +108,19 @@ endfu
 
 fu! s:init_lazy_global_config() abort
   let global_esearch = exists('g:esearch') ? g:esearch : {}
+
+  if type(global_esearch) != type({})
+    echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
+    return 1
+  endif
+
   if !has_key(global_esearch, '__lazy_loaded')
     let g:esearch = esearch#opts#new(global_esearch)
     if empty(g:esearch) | return 1 | endif
     let g:esearch.__lazy_loaded = 1
   endif
+
+  return 0
 endfu
 
 function! esearch#sid() abort

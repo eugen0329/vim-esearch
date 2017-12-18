@@ -29,7 +29,6 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'backend':  'vim8',
         \ 'command':  a:cmd,
         \ 'data':     [],
-        \ 'intermediate':     '',
         \ 'errors':     [],
         \ 'finished': 0,
         \ 'status': 0,
