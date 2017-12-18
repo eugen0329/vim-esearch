@@ -11,6 +11,3 @@ context 'esearch' do
 
   end
 end
-
-
-
