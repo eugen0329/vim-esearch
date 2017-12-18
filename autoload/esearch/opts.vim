@@ -26,7 +26,7 @@ fu! esearch#opts#new(opts) abort
       let opts.adapter = 'rg'
     elseif executable('ack')
       let opts.adapter = 'ack'
-    elseif !system('git rev-parse --is-inside-work-tree &>/dev/null') && !v:shell_error
+    elseif !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error
       let opts.adapter = 'git'
     elseif executable('grep')
       let opts.adapter = 'grep'
