@@ -4,7 +4,8 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
   ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
-        press ':cd $PWD<Enter>'
+        working_directory = ENV.fetch('TRAVIS_BUILD_DIR', '$PWD')
+        press ":cd #{working_directory}<Enter>"
         press ':cd spec/fixtures/backend/<Enter>'
         esearch_settings(backend: backend, adapter: adapter)
 
