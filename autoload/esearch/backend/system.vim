@@ -12,10 +12,11 @@ endfu
 
 fu! esearch#backend#system#run(request) abort
   let a:request.data = split(system(a:request.command), "\n")
+  let a:request.status = v:shell_error
 endfu
 
 fu! esearch#backend#system#escape_cmd(cmd) abort
-  return esearch#util#shellescape(a:cmd)
+  return escape(esearch#util#shellescape(a:cmd), '()')
 endfu
 
 fu! esearch#backend#system#abort(...) abort
