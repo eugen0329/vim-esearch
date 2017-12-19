@@ -21,6 +21,8 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \   'opts': {
         \     'out_cb': function('s:stdout', [s:incrementable_internal_id]),
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
+        \     'exit_cb': function('s:exit', [s:incrementable_internal_id]),
+        \     'close_cb': function('s:closed', [s:incrementable_internal_id]),
         \     'in_io': 'null',
         \   },
         \ },
@@ -64,10 +66,6 @@ fu! s:stdout(job_id, job, data) abort
   if job.request.tick % job.request.ticks == 1
     exe 'do User '.job.request.events.update
   endif
-
-  if ch_info(job.request.job_id).out_status ==# 'closed'
-    call s:exit(a:job_id, a:job, 0)
-  endif
 endfu
 
 fu! s:stderr(job_id, job, data) abort
@@ -77,20 +75,18 @@ fu! s:stderr(job_id, job, data) abort
     let job.request.errors = []
   endif
 
-  if !empty(data) && data[0] !=# "\n" && !empty(job.request.errors)
-    let job.request.errors[-1] .= data[0]
-    call remove(data, 0)
-  endif
   let job.request.errors += filter(data, "'' !=# v:val")
+endfu
+
+fu! s:closed(job_id, channel) abort
+  let job = s:jobs[a:job_id]
+  let job.request.finished = 1
+  exe 'do User '.job.request.events.forced_finish
 endfu
 
 fu! s:exit(job_id, job, status) abort
   let job = s:jobs[a:job_id]
-  if job.request.finished || job.request.aborted | return | endif
-  let job.request.finished = 1
   let job.request.status = a:status
-
-  exe 'do User '.job.request.events.forced_finish
 endfu
 
 " TODO write expansion for commands
