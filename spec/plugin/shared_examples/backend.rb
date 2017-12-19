@@ -1,7 +1,8 @@
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
+  adapters = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
+  adapters -= ['rg', 'pt'] if ENV['TRAVIS_OS_NAME'] == 'linux'
 
-  ADAPTERS.each do |adapter|
+  adapters.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
         working_directory = ENV.fetch('TRAVIS_BUILD_DIR', '$PWD')
