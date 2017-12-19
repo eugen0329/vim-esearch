@@ -6,7 +6,7 @@ context 'esearch' do
   context '#backend' do
 
     describe '#vimproc' do
-      it_behaves_like 'a backend', 'vimproc' if ENV['TRAVIS_OS_NAME'] != 'osx'
+      # it_behaves_like 'a backend', 'vimproc' if ENV['TRAVIS_OS_NAME'] != 'osx'
     end
 
   end
