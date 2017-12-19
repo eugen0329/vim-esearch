@@ -94,8 +94,12 @@ fu! s:exit(job_id, job, status) abort
 endfu
 
 " TODO write expansion for commands
+" g:esearch.expand_special has no affect due to josbstart is a function
+" (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#vim8#escape_cmd(cmd) abort
-  let cmd = shellescape(a:cmd)
+  let cmd = escape(esearch#util#shellescape(a:cmd), '()')
+  let cmd = substitute(cmd, '>', '\\>', 'g')
+  let cmd = substitute(cmd, '&', '\\&', 'g')
   return cmd
 endfu
 
