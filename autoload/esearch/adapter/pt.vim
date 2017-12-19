@@ -6,9 +6,10 @@ endif
 
 fu! esearch#adapter#pt#_options() abort
   if !exists('s:options')
+    " TODO -i enables regexp match here
     let s:options = {
     \ 'regex':   { 'p': ['', '-e'],   's': ['>', 'r'] },
-    \ 'case':    { 'p': ['-i', ''],   's': ['>', 'c'] },
+    \ 'case':    { 'p': ['', ''],   's': ['>', 'c'] },
     \ 'word':    { 'p': ['',   '-w'], 's': ['>', 'w'] },
     \ 'stringify':   function('esearch#util#stringify'),
     \ 'parametrize': function('esearch#util#parametrize'),
