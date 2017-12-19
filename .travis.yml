@@ -17,8 +17,8 @@ addons:
   apt:
     packages:
       - vim-gtk
-      - silversearcher-ag
       - ack-grep
+      - silversearcher-ag
 
 install:
   - bash install_dependencies.sh
@@ -27,6 +27,8 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install macvim --with-client-server; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ack; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install the_silver_searcher; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install the_platinum_searcher; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ripgrep; fi
 
 before_script:
   - "export DISPLAY=:99.0"
