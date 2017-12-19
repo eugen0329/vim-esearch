@@ -1,6 +1,5 @@
 RSpec.shared_examples 'a backend' do |backend, adapter|
   adapters = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
-  adapters -= ['pt'] if ENV['TRAVIS_OS_NAME'] == 'linux'
 
   adapters.each do |adapter|
     context "with #{adapter} adapter" do
