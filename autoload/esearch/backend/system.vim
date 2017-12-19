@@ -16,7 +16,7 @@ fu! esearch#backend#system#run(request) abort
 endfu
 
 fu! esearch#backend#system#escape_cmd(cmd) abort
-  return escape(esearch#util#shellescape(a:cmd), '()')
+  return shellescape(a:cmd)
 endfu
 
 fu! esearch#backend#system#abort(...) abort
