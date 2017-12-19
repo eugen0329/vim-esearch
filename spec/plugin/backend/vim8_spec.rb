@@ -5,7 +5,7 @@ require 'plugin/shared_contexts/dumpable.rb'
 context 'esearch' do
   context '#backend' do
 
-    describe '#vimproc' do
+    describe '#vim8' do
       it_behaves_like 'a backend', 'vim8'
     end
 
