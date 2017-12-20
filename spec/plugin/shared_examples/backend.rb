@@ -34,6 +34,7 @@ def settings_dependent_context(type, settings)
   File.readlines("spec/fixtures/backend/#{type}.txt").map(&:chomp).each do |test_query|
     it "finds `#{test_query}`" do
       press ":call esearch#init()<Enter>#{test_query}<Enter>"
+      # require 'pry'; binding.pry
 
       expect {
         press("j") # press j to close "Press ENTER or type command to continue" prompt

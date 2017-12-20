@@ -13,22 +13,11 @@ cache:
   directories:
     - $HOME/.rvm
 
-addons:
-  apt:
-    packages:
-      - vim-gtk
-      - silversearcher-ag
-      - ack-grep
-
-install:
+before_script:
   - bash install_dependencies.sh
   - bundle install
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install macvim --with-client-server; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ack; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install the_silver_searcher; fi
-
-before_script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash .ci/install_osx.sh; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash .ci/install_linux.sh; fi
   - "export DISPLAY=:99.0"
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sh -e /etc/init.d/xvfb start; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok ) & fi

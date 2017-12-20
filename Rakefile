@@ -4,6 +4,10 @@ task :ci => [:dump, :test]
 
 task :dump do
   sh 'vim --version'
+  sh 'ag --version'
+  sh 'ack --version'
+  sh 'rg --version'
+  sh 'pt --version'
 end
 
 task :test do

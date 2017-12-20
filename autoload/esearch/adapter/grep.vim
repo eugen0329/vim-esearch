@@ -6,8 +6,13 @@ let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
 fu! esearch#adapter#grep#_options() abort
   if !exists('s:options')
+    if has('macunix')
+      let regex = '-E'
+    else
+      let regex = '--perl-regexp'
+    endif
     let s:options = {
-    \ 'regex': { 'p': ['--fixed-strings', '--perl-regexp'], 's': ['>', 'r'] },
+    \ 'regex': { 'p': ['--fixed-strings', regex], 's': ['>', 'r'] },
     \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
     \ 'word':  { 'p': ['',                '--word-regexp'], 's': ['>', 'w'] },
     \ 'stringify':   function('esearch#util#stringify'),

@@ -6,8 +6,13 @@ let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
 fu! esearch#adapter#git#_options() abort
   if !exists('s:options')
+    if has('macunix')
+      let regex = '-E'
+    else
+      let regex = '--perl-regexp'
+    endif
     let s:options = {
-    \ 'regex': { 'p': ['--fixed-strings', '--perl-regexp'], 's': ['>', 'r'] },
+    \ 'regex': { 'p': ['--fixed-strings', regex], 's': ['>', 'r'] },
     \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
     \ 'word':  { 'p': ['',                '--word-regexp'], 's': ['>', 'w'] },
     \ 'stringify':   function('esearch#util#stringify'),
@@ -22,7 +27,9 @@ fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'git --no-pager grep '.r.' '.c.' '.w.' --no-color --line-number ' .
+  " -H - don't show filenames
+  " -I - don't search binary files
+  return 'git --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
         \ g:esearch#adapter#git#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
