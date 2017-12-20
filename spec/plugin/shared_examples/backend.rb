@@ -1,7 +1,7 @@
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  adapters = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
+  ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
 
-  adapters.each do |adapter|
+  ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
         working_directory = ENV.fetch('TRAVIS_BUILD_DIR', '$PWD')
