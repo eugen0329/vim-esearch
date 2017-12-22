@@ -1,8 +1,6 @@
 # TODO completely rewrite
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  ADAPTERS = %w[ack ag git grep pt rg]
-
-  ADAPTERS.each do |adapter|
+  SEARCH_UTIL_ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
         esearch_settings(backend: backend, adapter: adapter, out: 'win')
@@ -13,8 +11,8 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
       context 'matching modes' do
         before { press ":cd #{working_directory}/spec/fixtures/backend/<Enter>" }
 
-        context('literal') { settings_dependent_context('literal', regex: 0) }
-        context('regex')   { settings_dependent_context('regex',   regex: 1) }
+        context('literal') { settings_dependent_context(backend, adapter, 'literal', regex: 0) }
+        context('regex')   { settings_dependent_context(backend, adapter, 'regex', regex: 1) }
       end
 
       context 'with relative path' do
@@ -59,17 +57,18 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
   include_context 'dumpable'
 end
 
-def settings_dependent_context(type, settings)
-  before { esearch_settings(settings) }
+def settings_dependent_context(backend, adapter, matching_type, settings)
+  before do
+    press ":cd #{working_directory}/spec/fixtures/backend/<Enter>"
+    esearch_settings(backend: backend, adapter: adapter, out: 'win')
+    esearch_settings(settings)
+  end
+  after { cmd('bdelete') if bufname("%") =~ /Search/ }
 
-  File.readlines("spec/fixtures/backend/#{type}.txt").map(&:chomp).each do |test_query|
+  File.readlines("spec/fixtures/backend/#{matching_type}.txt").map(&:chomp).each do |test_query|
     it "finds `#{test_query}`" do
       press ":call esearch#init()<Enter>#{test_query}<Enter>"
-
-      expect {
-        press("j") # press j to close "Press ENTER or type command to continue" prompt
-        bufname("%") =~ /Search/
-      }.to become_true_within(5.second)
+      wait_search_start
 
       expect { line(1) =~ /Finish/i }.to become_true_within(10.seconds),
         -> { "Expected first line to match /Finish/, got `#{line(1)}`" }

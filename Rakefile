@@ -13,16 +13,16 @@ task :print_versions do
 end
 
 task :system do
-  sh "bundle exec rspec --fail-fast=3 ./spec/plugin/backend/system_spec.rb"
+  sh "bundle exec rspec --color --order rand --format doc --fail-fast=3 ./spec/plugin/backend/system_spec.rb"
   raise "Command failed!" unless $?.exitstatus == 0
 end
 
 task :vim8 do
-  sh "bundle exec rspec --fail-fast=3 ./spec/plugin/backend/vim8_spec.rb"
+  sh "bundle exec rspec --color --order rand --format doc --fail-fast=3 ./spec/plugin/backend/vim8_spec.rb"
   raise "Command failed!" unless $?.exitstatus == 0
 end
 
 task :vimproc do
-  sh "bundle exec rspec --fail-fast=3 ./spec/plugin/backend/vim8_spec.rb"
+  sh "bundle exec rspec --color --order rand --format doc --fail-fast=3 ./spec/plugin/backend/vim8_spec.rb"
   raise "Command failed!" unless $?.exitstatus == 0
 end
