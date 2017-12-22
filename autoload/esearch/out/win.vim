@@ -12,19 +12,19 @@
 " Have no idea why it's so (and time to deal) ...
 
 let s:mappings = [
-      \ {'lhs': 't',       'rhs': '<Plug>(esearch-tab)', 'default': 1},
-      \ {'lhs': 'T',       'rhs': '<Plug>(esearch-tab-silent)', 'default': 1},
-      \ {'lhs': 'i',       'rhs': '<Plug>(esearch-split)', 'default': 1},
-      \ {'lhs': 'I',       'rhs': '<Plug>(esearch-split-silent)', 'default': 1},
-      \ {'lhs': 's',       'rhs': '<Plug>(esearch-vsplit)', 'default': 1},
-      \ {'lhs': 'S',       'rhs': '<Plug>(esearch-vsplit-silent)', 'default': 1},
-      \ {'lhs': 'R',       'rhs': '<Plug>(esearch-reload)', 'default': 1},
-      \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-open)', 'default': 1},
-      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-open)', 'default': 1},
-      \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-next)', 'default': 1},
-      \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-prev)', 'default': 1},
-      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-next-file)', 'default': 1},
-      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-prev-file)', 'default': 1},
+      \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
+      \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
+      \ {'lhs': 'i',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
+      \ {'lhs': 'I',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
+      \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)', 'default': 1},
+      \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-silent)', 'default': 1},
+      \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)', 'default': 1},
+      \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
+      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
+      \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
+      \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
 
 " The first line. It contains information about the number of results
