@@ -11,25 +11,24 @@
 "
 " Have no idea why it's so (and time to deal) ...
 
-let s:default_mappings = {
-      \ 't':       '<Plug>(esearch-tab)',
-      \ 'T':       '<Plug>(esearch-tab-silent)',
-      \ 'i':       '<Plug>(esearch-split)',
-      \ 'I':       '<Plug>(esearch-split-silent)',
-      \ 's':       '<Plug>(esearch-vsplit)',
-      \ 'S':       '<Plug>(esearch-vsplit-silent)',
-      \ 'R':       '<Plug>(esearch-reload)',
-      \ '<Enter>': '<Plug>(esearch-open)',
-      \ 'o':       '<Plug>(esearch-open)',
-      \ '<C-n>':   '<Plug>(esearch-next)',
-      \ '<C-p>':   '<Plug>(esearch-prev)',
-      \ '<S-j>':   '<Plug>(esearch-next-file)',
-      \ '<S-k>':   '<Plug>(esearch-prev-file)',
-      \ }
+let s:mappings = [
+      \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
+      \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
+      \ {'lhs': 'i',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
+      \ {'lhs': 'I',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
+      \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)', 'default': 1},
+      \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-silent)', 'default': 1},
+      \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)', 'default': 1},
+      \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
+      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
+      \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
+      \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
+      \ ]
 
 " The first line. It contains information about the number of results
 let s:header = 'Matches in %d lines, %d file(s)'
-let s:mappings = {}
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 
@@ -297,7 +296,7 @@ fu! s:context(line, esearch) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
+  call esearch#util#add_map(s:mappings, a:lhs, '<Plug>(esearch-win-'.a:rhs.')')
 endfu
 
 fu! s:init_commands() abort
@@ -320,23 +319,22 @@ fu! s:init_commands() abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-tab)           :<C-U>call <sid>open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-tab-silent)    :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-split)         :<C-U>call <SID>open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-split-silent)  :<C-U>call <SID>open('new', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-vsplit)        :<C-U>call <SID>open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-vsplit-silent) :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-open)          :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-reload)        :<C-U>call esearch#init(b:esearch)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev)          :<C-U>sil exe <SID>jump(0, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next)          :<C-U>sil exe <SID>jump(1, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-Nop)           <Nop>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tab)           :<C-U>call <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tab-silent)    :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split)         :<C-U>call <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-silent)  :<C-U>call <SID>open('new', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)        :<C-U>call <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-silent) :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-open)          :<C-U>call <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-reload)        :<C-U>call esearch#init(b:esearch)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-prev)          :<C-U>sil exe <SID>jump(0, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-next)          :<C-U>sil exe <SID>jump(1, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
+  " nnoremap <silent><buffer> <Plug>(esearch-win-Nop)           <Nop>
 
-  call extend(s:mappings, s:default_mappings, 'keep')
-  for map in keys(s:mappings)
-    exe 'nmap <buffer> ' . map . ' ' . s:mappings[map]
+  for mapping in s:mappings
+    exe 'nmap <buffer> ' . mapping.lhs . ' ' . mapping.rhs
   endfor
 endfu
 

@@ -1,11 +1,13 @@
 if get(get(g:, 'esearch', {}), 'nerdtree_plugin', 1)
-  for map in keys(esearch#_mappings().with_val('<Plug>(esearch)'))
-    call NERDTreeAddKeyMap({
-          \ 'key': map,
-          \ 'override': 1,
-          \ 'callback': 'NERDTreeEsearchDir',
-          \ 'quickhelpText': 'Search in dir',
-          \ 'scope': 'Node' })
+  for map in esearch#_mappings()
+    if map.rhs ==# '<Plug>(esearch)'
+      call NERDTreeAddKeyMap({
+            \ 'key': map.lhs,
+            \ 'override': 1,
+            \ 'callback': 'NERDTreeEsearchDir',
+            \ 'quickhelpText': 'Search in dir',
+            \ 'scope': 'Node' })
+    endif
   endfor
 
   fu! NERDTreeEsearchDir(node) abort

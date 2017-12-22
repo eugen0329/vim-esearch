@@ -363,3 +363,14 @@ fu! esearch#util#buff_words() abort
   endwhile
   return esearch#util#uniq(words)
 endfu
+
+fu! esearch#util#add_map(mappings, lhs, rhs) abort
+  for mapping in a:mappings
+    if mapping.rhs == a:rhs && mapping.default == 1
+      call remove(a:mappings, index(a:mappings, mapping))
+      break
+    endif
+  endfor
+
+  call add(a:mappings, {'lhs': a:lhs, 'rhs': a:rhs, 'default': 0})
+endfu

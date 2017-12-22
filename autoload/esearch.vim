@@ -73,23 +73,16 @@ endfu
 
 fu! esearch#_mappings() abort
   if !exists('s:mappings')
-    " let s:_mappings = [
-    "       \ { 'lhs':  '', 'lhs': '', 'comment'}
-    "       \]
-    let s:mappings = {
-          \ '<leader>ff': '<Plug>(esearch)',
-          \ '<leader>fw': '<Plug>(esearch-word-under-cursor)',
-          \ 'set': function('esearch#util#set'),
-          \ 'get': function('esearch#util#get'),
-          \ 'dict': function('esearch#util#dict'),
-          \ 'with_val': function('esearch#util#with_val'),
-          \}
+    let s:mappings = [
+          \ {'lhs': '<leader>ff', 'rhs': '<Plug>(esearch)', 'default': 1},
+          \ {'lhs': '<leader>fw', 'rhs': '<Plug>(esearch-word-under-cursor)', 'default': 1},
+          \]
   endif
   return s:mappings
 endfu
 
 fu! esearch#map(map, plug) abort
-  call esearch#_mappings().set(a:map, printf('<Plug>(%s)', a:plug))
+  call esearch#util#add_map(esearch#_mappings(), a:map, printf('<Plug>(%s)', a:plug))
 endfu
 
 " Results bufname format builder
