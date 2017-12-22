@@ -82,18 +82,7 @@ fu! esearch#_mappings() abort
 endfu
 
 fu! esearch#map(map, plug) abort
-  let mappings = esearch#_mappings()
-  let lhs = a:map
-  let rhs = printf('<Plug>(%s)', a:plug)
-
-  for mapping in mappings
-    if mapping.rhs == rhs && mapping.default == 1
-      call remove(mappings, index(mappings, mapping))
-      break
-    endif
-  endfor
-
-  call add(mappings, {'lhs': lhs, 'rhs': rhs, 'default': 0})
+  call esearch#util#add_map(esearch#_mappings(), a:map, printf('<Plug>(%s)', a:plug))
 endfu
 
 " Results bufname format builder
