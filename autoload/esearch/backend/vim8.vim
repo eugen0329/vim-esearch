@@ -17,7 +17,7 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
-        \   'cmd': ['sh', '-c', a:cmd],
+        \   'cmd': [&shell, &shellcmdflag, a:cmd],
         \   'opts': {
         \     'out_cb': function('s:stdout', [s:incrementable_internal_id]),
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
