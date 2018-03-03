@@ -2,15 +2,17 @@ if !exists('esearch#substitute#swapchoice')
   let g:esearch#substitute#swapchoice = ''
 endif
 
+" :%s/exe/sleep 400m | redraw! |/
+
 fu! esearch#substitute#do(args, from, to, out) abort
-  let line = a:from
+  let current_search_win_line = a:from
   let limit = a:from > a:to ? a:from + 1 : a:to + 1
 
   let besearch = get(b:, 'esearch', {})
 
   let bufnr = bufnr('%')
   let pushed_right = 0
-  let root = tabpagenr()
+  let search_win_tab = tabpagenr()
   let last_modified_tab = tabpagenr()
   let opened_files = {}
   let prev_filename = ''
@@ -20,66 +22,71 @@ fu! esearch#substitute#do(args, from, to, out) abort
     au!
   augroup END
 
-  while line < limit
-    exe noautocmd.'tabn '.root
-    exe line
-    if a:out.is_file_entry()
-      let not_found = 0
+  while current_search_win_line < limit
+    exe noautocmd.'tabn '.search_win_tab
+    exe current_search_win_line
 
-      let filename = a:out.filename()
+    if !a:out.is_file_entry()
+      let current_search_win_line += 1
+      continue
+    endif
 
-      let target_line = a:out.line_number()
-      let already_opened = has_key(opened_files, filename)
+    let filename = a:out.filename()
+    let target_line = a:out.line_number()
+    let already_opened = has_key(opened_files, filename)
 
-      " Goto already opened file or open new
-      if already_opened
-        exe noautocmd.'tabn'.opened_files[filename].'|'.target_line
-      else
-        if !empty('g:esearch#substitute#swapchoice')
-          exe 'au ESearchSubstituteSwap SwapExists *'.filename.' call s:make_swap_choise(escape(expand("<afile>"), " "), '.bufnr.')'
-        endif
-        call a:out.open('$tabnew')
-
-        " NOTE besearch.unresolved_swapfiles initializes in s:make_swap_choise event, binded below
-        "
-        " If swap files exists ||
-        " user has selected v:swapchoice ==# 'q' (window was closed manually) ||
-        " if (O)pen Read-Only swap option ||
-        " D(i)ff option was selected (enabled by Recover.vim)
-        if (exists('besearch.unresolved_swapfiles') && index(besearch.unresolved_swapfiles, filename) >= 0) ||
-              \ index(values(opened_files), tabpagenr()) >= 0 ||
-              \ &readonly ||
-              \ &diff
-          let line += 1
-          continue
-        else
-          let opened_files[filename] = tabpagenr()
-        endif
+    " Locate buffer with a line to substitute
+    if already_opened
+      exe noautocmd.'tabn'.opened_files[filename].'|'.target_line
+    else  " open new window
+      if !empty('g:esearch#substitute#swapchoice')
+        exe 'au ESearchSubstituteSwap SwapExists *'.filename.' call s:make_swap_choise(escape(expand("<afile>"), " "), '.bufnr.')'
       endif
+      call a:out.open('$tabnew')
 
-      let not_found = s:substitute(a:args)
-      if !not_found
-        call s:init_highlights(target_line)
-      endif
-
-      if not_found && !already_opened
-        call remove(opened_files, filename)
-        let useless_tab = tabpagenr()
-        exe noautocmd.'tabn'.root
-        exe noautocmd.'tabclose'.useless_tab
+      " NOTE besearch.unresolved_swapfiles initializes in s:make_swap_choise event, binded below
+      "
+      " If swap files exists ||
+      " user has selected v:swapchoice ==# 'q' (window was closed manually) ||
+      " if (O)pen Read-Only swap option ||
+      " D(i)ff option was selected (enabled by Recover.vim)
+      if (exists('besearch.unresolved_swapfiles') && index(besearch.unresolved_swapfiles, filename) >= 0) ||
+            \ index(values(opened_files), tabpagenr()) >= 0 ||
+            \ &readonly ||
+            \ &diff
+        let current_search_win_line += 1
+        continue
       else
-        let last_modified_tab = tabpagenr()
-        if !pushed_right
-          let pushed_right = 1
-          exe noautocmd.'tabn'.root
-          " Push current search tab to the right (penultimate position,
-          " before the newly opened) for more convenience
-          let root = tabpagenr('$') - 1
-          exe noautocmd.'tabm '.(root - 1 )
-        endif
+        let opened_files[filename] = tabpagenr()
       endif
     endif
-    let line += 1
+
+    let no_matches_were_found = s:substitute(a:args)
+    if !no_matches_were_found
+      call s:init_highlights(target_line)
+    endif
+
+    if no_matches_were_found && !already_opened
+      " close buffer without matches
+      call remove(opened_files, filename)
+      let useless_tab = tabpagenr()
+      exe noautocmd.'tabn'.search_win_tab
+      exe noautocmd.'tabclose'.useless_tab
+    else " make search window rightmost
+      let last_modified_tab = tabpagenr()
+
+      " make search window rightmost
+      if !pushed_right
+        let pushed_right = 1
+        " goto search win tab
+        exe noautocmd.'tabn'.search_win_tab
+        " Push current search tab to the right (penultimate position,
+        " before the newly opened) for more convenience
+        let search_win_tab = tabpagenr('$') - 1
+        exe noautocmd.'tabm '.search_win_tab
+      endif
+    endif
+    let current_search_win_line += 1
   endwhile
 
   call s:statistics(opened_files, get(besearch, 'unresolved_swapfiles', 0))
@@ -92,7 +99,7 @@ fu! s:substitute(args) abort
   try
     exe 's'a:args
   catch /E486:/
-    " no matches found
+    " no matches were found
     return 1
   endtry
   return 0
