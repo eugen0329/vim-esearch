@@ -11,7 +11,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
-        \   'cmd': ['sh', '-c', a:cmd],
+        \   'cmd': [&shell, &shellcmdflag, a:cmd],
         \   'opts': {
         \     'on_stdout': function('s:stdout'),
         \     'on_stderr': function('s:stderr'),
