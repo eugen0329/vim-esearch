@@ -131,9 +131,14 @@ fu! s:completed(request) abort
 endfu
 
 fu! esearch#backend#vimproc#abort(bufnr) abort
-  let esearch = getbufvar(a:bufnr, 'esearch', 0)
+  " FIXME unify with out#qflist
+  let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {}))
+  if empty(esearch)
+    return -1
+  endif
+
   let esearch.request.aborted = 1
-  return empty(esearch) ?  0 : esearch.request.pipe.kill(g:vimproc#SIGTERM)
+  return esearch.request.pipe.kill(g:vimproc#SIGKILL)
 endfu
 
 fu! esearch#backend#vimproc#init_events() abort
