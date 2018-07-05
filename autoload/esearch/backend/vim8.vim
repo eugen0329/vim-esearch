@@ -109,7 +109,12 @@ fu! s:closed(job_id, channel) abort
   let job.request.finished = 1
   let job.request.old_data_ptr = job.request.data_ptr
 
-  call timer_start(g:esearch#backend#vim8#timer, function('s:watch_for_buffered_data_render_complete', [job]), {'repeat': -1})
+
+  if has('patch-8.0.0027')
+    exe 'do User '.a:job.request.events.forced_finish
+  else
+    call timer_start(g:esearch#backend#vim8#timer, function('s:watch_for_buffered_data_render_complete', [job]), {'repeat': -1})
+  endif
 endfu
 
 fu! s:exit(job_id, job, status) abort

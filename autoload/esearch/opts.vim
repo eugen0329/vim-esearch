@@ -4,7 +4,7 @@ fu! esearch#opts#new(opts) abort
   if !has_key(opts, 'backend')
     if has('nvim') && exists('*jobstart')
       let opts.backend = 'nvim'
-    elseif has('patch-8.0.0039') && has('job')
+    elseif s:vim8_is_supported()
       let opts.backend = 'vim8'
     elseif esearch#util#has_vimproc()
       let opts.backend = 'vimproc'
@@ -56,4 +56,10 @@ fu! s:invert(key) dict abort
   let option = !self[a:key]
   let self[a:key] = option
   return option
+endfu
+
+fu! s:vim8_is_supported() abort
+  " 7.4.1398 - Implemente close-cb
+  " 8.0.0027 - Fix of: Still trying to read from channel that is going to be closed.
+  return has('job') && has('patch-7.4.1398') && (has('patch-8.0.0027') || exists('*timer_start'))
 endfu
