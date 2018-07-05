@@ -29,6 +29,7 @@ let s:mappings = [
 
 " The first line. It contains information about the number of results
 let s:header = 'Matches in %d lines, %d file(s)'
+let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 
@@ -513,7 +514,7 @@ fu! esearch#out#win#finish(bufnr) abort
     endfor
     " norm! gggqG
   else
-    call esearch#util#setline(a:bufnr, 1, getbufline(a:bufnr, 1)[0] . '. Finished.' )
+    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header, len(esearch._columns), esearch.request.files_count))
   endif
 
   call setbufvar(a:bufnr, '&ma', 0)

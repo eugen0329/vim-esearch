@@ -59,7 +59,7 @@ fu! s:invert(key) dict abort
 endfu
 
 fu! s:vim8_is_supported() abort
-  " 7.4.1398 - Implemente close-cb
-  " 8.0.0027 - Fix of: Still trying to read from channel that is going to be closed.
-  return has('job') && has('patch-7.4.1398') && (has('patch-8.0.0027') || exists('*timer_start'))
+  return has('job') &&
+        \ esearch#util#vim8_job_start_close_cb_implemented() &&
+        \ (esearch#util#vim8_calls_close_cb_last() || exists('*timer_start'))
 endfu

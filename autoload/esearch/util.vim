@@ -374,3 +374,13 @@ fu! esearch#util#add_map(mappings, lhs, rhs) abort
 
   call add(a:mappings, {'lhs': a:lhs, 'rhs': a:rhs, 'default': 0})
 endfu
+
+fu! esearch#util#vim8_job_start_close_cb_implemented() abort
+  " 7.4.1398 - Implemented close-cb
+  return has('patch-7.4.1398')
+endfu
+
+fu! esearch#util#vim8_calls_close_cb_last() abort
+  " 7.4.1787 - fix of: When a job ends the close callback is invoked before other callbacks
+  return has('patch-7.4.1787')
+endfu

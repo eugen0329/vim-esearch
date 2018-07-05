@@ -94,11 +94,16 @@ fu! s:stderr(job_id, job, data) abort
   let job.request.errors += filter(data, "'' !=# v:val")
 endfu
 
+func! s:timer_stop_workaround(job, timer) abort
+  " smh timer_stop cannot stop self
+  call timer_stop(a:job.request.timer_id)
+endfunc
+
 func! s:watch_for_buffered_data_render_complete(job, timer) abort
   " dirty check
   if a:job.request.data_ptr == a:job.request.old_data_ptr
-    call timer_stop(a:timer)
     exe 'do User '.a:job.request.events.forced_finish
+    call timer_start(0, function('s:timer_stop_workaround', [a:job]))
   else
     let a:job.request.old_data_ptr = a:job.request.data_ptr
   endif
@@ -107,13 +112,13 @@ endfunc
 fu! s:closed(job_id, channel) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
-  let job.request.old_data_ptr = job.request.data_ptr
 
-
-  if has('patch-8.0.0027')
+  if esearch#util#vim8_calls_close_cb_last()
     exe 'do User '.a:job.request.events.forced_finish
   else
-    call timer_start(g:esearch#backend#vim8#timer, function('s:watch_for_buffered_data_render_complete', [job]), {'repeat': -1})
+    let job.request.timer_id = timer_start(g:esearch#backend#vim8#timer,
+          \ function('s:watch_for_buffered_data_render_complete', [job]),
+          \ {'repeat': -1})
   endif
 endfu
 
@@ -141,6 +146,10 @@ fu! esearch#backend#vim8#abort(bufnr) abort
     return -1
   endif
   let esearch.request.aborted = 1
+
+  if has_key(esearch.request, 'timer_id')
+    call timer_stop(esearch.request.timer_id)
+  endif
 
   if has_key(esearch.request, 'job_id') && job_status(esearch.request.job_id) ==# 'run'
     call ch_close(esearch.request.job_id)
