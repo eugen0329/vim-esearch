@@ -12,10 +12,15 @@ let s:incrementable_internal_id = 0
 if !exists('g:esearch#backend#vim8#ticks')
   let g:esearch#backend#vim8#ticks = 3
 endif
+if !exists('g:esearch#backend#vim8#timer')
+  let g:esearch#backend#vim8#timer = 1000
+endif
 
 fu! esearch#backend#vim8#init(cmd, pty) abort
+  " TODO add 'stoponexit'
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
+        \ 'old_data_ptr': '',
         \ 'jobstart_args': {
         \   'cmd': [&shell, &shellcmdflag, a:cmd],
         \   'opts': {
@@ -63,9 +68,20 @@ fu! s:stdout(job_id, job, data) abort
 
   " Reduce buffer updates to prevent long cursor lock
   let job.request.tick = job.request.tick + 1
-  if job.request.tick % job.request.ticks == 1
+  if job.request.tick % job.request.ticks == 1 
     exe 'do User '.job.request.events.update
   endif
+
+  " TODO in VIM 8.1:
+  " To obtain the status of a channel: ch_status(channel).  The possible results
+  " are:
+  "         "fail"          Failed to open the channel.
+  "         "open"          The channel can be used.
+  "         "buffered"      The channel was closed but there is data to read.
+  "         "closed"        The channel was closed.
+  " if ch_status(job.request.job_id) == 'closed'
+  "   exe 'do User '.job.request.events.forced_finish
+  " endif
 endfu
 
 fu! s:stderr(job_id, job, data) abort
@@ -78,10 +94,22 @@ fu! s:stderr(job_id, job, data) abort
   let job.request.errors += filter(data, "'' !=# v:val")
 endfu
 
+func! s:watch_for_buffered_data_render_complete(job, timer) abort
+  " dirty check
+  if a:job.request.data_ptr == a:job.request.old_data_ptr
+    call timer_stop(a:timer)
+    exe 'do User '.a:job.request.events.forced_finish
+  else
+    let a:job.request.old_data_ptr = a:job.request.data_ptr
+  endif
+endfunc
+
 fu! s:closed(job_id, channel) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
-  exe 'do User '.job.request.events.forced_finish
+  let job.request.old_data_ptr = job.request.data_ptr
+
+  call timer_start(g:esearch#backend#vim8#timer, function('s:watch_for_buffered_data_render_complete', [job]), {'repeat': -1})
 endfu
 
 fu! s:exit(job_id, job, status) abort

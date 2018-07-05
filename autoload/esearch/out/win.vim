@@ -208,7 +208,8 @@ fu! esearch#out#win#update(bufnr) abort
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
-    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr, request.files_count))
+    " TODO len(esearch._columns) is used to prevent %lines_count+1% bug in vim8
+    call esearch#util#setline(a:bufnr, 1, printf(s:header, len(esearch._columns), request.files_count))
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
