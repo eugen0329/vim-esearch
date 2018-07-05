@@ -71,17 +71,6 @@ fu! s:stdout(job_id, job, data) abort
   if job.request.tick % job.request.ticks == 1 
     exe 'do User '.job.request.events.update
   endif
-
-  " TODO in VIM 8.1:
-  " To obtain the status of a channel: ch_status(channel).  The possible results
-  " are:
-  "         "fail"          Failed to open the channel.
-  "         "open"          The channel can be used.
-  "         "buffered"      The channel was closed but there is data to read.
-  "         "closed"        The channel was closed.
-  " if ch_status(job.request.job_id) == 'closed'
-  "   exe 'do User '.job.request.events.forced_finish
-  " endif
 endfu
 
 fu! s:stderr(job_id, job, data) abort
