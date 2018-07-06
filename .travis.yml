@@ -23,4 +23,8 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then ( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok ) & fi
   - sleep 3 # give xvfb some time to start
 
-script: rake ci
+jobs:
+  include:
+    - script: rake ci_system
+    - script: rake ci_vim8
+    - script: rake ci_vimproc
