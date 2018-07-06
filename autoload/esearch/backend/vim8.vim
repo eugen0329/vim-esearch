@@ -13,6 +13,7 @@ if !exists('g:esearch#backend#vim8#ticks')
   let g:esearch#backend#vim8#ticks = 3
 endif
 if !exists('g:esearch#backend#vim8#timer')
+  " TODO better name
   let g:esearch#backend#vim8#timer = 1000
 endif
 
@@ -103,13 +104,13 @@ fu! s:closed(job_id, channel) abort
   let job.request.finished = 1
 
   " TODO should be properly tested first
-  " if esearch#util#vim8_calls_close_cb_last()
-    " exe 'do User '.a:job.request.events.forced_finish
-  " else
+  if esearch#util#vim8_calls_close_cb_last()
+    exe 'do User '.job.request.events.forced_finish
+  else
     let job.request.timer_id = timer_start(g:esearch#backend#vim8#timer,
           \ function('s:watch_for_buffered_data_render_complete', [job]),
           \ {'repeat': -1})
-  " endif
+  endif
 endfu
 
 fu! s:exit(job_id, job, status) abort
