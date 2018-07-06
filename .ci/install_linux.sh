@@ -4,7 +4,7 @@
 # sudo apt-get remove -y -f vim-runtime 
 
 # sudo add-apt-repository ppa:jonathonf/vim -y
-# sudo apt update -y
+sudo apt update -y
 sudo apt-get install -y vim-gtk
 
 # install ack
