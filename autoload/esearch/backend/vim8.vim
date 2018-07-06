@@ -85,7 +85,7 @@ fu! s:stderr(job_id, job, data) abort
 endfu
 
 func! s:timer_stop_workaround(job, timer) abort
-  " smh timer_stop cannot stop self
+  " smh timer_stop cannot stop timer within a callback
   call timer_stop(a:job.request.timer_id)
 endfunc
 
