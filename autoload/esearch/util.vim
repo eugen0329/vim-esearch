@@ -381,6 +381,6 @@ fu! esearch#util#vim8_job_start_close_cb_implemented() abort
 endfu
 
 fu! esearch#util#vim8_calls_close_cb_last() abort
-  " 7.4.1787 - fix of: When a job ends the close callback is invoked before other callbacks
+  " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
   return has('patch-7.4.1787')
 endfu
