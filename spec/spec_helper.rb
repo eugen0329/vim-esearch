@@ -26,3 +26,7 @@ RSpec.configure do |config|
   config.include Support::DSL::Vim
   config.include Support::DSL::ESearch
 end
+
+def working_directory
+  @working_directory ||= ENV.fetch('TRAVIS_BUILD_DIR') { Pathname.new(File.expand_path('../../', __FILE__)) }
+end

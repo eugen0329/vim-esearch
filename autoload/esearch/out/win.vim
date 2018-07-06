@@ -29,6 +29,7 @@ let s:mappings = [
 
 " The first line. It contains information about the number of results
 let s:header = 'Matches in %d lines, %d file(s)'
+let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 
@@ -208,7 +209,8 @@ fu! esearch#out#win#update(bufnr) abort
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
-    call esearch#util#setline(a:bufnr, 1, printf(s:header, request.data_ptr, request.files_count))
+    " TODO len(esearch._columns) is used to prevent %lines_count+1% bug in vim8
+    call esearch#util#setline(a:bufnr, 1, printf(s:header, len(esearch._columns), request.files_count))
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
@@ -512,7 +514,7 @@ fu! esearch#out#win#finish(bufnr) abort
     endfor
     " norm! gggqG
   else
-    call esearch#util#setline(a:bufnr, 1, getbufline(a:bufnr, 1)[0] . '. Finished.' )
+    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header, len(esearch._columns), esearch.request.files_count))
   endif
 
   call setbufvar(a:bufnr, '&ma', 0)

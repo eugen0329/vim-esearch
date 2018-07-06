@@ -1,7 +1,18 @@
-sudo add-apt-repository ppa:jonathonf/vim -y
+# sudo apt-get remove -y -f vim
+# sudo apt-get remove -y -f vim-common
+# sudo apt-get remove -y -f vim-gui-common
+# sudo apt-get remove -y -f vim-runtime 
+
+# sudo add-apt-repository ppa:jonathonf/vim -y
 sudo apt update -y
-sudo apt-get install -y vim vim-gtk ack-grep silversearcher-ag
+sudo apt-get install -y vim-gtk
+
+# install ack
+sudo apt-get install -y ack-grep
 sudo dpkg-divert --local --divert /usr/bin/ack --rename --add /usr/bin/ack-grep
+
+# install ag
+sudo apt-get install -y silversearcher-ag
 
 # install rg
 wget https://github.com/BurntSushi/ripgrep/releases/download/0.7.1/ripgrep-0.7.1-x86_64-unknown-linux-musl.tar.gz

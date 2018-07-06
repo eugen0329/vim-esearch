@@ -4,8 +4,7 @@ fu! esearch#opts#new(opts) abort
   if !has_key(opts, 'backend')
     if has('nvim') && exists('*jobstart')
       let opts.backend = 'nvim'
-      " toggled to not be a default as it's not properly tested manually yet
-    elseif 0 && has('patch-8.0.0039') && has('job')
+    elseif s:vim8_is_supported()
       let opts.backend = 'vim8'
     elseif esearch#util#has_vimproc()
       let opts.backend = 'vimproc'
@@ -57,4 +56,10 @@ fu! s:invert(key) dict abort
   let option = !self[a:key]
   let self[a:key] = option
   return option
+endfu
+
+fu! s:vim8_is_supported() abort
+  return has('job') &&
+        \ esearch#util#vim8_job_start_close_cb_implemented() &&
+        \ (esearch#util#vim8_calls_close_cb_last() || exists('*timer_start'))
 endfu
