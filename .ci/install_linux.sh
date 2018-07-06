@@ -1,3 +1,8 @@
+sudo apt-get remove -y -f vim
+sudo apt-get remove -y -f vim-common
+sudo apt-get remove -y -f vim-gui-common
+sudo apt-get remove -y -f vim-runtime 
+
 sudo add-apt-repository ppa:jonathonf/vim -y
 sudo apt update -y
 sudo apt-get install -y vim 
