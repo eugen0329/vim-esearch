@@ -5,7 +5,7 @@
 
 # sudo add-apt-repository ppa:jonathonf/vim -y
 # sudo apt update -y
-sudo apt-get install -y vim-gtk3
+sudo apt-get install -y vim-gtk
 
 # install ack
 sudo apt-get install -y ack-grep
