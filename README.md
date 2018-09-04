@@ -146,3 +146,10 @@ To redefine results match highlight use:
 ```vim
 hi ESearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
 ```
+
+### Known issues
+#### pt
+
+Ignores case option in `pt` works by [building a regex](https://github.com/monochromegane/the_platinum_searcher/blob/37ed028fc79f30d4de56682e26a789999ae2d561/pattern.go#L19)
+so as a result you have explicit regex matching here and have to escape special
+characters or switch to case sensitive mode.

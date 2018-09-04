@@ -506,7 +506,7 @@ fu! esearch#out#win#finish(bufnr) abort
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
     let errors = esearch.request.data + esearch.request.errors
-    call esearch#util#setline(a:bufnr, 1, 'ERRORS (' .len(errors).')')
+    call esearch#util#setline(a:bufnr, 1, 'ERRORS from '.esearch.adapter.' ('.len(errors).')')
     let line = 2
     for err in errors
       call esearch#util#setline(a:bufnr, line, "\t".err)
