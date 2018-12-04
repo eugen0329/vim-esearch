@@ -336,6 +336,8 @@ fu! s:init_mappings() abort
   " nnoremap <silent><buffer> <Plug>(esearch-win-Nop)           <Nop>
 
   for mapping in s:mappings
+    if !g:esearch.default_mappings && mapping.default | continue | endif
+
     exe 'nmap <buffer> ' . mapping.lhs . ' ' . mapping.rhs
   endfor
 endfu

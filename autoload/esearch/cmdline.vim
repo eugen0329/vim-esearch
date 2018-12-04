@@ -292,6 +292,7 @@ endfu
 
 fu! s:init_mappings() abort
   let mapargs =  {}
+  " TODO add support for g:esearch.default_mappings
   for map in keys(s:mappings.dict())
     let mapargs[map] = maparg(map, 'c', 0, 1)
     exe 'cmap ' . map . ' ' . s:mappings[map]

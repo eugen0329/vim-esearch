@@ -33,20 +33,21 @@ fu! esearch#opts#new(opts) abort
   endif
 
   let opts = extend(opts, {
-        \ 'out':             'win',
-        \ 'regex':           0,
-        \ 'case':            0,
-        \ 'word':            0,
-        \ 'batch_size':      1000,
-        \ 'context_width':   { 'l': 60, 'r': 60 },
-        \ 'recover_regex':   1,
-        \ 'highlight_match': 1,
-        \ 'escape_special':  1,
-        \ 'use': ['visual', 'hlsearch', 'current', 'last'],
-        \ 'nerdtree_plugin': 1,
+        \ 'out':              'win',
+        \ 'regex':            0,
+        \ 'case':             0,
+        \ 'word':             0,
+        \ 'batch_size':       1000,
+        \ 'context_width':    { 'l': 60, 'r': 60 },
+        \ 'recover_regex':    1,
+        \ 'highlight_match':  1,
+        \ 'escape_special':   1,
+        \ 'default_mappings': 1,
+        \ 'nerdtree_plugin':  1,
         \ 'invert':           function('<SID>invert'),
-        \ 'slice':          function('esearch#util#slice'),
-        \ 'errors':          [],
+        \ 'slice':            function('esearch#util#slice'),
+        \ 'errors':           [],
+        \ 'use': ['visual', 'hlsearch', 'current', 'last'],
         \}, 'keep')
 
   return opts

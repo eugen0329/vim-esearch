@@ -65,11 +65,12 @@ Global ESearch configuration example:
 
 ```vim
 let g:esearch = {
-  \ 'adapter':    'ag',
-  \ 'backend':    'vimproc',
-  \ 'out':        'win',
-  \ 'batch_size': 1000,
-  \ 'use':        ['visual', 'hlsearch', 'last'],
+  \ 'adapter':          'ag',
+  \ 'backend':          'vimproc',
+  \ 'out':              'win',
+  \ 'batch_size':       1000,
+  \ 'use':              ['visual', 'hlsearch', 'last'],
+  \ 'default_mappings': 1,
   \}
 ```
 
@@ -103,6 +104,9 @@ let g:esearch = {
       Text selected with mouse or other similar method (only works on Linux).<br>
     * `'word_under_cursor'`<br>
       A word under the cursor.<br>
+* __'default_mappings'__<br>
+  Allows you to disable default mappings. If set to `0`, no default mappings will
+  be added.
 
 ### Mappings
 In `~/.config/nvim/init.vim` / `~/.vimrc`:
@@ -139,9 +143,9 @@ mapping are listed as an example here):
     call esearch#cmdline#map('<C-o><C-h>', 'cmdline-help')
 ```
 
-To redefine results match highlight use:
-
 ### Colors
+
+To redefine results match highlight use:
 
 ```vim
 hi ESearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA

@@ -1,8 +1,14 @@
-if get(get(g:, 'esearch', {}), 'nerdtree_plugin', 1)
-  for map in esearch#_mappings()
-    if map.rhs ==# '<Plug>(esearch)'
+let s:esearch = get(g:, 'esearch', {})
+
+if get(s:esearch, 'nerdtree_plugin', 1)
+  let s:default_mappings = get(s:esearch, 'default_mappings')
+
+  for mapping in esearch#_mappings()
+    if !s:default_mappings && mapping.default | continue | endif
+
+    if mapping.rhs ==# '<Plug>(esearch)'
       call NERDTreeAddKeyMap({
-            \ 'key': map.lhs,
+            \ 'key': mapping.lhs,
             \ 'override': 1,
             \ 'callback': 'NERDTreeEsearchDir',
             \ 'quickhelpText': 'Search in dir',
