@@ -151,7 +151,7 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_number':   function('s:line_number'),
+        \ 'line_in_file':   function('s:line_in_file'),
         \ 'open':          function('s:open'),
         \ 'filename':      function('s:filename'),
         \ 'is_file_entry': function('s:is_file_entry')
@@ -169,7 +169,7 @@ fu! s:init_commands() abort
 endfu
 
 " Required for ESubstitute
-fu! s:line_number() abort
+fu! s:line_in_file() abort
   let qf = getqflist()
   let qfln = line('.')
 

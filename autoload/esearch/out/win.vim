@@ -27,6 +27,7 @@ let s:mappings = [
       \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
 
+let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:header = 'Matches in %d lines, %d file(s)'
 let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
@@ -303,7 +304,7 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_number':   function('s:line_number'),
+        \ 'line_in_file':   function('s:line_in_file'),
         \ 'open':          function('s:open'),
         \ 'filename':      function('s:filename'),
         \ 'is_file_entry': function('s:is_file_entry')
@@ -345,8 +346,8 @@ endfu
 fu! s:open(cmd, ...) abort
   let fname = s:filename()
   if !empty(fname)
-    let ln = s:line_number()
-    let col = get(b:esearch._columns, line('.'), 1)
+    let ln = s:line_in_file()
+    let col = get(b:esearch._columns, s:result_line(), 1)
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
@@ -400,16 +401,22 @@ fu! esearch#out#win#foldexpr() abort
   return s:blank_line_fold
 endfu
 
-fu! s:line_number() abort
-  let pattern = '^\%>1l\s\+\d\+.*'
+fu! s:result_line() abort
+  let current_line_text = getline('.')
+  let current_line = line('.')
 
-  if line('.') < 3 || match(getline('.'), '^[^ ].*') >= 0
-    let lnum = search(pattern, 'cWn')
+  " if the cursor above the header on above a file
+  if current_line < 3 || match(current_line_text, '^[^ ].*') >= 0
+    return search(s:RESULT_LINE_PATTERN, 'cWn') " search forward
+  elseif empty(current_line_text)
+    return search(s:RESULT_LINE_PATTERN, 'bcWn')  " search backward
   else
-    let lnum = search(pattern, 'bcWn')
+    return current_line
   endif
+endfu
 
-  return matchstr(getline(lnum), '^\s\+\zs\d\+\ze.*')
+fu! s:line_in_file() abort
+  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 
 fu! s:file_jump(downwards, count) abort

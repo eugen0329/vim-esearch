@@ -32,12 +32,12 @@ fu! esearch#substitute#do(args, from, to, out) abort
     endif
 
     let filename = a:out.filename()
-    let target_line = a:out.line_number()
+    let line_in_file = a:out.line_in_file()
     let already_opened = has_key(opened_files, filename)
 
     " Locate buffer with a line to substitute
     if already_opened
-      exe noautocmd.'tabn'.opened_files[filename].'|'.target_line
+      exe noautocmd.'tabn'.opened_files[filename].'|'.line_in_file
     else  " open new window
       if !empty('g:esearch#substitute#swapchoice')
         exe 'au ESearchSubstituteSwap SwapExists *'.filename.' call s:make_swap_choise(escape(expand("<afile>"), " "), '.bufnr.')'
@@ -63,7 +63,7 @@ fu! esearch#substitute#do(args, from, to, out) abort
 
     let no_matches_were_found = s:substitute(a:args)
     if !no_matches_were_found
-      call s:init_highlights(target_line)
+      call s:init_highlights(line_in_file)
     endif
 
     if no_matches_were_found && !already_opened
@@ -106,7 +106,7 @@ fu! s:substitute(args) abort
 endfu
 
 " TODO Add multiline highligh
-fu! s:init_highlights(target_line) abort
+fu! s:init_highlights(line_in_file) abort
   if !exists('b:esearch')
     let b:esearch = { 'matchids': [] }
     augroup ESearchSubstituteHL
@@ -114,7 +114,7 @@ fu! s:init_highlights(target_line) abort
       au InsertEnter,BufWritePost,TextChanged <buffer> call s:clear_hightligh()
     augroup END
   endif
-  call add(b:esearch.matchids, matchadd('DiffChange', '\%'.a:target_line.'l', -1))
+  call add(b:esearch.matchids, matchadd('DiffChange', '\%'.a:line_in_file.'l', -1))
 endfu
 
 fu! s:clear_hightligh() abort
