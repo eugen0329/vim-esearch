@@ -104,11 +104,20 @@ So not to hang your vim while updating results, ESearch uses batches. Thus,
 time.
 To set this option use |g:esearch|
 
-
 Example:
 >
   if !exists('g:esearch') | let g:esearch = {} | endif
   let g:esearch.batch_size = 3000
+<
+                                        *Esearch-default_mappings*
+This option is used to disable all default mappings of all kinds (global,
+commandline, mappings for outputs etc.)
+To set this option use |g:esearch|.
+
+Example:
+>
+  if !exists('g:esearch') | let g:esearch = {} | endif
+  let g:esearch.default_mappings = 0
 <
                                         *Esearch-use* *vim-esearch-sources*
 Array of sources whereby you can specify an initial search request string,

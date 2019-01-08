@@ -1,7 +1,7 @@
 let s:esearch = get(g:, 'esearch', {})
 
 if get(s:esearch, 'nerdtree_plugin', 1)
-  let s:default_mappings = get(s:esearch, 'default_mappings')
+  let s:default_mappings = get(s:esearch, 'default_mappings', g:esearch#defaults#default_mappings)
 
   for mapping in esearch#_mappings()
     if !s:default_mappings && mapping.default | continue | endif

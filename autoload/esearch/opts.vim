@@ -42,7 +42,7 @@ fu! esearch#opts#new(opts) abort
         \ 'recover_regex':    1,
         \ 'highlight_match':  1,
         \ 'escape_special':   1,
-        \ 'default_mappings': 1,
+        \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
         \ 'invert':           function('<SID>invert'),
         \ 'slice':            function('esearch#util#slice'),
