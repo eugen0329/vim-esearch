@@ -105,6 +105,7 @@ fu! esearch#out#win#init(opts) abort
   setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
+  setlocal nomodeline
   let &buflisted = g:esearch#out#win#buflisted
   setlocal foldcolumn=0
   setlocal buftype=nofile
