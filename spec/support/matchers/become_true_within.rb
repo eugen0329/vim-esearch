@@ -8,7 +8,7 @@ RSpec::Matchers.define :become_true_within do |expected|
     loop do
       return true if actual.call
       break if Time.now >= quota
-      sleep 0.5
+      sleep 0.1
     end
 
     false

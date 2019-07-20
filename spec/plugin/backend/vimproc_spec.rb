@@ -6,6 +6,11 @@ context 'esearch' do
   context '#backend' do
 
     describe '#vimproc' do
+      before(:all) do
+        press ":let g:esearch#backend#vimproc#updatetime = 30"
+        press ":let g:esearch#backend#vimproc#read_timeout = 30"
+      end
+
       it_behaves_like 'a backend', 'vimproc'# if ENV['TRAVIS_OS_NAME'] != 'osx'
     end
 
