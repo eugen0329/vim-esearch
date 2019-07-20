@@ -27,11 +27,11 @@ fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  " -H - don't show filenames
+  " -H - show filenames
   " -I - don't search binary files
-  return 'git --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
+  return 'cd '.fnameescape(a:dir).' && git --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
         \ g:esearch#adapter#git#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
+        \ a:escape(a:pattern)  . ' '
 endfu
 
 fu! esearch#adapter#git#is_broken_result(line) abort
