@@ -29,12 +29,6 @@ fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
   let w = options.parametrize('word')
   " -H - show filenames
   " -I - don't search binary files
-
-  " return 'echo 1 '
-  " return 'git --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
-  "       \ g:esearch#adapter#git#options . ' -- ' .
-  "       \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
-
   return 'git -C '.fnameescape(a:dir).' --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
         \ g:esearch#adapter#git#options . ' -- ' .
         \ a:escape(a:pattern)

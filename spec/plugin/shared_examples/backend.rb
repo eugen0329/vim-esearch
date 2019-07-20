@@ -1,7 +1,6 @@
 # TODO completely rewrite
 RSpec.shared_examples 'a backend' do |backend, adapter|
-  # ADAPTERS = ['git']
-  ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg']
+  ADAPTERS = %w[ack ag git grep pt rg]
 
   ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do

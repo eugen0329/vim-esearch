@@ -3,18 +3,6 @@ module Support
     module ESearch
 
       def esearch_settings(options)
-        # elems = options.map { |name, val| "'#{name}': '#{val}'" }
-        # dict = "{ #{elems.join(',')} }"
-
-        # vim.multiline_command(%{
-        #   if !exists('g:esearch')
-        #     let g:esearch = #{dict}
-        #   else
-        #     call extend(g:esearch, #{dict})
-        #   endif
-        # })
-
-
         pairs = options.map do |name, val|
           val = "'#{val}'" unless val.is_a? Numeric
           "'#{name}': #{val}"

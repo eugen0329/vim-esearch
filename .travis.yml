@@ -1,14 +1,10 @@
 sudo: required
 language: ruby
-
-
-matrix:
-  include:
-    - os: linux
-      dist: xenial
-      services:
-        - xvfb
-    - os: osx
+os:
+  - linux
+dist: xenial
+services:
+  - xvfb
 
 env: DISPLAY=":99.0"
 rvm: 2.2.2
