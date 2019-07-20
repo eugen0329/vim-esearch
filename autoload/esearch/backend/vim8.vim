@@ -144,7 +144,7 @@ fu! esearch#backend#vim8#abort(bufnr) abort
 
   if has_key(esearch.request, 'job_id') && job_status(esearch.request.job_id) ==# 'run'
     call ch_close(esearch.request.job_id)
-    return job_stop(esearch.request.job_id, "kill")
+    call job_stop(esearch.request.job_id, "kill")
   endif
 endfu
 
