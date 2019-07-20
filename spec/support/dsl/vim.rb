@@ -42,6 +42,10 @@ module Support
         vim.normal(keys)
       end
 
+      def press_with_respecting_mappings(keys)
+        vim.feedkeys(keys)
+      end
+
       def type(keys)
         vim.type(keys)
       end
@@ -62,6 +66,16 @@ module Support
 
       def line(number)
         expr("getline(#{number})")
+      end
+
+      def lines
+        (1..expr("line('$')").to_i).map do |line_number|
+          expr("getline(#{line_number})")
+        end
+      end
+
+      def buffer_content
+        lines.join("\n")
       end
 
       def exists(str)
