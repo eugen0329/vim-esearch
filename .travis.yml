@@ -8,34 +8,20 @@ matrix:
       dist: xenial
       services:
         - xvfb
-      env: DISPLAY=":99.0"
-
-      rvm: 2.2.2
-      cache:
-        bundler: true
-        directories:
-          - $HOME/.rvm
-      jobs:
-        include:
-          - script: bash .ci/before_script.sh && rake ci_system
-            env: ESEARCH_BACKEND=system
-          - script: bash .ci/before_script.sh && rake ci_vim8
-            env: ESEARCH_BACKEND=vim8
-          - script: bash .ci/before_script.sh && rake ci_vimproc
-            env: ESEARCH_BACKEND=vimproc
-
     - os: osx
-      env: DISPLAY=":99.0"
-      rvm: 2.2.2
-      cache:
-        bundler: true
-        directories:
-          - $HOME/.rvm
-      jobs:
-        include:
-          - script: bash .ci/before_script.sh && rake ci_system
-            env: ESEARCH_BACKEND=system
-          - script: bash .ci/before_script.sh && rake ci_vim8
-            env: ESEARCH_BACKEND=vim8
-          - script: bash .ci/before_script.sh && rake ci_vimproc
-            env: ESEARCH_BACKEND=vimproc
+
+env: DISPLAY=":99.0"
+rvm: 2.2.2
+cache:
+  bundler: true
+  directories:
+    - $HOME/.rvm
+
+jobs:
+  include:
+    - script: bash .ci/before_script.sh && rake ci_system
+      env: ESEARCH_BACKEND=system
+    - script: bash .ci/before_script.sh && rake ci_vim8
+      env: ESEARCH_BACKEND=vim8
+    - script: bash .ci/before_script.sh && rake ci_vimproc
+      env: ESEARCH_BACKEND=vimproc
