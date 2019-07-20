@@ -30,3 +30,5 @@ end
 def working_directory
   @working_directory ||= ENV.fetch('TRAVIS_BUILD_DIR') { Pathname.new(File.expand_path('../../', __FILE__)) }
 end
+
+RSpec::Matchers.define_negated_matcher :not_include, :include

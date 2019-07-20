@@ -90,7 +90,7 @@ fu! s:finish(request, request_id) abort
   call s:read_errors(a:request)
   if has_key(a:request, 'bufnr')
     let ut_bak = float2nr(getbufvar(a:request.bufnr, 'updatetime_backup'))
-    call setbufvar(a:request.bufnr, '&ut', ut_bak)
+    call setbufvar(a:request.bufnr, '&updatetime', ut_bak)
   endif
   let [a:request.cond, a:request.status] = a:request.pipe.waitpid()
   let a:request.finished = 1
