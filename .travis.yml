@@ -1,5 +1,8 @@
 sudo: required
-dist: trusty
+# dist: trusty
+dist: xenial
+services:
+  - xvfb
 os:
   - linux
   # - osx
