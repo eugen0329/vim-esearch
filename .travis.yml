@@ -5,7 +5,7 @@ services:
   - xvfb
 os:
   - linux
-  # - osx
+  - osx
 
 env:
   - DISPLAY=":99.0"
