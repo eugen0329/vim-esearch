@@ -19,7 +19,6 @@ if get(s:esearch, 'nerdtree_plugin', 1)
   fu! NERDTreeEsearchDir(node) abort
     let path = a:node.path
     let cwd = path.isDirectory ? path.str() : path.getParent().str()
-    let g:cwd = cwd
     return esearch#init({ 'cwd': cwd })
   endfu
 end
