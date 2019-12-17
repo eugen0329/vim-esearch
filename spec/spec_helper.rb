@@ -32,14 +32,18 @@ end
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
 # TODO move out of here
-def wait_search_start
+def wait_for_search_start
   expect {
     press("j") # press j to close "Press ENTER or type command to continue" prompt
     bufname("%") =~ /Search/
   }.to become_true_within(20.second)
 end
 
-def wait_quickfix_enter
+def wait_for_search_freezed(timeout = 3.seconds)
+  expect { line(1) =~ /Finish/i }.not_to become_true_within(timeout)
+end
+
+def wait_for_qickfix_enter
   expect {
     expr('&filetype') == 'qf'
   }.to become_true_within(5.second)

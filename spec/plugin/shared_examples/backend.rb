@@ -68,7 +68,7 @@ def settings_dependent_context(backend, adapter, matching_type, settings)
   File.readlines("spec/fixtures/backend/#{matching_type}.txt").map(&:chomp).each do |test_query|
     it "finds `#{test_query}`" do
       press ":call esearch#init()<Enter>#{test_query}<Enter>"
-      wait_search_start
+      wait_for_search_start
 
       expect { line(1) =~ /Finish/i }.to become_true_within(10.seconds),
         -> { "Expected first line to match /Finish/, got `#{line(1)}`" }

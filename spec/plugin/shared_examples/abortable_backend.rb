@@ -1,8 +1,6 @@
 RSpec.shared_examples 'an abortable backend' do |backend|
-  # let(:adapter) { 'grep' } # trick with urandom works only with grep
   let(:adapter) { 'ag' } # trick with urandom works only with grep
   let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
-  # let(:search_string) { '1' }
   let(:out) { 'win' }
 
   before do
@@ -17,27 +15,25 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   context '#out#win' do
     let(:out) { 'win' }
 
-    xit 'aborts on bufdelete' do
-      press ":call esearch#init({'cwd': '/dev/urandom'})<Enter>#{search_string}<Enter>"
-      wait_search_start
-
-      expect { `ps aux`.include?(search_string) }
-        .to become_true_within(10.seconds)
+    it 'aborts on bufdelete' do
+      press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
+      wait_for_search_start
+      expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+      wait_for_search_freezed
 
       # From :help bdelete
       #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
       press ':bdelete<Enter>'
 
-      expect { !`ps aux`.include?(search_string) }
-        .to become_true_within(10.seconds)
+      expect { !`ps aux`.include?(search_string) }.to become_true_within(10.seconds)
     end
 
     it 'aborts on search restart' do
       2.times do
         press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
-        wait_search_start
-
-        expect { line(1) =~ /Finish/i }.not_to become_true_within(5.second)
+        wait_for_search_start
+        expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+        wait_for_search_freezed
       end
 
       expect { ps_aux_without_sh_delegate_command.scan(/#{search_string}/).count == 1 }
@@ -48,25 +44,27 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   context '#out#qflist' do
     let(:out) { 'qflist' }
 
-    xit 'aborts on bufdelete' do
-      press ":call esearch#init({'cwd': '/dev/urandom'})<Enter>#{search_string}<Enter>"
-      wait_quickfix_enter
+    it 'aborts on bufdelete' do
+      press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
+      wait_for_qickfix_enter
+      expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+      wait_for_search_freezed
 
-      expect { `ps aux`.include?(search_string) }
-        .to become_true_within(10.seconds)
+      expect { `ps aux`.include?(search_string) } .to become_true_within(10.seconds)
 
       # From :help bdelete
       #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
       press ':bdelete<Enter>'
 
-      expect { !`ps aux`.include?(search_string) }
-        .to become_true_within(10.seconds)
+      expect { !`ps aux`.include?(search_string) } .to become_true_within(10.seconds)
     end
 
-    xit 'aborts on search restart' do
+    it 'aborts on search restart' do
       2.times do
-        press ":call esearch#init({'cwd': '/dev/urandom'})<Enter>#{search_string}<Enter>"
-        wait_quickfix_enter
+        press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
+        wait_for_qickfix_enter
+        expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+        wait_for_search_freezed
       end
 
       expect { ps_aux_without_sh_delegate_command.scan(/#{search_string}/).count == 1 }
