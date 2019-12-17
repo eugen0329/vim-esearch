@@ -6,7 +6,7 @@ context 'esearch' do
   context '#backend' do
 
     describe '#system' do
-      # it_behaves_like 'a backend', 'system'
+      it_behaves_like 'a backend', 'system'
     end
 
   end

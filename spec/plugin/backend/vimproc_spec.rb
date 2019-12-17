@@ -11,7 +11,7 @@ context 'esearch' do
         press ":let g:esearch#backend#vimproc#read_timeout = 30"
       end
 
-      # it_behaves_like 'a backend', 'vimproc'# if ENV['TRAVIS_OS_NAME'] != 'osx'
+      it_behaves_like 'a backend', 'vimproc'# if ENV['TRAVIS_OS_NAME'] != 'osx'
       it_behaves_like 'an abortable backend', 'vimproc'
     end
   end
