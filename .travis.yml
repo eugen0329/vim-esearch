@@ -9,7 +9,7 @@ env: DISPLAY=":99.0"
 
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
-rvm: 2.2.2
+rvm: 2.2.5
 language: ruby
 
 cache:
