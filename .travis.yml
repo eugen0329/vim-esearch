@@ -1,6 +1,6 @@
 sudo: required
 dist: xenial
-osx_image: xcode11.2	
+osx_image: xcode9.2	# https://docs.travis-ci.com/user/reference/osx/
 
 services:
   - xvfb
@@ -10,6 +10,7 @@ env: DISPLAY=":99.0"
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 rvm: 2.2.5
+# Workaround: https://github.com/travis-ci/travis-ci/issues/5361
 before_install:
   - rvm get stable --auto-dotfiles
   - rvm install 2.2.5
