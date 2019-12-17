@@ -6,10 +6,10 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   before do
     esearch_settings(backend: backend, adapter: adapter, out: out)
     vim_let("g:esearch#adapter##{adapter}#bin", "'cat /dev/urandom | #{adapter}'")
-
   end
   after do
     `ps aux | grep #{search_string} | awk '$0=$2' | xargs kill`
+    vim_let("g:esearch#adapter##{adapter}#bin", "'#{adapter}'")
   end
 
   context '#out#win' do
