@@ -15,13 +15,13 @@ language: ruby
 cache:
   bundler: true
   directories:
+    - $TRAVIS_BUILD_DIR/.dep
     - $HOME/.rvm
+    - $HOME/Library/Caches/Homebrew
 # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
 before_cache:
   - which brew && brew cleanup
-cache:
-  directories:
-    - $HOME/Library/Caches/Homebrew
+
 jobs:
   include:
     - script: bash .ci/before_script.sh && rake ci_system
