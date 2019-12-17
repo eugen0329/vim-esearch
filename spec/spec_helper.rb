@@ -36,7 +36,7 @@ def wait_search_start
   expect {
     press("j") # press j to close "Press ENTER or type command to continue" prompt
     bufname("%") =~ /Search/
-  }.to become_true_within(5.second)
+  }.to become_true_within(20.second)
 end
 
 def wait_quickfix_enter
