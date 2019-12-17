@@ -1,9 +1,12 @@
 sudo: required
 language: ruby
-os:
-  - linux
-  - osx
+# os:
+#   - linux
+#   - osx
+
 dist: xenial
+osx_image: xcode11.2	
+
 services:
   - xvfb
 
@@ -17,8 +20,25 @@ cache:
 jobs:
   include:
     - script: bash .ci/before_script.sh && rake ci_system
-      env: ESEARCH_BACKEND=system
+      os: osx
+      # env: ESEARCH_BACKEND=system
     - script: bash .ci/before_script.sh && rake ci_vim8
-      env: ESEARCH_BACKEND=vim8
+      os: osx
+      # env: ESEARCH_BACKEND=vim8
     - script: bash .ci/before_script.sh && rake ci_vimproc
-      env: ESEARCH_BACKEND=vimproc
+      os: osx
+      # env: ESEARCH_BACKEND=vimproc
+      #
+      #
+    - script: bash .ci/before_script.sh && rake ci_system
+      os: linux
+      # dist: xenial
+      # env: ESEARCH_BACKEND=system
+    - script: bash .ci/before_script.sh && rake ci_vim8
+      os: linux
+      # dist: xenial
+      # env: ESEARCH_BACKEND=vim8
+    - script: bash .ci/before_script.sh && rake ci_vimproc
+      os: linux
+      # dist: xenial
+      # env: ESEARCH_BACKEND=vimproc
