@@ -32,7 +32,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
 
     it 'aborts on search restart' do
       2.times do
-        press ":call esearch#init()<Enter>#{search_string}<Enter>"
+        press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
         wait_search_start
 
         expect { line(1) =~ /Finish/i }.not_to become_true_within(5.second)
