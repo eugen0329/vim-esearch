@@ -21,10 +21,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
       expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
       wait_for_search_freezed
 
-      # From :help bdelete
-      #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
-      press ':bdelete<Enter>'
-
+      delete_current_buffer
       expect { !`ps aux`.include?(search_string) }.to become_true_within(10.seconds)
     end
 
@@ -49,13 +46,9 @@ RSpec.shared_examples 'an abortable backend' do |backend|
       wait_for_qickfix_enter
       expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
       wait_for_search_freezed
-
       expect { `ps aux`.include?(search_string) } .to become_true_within(10.seconds)
 
-      # From :help bdelete
-      #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
-      press ':bdelete<Enter>'
-
+      delete_current_buffer
       expect { !`ps aux`.include?(search_string) } .to become_true_within(10.seconds)
     end
 

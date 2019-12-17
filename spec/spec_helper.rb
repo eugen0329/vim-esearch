@@ -59,3 +59,9 @@ end
 def working_directory
   @working_directory ||= ENV.fetch('TRAVIS_BUILD_DIR') { Pathname.new(File.expand_path('../../', __FILE__)) }
 end
+
+def delete_current_buffer
+  # From :help bdelete
+  #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
+  press ':bdelete<Enter>'
+end
