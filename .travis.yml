@@ -2,6 +2,7 @@ sudo: required
 language: ruby
 os:
   - linux
+  - osx
 dist: xenial
 services:
   - xvfb
