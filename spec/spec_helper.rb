@@ -30,6 +30,8 @@ RSpec.configure do |config|
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
+
+# TODO move out of here
 def wait_search_start
   expect {
     press("j") # press j to close "Press ENTER or type command to continue" prompt
@@ -53,4 +55,3 @@ end
 def working_directory
   @working_directory ||= ENV.fetch('TRAVIS_BUILD_DIR') { Pathname.new(File.expand_path('../../', __FILE__)) }
 end
-

@@ -1,4 +1,4 @@
-bash .ci/install_dependencies.sh
+bash .ci/install_vim_dependencies.sh
 bundle install
 
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash .ci/install_osx.sh; fi
