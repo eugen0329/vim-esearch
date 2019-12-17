@@ -20,27 +20,31 @@ cache:
 jobs:
   include:
     - script: bash .ci/before_script.sh && rake ci_system
+      name: 'Test #backend#system'
       os: osx
       # env: ESEARCH_BACKEND=system
     - script: bash .ci/before_script.sh && rake ci_vim8
+      name: 'Test #backend#vim8'
       os: osx
       # env: ESEARCH_BACKEND=vim8
-    # - script: bash .ci/before_script.sh && rake ci_vimproc
-      # os: osx
+    - script: bash .ci/before_script.sh && rake ci_vimproc
+      name: 'Test #backend#vimproc'
+      os: osx
       # env: ESEARCH_BACKEND=vimproc
       #
       #
     - script: bash .ci/before_script.sh && rake ci_system
+      name: 'Test #backend#system'
       os: linux
       # dist: xenial
       # env: ESEARCH_BACKEND=system
     - script: bash .ci/before_script.sh && rake ci_vim8
+      name: 'Test #backend#vim8'
       os: linux
       # dist: xenial
       # env: ESEARCH_BACKEND=vim8
     - script: bash .ci/before_script.sh && rake ci_vimproc
-      os:
-        - linux
-        - osx
+      name: 'Test #backend#vimproc'
+      os: linux
       # dist: xenial
       # env: ESEARCH_BACKEND=vimproc
