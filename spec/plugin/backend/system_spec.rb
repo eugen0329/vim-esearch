@@ -5,7 +5,7 @@ require 'plugin/shared_contexts/dumpable.rb'
 context 'esearch' do
   context '#backend' do
 
-    describe '#system' do
+    describe '#system', :system do
       it_behaves_like 'a backend', 'system'
     end
 

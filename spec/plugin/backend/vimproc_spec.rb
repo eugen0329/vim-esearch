@@ -5,7 +5,7 @@ require 'plugin/shared_contexts/dumpable.rb'
 
 context 'esearch' do
   context '#backend' do
-    describe '#vimproc' do
+    describe '#vimproc, :vimproc' do
       before(:all) do
         press ":let g:esearch#backend#vimproc#updatetime = 30"
         press ":let g:esearch#backend#vimproc#read_timeout = 30"

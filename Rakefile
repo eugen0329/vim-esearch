@@ -16,16 +16,16 @@ task :print_versions do
 end
 
 task :system do
-  sh "#{RSPEC_COMMAND} ./spec/plugin/backend/system_spec.rb"
+  sh "#{RSPEC_COMMAND} --tag system"
   raise "RSPEC_COMMAND failed!" unless $?.exitstatus == 0
 end
 
 task :vim8 do
-  sh "#{RSPEC_COMMAND} ./spec/plugin/backend/vim8_spec.rb"
-  raise "RSPEC_COMMAND failed!" unless $?.exitstatus == 0
+  sh "#{RSPEC_COMMAND} --tag vim8"
+  raise "RSPEC_COMMAND eailed!" unless $?.exitstatus == 0
 end
 
 task :vimproc do
-  sh "#{RSPEC_COMMAND} ./spec/plugin/backend/vim8_spec.rb"
+  sh "#{RSPEC_COMMAND} --tag vimproc"
   raise "RSPEC_COMMAND failed!" unless $?.exitstatus == 0
 end
