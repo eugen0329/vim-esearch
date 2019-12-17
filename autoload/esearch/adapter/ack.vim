@@ -3,6 +3,9 @@
 if !exists('g:esearch#adapter#ack#options')
   let g:esearch#adapter#ack#options = '--sort-files'
 endif
+if !exists('g:esearch#adapter#ack#bin')
+  let g:esearch#adapter#ack#bin = 'ack'
+endif
 
 fu! esearch#adapter#ack#_options() abort
   if !exists('s:options')
@@ -22,7 +25,7 @@ fu! esearch#adapter#ack#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'ack '.r.' '.c.' '.w.' -s --nogroup --nocolor --column ' .
+  return g:esearch#adapter#ack#bin.' '.r.' '.c.' '.w.' -s --nogroup --nocolor --column ' .
         \ g:esearch#adapter#ack#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu

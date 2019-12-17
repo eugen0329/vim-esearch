@@ -1,12 +1,11 @@
 if !exists('g:esearch#adapter#grep#options')
   let g:esearch#adapter#grep#options = ''
 endif
-
-let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
-
 if !exists('g:esearch#adapter#grep#bin')
   let g:esearch#adapter#grep#bin = 'grep'
 endif
+
+let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
 fu! esearch#adapter#grep#_options() abort
   if !exists('s:options')
