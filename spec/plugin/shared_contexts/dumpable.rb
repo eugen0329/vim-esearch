@@ -2,6 +2,8 @@ RSpec.shared_context "dumpable" do
   after(:each) do |example|
     unless example.exception.nil?
       puts cmd('messages')
+
+      puts cmd("echo g:esearch#adapter#grep#bin")
       cmd('let g:prettyprint_width = 160')
 
       puts 'FIRST LINE:', line(1)
