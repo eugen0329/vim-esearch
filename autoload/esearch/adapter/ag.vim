@@ -1,6 +1,9 @@
 if !exists('g:esearch#adapter#ag#options')
   let g:esearch#adapter#ag#options = ''
 endif
+if !exists('g:esearch#adapter#ag#bin')
+  let g:esearch#adapter#ag#bin = 'ag'
+endif
 
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
@@ -22,7 +25,7 @@ fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
-  return 'ag '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
+  return g:esearch#adapter#ag#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
         \ g:esearch#adapter#ag#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu
