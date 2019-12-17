@@ -4,7 +4,7 @@ module Support
     module ESearch
 
       def vim_let(var, value)
-        vim.normal(":let #{var} = #{value}<Enter>")
+        vim.normal(":let #{var} = #{value}<Enter><Enter>")
       end
 
       def esearch_settings(options)

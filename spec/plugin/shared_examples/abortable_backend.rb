@@ -1,11 +1,12 @@
 RSpec.shared_examples 'an abortable backend' do |backend|
   let(:adapter) { 'grep' } # trick with urandom works only with grep
   let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
+  # let(:search_string) { '1' }
   let(:out) { 'win' }
 
   before do
     esearch_settings(backend: backend, adapter: adapter, out: out)
-    vim_let('g:esearch#adapter#grep#bin', "cat /dev/urandom | #{adapter}")
+    vim_let('g:esearch#adapter#grep#bin', "'cat /dev/urandom | #{adapter}'")
   end
   after do
     `ps aux | grep #{search_string} | awk '$0=$2' | xargs kill`
