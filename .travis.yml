@@ -1,9 +1,4 @@
 sudo: required
-language: ruby
-# os:
-#   - linux
-#   - osx
-
 dist: xenial
 osx_image: xcode11.2	
 
@@ -11,7 +6,12 @@ services:
   - xvfb
 
 env: DISPLAY=":99.0"
-rvm: 2.2.2
+
+# https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
+# https://docs.travis-ci.com/user/reference/xenial/#ruby-support
+rvm: 2.4.3
+language: ruby
+
 cache:
   bundler: true
   directories:
