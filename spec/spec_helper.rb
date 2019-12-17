@@ -52,7 +52,7 @@ end
 def ps_aux_without_sh_delegate_command
   `ps aux`
     .split("\n")
-    .reject { |l| l.include?('sh -c') }
+    .reject { |l| l.include?('sh -c') || l.include?('/bin/bash') } # sh -c vim8, /bin/bash - vimproc
     .join("\n")
 end
 
