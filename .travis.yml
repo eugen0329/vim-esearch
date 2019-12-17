@@ -25,8 +25,8 @@ jobs:
     - script: bash .ci/before_script.sh && rake ci_vim8
       os: osx
       # env: ESEARCH_BACKEND=vim8
-    - script: bash .ci/before_script.sh && rake ci_vimproc
-      os: osx
+    # - script: bash .ci/before_script.sh && rake ci_vimproc
+      # os: osx
       # env: ESEARCH_BACKEND=vimproc
       #
       #
@@ -39,6 +39,8 @@ jobs:
       # dist: xenial
       # env: ESEARCH_BACKEND=vim8
     - script: bash .ci/before_script.sh && rake ci_vimproc
-      os: linux
+      os:
+        - linux
+        - osx
       # dist: xenial
       # env: ESEARCH_BACKEND=vimproc
