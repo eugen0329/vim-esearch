@@ -1,3 +1,5 @@
+#!/bin/sh
+
 util=$1
 shift
 arguments=$@

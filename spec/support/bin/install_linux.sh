@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # sudo apt-get remove -y -f vim
 # sudo apt-get remove -y -f vim-common
 # sudo apt-get remove -y -f vim-gui-common

@@ -19,7 +19,7 @@ cache:
   bundler: true
   apt: true
   directories:
-    - $TRAVIS_BUILD_DIR/.dep
+    - $TRAVIS_BUILD_DIR/spec/fixtures/vim_plugins
     - $HOME/.rvm
     - $HOME/Library/Caches/Homebrew
 before_cache:
@@ -27,14 +27,14 @@ before_cache:
 
 install:
   - |
-    sh .ci/install_vim_dependencies.sh
+    sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/fixtures/vim_plugins"
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh .ci/install_osx.sh
+      sh spec/support/bin/install_osx.sh
       mvim --version
     else
-      sh .ci/install_linux.sh
+      sh spec/support/bin/install_linux.sh
       vim --version
     fi
     ack --version

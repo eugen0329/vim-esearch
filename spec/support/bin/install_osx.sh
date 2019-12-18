@@ -1,3 +1,5 @@
+#!/bin/sh
+
 brew update
 brew install macvim -- --with-override-system-vim
 brew install ack

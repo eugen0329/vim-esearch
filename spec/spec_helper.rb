@@ -9,15 +9,14 @@ SEARCH_UTIL_ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg'].freeze
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
-
-  plug_path    = Pathname.new(File.expand_path('../../', __FILE__))
-  vimproc_path = plug_path.join('.dep', 'vimproc.vim')
-  pp_path      = plug_path.join('.dep', 'vim-prettyprint')
-
   config.start_vim do
     vim = Vimrunner.start_gvim
     sleep 1
-    vim.add_plugin(plug_path,    plug_path.join('plugin', 'esearch.vim'))
+
+    vimproc_path = working_directory.join('spec', 'support', 'bin', 'vimproc.vim')
+    pp_path      = working_directory.join('spec', 'support', 'bin', 'vim-prettyprint')
+
+    vim.add_plugin(working_directory,    working_directory.join('plugin', 'esearch.vim'))
     vim.add_plugin(vimproc_path, vimproc_path.join('plugin', 'vimproc.vim'))
     vim.add_plugin(pp_path,      vimproc_path.join('plugin', 'prettyprint.vim'))
     vim
@@ -66,7 +65,7 @@ def ps_commands_without_sh
 end
 
 def working_directory
-  @working_directory ||= ENV.fetch('TRAVIS_BUILD_DIR') { Pathname.new(File.expand_path('../../', __FILE__)) }
+  @working_directory ||= Pathname.new(File.expand_path('../../', __FILE__))
 end
 
 def delete_current_buffer
