@@ -6,7 +6,12 @@ if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash .ci/install_linux.sh; fi
 # if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi 
 
-vim --version
+
+if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+  mvim --version
+else
+  vim --version
+fi
 ack --version
 ag --version
 git --version
