@@ -13,12 +13,12 @@ Vimrunner::RSpec.configure do |config|
     vim = Vimrunner.start_gvim
     sleep 1
 
-    vimproc_path = working_directory.join('spec', 'support', 'bin', 'vimproc.vim')
-    pp_path      = working_directory.join('spec', 'support', 'bin', 'vim-prettyprint')
+    vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
+    pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
 
-    vim.add_plugin(working_directory,    working_directory.join('plugin', 'esearch.vim'))
-    vim.add_plugin(vimproc_path, vimproc_path.join('plugin', 'vimproc.vim'))
-    vim.add_plugin(pp_path,      vimproc_path.join('plugin', 'prettyprint.vim'))
+    vim.add_plugin(working_directory, working_directory.join('plugin', 'esearch.vim'))
+    vim.add_plugin(vimproc_path,      vimproc_path.join('plugin', 'vimproc.vim'))
+    vim.add_plugin(pp_path,           pp_path.join('plugin', 'prettyprint.vim'))
     vim
   end
 end

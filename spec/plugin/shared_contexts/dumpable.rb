@@ -2,11 +2,11 @@ RSpec.shared_context "dumpable" do
   after(:each) do |example|
     unless example.exception.nil?
       press("j") # press j to close "Press ENTER or type command to continue" prompt
-      puts cmd('messages')
+      puts ':messages', cmd('messages')
 
       cmd('let g:prettyprint_width = 160')
 
-      puts 'FIRST LINE:', line(1)
+      puts 'Buffer content:', buffer_content
       puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
