@@ -19,7 +19,7 @@ cache:
   bundler: true
   apt: true
   directories:
-    - $TRAVIS_BUILD_DIR/spec/fixtures/vim_plugins
+    - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     - $HOME/.rvm
     # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
     - $HOME/Library/Caches/Homebrew
@@ -39,7 +39,7 @@ before_install:
   - sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
 install:
   - |
-    sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/fixtures/vim_plugins"
+    sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
