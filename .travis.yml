@@ -21,10 +21,10 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     - $HOME/.rvm
+
     # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
     - $HOME/Library/Caches/Homebrew
     - /usr/local/Homebrew
-
     - /usr/local/Cellar/python # /3.7.5   # 120.2MB, built in 3 minutes 43 seconds
     - /usr/local/Cellar/ruby   # /2.6.5   # 31.1MB, built in 5 minutes 27 seconds
     - /usr/local/Cellar/sqlite # /3.30.1  # 3.9MB, built in 1 minute 17 seconds
