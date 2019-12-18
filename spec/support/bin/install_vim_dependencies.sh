@@ -31,8 +31,10 @@ directory_prefix="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../vim_plugi
 echo $directory_prefix
 
 git_pull_or_clone https://github.com/thinca/vim-prettyprint $directory_prefix/vim-prettyprint
+git  -C $directory_prefix/vimproc.vim checkout d6060d2b1ff1cff71714e126addd3b10883ade12
+
 git_pull_or_clone https://github.com/Shougo/vimproc.vim     $directory_prefix/vimproc.vim
-git  -C $directory_prefix/vimproc.vim checkout 81f4fa5239705724a49fbecd3299ced843f4972f
+git  -C $directory_prefix/vimproc.vim checkout 89065f62883edb10a99aa1b1640d6d411907316b
 cd $directory_prefix/vimproc.vim
 make
 cd -

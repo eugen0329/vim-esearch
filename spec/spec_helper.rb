@@ -2,7 +2,6 @@ require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
-# require 'retryable'
 Dir[File.expand_path('spec/support/**/*.rb')].each {|f| require f}
 
 SEARCH_UTIL_ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg'].freeze
