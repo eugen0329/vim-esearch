@@ -7,6 +7,8 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     esearch_settings(backend: backend, adapter: adapter, out: out)
     vim_let("g:esearch#adapter##{adapter}#bin",
             "'/bin/bash #{working_directory}/.ci/search_in_infinite_random_stdin.bash #{adapter}'")
+
+    expect(`ps aux`).not_to include(search_string) # prevent false positive results
   end
   after do
     `ps aux | grep #{search_string} | awk '$0=$2' | xargs kill`
