@@ -43,6 +43,7 @@ cache:
 before_install:
   - sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
 
+  - brew update --verbose
   - test -d /usr/local/opt/python/lib || { rmdir /usr/local/opt/python/lib ; brew install python }
   - test -d /usr/local/opt/ruby/lib   || { rmdir /usr/local/opt/ruby/lib ; brew install ruby     }
   - test -d /usr/local/opt/sqlite/lib || { rmdir /usr/local/opt/sqlite/lib ; brew install sqlite }
