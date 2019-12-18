@@ -8,9 +8,7 @@ osx_image: xcode9
 # NOTE: Services are not supported on osx
 services:
   - xvfb
-env:
-  - DISPLAY=":99.0"
-  - HOMEBREW_NO_AUTO_UPDATE=1
+env: DISPLAY=":99.0" HOMEBREW_NO_AUTO_UPDATE=1
 
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
