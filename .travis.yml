@@ -26,22 +26,22 @@ before_cache:
 
 jobs:
   include:
-    - script: travis_wait 30 bash .ci/before_script.sh && rake ci_system
+    - script: travis_wait 30 bash .ci/before_script.sh && rspec --tag system
       name: 'Test #backend#system'
       os: osx
-    - script: travis_wait 30 bash .ci/before_script.sh && rake ci_vim8
+    - script: travis_wait 30 bash .ci/before_script.sh && rspec --tag vim8
       name: 'Test #backend#vim8'
       os: osx
-    - script: travis_wait 30 bash .ci/before_script.sh && rake ci_vimproc
+    - script: travis_wait 30 bash .ci/before_script.sh && rspec --tag vimproc
       name: 'Test #backend#vimproc'
       os: osx
 
-    - script: bash .ci/before_script.sh && rake ci_system
+    - script: bash .ci/before_script.sh && rspec --tag system
       name: 'Test #backend#system'
       os: linux
-    - script: bash .ci/before_script.sh && rake ci_vim8
+    - script: bash .ci/before_script.sh && rspec --tag vim8
       name: 'Test #backend#vim8'
       os: linux
-    - script: bash .ci/before_script.sh && rake ci_vimproc
+    - script: bash .ci/before_script.sh && rspec --tag vimproc
       name: 'Test #backend#vimproc'
       os: linux

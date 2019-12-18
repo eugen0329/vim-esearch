@@ -27,6 +27,11 @@ end
 RSpec.configure do |config|
   config.include Support::DSL::Vim
   config.include Support::DSL::ESearch
+
+  config.color_mode = true
+  config.order = :rand
+  config.formatter = :documentation
+  config.fail_fast = 3
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
