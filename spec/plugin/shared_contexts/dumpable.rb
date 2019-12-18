@@ -1,6 +1,7 @@
 RSpec.shared_context "dumpable" do
   after(:each) do |example|
     unless example.exception.nil?
+      press("j") # press j to close "Press ENTER or type command to continue" prompt
       puts cmd('messages')
 
       cmd('let g:prettyprint_width = 160')

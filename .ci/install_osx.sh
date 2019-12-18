@@ -1,5 +1,5 @@
 brew update
-brew install macvim 8.1-161 -- --with-override-system-vim
+brew install macvim -- --with-override-system-vim
 brew install ack
 brew install the_silver_searcher
 brew install the_platinum_searcher

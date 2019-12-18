@@ -27,7 +27,7 @@ before_cache:
 
 install:
   - >
-    bash .ci/install_vim_dependencies.sh
+    sh .ci/install_vim_dependencies.sh
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
