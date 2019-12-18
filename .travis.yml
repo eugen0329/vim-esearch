@@ -27,22 +27,26 @@ before_cache:
 
 jobs:
   include:
-    - name: 'Test #backend#system'
+    - name: 'Test acceptance of #backend#system'
       script: travis_wait 60 bash .ci/before_script.sh && bundle exec rspec --tag system
       os: osx
-    - name: 'Test #backend#vim8'
+    - name: 'Test acceptance of #backend#vim8'
       script: travis_wait 60 bash .ci/before_script.sh && bundle exec rspec --tag vim8
       os: osx
-    - name: 'Test #backend#vimproc'
+    - name: 'Test acceptance of #backend#vimproc'
       script: travis_wait 60 bash .ci/before_script.sh && bundle exec rspec --tag vimproc
       os: osx
 
-    - name: 'Test #backend#system'
+    - name: 'Test acceptance of #backend#system'
       script: bash .ci/before_script.sh && bundle exec rspec --tag system
       os: linux
-    - name: 'Test #backend#vim8'
+    - name: 'Test acceptance of #backend#vim8'
       script: bash .ci/before_script.sh && bundle exec rspec --tag vim8
       os: linux
-    - name: 'Test #backend#vimproc'
+    - name: 'Test acceptance of #backend#vimproc'
       script: bash .ci/before_script.sh && bundle exec rspec --tag vimproc
+      os: linux
+
+    - name: 'Unit tests'
+      script: bash .ci/before_script.sh && bundle exec rspec --tag ~backend
       os: linux
