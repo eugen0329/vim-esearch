@@ -26,22 +26,22 @@ before_cache:
 
 jobs:
   include:
-    - script: bash .ci/before_script.sh && rspec --tag system
+    - script: bash .ci/before_script.sh && bundle exec rspec --tag system
       name: 'Test #backend#system'
       os: osx
-    - script: bash .ci/before_script.sh && rspec --tag vim8
+    - script: bash .ci/before_script.sh && bundle exec rspec --tag vim8
       name: 'Test #backend#vim8'
       os: osx
-    - script: bash .ci/before_script.sh && rspec --tag vimproc
+    - script: bash .ci/before_script.sh && bundle exec rspec --tag vimproc
       name: 'Test #backend#vimproc'
       os: osx
 
-    - script: bash .ci/before_script.sh && rspec --tag system
+    - script: bash .ci/before_script.sh && bundle exec rspec --tag system
       name: 'Test #backend#system'
       os: linux
-    - script: bash .ci/before_script.sh && rspec --tag vim8
+    - script: bash .ci/before_script.sh && bundle exec rspec --tag vim8
       name: 'Test #backend#vim8'
       os: linux
-    - script: bash .ci/before_script.sh && rspec --tag vimproc
+    - script: bash .ci/before_script.sh && bundle exec rspec --tag vimproc
       name: 'Test #backend#vimproc'
       os: linux
