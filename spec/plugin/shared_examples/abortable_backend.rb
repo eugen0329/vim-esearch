@@ -12,7 +12,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     example.run
 
     cmd('close!') if bufname("%") =~ /Search/
-    `ps -A -o user,pid,%cpu,%mem,vsz,rss,tt,stat,start,time,command | grep #{search_string} | awk '$0=$2' | xargs kill`
+    `ps -A -o user,pid,%cpu,%mem,vsz,rss,tt,stat,start,time,command | grep #{search_string} | awk '$0=$2' | xargs kill -s KILL`
     expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds) # verify teardown is done
     vim_let("g:esearch#adapter##{adapter}#bin", "'#{adapter}'")
   end
