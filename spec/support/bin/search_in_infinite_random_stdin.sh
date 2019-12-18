@@ -1,4 +1,5 @@
 util=$1
-arguments=${@:2}
+shift
+arguments=$@
 
 cat /dev/urandom | $util $arguments

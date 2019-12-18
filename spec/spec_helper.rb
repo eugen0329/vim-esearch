@@ -54,10 +54,14 @@ def wait_for_qickfix_enter
   }.to become_true_within(5.second)
 end
 
-def ps_aux_without_sh_delegate_command
-  `ps aux`
+def ps_commands
+  `ps x -o command --no-headers`
+end
+
+def ps_commands_without_sh
+  ps_commands
     .split("\n")
-    .reject { |l| l.include?('sh -c') || l.include?('/bin/bash') } # sh -c vim8, /bin/bash - vimproc
+    .reject { |l| %r{\A\s*(?:/bin/)?sh}.match?(l) }
     .join("\n")
 end
 

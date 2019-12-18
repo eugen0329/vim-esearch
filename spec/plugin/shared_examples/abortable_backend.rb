@@ -6,9 +6,8 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   before do
     esearch_settings(backend: backend, adapter: adapter, out: out)
     vim_let("g:esearch#adapter##{adapter}#bin",
-            "'/bin/bash #{working_directory}/.ci/search_in_infinite_random_stdin.bash #{adapter}'")
-
-    expect(`ps aux`).not_to include(search_string) # prevent false positive results
+            "'sh #{working_directory}/spec/support/bin/search_in_infinite_random_stdin.sh #{adapter}'")
+    expect(ps_commands).not_to include(search_string) # prevent false positive results
   end
   after do
     `ps aux | grep #{search_string} | awk '$0=$2' | xargs kill`
@@ -21,22 +20,22 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     it 'aborts on bufdelete' do
       press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
       wait_for_search_start
-      expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+      expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
       wait_for_search_freezed
 
       delete_current_buffer
-      expect { !`ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+      expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds)
     end
 
     it 'aborts on search restart' do
       2.times do
         press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
         wait_for_search_start
-        expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+        expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
         wait_for_search_freezed
       end
 
-      expect { ps_aux_without_sh_delegate_command.scan(/#{search_string}/).count == 1 }
+      expect { ps_commands_without_sh.scan(/#{search_string}/).count == 1 }
         .to become_true_within(10.seconds)
     end
   end
@@ -47,23 +46,23 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     it 'aborts on bufdelete' do
       press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
       wait_for_qickfix_enter
-      expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+      expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
       wait_for_search_freezed
-      expect { `ps aux`.include?(search_string) } .to become_true_within(10.seconds)
+      expect { ps_commands.include?(search_string) } .to become_true_within(10.seconds)
 
       delete_current_buffer
-      expect { !`ps aux`.include?(search_string) } .to become_true_within(10.seconds)
+      expect { !ps_commands.include?(search_string) } .to become_true_within(10.seconds)
     end
 
     it 'aborts on search restart' do
       2.times do
         press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
         wait_for_qickfix_enter
-        expect { `ps aux`.include?(search_string) }.to become_true_within(10.seconds)
+        expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
         wait_for_search_freezed
       end
 
-      expect { ps_aux_without_sh_delegate_command.scan(/#{search_string}/).count == 1 }
+      expect { ps_commands_without_sh.scan(/#{search_string}/).count == 1 }
         .to become_true_within(10.seconds)
     end
   end
