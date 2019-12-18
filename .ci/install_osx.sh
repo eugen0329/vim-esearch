@@ -1,5 +1,5 @@
 brew update
-brew install macvim 8.1-161 --with-override-system-vim
+brew install macvim 8.1-161 -- --with-override-system-vim
 brew install ack
 brew install the_silver_searcher
 brew install the_platinum_searcher
@@ -12,4 +12,4 @@ wget https://github.com/BurntSushi/ripgrep/releases/download/$rgversion/$rgfolde
 tar xvfz /tmp/$rgfolder.tar.gz --directory /tmp
 sudo mv /tmp/$rgfolder/rg /usr/local/bin/rg
 
-brew reinstall --with-pcre2 git
+brew reinstall git -- --with-pcre2 
