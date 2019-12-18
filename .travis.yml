@@ -1,36 +1,38 @@
 sudo: required
+
+# https://docs.travis-ci.com/user/reference/linux/#overview
 dist: xenial
-osx_image: xcode9.2	# https://docs.travis-ci.com/user/reference/osx/
+# https://docs.travis-ci.com/user/reference/osx/#macos-version
+osx_image: xcode9.2
+
+# NOTE: Services are not supported on osx
 services:
   - xvfb
 env: DISPLAY=":99.0"
+
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 rvm: 2.2.5
-# Workaround: https://github.com/travis-ci/travis-ci/issues/5361
-# before_install:
-#   - rvm get stable --auto-dotfiles
-#   - rvm install 2.2.5
 language: ruby
+
 cache:
   bundler: true
   directories:
     - $TRAVIS_BUILD_DIR/.dep
     - $HOME/.rvm
     - $HOME/Library/Caches/Homebrew
-# https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
 before_cache:
-  - which brew && brew cleanup
+  - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
 
 jobs:
   include:
-    - script: bash .ci/before_script.sh && rake ci_system
+    - script: travis_wait 30 bash .ci/before_script.sh && rake ci_system
       name: 'Test #backend#system'
       os: osx
-    - script: bash .ci/before_script.sh && rake ci_vim8
+    - script: travis_wait 30 bash .ci/before_script.sh && rake ci_vim8
       name: 'Test #backend#vim8'
       os: osx
-    - script: bash .ci/before_script.sh && rake ci_vimproc
+    - script: travis_wait 30 bash .ci/before_script.sh && rake ci_vimproc
       name: 'Test #backend#vimproc'
       os: osx
 
