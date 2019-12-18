@@ -7,7 +7,9 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash .ci/install_linux.sh; fi
 # if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi 
 
 vim --version
-ag --version
 ack --version
-rg --version
+ag --version
+git --version
+grep --version
 pt --version
+rg --version
