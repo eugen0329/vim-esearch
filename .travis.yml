@@ -25,28 +25,36 @@ cache:
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
 
+before_script:
+  - >
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      travis_wait 60 bash .ci/before_script.sh
+    else
+      bash .ci/before_script.sh
+    fi
+
 jobs:
   include:
     - name: 'Test acceptance of #backend#system'
-      script: travis_wait 60 bash .ci/before_script.sh && bundle exec rspec --tag system
+      script: bundle exec rspec --tag system
       os: osx
     - name: 'Test acceptance of #backend#vim8'
-      script: travis_wait 60 bash .ci/before_script.sh && bundle exec rspec --tag vim8
+      script: bundle exec rspec --tag vim8
       os: osx
     - name: 'Test acceptance of #backend#vimproc'
-      script: travis_wait 60 bash .ci/before_script.sh && bundle exec rspec --tag vimproc
+      script: bundle exec rspec --tag vimproc
       os: osx
 
     - name: 'Test acceptance of #backend#system'
-      script: bash .ci/before_script.sh && bundle exec rspec --tag system
+      script: bundle exec rspec --tag system
       os: linux
     - name: 'Test acceptance of #backend#vim8'
-      script: bash .ci/before_script.sh && bundle exec rspec --tag vim8
+      script: bundle exec rspec --tag vim8
       os: linux
     - name: 'Test acceptance of #backend#vimproc'
-      script: bash .ci/before_script.sh && bundle exec rspec --tag vimproc
+      script: bundle exec rspec --tag vimproc
       os: linux
 
     - name: 'Unit tests'
-      script: bash .ci/before_script.sh && bundle exec rspec --tag ~backend
+      script: bundle exec rspec --tag ~backend
       os: linux
