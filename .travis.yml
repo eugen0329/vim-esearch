@@ -44,12 +44,12 @@ before_install:
   - sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
 
   - brew update --verbose
-  - test -d /usr/local/opt/python/lib || { rmdir /usr/local/opt/python/lib ; brew install python }
-  - test -d /usr/local/opt/ruby/lib   || { rmdir /usr/local/opt/ruby/lib ; brew install ruby     }
-  - test -d /usr/local/opt/sqlite/lib || { rmdir /usr/local/opt/sqlite/lib ; brew install sqlite }
-  - test -d /usr/local/opt/pcre2/lib  || { rmdir /usr/local/opt/pcre2/lib ; brew install pcre2   }
-  - test -d /usr/local/opt/git/lib    || { rmdir /usr/local/opt/git/lib ; brew install git       }
-  - test -d /usr/local/opt/macvim/lib || { rmdir /usr/local/opt/macvim/lib ; brew install macvim }
+  - test -d /usr/local/opt/python/lib || { rmdir /usr/local/opt/python ; brew install python }
+  - test -d /usr/local/opt/ruby/lib   || { rmdir /usr/local/opt/ruby ; brew install ruby     }
+  - test -d /usr/local/opt/sqlite/lib || { rmdir /usr/local/opt/sqlite ; brew install sqlite }
+  - test -d /usr/local/opt/pcre2/lib  || { rmdir /usr/local/opt/pcre2 ; brew install pcre2   }
+  - test -d /usr/local/opt/git/lib    || { rmdir /usr/local/opt/git ; brew install git       }
+  # - test -d /usr/local/opt/macvim/lib || { rmdir /usr/local/opt/macvim ; brew install macvim }
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
