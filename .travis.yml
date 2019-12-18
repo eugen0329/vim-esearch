@@ -27,11 +27,7 @@ before_cache:
 
 install:
   - >
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      travis_wait 60 bash .ci/before_script.sh
-    else
-      bash .ci/before_script.sh
-    fi
+    bash .ci/before_script.sh
 
 after_failure:
   - env

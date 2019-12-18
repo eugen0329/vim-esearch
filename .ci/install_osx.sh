@@ -12,4 +12,4 @@ wget https://github.com/BurntSushi/ripgrep/releases/download/$rgversion/$rgfolde
 tar xvfz /tmp/$rgfolder.tar.gz --directory /tmp
 sudo mv /tmp/$rgfolder/rg /usr/local/bin/rg
 
-brew reinstall --with-pcre git
+brew reinstall --with-pcre2 git
