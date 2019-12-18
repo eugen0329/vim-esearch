@@ -55,7 +55,7 @@ def wait_for_qickfix_enter
 end
 
 def ps_commands
-  `ps x -o command --no-headers`
+  `ps -A -o command --no-headers`
 end
 
 def ps_commands_without_sh
