@@ -8,7 +8,9 @@ osx_image: xcode9
 # NOTE: Services are not supported on osx
 services:
   - xvfb
-env: DISPLAY=":99.0"
+env:
+  - DISPLAY=":99.0"
+  - HOMEBREW_NO_AUTO_UPDATE=1
 
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
@@ -21,10 +23,16 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/spec/fixtures/vim_plugins
     - $HOME/.rvm
+    # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
     - $HOME/Library/Caches/Homebrew
+    - /usr/local/Homebrew
+    # - /usr/local/Cellar/pcre2
+    # - /usr/local/Cellar/git
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
 
+before_install:
+  - sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
 install:
   - |
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/fixtures/vim_plugins"
