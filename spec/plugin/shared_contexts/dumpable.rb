@@ -11,7 +11,7 @@ RSpec.shared_context "dumpable" do
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
       puts "\n"*2, "#"*10, "RUNTIMEPATH"
-      puts expr('runtimepath')
+      puts expr('&runtimepath')
 
       if exists('*prettyprint#prettyprint')
         puts "\n"*2, "#"*10, "G:ESEARCH"
