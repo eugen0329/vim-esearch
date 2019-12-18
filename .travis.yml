@@ -26,31 +26,35 @@ cache:
     - $HOME/Library/Caches/Homebrew
     - /usr/local/Homebrew
 
-    - /usr/local/Cellar/python # /3.7.5   # 120.2MB, built in 3 minutes 43 seconds
-    - /usr/local/Cellar/ruby   # /2.6.5   # 31.1MB, built in 5 minutes 27 seconds
-    - /usr/local/Cellar/sqlite # /3.30.1  # 3.9MB, built in 1 minute 17 seconds
-    - /usr/local/Cellar/pcre2  # /10.34   # 5.8MB, built in 1 minute 14 seconds
-    - /usr/local/Cellar/git
-    # - /usr/local/Cellar/macvim # /8.1-161 # 37.4MB, built in 2 minutes 5 seconds
+    # - /usr/local/Cellar/python # /3.7.5   # 120.2MB, built in 3 minutes 43 seconds
+    # - /usr/local/Cellar/ruby   # /2.6.5   # 31.1MB, built in 5 minutes 27 seconds
+    # - /usr/local/Cellar/sqlite # /3.30.1  # 3.9MB, built in 1 minute 17 seconds
+    # - /usr/local/Cellar/pcre2  # /10.34   # 5.8MB, built in 1 minute 14 seconds
+    # - /usr/local/Cellar/git
+    # # - /usr/local/Cellar/macvim # /8.1-161 # 37.4MB, built in 2 minutes 5 seconds
 
-    - /usr/local/opt/python/lib
-    - /usr/local/opt/ruby/lib
-    - /usr/local/opt/sqlite/lib
-    - /usr/local/opt/pcre2/lib
-    - /usr/local/opt/git/lib
+    # - /usr/local/opt/python/lib
+    # - /usr/local/opt/ruby/lib
+    # - /usr/local/opt/sqlite/lib
+    # - /usr/local/opt/pcre2/lib
+    # - /usr/local/opt/git/lib
     # - /usr/local/opt/macvim/lib
 
 before_install:
   - sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
 
-  - brew update --verbose
-  - test -d /usr/local/opt/python/lib || { rmdir /usr/local/opt/python ; brew install python }
-  - test -d /usr/local/opt/ruby/lib   || { rmdir /usr/local/opt/ruby ; brew install ruby     }
-  - test -d /usr/local/opt/sqlite/lib || { rmdir /usr/local/opt/sqlite ; brew install sqlite }
-  - test -d /usr/local/opt/pcre2/lib  || { rmdir /usr/local/opt/pcre2 ; brew install pcre2   }
-  - test -d /usr/local/opt/git/lib    || { rmdir /usr/local/opt/git ; brew install git       }
+  # - brew update --verbose
+  # - test -d /usr/local/opt/python/lib || { rmdir /usr/local/opt/python ; brew install python }
+  # - test -d /usr/local/opt/ruby/lib   || { rmdir /usr/local/opt/ruby ; brew install ruby     }
+  # - test -d /usr/local/opt/sqlite/lib || { rmdir /usr/local/opt/sqlite ; brew install sqlite }
+  # - test -d /usr/local/opt/pcre2/lib  || { rmdir /usr/local/opt/pcre2 ; brew install pcre2   }
+  # - test -d /usr/local/opt/git/lib    || { rmdir /usr/local/opt/git ; brew install git       }
   # - test -d /usr/local/opt/macvim/lib || { rmdir /usr/local/opt/macvim ; brew install macvim }
 
+  - wget https://github.com/macvim-dev/macvim/releases/download/snapshot-161/MacVim.dmg -P /tmp
+  - hdiutil attach /tmp/MacVim.dmg
+  - sudo cp -R /Volumes/MacVim/MacVim.app /Volumes/MacVim/Applications
+  - hdiutil detach /Volumes/MacVim
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
 

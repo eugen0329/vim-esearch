@@ -2,8 +2,8 @@
 
 # NOTE every which is intentionally kept without redirection output to /dev/null
 
-# brew update --verbose
-brew install macvim -- --with-override-system-vim
+brew update --verbose
+# brew install macvim -- --with-override-system-vim
 
 which ack || brew install ack
 which ag  || brew install the_silver_searcher
