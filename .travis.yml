@@ -3,7 +3,7 @@ sudo: required
 # https://docs.travis-ci.com/user/reference/linux/#overview
 dist: xenial
 # https://docs.travis-ci.com/user/reference/osx/#macos-version
-osx_image: xcode9.2
+osx_image: xcode9
 
 # NOTE: Services are not supported on osx
 services:
