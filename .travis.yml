@@ -17,6 +17,7 @@ language: ruby
 
 cache:
   bundler: true
+  apt: true
   directories:
     - $TRAVIS_BUILD_DIR/.dep
     - $HOME/.rvm
