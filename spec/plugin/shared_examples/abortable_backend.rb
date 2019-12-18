@@ -3,15 +3,17 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
   let(:out) { 'win' }
 
-  before do
+  around do |example|
     esearch_settings(backend: backend, adapter: adapter, out: out)
     vim_let("g:esearch#adapter##{adapter}#bin",
             "'sh #{working_directory}/spec/support/bin/search_in_infinite_random_stdin.sh #{adapter}'")
     expect(ps_commands).not_to include(search_string) # prevent false positive results
-  end
-  after do
+
+    example.run
+
     `ps aux | grep #{search_string} | awk '$0=$2' | xargs kill`
     vim_let("g:esearch#adapter##{adapter}#bin", "'#{adapter}'")
+    cmd('close!') if bufname("%") =~ /Search/
   end
 
   context '#out#win' do
