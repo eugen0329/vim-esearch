@@ -13,7 +13,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
 
     cmd('close!') if bufname("%") =~ /Search/
     `ps -A -o user,pid,%cpu,%mem,vsz,rss,tt,stat,start,time,command | grep #{search_string} | awk '$0=$2' | xargs kill`
-    expect { !ps_commands.include?(search_string) } .to become_true_within(10.seconds) # verify teardown is done
+    expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds) # verify teardown is done
     vim_let("g:esearch#adapter##{adapter}#bin", "'#{adapter}'")
   end
 
@@ -51,10 +51,10 @@ RSpec.shared_examples 'an abortable backend' do |backend|
       wait_for_qickfix_enter
       expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
       wait_for_search_freezed
-      expect { ps_commands.include?(search_string) } .to become_true_within(10.seconds)
+      expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
 
       delete_current_buffer
-      expect { !ps_commands.include?(search_string) } .to become_true_within(10.seconds)
+      expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds)
     end
 
     it 'aborts on search restart' do
