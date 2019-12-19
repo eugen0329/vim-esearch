@@ -37,7 +37,7 @@ before_install:
 install:
   - |
     bundle install
-    [ "$LINT_ONLY" = true ] && exit
+    [ "$LINT_ONLY" = true ] && return
 
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
