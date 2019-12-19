@@ -3,6 +3,8 @@
 # NOTE every which is intentionally kept without redirection output to /dev/null
 
 brew update --verbose
+brew install vim -- --with-client-server
+vim --version
 # brew install macvim -- --with-override-system-vim
 # wget https://github.com/macvim-dev/macvim/releases/download/snapshot-161/MacVim.dmg -P /tmp
 # hdiutil attach /tmp/MacVim.dmg
