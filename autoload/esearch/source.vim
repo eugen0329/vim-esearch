@@ -60,14 +60,14 @@ fu! esearch#source#word_under_cursor(...) abort
   return call('esearch#source#cword', a:000)
 endfu
 
-fu! esearch#source#clipboard()
+fu! esearch#source#clipboard() abort
   return getreg('"')
 endfu
 
-fu! esearch#source#system_clipboard()
+fu! esearch#source#system_clipboard() abort
   return getreg('+')
 endfu
 
-fu! esearch#source#system_selection_clipboard()
+fu! esearch#source#system_selection_clipboard() abort
   return getreg('+')
 endfu
