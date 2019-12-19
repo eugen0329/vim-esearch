@@ -12,7 +12,7 @@ env: DISPLAY=":99.0" HOMEBREW_NO_AUTO_UPDATE=1
 
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
-rvm: 2.3
+rvm: 2.3.8
 language: ruby
 
 before_cache:

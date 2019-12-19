@@ -60,7 +60,7 @@ DEPENDENCIES
   vimrunner
 
 RUBY VERSION
-   ruby 2.3.0p0
+   ruby 2.3.8p459
 
 BUNDLED WITH
-   1.13.1
+   2.1.1
