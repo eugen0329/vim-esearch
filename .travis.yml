@@ -99,5 +99,7 @@ jobs:
       script:
         - bundle exec rubocop --display-cop-names
         - vint autoload nerdtree_plugin plugin syntax
+
+      language: python
       env: LINT_ONLY=true
       os: linux
