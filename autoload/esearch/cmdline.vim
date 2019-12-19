@@ -319,7 +319,7 @@ fu! esearch#cmdline#map(lhs, rhs) abort
 endfu
 
 " borrowed from oblique and incsearch
-fu! esearch#cmdline#buff_compl(A, C, ...) abort
+fu! esearch#cmdline#buff_compl(A, ...) abort
   let chars = map(split(a:A, '.\zs'), 'escape(v:val, "\\[]^$.*")')
   let fuzzy_pat = join(
     \ extend(map(chars[0 : -2], "v:val . '[^' .v:val. ']\\{-}'"),

@@ -503,7 +503,7 @@ fu! esearch#out#win#finish(bufnr) abort
 
   if esearch.request.async
     exe printf('au! ESearchWinAutocmds * <buffer=%s>', string(a:bufnr))
-    for [func_name, event] in items(esearch.request.events)
+    for event in values(esearch.request.events)
       exe printf('au! ESearchWinAutocmds User %s ', event)
     endfor
   endif
