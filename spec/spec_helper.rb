@@ -10,6 +10,7 @@ SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
+
   config.start_vim do
     vim =
       if gui?
