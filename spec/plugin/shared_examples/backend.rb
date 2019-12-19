@@ -33,10 +33,10 @@ RSpec.shared_examples 'a backend' do |backend, _adapter|
           press ":call esearch#init({'cwd': '#{context_fixtures_path}/#{directory}'})<Enter>#{test_query}<Enter>"
 
           # TODO: reduce duplication
-          expect do
+          expect {
             press('j') # press j to close "Press ENTER or type command to continue" prompt
             bufname('%') =~ /Search/
-          end.to become_true_within(5.second)
+          }.to become_true_within(5.second)
           expect { line(1) == 'Matches in 1 lines, 1 file(s). Finished.' }.to become_true_within(10.seconds),
             -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
 

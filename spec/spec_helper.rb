@@ -11,7 +11,7 @@ SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
   config.start_vim do
-    vim = Vimrunner.start_gvim
+    vim = Vimrunner.start
     sleep 1
 
     vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
@@ -38,10 +38,10 @@ RSpec::Matchers.define_negated_matcher :not_include, :include
 
 # TODO: move out of here
 def wait_for_search_start
-  expect do
+  expect {
     press('j') # press j to close "Press ENTER or type command to continue" prompt
     bufname('%') =~ /Search/
-  end.to become_true_within(20.second)
+  }.to become_true_within(20.second)
 end
 
 def wait_for_search_freezed(timeout = 3.seconds)
@@ -49,9 +49,9 @@ def wait_for_search_freezed(timeout = 3.seconds)
 end
 
 def wait_for_qickfix_enter
-  expect do
+  expect {
     expr('&filetype') == 'qf'
-  end.to become_true_within(5.second)
+  }.to become_true_within(5.second)
 end
 
 def ps_commands
