@@ -106,7 +106,9 @@ jobs:
       # before_script:
         # - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
         # - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
-      # script:
+      script:
+        ## TODO enable vimlint back after figuring out why $VIMLINT_IGNORE_JOB_CONTROL_WARNINGS
+        ## is ignored
         # -
         #   sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser
         #     $VIMLINT_IGNORE_JOB_CONTROL_WARNINGS
