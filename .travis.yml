@@ -10,8 +10,6 @@ services:
   - xvfb
 env: DISPLAY=":99.0" HOMEBREW_NO_AUTO_UPDATE=1
 
-# From log file: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
-python: 3.4
 # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 rvm: 2.3.8
@@ -41,8 +39,8 @@ install:
   - |
     bundle install
 
-    if [ "$LINT_ONLY" = true ] ; then
-      pip install --user vim-vint==0.3.21
+    if [ ! -z "$LINTER" ] ; then
+      [ "$LINTER" = vint ] && pip3 install --user vim-vint==0.3.21
       return
     fi
 
@@ -95,9 +93,14 @@ jobs:
       script: bundle exec rspec --tag ~backend
       os: linux
 
-    - name: 'Lint'
-      script:
-        - bundle exec rubocop --display-cop-names
-        - vint autoload nerdtree_plugin plugin syntax
-      env: LINT_ONLY=true
+    - name: 'Rubocop'
+      script: bundle exec rubocop --display-cop-names
+      env: LINTER=rubocop
       os: linux
+    - name: 'Vint'
+      script: vint autoload nerdtree_plugin plugin syntax
+      env: LINTER=vint
+      language: python
+      os: linux
+      # From log file: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      python: 3.7
