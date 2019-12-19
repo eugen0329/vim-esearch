@@ -41,7 +41,7 @@ install:
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       sh spec/support/bin/install_osx.sh
-      mvim --version
+      # mvim --version
     else
       sh spec/support/bin/install_linux.sh
       vim --version
