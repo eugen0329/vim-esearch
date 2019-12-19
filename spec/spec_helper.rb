@@ -11,7 +11,11 @@ SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
   config.start_vim do
-    vim = Vimrunner.start
+    if gui?
+      vim = Vimrunner.start_gvim
+    else
+      vim = Vimrunner.start
+    end
     sleep 1
 
     vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
@@ -35,6 +39,14 @@ RSpec.configure do |config|
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
+
+def gui?
+  !ci? || ENV['GUI'] == '1'
+end
+
+def ci?
+  ENV['TRAVIS_BUILD_ID'].present?
+end
 
 # TODO: move out of here
 def wait_for_search_start
