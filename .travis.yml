@@ -27,10 +27,10 @@ cache:
     - $HOME/Library/Caches/Homebrew
     - /usr/local/Homebrew
 
-before_install:
-  - |
-    sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
-    [ "$TRAVIS_OS_NAME" = "osx" ] && rvm install 2.6.5 --binary --fuzzy # for macvim
+# before_install:
+#   - |
+#     sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
+#     [ "$TRAVIS_OS_NAME" = "osx" ] && rvm install 2.6.5 --binary --fuzzy # for macvim
 install:
   - |
     bundle install
