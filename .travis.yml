@@ -37,8 +37,8 @@ before_install:
   #   [ "$TRAVIS_OS_NAME" = "osx" ] && rvm install 2.6.5 --binary --fuzzy # for macvim
 install:
   - |
-    [ "$LINTER" = vint ] && pip3 install vim-vint==0.3.21 && return
-    [ "$LINTER" = rubocop ] && bundle install && return
+    [ "$LINTER" = vim ] && pip3 install vim-vint==0.3.21 && return
+    [ "$LINTER" = ruby ] && bundle install && return
 
     bundle install
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
@@ -90,13 +90,22 @@ jobs:
     #   script: bundle exec rspec --tag ~backend
     #   os: linux
 
-    - name: 'Ruby lint (Rubocop)'
-      script: bundle exec rubocop --display-cop-names
-      env: LINTER=rubocop
+    - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
+      env: LINTER=ruby
+      script:
+        - bundle exec rubocop --display-cop-names
+        - shellcheck spec/**/*.sh
       os: linux
-    - name: 'Viml lint (Vint)'
-      script: vint autoload nerdtree_plugin plugin syntax
-      env: LINTER=vint
+    - name: 'Viml lint (Vint, VimLint)'
+      env: LINTER=vim VIML_DIRECTORIES=(autoload nerdtree_plugin plugin syntax)
+      before_script:
+        - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
+        - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
+      script:
+        - sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser -v "${VIML_DIRECTORIES[@]}"
+        - vint "${VIML_DIRECTORIES[@]}"
       language: python
-      python: 3.7 # From log file: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      # From logs: The `pip3' command exists in these Python versions:
+      # 3.6.7, 3.7, 3.7.1
+      python: 3.7
       os: linux
