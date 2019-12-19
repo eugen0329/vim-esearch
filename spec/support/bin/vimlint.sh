@@ -29,5 +29,5 @@ status=$?
 echo -e "$output"
 
 [ $status -eq 0 ] && exit 0 # if no errors or warnings
-echo -e $output | grep --color ":Error:" && exit 1 # Allow errors but not warnings
+echo -e $output | grep --color ":Error:" && exit 1 # Allow warnings but not errors
 exit 0
