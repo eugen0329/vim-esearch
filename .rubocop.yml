@@ -38,3 +38,7 @@ Style/DoubleNegation:
 
 Metrics/MethodLength:
   Max: 20
+
+AllCops:
+  Exclude:
+    - 'spec/support/brew_formula/**/*'

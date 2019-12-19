@@ -4,18 +4,19 @@ require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
-Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f }
+Dir[File.expand_path('spec/support/**/*.rb')].each { |f| require f unless f.include?('brew_formula') }
 
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
   config.start_vim do
-    if gui?
-      vim = Vimrunner.start_gvim
-    else
-      vim = Vimrunner.start
-    end
+    vim =
+      if gui?
+        Vimrunner.start_gvim
+      else
+        Vimrunner.start # NOTE: for some reason it deadlocks on travis
+      end
     sleep 1
 
     vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')

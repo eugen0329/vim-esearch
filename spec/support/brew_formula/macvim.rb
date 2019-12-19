@@ -14,8 +14,8 @@ class Macvim < Formula
   end
 
   depends_on :xcode => :build
-  depends_on "cscope"
-  depends_on "lua"
+  # depends_on "cscope"
+  # depends_on "lua"
   # depends_on "python"
   # depends_on "ruby"
 
@@ -41,8 +41,8 @@ class Macvim < Formula
                           "--with-tlib=ncurses",
                           "--with-compiledby=Homebrew",
                           "--with-local-dir=#{HOMEBREW_PREFIX}",
-                          "--enable-cscope",
                           "--with-lua-prefix=#{Formula["lua"].opt_prefix}",
+                          "--enable-cscope=no",
                           "--enable-luainterp=no",
                           "--enable-rubyinterp=no",
                           "--enable-python3interp=no"
@@ -58,8 +58,11 @@ class Macvim < Formula
   end
 
   test do
-    # output = shell_output("#{bin}/mvim --version")
-    # assert_match "+ruby", output
+    output = shell_output("#{bin}/mvim --version")
+    assert_match '-ruby',   output
+    assert_match "-python", output
+    assert_match "-lua",    output
+    assert_match "-cscope", output
 
     # Simple test to check if MacVim was linked to Homebrew's Python 3
     # py3_exec_prefix = Utils.popen_read("python3-config", "--exec-prefix")
