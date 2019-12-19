@@ -1,19 +1,14 @@
 sudo: required
 
-# https://docs.travis-ci.com/user/reference/linux/#overview
-dist: xenial
-# https://docs.travis-ci.com/user/reference/osx/#macos-version
-osx_image: xcode9
-
+dist: xenial      # https://docs.travis-ci.com/user/reference/linux/#overview
+osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
 services:
   - xvfb # NOTE: Services are not supported on osx
 env: DISPLAY=":99.0" HOMEBREW_NO_AUTO_UPDATE=1
 
-# https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
-# https://docs.travis-ci.com/user/reference/xenial/#ruby-support
-rvm: 2.3.8
-language: ruby
+rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
+language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
@@ -24,8 +19,7 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     - $HOME/.rvm
-      # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
-    - $HOME/Library/Caches/Homebrew
+    - $HOME/Library/Caches/Homebrew # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
     - /usr/local/Homebrew
 
 before_install:
@@ -112,7 +106,5 @@ jobs:
         - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
         - "vint $VIML_DIRECTORIES"
       language: python
-      # From logs: The `pip3' command exists in these Python versions:
-      # 3.6.7, 3.7, 3.7.1
-      python: 3.7
+      python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux
