@@ -39,7 +39,7 @@ install:
   - |
     bundle install
     if [ "$LINT_ONLY" = true ] ; then
-      pip install --user vim-vint==0.3.21
+      pip3 install --user vim-vint==0.3.21
       return
     fi
 
