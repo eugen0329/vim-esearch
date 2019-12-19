@@ -99,10 +99,10 @@ jobs:
     - name: 'Viml lint (Vint, VimLint)'
       env:
         LINTER=vim
+        VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
         # VIMLINT_IGNORE_JOB_CONTROL_WARNINGS='-e EVL103.a:channel=1 -e EVL103.a:event=1 -e EVL103.a:job=1 -e EVL103.a:pty=1 -e EVL103.a:timer=1'
         # TODO_VIMLINT_WARNING_SCIPT_ENCODINGS='-e EVL205=3'
         # VIMLINT_IGNORE_UNDERSCORED_VARIABLE_NAME='-e EVL102.l:_=1'
-        # VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
       # before_script:
         # - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
         # - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
