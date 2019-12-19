@@ -1,25 +1,28 @@
 RSpec.shared_context "dumpable" do
   after(:each) do |example|
     unless example.exception.nil?
-      puts cmd('messages')
+      press("j") # press j to close "Press ENTER or type command to continue" prompt
+      puts ':messages', cmd('messages')
+
       cmd('let g:prettyprint_width = 160')
 
-      puts 'FIRST LINE:', line(1)
+      puts 'Buffer content:', buffer_content
       puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
+      puts "\n"*2, "#"*10, "RUNTIMEPATH"
+      puts expr('&runtimepath')
 
-      puts "\n"*2, "#"*10, "G:ESEARCH"
-      dump('g:esearch')
-      puts "\n"*2, "#"*10, "B:ESEARCH.without('request')"
-      dump('b:esearch.without("request")')
-      puts "\n"*2, "#"*10, "REQUEST"
-      dump('b:esearch.request')
-      puts "\n"*2, "#"*10, "RTP"
-      dump('&rtp')
-
-      puts "\n"*2, "#"*10, "[UPDATETIME]"
-      dump('&ut')
+      if exists('*prettyprint#prettyprint')
+        puts "\n"*2, "#"*10, "G:ESEARCH"
+        dump('g:esearch')
+        puts "\n"*2, "#"*10, "B:ESEARCH.without('request')"
+        dump('b:esearch.without("request")')
+        puts "\n"*2, "#"*10, "REQUEST"
+        dump('b:esearch.request')
+        puts "\n"*2, "#"*10, "[UPDATETIME]"
+        dump('&ut')
+      end
 
       puts "\n"*2, "#"*10, "SCRIPTNAMES"
       puts cmd('scriptnames')

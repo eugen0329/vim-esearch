@@ -51,13 +51,7 @@ module Support
       end
 
       def cmd(str)
-        max_retries = 2
-        cb = ->(e) {  puts "WARNING: #{e.message}" }
-        on = [Vimrunner::InvalidCommandError]
-
-        Retryable.retryable(tries: max_retries, sleep: 1, on: on, exception_cb: cb) do
-          return vim.command(str)
-        end
+        vim.command(str)
       end
 
       def bufname(str)

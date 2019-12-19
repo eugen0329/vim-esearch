@@ -1,6 +1,9 @@
 if !exists('g:esearch#adapter#git#options')
   let g:esearch#adapter#git#options = ''
 endif
+if !exists('g:esearch#adapter#git#bin')
+  let g:esearch#adapter#git#bin = 'git'
+endif
 
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
@@ -29,7 +32,7 @@ fu! esearch#adapter#git#cmd(pattern, dir, escape, ...) abort
   let w = options.parametrize('word')
   " -H - show filenames
   " -I - don't search binary files
-  return 'git -C '.fnameescape(a:dir).' --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
+  return g:esearch#adapter#git#bin.' -C '.fnameescape(a:dir).' --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
         \ g:esearch#adapter#git#options . ' -- ' .
         \ a:escape(a:pattern)
 

@@ -1,23 +1,86 @@
 sudo: required
-language: ruby
-os:
-  - linux
+
+# https://docs.travis-ci.com/user/reference/linux/#overview
 dist: xenial
+# https://docs.travis-ci.com/user/reference/osx/#macos-version
+osx_image: xcode9
+
+# NOTE: Services are not supported on osx
 services:
   - xvfb
+env: DISPLAY=":99.0" HOMEBREW_NO_AUTO_UPDATE=1
 
-env: DISPLAY=":99.0"
-rvm: 2.2.2
+# https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
+# https://docs.travis-ci.com/user/reference/xenial/#ruby-support
+rvm: 2.2.5
+language: ruby
+
 cache:
   bundler: true
+  apt: true
   directories:
+    - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     - $HOME/.rvm
+      # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+    - $HOME/Library/Caches/Homebrew
+    - /usr/local/Homebrew
+
+  before_install:
+    - |
+      sudo rm -rf /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask
+      [ "$TRAVIS_OS_NAME" = "osx" ] && rvm install 2.6.5 --binary --fuzzy # for macvim
+  before_cache:
+    - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+
+install:
+  - |
+    sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+    bundle install
+
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      sh spec/support/bin/install_osx.sh
+      mvim --version
+    else
+      sh spec/support/bin/install_linux.sh
+      vim --version
+    fi
+    ack --version
+    ag --version
+    git --version
+    grep --version
+    pt --version
+    rg --version
+
+before_script:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
+    # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi
+
+after_failure:
+  - env
+  - ls -lah /usr/local/bin
 
 jobs:
   include:
-    - script: bash .ci/before_script.sh && rake ci_system
-      env: ESEARCH_BACKEND=system
-    - script: bash .ci/before_script.sh && rake ci_vim8
-      env: ESEARCH_BACKEND=vim8
-    - script: bash .ci/before_script.sh && rake ci_vimproc
-      env: ESEARCH_BACKEND=vimproc
+    - name: 'Acceptances tests of #backend#system'
+      script: bundle exec rspec --tag system
+      os: osx
+    - name: 'Acceptances tests of #backend#vim8'
+      script: bundle exec rspec --tag vim8
+      os: osx
+    - name: 'Acceptances tests of #backend#vimproc'
+      script: bundle exec rspec --tag vimproc --seed 53149
+      os: osx
+
+    - name: 'Acceptances tests of #backend#system'
+      script: bundle exec rspec --tag system
+      os: linux
+    - name: 'Acceptances tests of #backend#vim8'
+      script: bundle exec rspec --tag vim8
+      os: linux
+    - name: 'Acceptances tests of #backend#vimproc'
+      script: bundle exec rspec --tag vimproc
+      os: linux
+
+    - name: 'Unit tests'
+      script: bundle exec rspec --tag ~backend
+      os: linux

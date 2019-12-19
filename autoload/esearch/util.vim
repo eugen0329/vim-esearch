@@ -34,6 +34,7 @@ endif
 
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
+  let buffers = ''
   redir => buffers
   silent ls
   redir END

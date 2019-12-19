@@ -88,9 +88,12 @@ endfu
 
 fu! s:finish(request, request_id) abort
   call s:read_errors(a:request)
-  if has_key(a:request, 'bufnr')
-    let ut_bak = float2nr(getbufvar(a:request.bufnr, 'updatetime_backup'))
-    call setbufvar(a:request.bufnr, '&updatetime', ut_bak)
+  if has_key(a:request, 'bufnr') && a:request.bufnr
+    let updatetime_backup = getbufvar(a:request.bufnr, 'updatetime_backup')
+    if !empty(updatetime_backup)
+      " TODO can be blank for qf, have to be inspected
+      call setbufvar(a:request.bufnr, '&updatetime', float2nr(updatetime_backup))
+    endif
   endif
   let [a:request.cond, a:request.status] = a:request.pipe.waitpid()
   let a:request.finished = 1
