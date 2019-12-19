@@ -114,7 +114,7 @@ jobs:
         TODO_VIMLINT_WARNING_UNUSED_LOCAL_VARIABLES='-e EVL102=3'
         TODO_VIMLINT_WARNING_SCIPT_ENCODINGS='-e EVL205=3'
         VIMLINT_IGNORE_UNDERSCORED_VARIABLE_NAME='-e EVL102.l:_=1'
-        FAIL_EXIT_STATUS_IF_VIMLINT_HAS_ERRORS='| tee /dev/tty | grep -v --color ":Error:"'
+        FAIL_EXIT_STATUS_IF_VIMLINT_HAS_ERRORS='tee /dev/tty | grep -v ":Error:" >/dev/null 2>&1'
       before_script:
         - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
         - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
@@ -124,7 +124,7 @@ jobs:
             $TODO_VIMLINT_WARNING_UNUSED_LOCAL_VARIABLES
             $TODO_VIMLINT_WARNING_SCIPT_ENCODINGS
             $VIML_DIRECTORIES
-            $FAIL_EXIT_STATUS_IF_VIMLINT_HAS_ERRORS
+            | $FAIL_EXIT_STATUS_IF_VIMLINT_HAS_ERRORS
         - "vint $VIML_DIRECTORIES"
       language: python
       # From logs: The `pip3' command exists in these Python versions:
