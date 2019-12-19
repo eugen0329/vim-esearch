@@ -3,11 +3,13 @@
 # NOTE every which is intentionally kept without redirection output to /dev/null
 
 brew update --verbose
-brew install cscope lua gdbm openssl@1.1 readline sqlite xz libyaml # macvim dependencies without except ruby and python
-brew install macvim -- --with-override-system-vi --ignore-dependencies --without-python --without-python3 --without-ruby
+# brew install cscope lua gdbm openssl@1.1 readline sqlite xz libyaml # macvim dependencies without except ruby and python
+# brew install macvim -- --with-override-system-vi --ignore-dependencies --without-python --without-python3 --without-ruby
+brew install --build-from-source "$TRAVIS_BUILD_DIR/spec/support/Formula/macvim.rb" -- --with-override-system-vi
 # brew install vim -- --with-override-system-vi --with-client-server --without-python --without-python3 --without-ruby
 vim --version
 # brew install macvim -- --with-override-system-vim
+
 # wget https://github.com/macvim-dev/macvim/releases/download/snapshot-161/MacVim.dmg -P /tmp
 # hdiutil attach /tmp/MacVim.dmg
 # sudo cp -R /Volumes/MacVim/MacVim.app /Applications
