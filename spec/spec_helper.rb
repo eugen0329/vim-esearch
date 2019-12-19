@@ -41,7 +41,7 @@ end
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
 def gui?
-  !ci? || ENV['GUI'] == '1'
+  ENV.fetch('GUI', '1') == '1'
 end
 
 def ci?
