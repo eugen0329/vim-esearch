@@ -4,7 +4,7 @@ require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
-Dir[File.expand_path('spec/support/**/*.rb')].each { |f| require f unless f.include?('brew_formula') }
+Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
 
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 

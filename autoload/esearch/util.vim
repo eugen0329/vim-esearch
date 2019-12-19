@@ -105,7 +105,7 @@ fu! esearch#util#uniq(list) abort
       " TODO refactor to check variable value instead of existance
       " @vimlint(EVL102, 1, l:empty)
       let empty = 1
-      " @vimlint(EVL103, 0, l:empty)
+      " @vimlint(EVL102, 0, l:empty)
     else
       let seen[a:list[i]] = 1
       let i += 1
@@ -134,8 +134,8 @@ endfu
 
 fu! esearch#util#shellescape(str) abort
   return escape(fnameescape(a:str), ';')
-  return shellescape(a:str, g:esearch.escape_special)
-  return fnameescape(shellescape(a:str, g:esearch.escape_special))
+  " return shellescape(a:str, g:esearch.escape_special)
+  " return fnameescape(shellescape(a:str, g:esearch.escape_special))
 endfu
 
 fu! esearch#util#timenow() abort
