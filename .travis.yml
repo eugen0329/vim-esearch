@@ -20,6 +20,7 @@ before_cache:
 cache:
   bundler: true
   apt: true
+  pip: true
   directories:
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     - $HOME/.rvm
@@ -37,7 +38,10 @@ before_install:
 install:
   - |
     bundle install
-    [ "$LINT_ONLY" = true ] && return
+    if [ "$LINT_ONLY" = true ] ; then
+      pip install --user vim-vint==0.3.21
+      return
+    fi
 
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
@@ -89,6 +93,8 @@ jobs:
       os: linux
 
     - name: 'Lint'
-      script: bundle exec rubocop --display-cop-names
+      script:
+        - bundle exec rubocop --display-cop-names
+        - vint autoload nerdtree_plugin plugin syntax
       env: LINT_ONLY=true
       os: linux
