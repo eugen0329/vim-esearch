@@ -3,7 +3,8 @@
 # NOTE every which is intentionally kept without redirection output to /dev/null
 
 brew update --verbose
-brew install macvim -- --with-override-system-vi --without-python --without-python3 --without-ruby
+brew install cscope lua gdbm openssl@1.1 readline sqlite xz libyaml # macvim dependencies without except ruby and python
+brew install macvim ----with-override-system-vi --ignore-dependencies --without-python --without-python3 --without-ruby
 # brew install vim -- --with-override-system-vi --with-client-server --without-python --without-python3 --without-ruby
 vim --version
 # brew install macvim -- --with-override-system-vim
