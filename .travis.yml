@@ -37,11 +37,10 @@ before_install:
   #   [ "$TRAVIS_OS_NAME" = "osx" ] && rvm install 2.6.5 --binary --fuzzy # for macvim
 install:
   - |
-    [ "$LINTER" = vint ] && pip3 install --user vim-vint==0.3.21 && return
+    [ "$LINTER" = vint ] && pip3 install vim-vint==0.3.21 && return
     [ "$LINTER" = rubocop ] && bundle install && return
 
     bundle install
-
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       sh spec/support/bin/install_osx.sh
@@ -91,14 +90,13 @@ jobs:
     #   script: bundle exec rspec --tag ~backend
     #   os: linux
 
-    - name: 'Rubocop'
+    - name: 'Ruby lint (Rubocop)'
       script: bundle exec rubocop --display-cop-names
       env: LINTER=rubocop
       os: linux
-    - name: 'Vint'
+    - name: 'Viml lint (Vint)'
       script: vint autoload nerdtree_plugin plugin syntax
       env: LINTER=vint
       language: python
+      python: 3.7 # From log file: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux
-      # From log file: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
-      python: 3.7
