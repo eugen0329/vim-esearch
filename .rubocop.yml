@@ -1,0 +1,32 @@
+Layout/LineLength:
+  Max: 100
+
+Layout/EmptyLinesAroundBlockBody:
+  Exclude:
+    - '**/*_spec.rb'
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - Gemfile
+    - Gemfile.lock
+
+# TODO
+Metrics/AbcSize:
+  Enabled: false
+
+# TODO
+Layout/ArgumentAlignment:
+  Enabled: false
+
+# Allow:
+#  expect {
+#    any-
+#    thing
+#  }.to be_ok
+Style/BlockDelimiters:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+  # EnforcedStyle: braces_for_chaining

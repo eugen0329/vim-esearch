@@ -1,11 +1,13 @@
-# TODO completely rewrite
-RSpec.shared_examples 'a backend' do |backend, adapter|
+# frozen_string_literal: true
+
+# TODO: completely rewrite
+RSpec.shared_examples 'a backend' do |backend, _adapter|
   SEARCH_UTIL_ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
         esearch_settings(backend: backend, adapter: adapter, out: 'win')
         example.run
-        cmd('close!') if bufname("%") =~ /Search/
+        cmd('close!') if bufname('%') =~ /Search/
       end
 
       context 'matching modes' do
@@ -30,11 +32,11 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
         it 'provides correct path when searching outside the cwd' do
           press ":call esearch#init({'cwd': '#{context_fixtures_path}/#{directory}'})<Enter>#{test_query}<Enter>"
 
-          # todo reduce duplication
-          expect {
-            press("j") # press j to close "Press ENTER or type command to continue" prompt
-            bufname("%") =~ /Search/
-          }.to become_true_within(5.second)
+          # TODO: reduce duplication
+          expect do
+            press('j') # press j to close "Press ENTER or type command to continue" prompt
+            bufname('%') =~ /Search/
+          end.to become_true_within(5.second)
           expect { line(1) == 'Matches in 1 lines, 1 file(s). Finished.' }.to become_true_within(10.seconds),
             -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
 
@@ -48,7 +50,7 @@ RSpec.shared_examples 'a backend' do |backend, adapter|
             .to include(expected_file_content)
             .and not_include('content_of_file_outside')
 
-          expect(bufname("%")).to end_with([directory, expected_filename].join('/'))
+          expect(bufname('%')).to end_with([directory, expected_filename].join('/'))
         end
       end
     end
@@ -63,7 +65,7 @@ def settings_dependent_context(backend, adapter, matching_type, settings)
     esearch_settings(backend: backend, adapter: adapter, out: 'win')
     esearch_settings(settings)
   end
-  after { cmd('bdelete') if bufname("%") =~ /Search/ }
+  after { cmd('bdelete') if bufname('%') =~ /Search/ }
 
   File.readlines("spec/fixtures/backend/#{matching_type}.txt").map(&:chomp).each do |test_query|
     it "finds `#{test_query}`" do

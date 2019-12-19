@@ -1,16 +1,17 @@
+# frozen_string_literal: true
+
 module Support
   module DSL
     module Vim
-
       def dump(what)
         # if exists('*prettyprint#prettyprint')
-          puts expr("prettyprint#prettyprint(#{what})")
+        puts expr("prettyprint#prettyprint(#{what})")
         # else
         #   puts expr(what)
         # end
       end
 
-      def try_cmd(str)
+      def try_cmd(_str)
         cmd("try | #{cmd} | catch | echo v:exception | endtry")
       end
 
@@ -18,7 +19,7 @@ module Support
         vim.echo(str)
       end
 
-      #TODO
+      # TODO
       def output(keys)
         vim.multiline_command(%{
           if exists('g:__redirected_output__')
@@ -26,12 +27,12 @@ module Support
           endif
           let g:__redirected_output__ = '_'
         })
-        press(":redir => g:__redirected_output__<CR>")
-        type(":try<CR>")
+        press(':redir => g:__redirected_output__<CR>')
+        type(':try<CR>')
         type(keys)
         type(":catch<CR>:echo 'Error: '.v:exception.' at '.v:throwpoint<CR>:endtry<CR>")
-        press(":redir END<CR>")
-        expr("g:__redirected_output__")
+        press(':redir END<CR>')
+        expr('g:__redirected_output__')
       end
 
       def bool_expr(str)
@@ -79,7 +80,6 @@ module Support
       def has(str)
         expr("has('#{str}')").to_i == 1
       end
-
     end
   end
 end

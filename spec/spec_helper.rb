@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
-Dir[File.expand_path('spec/support/**/*.rb')].each {|f| require f}
+Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f }
 
-SEARCH_UTIL_ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg'].freeze
+SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
@@ -34,12 +36,12 @@ end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
-# TODO move out of here
+# TODO: move out of here
 def wait_for_search_start
-  expect {
-    press("j") # press j to close "Press ENTER or type command to continue" prompt
-    bufname("%") =~ /Search/
-  }.to become_true_within(20.second)
+  expect do
+    press('j') # press j to close "Press ENTER or type command to continue" prompt
+    bufname('%') =~ /Search/
+  end.to become_true_within(20.second)
 end
 
 def wait_for_search_freezed(timeout = 3.seconds)
@@ -47,9 +49,9 @@ def wait_for_search_freezed(timeout = 3.seconds)
 end
 
 def wait_for_qickfix_enter
-  expect {
+  expect do
     expr('&filetype') == 'qf'
-  }.to become_true_within(5.second)
+  end.to become_true_within(5.second)
 end
 
 def ps_commands
@@ -64,7 +66,7 @@ def ps_commands_without_sh
 end
 
 def working_directory
-  @working_directory ||= Pathname.new(File.expand_path('../../', __FILE__))
+  @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
 end
 
 def delete_current_buffer
