@@ -34,8 +34,8 @@ before_install:
   - gem install bundler
 install:
   - |
-    [ "$LINTER" = vim ] && pip3 install vim-vint==0.3.21 && return
-    [ "$LINTER" = ruby ] && bundle install && return
+    [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
+    [ "$LINT_FOR" = ruby ] && bundle install && return
 
     bundle install
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
@@ -96,35 +96,20 @@ jobs:
 
       # Linters
     - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-      env: LINTER=ruby
+      env: LINT_FOR=ruby
       script:
         - bundle exec rubocop --display-cop-names
         - shellcheck spec/support/bin/*.sh # decided to not create another build
       os: linux
     - name: 'Viml lint (Vint, VimLint)'
-      # VIMLINT_IGNORE_JOB_CONTROL_WARNINGS are ignored.  TODO figure out why,
-      # until that VIMLINT_WARNING_UNUSED_ARGUMENTS_AND_VARIABLES_WORKAROUND
-      # will be used. Seems, similar problem happens with
-      # VIMLINT_IGNORE_UNDERSCORED_VARIABLE_NAME
       env:
-        LINTER=vim
+        LINT_FOR=viml
         VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
-        VIMLINT_IGNORE_JOB_CONTROL_WARNINGS='-e EVL103.a:channel=1 -e EVL103.a:event=1 -e EVL103.a:job=1 -e EVL103.a:pty=1 -e EVL103.a:timer=1'
-        VIMLINT_WARNING_UNUSED_ARGUMENTS_AND_VARIABLES_WORKAROUND='-e EVL103=3'
-        TODO_VIMLINT_WARNING_UNUSED_LOCAL_VARIABLES='-e EVL102=3'
-        TODO_VIMLINT_WARNING_SCIPT_ENCODINGS='-e EVL205=3'
-        VIMLINT_IGNORE_UNDERSCORED_VARIABLE_NAME='-e EVL102.l:_=1'
-        FAIL_EXIT_STATUS_IF_VIMLINT_HAS_ERRORS='tee /dev/tty | grep -v ":Error:" >/dev/null 2>&1'
       before_script:
         - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
         - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
       script:
-        - sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser
-            $VIMLINT_WARNING_UNUSED_ARGUMENTS_AND_VARIABLES_WORKAROUND
-            $TODO_VIMLINT_WARNING_UNUSED_LOCAL_VARIABLES
-            $TODO_VIMLINT_WARNING_SCIPT_ENCODINGS
-            $VIML_DIRECTORIES
-            | $FAIL_EXIT_STATUS_IF_VIMLINT_HAS_ERRORS
+        - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
         - "vint $VIML_DIRECTORIES"
       language: python
       # From logs: The `pip3' command exists in these Python versions:
