@@ -14,7 +14,11 @@ module Support
           "'#{name}': #{val}"
         end
         dict = "{ #{pairs.join(',')} }"
-        vim.normal(":if !exists('g:esearch') | let g:esearch = #{dict} | else | call extend(g:esearch, #{dict}) | endif<Enter><Enter>")
+        vim.normal(":if !exists('g:esearch') | "\
+                   "let g:esearch = #{dict} | "\
+                   'else | '\
+                   "call extend(g:esearch, #{dict}) | "\
+                   'endif<Enter><Enter>')
       end
     end
   end

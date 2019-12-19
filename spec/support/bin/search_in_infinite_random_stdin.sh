@@ -7,4 +7,4 @@ shift
 # Doesn't work with suggested fixes
 
 # shellcheck disable=SC2002
-cat /dev/urandom | $util $@
+cat /dev/urandom | $util "$@"
