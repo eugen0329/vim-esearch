@@ -40,3 +40,4 @@ git -C "$plugins_directory/vimproc.vim" checkout 89065f62883edb10a99aa1b1640d6d4
 
 # Download neovim
 wget https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage -P "$bin_directory"
+chmod +x "$bin_directory/nvim.appimage"

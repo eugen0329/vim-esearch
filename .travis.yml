@@ -37,9 +37,12 @@ install:
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
     # pyenv install --list
     # pyenv update
-    pyenv install 3.6.3
-    pyenv global  3.6.3
-    pip3 install neovim-remote
+
+    if [ "$INSTALL_NEOVIM_REMOTE" = "1" ]; then
+      pyenv install 3.6.3
+      pyenv global  3.6.3
+      pip3 install neovim-remote
+    fi
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       sh spec/support/bin/install_osx.sh
@@ -71,9 +74,7 @@ jobs:
 
     - name: 'Acceptance tests of #backend#nvim'
       script: bundle exec rspec --tag nvim
-      python: 3.7
-      rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
-      language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
+      env: INSTALL_NEOVIM_REMOTE=1
       os: linux
     # # OSX acceptance
     # - name: 'Acceptance tests of #backend#system'

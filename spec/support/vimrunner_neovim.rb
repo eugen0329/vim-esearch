@@ -15,7 +15,7 @@ module Vimrunner
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
       @nvim       = options.fetch(:nvim) { 'nvim' }
-      @socket     = options.fetch(:socket) { "/tmp/VIMRUNNER_NEOVIM#{rand}" }.upcase
+      @socket     = options.fetch(:socket) { "/tmp/VIMRUNNER_NEOVIM#{rand}" }
       @vimrc      = options.fetch(:vimrc) { VIMRC }
       @foreground = options.fetch(:foreground, false)
       @gui        = options.fetch(:gui, false)
