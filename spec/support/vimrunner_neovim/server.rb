@@ -10,12 +10,13 @@ module VimrunnerNeovim
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
 
-    attr_reader :nvr_executable, :vimrc, :gvimrc, :pid, :nvim, :gui, :name
+    attr_reader :nvr_executable, :vimrc, :gvimrc, :pid, :nvim, :gui, :name, :logfile
 
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
-      @nvim           = options.fetch(:nvim) { 'nvim' }
       @name           = options.fetch(:name) { "/tmp/VIMRUNNER_NEOVIM#{Time.now.to_i}" }
+      @logfile        = options.fetch(:logfile) { '/tmp/vimrunner_neovim.log' }
+      @nvim           = options.fetch(:nvim) { 'nvim' }
       @vimrc          = options.fetch(:vimrc) { VIMRC }
       @foreground     = options.fetch(:foreground, false)
       @gui            = options.fetch(:gui, false)
@@ -93,10 +94,8 @@ module VimrunnerNeovim
 
     def spawn
       log = ''
-      log = '-V9/tmp/vim.log'
-      embed = '--embed'
+      log = "-V9#{logfile}"
       embed = ''
-      # gui = false
 
       headless = ''
       if gui

@@ -6,7 +6,8 @@ RSpec.shared_context 'dumpable' do
     unless example.exception.nil?
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
-        puts `ps -A -o command | sed 1d | grep nvim`
+        puts `ps -A -o pid,command | sed 1d | grep nvim`
+        puts File.readlines(vim.server.logfile).to_a if File.exists?(vim.server.logfile)
       end
 
       press('j') # press j to close "Press ENTER or type command to continue" prompt
