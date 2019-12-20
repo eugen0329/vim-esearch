@@ -21,7 +21,7 @@ Vimrunner::RSpec.configure do |config|
 end
 
 VimrunnerNeovim::RSpec.configure do |config|
-  config.reuse_server = true
+  config.reuse_server = false
 
   config.start_neovim do
     nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
@@ -40,18 +40,6 @@ RSpec.configure do |config|
   config.order = :rand
   config.formatter = :documentation
   config.fail_fast = 3
-
-  config.include(VimrunnerNeovim::Testing)
-  config.after(:suite) do
-    VimrunnerNeovim::Testing.neovim_instance&.kill
-    VimrunnerNeovim::Testing.neovim_instance = nil
-  end
-
-  config.before(:each) do
-    puts '='*10
-    puts `ls /tmp`
-    puts '='*10
-  end
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include

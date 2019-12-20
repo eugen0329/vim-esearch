@@ -6,47 +6,6 @@ require "vimrunner/client"
 require "vimrunner/platform"
 
 module VimrunnerNeovim
-  module Testing
-    class << self
-      attr_accessor :neovim_instance
-    end
-
-    def neovim
-      ::VimrunnerNeovim::Testing.neovim_instance ||= ::VimrunnerNeovim::RSpec.configuration.start_neovim_method.call
-    end
-
-    def use_neovim
-      instance_old = Vimrunner::Testing.instance
-      Vimrunner::Testing.instance = neovim
-      yield
-    ensure
-      Vimrunner::Testing.instance = instance_old
-    end
-  end
-
-  module RSpec
-    class Configuration
-      attr_accessor :reuse_server
-
-      def start_neovim(&block)
-        @start_neovim_method = block
-      end
-
-      def start_neovim_method
-        @start_neovim_method
-      end
-    end
-
-    def self.configuration
-      @configuration ||= ::VimrunnerNeovim::RSpec::Configuration.new
-    end
-
-    def self.configure
-      yield configuration
-    end
-  end
-
-
   class Server
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
@@ -79,8 +38,7 @@ module VimrunnerNeovim
 
     def connect(options = {})
       connect!(options)
-    rescue TimeoutError
-      puts 'TIMEOUT'*5
+    rescue Timeout::Error
       nil
     end
 
@@ -93,7 +51,6 @@ module VimrunnerNeovim
     end
 
     def running?
-      puts "serverlist.include?(name) #{serverlist.include?(name)} && File.socket?(name) #{File.socket?(name)}"
       serverlist.include?(name) && File.socket?(name)
     end
 
@@ -152,7 +109,7 @@ module VimrunnerNeovim
     end
 
     def wait_until_running(seconds)
-      Timeout.timeout(seconds, TimeoutError) do
+      Timeout.timeout(seconds, Timeout::Error) do
         sleep 0.1 while !running?
       end
     end
