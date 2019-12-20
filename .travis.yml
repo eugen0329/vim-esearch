@@ -53,6 +53,7 @@ install:
     else
       sh spec/support/bin/install_linux.sh
       vim --version
+      "$TRAVIS_BUILD_DIR/spec/support/bin/nvim.appimage" --version
     fi
     ack --version
     ag --version
@@ -97,7 +98,7 @@ jobs:
     #   script: bundle exec rspec --tag vimproc
     #   os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim
+      script: bundle exec rspec --tag nvim --seed 6880
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 

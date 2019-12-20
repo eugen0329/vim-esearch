@@ -2,12 +2,12 @@
 
 RSpec.shared_context 'dumpable' do
   after(:each) do |example|
-    if vim.server.is_a?(VimrunnerNeovim::Server)
-      puts `ls /tmp`
-      puts `ps -A -o command | sed 1d | grep nvim`
-    end
 
     unless example.exception.nil?
+      if vim.server.is_a?(VimrunnerNeovim::Server)
+        puts `ls /tmp`
+        puts `ps -A -o command | sed 1d | grep nvim`
+      end
 
       press('j') # press j to close "Press ENTER or type command to continue" prompt
       puts ':messages', cmd('messages')
