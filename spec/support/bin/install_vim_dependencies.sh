@@ -26,7 +26,7 @@ git_pull_or_clone() {
 }
 
 plugins_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../vim_plugins"}"
-bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"
+bin_directory="${2:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"
 echo "$plugins_directory"
 
 # Download pretty print
