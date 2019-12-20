@@ -36,6 +36,7 @@ install:
 
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
     pyenv install --list
+    pyenv update
     pyenv install python3.7
     pyenv global  python3.7
     pip3 install neovim-remote
