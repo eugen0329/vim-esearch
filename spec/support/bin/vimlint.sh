@@ -28,8 +28,8 @@ EOF
 # shellcheck disable=SC2086
 output=$(eval $command)
 status=$?
-printf "$output\n"
+printf "%s\n" "$output"
 
 [ $status -eq 0 ] && exit 0 # if no errors or warnings
-printf "$output\n" | grep --color ":Error:" && exit 1 # Allow warnings but not errors
+printf "%s\n" "$output" | grep --color ":Error:" && exit 1 # Allow warnings but not errors
 exit 0
