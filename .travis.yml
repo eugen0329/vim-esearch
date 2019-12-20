@@ -68,6 +68,8 @@ jobs:
     - name: 'Acceptance tests of #backend#nvim'
       script: bundle exec rspec --tag nvim
       python: 3.7
+      rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
+      language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
       language: generic
       os: linux
     # # OSX acceptance
