@@ -20,6 +20,11 @@ context 'esearch#backend', :backend do
     it_behaves_like 'an abortable backend', 'vimproc'
   end
 
+  describe '#nvim', :nvim do
+    it_behaves_like 'a backend', 'nvim'
+    it_behaves_like 'an abortable backend', 'nvim'
+  end
+
   describe '#vim8', :vim8 do
     before { press ':let g:esearch#backend#vim8#timer = 100<Enter>' }
 
