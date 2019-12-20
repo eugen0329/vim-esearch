@@ -23,7 +23,6 @@ module Vimrunner
 
     def start
       @r, @w, @pid = spawn
-      puts `ls /tmp`
 
       if block_given?
         begin

@@ -12,7 +12,7 @@ Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_vim do
-    neovim_instance
+    start_neovim!
   end
 end
 
@@ -24,30 +24,45 @@ RSpec.configure do |config|
   config.order = :rand
   config.formatter = :documentation
   config.fail_fast = 3
+
+  config.after(:suite) do
+    neovim_instance&.kill
+  end
+
+  config.before(:each) do
+    puts '='*10
+    puts `ls /tmp`
+    puts '='*10
+  end
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
-def neovim_instance
-  @neovim_instance ||=
-    begin
-      nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
-      neovim = Vimrunner::NeovimServer.new(nvim: nvim_executable, gui: false).start
-      sleep 1
-      load_plugins!(neovim)
-      neovim
-    end
+attr_reader :vim_instance, :neovim_instance
+
+def start_neovim!
+  nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
+  @neovim_instance = Vimrunner::NeovimServer.new(nvim: nvim_executable, gui: false).start
+  sleep 1
+  load_plugins!(@neovim_instance)
+  @neovim_instance
 end
 
-def vim_instance
-  @vim_instance ||=
-    begin
-      # NOTE: for some reason it non-gui deadlocks on travis
-      vim = gui? ? Vimrunner.start_gvim : Vimrunner.start
-      sleep 1
-      load_plugins!(vim)
-      vim
-    end
+def start_vim!
+  # NOTE: for some reason it non-gui deadlocks on travis
+  @vim_instance = gui? ? Vimrunner.start_gvim : Vimrunner.start
+  sleep 1
+  load_plugins!(@vim_instance)
+  @vim_instance
+end
+
+def use_neovim
+  instance_old = Vimrunner::Testing.instance
+  start_neovim! unless neovim
+  Vimrunner::Testing.instance = neovim_instance
+  yield
+ensure
+  Vimrunner::Testing.instance = instance_old
 end
 
 def load_plugins!(vim)
