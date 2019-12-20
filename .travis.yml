@@ -35,6 +35,8 @@ install:
     bundle install
 
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
+    pyenv install python3.7
+    pyenv global  python3.7
     pip3 install neovim-remote
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
@@ -70,7 +72,6 @@ jobs:
       python: 3.7
       rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
       language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
-      language: generic
       os: linux
     # # OSX acceptance
     # - name: 'Acceptance tests of #backend#system'
