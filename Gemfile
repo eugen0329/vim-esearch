@@ -1,6 +1,9 @@
 source 'https://rubygems.org'
 
-gem 'rspec'
-gem 'vimrunner'
+ruby '2.3.8'
+
 gem 'activesupport'
 gem 'pry'
+gem 'rspec'
+gem 'rubocop'
+gem 'vimrunner'

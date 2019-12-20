@@ -31,7 +31,7 @@ fu! esearch#adapter#ack#cmd(pattern, dir, escape, ...) abort
 endfu
 
 fu! esearch#adapter#ack#is_broken_result(...) abort
-  return call('esearch#adapter#ag#is_broken_result')
+  return call('esearch#adapter#ag#is_broken_result', a:000)
 endfu
 
 fu! esearch#adapter#ack#parse_results(...) abort

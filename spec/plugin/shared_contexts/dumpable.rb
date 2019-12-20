@@ -1,7 +1,9 @@
-RSpec.shared_context "dumpable" do
+# frozen_string_literal: true
+
+RSpec.shared_context 'dumpable' do
   after(:each) do |example|
     unless example.exception.nil?
-      press("j") # press j to close "Press ENTER or type command to continue" prompt
+      press('j') # press j to close "Press ENTER or type command to continue" prompt
       puts ':messages', cmd('messages')
 
       cmd('let g:prettyprint_width = 160')
@@ -10,31 +12,31 @@ RSpec.shared_context "dumpable" do
       puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
       puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
-      puts "\n"*2, "#"*10, "RUNTIMEPATH"
+      puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
       puts expr('&runtimepath')
 
       if exists('*prettyprint#prettyprint')
-        puts "\n"*2, "#"*10, "G:ESEARCH"
+        puts "\n" * 2, '#' * 10, 'G:ESEARCH'
         dump('g:esearch')
-        puts "\n"*2, "#"*10, "B:ESEARCH.without('request')"
+        puts "\n" * 2, '#' * 10, "B:ESEARCH.without('request')"
         dump('b:esearch.without("request")')
-        puts "\n"*2, "#"*10, "REQUEST"
+        puts "\n" * 2, '#' * 10, 'REQUEST'
         dump('b:esearch.request')
-        puts "\n"*2, "#"*10, "[UPDATETIME]"
+        puts "\n" * 2, '#' * 10, '[UPDATETIME]'
         dump('&ut')
       end
 
-      puts "\n"*2, "#"*10, "SCRIPTNAMES"
+      puts "\n" * 2, '#' * 10, 'SCRIPTNAMES'
       puts cmd('scriptnames')
 
-      puts "\n"*2, "#"*10, "au User"
+      puts "\n" * 2, '#' * 10, 'au User'
       puts cmd('au User')
 
-      sc = expr("esearch#backend#vimproc#scope()")
-      s = expr("esearch#backend#vimproc#sid()")
-      puts "\n"*2, "#"*10, "s:completed(s:requests[0])"
+      sc = expr('esearch#backend#vimproc#scope()')
+      s = expr('esearch#backend#vimproc#sid()')
+      puts "\n" * 2, '#' * 10, 's:completed(s:requests[0])'
       puts expr("#{s}completed(#{sc}.requests[0])")
-      puts "\n"*2, "#"*10, "[len(request.data), request.data_ptr, exists ->, type ->, request.out_finish()]"
+      puts "\n" * 2, '#' * 10, '[len(request.data), request.data_ptr, exists ->, type ->, request.out_finish()]'
       puts cmd("echo [len(#{sc}.requests[0].data)]")
       puts cmd("echo [#{sc}.requests[0].data_ptr]")
       puts cmd("echo has_key(#{sc}.requests[0], 'out_finish')")

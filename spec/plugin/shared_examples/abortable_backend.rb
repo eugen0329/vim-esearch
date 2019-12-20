@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_examples 'an abortable backend' do |backend|
   let(:adapter) { 'ag' }
   let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
@@ -11,7 +13,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
 
     example.run
 
-    cmd('close!') if bufname("%") =~ /Search/
+    cmd('close!') if bufname('%') =~ /Search/
     `ps -A -o pid,command | grep #{search_string} | grep -v grep | awk '{print $1}' | xargs kill -s KILL`
     expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds) # verify teardown is done
     vim_let("g:esearch#adapter##{adapter}#bin", "'#{adapter}'")

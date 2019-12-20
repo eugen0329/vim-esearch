@@ -1,15 +1,23 @@
+# frozen_string_literal: true
+
 require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
-Dir[File.expand_path('spec/support/**/*.rb')].each {|f| require f}
+Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
 
-SEARCH_UTIL_ADAPTERS = ['ack', 'ag', 'git', 'grep', 'pt', 'rg'].freeze
+SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
+
   config.start_vim do
-    vim = Vimrunner.start_gvim
+    vim =
+      if gui?
+        Vimrunner.start_gvim
+      else
+        Vimrunner.start # NOTE: for some reason it deadlocks on travis
+      end
     sleep 1
 
     vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
@@ -34,11 +42,19 @@ end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
-# TODO move out of here
+def gui?
+  ENV.fetch('GUI', '1') == '1'
+end
+
+def ci?
+  ENV['TRAVIS_BUILD_ID'].present?
+end
+
+# TODO: move out of here
 def wait_for_search_start
   expect {
-    press("j") # press j to close "Press ENTER or type command to continue" prompt
-    bufname("%") =~ /Search/
+    press('j') # press j to close "Press ENTER or type command to continue" prompt
+    bufname('%') =~ /Search/
   }.to become_true_within(20.second)
 end
 
@@ -64,7 +80,7 @@ def ps_commands_without_sh
 end
 
 def working_directory
-  @working_directory ||= Pathname.new(File.expand_path('../../', __FILE__))
+  @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
 end
 
 def delete_current_buffer

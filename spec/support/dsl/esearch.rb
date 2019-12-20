@@ -1,8 +1,9 @@
-# TODO rewrite
+# frozen_string_literal: true
+
+# TODO: rewrite
 module Support
   module DSL
     module ESearch
-
       def vim_let(var, value)
         vim.normal(":let #{var} = #{value}<Enter><Enter>")
       end
@@ -13,7 +14,11 @@ module Support
           "'#{name}': #{val}"
         end
         dict = "{ #{pairs.join(',')} }"
-        vim.normal(":if !exists('g:esearch') | let g:esearch = #{dict} | else | call extend(g:esearch, #{dict}) | endif<Enter><Enter>")
+        vim.normal(":if !exists('g:esearch') | "\
+                   "let g:esearch = #{dict} | "\
+                   'else | '\
+                   "call extend(g:esearch, #{dict}) | "\
+                   'endif<Enter><Enter>')
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec::Matchers.define :become_true_within do |expected|
   supports_block_expectations
 
@@ -8,13 +10,14 @@ RSpec::Matchers.define :become_true_within do |expected|
     loop do
       return true if actual.call
       break if Time.now >= quota
+
       sleep 0.1
     end
 
     false
   end
 
-  failure_message do |actual|
+  failure_message do |_actual|
     "expected that expr would become true within #{expected} seconds"
   end
 
@@ -23,6 +26,6 @@ RSpec::Matchers.define :become_true_within do |expected|
   end
 
   description do
-   "become true within #{expected} seconds"
+    "become true within #{expected} seconds"
   end
 end

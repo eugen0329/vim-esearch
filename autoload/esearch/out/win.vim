@@ -258,7 +258,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       let line += 1
 
       " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%%%dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
-      if exists('c')
+      if exists('c') && exists('s')
         exe printf('syntax region context%s '
               \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(s), line, c)
         unlet c
@@ -503,7 +503,7 @@ fu! esearch#out#win#finish(bufnr) abort
 
   if esearch.request.async
     exe printf('au! ESearchWinAutocmds * <buffer=%s>', string(a:bufnr))
-    for [func_name, event] in items(esearch.request.events)
+    for event in values(esearch.request.events)
       exe printf('au! ESearchWinAutocmds User %s ', event)
     endfor
   endif

@@ -1,0 +1,44 @@
+Layout/LineLength:
+  Max: 120
+
+Layout/EmptyLinesAroundBlockBody:
+  Exclude:
+    - '**/*_spec.rb'
+
+Metrics/BlockLength:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - Gemfile
+    - Gemfile.lock
+
+# TODO
+Metrics/AbcSize:
+  Enabled: false
+
+# TODO
+Layout/ArgumentAlignment:
+  Enabled: false
+
+# Allow:
+#  expect {
+#    any-
+#    thing
+#  }.to be_ok
+Style/BlockDelimiters:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+    - 'spec/spec_helper.rb'
+    - 'spec/**/shared_examples/*.rb'
+  # EnforcedStyle: braces_for_chaining
+
+Style/DoubleNegation:
+  Enabled: false # TODO
+
+Metrics/MethodLength:
+  Max: 20
+
+AllCops:
+  Exclude:
+    - 'spec/support/brew_formula/**/*'
