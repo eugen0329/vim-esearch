@@ -64,7 +64,7 @@ end
 
 def use_neovim
   instance_old = Vimrunner::Testing.instance
-  start_neovim! unless neovim
+  start_neovim! unless neovim_instance
   Vimrunner::Testing.instance = neovim_instance
   yield
 ensure
