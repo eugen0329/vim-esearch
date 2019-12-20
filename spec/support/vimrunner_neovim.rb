@@ -5,8 +5,49 @@ require "vimrunner/errors"
 require "vimrunner/client"
 require "vimrunner/platform"
 
-module Vimrunner
-  class NeovimServer
+module VimrunnerNeovim
+  module Testing
+    class << self
+      attr_accessor :neovim_instance
+    end
+
+    def neovim
+      ::VimrunnerNeovim::Testing.neovim_instance ||= ::VimrunnerNeovim::RSpec.configuration.start_neovim_method.call
+    end
+
+    def use_neovim
+      instance_old = Vimrunner::Testing.instance
+      Vimrunner::Testing.instance = neovim
+      yield
+    ensure
+      Vimrunner::Testing.instance = instance_old
+    end
+  end
+
+  module RSpec
+    class Configuration
+      attr_accessor :reuse_server
+
+      def start_neovim(&block)
+        @start_neovim_method = block
+      end
+
+      def start_neovim_method
+        @start_neovim_method
+      end
+    end
+
+    def self.configuration
+      @configuration ||= ::VimrunnerNeovim::RSpec::Configuration.new
+    end
+
+    def self.configure
+      yield configuration
+    end
+  end
+
+
+  class Server
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
 
@@ -39,6 +80,7 @@ module Vimrunner
     def connect(options = {})
       connect!(options)
     rescue TimeoutError
+      puts 'TIMEOUT'*5
       nil
     end
 
@@ -51,6 +93,7 @@ module Vimrunner
     end
 
     def running?
+      puts "serverlist.include?(name) #{serverlist.include?(name)} && File.socket?(name) #{File.socket?(name)}"
       serverlist.include?(name) && File.socket?(name)
     end
 
@@ -67,7 +110,7 @@ module Vimrunner
     end
 
     def new_client
-      Client.new(self)
+      Vimrunner::Client.new(self)
     end
 
     def serverlist

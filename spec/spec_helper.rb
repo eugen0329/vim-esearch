@@ -12,7 +12,23 @@ Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_vim do
-    start_neovim!
+    # NOTE: for some reason it non-gui deadlocks on travis
+    vim_instance = gui? ? Vimrunner.start_gvim : Vimrunner.start
+    sleep 1
+    load_plugins!(vim_instance)
+    vim_instance
+  end
+end
+
+VimrunnerNeovim::RSpec.configure do |config|
+  config.reuse_server = true
+
+  config.start_neovim do
+    nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
+    neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_executable, gui: false).start
+    sleep 1
+    load_plugins!(neovim_instance)
+    neovim_instance
   end
 end
 
@@ -25,8 +41,10 @@ RSpec.configure do |config|
   config.formatter = :documentation
   config.fail_fast = 3
 
+  config.include(VimrunnerNeovim::Testing)
   config.after(:suite) do
-    neovim_instance&.kill
+    VimrunnerNeovim::Testing.neovim_instance&.kill
+    VimrunnerNeovim::Testing.neovim_instance = nil
   end
 
   config.before(:each) do
@@ -37,39 +55,6 @@ RSpec.configure do |config|
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
-
-def vim_instance
-  @vim_instance
-end
-
-def neovim_instance
-  @neovim_instance
-end
-
-def start_neovim!
-  nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
-  @neovim_instance = Vimrunner::NeovimServer.new(nvim: nvim_executable, gui: false).start
-  sleep 1
-  load_plugins!(@neovim_instance)
-  @neovim_instance
-end
-
-def start_vim!
-  # NOTE: for some reason it non-gui deadlocks on travis
-  @vim_instance = gui? ? Vimrunner.start_gvim : Vimrunner.start
-  sleep 1
-  load_plugins!(@vim_instance)
-  @vim_instance
-end
-
-def use_neovim
-  instance_old = Vimrunner::Testing.instance
-  start_neovim! unless neovim_instance
-  Vimrunner::Testing.instance = neovim_instance
-  yield
-ensure
-  Vimrunner::Testing.instance = instance_old
-end
 
 def load_plugins!(vim)
   vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
