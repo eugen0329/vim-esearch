@@ -14,11 +14,11 @@ module Vimrunner
 
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
-      @nvim       = options.fetch(:nvim) { 'nvim' }
-      @name     = options.fetch(:name) { "/tmp/VIMRUNNER_NEOVIM#{rand}" }
-      @vimrc      = options.fetch(:vimrc) { VIMRC }
-      @foreground = options.fetch(:foreground, false)
-      @gui        = options.fetch(:gui, false)
+      @nvim           = options.fetch(:nvim) { 'nvim' }
+      @name           = options.fetch(:name) { "/tmp/VIMRUNNER_NEOVIM#{Time.now.to_i}" }
+      @vimrc          = options.fetch(:vimrc) { VIMRC }
+      @foreground     = options.fetch(:foreground, false)
+      @gui            = options.fetch(:gui, false)
     end
 
     def start

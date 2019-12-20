@@ -43,6 +43,7 @@ endfu
 
 fu! esearch#backend#nvim#run(request) abort
   let job_id = jobstart(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+  let a:request.job_id = job_id
   call jobclose(job_id, 'stdin')
   let s:jobs[job_id] = { 'data': [], 'request': a:request }
 endfu

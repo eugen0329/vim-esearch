@@ -15,6 +15,8 @@ RSpec.shared_context 'dumpable' do
       puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
       puts expr('&runtimepath')
 
+      puts 'buffers:', cmd("ls!")
+
       if exists('*prettyprint#prettyprint')
         puts "\n" * 2, '#' * 10, 'G:ESEARCH'
         dump('g:esearch')

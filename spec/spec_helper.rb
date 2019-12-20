@@ -6,8 +6,7 @@ require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
 Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
 
-# SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
-SEARCH_UTIL_ADAPTERS = %w[ag].freeze
+SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
