@@ -14,7 +14,7 @@ Vimrunner::RSpec.configure do |config|
 
   config.start_vim do
     nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage')
-    vim = Vimrunner::NeovimServer.new(executable: nvim_executable).start
+    vim = Vimrunner::NeovimServer.new(executable: nvim_executable.to_s).start
 # Server.new(:executable => Platform.gvim).start(&blk)
     # vim =
     #   if gui?

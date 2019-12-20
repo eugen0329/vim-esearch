@@ -35,7 +35,7 @@ install:
     bundle install
 
     sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
-    pip install neovim-remote
+    pip3 install neovim-remote
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       sh spec/support/bin/install_osx.sh
