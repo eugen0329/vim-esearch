@@ -12,24 +12,7 @@ Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_vim do
-    nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage')
-    vim = Vimrunner::NeovimServer.new(nvim: nvim_executable.to_s).start
-# Server.new(:executable => Platform.gvim).start(&blk)
-    # vim =
-    #   if gui?
-    #     Vimrunner.start_gvim
-    #   else
-    #     Vimrunner.start # NOTE: for some reason it deadlocks on travis
-    #   end
-    sleep 1
-
-    vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
-    pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
-
-    vim.add_plugin(working_directory, working_directory.join('plugin', 'esearch.vim'))
-    vim.add_plugin(vimproc_path,      vimproc_path.join('plugin', 'vimproc.vim'))
-    vim.add_plugin(pp_path,           pp_path.join('plugin', 'prettyprint.vim'))
-    vim
+    neovim_instance
   end
 end
 
@@ -44,6 +27,38 @@ RSpec.configure do |config|
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
+
+def neovim_instance
+  @neovim_instance ||=
+    begin
+      nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
+      neovim = Vimrunner::NeovimServer.new(nvim: nvim_executable, gui: false).start
+      sleep 1
+      load_plugins!(neovim)
+      neovim
+    end
+end
+
+def vim_instance
+  @vim_instance ||=
+    begin
+      # NOTE: for some reason it non-gui deadlocks on travis
+      vim = gui? ? Vimrunner.start_gvim : Vimrunner.start
+      sleep 1
+      load_plugins!(vim)
+      vim
+    end
+end
+
+def load_plugins!(vim)
+  vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
+  pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
+
+  vim.add_plugin(working_directory, working_directory.join('plugin', 'esearch.vim'))
+  vim.add_plugin(vimproc_path,      vimproc_path.join('plugin', 'vimproc.vim'))
+  vim.add_plugin(pp_path,           pp_path.join('plugin', 'prettyprint.vim'))
+  vim
+end
 
 def gui?
   ENV.fetch('GUI', '1') == '1'

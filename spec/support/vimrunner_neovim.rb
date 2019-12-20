@@ -23,6 +23,7 @@ module Vimrunner
 
     def start
       @r, @w, @pid = spawn
+      puts `ls /tmp`
 
       if block_given?
         begin
@@ -51,7 +52,7 @@ module Vimrunner
     end
 
     def running?
-      serverlist.include?(name)
+      serverlist.include?(name) && File.socket?(name)
     end
 
     def kill
@@ -99,16 +100,16 @@ module Vimrunner
 
       headless = ''
       if gui
-        Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }; return 1,2,3
+        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }
+        [nil, nil, pid]
       else
         # headless = '--headless'
-        return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
+        PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
         # return IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]])
       end
     end
 
     def wait_until_running(seconds)
-      # sleep 1
       Timeout.timeout(seconds, TimeoutError) do
         sleep 0.1 while !running?
       end
