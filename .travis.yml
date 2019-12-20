@@ -29,21 +29,23 @@ before_install:
   - gem install bundler
 install:
   - |
+    if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
+      pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
+      pyenv global "$INSTALL_PYTHON_VERSION"
+      python --version
+      pip --version
+      pip3 --version
+    fi
+
     [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
     [ "$LINT_FOR" = ruby ] && bundle install && return
 
-    bundle install
 
     if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
       sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
     fi
-    # pyenv install --list
-    # pyenv update
 
-    if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
-      pyenv install "$INSTALL_PYTHON_VERSION"
-      pyenv global  "$INSTALL_PYTHON_VERSION"
-    fi
+    bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       sh spec/support/bin/install_osx.sh
