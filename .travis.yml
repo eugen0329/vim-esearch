@@ -67,6 +67,7 @@ jobs:
 
     - name: 'Acceptance tests of #backend#nvim'
       script: bundle exec rspec --tag nvim
+      python: 3.7
       os: linux
     # # OSX acceptance
     # - name: 'Acceptance tests of #backend#system'
