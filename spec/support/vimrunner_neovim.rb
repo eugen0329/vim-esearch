@@ -10,12 +10,12 @@ module Vimrunner
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
 
-    attr_reader :nvr_executable, :vimrc, :gvimrc, :pid, :nvim, :gui, :socket
+    attr_reader :nvr_executable, :vimrc, :gvimrc, :pid, :nvim, :gui, :name
 
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
       @nvim       = options.fetch(:nvim) { 'nvim' }
-      @socket     = options.fetch(:socket) { "/tmp/VIMRUNNER_NEOVIM#{rand}" }
+      @name     = options.fetch(:name) { "/tmp/VIMRUNNER_NEOVIM#{rand}" }
       @vimrc      = options.fetch(:vimrc) { VIMRC }
       @foreground = options.fetch(:foreground, false)
       @gui        = options.fetch(:gui, false)
@@ -51,8 +51,7 @@ module Vimrunner
     end
 
     def running?
-      true
-      # serverlist.include?(name)
+      serverlist.include?(name)
     end
 
     def kill
@@ -76,13 +75,13 @@ module Vimrunner
     end
 
     def remote_expr(expression)
-      rval = execute([nvr_executable, '--nostart',  '--servername' ,socket, "--remote-expr", expression])
+      rval = execute([nvr_executable, '--nostart',  '--servername' ,name, "--remote-expr", expression])
       remote_send("<C-\\><C-n>jk")
       rval
     end
 
     def remote_send(keys)
-      rval = execute([nvr_executable, '--nostart','--servername' , socket,  "--remote-send", keys.gsub(/<(?![ABCDEFHILMNPRSTUklx])/, '<LT>\1')])
+      rval = execute([nvr_executable, '--nostart','--servername' , name,  "--remote-send", keys.gsub(/<(?![ABCDEFHILMNPRSTUklx])/, '<LT>\1')])
     end
 
     private
@@ -100,19 +99,19 @@ module Vimrunner
 
       headless = ''
       if gui
-        Process.fork { Process.exec(nvim, *%W[--listen #{socket} -n -u #{vimrc} #{embed} #{headless} #{log}]) }; return 1,2,3
+        Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }; return 1,2,3
       else
         # headless = '--headless'
-        return PTY.spawn(nvim, *%W[--listen #{socket} -n -u #{vimrc} #{embed} #{headless} #{log}])
-        # return IO.popen([nvim, *%W[--listen #{socket} -n -u #{vimrc} #{embed} #{headless} #{log}]])
+        return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
+        # return IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]])
       end
     end
 
     def wait_until_running(seconds)
-      sleep 1
-      # Timeout.timeout(seconds, TimeoutError) do
-      #   sleep 0.1 while !running?
-      # end
+      # sleep 1
+      Timeout.timeout(seconds, TimeoutError) do
+        sleep 0.1 while !running?
+      end
     end
   end
 end

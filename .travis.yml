@@ -34,14 +34,15 @@ install:
 
     bundle install
 
-    sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
+    if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
+      sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
+    fi
     # pyenv install --list
     # pyenv update
 
-    if [ "$INSTALL_NEOVIM_REMOTE" = "1" ]; then
-      pyenv install 3.6.3
-      pyenv global  3.6.3
-      pip3 install neovim-remote
+    if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
+      pyenv install "$INSTALL_PYTHON_VERSION"
+      pyenv global  "$INSTALL_PYTHON_VERSION"
     fi
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
@@ -74,7 +75,7 @@ jobs:
 
     - name: 'Acceptance tests of #backend#nvim'
       script: bundle exec rspec --tag nvim
-      env: INSTALL_NEOVIM_REMOTE=1
+      env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
     # # OSX acceptance
     # - name: 'Acceptance tests of #backend#system'
@@ -105,7 +106,7 @@ jobs:
 
     #   # Linters
     # - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-    #   env: LINT_FOR=ruby
+    #   env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
     #   script:
     #     - bundle exec rubocop --display-cop-names
     #     - shellcheck spec/support/bin/*.sh # decided to not create another build
@@ -113,6 +114,7 @@ jobs:
     # - name: 'Viml lint (Vint, VimLint)'
     #   env:
     #     LINT_FOR=viml
+    #     SKIP_INSTALL_VIM_DEPENDENCIES=1
     #     VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
     #   before_script:
     #     - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint

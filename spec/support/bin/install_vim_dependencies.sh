@@ -26,7 +26,7 @@ git_pull_or_clone() {
 }
 
 plugins_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../vim_plugins"}"
-bin_directory="${2:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"
+bin_directory="${2:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 echo "$plugins_directory"
 
 # Download pretty print
@@ -39,5 +39,7 @@ git -C "$plugins_directory/vimproc.vim" checkout 89065f62883edb10a99aa1b1640d6d4
 (cd "$plugins_directory/vimproc.vim" && make)
 
 # Download neovim
-wget https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage -P "$bin_directory"
+wget -N https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage -P "$bin_directory"
 chmod +x "$bin_directory/nvim.appimage"
+
+pip3 install neovim-remote
