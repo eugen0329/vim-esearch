@@ -87,7 +87,7 @@ jobs:
     #   script: bundle exec rspec --tag vim8
     #   os: osx
     # - name: 'Acceptance tests of #backend#vimproc'
-    #   script: bundle exec rspec --tag vimproc --seed 53149
+    #   script: bundle exec rspec --tag vimproc
     #   os: osx
 
     # # Linux acceptance

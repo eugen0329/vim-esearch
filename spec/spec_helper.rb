@@ -38,7 +38,13 @@ end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
-attr_reader :vim_instance, :neovim_instance
+def vim_instance
+  @vim_instance
+end
+
+def neovim_instance
+  @neovim_instance
+end
 
 def start_neovim!
   nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
