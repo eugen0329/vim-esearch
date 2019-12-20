@@ -29,3 +29,5 @@ if ! command -v pt; then
 fi
 
 brew reinstall git -- --with-pcre2
+
+# https://github.com/neovim/neovim/wiki/Installing-Neovim#macos--os-x

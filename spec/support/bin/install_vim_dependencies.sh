@@ -37,9 +37,3 @@ git -C "$plugins_directory/vim-prettyprint.vim" checkout d6060d2b1ff1cff71714e12
 git_pull_or_clone https://github.com/Shougo/vimproc.vim     "$plugins_directory/vimproc.vim"
 git -C "$plugins_directory/vimproc.vim" checkout 89065f62883edb10a99aa1b1640d6d411907316b
 (cd "$plugins_directory/vimproc.vim" && make)
-
-# Download neovim
-wget -N https://github.com/neovim/neovim/releases/download/v0.4.3/nvim.appimage -P "$bin_directory"
-chmod +x "$bin_directory/nvim.appimage"
-
-pip3 install neovim-remote

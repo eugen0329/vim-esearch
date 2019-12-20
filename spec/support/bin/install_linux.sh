@@ -33,3 +33,9 @@ if ! command -v pt; then
   tar xvfz pt_linux_amd64.tar.gz
   sudo mv pt_linux_amd64/pt /usr/local/bin/pt
 fi
+
+# Download neovim
+wget -N https://github.com/neovim/neovim/releases/download/v0.4.3/nvim.appimage -P "$bin_directory"
+chmod +x "$bin_directory/nvim.appimage"
+
+pip3 install neovim-remote
