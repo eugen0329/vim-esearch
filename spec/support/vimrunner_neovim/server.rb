@@ -107,7 +107,7 @@ module VimrunnerNeovim
       # >= 13	When an exception is thrown, caught, finished, or discarded.
       # >= 14	Anything pending in a ":finally" clause.
       # >= 15	Every executed Ex command (truncated at 200 characters).
-      verbose_level = 15
+      verbose_level = 14
       log = "-V#{verbose_level}#{logfile}"
       embed = ''
 
