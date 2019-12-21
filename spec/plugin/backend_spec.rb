@@ -23,12 +23,22 @@ context 'esearch#backend', :backend do
   describe '#nvim', :nvim do
     around { |e| use_neovim(&e) }
 
+    it do
+      result = press(':version<Enter>')
+      expect(result).to be_present
+    end
+
+    it do
+      result = expr('esearch#util#flatten([])')
+      expect(result).to be_present
+    end
+
     # before do
     #   cmd 'enew'
     # end
 
-    it_behaves_like 'a backend', 'nvim'
-    it_behaves_like 'an abortable backend', 'nvim'
+    # it_behaves_like 'a backend', 'nvim'
+    # it_behaves_like 'an abortable backend', 'nvim'
   end
 
   describe '#vim8', :vim8 do
