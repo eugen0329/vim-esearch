@@ -43,7 +43,7 @@ context 'esearch#backend', :backend do
     #   cmd 'enew'
     # end
 
-    # it_behaves_like 'a backend', 'nvim'
+    it_behaves_like 'a backend', 'nvim'
     # it_behaves_like 'an abortable backend', 'nvim'
   end
 

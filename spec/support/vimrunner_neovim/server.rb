@@ -114,9 +114,9 @@ module VimrunnerNeovim
       embed = ''
 
       return headless_Process_with_extra_output(log)
+      return background_pty(log)
       return gui(log)
       return with_io_popen(log)
-      return background(log)
 
       headless = ''
       if gui
@@ -134,7 +134,7 @@ module VimrunnerNeovim
       return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]]).pid]
     end
 
-    def background(log)
+    def background_pty(log)
       headless = '--headless'
       return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}])
     end
