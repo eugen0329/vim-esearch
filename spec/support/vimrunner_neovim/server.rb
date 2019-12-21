@@ -77,7 +77,8 @@ module VimrunnerNeovim
     end
 
     def remote_expr(expression)
-      rval = execute([nvr_executable, '--nostart',  '--servername' ,name, "--remote-expr", expression])
+      remote_send("<C-\\><C-n>jk")
+      rval = cmd([nvr_executable, '--nostart',  '--servername' ,name, "--remote-expr", expression])
       remote_send("<C-\\><C-n>jk")
       rval
     end

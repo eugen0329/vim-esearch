@@ -24,12 +24,12 @@ context 'esearch#backend', :backend do
     around { |e| use_neovim(&e) }
 
     it do
-      result = press(':version<Enter>')
+      result = press('<Esc><Esc>:version<Enter>')
       expect(result).to be_present
     end
 
     it do
-      result = expr('esearch#util#flatten([])')
+      result = vim.remote_expr('esearch#util#flatten([])')
       expect(result).to be_present
     end
 
