@@ -61,13 +61,16 @@ endif
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
+  call esearch#log#debug('find_or_create_buf before', '/tmp/esearch_log.txt')
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
+  call esearch#log#debug('find_or_create_buf after', '/tmp/esearch_log.txt')
 
   " Stop previous search process first
   if has_key(b:, 'esearch')
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
   end
 
+  call esearch#log#debug('hl before', '/tmp/esearch_log.txt')
   " Refresh match highlight
   setlocal ft=esearch
   if g:esearch.highlight_match
@@ -83,6 +86,9 @@ fu! esearch#out#win#init(opts) abort
     let match_highlight_id = -1
   endif
 
+  call esearch#log#debug('hl after', '/tmp/esearch_log.txt')
+
+  call esearch#log#debug('initialize events before', '/tmp/esearch_log.txt')
   if a:opts.request.async
     augroup ESearchWinAutocmds
       au! * <buffer>
@@ -93,10 +99,15 @@ fu! esearch#out#win#init(opts) abort
       call esearch#backend#{a:opts.backend}#init_events()
     augroup END
   endif
+  call esearch#log#debug('initialize events after', '/tmp/esearch_log.txt')
 
+  call esearch#log#debug('initialize mappings before', '/tmp/esearch_log.txt')
   call s:init_mappings()
+  call esearch#log#debug('initialize mappings after', '/tmp/esearch_log.txt')
   call s:init_commands()
+  call esearch#log#debug('initialize commands after', '/tmp/esearch_log.txt')
 
+  call esearch#log#debug('initialize options before', '/tmp/esearch_log.txt')
   setlocal modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, 0))
@@ -126,6 +137,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'syn_regions_loaded':                [],
         \ 'without':             function('esearch#util#without')
         \})
+  call esearch#log#debug('extend b:esearch after', '/tmp/esearch_log.txt')
 
   call extend(b:esearch.request, {
         \ 'files_count': 0,
@@ -134,7 +146,10 @@ fu! esearch#out#win#init(opts) abort
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
         \})
 
+  call esearch#log#debug('extend b:esearch.request after', '/tmp/esearch_log.txt')
+
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
+  call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')
 
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))

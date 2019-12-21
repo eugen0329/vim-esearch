@@ -13,7 +13,6 @@ RSpec.shared_context 'dumpable' do
           puts '*'*10, 'VERBOSE log end'
         end
 
-
         if File.exists?('/tmp/esearch_log.txt')
           puts 'INTERNAL log start', '*'*10
           puts File.readlines('/tmp/esearch_log.txt').to_a
