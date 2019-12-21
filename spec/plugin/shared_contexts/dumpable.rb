@@ -7,7 +7,18 @@ RSpec.shared_context 'dumpable' do
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
         puts `ps -A -o pid,command | sed 1d | grep nvim`
-        puts File.readlines(vim.server.logfile).to_a if File.exists?(vim.server.logfile)
+        if File.exists?(vim.server.logfile)
+          puts 'VERBOSE log'
+          puts File.readlines(vim.server.logfile).to_a
+        end
+
+        $NVIM_LOG_FILE = '~/.local/share/nvim/log'
+        if File.exists?($NVIM_LOG_FILE)
+          puts '$NVIM_LOG_FILE log'
+          puts File.readlines($NVIM_LOG_FILE).to_a
+        else
+          puts '$NVIM_LOG_FILE is missing'
+        end
       end
 
       press('j') # press j to close "Press ENTER or type command to continue" prompt
