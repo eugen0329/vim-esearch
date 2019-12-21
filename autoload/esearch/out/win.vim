@@ -147,7 +147,6 @@ fu! esearch#out#win#init(opts) abort
         \})
 
   call esearch#log#debug('extend b:esearch.request after', '/tmp/esearch_log.txt')
-
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
   call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')
 
@@ -202,6 +201,7 @@ fu! esearch#out#win#trigger_key_press(...) abort
 endfu
 
 fu! esearch#out#win#update(bufnr) abort
+  call esearch#log#debug('#win#update before', '/tmp/esearch_log.txt')
   " prevent updates when outside of the window
   if a:bufnr != bufnr('%')
     return 1
@@ -209,6 +209,7 @@ fu! esearch#out#win#update(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
+
 
   let data = esearch.request.data
   let data_size = len(data)
@@ -231,6 +232,7 @@ fu! esearch#out#win#update(bufnr) abort
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
+  call esearch#log#debug('#win#update after', '/tmp/esearch_log.txt')
 endfu
 
 fu! s:render_results(bufnr, parsed, esearch) abort

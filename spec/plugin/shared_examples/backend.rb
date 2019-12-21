@@ -71,6 +71,7 @@ def settings_dependent_context(backend, adapter, matching_type, settings)
       puts 'BEFORE press "<Esc>jk<Esc>:call esearch#init()<Enter>#{test_query}<Enter>"'
       press "<Esc>jk<Esc>:call esearch#init()<Enter>#{test_query}<Enter>"
       puts 'AFTER press "<Esc>jk<Esc>:call esearch#init()<Enter>#{test_query}<Enter>"'
+      sleep 1
       wait_for_search_start
       puts 'AFTER wait_for_search_start'
 
