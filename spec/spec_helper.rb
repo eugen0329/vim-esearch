@@ -25,7 +25,7 @@ VimrunnerNeovim::RSpec.configure do |config|
 
   config.start_neovim do
     nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
-    neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_executable, gui: true, timeout: 10).start
+    neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_executable, gui: false, timeout: 10).start
     sleep 1
     load_plugins!(neovim_instance)
     neovim_instance
