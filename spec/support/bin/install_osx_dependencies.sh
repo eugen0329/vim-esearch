@@ -7,7 +7,7 @@ crossplatform_realpath() {
 bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 
 brew update --verbose
-brew install --build-from-source "$TRAVIS_BUILD_DIR/spec/support/brew_formula/macvim.rb" -- --with-override-system-vi
+brew install --build-from-source "$bin_directory/../brew_formula/macvim.rb" -- --with-override-system-vi
 # brew install macvim -- --with-override-system-vim
 
 command -v ack || brew install ack
