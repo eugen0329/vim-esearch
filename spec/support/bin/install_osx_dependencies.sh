@@ -39,7 +39,12 @@ tar xzvf "/tmp/nvim-macos.tar.gz" --directory "$bin_directory"
 pip3 install neovim-remote
 
 mvim --version
+
 "$bin_directory/nvim-osx64/bin/nvim" --version
+"$bin_directory/nvim-osx64/bin/nvim" --headless -c 'set nomore' -c "echo api_info()" -c qall
+"$bin_directory/nvim-osx64/bin/nvim" --headless -c 'echo [&shell, &shellcmdflag]' -c qall
+"$bin_directory/nvim-osx64/bin/nvim" --headless -c 'echo ["jobstart",exists("*jobstart"), "jobclose", exists("*jobclose"), "jobstop ", exists("*jobstop"), "jobwait ", exists("*jobwait")]' -c qall
+
 ack --version
 ag --version
 git --version

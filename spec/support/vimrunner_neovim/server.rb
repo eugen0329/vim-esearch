@@ -132,22 +132,26 @@ module VimrunnerNeovim
 
     def with_io_popen(log)
       headless = ''
-      return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]]).pid]
+      nomore = '-c "set nomore"'
+      return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log} #{nomore}]]).pid]
     end
 
     def background_pty(log)
       headless = '--headless'
-      return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}])
+      nomore = '-c "set nomore"'
+      return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log} #{nomore}])
     end
 
     def headless_Process_with_extra_output(log)
       headless = '--headless'
-      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]) }; return [nil, nil, pid]
+      nomore = '-c "set nomore"'
+      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log} #{nomore}]) }; return [nil, nil, pid]
     end
 
     def gui(log)
       headless = ''
-      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]) }; return [nil, nil, pid]
+      nomore = '-c "set nomore"'
+      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log} #{nomore}]) }; return [nil, nil, pid]
     end
 
     def wait_until_running(seconds)
