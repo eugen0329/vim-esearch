@@ -3,6 +3,7 @@ fu! esearch#init(...) abort
     return 1
   endif
 
+  call esearch#log#debug('prepare argv before', '/tmp/esearch_log.txt')
   " Prepare argv
   """""""""""""""
   let opts = a:0 ? a:1 : {}
@@ -16,7 +17,9 @@ fu! esearch#init(...) abort
         \ 'slice': function('esearch#util#slice')
         \})
   """""""""""""""
+  call esearch#log#debug('prepare argv after', '/tmp/esearch_log.txt')
 
+  call esearch#log#debug('read search string before', '/tmp/esearch_log.txt')
   " Read search string
   """""""""""""""
   call opts.set_default('cwd', getcwd())
@@ -36,8 +39,10 @@ fu! esearch#init(...) abort
     let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
   endif
   """""""""""""""
+  call esearch#log#debug('read search string after', '/tmp/esearch_log.txt')
 
 
+  call esearch#log#debug('Prepare backend before', '/tmp/esearch_log.txt')
   " Prepare backend (nvim, vimproc, ...) request object
   """""""""""""""
   call opts.set_default('backend', g:esearch.backend)
@@ -48,7 +53,9 @@ fu! esearch#init(...) abort
 
   let request = esearch#backend#{opts.backend}#init(shell_cmd, requires_pty)
   """""""""""""""
+  call esearch#log#debug('Prepare backend end', '/tmp/esearch_log.txt')
 
+  call esearch#log#debug('build output before', '/tmp/esearch_log.txt')
   " Build output (window, qflist, ...) params object
   """""""""""""""
   call opts.set_default('batch_size', g:esearch.batch_size)
@@ -59,6 +66,7 @@ fu! esearch#init(...) abort
         \ 'request': request,
         \})
   """""""""""""""
+  call esearch#log#debug('build output after', '/tmp/esearch_log.txt')
 
   call esearch#out#{opts.out}#init(out_params)
 endfu

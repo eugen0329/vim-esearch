@@ -13,6 +13,13 @@ RSpec.shared_context 'dumpable' do
           puts '*'*10, 'VERBOSE log end'
         end
 
+
+        if File.exists?('/tmp/esearch_log.txt')
+          puts 'INTERNAL log start', '*'*10
+          puts File.readlines('/tmp/esearch_log.txt').to_a
+          puts '*'*10, 'INTERNAL log end'
+        end
+
         $NVIM_LOG_FILE = '~/.local/share/nvim/log'
         if File.exists?($NVIM_LOG_FILE)
           puts '$NVIM_LOG_FILE log'
@@ -23,6 +30,8 @@ RSpec.shared_context 'dumpable' do
           puts '$NVIM_LOG_FILE is missing'
         end
       end
+
+
 
       press('j') # press j to close "Press ENTER or type command to continue" prompt
       puts ':messages', cmd('messages')
