@@ -78,7 +78,7 @@ module VimrunnerNeovim
 
     def remote_expr(expression)
       remote_send("<C-\\><C-n>jk")
-      rval = cmd([nvr_executable, '--nostart',  '--servername' ,name, "--remote-expr", expression])
+      rval = execute([nvr_executable, '--nostart',  '--servername' ,name, "--remote-expr", expression])
       remote_send("<C-\\><C-n>jk")
       rval
     end
@@ -109,19 +109,44 @@ module VimrunnerNeovim
       # >= 14	Anything pending in a ":finally" clause.
       # >= 15	Every executed Ex command (truncated at 200 characters).
       verbose_level = 14
+      verbose_level = 0
       log = "-V#{verbose_level}#{logfile}"
       embed = ''
 
+      return headless_Process_with_extra_output(log)
+      return gui(log)
+      return with_io_popen(log)
+      return background(log)
+
       headless = ''
       if gui
-        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }
+        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]) }
         [nil, nil, pid]
       else
-        headless = '--headless'
-        return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
-        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }; return [nil, nil, pid]
-        return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]]).pid]
+        # return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]]).pid]
+        # headless = '--headless'
+        return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}])
       end
+    end
+
+    def with_io_popen(log)
+      headless = ''
+      return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]]).pid]
+    end
+
+    def background(log)
+      headless = '--headless'
+      return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}])
+    end
+
+    def headless_Process_with_extra_output(log)
+      headless = '--headless'
+      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]) }; return [nil, nil, pid]
+    end
+
+    def gui(log)
+      headless = ''
+      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]) }; return [nil, nil, pid]
     end
 
     def wait_until_running(seconds)

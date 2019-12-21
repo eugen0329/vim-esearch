@@ -23,13 +23,19 @@ context 'esearch#backend', :backend do
   describe '#nvim', :nvim do
     around { |e| use_neovim(&e) }
 
-    it do
-      result = press('<Esc><Esc>:version<Enter>')
-      expect(result).to be_present
-    end
+    # it ':version' do
+    #   result = press('<Esc><Esc>:version<Enter>')
+    #   puts result
+    #   expect(result).to be_present
+    # end
 
-    it do
-      result = vim.remote_expr('esearch#util#flatten([])')
+    it 'esearch#util#flatten([])' do
+      # result = press('<Esc><Esc>:version<Enter>')
+      result = vim.command('version')
+      puts result
+      # require 'pry'; binding.pry
+      result = vim.echo('esearch#util#flatten([])')
+      puts result
       expect(result).to be_present
     end
 
