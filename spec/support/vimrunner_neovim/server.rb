@@ -95,7 +95,7 @@ module VimrunnerNeovim
 
     def spawn
       log = ''
-      ENV['NVIM_LOG_FILE'] = '~/.local/share/nvim/log'
+      ENV['NVIM_LOG_FILE'] = "#{Dir.home}/.local/share/nvim/log"
 
 
       # >= 1	When the shada file is read or written.

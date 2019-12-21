@@ -22,6 +22,8 @@ cache:
     - $HOME/.rvm
     - $HOME/Library/Caches/Homebrew # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
     - /usr/local/Homebrew
+    - $HOME/.cache/pip
+    - $HOME/.cache/pyenv
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
@@ -30,8 +32,11 @@ before_install:
 install:
   - |
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
+      whi
       pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
       pyenv global "$INSTALL_PYTHON_VERSION"
+      pyenv shell "$INSTALL_PYTHON_VERSION"
+      pyenv local "$INSTALL_PYTHON_VERSION"
       pyenv rehash
       python --version
       pip --version

@@ -19,7 +19,7 @@ RSpec.shared_context 'dumpable' do
           puts '*'*10, 'INTERNAL log end'
         end
 
-        $NVIM_LOG_FILE = '~/.local/share/nvim/log'
+        $NVIM_LOG_FILE = "#{Dir.home}/.local/share/nvim/log"
         if File.exists?($NVIM_LOG_FILE)
           puts '$NVIM_LOG_FILE log'
           puts '$NVIM_LOG_FILE log start', '*'*10
