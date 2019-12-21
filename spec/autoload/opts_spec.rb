@@ -5,6 +5,7 @@ require 'spec_helper'
 describe 'esearch' do
   describe '#opts' do
     context '#new' do
+      around { |e| use_neovim(&e) }
 
       it 'is able to check if within git repository' do
         expect(expr("system('git rev-parse --is-inside-work-tree >/dev/null 2>&1')"))

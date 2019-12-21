@@ -62,7 +62,6 @@ def nvim_path
   end
 end
 
-
 def osx?
   !(RbConfig::CONFIG['host_os'] =~ /darwin/).nil?
 end
