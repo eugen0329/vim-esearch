@@ -43,3 +43,12 @@ wget -N https://github.com/neovim/neovim/releases/download/v0.4.3/nvim.appimage 
 chmod +x "$bin_directory/nvim.linux.appimage"
 
 pip3 install neovim-remote
+
+vim --version
+"$bin_directory/nvim.linux.appimage" --version
+ack --version
+ag --version
+git --version
+grep --version
+pt --version
+rg --version

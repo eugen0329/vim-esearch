@@ -48,19 +48,10 @@ install:
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/bin/install_osx.sh
-      mvim --version
+      sh spec/support/bin/install_osx_dependencies.sh
     else
-      sh spec/support/bin/install_linux.sh
-      vim --version
-      "$TRAVIS_BUILD_DIR/spec/support/bin/nvim.appimage" --version
+      sh spec/support/bin/install_linux_dependencies.sh
     fi
-    ack --version
-    ag --version
-    git --version
-    grep --version
-    pt --version
-    rg --version
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
@@ -107,7 +98,7 @@ jobs:
       os: linux
 
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec spec/autoload/opts_spec.rb
+      script: bundle exec rspec --tag nvim --seed 6880
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 
