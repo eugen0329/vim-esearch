@@ -94,6 +94,7 @@ module VimrunnerNeovim
 
     def spawn
       log = ''
+      ENV['NVIM_LOG_FILE'] = '~/.local/share/nvim/log'
 
 
       # >= 1	When the shada file is read or written.
@@ -115,7 +116,7 @@ module VimrunnerNeovim
         pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }
         [nil, nil, pid]
       else
-        # headless = '--headless'
+        headless = '--headless'
         return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
         pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }; return [nil, nil, pid]
         return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]]).pid]
