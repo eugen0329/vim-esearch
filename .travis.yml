@@ -98,7 +98,7 @@ jobs:
       os: linux
 
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
+      script: bundle exec rspec spec/autoload/opts_spec.rb
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 
