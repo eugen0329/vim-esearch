@@ -110,6 +110,7 @@ module VimrunnerNeovim
       # >= 15	Every executed Ex command (truncated at 200 characters).
       verbose_level = 14
       verbose_level = 0
+      verbose_level = 20
       log = "-V#{verbose_level}#{logfile}"
       embed = ''
 
