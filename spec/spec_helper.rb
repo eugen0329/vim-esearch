@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'rbconfig'
 require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
@@ -24,8 +25,7 @@ VimrunnerNeovim::RSpec.configure do |config|
   config.reuse_server = false
 
   config.start_neovim do
-    nvim_executable = working_directory.join('spec', 'support', 'bin', 'nvim.appimage').to_s
-    neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_executable, gui: false, timeout: 10).start
+    neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_path, gui: false, timeout: 10).start
     sleep 1
     load_plugins!(neovim_instance)
     neovim_instance
@@ -52,6 +52,23 @@ def load_plugins!(vim)
   vim.add_plugin(vimproc_path,      vimproc_path.join('plugin', 'vimproc.vim'))
   vim.add_plugin(pp_path,           pp_path.join('plugin', 'prettyprint.vim'))
   vim
+end
+
+def nvim_path
+  if linux?
+    working_directory.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
+  else
+    working_directory.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
+  end
+end
+
+
+def osx?
+  !(RbConfig::CONFIG['host_os'] =~ /darwin/).nil?
+end
+
+def linux?
+  !(RbConfig::CONFIG['host_os'] =~ /linux/).nil?
 end
 
 def gui?

@@ -1,6 +1,10 @@
 #!/bin/sh
 
 # NOTE every which is intentionally kept without redirection output to /dev/null
+crossplatform_realpath() {
+    [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
+}
+bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 
 brew update --verbose
 brew install --build-from-source "$TRAVIS_BUILD_DIR/spec/support/brew_formula/macvim.rb" -- --with-override-system-vi
@@ -30,4 +34,5 @@ fi
 
 brew reinstall git -- --with-pcre2
 
-# https://github.com/neovim/neovim/wiki/Installing-Neovim#macos--os-x
+wget "https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-macos.tar.gz" -P /tmp
+tar xzvf "/tmp/nvim-macos.tar.gz" --directory "$bin_directory"

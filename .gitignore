@@ -1,2 +1,3 @@
 /spec/support/vim_plugins
-/spec/support/bin/nvim.appimage
+/spec/support/bin/nvim.linux.appimage
+/spec/support/bin/nvim-osx64

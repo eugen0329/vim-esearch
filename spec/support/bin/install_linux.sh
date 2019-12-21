@@ -1,6 +1,10 @@
 #!/bin/sh
 
 # NOTE every which is intentionally kept without redirection output to /dev/null
+crossplatform_realpath() {
+    [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
+}
+bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 
 # sudo apt-get remove -y -f vim
 # sudo apt-get remove -y -f vim-common
@@ -35,7 +39,7 @@ if ! command -v pt; then
 fi
 
 # Download neovim
-wget -N https://github.com/neovim/neovim/releases/download/v0.4.3/nvim.appimage -P "$bin_directory"
-chmod +x "$bin_directory/nvim.appimage"
+wget -N https://github.com/neovim/neovim/releases/download/v0.4.3/nvim.appimage -O "$bin_directory/nvim.linux.appimage"
+chmod +x "$bin_directory/nvim.linux.appimage"
 
 pip3 install neovim-remote

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 crossplatform_realpath() {
-    [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
+  [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
 }
 
 git_pull_or_clone() {
