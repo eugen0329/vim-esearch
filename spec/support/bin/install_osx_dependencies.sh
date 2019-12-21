@@ -36,6 +36,7 @@ brew reinstall git -- --with-pcre2
 
 wget "https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-macos.tar.gz" -P /tmp
 tar xzvf "/tmp/nvim-macos.tar.gz" --directory "$bin_directory"
+pip3 install neovim-remote
 
 mvim --version
 "$bin_directory/nvim-osx64/bin/nvim" --version

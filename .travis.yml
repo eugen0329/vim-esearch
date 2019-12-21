@@ -97,13 +97,6 @@ jobs:
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec spec/autoload/opts_spec.rb
-      env: INSTALL_PYTHON_VERSION=3.6.1
-      os: linux
-
-
-
     #   # Unit tests
     # - name: 'Unit tests'
     #   script: bundle exec rspec --tag ~backend
