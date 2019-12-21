@@ -115,11 +115,10 @@ module VimrunnerNeovim
         pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }
         [nil, nil, pid]
       else
-        headless = '--headless'
-        return IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]])
-        # return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
-        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }
-        [nil, nil, pid]
+        # headless = '--headless'
+        return PTY.spawn(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}])
+        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]) }; return [nil, nil, pid]
+        return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{embed} #{headless} #{log}]]).pid]
       end
     end
 

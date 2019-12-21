@@ -8,14 +8,17 @@ RSpec.shared_context 'dumpable' do
         puts `ls /tmp`
         puts `ps -A -o pid,command | sed 1d | grep nvim`
         if File.exists?(vim.server.logfile)
-          puts 'VERBOSE log'
+          puts 'VERBOSE log start', '*'*10
           puts File.readlines(vim.server.logfile).to_a
+          puts '*'*10, 'VERBOSE log end'
         end
 
         $NVIM_LOG_FILE = '~/.local/share/nvim/log'
         if File.exists?($NVIM_LOG_FILE)
           puts '$NVIM_LOG_FILE log'
+          puts '$NVIM_LOG_FILE log start', '*'*10
           puts File.readlines($NVIM_LOG_FILE).to_a
+          puts '*'*10, '$NVIM_LOG_FILE log end'
         else
           puts '$NVIM_LOG_FILE is missing'
         end

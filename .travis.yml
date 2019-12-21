@@ -18,7 +18,7 @@ cache:
   pip: true
   directories:
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
-    - $TRAVIS_BUILD_DIR/spec/support/bin
+    # - $TRAVIS_BUILD_DIR/spec/support/bin
     - $HOME/.rvm
     - $HOME/Library/Caches/Homebrew # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
     - /usr/local/Homebrew
