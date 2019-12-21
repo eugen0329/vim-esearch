@@ -48,9 +48,9 @@ def load_plugins!(vim)
   vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
   pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
 
-  vim.add_plugin(working_directory, working_directory.join('plugin', 'esearch.vim'))
-  vim.add_plugin(vimproc_path,      vimproc_path.join('plugin', 'vimproc.vim'))
-  vim.add_plugin(pp_path,           pp_path.join('plugin', 'prettyprint.vim'))
+  vim.add_plugin(working_directory, ['plugin', 'esearch.vim'].join('/'))
+  vim.add_plugin(vimproc_path,      ['plugin', 'vimproc.vim'].join('/'))
+  vim.add_plugin(pp_path,           ['plugin', 'prettyprint.vim'].join('/'))
   vim
 end
 
