@@ -61,6 +61,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
     unless VimrunnerNeovim::Testing.neovim_instance&.server&.running?
+      puts "Cleanup dead neovim_instance"
       VimrunnerNeovim::Testing.neovim_instance = nil # cleanup process if it's failed
     end
   end

@@ -75,7 +75,10 @@ def settings_dependent_context(backend, adapter, matching_type, settings)
       wait_for_search_start
       # puts 'AFTER wait_for_search_start'
 
-      expect { line(1) =~ /Finish/i }.to become_true_within(10.seconds),
+      expect {
+        press "<Esc>"
+        line(1) =~ /Finish/i
+      }.to become_true_within(10.seconds),
         -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
     end
   end

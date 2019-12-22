@@ -14,9 +14,7 @@ Vimrunner::RSpec.configure do |config|
 
   config.start_vim do
     # NOTE: for some reason it non-gui deadlocks on travis
-    vim_instance = gui? ? Vimrunner.start_gvim : Vimrunner.start
-    load_plugins!(vim_instance)
-    vim_instance
+    load_plugins!(gui? ? Vimrunner.start_gvim : Vimrunner.start)
   end
 end
 
@@ -24,9 +22,13 @@ VimrunnerNeovim::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_neovim do
-    neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_path, gui: false, timeout: 10).start
-    load_plugins!(neovim_instance)
-    neovim_instance
+    # NOTE use non-gui neovim on travis
+    load_plugins!(VimrunnerNeovim::Server.new(
+      nvim: nvim_path,
+      gui: gui? && !ci?,
+      timeout: 10,
+      verbose_level: 0
+    ).start)
   end
 end
 

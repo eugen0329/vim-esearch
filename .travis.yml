@@ -77,59 +77,59 @@ jobs:
     #   - tests rely on platform specific calls and should be crossplatform
     #   - underlying backends (mostly vimproc) rely platform specific calls
 
-    # # OSX acceptance
-    # - name: 'Acceptance tests of #backend#system'
-    #   script: bundle exec rspec --tag system
-    #   os: osx
-    # - name: 'Acceptance tests of #backend#vim8'
-    #   script: bundle exec rspec --tag vim8
-    #   os: osx
-    # - name: 'Acceptance tests of #backend#vimproc'
-    #   script: bundle exec rspec --tag vimproc
-    #   os: osx
+    # OSX acceptance
+    - name: 'Acceptance tests of #backend#system'
+      script: bundle exec rspec --tag system
+      os: osx
+    - name: 'Acceptance tests of #backend#vim8'
+      script: bundle exec rspec --tag vim8
+      os: osx
+    - name: 'Acceptance tests of #backend#vimproc'
+      script: bundle exec rspec --tag vimproc
+      os: osx
     - name: 'Acceptance tests of #backend#nvim'
       script: bundle exec rspec --tag nvim --seed 6880
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: osx
 
-    # # Linux acceptance
-    # - name: 'Acceptance tests of #backend#system'
-    #   script: bundle exec rspec --tag system
-    #   os: linux
-    # - name: 'Acceptance tests of #backend#vim8'
-    #   script: bundle exec rspec --tag vim8
-    #   os: linux
-    # - name: 'Acceptance tests of #backend#vimproc'
-    #   script: bundle exec rspec --tag vimproc
-    #   os: linux
+    # Linux acceptance
+    - name: 'Acceptance tests of #backend#system'
+      script: bundle exec rspec --tag system
+      os: linux
+    - name: 'Acceptance tests of #backend#vim8'
+      script: bundle exec rspec --tag vim8
+      os: linux
+    - name: 'Acceptance tests of #backend#vimproc'
+      script: bundle exec rspec --tag vimproc
+      os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim
+      script: bundle exec rspec --tag nvim --seed 6885
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 
-    #   # Unit tests
-    # - name: 'Unit tests'
-    #   script: bundle exec rspec --tag ~backend
-    #   os: linux
+      # Unit tests
+    - name: 'Unit tests'
+      script: bundle exec rspec --tag ~backend
+      os: linux
 
-    #   # Linters
-    # - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-    #   env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
-    #   script:
-    #     - bundle exec rubocop --display-cop-names
-    #     - shellcheck spec/support/bin/*.sh # decided to not create another build
-    #   os: linux
-    # - name: 'Viml lint (Vint, VimLint)'
-    #   env:
-    #     LINT_FOR=viml
-    #     SKIP_INSTALL_VIM_DEPENDENCIES=1
-    #     VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
-    #   before_script:
-    #     - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
-    #     - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
-    #   script:
-    #     - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
-    #     - "vint $VIML_DIRECTORIES"
-    #   language: python
-    #   python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
-    #   os: linux
+      # Linters
+    - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
+      env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
+      script:
+        - bundle exec rubocop --display-cop-names
+        - shellcheck spec/support/bin/*.sh # decided to not create another build
+      os: linux
+    - name: 'Viml lint (Vint, VimLint)'
+      env:
+        LINT_FOR=viml
+        SKIP_INSTALL_VIM_DEPENDENCIES=1
+        VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
+      before_script:
+        - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
+        - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
+      script:
+        - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
+        - "vint $VIML_DIRECTORIES"
+      language: python
+      python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      os: linux
