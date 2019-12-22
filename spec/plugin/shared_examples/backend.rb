@@ -68,12 +68,8 @@ def settings_dependent_context(matching_type, settings)
 
   File.readlines("spec/fixtures/backend/#{matching_type}.txt").map(&:chomp).each do |test_query|
     it "finds `#{test_query}`" do
-      # puts 'BEFORE press "<Esc>jk<Esc>:call esearch#init()<Enter>#{test_query}<Enter>"'
-      press "<Esc>jk<Esc>:call esearch#init()<Enter>#{test_query}<Enter>"
-      # puts 'AFTER press "<Esc>jk<Esc>:call esearch#init()<Enter>#{test_query}<Enter>"'
-      sleep 1
+      press ":call esearch#init()<Enter>#{test_query}<Enter>"
       wait_for_search_start
-      # puts 'AFTER wait_for_search_start'
 
       expect {
         press '<Esc>'

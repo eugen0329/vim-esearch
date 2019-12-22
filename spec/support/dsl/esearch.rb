@@ -14,11 +14,11 @@ module Support
           "'#{name}': #{val}"
         end
         dict = "{ #{pairs.join(',')} }"
-        vim.type("<Esc>:if !exists('g:esearch') | "\
+        vim.command("if !exists('g:esearch') | "\
                    "let g:esearch = #{dict} | "\
                    'else | '\
                    "call extend(g:esearch, #{dict}) | "\
-                   'endif<Enter>')
+                   'endif')
       end
     end
   end
