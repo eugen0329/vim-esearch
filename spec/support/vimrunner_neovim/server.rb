@@ -53,7 +53,11 @@ module VimrunnerNeovim
     end
 
     def running?
-      serverlist.include?(name) && File.socket?(name)
+      serverlist.include?(name) && File.socket?(name) && alive?
+    end
+
+    def alive?
+      !!Process.kill(0, @pid) rescue false
     end
 
     def kill

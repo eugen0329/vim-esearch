@@ -21,7 +21,7 @@ Vimrunner::RSpec.configure do |config|
 end
 
 VimrunnerNeovim::RSpec.configure do |config|
-  config.reuse_server = false
+  config.reuse_server = true
 
   config.start_neovim do
     neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_path, gui: false, timeout: 10).start

@@ -59,6 +59,12 @@ end
 RSpec.configure do |config|
   config.include(VimrunnerNeovim::Testing)
 
+  config.before(:each) do
+    unless VimrunnerNeovim::Testing.neovim_instance&.server&.running?
+      VimrunnerNeovim::Testing.neovim_instance = nil # cleanup process if it's failed
+    end
+  end
+
   config.after(:each) do
     unless VimrunnerNeovim::RSpec.configuration.reuse_server
       VimrunnerNeovim::Testing.neovim_instance&.kill
