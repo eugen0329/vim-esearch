@@ -1,11 +1,14 @@
-require "timeout"
-require "pty"
+# frozen_string_literal: true
+
+require 'timeout'
+require 'pty'
 require 'open3'
 
-require "vimrunner/errors"
-require "vimrunner/client"
-require "vimrunner/platform"
+require 'vimrunner/errors'
+require 'vimrunner/client'
+require 'vimrunner/platform'
 
+# rubocop:disable Layout/ClassLength
 module VimrunnerNeovim
   class Server
     VIMRC        = Vimrunner::Server::VIMRC
@@ -22,16 +25,16 @@ module VimrunnerNeovim
       @foreground     = options.fetch(:foreground, false)
       @gui            = options.fetch(:gui, false)
 
-      # >= 1	When the shada file is read or written.
-      # >= 2	When a file is ":source"'ed.
-      # >= 3	UI info, terminal capabilities
-      # >= 5	Every searched tags file and include file.
-      # >= 8	Files for which a group of autocommands is executed.
-      # >= 9	Every executed autocommand.
-      # >= 12	Every executed function.
-      # >= 13	When an exception is thrown, caught, finished, or discarded.
-      # >= 14	Anything pending in a ":finally" clause.
-      # >= 15	Every executed Ex command (truncated at 200 characters).
+      # >= 1  When the shada file is read or written.
+      # >= 2  When a file is ":source"'ed.
+      # >= 3  UI info, terminal capabilities
+      # >= 5  Every searched tags file and include file.
+      # >= 8  Files for which a group of autocommands is executed.
+      # >= 9  Every executed autocommand.
+      # >= 12  Every executed function.
+      # >= 13  When an exception is thrown, caught, finished, or discarded.
+      # >= 14  Anything pending in a ":finally" clause.
+      # >= 15  Every executed Ex command (truncated at 200 characters).
       @verbose_level    = options.fetch(:verbose_level, 0)
       @verbose_log_path = options.fetch(:verbose_log_path) { '/tmp/vimrunner_neovim.log' }
 
@@ -57,7 +60,7 @@ module VimrunnerNeovim
     def connect(options = {})
       connect!(options)
     rescue Timeout::Error
-      puts "Timeout" * 10
+      puts 'Timeout' * 10
       nil
     end
 
@@ -74,7 +77,9 @@ module VimrunnerNeovim
     end
 
     def alive?
-      !!Process.kill(0, @pid) rescue false
+      !!Process.kill(0, @pid)
+    rescue StandardError
+      false
     end
 
     def kill
@@ -98,18 +103,18 @@ module VimrunnerNeovim
     end
 
     def serverlist
-      execute([nvr_executable, "--serverlist"]).split("\n")
+      execute([nvr_executable, '--serverlist']).split("\n")
     end
 
     def remote_expr(expression)
-      remote_send("<C-\\><C-n>jk")
-      rval = execute([nvr_executable, '--nostart',  '--servername' ,name, "--remote-expr", expression])
-      remote_send("<C-\\><C-n>jk")
-      rval
+      remote_send('<C-\\><C-n>jk')
+      result = execute([nvr_executable, *nvr_args, '--remote-expr', expression])
+      remote_send('<C-\\><C-n>jk')
+      result
     end
 
     def remote_send(keys)
-      rval = execute([nvr_executable, '--nostart','--servername' , name,  "--remote-send", keys.gsub(/<(?![ABCDEFHILMNPRSTUklx])/, '<LT>\1')])
+      execute([nvr_executable, *nvr_args, '--remote-send', keys.gsub(/<(?![ABCDEFHILMNPRSTUklx])/, '<LT>\1')])
     end
 
     private
@@ -120,10 +125,10 @@ module VimrunnerNeovim
 
     def spawn
       if gui
-        return fork_gui
+        fork_gui
       else
-        return headless_Process_without_extra_output
-        # return headless_Process_with_extra_output
+        headless__process_without_extra_output
+        # return headless__process_with_extra_output
         # return with_io_popen
         # return background_pty
       end
@@ -137,61 +142,60 @@ module VimrunnerNeovim
 
     # has problems with io
     def with_io_popen
-      nomore = '-c "set nomore"'
-      pipe = IO.popen([env, nvim, *%W[--listen #{name} -n -u #{vimrc}  #{verbose_log_option} #{nomore}]])
-      return [nil, nil, pipe.pid]
-      # stdin, stdout, wait_thr = Open3.popen2(env, nvim, *%W[--listen #{name} -n -u #{vimrc}  #{verbose_log_option} #{nomore}])
+      pipe = IO.popen([env, nvim, *nvim_args])
+      [nil, nil, pipe.pid]
+      # stdin, stdout, wait_thr = Open3.popen2(env, nvim, *%W[--listen #{name}
+      # -n -u #{vimrc}  #{verbose_log_option} #{nomore}])
       # return [stdout, stdin, wait_thr.pid]
     end
 
     # hangs forever on linux machines
     def background_pty
-      headless = '--headless'
-      nomore = '-c "set nomore"'
-      return PTY.spawn(env, nvim, *%W[--listen #{name} -n -u #{vimrc} --headless #{verbose_log_option} #{nomore}])
+      PTY.spawn(env, nvim, *nvim_args, '--headless')
     end
 
     # doesn't work with pry, but may be ok for CI
-    def headless_Process_without_extra_output
-      headless = '--headless'
-      nomore = '-c "set nomore"'
-
-      pid = fork { exec(nvim, *%W[--listen #{name} --embed -n -u #{vimrc} --headless #{verbose_log_option}]) }
-      return [nil, nil, pid]
+    def headless__process_without_extra_output
+      pid = fork { exec(nvim, *nvim_args, '--embed', '--headless') }
+      [nil, nil, pid]
     end
 
     # Has redundant output with information on what keys was pressed and "Press
     # ENTER or type command to continue". Can be convenient for debug headless
     # mode, but it pollutes output with this messages
-    def headless_Process_with_extra_output
-      headless = '--headless'
-      nomore = '-c "set nomore"'
-      pid = fork { exec(env, nvim, *%W[--listen #{name} -n -u #{vimrc} --headless #{verbose_log_option}]) }
-      return [nil, nil, pid]
+    def headless__process_with_extra_output
+      pid = fork { exec(env, nvim, '--headless') }
+      [nil, nil, pid]
     end
 
     def fork_gui
-      nomore = '-c "set nomore"'
-      # TODO extract platform check
+      exec_neovim_with_args_command = "#{nvim} #{nvim_args.join(' ')}"
+      # TODO: extract platform check
+      pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
+              fork { exec(env, 'iterm', exec_neovim_with_args_command) }
+            else
+              fork { exec(env, 'xterm', '-e', exec_neovim_with_args_command) }
+            end
+      [nil, nil, pid]
+    end
 
-      neovim_args = "#{nvim} --listen #{name} -n -u #{vimrc} #{verbose_log_option} #{nomore}"
-      if RbConfig::CONFIG['host_os'] =~ /darwin/
-        pid = fork { exec(env, 'iterm', neovim_args) }
-      else
-        pid = fork { exec(env, 'xterm', *%W[-e #{neovim_args}]) }
-      end
-      return [nil, nil, pid]
+    def nvim_args
+      ['--listen', name, '-n', '-u', vimrc, verbose_log_option, '-c "set nomore"']
+    end
+
+    def nvr_args
+      ['--nostart', '--servername', name]
     end
 
     def wait_until_running(seconds)
-      Timeout.timeout(seconds, Timeout::Error) do
-        sleep 0.1 while !running?
-      end
+      Timeout.timeout(seconds, Timeout::Error) { sleep 0.1 until running? }
     end
 
     def verbose_log_option
       return '' if verbose_level < 1
+
       "-V#{verbose_level}#{verbose_log_path}"
     end
   end
 end
+# rubocop:enable Layout/ClassLength

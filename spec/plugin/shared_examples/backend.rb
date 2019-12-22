@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # TODO: completely rewrite
-RSpec.shared_examples 'a backend' do |backend, _adapter|
+RSpec.shared_examples 'a backend' do |backend|
   SEARCH_UTIL_ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
@@ -13,8 +13,8 @@ RSpec.shared_examples 'a backend' do |backend, _adapter|
       context 'matching modes' do
         before { press ":cd #{working_directory}/spec/fixtures/backend/<Enter>" }
 
-        context('literal') { settings_dependent_context(backend, adapter, 'literal', regex: 0) }
-        context('regex')   { settings_dependent_context(backend, adapter, 'regex', regex: 1) }
+        context('literal') { settings_dependent_context('literal', regex: 0) }
+        context('regex')   { settings_dependent_context('regex', regex: 1) }
       end
 
       context 'with relative path' do
@@ -59,7 +59,7 @@ RSpec.shared_examples 'a backend' do |backend, _adapter|
   include_context 'dumpable'
 end
 
-def settings_dependent_context(backend, adapter, matching_type, settings)
+def settings_dependent_context(matching_type, settings)
   before do
     press ":cd #{working_directory}/spec/fixtures/backend/<Enter>"
     esearch_settings(settings)
@@ -76,7 +76,7 @@ def settings_dependent_context(backend, adapter, matching_type, settings)
       # puts 'AFTER wait_for_search_start'
 
       expect {
-        press "<Esc>"
+        press '<Esc>'
         line(1) =~ /Finish/i
       }.to become_true_within(10.seconds),
         -> { "Expected first line to match /Finish/, got `#{line(1)}`" }

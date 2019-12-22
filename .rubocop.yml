@@ -42,3 +42,4 @@ Metrics/MethodLength:
 AllCops:
   Exclude:
     - 'spec/support/brew_formula/**/*'
+    - 'spec/support/bin/**/*'

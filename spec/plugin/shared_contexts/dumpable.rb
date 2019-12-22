@@ -2,28 +2,27 @@
 
 RSpec.shared_context 'dumpable' do
   after(:each) do |example|
-
     unless example.exception.nil?
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
         puts `ps -A -o pid,command | sed 1d | grep nvim`
-        if File.exists?(vim.server.logfile)
-          puts 'VERBOSE log start', '*'*10
+        if File.exist?(vim.server.logfile)
+          puts 'VERBOSE log start', '*' * 10
           puts File.readlines(vim.server.logfile).to_a
-          puts '*'*10, 'VERBOSE log end'
+          puts '*' * 10, 'VERBOSE log end'
         end
 
-        if File.exists?('/tmp/esearch_log.txt')
-          puts 'INTERNAL log start', '*'*10
+        if File.exist?('/tmp/esearch_log.txt')
+          puts 'INTERNAL log start', '*' * 10
           puts File.readlines('/tmp/esearch_log.txt').to_a
-          puts '*'*10, 'INTERNAL log end'
+          puts '*' * 10, 'INTERNAL log end'
         end
 
-        if File.exists?(vim.server.nvim_log_file)
+        if File.exist?(vim.server.nvim_log_file)
           puts 'vim.server.nvim_log_file log'
-          puts 'vim.server.nvim_log_file log start', '*'*10
+          puts 'vim.server.nvim_log_file log start', '*' * 10
           puts File.readlines(vim.server.nvim_log_file).to_a
-          puts '*'*10, 'vim.server.nvim_log_file log end'
+          puts '*' * 10, 'vim.server.nvim_log_file log end'
         else
           puts '$NVIM_LOG_FILE is missing'
         end
@@ -41,7 +40,7 @@ RSpec.shared_context 'dumpable' do
       puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
       puts expr('&runtimepath')
 
-      puts 'buffers:', cmd("ls!")
+      puts 'buffers:', cmd('ls!')
 
       if exists('*prettyprint#prettyprint')
         puts "\n" * 2, '#' * 10, 'G:ESEARCH'

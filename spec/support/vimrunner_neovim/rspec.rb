@@ -1,10 +1,12 @@
-require "timeout"
-require "pty"
+# frozen_string_literal: true
+
+require 'timeout'
+require 'pty'
 require 'active_support/concern'
 
-require "vimrunner/errors"
-require "vimrunner/client"
-require "vimrunner/platform"
+require 'vimrunner/errors'
+require 'vimrunner/client'
+require 'vimrunner/platform'
 
 require_relative 'server'
 
@@ -37,9 +39,7 @@ module VimrunnerNeovim
         @start_neovim_method = block
       end
 
-      def start_neovim_method
-        @start_neovim_method
-      end
+      attr_reader :start_neovim_method
     end
 
     def self.configuration
@@ -60,8 +60,9 @@ RSpec.configure do |config|
   config.include(VimrunnerNeovim::Testing)
 
   config.before(:each) do
-    unless VimrunnerNeovim::Testing.neovim_instance&.server&.running?
-      puts "Cleanup dead neovim_instance"
+    if VimrunnerNeovim::Testing.neovim_instance.present? &&
+       !VimrunnerNeovim::Testing.neovim_instance.server&.running?
+      puts 'Cleanup dead neovim_instance'
       VimrunnerNeovim::Testing.neovim_instance = nil # cleanup process if it's failed
     end
   end
