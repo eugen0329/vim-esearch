@@ -6,7 +6,7 @@ RSpec.shared_context 'dumpable' do
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
         puts `ps -A -o pid,command | sed 1d | grep nvim`
-        if File.exist?(vim.server.logfile)
+        if File.exist?(vim.server.verbose_log_file)
           puts 'VERBOSE log start', '*' * 10
           puts File.readlines(vim.server.logfile).to_a
           puts '*' * 10, 'VERBOSE log end'

@@ -14,8 +14,8 @@ module VimrunnerNeovim
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
 
-    attr_reader :nvr_executable, :vimrc, :gvimrc, :pid, :nvim, :gui, :name,
-      :verbose_level, :verbose_log_path, :nvim_log_file
+    attr_reader :nvr_executable, :vimrc, :nvim, :gui, :name,
+      :verbose_level, :verbose_log_file, :nvim_log_file
 
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
@@ -36,7 +36,7 @@ module VimrunnerNeovim
       # >= 14  Anything pending in a ":finally" clause.
       # >= 15  Every executed Ex command (truncated at 200 characters).
       @verbose_level    = options.fetch(:verbose_level, 0)
-      @verbose_log_path = options.fetch(:verbose_log_path) { '/tmp/vimrunner_neovim.log' }
+      @verbose_log_file = options.fetch(:verbose_log_file) { '/tmp/vimrunner_neovim_verbose_log.log' }
 
       # $NVIM_LOG_FILE variable for nvim
       @nvim_log_file = options.fetch(:nvim_log_file) { "#{Dir.home}/.local/share/nvim/log" }
@@ -86,7 +86,6 @@ module VimrunnerNeovim
       @r&.close
       @w&.close
 
-      # puts "killing process #{@pid}"
       begin
         Process.kill(9, @pid)
         Process.wait
@@ -127,8 +126,8 @@ module VimrunnerNeovim
       if gui
         fork_gui
       else
-        headless__process_without_extra_output
-        # return headless__process_with_extra_output
+        headless_process_without_extra_output
+        # return headless_process_with_extra_output
         # return with_io_popen
         # return background_pty
       end
@@ -144,9 +143,6 @@ module VimrunnerNeovim
     def with_io_popen
       pipe = IO.popen([env, nvim, *nvim_args])
       [nil, nil, pipe.pid]
-      # stdin, stdout, wait_thr = Open3.popen2(env, nvim, *%W[--listen #{name}
-      # -n -u #{vimrc}  #{verbose_log_option} #{nomore}])
-      # return [stdout, stdin, wait_thr.pid]
     end
 
     # hangs forever on linux machines
@@ -155,32 +151,32 @@ module VimrunnerNeovim
     end
 
     # doesn't work with pry, but may be ok for CI
-    def headless__process_without_extra_output
-      pid = fork { exec(nvim, *nvim_args, '--embed', '--headless') }
+    def headless_process_without_extra_output
+      pid = fork { exec(env, nvim, *nvim_args, '--embed', '--headless') }
       [nil, nil, pid]
     end
 
     # Has redundant output with information on what keys was pressed and "Press
     # ENTER or type command to continue". Can be convenient for debug headless
     # mode, but it pollutes output with this messages
-    def headless__process_with_extra_output
-      pid = fork { exec(env, nvim, '--headless') }
+    def headless_process_with_extra_output
+      pid = fork { exec(env, nvim, *nvim_args, '--headless') }
       [nil, nil, pid]
     end
 
     def fork_gui
-      exec_neovim_with_args_command = "#{nvim} #{nvim_args.join(' ')}"
+      exec_nvim_command = "#{nvim} #{nvim_args.join(' ')}"
       # TODO: extract platform check
       pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
-              fork { exec(env, 'iterm', exec_neovim_with_args_command) }
+              fork { exec(env, 'iterm', exec_nvim_command) }
             else
-              fork { exec(env, 'xterm', '-e', exec_neovim_with_args_command) }
+              fork { exec(env, 'xterm', '-e', exec_nvim_command) }
             end
       [nil, nil, pid]
     end
 
     def nvim_args
-      ['--listen', name, '-n', '-u', vimrc, verbose_log_option, '-c "set nomore"']
+      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
     end
 
     def nvr_args
@@ -191,10 +187,10 @@ module VimrunnerNeovim
       Timeout.timeout(seconds, Timeout::Error) { sleep 0.1 until running? }
     end
 
-    def verbose_log_option
+    def verbose_log_argument
       return '' if verbose_level < 1
 
-      "-V#{verbose_level}#{verbose_log_path}"
+      "-V#{verbose_level}#{verbose_log_file}"
     end
   end
 end

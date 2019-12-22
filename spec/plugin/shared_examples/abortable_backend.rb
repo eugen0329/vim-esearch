@@ -23,7 +23,6 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     let(:out) { 'win' }
 
     it 'aborts on bufdelete' do
-      # cmd 'tabnew'
       press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
       wait_for_search_start
       expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
@@ -50,7 +49,6 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     let(:out) { 'qflist' }
 
     it 'aborts on bufdelete' do
-      # cmd 'tabnew'
       press ":call esearch#init({'cwd': ''})<Enter>#{search_string}<Enter>"
       wait_for_qickfix_enter
       expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)

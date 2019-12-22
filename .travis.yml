@@ -5,7 +5,11 @@ osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
 services:
   - xvfb # NOTE: Services are not supported on osx
-env: DISPLAY=":99.0" HOMEBREW_NO_AUTO_UPDATE=1
+env:
+  DISPLAY=":99.0"
+  HOMEBREW_NO_AUTO_UPDATE=1
+  VIM_GUI=1
+  NVIM_GUI=0
 
 rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
@@ -24,8 +28,6 @@ cache:
     - /usr/local/Homebrew
     - $HOME/.cache/pip
     - $HOME/.cache/pyenv
-    - /opt/pyenv/versions   # linux
-    - $HOME/.pyenv/versions # osx
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20

@@ -13,19 +13,17 @@ Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_vim do
-    # NOTE: for some reason it non-gui deadlocks on travis
-    load_plugins!(gui? ? Vimrunner.start_gvim : Vimrunner.start)
+    load_plugins!(vim_gui? ? Vimrunner.start_gvim : Vimrunner.start)
   end
 end
 
 VimrunnerNeovim::RSpec.configure do |config|
   config.reuse_server = true
 
-  config.start_neovim do
-    # NOTE use non-gui neovim on travis
+  config.start_nvim do
     load_plugins!(VimrunnerNeovim::Server.new(
       nvim: nvim_path,
-      gui: gui? && !ci?,
+      gui: nvim_gui?,
       timeout: 10,
       verbose_level: 0
     ).start)
@@ -61,6 +59,16 @@ def nvim_path
   else
     working_directory.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
   end
+end
+
+def vim_gui?
+  # NOTE: for some reason non-gui deadlocks on travis
+  ENV.fetch('VIM_GUI', '1') == '1' && gui?
+end
+
+def nvim_gui?
+  # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
+  ENV.fetch('NVIM_GUI', '1') == '1' && gui?
 end
 
 def osx?
