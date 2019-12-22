@@ -34,6 +34,7 @@ install:
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
       whereis pyenv
+      eval "$(pyenv init -)"
       pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
       pyenv global "$INSTALL_PYTHON_VERSION"
       pyenv shell "$INSTALL_PYTHON_VERSION"

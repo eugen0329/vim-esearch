@@ -61,8 +61,8 @@ RSpec.configure do |config|
 
   config.before(:each) do
     unless Vimrunner::RSpec.configuration.reuse_server
-      VimrunnerNeovim::Testing.instance.kill if VimrunnerNeovim::Testing.instance
-      VimrunnerNeovim::Testing.instance = nil
+      VimrunnerNeovim::Testing.neovim_instance&.kill if VimrunnerNeovim::Testing.neovim_instance
+      VimrunnerNeovim::Testing.neovim_instance = nil
     end
   end
 
