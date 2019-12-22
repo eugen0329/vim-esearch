@@ -72,7 +72,7 @@ def settings_dependent_context(matching_type, settings)
       wait_for_search_start
 
       expect {
-        press '<Esc>'
+        press 'jk'
         line(1) =~ /Finish/i
       }.to become_true_within(10.seconds),
         -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
