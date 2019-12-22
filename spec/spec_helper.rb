@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'rbconfig'
 require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
@@ -12,21 +13,20 @@ Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_vim do
-    vim =
-      if gui?
-        Vimrunner.start_gvim
-      else
-        Vimrunner.start # NOTE: for some reason it deadlocks on travis
-      end
-    sleep 1
+    load_plugins!(vim_gui? ? Vimrunner.start_gvim : Vimrunner.start)
+  end
+end
 
-    vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
-    pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
+VimrunnerNeovim::RSpec.configure do |config|
+  config.reuse_server = true
 
-    vim.add_plugin(working_directory, working_directory.join('plugin', 'esearch.vim'))
-    vim.add_plugin(vimproc_path,      vimproc_path.join('plugin', 'vimproc.vim'))
-    vim.add_plugin(pp_path,           pp_path.join('plugin', 'prettyprint.vim'))
-    vim
+  config.start_nvim do
+    load_plugins!(VimrunnerNeovim::Server.new(
+      nvim: nvim_path,
+      gui: nvim_gui?,
+      timeout: 10,
+      verbose_level: 0
+    ).start)
   end
 end
 
@@ -42,6 +42,43 @@ end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
 
+def load_plugins!(vim)
+  vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
+  pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
+
+  vim.add_plugin(working_directory, 'plugin/esearch.vim')
+  vim.add_plugin(vimproc_path,      'plugin/vimproc.vim')
+  vim.add_plugin(pp_path,           'plugin/prettyprint.vim')
+  vim
+end
+
+def nvim_path
+  if linux?
+    # working_directory.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
+    working_directory.join('spec', 'support', 'bin', 'squashfs-root', 'usr', 'bin', 'nvim').to_s
+  else
+    working_directory.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
+  end
+end
+
+def vim_gui?
+  # NOTE: for some reason non-gui deadlocks on travis
+  ENV.fetch('VIM_GUI', '1') == '1' && gui?
+end
+
+def nvim_gui?
+  # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
+  ENV.fetch('NVIM_GUI', '1') == '1' && gui?
+end
+
+def osx?
+  !(RbConfig::CONFIG['host_os'] =~ /darwin/).nil?
+end
+
+def linux?
+  !(RbConfig::CONFIG['host_os'] =~ /linux/).nil?
+end
+
 def gui?
   ENV.fetch('GUI', '1') == '1'
 end
@@ -53,7 +90,7 @@ end
 # TODO: move out of here
 def wait_for_search_start
   expect {
-    press('j') # press j to close "Press ENTER or type command to continue" prompt
+    press('lh') # press jk to close "Press ENTER or type command to continue" prompt
     bufname('%') =~ /Search/
   }.to become_true_within(20.second)
 end
