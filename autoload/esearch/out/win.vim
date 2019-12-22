@@ -150,6 +150,12 @@ fu! esearch#out#win#init(opts) abort
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
   call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')
 
+  if exists("*prettyprint#prettyprint")
+    call esearch#log#debug('b:esearch=='.prettyprint#prettyprint(b:esearch), '/tmp/esearch_log.txt')
+  else
+    call esearch#log#debug('b:esearch=='.string(b:esearch), '/tmp/esearch_log.txt')
+  endif
+
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))
   endif
