@@ -1,10 +1,6 @@
 " if !exists('g:esearch#util#use_setbufline')
 "   let g:esearch#util#use_setbufline = 0
 " endif
-if !exists('g:esearch#util#trunc_omission')
-  let g:esearch#util#trunc_omission = '⦚'
-endif
-
 "" Disagreeably inefficient. Consider to implement #setbuflines instead to reduce redundant buffer switches
 """""""""""""""""""""""""""""""""""""""""""""""""""
 " if g:esearch#util#use_setbufline
@@ -144,6 +140,7 @@ fu! esearch#util#timenow() abort
 endfu
 
 fu! esearch#util#has_unicode() abort
+  return 0
   return has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 endfu
 
@@ -388,3 +385,11 @@ fu! esearch#util#vim8_calls_close_cb_last() abort
   " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
   return has('patch-7.4.1787')
 endfu
+
+if !exists('g:esearch#util#trunc_omission')
+  if esearch#util#has_unicode()
+    let g:esearch#util#trunc_omission = g:esearch#unicode#trunc_omission
+  else
+    let g:esearch#util#trunc_omission = '|'
+  endif
+endif

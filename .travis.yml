@@ -32,7 +32,8 @@ before_install:
 install:
   - |
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
-      whi
+      which pyenv
+      whereis pyenv
       pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
       pyenv global "$INSTALL_PYTHON_VERSION"
       pyenv shell "$INSTALL_PYTHON_VERSION"
