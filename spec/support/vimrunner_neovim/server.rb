@@ -60,11 +60,15 @@ module VimrunnerNeovim
       @r&.close
       @w&.close
 
+      puts "killing process #{@pid}"
       begin
-        Process.kill(9, @pid)
+        Process.kill(7, @pid)
+        Process.wait
+      rescue Errno::EPERM
+        puts "Errno::EPERM (not permitted) #{@pid}"
       rescue Errno::ESRCH
+        puts "Errno::ESRCH (no shuch process) #{@pid}"
       end
-
       self
     end
 
@@ -121,7 +125,10 @@ module VimrunnerNeovim
 
       headless = ''
       if gui
-        pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]) }
+        pid = fork do
+          exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}])
+          exit
+        end
         [nil, nil, pid]
       else
         # return [nil, nil, IO.popen([nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}]]).pid]
@@ -145,7 +152,13 @@ module VimrunnerNeovim
     def headless_Process_with_extra_output(log)
       headless = '--headless'
       nomore = '-c "set nomore"'
-      pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log} #{nomore}]) }; return [nil, nil, pid]
+      # pid = Process.fork { Process.exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log} #{nomore}]) }; return [nil, nil, pid]
+
+      pid = fork do
+        exec(nvim, *%W[--listen #{name} -n -u #{vimrc} #{headless} #{log}])
+        exit
+      end
+        return [nil, nil, pid]
     end
 
     def gui(log)

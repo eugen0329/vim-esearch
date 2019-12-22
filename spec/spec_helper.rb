@@ -15,7 +15,6 @@ Vimrunner::RSpec.configure do |config|
   config.start_vim do
     # NOTE: for some reason it non-gui deadlocks on travis
     vim_instance = gui? ? Vimrunner.start_gvim : Vimrunner.start
-    sleep 1
     load_plugins!(vim_instance)
     vim_instance
   end
@@ -26,7 +25,6 @@ VimrunnerNeovim::RSpec.configure do |config|
 
   config.start_neovim do
     neovim_instance = VimrunnerNeovim::Server.new(nvim: nvim_path, gui: false, timeout: 10).start
-    sleep 1
     load_plugins!(neovim_instance)
     neovim_instance
   end
@@ -56,7 +54,8 @@ end
 
 def nvim_path
   if linux?
-    working_directory.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
+    # working_directory.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
+    working_directory.join('spec', 'support', 'bin', 'squashfs-root', 'usr', 'bin', 'nvim').to_s
   else
     working_directory.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
   end
