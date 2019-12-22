@@ -109,8 +109,8 @@ module VimrunnerNeovim
       # >= 14	Anything pending in a ":finally" clause.
       # >= 15	Every executed Ex command (truncated at 200 characters).
       verbose_level = 14
-      verbose_level = 0
       verbose_level = 20
+      verbose_level = 0
       log = "-V#{verbose_level}#{logfile}"
       embed = ''
 
