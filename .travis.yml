@@ -101,7 +101,7 @@ jobs:
     #   script: bundle exec rspec --tag vimproc
     #   os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
+      script: bundle exec rspec --tag nvim
       env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 

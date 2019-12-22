@@ -44,7 +44,7 @@ context 'esearch#backend', :backend do
     # end
 
     it_behaves_like 'a backend', 'nvim'
-    # it_behaves_like 'an abortable backend', 'nvim'
+    it_behaves_like 'an abortable backend', 'nvim'
   end
 
   describe '#vim8', :vim8 do
