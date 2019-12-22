@@ -24,6 +24,8 @@ cache:
     - /usr/local/Homebrew
     - $HOME/.cache/pip
     - $HOME/.cache/pyenv
+    - /opt/pyenv/versions   # linux
+    - $HOME/.pyenv/versions # osx
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20

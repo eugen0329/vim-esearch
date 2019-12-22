@@ -60,7 +60,7 @@ module VimrunnerNeovim
       @r&.close
       @w&.close
 
-      puts "killing process #{@pid}"
+      # puts "killing process #{@pid}"
       begin
         Process.kill(7, @pid)
         Process.wait
@@ -118,8 +118,9 @@ module VimrunnerNeovim
       log = "-V#{verbose_level}#{logfile}"
       embed = ''
 
-      return headless_Process_with_extra_output(log)
       return background_pty(log)
+
+      return headless_Process_with_extra_output(log)
       return gui(log)
       return with_io_popen(log)
 
