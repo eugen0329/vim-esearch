@@ -81,30 +81,30 @@ jobs:
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec --tag system
       os: osx
+    - name: 'Acceptance tests of #backend#nvim'
+      script: bundle exec rspec --tag nvim --seed 6880
+      env: INSTALL_PYTHON_VERSION=3.6.1
+      os: osx
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
       os: osx
     - name: 'Acceptance tests of #backend#vimproc'
       script: bundle exec rspec --tag vimproc
-      os: osx
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
-      env: INSTALL_PYTHON_VERSION=3.6.1
       os: osx
 
     # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec --tag system
       os: linux
+    - name: 'Acceptance tests of #backend#nvim'
+      script: bundle exec rspec --tag nvim --seed 6885
+      env: INSTALL_PYTHON_VERSION=3.6.1
+      os: linux
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
       os: linux
     - name: 'Acceptance tests of #backend#vimproc'
       script: bundle exec rspec --tag vimproc
-      os: linux
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6885
-      env: INSTALL_PYTHON_VERSION=3.6.1
       os: linux
 
       # Unit tests
