@@ -5,7 +5,7 @@ RSpec.shared_examples 'a backend' do |backend|
   SEARCH_UTIL_ADAPTERS.each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
-        esearch_settings(backend: backend, adapter: adapter, out: 'win')
+        esearch.configure!(backend: backend, adapter: adapter, out: 'win')
         example.run
         cmd('close!') if bufname('%') =~ /Search/
       end
@@ -25,7 +25,7 @@ RSpec.shared_examples 'a backend' do |backend|
         let(:test_query) { 'content' }
 
         before do
-          esearch_settings(regex: 0)
+          esearch.configure!(regex: 0)
           cmd "cd #{context_fixtures_path}"
         end
 
@@ -62,7 +62,7 @@ end
 def settings_dependent_context(matching_type, settings)
   before do
     press ":cd #{working_directory}/spec/fixtures/backend/<Enter>"
-    esearch_settings(settings)
+    esearch.configure!(settings)
   end
   after { cmd('bdelete') if bufname('%') =~ /Search/ }
 

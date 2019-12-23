@@ -38,6 +38,8 @@ RSpec.configure do |config|
   config.order = :rand
   config.formatter = :documentation
   config.fail_fast = 3
+
+  config.alias_it_should_behave_like_to :it_finds, 'finds:'
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
@@ -107,6 +109,10 @@ end
 
 def ps_commands
   `ps -A -o command | sed 1d`
+end
+
+def esearch
+  @esearch ||= API::Esearch::Facade.new(self)
 end
 
 def ps_commands_without_sh
