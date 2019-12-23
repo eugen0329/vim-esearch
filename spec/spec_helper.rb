@@ -131,3 +131,13 @@ def delete_current_buffer
   #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
   press ':bdelete<Enter>'
 end
+
+Fixtures::LazyDirectory.fixtures_directory = working_directory.join('spec', 'fixtures')
+
+def file(relative_path, content)
+  Fixtures::LazyFile.new(relative_path, content)
+end
+
+def directory(files)
+  Fixtures::LazyDirectory.new(files)
+end
