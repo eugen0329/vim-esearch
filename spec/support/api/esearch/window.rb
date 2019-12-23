@@ -20,15 +20,31 @@ module API
       def has_search_finished?(timeout: 3.seconds)
         become_truthy_within(timeout) do
           editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
-          editor.line(1) =~ /Finished/
+          parser.header_finished?
         end
       end
 
-      def has_output_1_result_in_header?
-        editor.line(1) =~ /Matches in 1 lines, 1 file/
+      def has_reported_single_result_in_header?
+        parser.header.tap { |h| return h.lines_count == 1 && h.files_count == 1 }
+      end
+
+      def has_outputted_result_in_file?(relative_path, line, column)
+        parser.entries.any? do |entry|
+          next if entry.relative_path != relative_path
+          next if entry.line_number != line
+
+          entry.open do
+            editor.current_line_number == line &&
+              editor.current_column_number == column
+          end
+        end
       end
 
       private
+
+      def parser
+        @parser ||= Parser.new(spec, editor)
+      end
 
       def become_truthy_within(timeout)
         Timeout.timeout(timeout, Timeout::Error) do

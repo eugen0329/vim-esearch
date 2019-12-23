@@ -3,14 +3,15 @@
 module API
   module Esearch
     class Core
-      attr_reader :spec
+      attr_reader :spec, :editor
 
-      def initialize(spec)
+      def initialize(spec, editor)
         @spec = spec
+        @editor = editor
       end
 
       def search!(search_string)
-        spec.press ":call esearch#init()<Enter>#{search_string}<Enter>"
+        editor.press! ":call esearch#init()<Enter>#{search_string}<Enter>"
       end
     end
   end
