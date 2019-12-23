@@ -3,28 +3,29 @@
 module API
   module Esearch
     class Window
-      attr_reader :spec
+      attr_reader :spec, :editor
 
-      def initialize(spec)
+      def initialize(spec, editor)
         @spec = spec
+        @editor = editor
       end
 
       def has_search_started?(timeout: 3.seconds)
         become_truthy_within(timeout) do
-          spec.press('lh') # press jk to close "Press ENTER or type command to continue" prompt
-          spec.bufname('%') =~ /Search/
+          editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
+          editor.bufname('%') =~ /Search/
         end
       end
 
       def has_search_finished?(timeout: 3.seconds)
         become_truthy_within(timeout) do
-          spec.press('lh') # press jk to close "Press ENTER or type command to continue" prompt
-          spec.line(1) =~ /Finished/
+          editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
+          editor.line(1) =~ /Finished/
         end
       end
 
-      def has_output_1_result?
-        spec.line(1) =~ /Matches in 1 lines, 1 file/
+      def has_output_1_result_in_header?
+        editor.line(1) =~ /Matches in 1 lines, 1 file/
       end
 
       private

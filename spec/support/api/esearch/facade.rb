@@ -13,14 +13,15 @@ module API
 
       delegate :has_search_started?,
                :has_search_finished?,
-               :has_output_1_result?,
+               :has_output_1_result_in_header?,
+               :has_output_result_in_file?,
                to: :output
 
       def initialize(spec)
         @spec          = spec
-        @configuration = Configuration.new(spec)
         @editor        = Editor.new(spec)
-        @output        = Window.new(spec)
+        @configuration = Configuration.new(spec)
+        @output        = Window.new(spec, @editor)
         @core          = Core.new(spec)
       end
     end

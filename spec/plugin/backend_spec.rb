@@ -21,31 +21,41 @@ describe 'esearch#backend', :backend do
   end
 
   context 'draft' do
-    search_string = '**'
+    shared_examples 'finds 1 entry of' do |search_string, **kwargs|
+      context "when searching for `#{search_string.dump}`" do
+        let(:other_files) do
+          [file('with.arbitrary.extension', 'random_content'),
+           file('empty.txt', ''),]
+        end
+        let(:expected_file) { file('expected.txt', kwargs.fetch(:in)) }
+        let(:search_directory) { directory([expected_file, *other_files]).persist! }
+        let(:line)   { kwargs.fetch(:line) }
+        let(:column) { kwargs.fetch(:column) }
 
-    let(:other_files) do
-      [file('with.arbitrary.extension', 'random_content'),
-       file('empty_file.txt', ''),]
+        it "finds 1 entry inside file containing #{kwargs[:in].dump}" do
+          esearch.cd! search_directory
+          esearch.search!(search_string)
+
+          expect(esearch)
+            .to have_search_started(timeout: 10.seconds)
+            .and have_search_finished(timeout: 10.seconds)
+            .and have_output_1_result_in_header
+        end
+      end
     end
-    let(:expected_file) { file('expected.txt', search_string) }
-    let!(:search_directory) { directory([expected_file, *other_files]).persist! }
 
-    around do |example|
-      esearch.configure!(backend: 'system', adapter: 'ag', out: 'win', regex: 0)
-      esearch.cd! search_directory.to_s
-      example.run
-      cmd('close!') if bufname('%') =~ /Search/
+    shared_examples 'works with adapter' do |adapter|
+      context 'when regex' do
+      end
+
+      context 'when literal' do
+        before { esearch.configure!(backend: 'system', adapter: adapter, out: 'win', regex: 0) }
+
+        include_context 'finds 1 entry of', '%', in: "_\n__%__", line: 2, column: 3
+      end
     end
 
-    it "finds `#{search_string}`" do
-      esearch.search!(search_string)
-      wait_for_search_start
-
-      expect(esearch)
-        .to have_search_started(timeout: 10.seconds)
-        .and have_search_finished(timeout: 10.seconds)
-        .and have_output_1_result
-    end
+    it_behaves_like 'works with adapter', 'ag'
   end
 
   describe '#nvim', :nvim do
