@@ -2,3 +2,10 @@
 /spec/support/bin/nvim-osx64
 /spec/support/bin/nvim.linux.appimage
 /spec/support/bin/squashfs-root
+
+/spec/support/bin/ag
+/spec/support/bin/rg
+/spec/support/bin/ack
+/spec/support/bin/pt
+
+/failed_specs.txt

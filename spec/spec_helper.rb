@@ -7,7 +7,20 @@ require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time.rb'
 Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
 
+
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
+
+RSpec.configure do |config|
+  config.include Support::DSL::Vim
+  config.include Support::DSL::ESearch
+
+  config.color_mode = true
+  config.order = :rand
+  config.formatter = :documentation
+  config.fail_fast = 3
+
+  config.example_status_persistence_file_path = "failed_specs.txt"
+end
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
@@ -30,16 +43,8 @@ VimrunnerNeovim::RSpec.configure do |config|
   end
 end
 
-RSpec.configure do |config|
-  config.include Support::DSL::Vim
-  config.include Support::DSL::ESearch
-
-  config.color_mode = true
-  config.order = :rand
-  config.formatter = :documentation
-  config.fail_fast = 3
-
-  config.alias_it_should_behave_like_to :it_finds, 'finds:'
+def working_directory
+  @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
