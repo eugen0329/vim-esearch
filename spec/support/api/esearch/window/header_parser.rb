@@ -14,11 +14,12 @@ module API
         end
 
         def parse
+          return OpenStruct.new({}) if header_line !~ HEADER_REGEXP
           OpenStruct.new(named_captures(header_line.match(HEADER_REGEXP)))
         end
 
         def finished?
-          header_line =~ /\. Finished\.\z/
+          header_line =~ HEADER_REGEXP && header_line =~ /\. Finished\.\z/
         end
 
         private

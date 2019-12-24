@@ -28,14 +28,14 @@ module API
         parser.header.tap { |h| return h.lines_count == 1 && h.files_count == 1 }
       end
 
-      def has_outputted_result_in_file?(relative_path, line, column)
+      def has_outputted_result_in_file?(relative_path, line, column = nil)
         parser.entries.any? do |entry|
           next if entry.relative_path != relative_path
           next if entry.line_number != line
 
           entry.open do
             editor.current_line_number == line &&
-              editor.current_column_number == column
+              (!column || editor.current_column_number == column)
           end
         end
       end
