@@ -30,8 +30,8 @@ describe 'esearch#backend', :backend do
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
           expect(esearch)
-            .to  have_search_started(timeout: 2.seconds)
-            .and have_search_finished(timeout: 2.seconds)
+            .to  have_search_started
+            .and have_search_finished
             .and have_not_reported_errors
 
           expect(esearch)

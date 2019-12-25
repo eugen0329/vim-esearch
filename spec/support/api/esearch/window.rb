@@ -5,6 +5,8 @@ class API::ESearch::Window
 
   class MissingEntry < RuntimeError; end
 
+  DEFAULT_TIMEOUT = 10.seconds
+
   attr_reader :editor
 
   def initialize(editor)
@@ -15,14 +17,14 @@ class API::ESearch::Window
     editor.command('close!') if editor.current_buffer_name =~ /Search/
   end
 
-  def has_search_started?(timeout: 3.seconds)
+  def has_search_started?(timeout: DEFAULT_TIMEOUT)
     became_truthy_within?(timeout) do
       editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
       editor.bufname('%') =~ /Search/
     end
   end
 
-  def has_search_finished?(timeout: 3.seconds)
+  def has_search_finished?(timeout: DEFAULT_TIMEOUT)
     became_truthy_within?(timeout) do
       editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
       parser.header_finished? || parser.header_errors?
