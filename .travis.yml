@@ -36,35 +36,35 @@ before_install:
   - gem install bundler
 install:
   - |
-    if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
-      which pyenv
-      whereis pyenv
-      eval "$(pyenv init -)"
-      pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
-      pyenv global "$INSTALL_PYTHON_VERSION"
-      pyenv shell "$INSTALL_PYTHON_VERSION"
-      pyenv local "$INSTALL_PYTHON_VERSION"
-      pyenv rehash
-      python --version
-      pip --version
-      pip3 --version
-    fi
+    # if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
+    #   which pyenv
+    #   whereis pyenv
+    #   eval "$(pyenv init -)"
+    #   pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
+    #   pyenv global "$INSTALL_PYTHON_VERSION"
+    #   pyenv shell "$INSTALL_PYTHON_VERSION"
+    #   pyenv local "$INSTALL_PYTHON_VERSION"
+    #   pyenv rehash
+    #   python --version
+    #   pip --version
+    #   pip3 --version
+    # fi
 
-    [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
-    [ "$LINT_FOR" = ruby ] && bundle install && return
+    # [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
+    # [ "$LINT_FOR" = ruby ] && bundle install && return
 
 
-    if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
-      sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
-    fi
+    # if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
+    #   sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
+    # fi
 
-    bundle install
+    # bundle install
 
-    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/bin/install_osx_dependencies.sh
-    else
-      sh spec/support/bin/install_linux_dependencies.sh
-    fi
+    # if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+    #   sh spec/support/bin/install_osx_dependencies.sh
+    # else
+    #   sh spec/support/bin/install_linux_dependencies.sh
+    # fi
 
     docker build -t esearch .
 
