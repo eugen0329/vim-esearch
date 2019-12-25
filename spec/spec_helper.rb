@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
-require 'rbconfig'
 require 'pathname'
-require 'vimrunner'
+require 'active_support'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time'
-Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
+require 'rspec'
+require 'active_support/dependencies'
+require 'support/inflections'
+require 'support/configuration'
+ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
-def ci?
-  ENV['TRAVIS_BUILD_ID'].present?
-end
+SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
+
 
 KnownIssues.allow_tests_to_fail_matching_by_tags do
   pending! '[[:digit:]]', /position_inside_file/, adapter: :grep, matching: :regexp
@@ -33,19 +35,20 @@ KnownIssues.allow_tests_to_fail_matching_by_tags do
   pending! "/(?<name>", /reported_errors/, adapter: :pt, matching: :regexp
 end
 
-
-SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 RSpec.configure do |config|
-  config.include Support::DSL::Vim
-  config.include Support::DSL::ESearch
+  config.include DSL::Vim
+  config.include DSL::ESearch
 
   config.color_mode = true
   config.order = :rand
   config.formatter = :documentation
-  config.fail_fast = 3
+  config.fail_fast = 1
 
   config.example_status_persistence_file_path = "failed_specs.txt"
   config.filter_run_excluding :compatibility_regexp if ci?
+
+  # overrule vimrunner
+  config.around(:each) { |e| Dir.chdir(working_directory, &e) }
 end
 
 Vimrunner::RSpec.configure do |config|
@@ -97,28 +100,6 @@ def nvim_path
   end
 end
 
-def vim_gui?
-  # NOTE: for some reason non-gui deadlocks on travis
-  ENV.fetch('VIM_GUI', '1') == '1' && gui?
-end
-
-def nvim_gui?
-  # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
-  ENV.fetch('NVIM_GUI', '1') == '1' && gui?
-end
-
-def osx?
-  !(RbConfig::CONFIG['host_os'] =~ /darwin/).nil?
-end
-
-def linux?
-  !(RbConfig::CONFIG['host_os'] =~ /linux/).nil?
-end
-
-def gui?
-  ENV.fetch('GUI', '1') == '1'
-end
-
 # TODO: move out of here
 def wait_for_search_start
   expect {
@@ -142,7 +123,7 @@ def ps_commands
 end
 
 def esearch
-  @esearch ||= API::Esearch::Facade.new(self)
+  @esearch ||= API::ESearch::Facade.new(self)
 end
 
 def ps_commands_without_sh

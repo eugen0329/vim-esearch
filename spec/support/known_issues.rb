@@ -4,7 +4,10 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/core_ext/array/extract_options'
 
 class KnownIssues
-  Issue = Struct.new(:allow_fail_method, :description_pattern, :exception_pattern, :metadata)
+  Issue = Struct.new(:allow_fail_method,
+                     :description_pattern,
+                     :exception_pattern,
+                     :metadata)
 
   class_attribute :issues, default: []
 

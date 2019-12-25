@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module API
-  module Esearch
+  module ESearch
     class Window
       class EntriesParser
         class MissingEntryError < RuntimeError; end
@@ -19,7 +19,7 @@ module API
 
         def parse
           return enum_for(:parse) { 0 if editor.lines.size < 3 } unless block_given?
-          return if parse.size == 0
+          return if parse.size == 1
 
           lines_iterator.rewind
           begin

@@ -3,7 +3,7 @@
 require 'ostruct'
 
 module API
-  module Esearch
+  module ESearch
     class Window
       class Parser
         attr_reader :spec, :editor

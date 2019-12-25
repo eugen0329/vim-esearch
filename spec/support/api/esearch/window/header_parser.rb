@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module API
-  module Esearch
+  module ESearch
     class Window
       class HeaderParser
         HEADER_REGEXP = /Matches in (?<lines_count>\d+) lines, (?<files_count>\d+) file/.freeze

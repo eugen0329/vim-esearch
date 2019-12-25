@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module API
-  module Esearch
+  module ESearch
     class Editor
       attr_reader :spec
 
-      DONT_MOVE_CURSOR = 0
+      KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
 
       def initialize(spec)
         @spec = spec
@@ -55,12 +55,16 @@ module API
         spec.vim.echo("col('.')").to_i
       end
 
-      def locate_cursor!(line_number: DONT_MOVE_CURSOR, column_number: DONT_MOVE_CURSOR)
-        spec.vim.command("call cursor(#{line_number},#{column_number})").to_i
+      def locate_cursor!(line_number, column_number)
+        spec.vim.command("call cursor(#{line_number},#{column_number})").to_i == 0
       end
 
       def locate_line!(line_number)
-        locate_cursor! line_number: line_number
+        locate_cursor! line_number, KEEP_HORIZONTAL_POSITION
+      end
+
+      def locate_column!(column_number)
+        locate_cursor! KEEP_VERTICAL_POSITION, column_number
       end
     end
   end

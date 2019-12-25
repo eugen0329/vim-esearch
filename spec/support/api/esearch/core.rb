@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module API
-  module Esearch
+  module ESearch
     class Core
       attr_reader :spec, :editor
 

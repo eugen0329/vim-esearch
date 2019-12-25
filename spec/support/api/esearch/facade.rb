@@ -3,7 +3,7 @@
 require 'active_support/core_ext/module/delegation'
 
 module API
-  module Esearch
+  module ESearch
     class Facade
       attr_reader :configuration, :editor, :output, :core, :spec
 
