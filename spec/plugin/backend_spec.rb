@@ -136,6 +136,8 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'rg', BIN_DIR.join('rg-11.0.2')
       end
     end
+
+    include_context 'dumpable'
   end
 
   describe '#system', :system do
