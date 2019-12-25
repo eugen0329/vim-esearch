@@ -110,7 +110,7 @@ module VimrunnerNeovim
         result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
         result
       end
-    elsif true
+    elsif false
       def remote_expr(expression)
         Thread.abort_on_exception = true
         args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
@@ -130,8 +130,9 @@ module VimrunnerNeovim
     else
       def remote_expr(expression)
         args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
+        remote_send('<C-\\><Esc>')
         result = execute(args)
-        # remote_send('<C-\\><Esc>')
+        remote_send('<C-\\><Esc>')
         result
       end
     end
@@ -194,7 +195,7 @@ module VimrunnerNeovim
       pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
               fork { exec(env, 'iterm', exec_nvim_command) }
             else
-              fork { exec(env, 'xterm', '-geometry', '200x200+1+1', '-e', exec_nvim_command) }
+              fork { exec(env, 'xterm', '-geometry', '500x20+1000+1', '-e', exec_nvim_command) }
             end
       [nil, nil, pid]
     end
