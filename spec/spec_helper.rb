@@ -53,7 +53,7 @@ VimrunnerNeovim::RSpec.configure do |config|
       nvim: nvim_path,
       gui: nvim_gui?,
       timeout: 10,
-      verbose_level: 14
+      verbose_level: 0
     ).start)
   end
 end

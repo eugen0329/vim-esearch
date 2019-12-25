@@ -158,7 +158,12 @@ describe 'esearch#backend', :backend do
     around(:all) { |e| use_nvim(&e) }
 
     include_context 'a backend 2', 'nvim'
-    it_behaves_like 'an abortable backend', 'nvim'
+
+    it do
+      expect(esearch.editor.echo('has("nvim")')).to eq('1')
+      expect(esearch.editor.echo('esearch#util#flatten([])')).to eq('[]')
+    end
+    # it_behaves_like 'an abortable backend', 'nvim'
   end
 
   describe '#vim8', :vim8 do

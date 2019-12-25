@@ -2,7 +2,6 @@
 
 RSpec.shared_context 'dumpable' do
   after(:each) do |example|
-    require 'pry'; binding.pry
     unless example.exception.nil?
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
