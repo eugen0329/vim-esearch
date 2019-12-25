@@ -59,4 +59,4 @@ grep --version
 pt --version
 rg --version
 
-command -v xterm && xterm -help
+# command -v xterm && xterm -help

@@ -5,6 +5,7 @@ osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
 services:
   - xvfb # NOTE: Services are not supported on osx
+  - docker
 env:
   DISPLAY=":99.0"
   HOMEBREW_NO_AUTO_UPDATE=1
@@ -65,6 +66,8 @@ install:
       sh spec/support/bin/install_linux_dependencies.sh
     fi
 
+    docker build -t esearch .
+
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
     # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi
@@ -84,7 +87,8 @@ jobs:
     #   script: bundle exec rspec --tag system
     #   os: osx
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
+      # script: bundle exec rspec --tag nvim --seed 6880
+      script: docker run --privileged  -v $PWD:/tmp/vim-esearch -it esearch
       env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
       os: osx
     # - name: 'Acceptance tests of #backend#vim8'
