@@ -151,6 +151,7 @@ module VimrunnerNeovim
       if gui
         fork_gui
       else
+        return fork_gui
         # headless_process_without_extra_output
         # return headless_process_with_extra_output
         # return with_io_popen
@@ -195,7 +196,8 @@ module VimrunnerNeovim
       pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
               fork { exec(env, 'iterm', exec_nvim_command) }
             else
-              fork { exec(env, 'xterm', '-geometry', '500x20+1000+1', '-e', exec_nvim_command) }
+              # fork { exec(env, 'xterm', '-geometry', '500x20+1000+1', '-e', exec_nvim_command) }
+              fork { exec(env, 'xterm', '-e', exec_nvim_command) }
             end
       [nil, nil, pid]
     end
