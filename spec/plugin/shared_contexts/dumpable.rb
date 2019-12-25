@@ -2,14 +2,17 @@
 
 RSpec.shared_context 'dumpable' do
   after(:each) do |example|
+    require 'pry'; binding.pry
     unless example.exception.nil?
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
         puts `ps -A -o pid,command | sed 1d | grep nvim`
         if File.exist?(vim.server.verbose_log_file)
           puts 'VERBOSE log start', '*' * 10
-          puts File.readlines(vim.server.logfile).to_a
+          puts File.readlines(vim.server.verbose_log_file).to_a
           puts '*' * 10, 'VERBOSE log end'
+        else
+          puts 'Verbose log in  is missing #{vim.server.verbose_log_file}'
         end
 
         if File.exist?('/tmp/esearch_log.txt')
