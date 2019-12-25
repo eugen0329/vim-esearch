@@ -6,7 +6,7 @@ RUN apt-get update && \
 # RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 # USER docker
 
-RUN cd /tmp && git clone https://github.com/eugen0329/vim-esearch.git && cd vim-esearch/ && git checkout neovim-backend-test
+RUN cd /tmp && git clone https://github.com/eugen0329/vim-esearch.git && cd vim-esearch/ && git checkout specs-refactoring
 
 RUN apt-get install -y build-essential python3 python3-dev python3-pip python3-venv
 RUN python3 -m pip install pip --upgrade
