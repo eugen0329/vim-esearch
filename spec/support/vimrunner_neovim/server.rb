@@ -105,7 +105,7 @@ module VimrunnerNeovim
       execute([nvr_executable, '--serverlist']).split("\n")
     end
 
-    if ci? && linux?
+    if ci? && linux? && false
       def remote_expr(expression)
         result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
         result

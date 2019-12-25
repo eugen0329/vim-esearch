@@ -8,6 +8,7 @@ def vim_gui?
 end
 
 def nvim_gui?
+  # return true if ci? && linux?
   # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
   ENV.fetch('NVIM_GUI', '1') == '1' && gui?
 end
