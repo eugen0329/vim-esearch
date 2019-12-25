@@ -152,9 +152,9 @@ module VimrunnerNeovim
         fork_gui
       else
         # headless_process_without_extra_output
-        return headless_process_with_extra_output
+        # return headless_process_with_extra_output
         # return with_io_popen
-        # return background_pty
+        return background_pty
       end
     end
 
@@ -172,7 +172,7 @@ module VimrunnerNeovim
 
     # hangs forever on linux machines
     def background_pty
-      PTY.spawn(env, nvim, *nvim_args, '--headless')
+      PTY.spawn(env, nvim, '--headless', *nvim_args)
     end
 
     # doesn't work with pry, but may be ok for CI
