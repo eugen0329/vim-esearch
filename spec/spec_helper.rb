@@ -46,7 +46,7 @@ Vimrunner::RSpec.configure do |config|
 end
 
 VimrunnerNeovim::RSpec.configure do |config|
-  config.reuse_server = false
+  config.reuse_server = true
 
   config.start_nvim do
     load_plugins!(VimrunnerNeovim::Server.new(
