@@ -105,7 +105,12 @@ module VimrunnerNeovim
       execute([nvr_executable, '--serverlist']).split("\n")
     end
 
-    if true
+    if ci? && linux?
+      def remote_expr(expression)
+        result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
+        result
+      end
+    elsif true
       def remote_expr(expression)
         Thread.abort_on_exception = true
         args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
@@ -126,7 +131,7 @@ module VimrunnerNeovim
       def remote_expr(expression)
         args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
         result = execute(args)
-        remote_send('<C-\\><Esc>')
+        # remote_send('<C-\\><Esc>')
         result
       end
     end
@@ -189,13 +194,13 @@ module VimrunnerNeovim
       pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
               fork { exec(env, 'iterm', exec_nvim_command) }
             else
-              fork { exec(env, 'xterm', '-e', exec_nvim_command) }
+              fork { exec(env, 'xterm', '-geometry', '200x200+1+1', '-e', exec_nvim_command) }
             end
       [nil, nil, pid]
     end
 
     def nvim_args
-      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"', '-c', 'set winwidth=1000']
+      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
     end
 
     def nvr_args
