@@ -140,6 +140,7 @@ fu! esearch#util#timenow() abort
 endfu
 
 fu! esearch#util#has_unicode() abort
+  return 0
   return has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 endfu
 
