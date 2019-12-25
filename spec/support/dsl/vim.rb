@@ -2,9 +2,9 @@
 
 module DSL
   module Vim
-    def dump(what)
+    def pretty(what)
       # if exists('*prettyprint#prettyprint')
-      puts expr("prettyprint#prettyprint(#{what})")
+      expr("prettyprint#prettyprint(#{what})")
       # else
       #   puts expr(what)
       # end

@@ -6,6 +6,9 @@ require 'plugin/shared_examples/abortable_backend.rb'
 require 'plugin/shared_contexts/dumpable.rb'
 
 describe 'esearch#backend', :backend do
+  include Helpers::FileSystem
+  include Helpers::Strings
+
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context 'when searching' do
       let(:other_files) do
@@ -22,8 +25,8 @@ describe 'esearch#backend', :backend do
       before { esearch.cd! search_directory }
       after { esearch.close_search! }
 
-      it "finds 1 entry of #{search_string_dump(search_string)} inside a file containing #{kwargs[:in].dump}" do
-        esearch.search!(search_string_to_s(search_string))
+      it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
+        esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
           expect(esearch)

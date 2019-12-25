@@ -8,7 +8,7 @@ require 'rspec'
 require 'active_support/dependencies'
 require 'support/inflections'
 require 'support/configuration'
-require 'support/matchers/become_true_within.rb' # TODO remove
+require 'support/matchers/become_true_within.rb' # TODO: remove
 require 'known_issues'
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
@@ -113,28 +113,4 @@ def delete_current_buffer
   # From :help bdelete
   #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
   press ':bdelete<Enter>'
-end
-
-def file(relative_path, content, **kwargs)
-  Fixtures::LazyFile.new(relative_path, content, **kwargs)
-end
-
-def directory(files)
-  Fixtures::LazyDirectory.new(files)
-end
-
-def search_string_dump(search_string)
-  if search_string.is_a? Regexp
-    search_string.inspect
-  elsif search_string.is_a? String
-    search_string.dump
-  else
-    search_string.to_s
-  end
-end
-
-def search_string_to_s(search_string)
-  return search_string.inspect[1..-2] if search_string.is_a? Regexp
-
-  search_string.to_s
 end

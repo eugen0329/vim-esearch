@@ -4,7 +4,6 @@ require 'active_support/core_ext/module/delegation'
 require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/hash/indifferent_access'
 
-
 class API::ESearch::Facade
   attr_reader :configuration, :editor, :output, :core, :spec
 

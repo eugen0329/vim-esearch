@@ -20,6 +20,12 @@ KnownIssues.allow_tests_to_fail_matching_by_tags do
   pending! '(?P<name>',      /position_inside_file/, adapter: :git, matching: :regexp
 
   # https://github.com/google/re2/wiki/Syntax
-  pending! '/(?<=',     /reported_errors/, adapter: :pt, matching: :regexp
-  pending! '/(?<name>', /reported_errors/, adapter: :pt, matching: :regexp
+  pending! '/(?<name>', /reported_errors/,            adapter: :pt, matching: :regexp
+  # TODO: output should handle status codes from adapters
+  pending! '/(?<=',     /outputted_result_from_file/, adapter: :pt, matching: :regexp
+
+  # TODO: implement support for later versions with --pcre2
+  # https://github.com/BurntSushi/ripgrep/blob/master/CHANGELOG.md
+  pending! '/(?<=',     /reported_errors/, adapter: :rg, matching: :regexp
+  pending! '/(?<name>', /reported_errors/, adapter: :rg, matching: :regexp
 end

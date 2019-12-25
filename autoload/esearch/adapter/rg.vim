@@ -6,11 +6,15 @@ endif
 if !exists('g:esearch#adapter#rg#bin')
   let g:esearch#adapter#rg#bin = 'rg'
 endif
+if !exists('g:esearch#adapter#rg#pcre2')
+  " let g:esearch#adapter#rg#pcre2 = '--pcre2'
+  let g:esearch#adapter#rg#pcre2 = ''
+endif
 
 fu! esearch#adapter#rg#_options() abort
   if !exists('s:options')
     let s:options = {
-    \ 'regex':   { 'p': ['--fixed-strings', ''], 's': ['>', 'r'] },
+    \ 'regex':   { 'p': ['--fixed-strings', g:esearch#adapter#rg#pcre2], 's': ['>', 'r'] },
     \ 'case':    { 'p': ['--ignore-case', ''],   's': ['>', 'c'] },
     \ 'word':    { 'p': ['',   '--word-regexp'],  's': ['>', 'w'] },
     \ 'stringify':   function('esearch#util#stringify'),

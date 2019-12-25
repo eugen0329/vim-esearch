@@ -44,13 +44,13 @@ RSpec.shared_context 'dumpable' do
 
       if exists('*prettyprint#prettyprint')
         puts "\n" * 2, '#' * 10, 'G:ESEARCH'
-        dump('g:esearch')
+        puts pretty('g:esearch')
         puts "\n" * 2, '#' * 10, "B:ESEARCH.without('request')"
-        dump('b:esearch.without("request")')
+        puts pretty('b:esearch.without("request")')
         puts "\n" * 2, '#' * 10, 'REQUEST'
-        dump('b:esearch.request')
+        puts pretty('b:esearch.request')
         puts "\n" * 2, '#' * 10, '[UPDATETIME]'
-        dump('&ut')
+        puts pretty('&ut')
       end
 
       puts "\n" * 2, '#' * 10, 'SCRIPTNAMES'
