@@ -17,11 +17,13 @@ language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+  - docker save -o docker_images/images.tar $(docker images -a -q)
 cache:
   bundler: true
   apt: true
   pip: true
   directories:
+    - docker_images
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     # - $TRAVIS_BUILD_DIR/spec/support/bin
     - $HOME/.rvm
@@ -32,8 +34,9 @@ cache:
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
-  - yes | gem update --system --force
-  - gem install bundler
+  # - yes | gem update --system --force
+  # - gem install bundler
+  - docker load -i docker_images/images.tar || true
 install:
   - |
     # if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
