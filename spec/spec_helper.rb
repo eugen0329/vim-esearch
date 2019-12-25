@@ -4,12 +4,37 @@ require 'rbconfig'
 require 'pathname'
 require 'vimrunner'
 require 'vimrunner/rspec'
-require 'active_support/core_ext/numeric/time.rb'
+require 'active_support/core_ext/numeric/time'
 Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
+
+def ci?
+  ENV['TRAVIS_BUILD_ID'].present?
+end
+
+KnownIssues.allow_tests_to_fail_matching_by_tags do
+  pending! '[[:digit:]]', /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! '\d{2}',       /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! 'a{2}',        /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! '/(?:',        /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! "/(?<=",       /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! '(?<name>',    /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! '(?P<name>',   /position_inside_file/, adapter: :grep, matching: :regexp
+
+  pending! '[[:digit:]]{2}', /position_inside_file/, adapter: :git, matching: :regexp
+  pending! '\d{2}',          /position_inside_file/, adapter: :git, matching: :regexp
+  pending! 'a{2}',           /position_inside_file/, adapter: :git, matching: :regexp
+  pending! '/(?:',           /position_inside_file/, adapter: :git, matching: :regexp
+  pending! "/(?<=",          /position_inside_file/, adapter: :git, matching: :regexp
+  pending! '/(?<name>',      /position_inside_file/, adapter: :git, matching: :regexp
+  pending! '(?P<name>',      /position_inside_file/, adapter: :git, matching: :regexp
+
+  # https://github.com/google/re2/wiki/Syntax
+  pending! "/(?<=",     /reported_errors/, adapter: :pt, matching: :regexp
+  pending! "/(?<name>", /reported_errors/, adapter: :pt, matching: :regexp
+end
 
 
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
-
 RSpec.configure do |config|
   config.include Support::DSL::Vim
   config.include Support::DSL::ESearch
@@ -20,6 +45,7 @@ RSpec.configure do |config|
   config.fail_fast = 3
 
   config.example_status_persistence_file_path = "failed_specs.txt"
+  config.filter_run_excluding :compatibility_regexp if ci?
 end
 
 Vimrunner::RSpec.configure do |config|
@@ -47,7 +73,10 @@ def working_directory
   @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
 end
 
+BIN_DIR = working_directory.join('spec', 'support', 'bin')
+
 RSpec::Matchers.define_negated_matcher :not_include, :include
+RSpec::Matchers.define_negated_matcher :havent_reported_errors, :have_reported_errors
 
 def load_plugins!(vim)
   vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
@@ -88,10 +117,6 @@ end
 
 def gui?
   ENV.fetch('GUI', '1') == '1'
-end
-
-def ci?
-  ENV['TRAVIS_BUILD_ID'].present?
 end
 
 # TODO: move out of here
@@ -138,6 +163,7 @@ def delete_current_buffer
 end
 
 Fixtures::LazyDirectory.fixtures_directory = working_directory.join('spec', 'fixtures')
+Fixtures::LazyDirectory.fixtures_directory = working_directory.join('spec', 'fixtures')
 
 def file(relative_path, content)
   Fixtures::LazyFile.new(relative_path, content)
@@ -145,4 +171,20 @@ end
 
 def directory(files)
   Fixtures::LazyDirectory.new(files)
+end
+
+def search_string_dump(search_string)
+  if search_string.is_a? Regexp
+    search_string.inspect
+  elsif search_string.is_a? String
+    search_string.dump
+  else
+    search_string.to_s
+  end
+end
+
+def search_string_to_s(search_string)
+  return search_string.inspect[1..-2] if search_string.is_a? Regexp
+
+  search_string.to_s
 end

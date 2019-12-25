@@ -43,7 +43,7 @@ module API
       end
 
       def has_reported_errors_in_header?
-        parser.header.errors?
+        parser.header_errors?
       end
 
       def has_outputted_result_from_file_in_line?(relative_path, line)
