@@ -3,9 +3,12 @@
 module API
   module ESearch
     class Window
-      attr_reader :spec, :editor
+      include API::Mixins::BecomeTruthyWithinTimeout
 
       class MissingEntry < RuntimeError; end
+
+      attr_reader :spec, :editor
+
 
       def initialize(spec, editor)
         @spec = spec
@@ -17,14 +20,14 @@ module API
       end
 
       def has_search_started?(timeout: 3.seconds)
-        become_truthy_within(timeout) do
+        became_truthy_within?(timeout) do
           editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
           editor.bufname('%') =~ /Search/
         end
       end
 
       def has_search_finished?(timeout: 3.seconds)
-        become_truthy_within(timeout) do
+        became_truthy_within?(timeout) do
           editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
           parser.header_finished? || parser.header_errors?
         end
@@ -77,18 +80,6 @@ module API
 
       def parser
         @parser ||= Parser.new(spec, editor)
-      end
-
-      def become_truthy_within(timeout)
-        Timeout.timeout(timeout, Timeout::Error) do
-          loop do
-            return true if yield
-
-            sleep 0.1
-          end
-        end
-      rescue Timeout::Error
-        false
       end
     end
   end

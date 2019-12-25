@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 module API
-  module Esearch
+  module ESearch
     class Window
       class Entry
+        include API::Mixins::RollbackCursorPosition
+
         class OpenEntryError < RuntimeError; end
 
         attr_reader :editor, :context, :line_in_window, :relative_path
@@ -21,14 +23,14 @@ module API
 
         def open
           old_buffer_name = editor.current_buffer_name
-          editor.locate_line! line_in_window + 1
-          editor.press_with_user_mappings! '\<Enter>'
 
-          yield
-        ensure
-          editor.press! '<C-o>'
-          if old_buffer_name != editor.current_buffer_name
-            raise OpenEntryError, "haven't managed to return back"
+          rollback_cursor_position(editor) do
+            editor.locate_line! line_in_window + 1
+            editor.press_with_user_mappings! '\<Enter>'
+
+            raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
+
+            yield
           end
         end
       end
