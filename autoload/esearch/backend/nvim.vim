@@ -42,12 +42,12 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
 endfu
 
 fu! esearch#backend#nvim#run(request) abort
-  " call esearch#log#debug('jobstart before', '/tmp/esearch_log.txt')
+  call esearch#log#debug('jobstart before', '/tmp/esearch_log.txt')
   let job_id = jobstart(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
-  " call esearch#log#debug('jobstart after', '/tmp/esearch_log.txt')
+  call esearch#log#debug('jobstart after', '/tmp/esearch_log.txt')
   let a:request.job_id = job_id
   call jobclose(job_id, 'stdin')
-  " call esearch#log#debug('jobclose after', '/tmp/esearch_log.txt')
+  call esearch#log#debug('jobclose after', '/tmp/esearch_log.txt')
   let s:jobs[job_id] = { 'data': [], 'request': a:request }
 endfu
 

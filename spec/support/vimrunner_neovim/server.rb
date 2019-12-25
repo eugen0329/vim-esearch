@@ -105,29 +105,29 @@ module VimrunnerNeovim
       execute([nvr_executable, '--serverlist']).split("\n")
     end
 
-    if ci? && linux? && false
-      def remote_expr(expression)
-        result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
-        result
-      end
-    elsif false
-      def remote_expr(expression)
-        Thread.abort_on_exception = true
-        args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
-        result = nil
-        Timeout.timeout(0.5, Timeout::Error) do
-          Thread.new { result = execute(args) }.join
-        end
-        result
-      rescue Timeout::Error
-        remote_send('<C-\\><C-n><Esc>')
-        result = execute(args)
-        remote_send('<C-\\><C-n><Esc>')
-        result
-      ensure
-        Thread.abort_on_exception = false
-      end
-    else
+    # if ci? && linux? && false
+    #   def remote_expr(expression)
+    #     result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
+    #     result
+    #   end
+    # elsif false
+    #   def remote_expr(expression)
+    #     Thread.abort_on_exception = true
+    #     args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
+    #     result = nil
+    #     Timeout.timeout(0.5, Timeout::Error) do
+    #       Thread.new { result = execute(args) }.join
+    #     end
+    #     result
+    #   rescue Timeout::Error
+    #     remote_send('<C-\\><C-n><Esc>')
+    #     result = execute(args)
+    #     remote_send('<C-\\><C-n><Esc>')
+    #     result
+    #   ensure
+    #     Thread.abort_on_exception = false
+    #   end
+    # else
       def remote_expr(expression)
         args = [nvr_executable, *nvr_args, '--remote-expr', expression]
         remote_send('<C-\\><C-n><Esc>')
@@ -135,7 +135,7 @@ module VimrunnerNeovim
         remote_send('<C-\\><C-n><Esc>')
         result
       end
-    end
+    # end
 
     def remote_send(keys)
       execute([nvr_executable, *nvr_args, '--remote-send', keys.gsub(/<(?![ABCDEFHILMNPRSTUklx])/, '<LT>\1')])
