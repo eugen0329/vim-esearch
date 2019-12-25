@@ -10,11 +10,11 @@ class API::ESearch::Editor
   end
 
   def line(number)
-    spec.vim.echo("getline(#{number})")
+    echo("getline(#{number})")
   end
 
   def lines
-    return enum_for(:lines) { spec.vim.echo("line('$')").to_i } unless block_given?
+    return enum_for(:lines) { echo("line('$')").to_i } unless block_given?
 
     1.upto(lines.size).each do |line_number|
       yield(line(line_number))
@@ -22,22 +22,26 @@ class API::ESearch::Editor
   end
 
   def cd!(where)
-    spec.press ":cd #{where}<Enter>"
+    press! ":cd #{where}<Enter>"
   end
 
-  def press!(what)
-    spec.press what
+  def press!(keys)
+    spec.vim.normal(keys)
   end
 
   def bufname(arg)
-    spec.bufname arg
+    echo("bufname('#{arg}')")
+  end
+
+  def echo(arg)
+    spec.vim.echo(arg)
   end
 
   def press_with_user_mappings!(what)
     spec.vim.feedkeys what
   end
 
-  def command!(string_to_execute)
+  def command(string_to_execute)
     spec.vim.command(string_to_execute)
   end
 
@@ -46,11 +50,11 @@ class API::ESearch::Editor
   end
 
   def current_line_number
-    spec.vim.echo("line('.')").to_i
+    echo("line('.')").to_i
   end
 
   def current_column_number
-    spec.vim.echo("col('.')").to_i
+    echo("col('.')").to_i
   end
 
   def locate_cursor!(line_number, column_number)

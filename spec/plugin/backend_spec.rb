@@ -20,9 +20,9 @@ describe 'esearch#backend', :backend do
       let(:column) { kwargs.fetch(:column) }
 
       before { esearch.cd! search_directory }
-      after { esearch.output.close_search! }
+      after { esearch.close_search! }
 
-      it "finds 1 entry for #{search_string_dump(search_string)} inside file containing #{kwargs[:in].dump}" do |_e|
+      it "finds 1 entry of #{search_string_dump(search_string)} inside a file containing #{kwargs[:in].dump}" do
         esearch.search!(search_string_to_s(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
@@ -113,22 +113,24 @@ describe 'esearch#backend', :backend do
   end
 
   shared_examples 'a backend 2' do |backend|
-    before { esearch.configure!(backend: backend) }
+    context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
+      before { esearch.configure!(backend: backend) }
 
-    describe '#out#win' do
-      before { esearch.configure!(out: 'win') }
+      describe '#out#win' do
+        before { esearch.configure!(out: 'win') }
 
-      include_context 'works with adapter', 'ag'
-      include_context 'works with adapter', 'ack'
-      include_context 'works with adapter', 'git'
-      include_context 'works with adapter', 'grep'
-      include_context 'works with adapter', 'pt'
-      include_context 'works with adapter', 'rg', BIN_DIR.join('rg-11.0.2')
+        include_context 'works with adapter', 'ag'
+        include_context 'works with adapter', 'ack'
+        include_context 'works with adapter', 'git'
+        include_context 'works with adapter', 'grep'
+        include_context 'works with adapter', 'pt'
+        include_context 'works with adapter', 'rg', BIN_DIR.join('rg-11.0.2')
+      end
     end
   end
 
   describe '#system', :system do
-    it_behaves_like 'a backend 2', 'system'
+    include_context 'a backend 2', 'system'
   end
 
   describe '#vimproc', :vimproc do
@@ -137,21 +139,21 @@ describe 'esearch#backend', :backend do
       press ':let g:esearch#backend#vimproc#read_timeout = 30'
     end
 
-    it_behaves_like 'a backend 2', 'vimproc'
+    include_context 'a backend 2', 'vimproc'
     it_behaves_like 'an abortable backend', 'vimproc'
   end
 
   describe '#nvim', :nvim do
     around(:all) { |e| use_nvim(&e) }
 
-    it_behaves_like 'a backend 2', 'nvim'
+    include_context 'a backend 2', 'nvim'
     it_behaves_like 'an abortable backend', 'nvim'
   end
 
   describe '#vim8', :vim8 do
     before { press ':let g:esearch#backend#vim8#timer = 100<Enter>' }
 
-    it_behaves_like 'a backend 2', 'vim8'
+    include_context 'a backend 2', 'vim8'
     it_behaves_like 'an abortable backend', 'vim8'
   end
 end

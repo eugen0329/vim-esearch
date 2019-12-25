@@ -5,15 +5,14 @@ class API::ESearch::Window
 
   class MissingEntry < RuntimeError; end
 
-  attr_reader :spec, :editor
+  attr_reader :editor
 
-  def initialize(spec, editor)
-    @spec = spec
+  def initialize(editor)
     @editor = editor
   end
 
   def close_search!
-    editor.command!('close!') if editor.current_buffer_name =~ /Search/
+    editor.command('close!') if editor.current_buffer_name =~ /Search/
   end
 
   def has_search_started?(timeout: 3.seconds)
@@ -76,6 +75,6 @@ class API::ESearch::Window
   private
 
   def parser
-    @parser ||= Parser.new(spec, editor)
+    @parser ||= Parser.new(editor)
   end
 end

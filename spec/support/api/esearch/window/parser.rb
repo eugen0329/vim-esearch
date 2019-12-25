@@ -3,10 +3,9 @@
 require 'ostruct'
 
 class API::ESearch::Window::Parser
-  attr_reader :spec, :editor
+  attr_reader :editor
 
-  def initialize(spec, editor)
-    @spec = spec
+  def initialize(editor)
     @editor = editor
   end
 
@@ -27,10 +26,10 @@ class API::ESearch::Window::Parser
   end
 
   def header_parser
-    @header_parser ||= API::ESearch::Window::HeaderParser.new(spec, editor)
+    @header_parser ||= API::ESearch::Window::HeaderParser.new(editor)
   end
 
   def entries_parser
-    @entries_parser ||= API::ESearch::Window::EntriesParser.new(spec, editor)
+    @entries_parser ||= API::ESearch::Window::EntriesParser.new(editor)
   end
 end

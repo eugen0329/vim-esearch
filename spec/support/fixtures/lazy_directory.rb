@@ -14,10 +14,11 @@ class Fixtures::LazyDirectory
   end
 
   def persist!
-    return self if File.directory?(path.to_s)
+    directory_path = path.to_s
+    return self if File.directory?(directory_path)
 
-    FileUtils.mkdir_p(path.to_s)
-    files.each { |f| f.persist!(path) }
+    FileUtils.mkdir_p(directory_path)
+    files.each { |f| f.persist!(directory_path) }
     self
   end
 

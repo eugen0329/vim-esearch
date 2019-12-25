@@ -106,9 +106,9 @@ module VimrunnerNeovim
     end
 
     def remote_expr(expression)
-      remote_send('<C-\\><C-n>jk')
+      remote_send('<C-\\><Esc>')
       result = execute([nvr_executable, *nvr_args, '--remote-expr', expression])
-      remote_send('<C-\\><C-n>jk')
+      # remote_send('<C-\\><C-n>lh')
       result
     end
 

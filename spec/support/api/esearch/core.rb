@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 class API::ESearch::Core
-  attr_reader :spec, :editor
+  attr_reader :editor
 
-  def initialize(spec, editor)
-    @spec = spec
+  def initialize(editor)
     @editor = editor
   end
 

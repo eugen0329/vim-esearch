@@ -3,10 +3,9 @@
 class API::ESearch::Window::HeaderParser
   HEADER_REGEXP = /Matches in (?<lines_count>\d+) lines, (?<files_count>\d+) file/.freeze
 
-  attr_reader :spec, :editor
+  attr_reader :editor
 
-  def initialize(spec, editor)
-    @spec = spec
+  def initialize(editor)
     @editor = editor
   end
 

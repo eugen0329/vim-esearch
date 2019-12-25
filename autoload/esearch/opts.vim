@@ -19,7 +19,7 @@ fu! esearch#opts#new(opts) abort
   endif
 
   let opts = extend(opts, {
-        \ 'out':              'win',
+        \ 'out':              g:esearch#defaults#out,
         \ 'regex':            0,
         \ 'case':             0,
         \ 'word':             0,
@@ -39,7 +39,7 @@ fu! esearch#opts#new(opts) abort
   return opts
 endfu
 
-fu! esearch#opts#default_adapter()
+fu! esearch#opts#default_adapter() abort
   if executable('rg')
     return 'rg'
   elseif executable('ag')

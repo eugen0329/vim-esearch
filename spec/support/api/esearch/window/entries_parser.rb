@@ -6,10 +6,9 @@ class API::ESearch::Window::EntriesParser
   FILE_NAME_REGEXP = /\A[^ ]/.freeze
   FILE_ENTRY_REGEXP = /\A\s+\d+/.freeze
 
-  attr_reader :spec, :editor, :lines_iterator
+  attr_reader :editor, :lines_iterator
 
-  def initialize(spec, editor)
-    @spec = spec
+  def initialize(editor)
     @editor = editor
     @lines_iterator = editor.lines.with_index
   end

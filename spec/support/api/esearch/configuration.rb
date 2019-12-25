@@ -1,16 +1,21 @@
 # frozen_string_literal: true
 
-class API::ESearch::Configuration
-  attr_reader :spec, :editor
+require 'active_support/cache/memory_store'
 
-  def initialize(spec, editor)
-    @spec = spec
+class API::ESearch::Configuration
+  attr_reader :editor, :cache
+  attr_writer :output
+
+  def initialize(editor)
     @editor = editor
+    @cache = ActiveSupport::Cache::MemoryStore.new
   end
 
   def configure!(options)
+    cache.write_multi(options)
+
     dict = to_vim_dict(options)
-    spec.vim.command("if !exists('g:esearch') | "\
+    editor.command("if !exists('g:esearch') | "\
                      "let g:esearch = #{dict} | "\
                      'else | '\
                      "call extend(g:esearch, #{dict}) | "\
@@ -18,11 +23,17 @@ class API::ESearch::Configuration
   end
 
   def adapter_bin=(path)
-    spec.vim.command("let g:esearch#adapter##{adapter}#bin = '#{path}'")
+    editor.command("let g:esearch#adapter##{adapter}#bin = '#{path}'")
   end
 
   def adapter
-    spec.vim.echo('get(get(g:, "esearch", {}), "adapter", esearch#opts#default_adapter())')
+    editor.echo('get(get(g:, "esearch", {}), "adapter", esearch#opts#default_adapter())')
+  end
+
+  def output
+    @output ||= cache.fetch(:out) do
+      editor.echo('get(get(g:, "esearch", {}), "out", g:esearch#defaults#out)')
+    end
   end
 
   private

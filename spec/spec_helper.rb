@@ -26,7 +26,7 @@ RSpec.configure do |config|
   config.color_mode = true
   config.order = :rand
   config.formatter = :documentation
-  config.fail_fast = ci? ? 3 : nil
+  config.fail_fast = ci? ? 3 : 10
 
   config.example_status_persistence_file_path = 'failed_specs.txt'
   config.filter_run_excluding :compatibility_regexp if ci?

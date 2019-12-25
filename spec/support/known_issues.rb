@@ -28,7 +28,7 @@ class KnownIssues
     end
     if issue
       spec.public_send(issue.allow_fail_method,
-                       "Known issue with #{issue.description_pattern} (#{issue.metadata})")
+                       "Known issue with #{issue.description_pattern} #{issue.metadata}")
     end
 
     raise

@@ -1,9 +1,16 @@
 # frozen_string_literal: true
 
 require 'active_support/core_ext/module/delegation'
+require 'active_support/hash_with_indifferent_access'
+require 'active_support/core_ext/hash/indifferent_access'
+
 
 class API::ESearch::Facade
   attr_reader :configuration, :editor, :output, :core, :spec
+
+  OUTPUTS = {
+    win: API::ESearch::Window
+  }.with_indifferent_access
 
   delegate :search!, to: :core
   delegate :configure!, to: :configuration
@@ -15,10 +22,12 @@ class API::ESearch::Facade
     :has_outputted_result_from_file_in_line?,
     :has_outputted_result_with_right_position_inside_file?,
     :has_not_reported_errors?,
+    :close_search!,
     to: :output
 
   def initialize(spec)
     @spec = spec
+    @outputs = {}
   end
 
   # rubocop:disable Lint/DuplicateMethods
@@ -27,15 +36,15 @@ class API::ESearch::Facade
   end
 
   def configuration
-    @configuration ||= API::ESearch::Configuration.new(spec, editor)
+    @configuration ||= API::ESearch::Configuration.new(editor)
   end
 
   def output
-    @output ||= API::ESearch::Window.new(spec, editor)
+    @outputs[configuration.output] ||= OUTPUTS.fetch(configuration.output).new(editor)
   end
 
   def core
-    @core ||= API::ESearch::Core.new(spec, editor)
+    @core ||= API::ESearch::Core.new(editor)
   end
   # rubocop:enable Lint/DuplicateMethods
 end
