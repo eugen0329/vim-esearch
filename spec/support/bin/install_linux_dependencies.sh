@@ -58,3 +58,5 @@ git --version
 grep --version
 pt --version
 rg --version
+
+command -v xterm && xterm -help
