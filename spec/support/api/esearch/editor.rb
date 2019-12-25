@@ -92,6 +92,10 @@ class API::ESearch::Editor
     command('close!')
   end
 
+  def bdelete!
+    command!('bdelete')
+  end
+
   def locate_line!(line_number)
     invalidate_cache
     locate_cursor! line_number, KEEP_HORIZONTAL_POSITION
