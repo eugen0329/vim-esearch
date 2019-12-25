@@ -18,6 +18,7 @@ BIN_DIR = PLUGIN_ROOT.join('spec', 'support', 'bin')
 
 Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
 Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
+API::ESearch::Editor.cache_enabled = true
 
 RSpec.configure do |config|
   config.include DSL::Vim
@@ -99,7 +100,7 @@ def ps_commands
 end
 
 def esearch
-  @esearch ||= API::ESearch::Facade.new(self)
+  $facade ||= API::ESearch::Facade.new(self)
 end
 
 def ps_commands_without_sh

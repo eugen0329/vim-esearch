@@ -12,7 +12,7 @@ class API::ESearch::Facade
   }.with_indifferent_access
 
   delegate :search!, to: :core
-  delegate :configure!, to: :configuration
+  delegate :configure, :configure!, to: :configuration
   delegate :cd!,        to: :editor
 
   delegate :has_search_started?,

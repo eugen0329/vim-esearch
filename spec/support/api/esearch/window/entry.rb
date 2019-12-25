@@ -21,12 +21,14 @@ class API::ESearch::Window::Entry
   def open
     old_buffer_name = editor.current_buffer_name
 
-    rollback_cursor_position(editor) do
-      editor.locate_line! line_in_window + 1
-      editor.press_with_user_mappings! '\<Enter>'
-      raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
+    editor.disable_cache do
+      rollback_cursor_position(editor) do
+        editor.locate_line! line_in_window + 1
+        editor.press_with_user_mappings! '\<Enter>'
+        raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
 
-      yield
+        yield
+      end
     end
   end
 end

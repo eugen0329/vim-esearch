@@ -106,8 +106,16 @@ module VimrunnerNeovim
     end
 
     def remote_expr(expression)
+      # Thread.abort_on_exception = true
+      args = [nvr_executable, *nvr_args, '--remote-expr', expression]
+      # Timeout.timeout(1, Timeout::Error) do
+      #   Thread.new { execute(args) }.join
+      # end
+    # rescue Timeout::Error
       remote_send('<C-\\><Esc>')
-      execute([nvr_executable, *nvr_args, '--remote-expr', expression])
+      execute(args)
+    # ensure
+      # Thread.abort_on_exception = false
     end
 
     def remote_send(keys)

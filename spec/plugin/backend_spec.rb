@@ -22,7 +22,10 @@ describe 'esearch#backend', :backend do
       let(:line)   { kwargs.fetch(:line) }
       let(:column) { kwargs.fetch(:column) }
 
-      before { esearch.cd! search_directory }
+      before do
+        esearch.configuration.submit!
+        esearch.cd! search_directory
+      end
       after { esearch.close_search! }
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
@@ -46,7 +49,10 @@ describe 'esearch#backend', :backend do
   shared_examples 'works with adapter' do |adapter, adapter_bin|
     context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
-        esearch.configure!(adapter: adapter, regex: 1)
+        esearch.configure(adapter: adapter, regex: 1)
+      end
+      before(:all) do
+
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       end
 
@@ -79,7 +85,7 @@ describe 'esearch#backend', :backend do
         end
 
         context 'when matching literal', :literal do
-          before { esearch.configure!(adapter: adapter, regex: 0) }
+          before { esearch.configure(adapter: adapter, regex: 0) }
           # potential errors with escaping
           include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3
           include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3
@@ -117,10 +123,10 @@ describe 'esearch#backend', :backend do
 
   shared_examples 'a backend 2' do |backend|
     context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
-      before { esearch.configure!(backend: backend) }
+      before { esearch.configure(backend: backend) }
 
       describe '#out#win' do
-        before { esearch.configure!(out: 'win') }
+        before { esearch.configure(out: 'win') }
 
         include_context 'works with adapter', 'ag'
         include_context 'works with adapter', 'ack'

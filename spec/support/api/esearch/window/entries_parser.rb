@@ -10,7 +10,7 @@ class API::ESearch::Window::EntriesParser
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines.with_index
+    @lines_iterator = editor.lines(from: 3).with_index
   end
 
   def parse
@@ -19,7 +19,7 @@ class API::ESearch::Window::EntriesParser
 
     lines_iterator.rewind
     begin
-      fast_forward_header!
+      # fast_forward_header!
 
       loop do
         relative_path = next_file_relative_path!

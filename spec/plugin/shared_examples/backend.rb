@@ -10,13 +10,6 @@ RSpec.shared_examples 'a backend' do |backend|
         cmd('close!') if bufname('%') =~ /Search/
       end
 
-      context 'matching modes' do
-        before { press ":cd #{PLUGIN_ROOT}/spec/fixtures/backend/<Enter>" }
-
-        context('literal') { settings_dependent_context('literal', regex: 0) }
-        context('regex')   { settings_dependent_context('regex', regex: 1) }
-      end
-
       context 'with relative path' do
         let(:context_fixtures_path) { "#{PLUGIN_ROOT}/spec/fixtures/relative_paths" }
         let(:expected_file_content) { 'content_of_file_inside' }
