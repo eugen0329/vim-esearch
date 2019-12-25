@@ -151,8 +151,8 @@ module VimrunnerNeovim
       if gui
         fork_gui
       else
-        headless_process_without_extra_output
-        # return headless_process_with_extra_output
+        # headless_process_without_extra_output
+        return headless_process_with_extra_output
         # return with_io_popen
         # return background_pty
       end
@@ -185,7 +185,7 @@ module VimrunnerNeovim
     # ENTER or type command to continue". Can be convenient for debug headless
     # mode, but it pollutes output with this messages
     def headless_process_with_extra_output
-      pid = fork { exec(env, nvim, *nvim_args, '--headless') }
+      pid = fork { exec(env, nvim, '--headless', *nvim_args) }
       [nil, nil, pid]
     end
 
