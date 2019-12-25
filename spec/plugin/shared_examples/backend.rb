@@ -11,14 +11,14 @@ RSpec.shared_examples 'a backend' do |backend|
       end
 
       context 'matching modes' do
-        before { press ":cd #{working_directory}/spec/fixtures/backend/<Enter>" }
+        before { press ":cd #{PLUGIN_ROOT}/spec/fixtures/backend/<Enter>" }
 
         context('literal') { settings_dependent_context('literal', regex: 0) }
         context('regex')   { settings_dependent_context('regex', regex: 1) }
       end
 
       context 'with relative path' do
-        let(:context_fixtures_path) { "#{working_directory}/spec/fixtures/relative_paths" }
+        let(:context_fixtures_path) { "#{PLUGIN_ROOT}/spec/fixtures/relative_paths" }
         let(:expected_file_content) { 'content_of_file_inside' }
         let(:directory) { 'directory' }
         let(:expected_filename) { 'file_inside_directory.txt' }
@@ -61,7 +61,7 @@ end
 
 def settings_dependent_context(matching_type, settings)
   before do
-    press ":cd #{working_directory}/spec/fixtures/backend/<Enter>"
+    press ":cd #{PLUGIN_ROOT}/spec/fixtures/backend/<Enter>"
     esearch.configure!(settings)
   end
   after { cmd('bdelete') if bufname('%') =~ /Search/ }

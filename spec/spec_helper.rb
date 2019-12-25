@@ -8,31 +8,16 @@ require 'rspec'
 require 'active_support/dependencies'
 require 'support/inflections'
 require 'support/configuration'
+require 'support/matchers/become_true_within.rb' # TODO remove
+require 'known_issues'
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
+PLUGIN_ROOT = Pathname.new(File.expand_path('..', __dir__))
+BIN_DIR = PLUGIN_ROOT.join('spec', 'support', 'bin')
 
-KnownIssues.allow_tests_to_fail_matching_by_tags do
-  pending! '[[:digit:]]', /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '\d{2}',       /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! 'a{2}',        /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '/(?:',        /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '/(?<=',       /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '(?<name>',    /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '(?P<name>',   /position_inside_file/, adapter: :grep, matching: :regexp
-
-  pending! '[[:digit:]]{2}', /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '\d{2}',          /position_inside_file/, adapter: :git, matching: :regexp
-  pending! 'a{2}',           /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '/(?:',           /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '/(?<=',          /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '/(?<name>',      /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '(?P<name>',      /position_inside_file/, adapter: :git, matching: :regexp
-
-  # https://github.com/google/re2/wiki/Syntax
-  pending! '/(?<=',     /reported_errors/, adapter: :pt, matching: :regexp
-  pending! '/(?<name>', /reported_errors/, adapter: :pt, matching: :regexp
-end
+Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
+Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
 
 RSpec.configure do |config|
   config.include DSL::Vim
@@ -41,14 +26,15 @@ RSpec.configure do |config|
   config.color_mode = true
   config.order = :rand
   config.formatter = :documentation
-  config.fail_fast = 1
+  config.fail_fast = ci? ? 3 : nil
 
   config.example_status_persistence_file_path = 'failed_specs.txt'
   config.filter_run_excluding :compatibility_regexp if ci?
 
   # overrule vimrunner
-  config.around(:each) { |e| Dir.chdir(working_directory, &e) }
+  config.around(:each) { |e| Dir.chdir(PLUGIN_ROOT, &e) }
 end
+RSpec::Matchers.define_negated_matcher :not_include, :include
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
@@ -71,20 +57,11 @@ VimrunnerNeovim::RSpec.configure do |config|
   end
 end
 
-def working_directory
-  @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
-end
-
-BIN_DIR = working_directory.join('spec', 'support', 'bin')
-
-RSpec::Matchers.define_negated_matcher :not_include, :include
-RSpec::Matchers.define_negated_matcher :havent_reported_errors, :have_reported_errors
-
 def load_plugins!(vim)
-  vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
-  pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
+  vimproc_path = PLUGIN_ROOT.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
+  pp_path      = PLUGIN_ROOT.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
 
-  vim.add_plugin(working_directory, 'plugin/esearch.vim')
+  vim.add_plugin(PLUGIN_ROOT, 'plugin/esearch.vim')
   vim.add_plugin(vimproc_path,      'plugin/vimproc.vim')
   vim.add_plugin(pp_path,           'plugin/prettyprint.vim')
   vim
@@ -92,10 +69,10 @@ end
 
 def nvim_path
   if linux?
-    # working_directory.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
-    working_directory.join('spec', 'support', 'bin', 'squashfs-root', 'usr', 'bin', 'nvim').to_s
+    # PLUGIN_ROOT.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
+    PLUGIN_ROOT.join('spec', 'support', 'bin', 'squashfs-root', 'usr', 'bin', 'nvim').to_s
   else
-    working_directory.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
+    PLUGIN_ROOT.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
   end
 end
 
@@ -138,11 +115,8 @@ def delete_current_buffer
   press ':bdelete<Enter>'
 end
 
-Fixtures::LazyDirectory.fixtures_directory = working_directory.join('spec', 'fixtures')
-Fixtures::LazyDirectory.fixtures_directory = working_directory.join('spec', 'fixtures')
-
-def file(relative_path, content)
-  Fixtures::LazyFile.new(relative_path, content)
+def file(relative_path, content, **kwargs)
+  Fixtures::LazyFile.new(relative_path, content, **kwargs)
 end
 
 def directory(files)

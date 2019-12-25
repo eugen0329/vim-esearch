@@ -10,8 +10,7 @@ describe 'esearch#backend', :backend do
     context 'when searching' do
       let(:other_files) do
         kwargs.fetch(:other_files) do
-          [file('with.arbitrary.extension', 'random_content'),
-           file('empty.txt', '')]
+          [file('binary.bin', '___', binary: true), file('empty.txt', '')]
         end
       end
       let(:expected_file) { file('expected.txt', kwargs.fetch(:in)) }
@@ -78,7 +77,6 @@ describe 'esearch#backend', :backend do
 
         context 'when matching literal', :literal do
           before { esearch.configure!(adapter: adapter, regex: 0) }
-
           # potential errors with escaping
           include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3
           include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3
@@ -133,27 +131,27 @@ describe 'esearch#backend', :backend do
     it_behaves_like 'a backend 2', 'system'
   end
 
-  xdescribe '#vimproc', :vimproc do
+  describe '#vimproc', :vimproc do
     before(:all) do
       press ':let g:esearch#backend#vimproc#updatetime = 30'
       press ':let g:esearch#backend#vimproc#read_timeout = 30'
     end
 
-    it_behaves_like 'a backend', 'vimproc'
+    it_behaves_like 'a backend 2', 'vimproc'
     it_behaves_like 'an abortable backend', 'vimproc'
   end
 
-  xdescribe '#nvim', :nvim do
+  describe '#nvim', :nvim do
     around(:all) { |e| use_nvim(&e) }
 
-    it_behaves_like 'a backend', 'nvim'
+    it_behaves_like 'a backend 2', 'nvim'
     it_behaves_like 'an abortable backend', 'nvim'
   end
 
-  xdescribe '#vim8', :vim8 do
+  describe '#vim8', :vim8 do
     before { press ':let g:esearch#backend#vim8#timer = 100<Enter>' }
 
-    it_behaves_like 'a backend', 'vim8'
+    it_behaves_like 'a backend 2', 'vim8'
     it_behaves_like 'an abortable backend', 'vim8'
   end
 end
