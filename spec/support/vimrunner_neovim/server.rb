@@ -120,19 +120,19 @@ module VimrunnerNeovim
         end
         result
       rescue Timeout::Error
-        remote_send('<C-\\><Esc>')
+        remote_send('<C-\\><C-n><Esc>')
         result = execute(args)
-        remote_send('<C-\\><Esc>')
+        remote_send('<C-\\><C-n><Esc>')
         result
       ensure
         Thread.abort_on_exception = false
       end
     else
       def remote_expr(expression)
-        args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
-        remote_send('<C-\\><Esc>')
+        args = [nvr_executable, *nvr_args, '--remote-expr', expression]
+        remote_send('<C-\\><C-n><Esc>')
         result = execute(args)
-        remote_send('<C-\\><Esc>')
+        remote_send('<C-\\><C-n><Esc>')
         result
       end
     end
