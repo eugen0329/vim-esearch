@@ -5,6 +5,7 @@
 
 /spec/support/bin/ag
 /spec/support/bin/rg
+/spec/support/bin/rg-*
 /spec/support/bin/ack
 /spec/support/bin/pt
 

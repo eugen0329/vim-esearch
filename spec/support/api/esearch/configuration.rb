@@ -3,10 +3,11 @@
 module API
   module Esearch
     class Configuration
-      attr_reader :spec
+      attr_reader :spec, :editor
 
-      def initialize(spec)
+      def initialize(spec, editor)
         @spec = spec
+        @editor = editor
       end
 
       def configure!(options)
@@ -16,6 +17,14 @@ module API
                    'else | '\
                    "call extend(g:esearch, #{dict}) | "\
                    'endif')
+      end
+
+      def adapter_bin=(path)
+        spec.vim.command("let g:esearch#adapter##{adapter}#bin = '#{path}'")
+      end
+
+      def adapter
+        spec.vim.echo('get(get(g:, "esearch", {}), "adapter", esearch#opts#default_adapter())')
       end
 
       private

@@ -15,6 +15,7 @@ module API
 
         def parse
           return OpenStruct.new({}) if header_line !~ HEADER_REGEXP
+
           OpenStruct.new(named_captures(header_line.match(HEADER_REGEXP)))
         end
 
@@ -22,12 +23,15 @@ module API
           header_line =~ HEADER_REGEXP && header_line =~ /\. Finished\.\z/
         end
 
+        def errors?
+          header_line =~ /\AERRORS from/
+        end
+
         private
 
         def header_line
           editor.line(1)
         end
-
 
         def named_captures(matchdata)
           # TODO: update ruby and use builtin

@@ -15,21 +15,7 @@ fu! esearch#opts#new(opts) abort
   endif
 
   if !has_key(opts, 'adapter')
-    if executable('rg')
-      let opts.adapter = 'rg'
-    elseif executable('ag')
-      let opts.adapter = 'ag'
-    elseif executable('pt')
-      let opts.adapter = 'pt'
-    elseif executable('rg')
-      let opts.adapter = 'rg'
-    elseif executable('ack')
-      let opts.adapter = 'ack'
-    elseif !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error
-      let opts.adapter = 'git'
-    elseif executable('grep')
-      let opts.adapter = 'grep'
-    endif
+    let opts.adapter = esearch#opts#default_adapter()
   endif
 
   let opts = extend(opts, {
@@ -51,6 +37,26 @@ fu! esearch#opts#new(opts) abort
         \}, 'keep')
 
   return opts
+endfu
+
+fu! esearch#opts#default_adapter()
+  if executable('rg')
+    return 'rg'
+  elseif executable('ag')
+    return 'ag'
+  elseif executable('pt')
+    return 'pt'
+  elseif executable('rg')
+    return 'rg'
+  elseif executable('ack')
+    return 'ack'
+  elseif !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error
+    return 'git'
+  elseif executable('grep')
+    return 'grep'
+  else
+    throw 'No executables found'
+  endif
 endfu
 
 fu! s:invert(key) dict abort

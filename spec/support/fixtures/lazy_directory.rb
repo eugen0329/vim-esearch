@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fileutils'
 require 'pathname'
 require 'digest'
@@ -13,9 +15,10 @@ module Fixtures
     end
 
     def persist!
-      FileUtils.mkdir_p(path.to_s) unless ::File.directory?(path.to_s)
+      return self if File.directory?(path.to_s)
+
+      FileUtils.mkdir_p(path.to_s)
       files.each { |f| f.persist!(path) }
-      # todo verify that no redundant file in the directory
       self
     end
 
@@ -26,7 +29,7 @@ module Fixtures
     private
 
     def path
-      Pathname.new(self.fixtures_directory.join(name))
+      Pathname.new(fixtures_directory.join(name))
     end
 
     def name

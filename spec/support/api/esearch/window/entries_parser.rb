@@ -21,6 +21,7 @@ module API
           return enum_for(:parse) { 0 if editor.lines.size < 3 } unless block_given?
           return if parse.size == 0
 
+          lines_iterator.rewind
           begin
             fast_forward_header!
 

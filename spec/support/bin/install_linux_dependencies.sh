@@ -26,9 +26,11 @@ command -v ag || sudo apt-get install -y silversearcher-ag
 
 # install rg
 if ! command -v rg; then
-  wget https://github.com/BurntSushi/ripgrep/releases/download/0.7.1/ripgrep-0.7.1-x86_64-unknown-linux-musl.tar.gz
-  tar xvfz ripgrep-0.7.1-x86_64-unknown-linux-musl.tar.gz
-  sudo mv ripgrep-0.7.1-x86_64-unknown-linux-musl/rg /usr/local/bin/rg
+  rgversion=11.0.2
+  wget https://github.com/BurntSushi/ripgrep/releases/download/$rgversion/ripgrep-$rgversion-x86_64-unknown-linux-musl.tar.gz
+  tar xvfz ripgrep-$rgversion-x86_64-unknown-linux-musl.tar.gz
+  sudo cp ripgrep-$rgversion-x86_64-unknown-linux-musl/rg /usr/local/bin/rg
+  mv ripgrep-$rgversion-x86_64-unknown-linux-musl/rg "$bin_directory/rg-$rgversion"
 fi
 
 # install pt
