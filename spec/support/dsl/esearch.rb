@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# TODO: rewrite
+# TODO: remove
 module DSL
   module ESearch
     def vim_let(var, value)

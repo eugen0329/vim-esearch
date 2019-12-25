@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# TODO: remove
 module DSL
   module Vim
     def pretty(what)

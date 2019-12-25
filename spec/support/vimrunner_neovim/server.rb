@@ -107,9 +107,7 @@ module VimrunnerNeovim
 
     def remote_expr(expression)
       remote_send('<C-\\><Esc>')
-      result = execute([nvr_executable, *nvr_args, '--remote-expr', expression])
-      # remote_send('<C-\\><C-n>lh')
-      result
+      execute([nvr_executable, *nvr_args, '--remote-expr', expression])
     end
 
     def remote_send(keys)
