@@ -51,7 +51,7 @@ describe 'esearch#backend', :backend do
       before do
         esearch.configure(adapter: adapter, regex: 1)
       end
-      before(:all) do
+      before(:each) do
 
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       end
