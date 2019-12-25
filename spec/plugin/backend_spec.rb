@@ -155,7 +155,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#nvim', :nvim do
-    around(:all) { |e| use_nvim(&e) }
+    around(:each) { |e| use_nvim(&e) }
 
     include_context 'a backend 2', 'nvim'
     it_behaves_like 'an abortable backend', 'nvim'

@@ -105,17 +105,30 @@ module VimrunnerNeovim
       execute([nvr_executable, '--serverlist']).split("\n")
     end
 
-    def remote_expr(expression)
-      # Thread.abort_on_exception = true
-      args = [nvr_executable, *nvr_args, '--remote-expr', expression]
-      # Timeout.timeout(1, Timeout::Error) do
-      #   Thread.new { execute(args) }.join
-      # end
-    # rescue Timeout::Error
-      remote_send('<C-\\><Esc>')
-      execute(args)
-    # ensure
-      # Thread.abort_on_exception = false
+    if true
+      def remote_expr(expression)
+        Thread.abort_on_exception = true
+        args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
+        result = nil
+        Timeout.timeout(0.5, Timeout::Error) do
+          Thread.new { result = execute(args) }.join
+        end
+        result
+      rescue Timeout::Error
+        remote_send('<C-\\><Esc>')
+        result = execute(args)
+        remote_send('<C-\\><Esc>')
+        result
+      ensure
+        Thread.abort_on_exception = false
+      end
+    else
+      def remote_expr(expression)
+        args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
+        result = execute(args)
+        remote_send('<C-\\><Esc>')
+        result
+      end
     end
 
     def remote_send(keys)
@@ -182,7 +195,7 @@ module VimrunnerNeovim
     end
 
     def nvim_args
-      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
+      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"', '-c', 'set winwidth=1000']
     end
 
     def nvr_args
