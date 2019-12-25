@@ -7,11 +7,11 @@ require 'plugin/shared_contexts/dumpable.rb'
 
 describe 'esearch#backend', :backend do
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
-    context "when searching" do
+    context 'when searching' do
       let(:other_files) do
         kwargs.fetch(:other_files) do
           [file('with.arbitrary.extension', 'random_content'),
-           file('empty.txt', ''),]
+           file('empty.txt', '')]
         end
       end
       let(:expected_file) { file('expected.txt', kwargs.fetch(:in)) }
@@ -23,7 +23,7 @@ describe 'esearch#backend', :backend do
       before { esearch.cd! search_directory }
       after { esearch.output.close_search! }
 
-      it "finds 1 entry for #{search_string_dump(search_string)} inside file containing #{kwargs[:in].dump}" do |e|
+      it "finds 1 entry for #{search_string_dump(search_string)} inside file containing #{kwargs[:in].dump}" do |_e|
         esearch.search!(search_string_to_s(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
@@ -53,16 +53,16 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', /123/,   in: "\n__123", line: 2, column: 3
           include_context 'finds 1 entry of', /\d+/,   in: "\n__123", line: 2, column: 3
 
-          include_context 'finds 1 entry of', /1\d*/,   in: "__123", line: 1, column: 3, other_files: []
+          include_context 'finds 1 entry of', /1\d*/,   in: '__123', line: 1, column: 3, other_files: []
 
           # are required mostly to choose the best option for adapters
           context 'compatibility with syntax', :compatibility_regexp do
-            include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_",  line: 2, column: 3, other_files: [
+            include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
               file('1.txt', "1\n2_3\n4"),
               file('2.txt', "a\n\nbb\nccc")
             ]
-            include_context 'finds 1 entry of', /a{2}/, in: "a\n__aa_a_",  line: 2, column: 3
-            include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_",  line: 2, column: 3, other_files: [
+            include_context 'finds 1 entry of', /a{2}/, in: "a\n__aa_a_", line: 2, column: 3
+            include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
               file('1.txt', "1\n2_3\n4"),
               file('2.txt', "a\n\nbb\nccc")
             ]

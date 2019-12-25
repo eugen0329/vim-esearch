@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rbconfig'
 
 def vim_gui?

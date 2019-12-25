@@ -12,13 +12,12 @@ ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 
-
 KnownIssues.allow_tests_to_fail_matching_by_tags do
   pending! '[[:digit:]]', /position_inside_file/, adapter: :grep, matching: :regexp
   pending! '\d{2}',       /position_inside_file/, adapter: :grep, matching: :regexp
   pending! 'a{2}',        /position_inside_file/, adapter: :grep, matching: :regexp
   pending! '/(?:',        /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! "/(?<=",       /position_inside_file/, adapter: :grep, matching: :regexp
+  pending! '/(?<=',       /position_inside_file/, adapter: :grep, matching: :regexp
   pending! '(?<name>',    /position_inside_file/, adapter: :grep, matching: :regexp
   pending! '(?P<name>',   /position_inside_file/, adapter: :grep, matching: :regexp
 
@@ -26,13 +25,13 @@ KnownIssues.allow_tests_to_fail_matching_by_tags do
   pending! '\d{2}',          /position_inside_file/, adapter: :git, matching: :regexp
   pending! 'a{2}',           /position_inside_file/, adapter: :git, matching: :regexp
   pending! '/(?:',           /position_inside_file/, adapter: :git, matching: :regexp
-  pending! "/(?<=",          /position_inside_file/, adapter: :git, matching: :regexp
+  pending! '/(?<=',          /position_inside_file/, adapter: :git, matching: :regexp
   pending! '/(?<name>',      /position_inside_file/, adapter: :git, matching: :regexp
   pending! '(?P<name>',      /position_inside_file/, adapter: :git, matching: :regexp
 
   # https://github.com/google/re2/wiki/Syntax
-  pending! "/(?<=",     /reported_errors/, adapter: :pt, matching: :regexp
-  pending! "/(?<name>", /reported_errors/, adapter: :pt, matching: :regexp
+  pending! '/(?<=',     /reported_errors/, adapter: :pt, matching: :regexp
+  pending! '/(?<name>', /reported_errors/, adapter: :pt, matching: :regexp
 end
 
 RSpec.configure do |config|
@@ -44,7 +43,7 @@ RSpec.configure do |config|
   config.formatter = :documentation
   config.fail_fast = 1
 
-  config.example_status_persistence_file_path = "failed_specs.txt"
+  config.example_status_persistence_file_path = 'failed_specs.txt'
   config.filter_run_excluding :compatibility_regexp if ci?
 
   # overrule vimrunner
@@ -131,10 +130,6 @@ def ps_commands_without_sh
     .split("\n")
     .reject { |l| %r{\A\s*(?:/bin/)?sh}.match?(l) }
     .join("\n")
-end
-
-def working_directory
-  @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
 end
 
 def delete_current_buffer

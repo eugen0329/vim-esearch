@@ -5,35 +5,33 @@ require 'pathname'
 require 'digest'
 require 'active_support/core_ext/class/attribute'
 
-module Fixtures
-  class LazyDirectory
-    class_attribute :fixtures_directory
-    attr_reader :files
+class Fixtures::LazyDirectory
+  class_attribute :fixtures_directory
+  attr_reader :files
 
-    def initialize(files = [])
-      @files = files
-    end
+  def initialize(files = [])
+    @files = files
+  end
 
-    def persist!
-      return self if File.directory?(path.to_s)
+  def persist!
+    return self if File.directory?(path.to_s)
 
-      FileUtils.mkdir_p(path.to_s)
-      files.each { |f| f.persist!(path) }
-      self
-    end
+    FileUtils.mkdir_p(path.to_s)
+    files.each { |f| f.persist!(path) }
+    self
+  end
 
-    def to_s
-      path.to_s
-    end
+  def to_s
+    path.to_s
+  end
 
-    private
+  private
 
-    def path
-      Pathname.new(fixtures_directory.join(name))
-    end
+  def path
+    Pathname.new(fixtures_directory.join(name))
+  end
 
-    def name
-      Digest::MD5.hexdigest(files.map(&:digest_key).sort.to_s)
-    end
+  def name
+    Digest::MD5.hexdigest(files.map(&:digest_key).sort.to_s)
   end
 end
