@@ -8,11 +8,22 @@ require 'vimrunner/errors'
 require 'vimrunner/client'
 require 'vimrunner/platform'
 
+require 'active_support/core_ext/class/attribute'
+
 # rubocop:disable Layout/ClassLength
 module VimrunnerNeovim
   class Server
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
+    REMOTE_EXPR_METHOD_NAMES = {
+      prepend_with_escape_press:                        :remote_expr_prepended_with_escape_press,
+      fallback_to_prepend_with_escape_press_on_timeout: :remote_expr_with_fallback_on_timeout,
+      default:                                          :remote_expr_default
+    }.freeze
+    class_attribute :remote_expr_execution_mode,
+                    default: :prepend_with_escape_press
+    class_attribute :remote_expr_execution_timeout,
+                    default: 0.5.seconds
 
     attr_reader :nvr_executable, :vimrc, :nvim, :gui, :name,
       :verbose_level, :verbose_log_file, :nvim_log_file
@@ -105,38 +116,38 @@ module VimrunnerNeovim
       execute([nvr_executable, '--serverlist']).split("\n")
     end
 
-    # TODO: decide what is faster
-    # if ci? && linux? && false
-    #   def remote_expr(expression)
-    #     result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
-    #     result
-    #   end
-    # elsif false
     def remote_expr(expression)
-      Thread.abort_on_exception = true
+      method_name = REMOTE_EXPR_METHOD_NAMES.fetch(remote_expr_execution_mode) do
+        raise "Unknown execution mode remote_expr_execution_mode: #{remote_expr_execution_mode}"
+      end
+
+      public_send(method_name, expression)
+    end
+
+    def remote_expr_default(expression)
+      execute([nvr_executable, *nvr_args, '--remote-expr', expression])
+    end
+
+    def remote_expr_with_fallback_on_timeout(expression)
       args = [nvr_executable, *nvr_args, '--remote-expr', expression, '-s']
       result = nil
-      Timeout.timeout(0.5, Timeout::Error) do
-        Thread.new { result = execute(args) }.join
+      Timeout.timeout(remote_expr_execution_timeout, Timeout::Error) do
+        Thread.abort_on_exception = true
+        thread = Thread.new { result = execute(args) }
+        thread.abort_on_exception = true
+        thread.join
       end
       result
     rescue Timeout::Error
-      remote_send('<C-\\><C-n><Esc>')
-      result = execute(args)
-      # remote_send('<C-\\><C-n><Esc>')
-      result
-    ensure
-      Thread.abort_on_exception = false
+      remote_expr_prepended_with_escape_press(expression)
+      # ensure
+      # Thread.abort_on_exception = false
     end
-    # else
-    # def remote_expr(expression)
-    #   args = [nvr_executable, *nvr_args, '--remote-expr', expression]
-    #   remote_send('<C-\\><C-n><Esc>')
-    #   result = execute(args)
-    #   remote_send('<C-\\><C-n><Esc>')
-    #   result
-    # end
-    # end
+
+    def remote_expr_prepended_with_escape_press(expression)
+      remote_send('<C-\\><C-n><Esc>')
+      remote_expr_default(expression)
+    end
 
     def remote_send(keys)
       execute([nvr_executable, *nvr_args, '--remote-send', keys.gsub(/<(?![ABCDEFHILMNPRSTUklx])/, '<LT>\1')])
@@ -204,11 +215,11 @@ module VimrunnerNeovim
     end
 
     def nvim_args
-      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
+      @nvim_args ||= ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
     end
 
     def nvr_args
-      ['--nostart', '--servername', name]
+      @nvr_args ||= ['--nostart', '--servername', name]
     end
 
     def wait_until_running(seconds)

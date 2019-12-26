@@ -12,5 +12,5 @@ class CacheStore < HashWithIndifferentAccess
     end
   end
 
-  alias_method :write_multi, :merge!
+  alias write_multi merge!
 end

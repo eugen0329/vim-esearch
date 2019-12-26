@@ -50,3 +50,6 @@ Style/ClassAndModuleChildren:
   Exclude:
     - 'spec/support/vimrunner_neovim/**/*'
     - 'spec/support/dsl/**/*'
+
+Layout/HashAlignment:
+  EnforcedColonStyle: table

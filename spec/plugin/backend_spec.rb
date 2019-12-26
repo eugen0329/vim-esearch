@@ -70,7 +70,7 @@ describe 'esearch#backend', :backend do
       end
 
       context 'when weird search strings' do
-        xcontext 'when matching regexp', :regexp, matching: :regexp do
+        context 'when matching regexp', :regexp, matching: :regexp do
           include_context 'finds 1 entry of', /123/,   in: "\n__123", line: 2, column: 3
           include_context 'finds 1 entry of', /\d+/,   in: "\n__123", line: 2, column: 3
 
