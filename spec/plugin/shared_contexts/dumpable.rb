@@ -53,6 +53,11 @@ RSpec.shared_context 'dumpable' do
         puts pretty('b:esearch.request')
         puts "\n" * 2, '#' * 10, '[UPDATETIME]'
         puts pretty('&ut')
+        puts "\n" * 2, '#' * 10, '[COMMAND]'
+        puts pretty('b:esearch.request.command')
+      else
+        puts "\n" * 2, '#' * 10, '[COMMAND]'
+        puts expr('b:esearch.request.command')
       end
 
       puts "\n" * 2, '#' * 10, 'SCRIPTNAMES'

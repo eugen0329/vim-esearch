@@ -14,9 +14,8 @@ Configuration.root = Pathname.new(File.expand_path('..', __dir__))
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
-# etc.)
+# etc.). For other backends increase of running speed is about 1.5x - 2x times
 if Configuration.dangerously_maximize_performance?
-  API::ESearch::Editor.cache_enabled = true
   API::ESearch::Editor.cache_enabled = true
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
   VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
@@ -27,7 +26,6 @@ if Configuration.dangerously_maximize_performance?
     ESEARCH
   end
 else
-  API::ESearch::Editor.cache_enabled = false
   API::ESearch::Editor.cache_enabled = false
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
@@ -47,7 +45,7 @@ RSpec.configure do |c|
   c.formatter = :documentation
   c.fail_fast = Configuration.ci? ? 3 : 10
   c.example_status_persistence_file_path = 'failed_specs.txt'
-  c.filter_run_excluding :compatibility_regexp if Configuration.ci?
+  c.filter_run_excluding :compatibility_regexp if Configuration.skip_compatibility_regexps?
 
   c.around(:each) do |e|
     e.metadata[:platform] = Configuration.platform_name

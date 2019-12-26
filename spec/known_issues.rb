@@ -31,5 +31,6 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   pending! '/(?<name>', /reported_errors/, adapter: :rg, matching: :regexp
 
   # TODO: investigate
-  pending! '/1\d+3/', /has_reported_a_single_result\?/, :osx, adapter: :git, matching: :regexp
+  pending! '/3\d+5/', /has_reported_a_single_result\?/, :osx, adapter: :git, matching: :regexp
+  pending! '/3\d*5/', /has_reported_a_single_result\?/, :osx, adapter: :git, matching: :regexp
 end

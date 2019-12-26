@@ -56,11 +56,11 @@ describe 'esearch#backend', :backend do
 
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do
-          include_context 'finds 1 entry of', /123/,   in: "\n__123", line: 2, column: 3
-          include_context 'finds 1 entry of', /1\d+3/, in: "\n__123", line: 2, column: 3
-          include_context 'finds 1 entry of', /1\d*3/, in: '__123',   line: 1, column: 3
+          include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3
+          include_context 'finds 1 entry of', /3\d+5/, in: "\n__345", line: 2, column: 3
+          include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3
 
-          # are required mostly to choose the best option for adapters
+          # are required mostly to choose the best commandline options for adapters
           context 'compatibility with syntax', :compatibility_regexp do
             include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
               file('1.txt', "1\n2_3\n4"),
@@ -75,9 +75,9 @@ describe 'esearch#backend', :backend do
               file('1.txt', "\n___cat"),
               file('2.txt', "\n_hecat")
             ]
-            include_context 'finds 1 entry of', /(?<name>\d)+3/, in: "\n__123", line: 2, column: 3
-            include_context 'finds 1 entry of', '(?P<name>\d)+3', in: "\n__123", line: 2, column: 3
-            include_context 'finds 1 entry of', /(?:\d)+23/, in: "\n__123", line: 2, column: 3
+            include_context 'finds 1 entry of', /(?<name>\d)+5/, in: "\n__345", line: 2, column: 3
+            include_context 'finds 1 entry of', '(?P<name>\d)+5', in: "\n__345", line: 2, column: 3
+            include_context 'finds 1 entry of', /(?:\d)+34/, in: "\n__345", line: 2, column: 3
           end
         end
 

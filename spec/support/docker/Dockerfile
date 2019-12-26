@@ -15,6 +15,7 @@ ENV PLUGINS_DIR=$PLUGINS_DIR
 ENV BIN_DIR=$BIN_DIR
 ENV RUBY_VERSION=$RUBY_VERSION
 ENV GUI=0
+ENV TRAVIS_BUILD_ID
 
 # Setup user
 RUN apt-get update && apt-get -y install sudo

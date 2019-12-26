@@ -1,7 +1,6 @@
 # Vim ESearch
 
 [![Build Status](https://travis-ci.org/eugen0329/vim-esearch.svg?branch=master)](https://travis-ci.org/eugen0329/vim-esearch)
-[![Code Climate](https://codeclimate.com/github/eugen0329/vim-esearch/badges/gpa.svg)](https://codeclimate.com/github/eugen0329/vim-esearch)
 
 NeoVim/Vim plugin performing project-wide async search and replace, similar to
 SublimeText, Atom et al.
