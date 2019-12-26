@@ -29,7 +29,6 @@ describe 'esearch#backend', :backend do
       after { esearch.close_search! }
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
-
         press('j') # press j to close "Press ENTER or type command to continue" prompt
         puts ':messages', cmd('messages')
 

@@ -6,6 +6,7 @@ crossplatform_realpath() {
 }
 bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 
+
 # sudo apt-get remove -y -f vim
 # sudo apt-get remove -y -f vim-common
 # sudo apt-get remove -y -f vim-gui-common
@@ -45,7 +46,7 @@ wget -N https://github.com/neovim/neovim/releases/download/v0.4.3/nvim.appimage 
 chmod +x "$bin_directory/nvim.linux.appimage"
 (cd "$bin_directory" && "$bin_directory/nvim.linux.appimage" --appimage-extract)
 
-# pip3 install neovim-remote
+pip3 install neovim-remote
 
 vim --version
 "$bin_directory/squashfs-root/usr/bin/nvim" --version
