@@ -68,7 +68,7 @@ end
 
 def nvim_path
   if linux?
-    # BIN_DIR.join(, "nvim.linux.appimage").to_s
+    # BIN_DIR.join(, "nvim.appimage").to_s
     BIN_DIR.join('squashfs-root', 'usr', 'bin', 'nvim').to_s
   else
     BIN_DIR.join('nvim-osx64', 'bin', 'nvim').to_s
