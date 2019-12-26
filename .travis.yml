@@ -17,7 +17,7 @@ language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
-  - docker save -o docker_images/images.tar $(docker images -a -q)
+  - [ "$DOCKER_BUILD" = '1' ] && docker save -o docker_images/images.tar $(docker images -a -q) || true
 cache:
   bundler: true
   apt: true
@@ -34,9 +34,9 @@ cache:
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
-  # - yes | gem update --system --force
-  # - gem install bundler
-  - docker load -i docker_images/images.tar || true
+  - yes | gem update --system --force
+  - gem install bundler
+  - [ "$DOCKER_BUILD" = '1' ] && docker load -i docker_images/images.tar || true
 install:
   - |
     [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH  -t esearch . && return
