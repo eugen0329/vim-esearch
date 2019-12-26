@@ -14,7 +14,8 @@ ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
 SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
 PLUGIN_ROOT = Pathname.new(File.expand_path('..', __dir__))
-BIN_DIR = PLUGIN_ROOT.join('spec', 'support', 'bin')
+BIN_DIR     = Pathname.new(ENV.fetch('BIN_DIR') { PLUGIN_ROOT.join('spec', 'support', 'bin') })
+PLUGINS_DIR = Pathname.new(ENV.fetch('PLUGINS_DIR') { PLUGIN_ROOT.join('spec', 'support', 'vim_plugins') })
 
 Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
 Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
@@ -59,12 +60,9 @@ VimrunnerNeovim::RSpec.configure do |config|
 end
 
 def load_plugins!(vim)
-  vimproc_path = PLUGIN_ROOT.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
-  pp_path      = PLUGIN_ROOT.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
-
-  vim.add_plugin(PLUGIN_ROOT, 'plugin/esearch.vim')
-  vim.add_plugin(vimproc_path,      'plugin/vimproc.vim')
-  vim.add_plugin(pp_path,           'plugin/prettyprint.vim')
+  vim.add_plugin(PLUGIN_ROOT,                         'plugin/esearch.vim')
+  vim.add_plugin(PLUGINS_DIR.join('vimproc.vim'),     'plugin/vimproc.vim')
+  vim.add_plugin(PLUGINS_DIR.join('vim-prettyprint'), 'plugin/prettyprint.vim')
   vim
 end
 
