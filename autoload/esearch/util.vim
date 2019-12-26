@@ -28,6 +28,11 @@
   endfu
 " endif
 
+if !exists('g:esearch#util#unicode_enabled')
+  let g:esearch#util#unicode_enabled = 1
+endif
+
+
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
   let buffers = ''
@@ -140,7 +145,8 @@ fu! esearch#util#timenow() abort
 endfu
 
 fu! esearch#util#has_unicode() abort
-  return has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
+  return g:esearch#util#unicode_enabled &&
+        \ has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 endfu
 
 fu! esearch#util#visual_selection() abort

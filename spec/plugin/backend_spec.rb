@@ -156,6 +156,11 @@ describe 'esearch#backend', :backend do
   describe '#nvim', :nvim do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
+    # TODO
+    before(:each) do
+      press ':let g:esearch#util#unicode_enabled = 0<Enter>'
+    end
+
     include_context 'a backend', 'nvim'
     include_context 'a backend 2', 'nvim'
     it_behaves_like 'an abortable backend', 'nvim'
