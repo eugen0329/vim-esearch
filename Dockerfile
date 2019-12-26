@@ -15,7 +15,7 @@ RUN apt-get -y install curl tar
 
 RUN apt-get -y install fuse
 
-RUN sh /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh
+RUN sh  /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh
 
 RUN cd /tmp/vim-esearch && sh spec/support/bin/install_vim_dependencies.sh "spec/support/vim_plugins" "spec/support/bin"
 
