@@ -2,7 +2,8 @@ FROM ubuntu:xenial
 
 ARG git_branch=master
 
-RUN apt-get update && apt-get -y install sudo git wget curl tar fuse xvfb
+#  software-properties-common add-apt-repository
+RUN apt-get update && apt-get -y install sudo git wget curl tar fuse xvfb software-properties-common
 # RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 # USER docker
 
