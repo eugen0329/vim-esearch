@@ -50,4 +50,4 @@ ENV DISPLAY :99
 
 # CMD /bin/bash -l -c "/etc/init.d/xvfb start && . /etc/profile.d/rvm.sh &&  cd /tmp/vim-esearch && rspec --tag nvim"
 # CMD /bin/bash -l -c "/etc/init.d/xvfb start && . /etc/profile.d/rvm.sh &&  cd /tmp/vim-esearch && rspec --tag nvim"
-CMD /bin/bash -l -c "/etc/init.d/xvfb start &&  cd /tmp/vim-esearch && /usr/local/bin/rvm 2.3.8 do rspec --tag nvim"
+CMD /bin/bash -l -c "/etc/init.d/xvfb start &&  cd /tmp/vim-esearch && .  /etc/profile.d/rvm.sh && rvm use 2.3.8 && bundle exec rspec --tag nvim"
