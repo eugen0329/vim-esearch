@@ -8,6 +8,7 @@ ARG RUBY_VERSION=2.3.8
 ARG PLUGINS_DIR=/tmp/vim_plugins
 ARG BIN_DIR=/tmp/bin
 
+ENV USER=$USER
 ENV PATH="/home/docker/.local/bin:$PATH"
 ENV DISPLAY=":99.0"
 ENV PLUGINS_DIR=$PLUGINS_DIR
