@@ -68,10 +68,10 @@ end
 
 def nvim_path
   if linux?
-    # PLUGIN_ROOT.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
-    PLUGIN_ROOT.join('spec', 'support', 'bin', 'squashfs-root', 'usr', 'bin', 'nvim').to_s
+    # BIN_DIR.join(, "nvim.linux.appimage").to_s
+    BIN_DIR.join('squashfs-root', 'usr', 'bin', 'nvim').to_s
   else
-    PLUGIN_ROOT.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
+    BIN_DIR.join('nvim-osx64', 'bin', 'nvim').to_s
   end
 end
 
