@@ -10,6 +10,8 @@ require 'vimrunner/platform'
 
 require 'active_support/core_ext/class/attribute'
 
+# almost copypasted from vimrunner due to inability to write an extension for it
+
 # rubocop:disable Layout/ClassLength
 module VimrunnerNeovim
   class Server

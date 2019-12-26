@@ -11,7 +11,7 @@ class KnownIssues
 
   class_attribute :issues, default: []
 
-  def self.allow_tests_to_fail_matching_by_tags(&block)
+  def self.allow_tests_to_fail_matching_by_metadata(&block)
     new.instance_eval(&block)
   end
 

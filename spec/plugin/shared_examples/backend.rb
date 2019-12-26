@@ -51,24 +51,3 @@ RSpec.shared_examples 'a backend' do |backend|
 
   include_context 'dumpable'
 end
-
-def settings_dependent_context(matching_type, settings)
-  before do
-    press ":cd #{Configuration.root}/spec/fixtures/backend/<Enter>"
-    esearch.configure!(settings)
-  end
-  after { cmd('bdelete') if bufname('%') =~ /Search/ }
-
-  File.readlines("spec/fixtures/backend/#{matching_type}.txt").map(&:chomp).each do |test_query|
-    it "finds `#{test_query}`" do
-      press ":call esearch#init()<Enter>#{test_query}<Enter>"
-      wait_for_search_start
-
-      expect {
-        press 'lh'
-        line(1) =~ /Finish/i
-      }.to become_true_within(10.seconds),
-        -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
-    end
-  end
-end

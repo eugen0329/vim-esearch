@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-# require 'active_support/cache/memory_store'
-# @cache = ActiveSupport::Cache::MemoryStore.new
 require 'json'
+require 'active_support/core_ext/class/attribute'
 
 class API::ESearch::Editor
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
@@ -33,7 +32,7 @@ class API::ESearch::Editor
   end
 
   def press!(keys)
-    invalidate_cache
+    clear_cache
     vim.normal(keys)
   end
 
@@ -48,13 +47,13 @@ class API::ESearch::Editor
   end
 
   def press_with_user_mappings!(what)
-    invalidate_cache
+    clear_cache
     vim.feedkeys what
   end
 
   def command!(string_to_execute)
     # TODO: remove
-    invalidate_cache
+    clear_cache
     command(string_to_execute)
   end
 
@@ -77,12 +76,12 @@ class API::ESearch::Editor
   end
 
   def locate_cursor!(line_number, column_number)
-    invalidate_cache
+    clear_cache
     vim.command("call cursor(#{line_number},#{column_number})").to_i == 0
   end
 
   def close!
-    invalidate_cache
+    clear_cache
     command('close!')
   end
 
@@ -93,12 +92,12 @@ class API::ESearch::Editor
   end
 
   def locate_line!(line_number)
-    invalidate_cache
+    clear_cache
     locate_cursor! line_number, KEEP_HORIZONTAL_POSITION
   end
 
   def locate_column!(column_number)
-    invalidate_cache
+    clear_cache
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
@@ -125,7 +124,7 @@ class API::ESearch::Editor
     cache.fetch([name, *args]) { yield }
   end
 
-  def invalidate_cache
+  def clear_cache
     return if @disable_cache || !cache_enabled?
 
     cache.clear

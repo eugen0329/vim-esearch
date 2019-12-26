@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'pathname'
-require 'active_support'
 require 'vimrunner/rspec'
 require 'active_support/core_ext/numeric/time'
 require 'rspec'
@@ -11,10 +10,32 @@ require 'support/matchers/become_true_within' # TODO: remove
 require 'known_issues'
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
-Configuration.tap do |c|
-  c.root        = Pathname.new(File.expand_path('..', __dir__))
-  c.bin_dir     = Pathname.new(ENV.fetch('BIN_DIR') { c.root.join('spec', 'support', 'bin') })
-  c.plugins_dir = Pathname.new(ENV.fetch('PLUGINS_DIR') { c.root.join('spec', 'support', 'vim_plugins') })
+Configuration.root = Pathname.new(File.expand_path('..', __dir__))
+
+# Required mostly for improvimg performance of neovim backend testing by
+# sacrificing reliability (as with every optimization which involves caching
+# etc.)
+if Configuration.dangerously_maximize_performance?
+  API::ESearch::Editor.cache_enabled = true
+  API::ESearch::Editor.cache_enabled = true
+  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
+  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
+  Configuration.vimrunner_switch_to_neovim_callback_scope = :all
+
+  ESEARCH = API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+  def esearch
+    ESEARCH
+  end
+else
+  API::ESearch::Editor.cache_enabled = false
+  API::ESearch::Editor.cache_enabled = false
+  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
+  VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
+  Configuration.vimrunner_switch_to_neovim_callback_scope = :each
+
+  def esearch
+    @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+  end
 end
 
 RSpec.configure do |c|
@@ -25,12 +46,16 @@ RSpec.configure do |c|
   c.order = :rand
   c.formatter = :documentation
   c.fail_fast = Configuration.ci? ? 3 : 10
-
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.filter_run_excluding :compatibility_regexp if Configuration.ci?
 
-  # overrule vimrunner
-  c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+  c.around(:each) do |e|
+    e.metadata[:platform] = Configuration.platform_name
+    e.metadata[Configuration.platform_name] = true
+
+    # overrule vimrunner
+    Dir.chdir(Configuration.root, &e)
+  end
 end
 
 Vimrunner::RSpec.configure do |c|
@@ -58,30 +83,6 @@ end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
 Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
-
-# Required mostly for improvimg performance of neovim backend testing by
-# sacrificing reliability (as with every optimization which involves caching
-# etc.)
-if Configuration.dangerously_maximize_performance?
-  API::ESearch::Editor.cache_enabled = true
-  API::ESearch::Editor.cache_enabled = true
-  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
-  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
-
-  ESEARCH = API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
-  def esearch
-    ESEARCH
-  end
-else
-  API::ESearch::Editor.cache_enabled = false
-  API::ESearch::Editor.cache_enabled = false
-  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
-  VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
-
-  def esearch
-    @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
-  end
-end
 
 # TODO: move out of here
 def wait_for_search_start

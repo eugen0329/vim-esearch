@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'active_support/cache/memory_store'
-
 class API::ESearch::Configuration
   attr_reader :editor, :cache, :staged_configuration
   attr_writer :output

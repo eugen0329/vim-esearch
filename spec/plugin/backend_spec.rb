@@ -29,19 +29,6 @@ describe 'esearch#backend', :backend do
       after { esearch.close_search! }
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
-        # press('j') # press j to close "Press ENTER or type command to continue" prompt
-        # puts ':messages', cmd('messages')
-
-        # cmd('let g:prettyprint_width = 160')
-
-        # puts 'Buffer content:', buffer_content
-        # puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
-        # puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
-
-        # puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
-        # puts expr('&runtimepath')
-
-        # puts 'buffers:', cmd('ls!')
         esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
@@ -63,8 +50,6 @@ describe 'esearch#backend', :backend do
     context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure(adapter: adapter, regex: 1)
-      end
-      before(:each) do
 
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       end
@@ -72,9 +57,8 @@ describe 'esearch#backend', :backend do
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do
           include_context 'finds 1 entry of', /123/,   in: "\n__123", line: 2, column: 3
-          include_context 'finds 1 entry of', /\d+/,   in: "\n__123", line: 2, column: 3
-
-          include_context 'finds 1 entry of', /1\d*/,   in: '__123', line: 1, column: 3, other_files: []
+          include_context 'finds 1 entry of', /1\d+3/, in: "\n__123", line: 2, column: 3
+          include_context 'finds 1 entry of', /1\d*3/, in: '__123',   line: 1, column: 3
 
           # are required mostly to choose the best option for adapters
           context 'compatibility with syntax', :compatibility_regexp do
@@ -123,12 +107,12 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', ';',      in: "_\n__;_",    line: 2, column: 3
           include_context 'finds 1 entry of', '&',      in: "_\n__&_",    line: 2, column: 3
           include_context 'finds 1 entry of', '~',      in: "_\n__~_",    line: 2, column: 3
-          # invalid as regexps, but valid for literal match
-          include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3
           include_context 'finds 1 entry of', '==',     in: "_\n__==_",   line: 2, column: 3
           include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3
           include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3
+          # invalid as regexps, but valid for literal match
+          include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3
         end
       end
     end
@@ -141,12 +125,12 @@ describe 'esearch#backend', :backend do
       describe '#out#win' do
         before { esearch.configure(out: 'win') }
 
-        include_context 'works with adapter', 'ag'
-        include_context 'works with adapter', 'ack'
-        include_context 'works with adapter', 'git'
-        include_context 'works with adapter', 'grep'
-        include_context 'works with adapter', 'pt'
-        include_context 'works with adapter', 'rg', Configuration.bin_dir.join('rg-11.0.2')
+        include_context 'works with adapter', :ag
+        include_context 'works with adapter', :ack
+        include_context 'works with adapter', :git
+        include_context 'works with adapter', :grep
+        include_context 'works with adapter', :pt
+        include_context 'works with adapter', :rg, Configuration.bin_dir.join('rg-11.0.2')
       end
     end
 
@@ -154,6 +138,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#system', :system do
+    include_context 'a backend',   'system'
     include_context 'a backend 2', 'system'
   end
 
@@ -163,13 +148,15 @@ describe 'esearch#backend', :backend do
       press ':let g:esearch#backend#vimproc#read_timeout = 30'
     end
 
+    include_context 'a backend', 'vimproc'
     include_context 'a backend 2', 'vimproc'
     it_behaves_like 'an abortable backend', 'vimproc'
   end
 
   describe '#nvim', :nvim do
-    around(:all) { |e| use_nvim(&e) }
+    around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
+    include_context 'a backend', 'nvim'
     include_context 'a backend 2', 'nvim'
     it_behaves_like 'an abortable backend', 'nvim'
   end
@@ -177,6 +164,7 @@ describe 'esearch#backend', :backend do
   describe '#vim8', :vim8 do
     before { press ':let g:esearch#backend#vim8#timer = 100<Enter>' }
 
+    include_context 'a backend', 'vim8'
     include_context 'a backend 2', 'vim8'
     it_behaves_like 'an abortable backend', 'vim8'
   end
