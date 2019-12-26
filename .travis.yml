@@ -3,14 +3,15 @@ sudo: required
 dist: xenial      # https://docs.travis-ci.com/user/reference/linux/#overview
 osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
-services:
-  - xvfb # NOTE: Services are not supported on osx
+services: # NOTE: Services are not supported on osx
+  - xvfb
   - docker
 env:
   DISPLAY=":99.0"
   HOMEBREW_NO_AUTO_UPDATE=1
   VIM_GUI=1
   NVIM_GUI=0
+  DOCKER_BUILD=0
 
 rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
@@ -39,37 +40,37 @@ before_install:
   - docker load -i docker_images/images.tar || true
 install:
   - |
-    # if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
-    #   which pyenv
-    #   whereis pyenv
-    #   eval "$(pyenv init -)"
-    #   pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
-    #   pyenv global "$INSTALL_PYTHON_VERSION"
-    #   pyenv shell "$INSTALL_PYTHON_VERSION"
-    #   pyenv local "$INSTALL_PYTHON_VERSION"
-    #   pyenv rehash
-    #   python --version
-    #   pip --version
-    #   pip3 --version
-    # fi
+    [ "$DOCKER_BUILD" = viml ] && docker build --build-arg git_branch=$TRAVIS_BRANCH  -t esearch . && return
 
-    # [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
-    # [ "$LINT_FOR" = ruby ] && bundle install && return
+    if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
+      which pyenv
+      whereis pyenv
+      eval "$(pyenv init -)"
+      pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
+      pyenv global "$INSTALL_PYTHON_VERSION"
+      pyenv shell "$INSTALL_PYTHON_VERSION"
+      pyenv local "$INSTALL_PYTHON_VERSION"
+      pyenv rehash
+      python --version
+      pip --version
+      pip3 --version
+    fi
+
+    [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
+    [ "$LINT_FOR" = ruby ] && bundle install && return
 
 
-    # if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
-    #   sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
-    # fi
+    if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
+      sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
+    fi
 
-    # bundle install
+    bundle install
 
-    # if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    #   sh spec/support/bin/install_osx_dependencies.sh
-    # else
-    #   sh spec/support/bin/install_linux_dependencies.sh
-    # fi
-
-    docker build --build-arg git_branch=$TRAVIS_BRANCH  -t esearch .
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      sh spec/support/bin/install_osx_dependencies.sh
+    else
+      sh spec/support/bin/install_linux_dependencies.sh
+    fi
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
@@ -86,59 +87,58 @@ jobs:
     #   - underlying backends (mostly vimproc) rely platform specific calls
 
     # OSX acceptance
-    # - name: 'Acceptance tests of #backend#system'
-    #   script: bundle exec rspec --tag system
-    #   os: osx
-    # - name: 'Acceptance tests of #backend#nvim'
-    #   script: bundle exec rspec --tag nvim --seed 6880
-    #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
-    #   os: osx
-    # - name: 'Acceptance tests of #backend#vim8'
-    #   script: bundle exec rspec --tag vim8
-    #   os: osx
-    # - name: 'Acceptance tests of #backend#vimproc'
-    #   script: bundle exec rspec --tag vimproc
-    #   os: osx
+    - name: 'Acceptance tests of #backend#system'
+      script: bundle exec rspec --tag system
+      os: osx
+    - name: 'Acceptance tests of #backend#nvim'
+      script: bundle exec rspec --tag nvim --seed 6880
+      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+      os: osx
+    - name: 'Acceptance tests of #backend#vim8'
+      script: bundle exec rspec --tag vim8
+      os: osx
+    - name: 'Acceptance tests of #backend#vimproc'
+      script: bundle exec rspec --tag vimproc
+      os: osx
 
     # Linux acceptance
-    # - name: 'Acceptance tests of #backend#system'
-    #   script: bundle exec rspec --tag system
-    #   os: linux
-    - name: 'Acceptance tests of #backend#nvim'
-      # script: bundle exec rspec --tag nvim --seed 68127
-      script: docker run --privileged  -v $PWD:/tmp/vim-esearch -it esearch
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+    - name: 'Acceptance tests of #backend#system'
+      script: bundle exec rspec --tag system
       os: linux
-    # - name: 'Acceptance tests of #backend#vim8'
-    #   script: bundle exec rspec --tag vim8
-    #   os: linux
-    # - name: 'Acceptance tests of #backend#vimproc'
-    #   script: bundle exec rspec --tag vimproc
-    #   os: linux
+    - name: 'Acceptance tests of #backend#nvim'
+      script: docker run --privileged  -v $PWD:/tmp/vim-esearch -it esearch
+      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0 DOCKER_BUILD=1
+      os: linux
+    - name: 'Acceptance tests of #backend#vim8'
+      script: bundle exec rspec --tag vim8
+      os: linux
+    - name: 'Acceptance tests of #backend#vimproc'
+      script: bundle exec rspec --tag vimproc
+      os: linux
 
-    #   # Unit tests
-    # - name: 'Unit tests'
-    #   script: bundle exec rspec --tag ~backend
-    #   os: linux
+    # Unit tests
+    - name: 'Unit tests'
+      script: bundle exec rspec --tag ~backend
+      os: linux
 
-    #   # Linters
-    # - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-    #   env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
-    #   script:
-    #     - bundle exec rubocop --display-cop-names
-    #     - shellcheck spec/support/bin/*.sh # decided to not create another build
-    #   os: linux
-    # - name: 'Viml lint (Vint, VimLint)'
-    #   env:
-    #     LINT_FOR=viml
-    #     SKIP_INSTALL_VIM_DEPENDENCIES=1
-    #     VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
-    #   before_script:
-    #     - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
-    #     - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
-    #   script:
-    #     - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
-    #     - "vint $VIML_DIRECTORIES"
-    #   language: python
-    #   python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
-    #   os: linux
+    # Linters
+    - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
+      env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
+      script:
+        - bundle exec rubocop --display-cop-names
+        - shellcheck spec/support/bin/*.sh # decided to not create another build
+      os: linux
+    - name: 'Viml lint (Vint, VimLint)'
+      env:
+        LINT_FOR=viml
+        SKIP_INSTALL_VIM_DEPENDENCIES=1
+        VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
+      before_script:
+        - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
+        - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
+      script:
+        - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
+        - "vint $VIML_DIRECTORIES"
+      language: python
+      python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      os: linux

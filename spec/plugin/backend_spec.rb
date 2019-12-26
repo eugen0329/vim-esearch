@@ -29,20 +29,19 @@ describe 'esearch#backend', :backend do
       after { esearch.close_search! }
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
-        press('j') # press j to close "Press ENTER or type command to continue" prompt
-        puts ':messages', cmd('messages')
+        # press('j') # press j to close "Press ENTER or type command to continue" prompt
+        # puts ':messages', cmd('messages')
 
-        cmd('let g:prettyprint_width = 160')
+        # cmd('let g:prettyprint_width = 160')
 
-        puts 'Buffer content:', buffer_content
-        puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
-        puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
+        # puts 'Buffer content:', buffer_content
+        # puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
+        # puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
-        puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
-        puts expr('&runtimepath')
+        # puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
+        # puts expr('&runtimepath')
 
-        puts 'buffers:', cmd('ls!')
-
+        # puts 'buffers:', cmd('ls!')
         esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
