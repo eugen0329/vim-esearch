@@ -40,7 +40,7 @@ before_install:
   - test "$DOCKER_BUILD" = '1' && docker load -i docker_images/images.tar || true
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH  -t esearch . && return
+    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH -f spec/support/docker/Dockerfile -t esearch . && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
@@ -81,11 +81,15 @@ after_failure:
   - ls -lah /usr/local/bin
 
 jobs:
+  allow_failures:
+    - name: 'Acceptance tests of #backend#nvim'
+      script: bundle exec rspec --tag nvim --seed 6880
+      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+      os: osx
   include:
     # Why tests for two platforms:
     #   - tests rely on platform specific calls and should be crossplatform
     #   - underlying backends (mostly vimproc) rely platform specific calls
-
     # OSX acceptance
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec --tag system
@@ -139,8 +143,3 @@ jobs:
       language: python
       python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux
-  allow_failures:
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
-      os: osx
