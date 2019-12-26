@@ -48,9 +48,9 @@ ADD spec/support/bin/install_linux_dependencies.sh /tmp/vim-esearch/spec/support
 RUN sh /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh /tmp/bin
 
 # Setup xvfb
-ADD xvfb_init /etc/init.d/xvfb
+ADD spec/support/docker/xvfb_init /etc/init.d/xvfb
 RUN sudo chmod a+x /etc/init.d/xvfb
-ADD xvfb_daemon_run /usr/bin/xvfb-daemon-run
+ADD spec/support/docker/xvfb_daemon_run /usr/bin/xvfb-daemon-run
 RUN sudo chmod a+x /usr/bin/xvfb-daemon-run
 
 # CMD /bin/bash
