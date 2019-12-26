@@ -5,7 +5,6 @@ osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
 services: # NOTE: Services are not supported on osx
   - xvfb
-  - docker
 env:
   DISPLAY=":99.0"
   HOMEBREW_NO_AUTO_UPDATE=1
@@ -40,7 +39,7 @@ before_install:
   - docker load -i docker_images/images.tar || true
 install:
   - |
-    [ "$DOCKER_BUILD" = viml ] && docker build --build-arg git_branch=$TRAVIS_BRANCH  -t esearch . && return
+    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH  -t esearch . && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
@@ -106,8 +105,9 @@ jobs:
       script: bundle exec rspec --tag system
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: docker run --privileged  -v $PWD:/tmp/vim-esearch -it esearch
+      script: docker run -v $PWD:/tmp/vim-esearch -it esearch
       env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0 DOCKER_BUILD=1
+      services: docker
       os: linux
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
