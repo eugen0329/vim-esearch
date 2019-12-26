@@ -15,7 +15,7 @@ class Fixtures::LazyDirectory
 
   def persist!
     directory_path = path
-    return self if File.directory?(directory_path.to_s)
+    return self if directory_path.directory?
 
     FileUtils.mkdir_p(directory_path.to_s)
     files.each { |f| f.persist!(directory_path) }

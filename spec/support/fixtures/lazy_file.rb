@@ -14,9 +14,9 @@ class Fixtures::LazyFile
 
   def persist!(search_directory_path)
     absolute_path = search_directory_path.join(relative_path)
-    file_directory_path = ::File.dirname(absolute_path.to_s)
-    FileUtils.mkdir_p(file_directory_path) unless ::File.directory?(file_directory_path)
-    ::File.open(absolute_path, open_mode) { |f| f.puts(content) }
+    file_directory_path = absolute_path.dirname
+    FileUtils.mkdir_p(file_directory_path) unless file_directory_path.directory?
+    File.open(absolute_path, open_mode) { |f| f.puts(content) }
   end
 
   def digest_key

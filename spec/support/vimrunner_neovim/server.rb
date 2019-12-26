@@ -134,7 +134,6 @@ module VimrunnerNeovim
       args = [nvr_executable, *nvr_args, '--remote-expr', expression, '-s']
       result = nil
       Timeout.timeout(remote_expr_execution_timeout, Timeout::Error) do
-        Thread.abort_on_exception = true
         thread = Thread.new { result = execute(args) }
         thread.abort_on_exception = true
         thread.join
@@ -142,8 +141,6 @@ module VimrunnerNeovim
       result
     rescue Timeout::Error
       remote_expr_prepended_with_escape_press(expression)
-      # ensure
-      # Thread.abort_on_exception = false
     end
 
     def remote_expr_prepended_with_escape_press(expression)
@@ -167,7 +164,6 @@ module VimrunnerNeovim
       else
         headless_process_without_extra_output
         # return headless_process_with_extra_output
-        # return fork_gui
         # return with_io_popen
         # return background_pty
       end
@@ -200,7 +196,7 @@ module VimrunnerNeovim
     # ENTER or type command to continue". Can be convenient for debug headless
     # mode, but it pollutes output with this messages
     def headless_process_with_extra_output
-      pid = fork { exec(env, nvim, *nvim_args) }
+      pid = fork { exec(env, nvim, '--headless', *nvim_args) }
       [nil, nil, pid]
     end
 

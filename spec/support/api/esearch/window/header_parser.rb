@@ -10,7 +10,7 @@ class API::ESearch::Window::HeaderParser
   end
 
   def parse
-    return OpenStruct.new({}) if header_line !~ HEADER_REGEXP
+    return OpenStruct.new if header_line !~ HEADER_REGEXP
 
     OpenStruct.new(named_captures(header_line.match(HEADER_REGEXP)))
   end

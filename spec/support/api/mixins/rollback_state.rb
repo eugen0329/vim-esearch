@@ -12,7 +12,6 @@ module API::Mixins::RollbackState
 
   def rollback_current_buffer(editor)
     old_buffer_name = editor.current_buffer_name
-
     yield
   ensure
     42.times do

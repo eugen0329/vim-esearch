@@ -14,7 +14,8 @@ class API::ESearch::Window
   end
 
   def close_search!
-    editor.delete_current_buffer!(ignore_unsaved_changes: true) if editor.current_buffer_name =~ /Search/
+    # TODO: Should be ignore_unsaved_changes: false, but it ignores bdelete! command
+    editor.delete_current_buffer!(ignore_unsaved_changes: false) if editor.current_buffer_name =~ /Search/
   end
 
   def has_search_started?(timeout: DEFAULT_TIMEOUT)
