@@ -9,10 +9,10 @@ class API::ESearch::Editor
 
   class_attribute :cache_enabled, default: true
 
-  attr_reader :spec, :cache
+  attr_reader :cache, :vim_client_getter
 
-  def initialize(spec)
-    @spec = spec
+  def initialize(vim_client_getter)
+    @vim_client_getter = vim_client_getter
     @cache = CacheStore.new
   end
 
@@ -34,7 +34,7 @@ class API::ESearch::Editor
 
   def press!(keys)
     invalidate_cache
-    spec.vim.normal(keys)
+    vim.normal(keys)
   end
 
   def bufname(arg)
@@ -43,17 +43,17 @@ class API::ESearch::Editor
 
   def echo(arg)
     cached(:echo, arg) do
-      spec.vim.echo(arg)
+      vim.echo(arg)
     end
   end
 
   def press_with_user_mappings!(what)
     invalidate_cache
-    spec.vim.feedkeys what
+    vim.feedkeys what
   end
 
   def command!(string_to_execute)
-    # TODO remove
+    # TODO: remove
     invalidate_cache
     command(string_to_execute)
   end
@@ -65,16 +65,10 @@ class API::ESearch::Editor
   def current_line_number
     current_cursor_location[0]
   end
+
   def current_column_number
     current_cursor_location[1]
   end
-
-  # def current_line_number
-  #   echo("line('.')").to_i
-  # end
-  # def current_column_number
-  #   echo("col('.')").to_i
-  # end
 
   def current_cursor_location
     cached(:current_cursor_location) do
@@ -84,7 +78,7 @@ class API::ESearch::Editor
 
   def locate_cursor!(line_number, column_number)
     invalidate_cache
-    spec.vim.command("call cursor(#{line_number},#{column_number})").to_i == 0
+    vim.command("call cursor(#{line_number},#{column_number})").to_i == 0
   end
 
   def close!
@@ -92,7 +86,9 @@ class API::ESearch::Editor
     command('close!')
   end
 
-  def bdelete!
+  def delete_current_buffer!(ignore_unsaved_changes: true)
+    return command!('bdelete!') if ignore_unsaved_changes
+
     command!('bdelete')
   end
 
@@ -115,8 +111,12 @@ class API::ESearch::Editor
 
   private
 
+  def vim
+    vim_client_getter.call
+  end
+
   def command(string_to_execute)
-    spec.vim.command(string_to_execute)
+    vim.command(string_to_execute)
   end
 
   def cached(name, *args)
@@ -127,6 +127,7 @@ class API::ESearch::Editor
 
   def invalidate_cache
     return if @disable_cache || !cache_enabled?
+
     cache.clear
   end
 end

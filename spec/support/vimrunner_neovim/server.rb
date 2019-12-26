@@ -105,36 +105,37 @@ module VimrunnerNeovim
       execute([nvr_executable, '--serverlist']).split("\n")
     end
 
+    # TODO: decide what is faster
     # if ci? && linux? && false
     #   def remote_expr(expression)
     #     result = execute([nvr_executable, *nvr_args, '--remote-expr',expression, '-s'])
     #     result
     #   end
     # elsif false
-    #   def remote_expr(expression)
-    #     Thread.abort_on_exception = true
-    #     args = [nvr_executable, *nvr_args, '--remote-expr',expression, '-s']
-    #     result = nil
-    #     Timeout.timeout(0.5, Timeout::Error) do
-    #       Thread.new { result = execute(args) }.join
-    #     end
-    #     result
-    #   rescue Timeout::Error
-    #     remote_send('<C-\\><C-n><Esc>')
-    #     result = execute(args)
-    #     remote_send('<C-\\><C-n><Esc>')
-    #     result
-    #   ensure
-    #     Thread.abort_on_exception = false
-    #   end
-    # else
-      def remote_expr(expression)
-        args = [nvr_executable, *nvr_args, '--remote-expr', expression]
-        remote_send('<C-\\><C-n><Esc>')
-        result = execute(args)
-        remote_send('<C-\\><C-n><Esc>')
-        result
+    def remote_expr(expression)
+      Thread.abort_on_exception = true
+      args = [nvr_executable, *nvr_args, '--remote-expr', expression, '-s']
+      result = nil
+      Timeout.timeout(0.5, Timeout::Error) do
+        Thread.new { result = execute(args) }.join
       end
+      result
+    rescue Timeout::Error
+      remote_send('<C-\\><C-n><Esc>')
+      result = execute(args)
+      # remote_send('<C-\\><C-n><Esc>')
+      result
+    ensure
+      Thread.abort_on_exception = false
+    end
+    # else
+    # def remote_expr(expression)
+    #   args = [nvr_executable, *nvr_args, '--remote-expr', expression]
+    #   remote_send('<C-\\><C-n><Esc>')
+    #   result = execute(args)
+    #   remote_send('<C-\\><C-n><Esc>')
+    #   result
+    # end
     # end
 
     def remote_send(keys)
@@ -151,11 +152,11 @@ module VimrunnerNeovim
       if gui
         fork_gui
       else
-        return headless_process_without_extra_output
+        headless_process_without_extra_output
         # return headless_process_with_extra_output
         # return fork_gui
         # return with_io_popen
-        return background_pty
+        # return background_pty
       end
     end
 

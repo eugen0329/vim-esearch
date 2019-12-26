@@ -8,7 +8,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   around do |example|
     esearch.configure!(backend: backend, adapter: adapter, out: out)
     vim_let("g:esearch#adapter##{adapter}#bin",
-            "'sh #{PLUGIN_ROOT}/spec/support/bin/search_in_infinite_random_stdin.sh #{adapter}'")
+            "'sh #{Configuration.root}/spec/support/bin/search_in_infinite_random_stdin.sh #{adapter}'")
     expect(ps_commands).not_to include(search_string) # prevent false positive results
 
     example.run

@@ -11,7 +11,7 @@ RSpec.shared_context 'dumpable' do
           puts File.readlines(vim.server.verbose_log_file).to_a
           puts '*' * 10, 'VERBOSE log end'
         else
-          puts 'Verbose log in  is missing #{vim.server.verbose_log_file}'
+          puts "Verbose log in is missing #{vim.server.verbose_log_file}"
         end
 
         if File.exist?('/tmp/esearch_log.txt')

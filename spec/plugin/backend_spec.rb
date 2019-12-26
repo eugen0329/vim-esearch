@@ -146,7 +146,7 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'git'
         include_context 'works with adapter', 'grep'
         include_context 'works with adapter', 'pt'
-        include_context 'works with adapter', 'rg', BIN_DIR.join('rg-11.0.2')
+        include_context 'works with adapter', 'rg', Configuration.bin_dir.join('rg-11.0.2')
       end
     end
 
@@ -171,11 +171,6 @@ describe 'esearch#backend', :backend do
     around(:all) { |e| use_nvim(&e) }
 
     include_context 'a backend 2', 'nvim'
-
-    it do
-      expect(esearch.editor.echo('has("nvim")')).to eq('1')
-      expect(esearch.editor.echo('esearch#util#flatten([])')).to eq('[]')
-    end
     it_behaves_like 'an abortable backend', 'nvim'
   end
 

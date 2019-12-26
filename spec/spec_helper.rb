@@ -7,19 +7,15 @@ require 'active_support/core_ext/numeric/time'
 require 'rspec'
 require 'active_support/dependencies'
 require 'support/inflections'
-require 'support/configuration'
-require 'support/matchers/become_true_within.rb' # TODO: remove
+require 'support/matchers/become_true_within' # TODO: remove
 require 'known_issues'
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
-SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
-PLUGIN_ROOT = Pathname.new(File.expand_path('..', __dir__))
-BIN_DIR     = Pathname.new(ENV.fetch('BIN_DIR') { PLUGIN_ROOT.join('spec', 'support', 'bin') })
-PLUGINS_DIR = Pathname.new(ENV.fetch('PLUGINS_DIR') { PLUGIN_ROOT.join('spec', 'support', 'vim_plugins') })
-
-Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
-Fixtures::LazyDirectory.fixtures_directory = PLUGIN_ROOT.join('spec', 'fixtures')
-API::ESearch::Editor.cache_enabled = true
+Configuration.tap do |c|
+  c.root        = Pathname.new(File.expand_path('..', __dir__))
+  c.bin_dir     = Pathname.new(ENV.fetch('BIN_DIR') { c.root.join('spec', 'support', 'bin') })
+  c.plugins_dir = Pathname.new(ENV.fetch('PLUGINS_DIR') { c.root.join('spec', 'support', 'vim_plugins') })
+end
 
 RSpec.configure do |config|
   config.include DSL::Vim
@@ -28,21 +24,22 @@ RSpec.configure do |config|
   config.color_mode = true
   config.order = :rand
   config.formatter = :documentation
-  config.fail_fast = ci? ? 3 : 10
+  config.fail_fast = Configuration.ci? ? 3 : 10
 
   config.example_status_persistence_file_path = 'failed_specs.txt'
-  config.filter_run_excluding :compatibility_regexp if ci?
+  config.filter_run_excluding :compatibility_regexp if Configuration.ci?
 
   # overrule vimrunner
-  config.around(:each) { |e| Dir.chdir(PLUGIN_ROOT, &e) }
+  config.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 end
-RSpec::Matchers.define_negated_matcher :not_include, :include
 
 Vimrunner::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_vim do
-    load_plugins!(vim_gui? ? Vimrunner.start_gvim : Vimrunner.start)
+    Configuration.load_plugins!(
+      Configuration.vim_gui? ? Vimrunner.start_gvim : Vimrunner.start
+    )
   end
 end
 
@@ -50,30 +47,39 @@ VimrunnerNeovim::RSpec.configure do |config|
   config.reuse_server = true
 
   config.start_nvim do
-    load_plugins!(VimrunnerNeovim::Server.new(
-      nvim: nvim_path,
-      gui: nvim_gui?,
+    Configuration.load_plugins!(VimrunnerNeovim::Server.new(
+      nvim: Configuration.nvim_path,
+      gui: Configuration.nvim_gui?,
       timeout: 10,
       verbose_level: 0
     ).start)
   end
 end
 
-def load_plugins!(vim)
-  vim.add_plugin(PLUGIN_ROOT,                         'plugin/esearch.vim')
-  vim.add_plugin(PLUGINS_DIR.join('vimproc.vim'),     'plugin/vimproc.vim')
-  vim.add_plugin(PLUGINS_DIR.join('vim-prettyprint'), 'plugin/prettyprint.vim')
-  vim
-end
+RSpec::Matchers.define_negated_matcher :not_include, :include
 
-def nvim_path
-  if linux?
-    # BIN_DIR.join(, "nvim.appimage").to_s
-    BIN_DIR.join('squashfs-root', 'usr', 'bin', 'nvim').to_s
-  else
-    BIN_DIR.join('nvim-osx64', 'bin', 'nvim').to_s
+# Required mostly for improve performance of neovim backend testing by
+# sacrificing reliability (as with every optimization which involves caching)
+if Configuration.maximize_performance?
+  API::ESearch::Editor.cache_enabled = true
+  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
+  API::ESearch::Editor.cache_enabled = true
+  ESEARCH = API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+
+  def esearch
+    ESEARCH
+  end
+else
+  API::ESearch::Editor.cache_enabled = false
+  API::ESearch::Editor.cache_enabled = false
+  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
+
+  def esearch
+    @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
   end
 end
+
+Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
 # TODO: move out of here
 def wait_for_search_start
@@ -95,10 +101,6 @@ end
 
 def ps_commands
   `ps -A -o command | sed 1d`
-end
-
-def esearch
-  $facade ||= API::ESearch::Facade.new(self)
 end
 
 def ps_commands_without_sh

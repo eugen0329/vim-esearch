@@ -2,7 +2,7 @@
 
 # TODO: completely rewrite
 RSpec.shared_examples 'a backend' do |backend|
-  SEARCH_UTIL_ADAPTERS.each do |adapter|
+  %w[ack ag git grep pt rg].each do |adapter|
     context "with #{adapter} adapter" do
       around do |example|
         esearch.configure!(backend: backend, adapter: adapter, out: 'win')
@@ -11,7 +11,7 @@ RSpec.shared_examples 'a backend' do |backend|
       end
 
       context 'with relative path' do
-        let(:context_fixtures_path) { "#{PLUGIN_ROOT}/spec/fixtures/relative_paths" }
+        let(:context_fixtures_path) { "#{Configuration.root}/spec/fixtures/relative_paths" }
         let(:expected_file_content) { 'content_of_file_inside' }
         let(:directory) { 'directory' }
         let(:expected_filename) { 'file_inside_directory.txt' }
@@ -54,7 +54,7 @@ end
 
 def settings_dependent_context(matching_type, settings)
   before do
-    press ":cd #{PLUGIN_ROOT}/spec/fixtures/backend/<Enter>"
+    press ":cd #{Configuration.root}/spec/fixtures/backend/<Enter>"
     esearch.configure!(settings)
   end
   after { cmd('bdelete') if bufname('%') =~ /Search/ }

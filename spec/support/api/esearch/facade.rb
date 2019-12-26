@@ -5,7 +5,7 @@ require 'active_support/hash_with_indifferent_access'
 require 'active_support/core_ext/hash/indifferent_access'
 
 class API::ESearch::Facade
-  attr_reader :configuration, :editor, :output, :core, :spec
+  attr_reader :vim_client_getter, :configuration, :editor, :output, :core
 
   OUTPUTS = {
     win: API::ESearch::Window
@@ -24,14 +24,14 @@ class API::ESearch::Facade
     :close_search!,
     to: :output
 
-  def initialize(spec)
-    @spec = spec
+  def initialize(vim_client_getter)
     @outputs = {}
+    @vim_client_getter = vim_client_getter
   end
 
   # rubocop:disable Lint/DuplicateMethods
   def editor
-    @editor ||= API::ESearch::Editor.new(spec)
+    @editor ||= API::ESearch::Editor.new(vim_client_getter)
   end
 
   def configuration
