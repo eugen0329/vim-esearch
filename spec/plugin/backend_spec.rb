@@ -100,35 +100,35 @@ describe 'esearch#backend', :backend do
         context 'when matching literal', :literal do
           before { esearch.configure(adapter: adapter, regex: 0) }
           # potential errors with escaping
-          # include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '>',      in: "_\n__>_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '2 > 1',  in: "_\n_2 > 1_", line: 2, column: 2
-          # include_context 'finds 1 entry of', '2 < 1',  in: "_\n_2 < 1_", line: 2, column: 2
-          # include_context 'finds 1 entry of', '2 >> 1', in: "_\n2 >> 1_", line: 2, column: 1
-          # include_context 'finds 1 entry of', '2 << 1', in: "_\n2 << 1_", line: 2, column: 1
-          # include_context 'finds 1 entry of', '"',      in: "_\n__\"_",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '\'',     in: "_\n__\'_",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', ')',      in: "_\n__)_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '[',      in: "_\n__[_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', ']',      in: "_\n__]_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '\\',     in: "_\n__\\_",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '$',      in: "_\n__$_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '//',     in: "_\n__//_",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '\\\\',   in: "_\n_\\\\_",  line: 2, column: 2
-          # include_context 'finds 1 entry of', '\/',     in: "_\n__\\/_",  line: 2, column: 3
-          # include_context 'finds 1 entry of', '^',      in: "_\n__^_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', ';',      in: "_\n__;_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '&',      in: "_\n__&_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '~',      in: "_\n__~_",    line: 2, column: 3
-          # # invalid as regexps, but valid for literal match
-          # include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3
+          include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '>',      in: "_\n__>_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '2 > 1',  in: "_\n_2 > 1_", line: 2, column: 2
+          include_context 'finds 1 entry of', '2 < 1',  in: "_\n_2 < 1_", line: 2, column: 2
+          include_context 'finds 1 entry of', '2 >> 1', in: "_\n2 >> 1_", line: 2, column: 1
+          include_context 'finds 1 entry of', '2 << 1', in: "_\n2 << 1_", line: 2, column: 1
+          include_context 'finds 1 entry of', '"',      in: "_\n__\"_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '\'',     in: "_\n__\'_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3
+          include_context 'finds 1 entry of', ')',      in: "_\n__)_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '[',      in: "_\n__[_",    line: 2, column: 3
+          include_context 'finds 1 entry of', ']',      in: "_\n__]_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '\\',     in: "_\n__\\_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '$',      in: "_\n__$_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '//',     in: "_\n__//_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '\\\\',   in: "_\n_\\\\_",  line: 2, column: 2
+          include_context 'finds 1 entry of', '\/',     in: "_\n__\\/_",  line: 2, column: 3
+          include_context 'finds 1 entry of', '^',      in: "_\n__^_",    line: 2, column: 3
+          include_context 'finds 1 entry of', ';',      in: "_\n__;_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '&',      in: "_\n__&_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '~',      in: "_\n__~_",    line: 2, column: 3
+          # invalid as regexps, but valid for literal match
+          include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3
           include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '==',     in: "_\n__==_",   line: 2, column: 3
-          # include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3
-          # include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '==',     in: "_\n__==_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3
         end
       end
     end
@@ -176,7 +176,7 @@ describe 'esearch#backend', :backend do
       expect(esearch.editor.echo('has("nvim")')).to eq('1')
       expect(esearch.editor.echo('esearch#util#flatten([])')).to eq('[]')
     end
-    # it_behaves_like 'an abortable backend', 'nvim'
+    it_behaves_like 'an abortable backend', 'nvim'
   end
 
   describe '#vim8', :vim8 do
