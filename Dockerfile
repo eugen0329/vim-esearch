@@ -26,7 +26,7 @@ RUN curl -sSL https://get.rvm.io | bash -s
 RUN /bin/bash -l -c ". /etc/profile.d/rvm.sh && rvm install 2.3.8"
 
 # RUN yes | gem update --system --force &&
-RUN gem update --system --force
+RUN /bin/bash -l -c ". /etc/profile.d/rvm.sh && rvm use 2.3.8 && gem update --system --force"
 RUN /bin/bash -l -c ". /etc/profile.d/rvm.sh && rvm 2.3.8 do gem install bundler"
 RUN /bin/bash -l -c ". /etc/profile.d/rvm.sh && rvm 2.3.8 do gem update --system --force"
 RUN /bin/bash -l -c ". /etc/profile.d/rvm.sh && cd /tmp/vim-esearch && rvm 2.3.8 do bundle install"
