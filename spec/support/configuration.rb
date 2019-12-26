@@ -7,8 +7,6 @@ module Configuration
   module_function
 
   mattr_accessor :root,
-                 :plugins_dir,
-                 :bin_dir,
                  :vimrunner_switch_to_neovim_callback_scope
 
   def nvim_path

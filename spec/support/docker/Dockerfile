@@ -57,4 +57,4 @@ RUN sudo chmod a+x /usr/bin/xvfb-daemon-run
 # CMD /bin/bash
 CMD sudo /bin/bash /etc/init.d/xvfb start && \
       cd /tmp/vim-esearch && \
-      /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle exec rspec --tag nvim
+      SKIP_COMPATIBILITY_REGEXPS=1 /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle exec rspec --tag nvim

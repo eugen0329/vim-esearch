@@ -106,7 +106,7 @@ jobs:
       script: bundle exec rspec --tag system
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: docker run -v $PWD:/tmp/vim-esearch -it esearch
+      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/tmp/vim-esearch -it esearch
       env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0 DOCKER_BUILD=1
       services: docker
       os: linux
