@@ -4,7 +4,7 @@ fu! esearch#init(...) abort
 
   let esearch = extend(extend(copy(g:esearch), {'remember': 0}), copy(get(a:, 1, {})))
   try
-    for Middleware in esearch.middleware
+    for Middleware in esearch.middleware.list
       let esearch = Middleware(esearch)
     endfor
   catch /^Cancel$/
