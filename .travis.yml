@@ -3,24 +3,28 @@ sudo: required
 dist: xenial      # https://docs.travis-ci.com/user/reference/linux/#overview
 osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
-services:
-  - xvfb # NOTE: Services are not supported on osx
+services: # NOTE: Services are not supported on osx
+  - xvfb
 env:
   DISPLAY=":99.0"
   HOMEBREW_NO_AUTO_UPDATE=1
   VIM_GUI=1
   NVIM_GUI=0
+  DOCKER_BUILD=0
 
 rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+  -
+    test "$DOCKER_BUILD" = '1' && docker save -o docker_images/images.tar $(docker images -a -q) || true
 cache:
   bundler: true
   apt: true
   pip: true
   directories:
+    - docker_images
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     # - $TRAVIS_BUILD_DIR/spec/support/bin
     - $HOME/.rvm
@@ -33,8 +37,11 @@ before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
   - yes | gem update --system --force
   - gem install bundler
+  - test "$DOCKER_BUILD" = '1' && docker load -i docker_images/images.tar || true
 install:
   - |
+    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH -f spec/support/docker/Dockerfile -t esearch . && return
+
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
       whereis pyenv
@@ -74,18 +81,18 @@ after_failure:
   - ls -lah /usr/local/bin
 
 jobs:
+  allow_failures:
+    - name: 'Acceptance tests of #backend#nvim'
+      script: bundle exec rspec --tag nvim --seed 6880
+      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+      os: osx
   include:
     # Why tests for two platforms:
     #   - tests rely on platform specific calls and should be crossplatform
     #   - underlying backends (mostly vimproc) rely platform specific calls
-
     # OSX acceptance
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec --tag system
-      os: osx
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
       os: osx
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
@@ -99,8 +106,9 @@ jobs:
       script: bundle exec rspec --tag system
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6885
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/tmp/vim-esearch -it esearch
+      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0 DOCKER_BUILD=1
+      services: docker
       os: linux
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
@@ -109,12 +117,12 @@ jobs:
       script: bundle exec rspec --tag vimproc
       os: linux
 
-      # Unit tests
+    # Unit tests
     - name: 'Unit tests'
       script: bundle exec rspec --tag ~backend
       os: linux
 
-      # Linters
+    # Linters
     - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
       env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
       script:

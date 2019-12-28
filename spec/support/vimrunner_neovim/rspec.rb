@@ -52,10 +52,6 @@ module VimrunnerNeovim
   end
 end
 
-Vimrunner::RSpec.configure do |config|
-  config.reuse_server = false
-end
-
 RSpec.configure do |config|
   config.include(VimrunnerNeovim::Testing)
 

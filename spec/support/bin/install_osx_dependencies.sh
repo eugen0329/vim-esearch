@@ -18,9 +18,12 @@ command -v ag  || brew install the_silver_searcher
 if ! command -v rg; then
   rgversion=11.0.2
   rgfolder=ripgrep-$rgversion-x86_64-apple-darwin
-  wget "https://github.com/BurntSushi/ripgrep/releases/download/$rgversion/$rgfolder.tar.gz" -P /tmp
-  tar xvfz "/tmp/$rgfolder.tar.gz" --directory /tmp
-  sudo mv "/tmp/$rgfolder/rg" /usr/local/bin/rg
+  (mkdir -p "/tmp/rg-$rgversion" &&
+    cd /tmp/rg-$rgversion &&
+    wget "https://github.com/BurntSushi/ripgrep/releases/download/$rgversion/$rgfolder.tar.gz" &&
+    tar xvfz "$rgfolder.tar.gz" &&
+    cp "$rgfolder/rg" "$bin_directory/rg-$rgversion" &&
+    sudo cp "$rgfolder/rg" /usr/local/bin/rg)
 fi
 
 # command -v pt  || brew install the_platinum_searcher

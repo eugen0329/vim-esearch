@@ -554,4 +554,3 @@ endfu
 fu! esearch#out#win#_is_render_finished() dict abort
   return self.data_ptr == len(self.data)
 endfu
-

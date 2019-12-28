@@ -43,3 +43,13 @@ AllCops:
   Exclude:
     - 'spec/support/brew_formula/**/*'
     - 'spec/support/bin/**/*'
+
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+  Exclude:
+    - 'spec/support/vimrunner_neovim/**/*'
+    - 'spec/support/dsl/**/*'
+
+Layout/HashAlignment:
+  EnforcedColonStyle: table

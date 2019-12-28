@@ -28,6 +28,11 @@
   endfu
 " endif
 
+if !exists('g:esearch#util#unicode_enabled')
+  let g:esearch#util#unicode_enabled = 1
+endif
+
+
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
   let buffers = ''
@@ -140,7 +145,8 @@ fu! esearch#util#timenow() abort
 endfu
 
 fu! esearch#util#has_unicode() abort
-  return has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
+  return g:esearch#util#unicode_enabled &&
+        \ has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 endfu
 
 fu! esearch#util#visual_selection() abort
@@ -254,7 +260,7 @@ endfu
 "   To figure out two values:
 "   1. <{}- > - the first which refers to kind of shift (M - meta, C - control etc.)
 "   2. <S-{}> - the second. This button is pressed along with a shift.
-" Algorythm:
+" Algorithm:
 "   1. :let char = getchar()
 "   2. Pressing <M-c> (as an example), content of char now is '<80><fc>^Hc'
 "   3. Reveal unprintable chars by :let printable = strtrans(a:char)
@@ -270,7 +276,7 @@ endfu
 "
 "          strtrans("\<M-a>")[:-2] == printable[:-2]
 "
-"        If they're eql, than the first required value is found,
+"        If they're eql, then the first required value is found,
 "        else - try the following kind of shift in the same way.
 "
 fu! esearch#util#map_name(char) abort

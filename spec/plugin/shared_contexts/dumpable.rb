@@ -8,8 +8,10 @@ RSpec.shared_context 'dumpable' do
         puts `ps -A -o pid,command | sed 1d | grep nvim`
         if File.exist?(vim.server.verbose_log_file)
           puts 'VERBOSE log start', '*' * 10
-          puts File.readlines(vim.server.logfile).to_a
+          puts File.readlines(vim.server.verbose_log_file).to_a
           puts '*' * 10, 'VERBOSE log end'
+        else
+          puts "Verbose log in is missing #{vim.server.verbose_log_file}"
         end
 
         if File.exist?('/tmp/esearch_log.txt')
@@ -44,13 +46,18 @@ RSpec.shared_context 'dumpable' do
 
       if exists('*prettyprint#prettyprint')
         puts "\n" * 2, '#' * 10, 'G:ESEARCH'
-        dump('g:esearch')
+        puts pretty('g:esearch')
         puts "\n" * 2, '#' * 10, "B:ESEARCH.without('request')"
-        dump('b:esearch.without("request")')
+        puts pretty('b:esearch.without("request")')
         puts "\n" * 2, '#' * 10, 'REQUEST'
-        dump('b:esearch.request')
+        puts pretty('b:esearch.request')
         puts "\n" * 2, '#' * 10, '[UPDATETIME]'
-        dump('&ut')
+        puts pretty('&ut')
+        puts "\n" * 2, '#' * 10, '[COMMAND]'
+        puts pretty('b:esearch.request.command')
+      else
+        puts "\n" * 2, '#' * 10, '[COMMAND]'
+        puts expr('b:esearch.request.command')
       end
 
       puts "\n" * 2, '#' * 10, 'SCRIPTNAMES'
