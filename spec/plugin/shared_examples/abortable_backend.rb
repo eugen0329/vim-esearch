@@ -2,77 +2,69 @@
 
 RSpec.shared_examples 'an abortable backend' do |backend|
   let(:adapter) { 'ag' }
-  let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
   let(:out) { 'win' }
   let(:empty_cwd_for_infinite_search) { nil }
+  # We will identify our command using UUID search_string (generated as a static
+  # string intetionally)
+  let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
+  let(:command_pattern) { search_string }
+  # sh script spawns a main search process, so we have to ignore it to avoid
+  # working with two process (parent and child)
+  let(:infinity_search_executable) { 'search_in_infinite_random_stdin.sh' }
+  let(:ignore_pattern) { infinity_search_executable }
 
-  around do |example|
+  around(:all) do |e|
     esearch.configure!(backend: backend, adapter: adapter, out: out)
-    esearch.configuration.adapter_bin = "sh #{Configuration.bin_dir}/search_in_infinite_random_stdin.sh #{adapter}"
-    expect(ps_commands).not_to include(search_string) # prevent false positive results
-
-    example.run
-
-    esearch.close_search!
-    `ps -A -o pid,command | grep #{search_string} | grep -v grep | awk '{print $1}' | xargs kill -s KILL`
-    expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds) # verify teardown is done
+    esearch.configuration.adapter_bin = "sh #{Configuration.bin_dir}/#{infinity_search_executable} #{adapter}"
+    e.run
     esearch.configuration.adapter_bin = adapter
+  end
+
+  around do |e|
+    expect(esearch).to have_no_process_matching(search_string) # prevent false positive results
+    e.run
+    esearch.close_search!
+    esearch.grep_and_kill_process_by!(search_string)
+    expect(esearch).to have_no_process_matching(search_string)
+  end
+
+  shared_examples 'abort on actions' do
+    it 'aborts on bufdelete' do
+      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+
+      expect(esearch)
+        .to  have_search_started
+        .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
+        .and have_search_freezed
+
+      esearch.editor.bufdelete!
+      expect(esearch).to have_no_process_matching(search_string)
+    end
+
+    it 'aborts on search restart' do
+      2.times do
+        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+
+        # `#have_search_freezed` must be called first to prevent possible race
+        # condition errors
+        expect(esearch)
+          .to  have_search_started
+          .and have_search_freezed
+          .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
+      end
+    end
   end
 
   context '#out#win' do
     let(:out) { 'win' }
 
-    it 'aborts on bufdelete' do
-      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-
-      expect(esearch).to have_search_started
-      expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
-      expect(esearch).to have_search_freezed
-
-      delete_current_buffer
-      expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds)
-    end
-
-    it 'aborts on search restart' do
-      2.times do
-        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-
-        expect(esearch).to have_search_started
-        expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
-        expect(esearch).to have_search_freezed
-      end
-
-      expect { ps_commands_without_sh.scan(/#{search_string}/).count == 1 }
-        .to become_true_within(10.seconds)
-    end
+    include_examples 'abort on actions'
   end
 
   context '#out#qflist' do
     let(:out) { 'qflist' }
 
-    it 'aborts on bufdelete' do
-      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-
-      expect(esearch).to have_search_started
-      expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
-      expect(esearch).to have_search_freezed
-
-      delete_current_buffer
-      expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds)
-    end
-
-    it 'aborts on search restart' do
-      2.times do
-        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-
-        expect(esearch).to have_search_started
-        expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
-        expect(esearch).to have_search_freezed
-      end
-
-      expect { ps_commands_without_sh.scan(/#{search_string}/).count == 1 }
-        .to become_true_within(10.seconds)
-    end
+    include_examples 'abort on actions'
   end
 
   include_context 'dumpable'

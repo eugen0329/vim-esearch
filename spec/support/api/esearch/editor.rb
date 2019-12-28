@@ -3,6 +3,7 @@
 require 'yaml'
 require 'active_support/core_ext/class/attribute'
 
+# rubocop:disable Layout/ClassLength
 class API::ESearch::Editor
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
 
@@ -52,7 +53,6 @@ class API::ESearch::Editor
   end
 
   def command!(string_to_execute)
-    # TODO: remove
     clear_cache
     command(string_to_execute)
   end
@@ -90,6 +90,7 @@ class API::ESearch::Editor
 
     command!('bdelete')
   end
+  alias bufdelete! delete_current_buffer!
 
   def locate_line!(line_number)
     clear_cache
@@ -140,3 +141,4 @@ class API::ESearch::Editor
     cache.clear
   end
 end
+# rubocop:enable Layout/ClassLength

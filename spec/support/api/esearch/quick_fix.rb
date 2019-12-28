@@ -55,9 +55,7 @@ class API::ESearch::QuickFix
   end
 
   def close_search!
-    if inside_quickfix_search_window?
-      editor.delete_current_buffer!
-    end
+    editor.delete_current_buffer! if inside_quickfix_search_window?
   end
 
   private
@@ -65,7 +63,6 @@ class API::ESearch::QuickFix
   def inside_quickfix_search_window?
     quickfix_window_name, filetype = editor.quickfix_window_name_with_filetype
     quickfix_window_name.match?(/\A:Search/) && filetype == 'qf'
-
     #   Fails in rubocop 0.78
     #   editor.current_buffer_name_with_filetype in [/Search/, 'qf']
     #   true

@@ -44,6 +44,7 @@ else
   API::ESearch::Window.search_freeze_timeout   = 10.seconds
   API::ESearch::QuickFix.search_event_timeout  = 16.seconds
   API::ESearch::QuickFix.search_freeze_timeout = 10.seconds
+  API::ESearch::Platform.process_check_timeout = 10.seconds
 
   def esearch
     @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
@@ -64,6 +65,9 @@ RSpec.configure do |c|
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 end
+
+RSpec::Matchers.define_negated_matcher :not_include, :include
+Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
 Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
@@ -86,44 +90,6 @@ VimrunnerNeovim::RSpec.configure do |c|
       verbose_level: 0
     ).start)
   end
-end
-
-RSpec::Matchers.define_negated_matcher :not_include, :include
-Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
-
-# TODO: move out of here
-def wait_for_search_start
-  expect {
-    press('lh') # press jk to close "Press ENTER or type command to continue" prompt
-    bufname('%') =~ /Search/
-  }.to become_true_within(20.second)
-end
-
-def wait_for_search_freezed(timeout = 3.seconds)
-  expect { line(1) =~ /Finish/i }.not_to become_true_within(timeout)
-end
-
-def wait_for_qickfix_enter
-  expect {
-    expr('&filetype') == 'qf'
-  }.to become_true_within(5.second)
-end
-
-def ps_commands
-  `ps -A -o command | sed 1d`
-end
-
-def ps_commands_without_sh
-  ps_commands
-    .split("\n")
-    .reject { |l| %r{\A\s*(?:/bin/)?sh}.match?(l) }
-    .join("\n")
-end
-
-def delete_current_buffer
-  # From :help bdelete
-  #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
-  press ':bdelete<Enter>'
 end
 
 def load_vim_plugins!(vim)

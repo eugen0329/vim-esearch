@@ -13,8 +13,12 @@ class API::ESearch::Facade
   }.with_indifferent_access
 
   delegate :search!, to: :core
-  delegate :configure, :configure!, to: :configuration
-  delegate :cd!,        to: :editor
+  delegate :configure, :configure!,    to: :configuration
+  delegate :cd!,                       to: :editor
+  delegate :grep_and_kill_process_by!,
+    :has_no_process_matching?,
+    :has_running_processes_matching?,
+    to: :platform
 
   delegate :has_search_started?,
     :has_search_finished?,
@@ -34,6 +38,10 @@ class API::ESearch::Facade
   # rubocop:disable Lint/DuplicateMethods
   def editor
     @editor ||= API::ESearch::Editor.new(vim_client_getter)
+  end
+
+  def platform
+    @platform ||= API::ESearch::Platform.new
   end
 
   def configuration
