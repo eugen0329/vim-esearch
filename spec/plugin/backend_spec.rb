@@ -32,6 +32,7 @@ describe 'esearch#backend', :backend do
         esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
+          require 'pry'; binding.pry
           expect(esearch)
             .to  have_search_started
             .and have_search_finished
@@ -61,7 +62,7 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3
 
           # are required mostly to choose the best commandline options for adapters
-          context 'compatibility with syntax', :compatibility_regexp do
+          context 'compatibility with syntax', :compatibility_regexps do
             include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
               file('1.txt', "1\n2_3\n4"),
               file('2.txt', "a\n\nbb\nccc")

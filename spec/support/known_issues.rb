@@ -24,7 +24,7 @@ class KnownIssues
     issue = issues.find do |i|
       i.metadata <= metadata &&
         description.include?(i.description_pattern) &&
-        e.message =~ /#{i.exception_pattern}/
+        e.message.match?(i.exception_pattern)
     end
     if issue
       spec.public_send(issue.allow_fail_method,

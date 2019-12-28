@@ -45,7 +45,7 @@ RSpec.configure do |c|
   c.formatter = :documentation
   c.fail_fast = Configuration.ci? ? 3 : 10
   c.example_status_persistence_file_path = 'failed_specs.txt'
-  c.filter_run_excluding :compatibility_regexp if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding :compatibility_regexps if Configuration.skip_compatibility_regexps?
 
   c.around(:each) do |e|
     e.metadata[:platform] = Configuration.platform_name

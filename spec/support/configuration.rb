@@ -4,6 +4,8 @@ require 'rbconfig'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module Configuration
+  extend PlatformCheck
+
   module_function
 
   mattr_accessor :root,
@@ -30,27 +32,6 @@ module Configuration
 
   def gui?
     ENV.fetch('GUI', '1') == '1'
-  end
-
-  def platform_name
-    @platform_name ||=
-      if linux?
-        :linux
-      elsif osx?
-        :osx
-      else
-        raise 'Unknown platform'
-      end
-  end
-
-  def osx?
-    @osx = !(RbConfig::CONFIG['host_os'] =~ /darwin/).nil? if @osx.nil?
-    @osx
-  end
-
-  def linux?
-    @linux = !(RbConfig::CONFIG['host_os'] =~ /linux/).nil? if @linux.nil?
-    @linux
   end
 
   def ci?
