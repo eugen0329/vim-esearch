@@ -55,7 +55,7 @@ endfu
 fu! s:SearchInputController.init_live_update() dict abort
   let self.executed_cmdline = ''
 
-  aug esearch_live_update
+  aug __esearch_live_update__
     au!
     au CmdlineChanged * call s:live_update.apply()
     " Overrule statusline plugins when live_update buffer is opened
@@ -109,7 +109,7 @@ fu! s:redraw(_) abort
 endfu
 
 fu! s:SearchInputController.uninit_live_update() dict abort
-  au! esearch_live_update *
+  au! __esearch_live_update__ *
   call timer_stop(self.redraw_timer)
 endfu
 

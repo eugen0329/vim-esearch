@@ -65,7 +65,7 @@ fu! s:NvimOpener.open_and_enter() abort dict
           \ && g:esearch#preview#win.location.filename ==# self.location.filename
           \ && empty(g:esearch#preview#win.buf.swapname)
       call esearch#preview#reset()
-      silent! au! esearch_preview_autoclose
+      silent! au! __esearch_preview_autoclose__
       let g:esearch#preview#win.shape = self.shape
       let g:esearch#preview#win.close_on = self.close_on
       let was_opened = 1
