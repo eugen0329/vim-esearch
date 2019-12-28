@@ -6,7 +6,7 @@ fu! s:PathPrompt.render() abort dict
     return [[self.props.normal_highlight, esearch#shell#join(self.props.paths)]]
   endif
   if type(self.props.paths) ==# type({})
-    return [['Special', self.props.paths.tag]]
+    return [['Special', self.props.paths.repr()]]
   endif
 
   let cwd = self.props.cwd

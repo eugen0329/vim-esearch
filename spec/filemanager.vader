@@ -14,6 +14,7 @@ Before:
   Save g:esearch
   let g:esearch.cwd = 'spec/fixtures/filemanager'.g:test_number.next().'/'
   let g:file1 = 'dir1/file1.txt'
+  let g:file1keep = 'dir1/.keep'
   let g:file2 = 'file2.txt'
   let g:file3 = 'file3.txt'
   call esearch#stderr#incremental('workaround to avoid vader bug', ['with autoload fail'])
@@ -108,5 +109,59 @@ Execute(search in marked):
       \ '   1 3.l1',
       \ '   2 3.l2',
       \], "\n")
+    silent! exe 'bwipe' bufnr
+  endfor
+
+Execute(search with restricting git-log):
+  exe 'bwipe!' Fixture(g:esearch.cwd.g:file1, ['1.l1', '1.l2'])
+  exe 'bwipe!' Fixture(g:esearch.cwd.g:file2, ['2.l1', '2.l2'])
+  call system('git init ' . g:esearch.cwd)
+  call system('git -C ' . g:esearch.cwd . ' add -A')
+  call system('git -C ' . g:esearch.cwd . ' commit -m "any message"')
+
+  for open_filer in has('nvim') ? ['Fern -wait', 'NETRTabdrop', 'NERDTree', 'Dirvish'] : ['Defx']
+    Log open_filer
+
+    exe open_filer g:esearch.cwd
+    let bufnr = bufnr()
+    exe "norm /dir1\<CR>"
+    call esearch#init({'paths': esearch#xargs#git_log(), 'pattern': '.'})
+    Assert join(getline(1, '$'), "\n") =~# join([
+      \ 'Matches in 2 lines, 1 file. Finished.',
+      \ '',
+      \ '\x\{40}:dir1/file1.txt',
+      \ '   1 1.l1',
+      \ '   2 1.l2',
+      \], "\n")
+    silent! exe 'bwipe' bufnr
+  endfor
+
+Execute(search with restricting git-stash):
+  exe 'bwipe!' Fixture(g:esearch.cwd.g:file1, ['1.l1', '1.l2'])
+  exe 'bwipe!' Fixture(g:esearch.cwd.g:file1keep, [])
+  exe 'bwipe!' Fixture(g:esearch.cwd.g:file2, ['2.l1', '2.l2'])
+  exe 'bwipe!' Fixture(g:esearch.cwd.g:file3, ['3.l1', '3.l2'])
+  call system('git init ' . g:esearch.cwd)
+  call system('git -C ' . g:esearch.cwd . ' add ' . g:file3)
+  call system('git -C ' . g:esearch.cwd . ' commit -m "any message"')
+  call system('git -C ' . g:esearch.cwd . ' add ' . g:file1)
+  call system('git -C ' . g:esearch.cwd . ' add ' . g:file2)
+  call system('git -C ' . g:esearch.cwd . ' stash clear')
+  call system('git -C ' . g:esearch.cwd . ' stash')
+
+  for open_filer in has('nvim') ? ['Fern -wait', 'NETRTabdrop', 'NERDTree', 'Dirvish'] : ['Defx']
+    Log open_filer
+
+    exe open_filer g:esearch.cwd
+    let bufnr = bufnr()
+    exe "norm /dir1\<CR>"
+    call esearch#init({'paths': esearch#xargs#git_stash(), 'pattern': '.'})
+    Assert join(getline(1, '$'), "\n") =~# join([
+      \ 'Matches in 2 lines, 1 file. Finished.',
+      \ '',
+      \ 'stash@\\{\d\+}:dir1/file1.txt',
+      \ '   1 1.l1',
+      \ '   2 1.l2',
+      \], "\n"), string(getline(1, '$'))
     silent! exe 'bwipe' bufnr
   endfor
