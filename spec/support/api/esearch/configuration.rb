@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class API::ESearch::Configuration
+  include API::Mixins::VimTypes
+
   attr_reader :editor, :cache, :staged_configuration
   attr_writer :output
 
@@ -45,15 +47,5 @@ class API::ESearch::Configuration
     cache.fetch('out') do
       editor.echo('get(get(g:, "esearch", {}), "out", g:esearch#defaults#out)')
     end
-  end
-
-  private
-
-  def to_vim_dict(options)
-    pairs = options.map do |name, val|
-      val = "'#{val}'" unless val.is_a? Numeric
-      "'#{name}': #{val}"
-    end
-    "{#{pairs.join(',')}}"
   end
 end

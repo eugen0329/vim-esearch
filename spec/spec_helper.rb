@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require 'pathname'
-require 'vimrunner/rspec'
-require 'active_support/core_ext/numeric/time'
 require 'rspec'
+require 'vimrunner/rspec'
 require 'active_support/dependencies'
+require 'active_support/core_ext/numeric/time'
+
 require 'support/inflections'
 require 'support/matchers/become_true_within' # TODO: remove
 require 'known_issues'

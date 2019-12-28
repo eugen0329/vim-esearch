@@ -9,6 +9,7 @@ require 'vimrunner/client'
 require 'vimrunner/platform'
 
 require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/numeric/time'
 
 # almost copypasted from vimrunner due to inability to write an extension for it
 

@@ -23,7 +23,7 @@ class API::ESearch::Window::Entry
   def open
     old_buffer_name = editor.current_buffer_name
 
-    editor.disable_cache do
+    editor.ignoring_cache do
       rollback_open do
         editor.locate_line! line_in_window + 1
         editor.press_with_user_mappings! '\<Enter>'

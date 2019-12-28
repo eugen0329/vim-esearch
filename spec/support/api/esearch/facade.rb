@@ -21,6 +21,7 @@ class API::ESearch::Facade
     :has_outputted_result_from_file_in_line?,
     :has_outputted_result_with_right_position_inside_file?,
     :has_not_reported_errors?,
+    :has_search_freezed?,
     :close_search!,
     to: :output
 

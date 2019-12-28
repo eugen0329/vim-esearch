@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'active_support/core_ext/numeric/time'
+
 class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
 
@@ -50,6 +52,12 @@ class API::ESearch::Window
 
   def has_outputted_result_from_file_in_line?(relative_path, line)
     find_entry(relative_path, line).present?
+  end
+
+  def has_search_freezed?(timeout: 1.second)
+    !became_truthy_within?(timeout) do
+      editor.ignoring_cache { parser.header_finished? }
+    end
   end
 
   def has_outputted_result_with_right_position_inside_file?(relative_path, line, column)

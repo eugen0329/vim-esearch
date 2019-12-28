@@ -101,11 +101,11 @@ class API::ESearch::Editor
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
-  def disable_cache
-    @disable_cache = true
+  def ignoring_cache
+    @ignoring_cache = true
     yield
   ensure
-    @disable_cache = false
+    @ignoring_cache = false
   end
 
   private
@@ -119,13 +119,13 @@ class API::ESearch::Editor
   end
 
   def cached(name, *args)
-    return yield if @disable_cache || !cache_enabled?
+    return yield if @ignoring_cache || !cache_enabled?
 
     cache.fetch([name, *args]) { yield }
   end
 
   def clear_cache
-    return if @disable_cache || !cache_enabled?
+    return if @ignoring_cache || !cache_enabled?
 
     cache.clear
   end
