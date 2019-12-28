@@ -17,6 +17,10 @@ class API::ESearch::Window::Parser
     header_parser.finished?
   end
 
+  def header_search?
+    header_parser.finished?
+  end
+
   def header
     header_parser.parse
   end

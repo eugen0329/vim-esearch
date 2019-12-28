@@ -37,11 +37,11 @@ class API::ESearch::Window::EntriesParser
   private
 
   def line_with_entry?
-    lines_iterator.peek[0] =~ FILE_ENTRY_REGEXP
+    lines_iterator.peek[0].match?(FILE_ENTRY_REGEXP)
   end
 
   def fast_forward_header!
-    lines_iterator.next while lines_iterator.peek[0] =~ API::ESearch::Window::HeaderParser::HEADER_REGEXP
+    lines_iterator.next while lines_iterator.peek[0].match?(API::ESearch::Window::HeaderParser::HEADER_REGEXP)
   end
 
   def next_file_relative_path!

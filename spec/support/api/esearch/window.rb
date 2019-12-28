@@ -15,13 +15,13 @@ class API::ESearch::Window
 
   def close_search!
     # TODO: Should be ignore_unsaved_changes: false, but it ignores bdelete! command
-    editor.delete_current_buffer!(ignore_unsaved_changes: false) if editor.current_buffer_name =~ /Search/
+    editor.delete_current_buffer!(ignore_unsaved_changes: false) if inside_search_window?
   end
 
   def has_search_started?(timeout: DEFAULT_TIMEOUT)
     became_truthy_within?(timeout) do
       editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
-      editor.bufname('%') =~ /Search/
+      inside_search_window?
     end
   end
 
@@ -73,6 +73,10 @@ class API::ESearch::Window
 
   def entries
     parser.entries
+  end
+
+  def inside_search_window?
+    editor.current_buffer_name.match?(/Search/)
   end
 
   private

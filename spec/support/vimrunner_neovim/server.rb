@@ -15,6 +15,8 @@ require 'active_support/core_ext/class/attribute'
 # rubocop:disable Layout/ClassLength
 module VimrunnerNeovim
   class Server
+    include PlatformCheck
+
     VIMRC        = Vimrunner::Server::VIMRC
     VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
     REMOTE_EXPR_METHOD_NAMES = {
@@ -203,7 +205,7 @@ module VimrunnerNeovim
     def fork_gui
       exec_nvim_command = "#{nvim} #{nvim_args.join(' ')}"
       # TODO: extract platform check
-      pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
+      pid = if osx?
               fork { exec(env, 'iterm', exec_nvim_command) }
             else
               # fork { exec(env, 'xterm', '-geometry', '500x20+1000+1', '-e', exec_nvim_command) }

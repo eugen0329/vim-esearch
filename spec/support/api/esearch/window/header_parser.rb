@@ -12,25 +12,20 @@ class API::ESearch::Window::HeaderParser
   def parse
     return OpenStruct.new if header_line !~ HEADER_REGEXP
 
-    OpenStruct.new(named_captures(header_line.match(HEADER_REGEXP)))
+    OpenStruct.new(header_line.match(HEADER_REGEXP).named_captures.transform_values(&:to_i))
   end
 
   def finished?
-    header_line =~ HEADER_REGEXP && header_line =~ /\. Finished\.\z/
+    header_line.match?(HEADER_REGEXP) && header_line.match?(/\. Finished\.\z/)
   end
 
   def errors?
-    header_line =~ /\AERRORS from/
+    header_line.match?(/\AERRORS from/)
   end
 
   private
 
   def header_line
     editor.line(1)
-  end
-
-  def named_captures(matchdata)
-    # TODO: update ruby and use builtin
-    matchdata.names.zip(matchdata.captures.map(&:to_i)).to_h
   end
 end
