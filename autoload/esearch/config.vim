@@ -74,7 +74,7 @@ fu! esearch#config#init(esearch) abort
         \}, 'keep')
 
   if !has_key(g:esearch, 'middleware')
-    let g:esearch.middleware = [
+    let g:esearch.middleware = esearch#middleware_stack#new([
           \ function('esearch#middleware#deprecations#apply'),
           \ function('esearch#middleware#id#apply'),
           \ function('esearch#middleware#adapter#apply'),
@@ -88,7 +88,7 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#remember#apply'),
           \ function('esearch#middleware#name#apply'),
           \ function('esearch#middleware#warnings#apply'),
-          \]
+          \])
   endif
 
   if g:esearch.default_mappings

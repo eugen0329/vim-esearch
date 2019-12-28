@@ -1,0 +1,20 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  call esearch#config#eager()
+After:
+  Restore g:esearch
+
+Execute(insert order):
+  let [g:before_pattern, g:after_pattern] = [0, 0]
+  let [g:before_id, g:after_id] = [0, 0]
+  call g:esearch.middleware.insert_before('id', {e-> execute('let g:before_id = 1') ? e : e})
+  call g:esearch.middleware.insert_after('id', {e-> execute('let g:after_id = 1') ? e : e})
+  call g:esearch.middleware.insert_before('pattern', {e-> execute('let g:before_pattern = 1') ? e : e})
+  call g:esearch.middleware.insert_after('pattern', {e-> execute('let g:after_pattern = 1') ? e : e})
+  exe "norm \<plug>(esearch)\<CR>"
+  Assert g:before_id
+  Assert g:after_id
+  Assert g:before_pattern
+  Assert !g:after_pattern
