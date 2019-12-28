@@ -26,7 +26,9 @@ let g:esearch#out#win#entry_format = ' %3d %s'
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort
-  call a:esearch.win_new(a:esearch)
+  if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
+
+  if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
   call s:cleanup()
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
@@ -82,6 +84,20 @@ fu! esearch#out#win#init(esearch) abort
   " without waiting for debouncing callback firing.
   call esearch#out#win#appearance#matches#highlight_viewport(b:esearch)
   call esearch#out#win#appearance#ctx_syntax#highlight_viewport(b:esearch)
+  return b:esearch
+endfu
+
+fu! s:init_live_updated(esearch) abort
+  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.name)
+  try
+    call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.name))
+    call esearch#util#doautocmd('BufEnter')
+  catch /E95:/ " Buffer with this name already exists
+    let bufnr = bufnr('')
+    call a:esearch.win_new(a:esearch)
+    if bufnr !=# bufnr('') | exe bufnr 'bwipeout' | endif
+  endtry
+  return a:esearch
 endfu
 
 fu! s:cleanup() abort
@@ -101,7 +117,7 @@ fu! s:cleanup() abort
 endfu
 
 fu! esearch#out#win#goto_or_open(esearch) abort dict
-  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.title)
+  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.name)
 
   " If the window is empty and the only within the tab - reuse it
   if winnr('$') == 1
@@ -118,8 +134,7 @@ endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
-    redraw
-    echomsg 'esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')'
+    call esearch#util#warn('esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')')
   endif
 
   call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)
@@ -133,8 +148,8 @@ endfu
 fu! esearch#out#win#map(lhs, rhs) abort
   let g:esearch = get(g:, 'esearch', {})
   let g:esearch = extend(g:esearch, {'win_map': []}, 'keep')
-  let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
-  let g:esearch.pending_deprecations += ['esearch#out#win#map, see :help g:esearch.win_map']
+  let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
+  let esearch#util#deprecate('esearch#out#win#map, see :help g:esearch.win_map')
   let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs), 'mode': 'n'}]
 endfu
 

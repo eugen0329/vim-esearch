@@ -161,6 +161,7 @@ To customize the plugin you must initialize it first with:
  `.root_markers`            | List of filenames to determine the project root
  `.filetypes`               | String with filetypes to search in (space separated)
  `.paths`                   | String with paths to search in using shell syntax
+ `.live_update`             | Start and update the output while you're typing
  `.select_prefilled`        | Flag to visually select a prefilled prompt text
  `.default_mappings`        | Flag to toggle all default mappings
  `.adapter`                 | Search util (ag, rg, grep etc.) adapter name
@@ -263,6 +264,18 @@ g:esearch.filetypes                                          *g:esearch.filetype
         let g:esearch.filetypes = 'python css js'
 <
         NOTE Supported only by [ag], [rg] and [ack].
+
+g:esearch.live_update                                      *g:esearch.live_update*
+        Start the search instantly and update the output while you're typing
+        using the currently inputted pattern.
+        Type: ||Boolean|
+        Default: 1
+        Example:~
+>
+        let g:esearch.live_update = 0
+<
+        NOTE To increase the timeout after which the output is updated see
+        |g:esearch.live_update_debounce_wait| variable.
 
 g:esearch.paths                                                  *g:esearch.paths*
         Paths listed using shell syntax to search in.
@@ -572,7 +585,8 @@ g:esearch.win_new({esearch})                                 *g:esearch.win_new(
                       buffer-local variable after |g:esearch.win_new()| call
         Example:~
         >
-        let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Find]', 'vnew') }
+        let g:esearch.win_new =
+              \ {esearch -> esearch#buf#goto_or_open(esearch.name, 'vnew') }
 <
         Example above will use a single window for any search request in a
         vertical split and reuse it for further searches.
@@ -745,6 +759,7 @@ Performance configurations:
                  Property                                     What contains~
  ------------------------------------------+------------------------------------------------------
  `.win_update_throttle_wait`                 | Update throttling timeout (ms)
+ `.live_update_debounce_wait`                | Live update start debouncing timeout (ms)
  `.win_matches_highlight_debounce_wait`      | Viewport matches highlight debouncing timeout (ms)
  `.win_contexts_syntax_debounce_wait`        | Viewport filetypes highlight debouncing timeout (ms)
  `.win_viewport_off_screen_margin`           | Number of lines to extend the viewport height
@@ -765,6 +780,14 @@ g:esearch.win_update_throttle_wait            *g:esearch.win_update_throttle_wai
         Type: |Number|
         Allowed values: >= 0
         Default: 100
+
+g:esearch.live_update_debounce_wait          *g:esearch.live_update_debounce_wait*
+        Live update start timeout in milliseconds after which the output is
+        updated. The bigger this value, the lower slowdowns while you typing,
+        but also the later a new search with the latest pattern will be started.
+        Type: |Number|
+        Allowed values: > 0
+        Default: 200
 
                                    *g:esearch.win_matches_highlight_debounce_wait*
 g:esearch.win_matches_highlight_debounce_wait
@@ -880,7 +903,7 @@ g:esearch.early_finish_wait                          *g:esearch.early_finish_wai
         before the start.
         Type: |Number|
         Allowed values: >= 0
-        Default: 80
+        Default: 100
 
 ================================================================================
 COMMANDLINE                                                      *esearch-cmdline*
@@ -1169,6 +1192,8 @@ Or the same behavior using floating previews (neovim only). Change align to
 <
 NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
 as the preview updates are handled using `b:autopreview.apply()` call.
+NOTE This kind of preview is recommended as it's designed to safely handle swap
+dialogs that will appear if |b:esearch.split_preview_open| is used.
 
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
@@ -1178,8 +1203,8 @@ as the preview updates are handled using `b:autopreview.apply()` call.
     let g:esearch = {}
 
     " Try to jump into an opened floating window or open a new one.
-    let g:esearch.win_new = {->
-        \ esearch#buf#goto_or_open('[Find]', {bufname->
+    let g:esearch.win_new = {esearch->
+        \ esearch#buf#goto_or_open(esearch.name, {bufname->
         \   nvim_open_win(bufadd(bufname), v:true, {
         \     'relative': 'editor',
         \     'row': float2nr(&lines * 0.2) / 2,

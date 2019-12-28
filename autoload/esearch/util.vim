@@ -1,4 +1,5 @@
 let s:List     = vital#esearch#import('Data.List')
+let s:Log      = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#util#even_count_of_escapes_re =  '\%(\\\)\@<!\%(\\\\\)*'
@@ -240,4 +241,24 @@ endfu
 fu! s:Count.next() abort dict
   let self._value += 1
   return self._value - 1
+endfu
+
+fu! esearch#util#deprecate(message) abort
+  let g:esearch.pending_warnings += ['DEPRECATION: ' . a:message]
+endfu
+
+fu! esearch#util#warn(message) abort
+  if mode() ==# 'c'
+    let g:esearch.pending_warnings += [a:message]
+  else
+    redraw
+    call s:Log.info(a:message)
+  endif
+endfu
+
+" If live_update feature is enabled:
+"    live_exec - exec a new search and skip
+"   !live_exec - skip exec and connect to an already executed search
+fu! esearch#util#is_skip_exec(esearch) abort
+  return a:esearch.live_update && !a:esearch.live_exec
 endfu

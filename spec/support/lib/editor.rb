@@ -104,7 +104,7 @@ class Editor
     press! ":cd #{where}<Enter>"
   end
 
-  def bufname(arg)
+  def bufname(arg = '')
     echo func('bufname', arg)
   end
 
@@ -118,6 +118,10 @@ class Editor
 
   def current_buffer_name
     expand('%:p')
+  end
+
+  def current_buffer_basename
+    expand('%:t')
   end
 
   def current_line_number
@@ -326,10 +330,6 @@ class Editor
     echo func('getcwd')
   end
 
-  def trigger_cursor_moved_event!
-    press!('<Esc>lh')
-  end
-
   def command(string_to_execute)
     # vim.command("doau CmdlineEnter | #{string_to_execute} | doau CmdlineLeave")
     vim.command(string_to_execute)
@@ -441,6 +441,8 @@ class Editor
     down:      '\\<Down>',
     end:       '\\<End>',
     paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}",
+    control_c: '\\<C-c>',
+    control_w: '\\<C-w>',
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

@@ -61,10 +61,7 @@ endfu
 
 fu! s:detect_conflict(ctx, path) abort dict
   if !filereadable(a:path)
-    return {
-          \ 'filename': a:ctx.filename,
-          \ 'reason':   'is not readable',
-          \ }
+    return {'filename': a:ctx.filename, 'reason': 'is not readable'}
   endif
 
   let original_lines = a:ctx.original.lines

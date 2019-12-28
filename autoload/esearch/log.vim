@@ -4,6 +4,12 @@ fu! esearch#log#import() abort
   return s:Log
 endfu
 
+fu! s:Log.info(msg) abort dict
+  for m in split(a:msg, "\n")
+    echomsg m
+  endfor
+endfu
+
 fu! s:Log.echon(hl, msg) abort dict
   execute 'echohl' a:hl
   try

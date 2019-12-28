@@ -38,6 +38,14 @@ class API::ESearch::Configuration
     staged_configuration.clear
   end
 
+  def qr
+    editor.echo var('g:esearch#unicode#quote_right')
+  end
+
+  def ql
+    editor.echo var('g:esearch#unicode#quote_left')
+  end
+
   def win_map
     staged_configuration['win_map'] ||= []
   end
@@ -58,8 +66,8 @@ class API::ESearch::Configuration
   end
 
   def output
-    cache.fetch('out') do
-      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', var('g:esearch#defaults#out'))
-    end
+    # cache.fetch('out') do
+    editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', 'win')
+    # end
   end
 end
