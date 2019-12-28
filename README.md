@@ -183,6 +183,7 @@ Use `esearch#init({options}})` function to start a search. Specify `{options}`
 dictionary using the same keys as in the global config to customize the
 behavior per request. Examples:
 
+Use a popup-like floating window to render search results.
 ```vim
 " Search in modified files only using backticks in paths string
 " Remember is set to 0 to prevent saving configs history for later searches.
