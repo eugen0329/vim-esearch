@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PlatformCheck
   def platform_name
     @platform_name ||=

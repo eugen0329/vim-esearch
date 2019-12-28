@@ -32,7 +32,6 @@ describe 'esearch#backend', :backend do
         esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
-          require 'pry'; binding.pry
           expect(esearch)
             .to  have_search_started
             .and have_search_finished
