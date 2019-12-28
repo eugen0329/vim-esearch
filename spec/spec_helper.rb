@@ -5,13 +5,19 @@ require 'rspec'
 require 'vimrunner/rspec'
 require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
+require 'active_support/tagged_logging'
 
 require 'support/inflections'
 require 'support/matchers/become_true_within' # TODO: remove
 require 'known_issues'
-ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
-Configuration.root = Pathname.new(File.expand_path('..', __dir__))
+require 'support/configuration'
+Configuration.tap do |c|
+  c.root = Pathname.new(File.expand_path('..', __dir__))
+  c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
+end
+
+ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
