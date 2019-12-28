@@ -47,15 +47,15 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     end
   end
 
-  xcontext '#out#qflist' do
+  context '#out#qflist' do
     let(:out) { 'qflist' }
 
     it 'aborts on bufdelete' do
       esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-      wait_for_qickfix_enter
+
+      expect(esearch).to have_search_started
       expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
       expect(esearch).to have_search_freezed
-      expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
 
       delete_current_buffer
       expect { !ps_commands.include?(search_string) }.to become_true_within(10.seconds)
@@ -64,7 +64,8 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     it 'aborts on search restart' do
       2.times do
         esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-        wait_for_qickfix_enter
+
+        expect(esearch).to have_search_started
         expect { ps_commands.include?(search_string) }.to become_true_within(10.seconds)
         expect(esearch).to have_search_freezed
       end

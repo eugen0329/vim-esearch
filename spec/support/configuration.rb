@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/core_ext/module/attribute_accessors'
+require_relative 'platform_check'
 
 module Configuration
   extend PlatformCheck
@@ -8,7 +9,14 @@ module Configuration
   module_function
 
   mattr_accessor :root,
-                 :vimrunner_switch_to_neovim_callback_scope
+    :vimrunner_switch_to_neovim_callback_scope,
+    :log,
+    :search_event_timeout,
+    :search_freeze_timeout
+
+  def log_level
+    ENV.fetch('LOG_LEVEL') { 'info' }
+  end
 
   def nvim_path
     @nvim_path ||=
@@ -51,6 +59,6 @@ module Configuration
 
   def dangerously_maximize_performance?
     # Required mostly for neovim backend testing which is super slow
-    ENV['DANGEROUSLY_MAXIMIZE_PERFORMANCE'] == '1'
+    ENV.fetch('DANGEROUSLY_MAXIMIZE_PERFORMANCE', '1') == '1'
   end
 end

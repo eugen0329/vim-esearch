@@ -15,6 +15,8 @@ require 'support/configuration'
 Configuration.tap do |c|
   c.root = Pathname.new(File.expand_path('..', __dir__))
   c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
+  c.search_event_timeout  = 8.seconds
+  c.search_freeze_timeout = 1.second
 end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
@@ -37,6 +39,11 @@ else
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each
+
+  API::ESearch::Window.search_event_timeout    = 16.seconds
+  API::ESearch::Window.search_freeze_timeout   = 10.seconds
+  API::ESearch::QuickFix.search_event_timeout  = 16.seconds
+  API::ESearch::QuickFix.search_freeze_timeout = 10.seconds
 
   def esearch
     @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })

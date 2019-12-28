@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'json'
+require 'yaml'
 require 'active_support/core_ext/class/attribute'
 
 class API::ESearch::Editor
@@ -71,7 +71,7 @@ class API::ESearch::Editor
 
   def current_cursor_location
     cached(:current_cursor_location) do
-      JSON.parse(echo("[line('.'),col('.')]"))
+      YAML.safe_load(echo("[line('.'),col('.')]"))
     end
   end
 
@@ -85,7 +85,7 @@ class API::ESearch::Editor
     command('close!')
   end
 
-  def delete_current_buffer!(ignore_unsaved_changes: true)
+  def delete_current_buffer!(ignore_unsaved_changes: false)
     return command!('bdelete!') if ignore_unsaved_changes
 
     command!('bdelete')
@@ -101,11 +101,21 @@ class API::ESearch::Editor
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
-  def ignoring_cache
-    @ignoring_cache = true
+  def quickfix_window_name_with_filetype
+    cached(:quickfix_window_name_with_filetype) do
+      YAML.safe_load(echo("[get(w:, 'quickfix_title', ''), &ft]"))
+    end
+  end
+
+  def quickfix_window_name
+    echo("get(w:, 'quickfix_title', '')")
+  end
+
+  def with_ignore_cache
+    @with_ignore_cache = true
     yield
   ensure
-    @ignoring_cache = false
+    @with_ignore_cache = false
   end
 
   private
@@ -119,13 +129,13 @@ class API::ESearch::Editor
   end
 
   def cached(name, *args)
-    return yield if @ignoring_cache || !cache_enabled?
+    return yield if @with_ignore_cache || !cache_enabled?
 
     cache.fetch([name, *args]) { yield }
   end
 
   def clear_cache
-    return if @ignoring_cache || !cache_enabled?
+    return if @with_ignore_cache || !cache_enabled?
 
     cache.clear
   end

@@ -8,7 +8,8 @@ class API::ESearch::Facade
   attr_reader :vim_client_getter, :configuration, :editor, :output, :core
 
   OUTPUTS = {
-    win: API::ESearch::Window
+    win:    API::ESearch::Window,
+    qflist: API::ESearch::QuickFix
   }.with_indifferent_access
 
   delegate :search!, to: :core
