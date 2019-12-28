@@ -40,7 +40,7 @@ class API::ESearch::Platform
 
     ps_commands
       .split("\n")
-      .reject! { |l| ignore_regexp.match?(l) }
+      .reject { |l| ignore_regexp.match?(l) }
       .join("\n")
   end
 end
