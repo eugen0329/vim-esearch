@@ -17,6 +17,7 @@ Configuration.tap do |c|
   c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
   c.search_event_timeout  = 8.seconds
   c.search_freeze_timeout = 1.second
+  c.process_check_timeout = 10.second
 end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
@@ -44,7 +45,7 @@ else
   API::ESearch::Window.search_freeze_timeout   = 10.seconds
   API::ESearch::QuickFix.search_event_timeout  = 16.seconds
   API::ESearch::QuickFix.search_freeze_timeout = 10.seconds
-  API::ESearch::Platform.process_check_timeout = 10.seconds
+  API::ESearch::Platform.process_check_timeout = 20.seconds
 
   def esearch
     @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })

@@ -12,6 +12,7 @@ module Configuration
     :vimrunner_switch_to_neovim_callback_scope,
     :log,
     :search_event_timeout,
+    :process_check_timeout,
     :search_freeze_timeout
 
   def log_level

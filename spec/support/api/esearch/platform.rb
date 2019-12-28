@@ -3,7 +3,7 @@
 class API::ESearch::Platform
   include API::Mixins::BecomeTruthyWithinTimeout
 
-  class_attribute :process_check_timeout, default: 5.seconds
+  class_attribute :process_check_timeout, default: Configuration.process_check_timeout
 
   def grep_and_kill_process_by!(pattern, signal: 'KILL')
     `ps -A -o pid,command | grep "#{pattern}" | grep -v grep | awk '{print $1}' | xargs kill -s #{signal}`
