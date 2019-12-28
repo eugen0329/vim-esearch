@@ -16,8 +16,8 @@ Configuration.tap do |c|
   c.root = Pathname.new(File.expand_path('..', __dir__))
   c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
   c.search_event_timeout  = 8.seconds
-  c.search_freeze_timeout = 5.second
-  c.process_check_timeout = 10.second
+  c.search_freeze_timeout = 10.second
+  c.process_check_timeout = 20.second
 end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
