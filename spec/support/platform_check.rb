@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'rbconfig'
+
 module PlatformCheck
   def platform_name
     @platform_name ||=

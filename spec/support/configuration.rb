@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'rbconfig'
 require 'active_support/core_ext/module/attribute_accessors'
 
 module Configuration
