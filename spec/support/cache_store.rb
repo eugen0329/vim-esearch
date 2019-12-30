@@ -11,6 +11,5 @@ class CacheStore < HashWithIndifferentAccess
       payload
     end
   end
-
   alias write_multi merge!
 end

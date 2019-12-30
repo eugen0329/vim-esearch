@@ -35,12 +35,13 @@ cache:
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
-  - yes | gem update --system --force
-  - gem install bundler
-  - test "$DOCKER_BUILD" = '1' && docker load -i docker_images/images.tar || true
+  - |
+    [ "$DOCKER_BUILD" = '1' ] && (docker load -i docker_images/images.tar || true) && return
+    yes | gem update --system --force
+    gem install bundler
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH -f spec/support/docker/Dockerfile -t esearch . && return
+    [ "$DOCKER_BUILD" = '1' ] && time docker build -f spec/support/docker/Dockerfile -t esearch-rspec . && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
@@ -106,8 +107,8 @@ jobs:
       script: bundle exec rspec --tag system
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/tmp/vim-esearch -it esearch
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0 DOCKER_BUILD=1
+      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/tmp/vim-esearch -it esearch-rspec -t nvim
+      env: NVIM_GUI=0 DOCKER_BUILD=1
       services: docker
       os: linux
     - name: 'Acceptance tests of #backend#vim8'

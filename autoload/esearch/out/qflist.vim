@@ -37,7 +37,9 @@ fu! esearch#out#qflist#init(opts) abort
 
   call esearch#backend#{g:esearch_qf.backend}#run(g:esearch_qf.request)
 
-  if !g:esearch_qf.request.async
+  if g:esearch_qf.request.async
+    let w:quickfix_title = g:esearch_qf.title
+  else
     call esearch#out#qflist#finish()
   endif
 endfu

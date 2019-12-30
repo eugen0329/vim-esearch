@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require 'active_support/core_ext/numeric/time'
+
 class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
 
   class MissingEntry < RuntimeError; end
 
-  DEFAULT_TIMEOUT = 10.seconds
-
+  class_attribute :search_event_timeout, default: Configuration.search_event_timeout
+  class_attribute :search_freeze_timeout, default: Configuration.search_freeze_timeout
   attr_reader :editor
 
   def initialize(editor)
@@ -18,14 +20,14 @@ class API::ESearch::Window
     editor.delete_current_buffer!(ignore_unsaved_changes: false) if inside_search_window?
   end
 
-  def has_search_started?(timeout: DEFAULT_TIMEOUT)
+  def has_search_started?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
       inside_search_window?
     end
   end
 
-  def has_search_finished?(timeout: DEFAULT_TIMEOUT)
+  def has_search_finished?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
       parser.header_finished? || parser.header_errors?
@@ -50,6 +52,12 @@ class API::ESearch::Window
 
   def has_outputted_result_from_file_in_line?(relative_path, line)
     find_entry(relative_path, line).present?
+  end
+
+  def has_search_freezed?(timeout: search_freeze_timeout)
+    !became_truthy_within?(timeout) do
+      editor.with_ignore_cache { parser.header_finished? }
+    end
   end
 
   def has_outputted_result_with_right_position_inside_file?(relative_path, line, column)

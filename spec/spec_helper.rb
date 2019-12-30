@@ -1,16 +1,27 @@
 # frozen_string_literal: true
 
 require 'pathname'
-require 'vimrunner/rspec'
-require 'active_support/core_ext/numeric/time'
 require 'rspec'
+require 'vimrunner/rspec'
 require 'active_support/dependencies'
-require 'support/inflections'
-require 'support/matchers/become_true_within' # TODO: remove
-require 'known_issues'
-ActiveSupport::Dependencies.autoload_paths << 'spec/support'
+require 'active_support/core_ext/numeric/time'
+require 'active_support/tagged_logging'
 
-Configuration.root = Pathname.new(File.expand_path('..', __dir__))
+require 'support/inflections'
+require 'support/custom_matchers'
+require 'support/inflections'
+require 'known_issues'
+
+require 'support/configuration'
+Configuration.tap do |c|
+  c.root = Pathname.new(File.expand_path('..', __dir__))
+  c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
+  c.search_event_timeout  = 8.seconds
+  c.search_freeze_timeout = 3.second
+  c.process_check_timeout = 10.second
+end
+
+ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
@@ -31,6 +42,12 @@ else
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each
 
+  API::ESearch::Window.search_event_timeout    = 16.seconds
+  API::ESearch::Window.search_freeze_timeout   = 10.seconds
+  API::ESearch::QuickFix.search_event_timeout  = 16.seconds
+  API::ESearch::QuickFix.search_freeze_timeout = 10.seconds
+  API::ESearch::Platform.process_check_timeout = 20.seconds
+
   def esearch
     @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
   end
@@ -50,6 +67,9 @@ RSpec.configure do |c|
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 end
+
+RSpec::Matchers.define_negated_matcher :not_include, :include
+Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
 Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
@@ -72,44 +92,6 @@ VimrunnerNeovim::RSpec.configure do |c|
       verbose_level: 0
     ).start)
   end
-end
-
-RSpec::Matchers.define_negated_matcher :not_include, :include
-Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
-
-# TODO: move out of here
-def wait_for_search_start
-  expect {
-    press('lh') # press jk to close "Press ENTER or type command to continue" prompt
-    bufname('%') =~ /Search/
-  }.to become_true_within(20.second)
-end
-
-def wait_for_search_freezed(timeout = 3.seconds)
-  expect { line(1) =~ /Finish/i }.not_to become_true_within(timeout)
-end
-
-def wait_for_qickfix_enter
-  expect {
-    expr('&filetype') == 'qf'
-  }.to become_true_within(5.second)
-end
-
-def ps_commands
-  `ps -A -o command | sed 1d`
-end
-
-def ps_commands_without_sh
-  ps_commands
-    .split("\n")
-    .reject { |l| %r{\A\s*(?:/bin/)?sh}.match?(l) }
-    .join("\n")
-end
-
-def delete_current_buffer
-  # From :help bdelete
-  #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
-  press ':bdelete<Enter>'
 end
 
 def load_vim_plugins!(vim)

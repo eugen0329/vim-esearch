@@ -8,12 +8,16 @@ class API::ESearch::Facade
   attr_reader :vim_client_getter, :configuration, :editor, :output, :core
 
   OUTPUTS = {
-    win: API::ESearch::Window
+    win:    API::ESearch::Window,
+    qflist: API::ESearch::QuickFix
   }.with_indifferent_access
 
   delegate :search!, to: :core
-  delegate :configure, :configure!, to: :configuration
-  delegate :cd!,        to: :editor
+  delegate :configure, :configure!,    to: :configuration
+  delegate :cd!,                       to: :editor
+  delegate :grep_and_kill_process_by!,
+    :has_no_process_matching?,
+    to: :platform
 
   delegate :has_search_started?,
     :has_search_finished?,
@@ -21,6 +25,7 @@ class API::ESearch::Facade
     :has_outputted_result_from_file_in_line?,
     :has_outputted_result_with_right_position_inside_file?,
     :has_not_reported_errors?,
+    :has_search_freezed?,
     :close_search!,
     to: :output
 
@@ -32,6 +37,10 @@ class API::ESearch::Facade
   # rubocop:disable Lint/DuplicateMethods
   def editor
     @editor ||= API::ESearch::Editor.new(vim_client_getter)
+  end
+
+  def platform
+    @platform ||= API::ESearch::Platform.new
   end
 
   def configuration

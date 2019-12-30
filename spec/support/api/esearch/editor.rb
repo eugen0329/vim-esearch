@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require 'json'
+require 'yaml'
 require 'active_support/core_ext/class/attribute'
 
+# rubocop:disable Layout/ClassLength
 class API::ESearch::Editor
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
 
@@ -52,7 +53,6 @@ class API::ESearch::Editor
   end
 
   def command!(string_to_execute)
-    # TODO: remove
     clear_cache
     command(string_to_execute)
   end
@@ -71,7 +71,7 @@ class API::ESearch::Editor
 
   def current_cursor_location
     cached(:current_cursor_location) do
-      JSON.parse(echo("[line('.'),col('.')]"))
+      YAML.safe_load(echo("[line('.'),col('.')]"))
     end
   end
 
@@ -85,11 +85,12 @@ class API::ESearch::Editor
     command('close!')
   end
 
-  def delete_current_buffer!(ignore_unsaved_changes: true)
+  def delete_current_buffer!(ignore_unsaved_changes: false)
     return command!('bdelete!') if ignore_unsaved_changes
 
     command!('bdelete')
   end
+  alias bufdelete! delete_current_buffer!
 
   def locate_line!(line_number)
     clear_cache
@@ -101,11 +102,21 @@ class API::ESearch::Editor
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
-  def disable_cache
-    @disable_cache = true
+  def quickfix_window_name_with_filetype
+    cached(:quickfix_window_name_with_filetype) do
+      YAML.safe_load(echo("[get(w:, 'quickfix_title', ''), &ft]"))
+    end
+  end
+
+  def quickfix_window_name
+    echo("get(w:, 'quickfix_title', '')")
+  end
+
+  def with_ignore_cache
+    @with_ignore_cache = true
     yield
   ensure
-    @disable_cache = false
+    @with_ignore_cache = false
   end
 
   private
@@ -119,14 +130,15 @@ class API::ESearch::Editor
   end
 
   def cached(name, *args)
-    return yield if @disable_cache || !cache_enabled?
+    return yield if @with_ignore_cache || !cache_enabled?
 
     cache.fetch([name, *args]) { yield }
   end
 
   def clear_cache
-    return if @disable_cache || !cache_enabled?
+    return if @with_ignore_cache || !cache_enabled?
 
     cache.clear
   end
 end
+# rubocop:enable Layout/ClassLength
