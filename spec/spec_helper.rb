@@ -8,12 +8,9 @@ require 'active_support/core_ext/numeric/time'
 require 'active_support/tagged_logging'
 
 require 'support/inflections'
-require 'support/matchers/become_true_within' # TODO: remove
-require 'known_issues'
-Dir[File.expand_path('spec/support/matchers/*.rb')].each { |f| require f }
-
+require 'support/custom_matchers'
 require 'support/inflections'
-
+require 'known_issues'
 
 require 'support/configuration'
 Configuration.tap do |c|

@@ -15,11 +15,12 @@ RSpec::Matchers.define :have_running_processes_matching do |command_pattern, ign
     processes = esearch.platform.processess_matching(command_pattern, ignore_pattern)
     process_description = "running processe(s) matching #{command_pattern} (ignoring #{ignore_pattern})"
 
-    if processes.count == 0
-      got = "got #{processes.count}. Other processes list #{esearch.platform.ps_commands.join("\n")}"
-    else
-      got = "got #{processes.count}:\n#{processes.join("\n")}"
-    end
+    got =
+      if processes.count == 0
+        "got #{processes.count}. Other processes list #{esearch.platform.ps_commands.join("\n")}"
+      else
+        "got #{processes.count}:\n#{processes.join("\n")}"
+      end
 
     "expected to have #{count} #{process_description}, #{got}"
   end
