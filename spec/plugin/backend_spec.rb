@@ -10,7 +10,7 @@ describe 'esearch#backend', :backend do
   include Helpers::Strings
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
-    context 'when searching' do
+    context "when searching for #{dump(search_string)}" do
       let(:other_files) do
         kwargs.fetch(:other_files) do
           [file('___', 'binary.bin', binary: true), file('', 'empty.txt')]
@@ -129,7 +129,7 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', :ack
         include_context 'works with adapter', :git
         include_context 'works with adapter', :grep
-        include_context 'works with adapter', :pt
+        include_context 'works with adapter', :pt, Configuration.bin_dir.join('pt-2.1.5')
         include_context 'works with adapter', :rg, Configuration.bin_dir.join('rg-11.0.2')
       end
     end

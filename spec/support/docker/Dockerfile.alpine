@@ -4,26 +4,33 @@ ARG APP_DIR=/app
 ARG DEPS_DIR=/deps
 ARG BIN_DIR=$DEPS_DIR/bin
 ARG PLUGINS_DIR=$DEPS_DIR/plugins
+
+# RSpec
 ENV PLUGINS_DIR=$PLUGINS_DIR
 ENV BIN_DIR=$BIN_DIR
+ENV SKIP_COMPATIBILITY_REGEXPS=''
+ENV DANGEROUSLY_MAXIMIZE_PERFORMANCE=''
+# Allow RSpec to detect ci builds
+ENV TRAVIS_BUILD_ID=''
+# xvfb (even console vim +clientserver depends on X11)
 ENV DISPLAY :99
+# hmm
+ENV LANG C.UTF-8
 
 WORKDIR $DEPS_DIR
 
 COPY Gemfile* spec/support/bin/install_linux_dependencies.sh  spec/support/bin/install_vim_dependencies.sh spec/support/docker/docker-entrypoint.sh ./
 
 RUN set -eux; \
-    apk add --update --no-cache \
-    xvfb \
-    python3  \
-    git; \
-# build dependencies
+# Runtime dependencies
+    apk add --update --no-cache xvfb python3 git; \
+# Build dependencies
     apk add --no-cache --virtual .builddeps \
     gcc python3-dev musl-dev \
     make wget tar; \
-# python dependencies
+# Python dependencies
     pip3 install --no-cache --upgrade pip neovim-remote; \
-# ruby dependencies
+# Ruby dependencies
     echo 'gem: --no-document' >> /etc/gemrc; \
     gem install bundler; \
     bundle config set no-cache 'true'; \
@@ -32,7 +39,7 @@ RUN set -eux; \
 # OS dependencies
     sh install_vim_dependencies.sh $PLUGINS_DIR; \
     sh install_linux_dependencies.sh $BIN_DIR; \
-# fix neovim appimage which is not working so far
+# Fix neovim appimage which is not working so far
     apk add --no-cache neovim; \
     mkdir -p /app/bin/squashfs-root/usr/bin; ln -s /usr/bin/nvim /app/bin/squashfs-root/usr/bin/nvim; \
     apk del --no-network .builddeps; \

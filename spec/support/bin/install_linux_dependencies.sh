@@ -8,7 +8,7 @@ bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 mkdir -p "$bin_directory"
 
 GLOBAL=0
-SUDO=''
+SUDO='sudo'
 
 APT_GET_INSTALL_LESS='--no-install-recommends'
 APK_INSTALL_LESS='--no-cache'
