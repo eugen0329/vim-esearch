@@ -21,7 +21,7 @@ Configuration.tap do |c|
   c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
   c.search_event_timeout  = 8.seconds
   c.search_freeze_timeout = 3.second
-  c.process_check_timeout = 5.second
+  c.process_check_timeout = 10.second
 end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'

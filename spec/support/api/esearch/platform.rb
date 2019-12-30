@@ -22,7 +22,7 @@ class API::ESearch::Platform
   # TODO: consider to refactor
   def processess_matching(command_pattern, ignore_pattern = nil)
     processes = ps_commands.select { |str| str.include?(command_pattern) }
-    processes = ps_commands.reject { |str| !str.include?(ignore_pattern) } if ignore_pattern
+    processes = processes.select { |str| !str.include?(ignore_pattern) } if ignore_pattern
 
     processes
   end

@@ -51,13 +51,16 @@ RUN sudo chmod a+x /usr/bin/xvfb-daemon-run
 # Setup vim executables and search utils
 
 # Setup vim plugins
-COPY . /tmp/vim-esearch
-RUN cd /tmp/vim-esearch && sh spec/support/bin/install_vim_dependencies.sh $PLUGINS_DIR
-RUN cd /tmp/vim-esearch && /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle install
+# COPY . /tmp/vim-esearch
+
+WORKDIR /tmp/vim-esearch
 
 COPY spec/support/bin/search_in_infinite_random_stdin.sh $BIN_DIR/search_in_infinite_random_stdin.sh
+COPY Gemfile* ./
+COPY spec/support/bin/install_vim_dependencies.sh ./spec/support/bin/install_vim_dependencies.sh
+
+RUN sh spec/support/bin/install_vim_dependencies.sh $PLUGINS_DIR
+RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle install
 
 # CMD /bin/bash
-CMD sudo /bin/bash /etc/init.d/xvfb start && \
-      cd /tmp/vim-esearch && \
-      SKIP_COMPATIBILITY_REGEXPS=1 /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle exec rspec --tag nvim
+ENTRYPOINT ["spec/support/docker/docker-entrypoint.sh"]
