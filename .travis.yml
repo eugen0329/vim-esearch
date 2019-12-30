@@ -36,15 +36,12 @@ cache:
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
   - |
-    if [ "$DOCKER_BUILD" = '1' ] ; then
-      docker load -i docker_images/images.tar || true
-    else
-      yes | gem update --system --force
-      gem install bundler
-    fi
+    [ "$DOCKER_BUILD" = '1' ] && (docker load -i docker_images/images.tar || true) && return
+    yes | gem update --system --force
+    gem install bundler
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && docker build -f spec/support/docker/Dockerfile -t esearch-rspec . && return
+    [ "$DOCKER_BUILD" = '1' ] && time docker build -f spec/support/docker/Dockerfile -t esearch-rspec . && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
