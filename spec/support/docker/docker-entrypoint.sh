@@ -1,3 +1,4 @@
 #!/bin/sh
-sudo /bin/bash /etc/init.d/xvfb start 
-SKIP_COMPATIBILITY_REGEXPS=1 /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle exec rspec "$@"
+
+Xvfb -ac :99 -listen tcp &
+NVIM_GUI=0 GUI=1 SKIP_COMPATIBILITY_REGEXPS=1 exec bundle exec rspec "$@"

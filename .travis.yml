@@ -41,7 +41,7 @@ before_install:
     gem install bundler
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && time docker build -f spec/support/docker/Dockerfile -t esearch-rspec . && return
+    [ "$DOCKER_BUILD" = '1' ] && docker build -f spec/support/docker/Dockerfile.alpine -t esearch-rspec . && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
@@ -107,7 +107,7 @@ jobs:
       script: bundle exec rspec --tag system
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/tmp/vim-esearch -it esearch-rspec -t nvim
+      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/app -t esearch-rspec -t nvim
       env: NVIM_GUI=0 DOCKER_BUILD=1
       services: docker
       os: linux
