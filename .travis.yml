@@ -40,7 +40,7 @@ before_install:
   - test "$DOCKER_BUILD" = '1' && docker load -i docker_images/images.tar || true
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg GIT_BRANCH=$TRAVIS_BRANCH -f spec/support/docker/Dockerfile -t esearch . && return
+    [ "$DOCKER_BUILD" = '1' ] && docker build --build-arg -f spec/support/docker/Dockerfile -t esearch . && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
