@@ -58,7 +58,6 @@ WORKDIR /tmp/vim-esearch
 COPY spec/support/bin/search_in_infinite_random_stdin.sh $BIN_DIR/search_in_infinite_random_stdin.sh
 COPY Gemfile* ./
 COPY spec/support/bin/install_vim_dependencies.sh ./spec/support/bin/install_vim_dependencies.sh
-
 RUN sh spec/support/bin/install_vim_dependencies.sh $PLUGINS_DIR
 RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle install
 
