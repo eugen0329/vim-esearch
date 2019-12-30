@@ -10,37 +10,24 @@ class API::ESearch::Platform
   end
 
   def has_no_process_matching?(command_pattern, timeout: process_check_timeout)
-    command_regexp = /#{Regexp.quote(command_pattern)}/
-
     became_truthy_within?(timeout) do
       # we a not interesting in `ignore_pattern` as in
       # `has_running_processes_matching?` as any process matching
       # `command_pattern` (no matter a perent or a child) have to not be runned
       # or to be killed during the timeout
-      ps_commands.scan(command_regexp).empty?
+      processess_matching(command_pattern).blank?
     end
   end
 
-  def has_running_processes_matching?(command_pattern, ignore_pattern, count: 1, timeout: process_check_timeout)
-    command_regexp = /#{Regexp.quote(command_pattern)}/
+  # TODO: consider to refactor
+  def processess_matching(command_pattern, ignore_pattern = nil)
+    processes = ps_commands.select { |str| str.include?(command_pattern) }
+    processes = ps_commands.reject { |str| !str.include?(ignore_pattern) } if ignore_pattern
 
-    became_truthy_within?(timeout) do
-      ps_commands_ignoring(ignore_pattern)
-        .scan(command_regexp)
-        .count == count
-    end
+    processes
   end
 
   def ps_commands
-    `ps -A -o command | sed 1d`
-  end
-
-  def ps_commands_ignoring(ignore_pattern)
-    ignore_regexp = /#{Regexp.quote(ignore_pattern)}/
-
-    ps_commands
-      .split("\n")
-      .reject { |l| ignore_regexp.match?(l) }
-      .join("\n")
+    `ps -A -o command | sed 1d`.split("\n")
   end
 end

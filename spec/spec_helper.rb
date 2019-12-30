@@ -10,14 +10,18 @@ require 'active_support/tagged_logging'
 require 'support/inflections'
 require 'support/matchers/become_true_within' # TODO: remove
 require 'known_issues'
+Dir[File.expand_path('spec/support/matchers/*.rb')].each { |f| require f }
+
+require 'support/inflections'
+
 
 require 'support/configuration'
 Configuration.tap do |c|
   c.root = Pathname.new(File.expand_path('..', __dir__))
   c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
   c.search_event_timeout  = 8.seconds
-  c.search_freeze_timeout = 10.second
-  c.process_check_timeout = 20.second
+  c.search_freeze_timeout = 3.second
+  c.process_check_timeout = 5.second
 end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'

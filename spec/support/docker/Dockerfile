@@ -32,19 +32,13 @@ RUN sudo apt-get -y install \
       xvfb x11vnc x11-xkb-utils xfonts-100dpi xfonts-75dpi xfonts-scalable xfonts-cyrillic x11-apps \
       build-essential python3 python3-dev python3-pip python3-venv
 
-# Setup vim plugins
-RUN git clone https://github.com/eugen0329/vim-esearch.git /tmp/vim-esearch && cd /tmp/vim-esearch/ && git checkout "$GIT_BRANCH"
-RUN cd /tmp/vim-esearch && sh spec/support/bin/install_vim_dependencies.sh $PLUGINS_DIR
-
 # Setup ruby
 RUN gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 RUN curl -sSL https://get.rvm.io | bash -s
 RUN /home/$USER/.rvm/bin/rvm install $RUBY_VERSION --default
 RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do gem update --system --force
 RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do gem install bundler
-RUN cd /tmp/vim-esearch && /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle install
 
-# Setup vim executables and search utils
 ADD spec/support/bin/install_linux_dependencies.sh /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh
 RUN sh /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh /tmp/bin
 
@@ -53,6 +47,15 @@ ADD spec/support/docker/xvfb_init /etc/init.d/xvfb
 RUN sudo chmod a+x /etc/init.d/xvfb
 ADD spec/support/docker/xvfb_daemon_run /usr/bin/xvfb-daemon-run
 RUN sudo chmod a+x /usr/bin/xvfb-daemon-run
+#
+# Setup vim executables and search utils
+
+# Setup vim plugins
+COPY . /tmp/vim-esearch
+RUN cd /tmp/vim-esearch && sh spec/support/bin/install_vim_dependencies.sh $PLUGINS_DIR
+RUN cd /tmp/vim-esearch && /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle install
+
+COPY spec/support/bin/search_in_infinite_random_stdin.sh $BIN_DIR/search_in_infinite_random_stdin.sh
 
 # CMD /bin/bash
 CMD sudo /bin/bash /etc/init.d/xvfb start && \

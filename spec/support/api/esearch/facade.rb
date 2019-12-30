@@ -17,7 +17,6 @@ class API::ESearch::Facade
   delegate :cd!,                       to: :editor
   delegate :grep_and_kill_process_by!,
     :has_no_process_matching?,
-    :has_running_processes_matching?,
     to: :platform
 
   delegate :has_search_started?,

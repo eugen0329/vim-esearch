@@ -12,4 +12,12 @@ module TaggedLogging
   def log_debug
     class_name_tagged { Configuration.log.debug { yield } }
   end
+
+  def log_info
+    class_name_tagged { Configuration.log.info { yield } }
+  end
+
+  def log_warning
+    class_name_tagged { Configuration.log.warning { yield } }
+  end
 end
