@@ -4,19 +4,32 @@ require 'fileutils'
 require 'pathname'
 
 class Fixtures::LazyFile
-  attr_reader :relative_path, :content, :kwargs
+  attr_reader :given_relative_path, :content, :kwargs
+  attr_accessor :working_directory
 
-  def initialize(relative_path, content, **kwargs)
-    @relative_path = Pathname.new(relative_path).cleanpath.to_s
+  def initialize(content, given_relative_path = nil, **kwargs)
+    @given_relative_path = Pathname.new(given_relative_path).cleanpath.to_s if given_relative_path
     @content = content
     @kwargs = kwargs
   end
 
-  def persist!(search_directory_path)
-    absolute_path = search_directory_path.join(relative_path)
-    file_directory_path = absolute_path.dirname
-    FileUtils.mkdir_p(file_directory_path) unless file_directory_path.directory?
-    File.open(absolute_path, open_mode) { |f| f.puts(content) }
+  def persist!
+    absolute_path = path
+    FileUtils.mkdir_p(absolute_path.dirname) unless absolute_path.dirname.directory?
+    File.open(absolute_path, open_mode) { |f| f.puts(content) } unless absolute_path.file?
+    self
+  end
+
+  def path
+    working_directory.join(relative_path)
+  end
+
+  def relative_path
+    given_relative_path || digest_name
+  end
+
+  def to_s
+    path.to_s
   end
 
   def digest_key
@@ -24,6 +37,10 @@ class Fixtures::LazyFile
   end
 
   private
+
+  def digest_name
+    Digest::MD5.hexdigest([content, kwargs.to_a.sort].map(&:to_s).to_s)
+  end
 
   def open_mode
     return 'wb' if kwargs[:binary]

@@ -8,12 +8,12 @@ module Helpers::FileSystem
   delegate :file, to: :class
 
   class_methods do
-    def file(relative_path, content, **kwargs)
-      Fixtures::LazyFile.new(relative_path, content, **kwargs)
+    def file(...)
+      Fixtures::LazyFile.new(...)
     end
   end
 
-  def directory(files)
-    Fixtures::LazyDirectory.new(files)
+  def directory(...)
+    Fixtures::LazyDirectory.new(...)
   end
 end
