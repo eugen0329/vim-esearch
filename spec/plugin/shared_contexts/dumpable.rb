@@ -14,12 +14,6 @@ RSpec.shared_context 'dumpable' do
           puts "Verbose log in is missing #{vim.server.verbose_log_file}"
         end
 
-        if File.exist?('/tmp/esearch_log.txt')
-          puts 'INTERNAL log start', '*' * 10
-          puts File.readlines('/tmp/esearch_log.txt').to_a
-          puts '*' * 10, 'INTERNAL log end'
-        end
-
         if File.exist?(vim.server.nvim_log_file)
           puts 'vim.server.nvim_log_file log'
           puts 'vim.server.nvim_log_file log start', '*' * 10
@@ -28,6 +22,14 @@ RSpec.shared_context 'dumpable' do
         else
           puts '$NVIM_LOG_FILE is missing'
         end
+      end
+
+      if File.exist?('/tmp/esearch_log.txt')
+        puts 'INTERNAL log start', '*' * 10
+        puts File.readlines('/tmp/esearch_log.txt').to_a
+        puts '*' * 10, 'INTERNAL log end'
+      else
+        puts 'INTERNAL log is missing', '*' * 10
       end
 
       press('j') # press j to close "Press ENTER or type command to continue" prompt

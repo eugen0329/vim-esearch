@@ -85,20 +85,29 @@ class API::ESearch::Editor
     command('close!')
   end
 
-  def delete_current_buffer!(ignore_unsaved_changes: false)
-    return command!('bdelete!') if ignore_unsaved_changes
+  # todo better name
+  def ls(include_unlisted: true)
+    return command('ls!') if include_unlisted
+    command('ls')
+  end
 
-    command!('bdelete')
+  def delete_all_buffers_and_clear_messages!
+    command!('%bwipeout! | messages clear')
+  end
+  alias cleanup! delete_all_buffers_and_clear_messages!
+
+  def delete_current_buffer!(ignore_unsaved_changes: false)
+    return command!('bwipeout!') if ignore_unsaved_changes
+
+    command!('bwipeout!')
   end
   alias bufdelete! delete_current_buffer!
 
   def locate_line!(line_number)
-    clear_cache
     locate_cursor! line_number, KEEP_HORIZONTAL_POSITION
   end
 
   def locate_column!(column_number)
-    clear_cache
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
@@ -117,6 +126,11 @@ class API::ESearch::Editor
     yield
   ensure
     @with_ignore_cache = false
+  end
+
+  def trigger_cursor_moved_event!
+    clear_cache
+    # press!('lh')
   end
 
   private

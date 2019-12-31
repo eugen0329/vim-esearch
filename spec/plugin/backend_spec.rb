@@ -26,15 +26,16 @@ describe 'esearch#backend', :backend do
         esearch.configuration.submit!
         esearch.cd! search_directory
       end
-      after { esearch.close_search! }
+      after { esearch.cleanup! }
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
         esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
+          expect(esearch).to have_search_started
+
           expect(esearch)
-            .to  have_search_started
-            .and have_search_finished
+            .to  have_search_finished
             .and have_not_reported_errors
 
           expect(esearch)

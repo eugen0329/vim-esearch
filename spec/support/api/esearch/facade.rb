@@ -14,7 +14,7 @@ class API::ESearch::Facade
 
   delegate :search!, to: :core
   delegate :configure, :configure!,    to: :configuration
-  delegate :cd!,                       to: :editor
+  delegate :cd!, :cleanup!,            to: :editor
   delegate :grep_and_kill_process_by!,
     :has_no_process_matching?,
     to: :platform
