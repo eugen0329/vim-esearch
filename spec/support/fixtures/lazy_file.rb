@@ -8,9 +8,7 @@ class Fixtures::LazyFile
   attr_accessor :working_directory
 
   def initialize(content, given_relative_path = nil, **kwargs)
-    if given_relative_path
-      @given_relative_path = Pathname.new(given_relative_path).cleanpath
-    end
+    @given_relative_path = Pathname.new(given_relative_path).cleanpath if given_relative_path
     @content = content
     @kwargs = kwargs
   end

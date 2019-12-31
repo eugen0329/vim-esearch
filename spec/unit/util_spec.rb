@@ -41,13 +41,13 @@ describe 'esearch#util' do
       context 'when -s{hort} --long' do
         let(:help_output) { '  -E, --extended-regexp     PATTERN is an {..}' }
 
-        it { is_expected .to contain_exactly('-E', '--extended-regexp') }
+        it { is_expected.to contain_exactly('-E', '--extended-regexp') }
       end
 
       context 'when only --long' do
         let(:help_output) { '      --help                display {..}' }
 
-        it { is_expected .to contain_exactly('--help') }
+        it { is_expected.to contain_exactly('--help') }
       end
 
       context 'when only -s{hort}' do
