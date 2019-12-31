@@ -5,6 +5,13 @@ require 'pathname'
 
 class Fixtures::LazyFile
   attr_reader :relative_path, :content, :kwargs
+  attr_accessor :working_directory
+
+  def self.named_by_content(content, **kwargs)
+    name = Digest::MD5
+           .hexdigest([content, kwargs.to_a.sort].map(&:to_s).to_s)
+    new(name, content, **kwargs)
+  end
 
   def initialize(relative_path, content, **kwargs)
     @relative_path = Pathname.new(relative_path).cleanpath.to_s
@@ -12,15 +19,22 @@ class Fixtures::LazyFile
     @kwargs = kwargs
   end
 
-  def persist!(search_directory_path)
-    absolute_path = search_directory_path.join(relative_path)
-    file_directory_path = absolute_path.dirname
-    FileUtils.mkdir_p(file_directory_path) unless file_directory_path.directory?
-    File.open(absolute_path, open_mode) { |f| f.puts(content) }
+  def persist!
+    FileUtils.mkdir_p(path.dirname) unless path.dirname.directory?
+    File.open(path, open_mode) { |f| f.puts(content) } unless path.file?
+    self
   end
 
   def digest_key
     [relative_path, content].map(&:to_s).to_s
+  end
+
+  def path
+    working_directory.join(relative_path)
+  end
+
+  def to_s
+    path.to_s
   end
 
   private
