@@ -17,9 +17,10 @@ class Fixtures::LazyDirectory
   def persist!
     return self if persisted?
 
-    FileUtils.mkdir_p(path.to_s)
+    directory_path = path
+    FileUtils.mkdir_p(directory_path)
     files.each do |f|
-      f.working_directory = path
+      f.working_directory = directory_path
       f.persist!
     end
 
@@ -35,10 +36,14 @@ class Fixtures::LazyDirectory
   end
 
   def name
-    given_name || Digest::MD5.hexdigest(files.map(&:digest_key).sort.to_s)
+    given_name || digest_name
   end
 
   private
+
+  def digest_name
+    Digest::MD5.hexdigest(files.map(&:digest_key).sort.to_s)
+  end
 
   # We cannot be 100% sure that everything is persisted when `@given_name` is
   # specified, so it's required to check the files. Otherwise, `#name` is

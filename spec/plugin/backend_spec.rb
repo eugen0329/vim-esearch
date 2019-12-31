@@ -13,10 +13,10 @@ describe 'esearch#backend', :backend do
     context 'when searching' do
       let(:other_files) do
         kwargs.fetch(:other_files) do
-          [file('binary.bin', '___', binary: true), file('empty.txt', '')]
+          [file('___', 'binary.bin', binary: true), file('', 'empty.txt')]
         end
       end
-      let(:expected_file) { file('expected.txt', kwargs.fetch(:in)) }
+      let(:expected_file) { file(kwargs.fetch(:in), 'expected.txt') }
       let(:expected_path) { expected_file.relative_path }
       let(:search_directory) { directory([expected_file, *other_files]).persist! }
       let(:line)   { kwargs.fetch(:line) }
@@ -63,17 +63,17 @@ describe 'esearch#backend', :backend do
           # are required mostly to choose the best commandline options for adapters
           context 'compatibility with syntax', :compatibility_regexps do
             include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
-              file('1.txt', "1\n2_3\n4"),
-              file('2.txt', "a\n\nbb\nccc")
+              file("1\n2_3\n4",    '1.txt'),
+              file("a\n\nbb\nccc", '2.txt')
             ]
             include_context 'finds 1 entry of', /a{2}/, in: "a\n__aa_a_", line: 2, column: 3
             include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
-              file('1.txt', "1\n2_3\n4"),
-              file('2.txt', "a\n\nbb\nccc")
+              file("1\n2_3\n4",    '1.txt'),
+              file("a\n\nbb\nccc", '2.txt')
             ]
             include_context 'finds 1 entry of', /(?<=the)cat/, in: "\nthecat", line: 2, column: 4, other_files: [
-              file('1.txt', "\n___cat"),
-              file('2.txt', "\n_hecat")
+              file("\n___cat", '1.txt'),
+              file("\n_hecat", '2.txt')
             ]
             include_context 'finds 1 entry of', /(?<name>\d)+5/, in: "\n__345", line: 2, column: 3
             include_context 'finds 1 entry of', '(?P<name>\d)+5', in: "\n__345", line: 2, column: 3

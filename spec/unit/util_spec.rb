@@ -9,7 +9,8 @@ describe 'esearch#util' do
   around { |e| esearch.editor.with_ignore_cache(&e) }
 
   describe '#parse_help_options' do
-    let(:help_file) { file_named_by_content(format(layout, help_output)) }
+    let(:help_content) { format(layout, help_output) }
+    let(:help_file) { file(help_content) }
     let(:result) { esearch.editor.echo("esearch#util#parse_help_options('cat #{help_file}')") }
     let!(:fixture_directory) { directory([help_file], 'parse_help_options').persist! }
     let(:deserialized_result) { YAML.safe_load(result) }
