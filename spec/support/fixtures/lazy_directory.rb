@@ -46,6 +46,6 @@ class Fixtures::LazyDirectory
   # exists is enough
   # TODO figure out a better name as the current is  misleading
   def persisted?
-    !given_name && directory_path.directory?
+    !given_name && path.directory?
   end
 end

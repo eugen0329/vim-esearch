@@ -7,6 +7,7 @@ describe 'esearch' do
     context '#new' do
 
       it 'is able to check if within git repository' do
+        # TODO
         expect(expr("system('git rev-parse --is-inside-work-tree >/dev/null 2>&1')"))
           .to be_empty
       end
