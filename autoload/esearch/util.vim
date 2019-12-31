@@ -398,3 +398,57 @@ if !exists('g:esearch#util#trunc_omission')
     let g:esearch#util#trunc_omission = '|'
   endif
 endif
+
+fu! esearch#util#parse_help_options(command) abort
+  let options = {}
+  let option = '-\{1,2}[0-9a-zA-Z][0-9a-zA-Z-]*'
+  let option_regexp = '\('.option.'\)'
+  let the_rest_regexp = '\(.*\)'
+  let optoin_and_the_rest_regexp = option_regexp . the_rest_regexp
+  " TODO do we need to allow options outputted without left padding?
+  let options_area_regexp = '^[ \t]\+\%(' . option . '[\[\]=\w]*\|[, ]\+\)\+'
+
+  for line in split(system(a:command), "\n")
+    " let padded  = match(line, '^[\t ]+') > -1
+    " TODO do we need to allow options outputted without left padding?
+    " if !padded
+    "   continue
+    " endif
+
+    let aliases = []
+    let options_area  = matchstr(line, options_area_regexp)
+
+    while len(options_area) > 0
+      let matches = matchlist(options_area, optoin_and_the_rest_regexp)
+
+      " [full_line, matched_option, the_rest_of_a_line, ...] = matches
+      if len(matches) > 1 && !empty(matches[1])
+        call add(aliases,  matches[1])
+        let options_area = matches[2]
+      else
+        break
+      endif
+    endwhile
+
+    if !empty(aliases)
+      let option_info = {'aliases': aliases, 'padded': -1 }
+      for alias in aliases
+        let options[alias] = s:fix_recursive_reference_output(option_info)
+      endfor
+    endif
+  endfor
+
+  return options
+endfu
+
+" prevent output of {...} and [...] for recursive references
+if has('nvim')
+  fu! s:fix_recursive_reference_output(list_or_dict)
+    return a:list_or_dict
+  endfu
+else
+  fu! s:fix_recursive_reference_output(list_or_dict)
+    " see :h string()
+    return deepcopy(a:list_or_dict)
+  endfu
+endif
