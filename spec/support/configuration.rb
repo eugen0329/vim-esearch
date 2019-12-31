@@ -15,8 +15,16 @@ module Configuration
     :process_check_timeout,
     :search_freeze_timeout
 
+  def pt_path
+    env_fetch('PT_PATH') { bin_dir.join('pt-2.2.0') }
+  end
+
+  def rg_path
+    env_fetch('RG_PATH') { bin_dir.join('rg-11.0.2') }
+  end
+
   def log_level
-    ENV.fetch('LOG_LEVEL') { 'info' }
+    env_fetch('LOG_LEVEL') { 'info' }
   end
 
   def nvim_path
@@ -30,16 +38,16 @@ module Configuration
 
   def vim_gui?
     # NOTE: for some reason non-gui deadlocks on travis
-    ENV.fetch('VIM_GUI', '1') == '1' && gui?
+    env_fetch('VIM_GUI', '1') == '1' && gui?
   end
 
   def nvim_gui?
     # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
-    ENV.fetch('NVIM_GUI', '1') == '1' && gui?
+    env_fetch('NVIM_GUI', '1') == '1' && gui?
   end
 
   def gui?
-    ENV.fetch('GUI', '1') == '1'
+    env_fetch('GUI', '1') == '1'
   end
 
   def ci?
@@ -47,19 +55,30 @@ module Configuration
   end
 
   def bin_dir
-    @bin_dir ||= Pathname.new(ENV.fetch('BIN_DIR') { root.join('spec', 'support', 'bin') })
+    @bin_dir ||= Pathname.new(env_fetch('BIN_DIR') { root.join('spec', 'support', 'bin') })
   end
 
   def skip_compatibility_regexps?
-    ENV.fetch('SKIP_COMPATIBILITY_REGEXPS', '0') == '1' || ci?
+    env_fetch('SKIP_COMPATIBILITY_REGEXPS', '0') == '1' || ci?
   end
 
   def plugins_dir
-    @plugins_dir ||= Pathname.new(ENV.fetch('PLUGINS_DIR') { root.join('spec', 'support', 'vim_plugins') })
+    @plugins_dir ||= Pathname.new(env_fetch('PLUGINS_DIR') { root.join('spec', 'support', 'vim_plugins') })
   end
 
   def dangerously_maximize_performance?
     # Required mostly for neovim backend testing which is super slow
-    ENV.fetch('DANGEROUSLY_MAXIMIZE_PERFORMANCE', '1') == '1'
+    env_fetch('DANGEROUSLY_MAXIMIZE_PERFORMANCE', '1') == '1'
+  end
+
+  def env_fetch(key, default=nil)
+    value = ENV[key]
+
+    if value.blank?
+      return yield(key) if block_given?
+      return default
+    end
+
+    value
   end
 end

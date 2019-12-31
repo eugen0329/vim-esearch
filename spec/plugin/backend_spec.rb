@@ -130,8 +130,8 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', :ack
         include_context 'works with adapter', :git
         include_context 'works with adapter', :grep
-        include_context 'works with adapter', :pt, Configuration.bin_dir.join('pt-2.1.5')
-        include_context 'works with adapter', :rg, Configuration.bin_dir.join('rg-11.0.2')
+        include_context 'works with adapter', :pt, Configuration.pt_path
+        include_context 'works with adapter', :rg, Configuration.rg_path
       end
     end
 

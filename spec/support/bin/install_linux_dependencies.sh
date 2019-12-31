@@ -13,9 +13,13 @@ crossplatform_realpath() {
     [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
 }
 
-log_if_ignoring() {
-  [ "$2" = '0' ] && [ "$3" = '0' ] && echo "IGNORING $1: No options for installation provided"
+log_choosen_options() {
+  [ "$2" = '1' ] && echo "INSTALLING $1 locally"
+  [ "$3" = '1' ] && echo "INSTALLING $1 globally"
+  [ "$2" = '' ] && [ "$3" = '' ] && echo "IGNORING $1: No options for installation provided" && return 1
+  return 0
 }
+
 log_unsupported() {
   echo "WARNING: $1 is unsupported"
 }
@@ -23,7 +27,7 @@ log_unsupported() {
 install_vim() {
   install_local=$(csv_line_contains $INSTALL 'vim-local' && echo 1)
   install_global=$(csv_line_contains $INSTALL 'vim-global' && echo 1)
-  log_if_ignoring 'vim' "$install_local" "$install_global" && return 0
+  log_choosen_options 'vim' "$install_local" "$install_global" || return 0
   [ "$install_local" = '1' ] && log_unsupported 'vim-local'
 
   (
@@ -41,7 +45,7 @@ install_vim() {
 install_ack() {
   install_local=$(csv_line_contains $INSTALL 'ack-local' && echo 1)
   install_global=$(csv_line_contains $INSTALL 'ack-global' && echo 1)
-  log_if_ignoring 'ack' "$install_local" "$install_global" && return 0
+  log_choosen_options 'ack' "$install_local" "$install_global" || return 0
   [ "$install_local" = '1' ] && log_unsupported 'ack-local'
 
   (
@@ -58,7 +62,7 @@ install_ack() {
 install_ag() {
   install_local=$(csv_line_contains $INSTALL  'ag-local' && echo 1)
   install_global=$(csv_line_contains $INSTALL 'ag-global' && echo 1)
-  log_if_ignoring 'ag' "$install_local" "$install_global" && return 0
+  log_choosen_options 'ag' "$install_local" "$install_global" || return 0
   [ "$install_local" = '1' ] && log_unsupported 'ag-local'
 
   (
@@ -75,7 +79,7 @@ install_rg() {
   rgversion=${1:-'11.0.2'}
   install_local=$(csv_line_contains $INSTALL 'rg-local' && echo 1)
   install_global=$(csv_line_contains $INSTALL 'rg-global' && echo 1)
-  log_if_ignoring 'rg' "$install_local" "$install_global" && return 0
+  log_choosen_options 'rg' "$install_local" "$install_global" || return 0
 
   (
     set -eux
@@ -90,10 +94,10 @@ install_rg() {
 }
 
 install_pt() {
-  ptversion=${1:-'2.1.5'}
+  ptversion=${1:-'2.2.0'}
   install_local=$(csv_line_contains $INSTALL 'pt-local' && echo 1)
   install_global=$(csv_line_contains $INSTALL 'pt-global' && echo 1)
-  log_if_ignoring 'pt' "$install_local" "$install_global" && return 0
+  log_choosen_options 'pt' "$install_local" "$install_global" || return 0
 
   (
     set -eux
@@ -110,7 +114,7 @@ install_pt() {
 install_neovim() {
   install_local=$(csv_line_contains $INSTALL 'neovim-local' && echo 1)
   install_global=$(csv_line_contains $INSTALL 'neovim-global' && echo 1)
-  log_if_ignoring 'neovim' "$install_local" "$install_global" && return 0
+  log_choosen_options 'neovim' "$install_local" "$install_global" || return 0
 
   (
     set -eux
@@ -141,6 +145,8 @@ else
   PACKAGE_MANAGER=apk
 fi
 INSTALL=${INSTALL:-'vim-global,neovim-local,ack-global,ag-global,rg-local,pt-local'}
+
+echo $INSTALL
 
 install_vim
 install_neovim
