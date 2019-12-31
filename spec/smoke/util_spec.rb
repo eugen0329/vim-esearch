@@ -22,11 +22,11 @@ describe 'Smoke of esearch#util' do
       end
     end
 
-    include_context 'adapter --help', :ag
-    include_context 'adapter --help', :ack
-    include_context 'adapter --help', :git
-    include_context 'adapter --help', :grep
-    include_context 'adapter --help', :pt
-    include_context 'adapter --help', :rg, Configuration.bin_dir.join('rg-11.0.2')
+    include_examples 'adapter --help', :ag
+    include_examples 'adapter --help', :ack
+    include_examples 'adapter --help', :git
+    include_examples 'adapter --help', :grep
+    include_examples 'adapter --help', :pt
+    include_examples 'adapter --help', :rg, Configuration.bin_dir.join('rg-11.0.2')
   end
 end

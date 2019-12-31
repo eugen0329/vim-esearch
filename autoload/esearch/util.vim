@@ -443,12 +443,12 @@ endfu
 
 " prevent output of {...} and [...] for recursive references
 if has('nvim')
-  fu! s:fix_recursive_reference_output(list_or_dict)
+  fu! s:fix_recursive_reference_output(list_or_dict) abort
     return a:list_or_dict
   endfu
 else
-  fu! s:fix_recursive_reference_output(list_or_dict)
-    " see :h string()
+  fu! s:fix_recursive_reference_output(list_or_dict) abort
+    " See :h string() for more details
     return deepcopy(a:list_or_dict)
   endfu
 endif
