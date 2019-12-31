@@ -1,4 +1,5 @@
 #!/bin/sh
 
-Xvfb -ac :99 -listen tcp &
-NVIM_GUI=0 GUI=1 SKIP_COMPATIBILITY_REGEXPS=1 exec bundle exec rspec "$@"
+Xvfb -ac $DISPLAY &
+# TODO58
+DANGEROUSLY_MAXIMIZE_PERFORMANCE=1 NVIM_GUI=0 GUI=1 SKIP_COMPATIBILITY_REGEXPS=1 exec bundle exec rspec "$@"
