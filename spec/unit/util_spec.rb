@@ -68,13 +68,13 @@ describe 'esearch#util' do
         it { is_expected.to contain_exactly('--color') }
       end
 
-      context 'when --option[=VALUE]', :debina_grep do
+      context 'when --long[=PARAMETER]', :debina_grep do
         let(:help_output) { '      --colour[=WHEN]       use markers to {..}' }
 
         it { is_expected.to contain_exactly('--colour') }
       end
 
-      context 'when --option, {MULTILINE DESCRIPTION}' do
+      context 'when --long, {MULTILINE DESCRIPTION}' do
         let(:help_output) do
           "       --colour              use markers to highlight the matching strings;\n" \
           "                             WHEN is 'always', 'never', or 'auto'"
