@@ -28,12 +28,13 @@ module Configuration
   end
 
   def nvim_path
-    @nvim_path ||=
+    @nvim_path ||= env_fetch('NVIM_PATH') do
       if linux?
         bin_dir.join('squashfs-root', 'usr', 'bin', 'nvim').to_s
       else
         bin_dir.join('nvim-osx64', 'bin', 'nvim').to_s
       end
+    end
   end
 
   def vim_gui?

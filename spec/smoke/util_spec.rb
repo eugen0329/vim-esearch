@@ -26,7 +26,7 @@ describe 'Smoke of esearch#util' do
     include_examples 'adapter help', "ack",      key: "--help"
     include_examples 'adapter help', "git grep", key: "-h"
     include_examples 'adapter help', "grep",     key: "-h"
-    include_examples 'adapter help', "pt",       key: "--help"
-    include_examples 'adapter help', "rg",       path: Configuration.bin_dir.join('rg-11.0.2')
+    include_examples 'adapter help', "pt",       key: "--help", path: Configuration.pt_path
+    include_examples 'adapter help', "rg",       key: '--help', path: Configuration.rg_path
   end
 end

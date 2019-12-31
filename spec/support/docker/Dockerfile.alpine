@@ -25,6 +25,9 @@ ENV PLUGINS_DIR=$PLUGINS_DIR
 ENV BIN_DIR=$BIN_DIR
 ENV SKIP_COMPATIBILITY_REGEXPS=''
 ENV DANGEROUSLY_MAXIMIZE_PERFORMANCE=''
+# Allow NeoVim run as a non-root (otherwise it'll try to create /.local and fail
+# with insufficient permissions error)
+ENV XDG_DATA_HOME=$DEPS_DIR/XDG_DATA_HOME
 # BINARIES
 ENV PT_PATH=$BIN_DIR/pt
 ENV RG_PATH=''
@@ -64,7 +67,10 @@ RUN set -eux; \
     mkdir -p /app/bin/squashfs-root/usr/bin; ln -s /usr/bin/nvim /app/bin/squashfs-root/usr/bin/nvim; \
     apk del --no-network .builddeps; \
     rm -rf ~/.bundle/cache/; \
-    yes | pip3 uninstall pip;
+    yes | pip3 uninstall pip; \
+    # Allow NeoVim to create rplugin manifest
+    mkdir -p $XDG_DATA_HOME; \
+    chmod a+w $XDG_DATA_HOME
 
 WORKDIR $APP_DIR
 ENTRYPOINT ["/app/spec/support/docker/docker-entrypoint.sh"]
