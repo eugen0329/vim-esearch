@@ -3,8 +3,11 @@
 . "$(dirname "$0")/__fail_if_wrong_pwd.sh"
 
 # Similar to what docker-compose.yml defines, but without introducing composer
-# as a dependency. Only container specific default values are provided.
-# Other information should be handled on the application level.
+# as a dependency.
+# Does:
+#   - Set non-root uid:gid (for fixtures generation, taking screenshots etc.)
+#   - Mounts a volume to allow interacting with changes without rebuilds
+#   - Forwards ENV variables from HOST
 
 # shellcheck disable=SC2086
 set -ex; exec docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app" \
@@ -19,7 +22,7 @@ set -ex; exec docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app" \
   -e TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID \
   -e DISPLAY=$DISPLAY \
   -e RUN_VNC=$RUN_VNC \
-  -e NVIM_PATH=${NVIM_PATH:-'nvim'} \
+  -e NVIM_PATH=$NVIM_PATH \
   -e VIM_PATH=$VIM_PATH \
   -e PT_PATH=$PT_PATH \
   -e RG_PATH=$RG_PATH \

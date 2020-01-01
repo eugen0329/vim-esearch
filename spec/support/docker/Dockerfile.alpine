@@ -4,9 +4,8 @@ FROM golang:1.12.14-alpine3.10 AS build-pt
 
 RUN set -eux; \
     apk add --no-cache git; \
-    go get -u github.com/monochromegane/the_platinum_searcher/... ;\
+    go get -u github.com/monochromegane/the_platinum_searcher/... ; \
     echo $GOPATH; \
-    ls -lah $GOPATH/bin; \
     $GOPATH/bin/pt --version; \
     $GOPATH/bin/pt --help; \
     apk del git
@@ -58,7 +57,7 @@ RUN set -eux; \
       sh install_linux_dependencies.sh $BIN_DIR; \
 # Temprorary fix for neovim .appimage which is not working so far
     apk add --no-cache neovim; \
-    mkdir -p /app/bin/squashfs-root/usr/bin; ln -s /usr/bin/nvim /app/bin/squashfs-root/usr/bin/nvim; \
+    mkdir -p $BIN_DIR/squashfs-root/usr/bin; ln -s /usr/bin/nvim $BIN_DIR/squashfs-root/usr/bin/nvim; \
 # Allow NeoVim to create rplugin manifest
     mkdir -p $XDG_DATA_HOME; \
     chmod a+w $XDG_DATA_HOME; \
