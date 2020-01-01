@@ -1,6 +1,6 @@
 #!/bin/sh
 
-Xvfb -ac "$DISPLAY" -screen 0 1280x1024x16 &
+Xvfb -ac "$DISPLAY" -screen 0 640x480x16 &
 
 # consider to install debug deps on the fly
 [ "$RUN_VNC" = '1' ] &&  ( x11vnc & )
