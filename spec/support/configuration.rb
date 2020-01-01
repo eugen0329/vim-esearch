@@ -86,7 +86,7 @@ module Configuration
   end
 
   def skip_compatibility_regexps?
-    env_fetch('SKIP_COMPATIBILITY_REGEXPS', '0') == '1' || ci?
+    env_fetch('SKIP_COMPATIBILITY_REGEXPS', '1') == '1' || ci?
   end
 
   def plugins_dir

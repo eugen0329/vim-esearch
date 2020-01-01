@@ -1,12 +1,11 @@
 # frozen_string_literal: true
 
 module API::Mixins::Throttling
-  # Simple implementation of throttling for debug purposes with simply a
-  # `sleep()` call if provided time interval is not waited between calls.
-  # As it's a part of API, we don't expect concurrent access from multiple
-  # threads to a single vim instance, so no Mutexes are required.
-  # It also makes no sense to bundle a gem and introduce another dependency
-  # for 10 lines of code
+  # Simple implementation of throttling for debug purposes with `sleep()` call
+  # if provided time interval is not waited between calls. As it's a part of
+  # API, we don't expect concurrent access from multiple threads to a single vim
+  # instance, so Mutexes aren't required. It also makes no sense to bundle a
+  # gem so far and introduce another dependency for 10 simple lines of code
   def throttle(scope = :global, interval: 1.seconds)
     return yield unless interval.positive?
 

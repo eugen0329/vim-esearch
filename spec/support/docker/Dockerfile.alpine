@@ -55,7 +55,7 @@ RUN set -eux; \
     sh install_vim_dependencies.sh $PLUGINS_DIR; \
     INSTALL='vim-global,neovim-local:default,ack-global,ag-global,rg-local:default' \
       sh install_linux_dependencies.sh $BIN_DIR; \
-# Temprorary fix for neovim .appimage which is not working so far
+# Temprorary fix for neovim .appimage which is not working under alpine distro so far
     apk add --no-cache neovim; \
     mkdir -p $BIN_DIR/squashfs-root/usr/bin; ln -s /usr/bin/nvim $BIN_DIR/squashfs-root/usr/bin/nvim; \
 # Allow NeoVim to create rplugin manifest

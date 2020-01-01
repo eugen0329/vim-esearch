@@ -6,6 +6,8 @@ crossplatform_realpath() {
 }
 bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
 
+set -eux
+
 brew update --verbose
 brew install --build-from-source "$bin_directory/../brew_formula/macvim.rb" -- --with-override-system-vi
 # brew install macvim -- --with-override-system-vim
@@ -45,15 +47,15 @@ fi
 
 brew reinstall git -- --with-pcre2
 
-wget "https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-macos.tar.gz" -P /tmp
-tar xzvf "/tmp/nvim-macos.tar.gz" --directory "$bin_directory"
-pip3 install neovim-remote
+# wget "https://github.com/neovim/neovim/releases/download/v0.4.3/nvim-macos.tar.gz" -P /tmp
+# tar xzvf "/tmp/nvim-macos.tar.gz" --directory "$bin_directory"
+# pip3 install neovim-remote
 
 mvim --version
-"$bin_directory/nvim-osx64/bin/nvim" --version
-"$bin_directory/nvim-osx64/bin/nvim" --headless -c 'set nomore' -c "echo api_info()" -c qall
-"$bin_directory/nvim-osx64/bin/nvim" --headless -c 'echo [&shell, &shellcmdflag]' -c qall
-"$bin_directory/nvim-osx64/bin/nvim" --headless -c 'echo ["jobstart",exists("*jobstart"), "jobclose", exists("*jobclose"), "jobstop ", exists("*jobstop"), "jobwait ", exists("*jobwait")]' -c qall
+# "$bin_directory/nvim-osx64/bin/nvim" --version
+# "$bin_directory/nvim-osx64/bin/nvim" --headless -c 'set nomore' -c "echo api_info()" -c qall
+# "$bin_directory/nvim-osx64/bin/nvim" --headless -c 'echo [&shell, &shellcmdflag]' -c qall
+# "$bin_directory/nvim-osx64/bin/nvim" --headless -c 'echo ["jobstart",exists("*jobstart"), "jobclose", exists("*jobclose"), "jobstop ", exists("*jobstop"), "jobwait ", exists("*jobwait")]' -c qall
 
 # ack --version
 # ag --version

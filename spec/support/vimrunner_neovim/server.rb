@@ -123,7 +123,7 @@ module VimrunnerNeovim
 
     def remote_expr(expression)
       method_name = REMOTE_EXPR_METHOD_NAMES.fetch(remote_expr_execution_mode) do
-        raise "Unknown execution mode remote_expr_execution_mode: #{remote_expr_execution_mode}"
+        raise "Unknown remote_expr_execution_mode: #{remote_expr_execution_mode}"
       end
 
       public_send(method_name, expression)
