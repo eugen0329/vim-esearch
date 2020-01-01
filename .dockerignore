@@ -1,0 +1,6 @@
+/spec/support/vim_plugins
+/spec/support/bin
+/.git
+
+# screenshots
+/*.png
