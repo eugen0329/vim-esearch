@@ -68,9 +68,9 @@ install:
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/setup/install_osx_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
+      ALLOW_SUDO=1 sh spec/support/setup/install_osx_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
     else
-      sh spec/support/setup/install_linux_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
+      ALLOW_SUDO=1 sh spec/support/setup/install_linux_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
     fi
 
 before_script:
