@@ -83,7 +83,7 @@ install_rg() {
 
   (
     set -eux
-    mkdir -p "/tmp/rg-$rgversion" &&
+    mkdir -pv "/tmp/rg-$rgversion" &&
     cd "/tmp/rg-$rgversion" &&
     wget -N "https://github.com/BurntSushi/ripgrep/releases/download/$rgversion/ripgrep-$rgversion-x86_64-unknown-linux-musl.tar.gz" &&
     tar xvfz "ripgrep-$rgversion-x86_64-unknown-linux-musl.tar.gz" &&
@@ -101,7 +101,7 @@ install_pt() {
 
   (
     set -eux
-    mkdir -p "/tmp/pt-$ptversion" &&
+    mkdir -pv "/tmp/pt-$ptversion" &&
     cd "/tmp/pt-$ptversion" &&
     wget -N "https://github.com/monochromegane/the_platinum_searcher/releases/download/v$ptversion/pt_linux_amd64.tar.gz" &&
     tar xvfz pt_linux_amd64.tar.gz &&
@@ -123,11 +123,11 @@ install_neovim() {
     chmod +x "nvim.appimage" &&
     (./nvim.appimage --appimage-extract 1>/dev/null 2>&1 || true)
   )
-  rm $bin_directory/nvim.appimage
+  rm -v $bin_directory/nvim.appimage
   pip3 install "$PIP3_INSTALL_LESS" neovim-remote
 }
 
-bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"; mkdir -p "$bin_directory"
+bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"; mkdir -pv "$bin_directory"
 
 if [ "${ALLOW_SUDO:-1}" = '1' ] ; then
   SUDO=sudo

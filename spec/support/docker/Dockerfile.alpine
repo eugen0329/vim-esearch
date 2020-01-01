@@ -41,7 +41,7 @@ ENV LANG C.UTF-8
 WORKDIR $DEPS_DIR
 
 COPY --from=build-pt /go/bin/pt $BIN_DIR/pt
-COPY Gemfile* spec/support/bin/install_linux_dependencies.sh  spec/support/bin/install_vim_dependencies.sh spec/support/docker/docker-entrypoint.sh ./
+COPY Gemfile* spec/support/setup/* spec/support/docker/docker-entrypoint.sh ./
 
 RUN set -eux; \
 # Runtime dependencies
@@ -72,5 +72,6 @@ RUN set -eux; \
     mkdir -p $XDG_DATA_HOME; \
     chmod a+w $XDG_DATA_HOME
 
+# EXPOSE 5900
 WORKDIR $APP_DIR
 ENTRYPOINT ["/app/spec/support/docker/docker-entrypoint.sh"]

@@ -59,6 +59,10 @@ module Configuration
     @bin_dir ||= Pathname.new(env_fetch('BIN_DIR') { root.join('spec', 'support', 'bin') })
   end
 
+  def scripts_dir
+    @scripts_dir ||= Pathname.new(env_fetch('SCRIPTS_DIR') { root.join('spec', 'support', 'scripts') })
+  end
+
   def skip_compatibility_regexps?
     env_fetch('SKIP_COMPATIBILITY_REGEXPS', '0') == '1' || ci?
   end

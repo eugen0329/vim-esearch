@@ -93,6 +93,7 @@ class API::ESearch::Editor
 
   def delete_all_buffers_and_clear_messages!
     command!('%bwipeout! | messages clear')
+    # command!('%close')
   end
   alias cleanup! delete_all_buffers_and_clear_messages!
 
@@ -130,7 +131,7 @@ class API::ESearch::Editor
 
   def trigger_cursor_moved_event!
     clear_cache
-    # press!('lh')
+    press!('<Esc>lh')
   end
 
   private

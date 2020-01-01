@@ -39,8 +39,8 @@ RUN /home/$USER/.rvm/bin/rvm install $RUBY_VERSION --default
 RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do gem update --system --force
 RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do gem install bundler
 
-ADD spec/support/bin/install_linux_dependencies.sh /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh
-RUN sh /tmp/vim-esearch/spec/support/bin/install_linux_dependencies.sh /tmp/bin
+ADD spec/support/setup/install_linux_dependencies.sh /tmp/vim-esearch/spec/support/setup/install_linux_dependencies.sh
+RUN sh /tmp/vim-esearch/spec/support/setup/install_linux_dependencies.sh /tmp/bin
 
 # Setup xvfb
 ADD spec/support/docker/xvfb_init /etc/init.d/xvfb
@@ -55,10 +55,10 @@ RUN sudo chmod a+x /usr/bin/xvfb-daemon-run
 
 WORKDIR /tmp/vim-esearch
 
-COPY spec/support/bin/search_in_infinite_random_stdin.sh $BIN_DIR/search_in_infinite_random_stdin.sh
+# COPY spec/support/scripts/search_in_infinite_random_stdin.sh $BIN_DIR/search_in_infinite_random_stdin.sh
 COPY Gemfile* ./
-COPY spec/support/bin/install_vim_dependencies.sh ./spec/support/bin/install_vim_dependencies.sh
-RUN sh spec/support/bin/install_vim_dependencies.sh $PLUGINS_DIR
+COPY spec/support/setup/install_vim_dependencies.sh ./spec/support/setup/install_vim_dependencies.sh
+RUN sh spec/support/setup/install_vim_dependencies.sh $PLUGINS_DIR
 RUN /home/$USER/.rvm/bin/rvm $RUBY_VERSION do bundle install
 
 # CMD /bin/bash
