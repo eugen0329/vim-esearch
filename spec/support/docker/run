@@ -3,7 +3,7 @@
 . "$(dirname "$0")/__fail_if_wrong_pwd.sh"
 
 # Similar to what docker-compose.yml defines, but without introducing composer
-# as a dependency. Only container specific values default values are provided.
+# as a dependency. Only container specific default values are provided.
 # Other information should be handled on the application level.
 
 # shellcheck disable=SC2086
@@ -21,7 +21,7 @@ set -ex; exec docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app" \
   -e RUN_VNC=$RUN_VNC \
   -e NVIM_PATH=${NVIM_PATH:-'nvim'} \
   -e VIM_PATH=$VIM_PATH \
-  -e PT_PATH=${PT_PATH:-'pt'} \
+  -e PT_PATH=$PT_PATH \
   -e RG_PATH=$RG_PATH \
   $DOCKER_RUN_ARGS_OVERRIDES  \
   -it esearch-rspec "$@"

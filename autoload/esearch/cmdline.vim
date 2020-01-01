@@ -81,12 +81,12 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   let enter_was_pressed = 0
 
   if !empty(s:cmdline) && g:esearch#cmdline#select_initial
-    call esearch#log#debug("!empty(s:cmdline) && g:esearch#cmdline#select_initial", '/tmp/esearch_log.txt')
+    " call esearch#log#debug("!empty(s:cmdline) && g:esearch#cmdline#select_initial", '/tmp/esearch_log.txt')
     let [s:cmdline, enter_was_pressed, special_key_was_pressed] =
           \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
-    call esearch#log#debug('asdasd', '/tmp/esearch_log.txt')
-    call esearch#log#debug(["redraw!", s:cmdline, enter_was_pressed, special_key_was_pressed], '/tmp/esearch_log.txt')
+    " call esearch#log#debug('asdasd', '/tmp/esearch_log.txt')
+    " call esearch#log#debug(["redraw!", s:cmdline, enter_was_pressed, special_key_was_pressed], '/tmp/esearch_log.txt')
 
     if special_key_was_pressed
       " Reopen cmdline and set input using keypress emulations
@@ -103,10 +103,10 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   " Reading string from user
   """""""""""""""""""""""""""
   if enter_was_pressed
-    call esearch#log#debug("enter_was_pressed", '/tmp/esearch_log.txt')
+    " call esearch#log#debug("enter_was_pressed", '/tmp/esearch_log.txt')
     let str = s:cmdline
   else
-    call esearch#log#debug("Reading string from user", '/tmp/esearch_log.txt')
+    " call esearch#log#debug("Reading string from user", '/tmp/esearch_log.txt')
     let str = s:main_loop(a:cmdline_opts, a:adapter_options)
   endif
   """""""""""""""""""""""""""
@@ -139,9 +139,9 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
   " Main loop
   """""""""""
   while 1
-    call esearch#log#debug('main_loop render prompt', '/tmp/esearch_log.txt')
+    " call esearch#log#debug('main_loop render prompt', '/tmp/esearch_log.txt')
     call s:render_directory_prompt(a:cmdline_opts.cwd)
-    call esearch#log#debug('main_loop rendered prompt after', '/tmp/esearch_log.txt')
+    " call esearch#log#debug('main_loop rendered prompt after', '/tmp/esearch_log.txt')
     let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
 
     if empty(s:events)
@@ -163,9 +163,9 @@ endfu
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   let special_key_was_pressed = 0
   let enter_was_pressed = 0
-  call esearch#log#debug('handle_initial_select.prompt', '/tmp/esearch_log.txt')
+  " call esearch#log#debug('handle_initial_select.prompt', '/tmp/esearch_log.txt')
   call s:render_directory_prompt(a:dir)
-  call esearch#log#debug('handle_initial_select.prompt after', '/tmp/esearch_log.txt')
+  " call esearch#log#debug('handle_initial_select.prompt after', '/tmp/esearch_log.txt')
 
   " Render virtual interface
   """""""""""""""""""""""""""
@@ -174,7 +174,7 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   let virtual_cmdline = substitute(a:cmdline, "\n", ' ', 'g')
   call esearch#util#highlight('Visual', virtual_cmdline, 0)
   """""""""""""""""""""""""""
-  call esearch#log#debug('hl', '/tmp/esearch_log.txt')
+  " call esearch#log#debug('hl', '/tmp/esearch_log.txt')
 
   " Read char from user
   """""""""""""""""""""""""""
@@ -190,7 +190,7 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   endif
   """""""""""""""""""""""""""
 
-  call esearch#log#debug(['before index', index(g:esearch#cmdline#select_cancelling_chars, char)], '/tmp/esearch_log.txt')
+  " call esearch#log#debug(['before index', index(g:esearch#cmdline#select_cancelling_chars, char)], '/tmp/esearch_log.txt')
 
   if index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
     " Handle VERY special characters (<Enter>, <Esc> or <C-c>)
@@ -289,14 +289,14 @@ fu! s:render_directory_prompt(dir) abort
     return 0
   endif
 
-  call esearch#log#debug('g:esearch#cmdline#dir_icon', '/tmp/esearch_log.txt')
+  " call esearch#log#debug('g:esearch#cmdline#dir_icon', '/tmp/esearch_log.txt')
   let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
-  call esearch#log#debug('g:esearch#cmdline#dir_icon after', '/tmp/esearch_log.txt')
+  " call esearch#log#debug('g:esearch#cmdline#dir_icon after', '/tmp/esearch_log.txt')
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
-  call esearch#log#debug("call esearch#util#highlight('Directory', dir, 0) after", '/tmp/esearch_log.txt')
+  " call esearch#log#debug("call esearch#util#highlight('Directory', dir, 0) after", '/tmp/esearch_log.txt')
   echo ''
-  call esearch#log#debug("blank echo after", '/tmp/esearch_log.txt')
+  " call esearch#log#debug("blank echo after", '/tmp/esearch_log.txt')
 endfu
 
 fu! s:restore_cursor_position() abort

@@ -154,7 +154,7 @@ install_neovim() {
     chmod +x "nvim.appimage" &&
     (./nvim.appimage --appimage-extract 1>/dev/null 2>&1 || true)
   )
-  rm -v $bin_directory/nvim.appimage
+  rm -v "$bin_directory/nvim.appimage"
   pip3 install "$PIP3_INSTALL_LESS" neovim-remote
 }
 
@@ -186,8 +186,8 @@ install_vim
 install_neovim
 install_ack
 install_ag
-install_rg $RG_VERSION
-install_pt $PT_VERSION
+install_rg "$RG_VERSION"
+install_pt "$PT_VERSION"
 
 # vim --version
 # "$bin_directory/squashfs-root/usr/bin/nvim" --version
