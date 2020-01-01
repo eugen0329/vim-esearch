@@ -37,6 +37,10 @@ module Configuration
     end
   end
 
+  def screenshot_failures?
+    env_fetch('SCREENSHOT_FAILURES') { ci? ? '0' : '1' } == '1'
+  end
+
   def vim_gui?
     # NOTE: for some reason non-gui deadlocks on travis
     env_fetch('VIM_GUI', '1') == '1' && gui?
@@ -76,11 +80,12 @@ module Configuration
     env_fetch('DANGEROUSLY_MAXIMIZE_PERFORMANCE', '1') == '1'
   end
 
-  def env_fetch(key, default=nil)
+  def env_fetch(key, default = nil)
     value = ENV[key]
 
     if value.blank?
       return yield(key) if block_given?
+
       return default
     end
 

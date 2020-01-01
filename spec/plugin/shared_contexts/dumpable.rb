@@ -1,8 +1,19 @@
 # frozen_string_literal: true
 
+# TODO: rewrite
 RSpec.shared_context 'dumpable' do
   after(:each) do |example|
     unless example.exception.nil?
+      if Configuration.screenshot_failures?
+        prefix = 'screenshot'
+        example_location = Pathname.new(example.id).cleanpath.to_s.gsub(File::SEPARATOR, '_')
+        timestamp = Time.now.strftime('%H_%M_%S')
+        name = [prefix, timestamp, example_location].join('_')
+        file_name = RSpec::Core::ShellEscape.conditionally_quote("#{name}.png")
+        `scrot #{file_name}`
+        puts 'Failed to take a screenshot' unless $CHILD_STATUS.success?
+      end
+
       if vim.server.is_a?(VimrunnerNeovim::Server)
         puts `ls /tmp`
         puts `ps -A -o pid,command | sed 1d | grep nvim`

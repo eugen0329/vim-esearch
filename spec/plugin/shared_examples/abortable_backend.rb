@@ -15,7 +15,8 @@ RSpec.shared_examples 'an abortable backend' do |backend|
 
   around(:all) do |e|
     esearch.configure!(backend: backend, adapter: adapter, out: out)
-    esearch.configuration.adapter_bin = "sh #{Configuration.bin_dir}/#{infinity_search_executable} #{adapter}"
+    esearch.configuration.adapter_bin =
+      "sh #{Configuration.scripts_dir}/#{infinity_search_executable} #{adapter}"
     e.run
     esearch.configuration.adapter_bin = adapter
   end

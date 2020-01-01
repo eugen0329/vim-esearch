@@ -85,9 +85,10 @@ class API::ESearch::Editor
     command('close!')
   end
 
-  # todo better name
+  # TODO: better name
   def ls(include_unlisted: true)
     return command('ls!') if include_unlisted
+
     command('ls')
   end
 
