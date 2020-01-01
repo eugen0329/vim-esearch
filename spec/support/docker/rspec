@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. "$(dirname "$0")/__fail_if_wrong_pwd.sh"
+
+exec "$(dirname "$0")/run" bundle exec rspec "$@"

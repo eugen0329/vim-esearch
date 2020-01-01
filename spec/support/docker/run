@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. "$(dirname "$0")/__fail_if_wrong_pwd.sh"
+
+exec docker run -u $(id -u):$(id -g) -v $PWD:/app -it esearch-rspec "$@"

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+. "$(dirname "$0")/__fail_if_wrong_pwd.sh"
+
+docker build -f spec/support/docker/Dockerfile.alpine -t esearch-rspec .

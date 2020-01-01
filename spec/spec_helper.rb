@@ -6,6 +6,8 @@ require 'vimrunner/rspec'
 require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/tagged_logging'
+# reference global vars by human readable names (rubocop requirement)
+require 'English'
 
 require 'support/inflections'
 require 'support/custom_matchers'
