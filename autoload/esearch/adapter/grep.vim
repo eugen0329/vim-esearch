@@ -17,6 +17,9 @@ fu! esearch#adapter#grep#_options() abort
 
     if has('macunix')
       let regex = '-E'
+      let literal_match = '--fixed-strings'
+      let show_line_numbers = '--line-number'
+      let exclude_dirs = '--exclude-dir=.{git,svn,hg}'
     else
       if has_key(available_options, '--perl-regexp')
         let regex = '--perl-regexp'
@@ -25,30 +28,37 @@ fu! esearch#adapter#grep#_options() abort
       else
         throw 'TODO58'
       endif
+
+      if has_key(available_options, '--fixed-strings')
+        let literal_match = '--fixed-strings'
+      elseif has_key(available_options, '-F')
+        let literal_match = '-F'
+      else
+        throw 'TODO58'
+      endif
+
+      if has_key(available_options, '--line-number')
+        let show_line_numbers = '--line-number'
+      elseif has_key(available_options, '-n')
+        let show_line_numbers = '-n'
+      else
+        throw 'TODO58'
+      endif
+
+      if has_key(available_options, '--exclude-dir')
+        let exclude_dirs = '--exclude-dir=.{git,svn,hg}'
+      else
+        let exclude_dirs = ''
+      endif
     endif
 
-    if has_key(available_options, '--fixed-strings')
-      let literal_match = '--fixed-strings'
-    elseif has_key(available_options, '-F')
-      let literal_match = '-F'
-    else
-      throw 'TODO58'
-    endif
-
-
-    if has_key(available_options, '--line-number')
-      let show_line_numbers = '--line-number'
-    elseif has_key(available_options, '-n')
-      let show_line_numbers = '-n'
-    else
-      throw 'TODO58'
-    endif
- " --exclude-dir=.{git,svn,hg}
 
     let s:options = {
     \ 'regex': { 'p': [literal_match, regex], 's': ['>', 'r'] },
     \ 'case':  { 'p': ['-i',   ''             ], 's': ['>', 'c'] },
     \ 'word':  { 'p': ['',                '--word-regexp'], 's': ['>', 'w'] },
+    \ 'show_line_numbers': show_line_numbers,
+    \ 'exclude_dirs': exclude_dirs,
     \ 'stringify':   function('esearch#util#stringify'),
     \ 'parametrize': function('esearch#util#parametrize'),
     \}
@@ -65,7 +75,7 @@ fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
   " -I: Process a binary file as if it did not contain matching data
 
   " return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -r --line-number --exclude-dir=.{git,svn,hg} ' .
-  return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -r -n' .
+  return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -r -n '.options.show_line_numbers.' '.options.exclude_dirs.' '.
         \ g:esearch#adapter#grep#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
 endfu

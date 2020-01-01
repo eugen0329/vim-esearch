@@ -128,7 +128,7 @@ jobs:
       env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
       script:
         - bundle exec rubocop --display-cop-names
-        - shellcheck spec/support/**/*.sh # decided to not create another build
+        - shellcheck spec/support/**/*.sh spec/support/docker/run* spec/support/docker/rspec* spec/support/docker/docker-entrypoint.sh
       os: linux
     - name: 'Viml lint (Vint, VimLint)'
       env:

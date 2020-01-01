@@ -158,7 +158,7 @@ install_neovim() {
   pip3 install "$PIP3_INSTALL_LESS" neovim-remote
 }
 
-bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"; mkdir -pv "$bin_directory"
+bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"; mkdir -pv "$bin_directory"
 
 if [ "${ALLOW_SUDO:-'1'}" = '1' ] ; then
   SUDO=sudo
