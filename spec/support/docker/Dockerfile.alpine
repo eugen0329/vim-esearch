@@ -19,45 +19,26 @@ ARG APP_DIR=/app
 ARG DEPS_DIR=/deps
 ARG BIN_DIR=$DEPS_DIR/bin
 ARG PLUGINS_DIR=$DEPS_DIR/plugins
-ARG VNC_PORT=5900
+# Sneak-peek into xvfb (+5mb). Should be empty on CI
+ARG DEBUG_PACKAGES='x11vnc xterm scrot'
 
-# RSpec
 ENV PLUGINS_DIR=$PLUGINS_DIR
 ENV BIN_DIR=$BIN_DIR
-ENV SKIP_COMPATIBILITY_REGEXPS=''
-ENV DANGEROUSLY_MAXIMIZE_PERFORMANCE=''
-ENV EDITOR_THROTTLE_INTERVAL=''
-ENV SCREENSHOT_FAILURES=''
-ENV LOG_LEVEL=''
-ENV GUI=''
-ENV VIM_GUI=''
-ENV NVIM_GUI=''
-ENV NVIM_PATH=''
-ENV VIM_PATH=''
-# Allow NeoVim run as a non-root (otherwise it'll try to create /.local and fail
-# with insufficient permissions error)
-ENV XDG_DATA_HOME=$DEPS_DIR/XDG_DATA_HOME
-# BINARIES
-ENV PT_PATH=$BIN_DIR/pt
-ENV RG_PATH=''
-# Allow RSpec to detect ci builds
-ENV TRAVIS_BUILD_ID=''
-# xvfb (even console vim +clientserver depends on X11)
-ENV DISPLAY=:99
-ENV RUN_VNC=''
-EXPOSE $VNC_PORT
 # hmm
-ENV LANG C.UTF-8
+ENV LANG=C.UTF-8
+# Xvfb (even console vim +clientserver depends on X11)
+ENV DISPLAY=:99
+# Allow NeoVim run as a non-root (otherwise it'll try to create /.local and fail
+# with insufficient privileges error)
+ENV XDG_DATA_HOME=$DEPS_DIR/XDG_DATA_HOME
 
 WORKDIR $DEPS_DIR
 
 COPY --from=build-pt /go/bin/pt $BIN_DIR/pt
 COPY Gemfile* spec/support/setup/* spec/support/docker/docker-entrypoint.sh $DEPS_DIR/
-
-# Debug dependencies: xterm, scrot, x11vnc -- +5mb
 RUN set -eux; \
 # Runtime dependencies
-    apk add --update --no-cache xvfb x11vnc xterm scrot python3 git; \
+    apk add --update --no-cache xvfb python3 git $DEBUG_PACKAGES; \
 # Build dependencies
     apk add --no-cache --virtual .builddeps gcc python3-dev musl-dev make wget tar; \
 # Python dependencies
@@ -68,23 +49,26 @@ RUN set -eux; \
     bundle config set no-cache 'true'; \
     bundle config set frozen 'true'; \
     bundle install; \
-    rm /etc/gemrc; \
 # OS dependencies
 # Clearly an antipattern, but we have to be able to reuse this scripts for
 # various builds including different base images, different platforms and
 # travis-ci, so it's an acceptable trade-off
     sh install_vim_dependencies.sh $PLUGINS_DIR; \
-    INSTALL='vim-global,neovim-local,ack-global,ag-global,rg-local,skip-pt-local' \
+    INSTALL='vim-global,neovim-local:default,ack-global,ag-global,rg-local:default' \
       sh install_linux_dependencies.sh $BIN_DIR; \
-# Fix for neovim .appimage which is not working so far
+# Temprorary fix for neovim .appimage which is not working so far
     apk add --no-cache neovim; \
     mkdir -p /app/bin/squashfs-root/usr/bin; ln -s /usr/bin/nvim /app/bin/squashfs-root/usr/bin/nvim; \
-    apk del --no-network .builddeps; \
-    rm -rf ~/.bundle/cache/; \
-    yes | pip3 uninstall pip; \
-    # Allow NeoVim to create rplugin manifest
+# Allow NeoVim to create rplugin manifest
     mkdir -p $XDG_DATA_HOME; \
-    chmod a+w $XDG_DATA_HOME
+    chmod a+w $XDG_DATA_HOME; \
+# Allow run container without app dir volume mounted
+    mkdir -p $APP_DIR; \
+# Cleanup
+    apk del --no-network .builddeps ; \
+    rm -rf ~/.bundle/cache/; \
+    yes | pip3 uninstall pip;
 
 WORKDIR $APP_DIR
 ENTRYPOINT ["/app/spec/support/docker/docker-entrypoint.sh"]
+CMD ["sh"]

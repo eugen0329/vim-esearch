@@ -16,11 +16,11 @@ module Configuration
     :search_freeze_timeout
 
   def pt_path
-    env_fetch('PT_PATH') { bin_dir.join('pt-2.2.0') }
+    env_fetch('PT_PATH') { bin_dir.join('pt') }
   end
 
   def rg_path
-    env_fetch('RG_PATH') { bin_dir.join('rg-11.0.2') }
+    env_fetch('RG_PATH') { bin_dir.join('rg') }
   end
 
   def log_level
@@ -48,7 +48,7 @@ module Configuration
   end
 
   def vimrc_path
-    @vimrc_path ||= root.join('spec', 'support', 'vimrc.vim')
+    @vimrc_path ||= root.join('spec', 'support', 'vimrc.vim').to_s
   end
 
   def editor_throttle_interval

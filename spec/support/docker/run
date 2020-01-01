@@ -2,4 +2,26 @@
 
 . "$(dirname "$0")/__fail_if_wrong_pwd.sh"
 
-exec docker run -u $(id -u):$(id -g) -v $PWD:/app -it esearch-rspec "$@"
+# Similar to what docker-compose.yml defines, but without introducing composer
+# as a dependency. Only container specific values default values are provided.
+# Other information should be handled on the application level.
+
+# shellcheck disable=SC2086
+set -ex; exec docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app" \
+  -e DANGEROUSLY_MAXIMIZE_PERFORMANCE=$DANGEROUSLY_MAXIMIZE_PERFORMANCE \
+  -e SKIP_COMPATIBILITY_REGEXPS=$SKIP_COMPATIBILITY_REGEXPS \
+  -e EDITOR_THROTTLE_INTERVAL=$EDITOR_THROTTLE_INTERVAL \
+  -e SCREENSHOT_FAILURES=$SCREENSHOT_FAILURES \
+  -e LOG_LEVEL=$LOG_LEVEL \
+  -e GUI=$GUI \
+  -e VIM_GUI=$VIM_GUI \
+  -e NVIM_GUI=$NVIM_GUI \
+  -e TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID \
+  -e DISPLAY=$DISPLAY \
+  -e RUN_VNC=$RUN_VNC \
+  -e NVIM_PATH=${NVIM_PATH:-'nvim'} \
+  -e VIM_PATH=$VIM_PATH \
+  -e PT_PATH=${PT_PATH:-'pt'} \
+  -e RG_PATH=$RG_PATH \
+  $DOCKER_RUN_ARGS_OVERRIDES  \
+  -it esearch-rspec "$@"
