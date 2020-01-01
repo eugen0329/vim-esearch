@@ -37,6 +37,24 @@ module Configuration
     end
   end
 
+  def vim_path
+    @vim_path ||= env_fetch('VIM_PATH') do
+      if vim_gui?
+        Vimrunner::Platform.gvim
+      else
+        Vimrunner::Platform.vim
+      end
+    end
+  end
+
+  def vimrc_path
+    @vimrc_path ||= root.join('spec', 'support', 'vimrc.vim')
+  end
+
+  def editor_throttle_interval
+    env_fetch('EDITOR_THROTTLE_INTERVAL', 0.0).to_f
+  end
+
   def screenshot_failures?
     env_fetch('SCREENSHOT_FAILURES') { ci? ? '0' : '1' } == '1'
   end
