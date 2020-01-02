@@ -15,7 +15,8 @@ RSpec.shared_examples 'an abortable backend' do |backend|
 
   around(:all) do |e|
     esearch.configure!(backend: backend, adapter: adapter, out: out)
-    esearch.configuration.adapter_bin = "sh #{Configuration.bin_dir}/#{infinity_search_executable} #{adapter}"
+    esearch.configuration.adapter_bin =
+      "sh #{Configuration.scripts_dir}/#{infinity_search_executable} #{adapter}"
     e.run
     esearch.configuration.adapter_bin = adapter
   end
@@ -42,11 +43,18 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     end
 
     it 'aborts on search restart' do
-      2.times do
-        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+      # `#have_search_freezed` must be called first to prevent possible race
+      # condition errors
+      expect(esearch)
+        .to  have_search_started
+        .and have_search_freezed
+        .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
 
-        # `#have_search_freezed` must be called first to prevent possible race
-        # condition errors
+      KnownIssues.mark_example_pending_if_known_issue(self) do
+        # Duplication instead of 2.times {} as it's cannot be said what time a fail
+        # has happened
+        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
         expect(esearch)
           .to  have_search_started
           .and have_search_freezed

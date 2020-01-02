@@ -10,7 +10,7 @@ describe 'esearch#backend', :backend do
   include Helpers::Strings
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
-    context 'when searching' do
+    context "when searching for #{dump(search_string)}" do
       let(:other_files) do
         kwargs.fetch(:other_files) do
           [file('___', 'binary.bin', binary: true), file('', 'empty.txt')]
@@ -26,15 +26,16 @@ describe 'esearch#backend', :backend do
         esearch.configuration.submit!
         esearch.cd! search_directory
       end
-      after { esearch.close_search! }
+      after { esearch.cleanup! }
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
         esearch.search!(to_search(search_string))
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
+          expect(esearch).to have_search_started
+
           expect(esearch)
-            .to  have_search_started
-            .and have_search_finished
+            .to  have_search_finished
             .and have_not_reported_errors
 
           expect(esearch)
@@ -129,8 +130,8 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', :ack
         include_context 'works with adapter', :git
         include_context 'works with adapter', :grep
-        include_context 'works with adapter', :pt
-        include_context 'works with adapter', :rg, Configuration.bin_dir.join('rg-11.0.2')
+        include_context 'works with adapter', :pt, Configuration.pt_path
+        include_context 'works with adapter', :rg, Configuration.rg_path
       end
     end
 
@@ -142,7 +143,7 @@ describe 'esearch#backend', :backend do
     include_context 'a backend 2', 'system'
   end
 
-  describe '#vimproc', :vimproc do
+  describe '#vimproc', :vimproc, backend: :vimproc do
     before(:all) do
       press ':let g:esearch#backend#vimproc#updatetime = 30'
       press ':let g:esearch#backend#vimproc#read_timeout = 30'

@@ -1,12 +1,16 @@
 /spec/support/vim_plugins
 /spec/support/bin/nvim-osx64
-/spec/support/bin/nvim.linux.appimage
+
+# neovim for linux
+/spec/support/bin/nvim.appimage
 /spec/support/bin/squashfs-root
 
-/spec/support/bin/ag
-/spec/support/bin/rg
-/spec/support/bin/rg-*
-/spec/support/bin/ack
-/spec/support/bin/pt
+/spec/support/bin/ag*
+/spec/support/bin/rg*
+/spec/support/bin/ack*
+/spec/support/bin/pt*
 
 /failed_specs.txt
+
+# screenshots
+/*.png

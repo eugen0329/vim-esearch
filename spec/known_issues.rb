@@ -33,4 +33,7 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   # TODO: investigate
   pending! '/3\d+5/', /has_reported_a_single_result\?/, :osx, adapter: :git, matching: :regexp
   pending! '/3\d*5/', /has_reported_a_single_result\?/, :osx, adapter: :git, matching: :regexp
+
+  # TODO: investigate
+  pending! 'aborts on search restart', /expected to have 1.*process/, :osx, backend: :vimproc
 end

@@ -1,3 +1,3 @@
 fu! esearch#log#debug(msg, file) abort
-  call system('echo '.shellescape('[DEBUG] ').shellescape(a:msg).' >> '.shellescape(a:file))
+  call writefile(['[DEBUG]'.join(esearch#util#flatten([a:msg]), '; ')], a:file, 'a')
 endfu

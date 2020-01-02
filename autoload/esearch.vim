@@ -26,7 +26,9 @@ fu! esearch#init(...) abort
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
+    " call esearch#log#debug("1 == !has_key(opts, 'exp')", '/tmp/esearch_log.txt')
     let adapter_opts = esearch#adapter#{opts.adapter}#_options()
+    " call esearch#log#debug("esearch#adapter#{opts.adapter}#_options after", '/tmp/esearch_log.txt')
     let cmdline_opts = {
           \ 'cwd': opts.cwd,
           \ 'exp': g:esearch._last_search,

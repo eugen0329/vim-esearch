@@ -19,8 +19,13 @@ RSpec.shared_examples 'a backend' do |backend|
 
         before do
           esearch.configure!(regex: 0)
+
+          esearch.configuration.adapter_bin = Configuration.pt_path if adapter == 'pt'
+          esearch.configuration.adapter_bin = Configuration.rg_path if adapter == 'rg'
+
           cmd "cd #{context_fixtures_path}"
         end
+        after { esearch.cleanup! }
 
         it 'provides correct path when searching outside the cwd' do
           press ":call esearch#init({'cwd': '#{context_fixtures_path}/#{directory}'})<Enter>#{test_query}<Enter>"
@@ -30,6 +35,8 @@ RSpec.shared_examples 'a backend' do |backend|
             press('j') # press j to close "Press ENTER or type command to continue" prompt
             bufname('%') =~ /Search/
           }.to become_true_within(5.second)
+
+          expect(esearch).to have_not_reported_errors
           expect { line(1) == 'Matches in 1 lines, 1 file(s). Finished.' }.to become_true_within(10.seconds),
             -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
 

@@ -41,7 +41,7 @@ before_install:
     gem install bundler
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && time docker build -f spec/support/docker/Dockerfile -t esearch-rspec . && return
+    [ "$DOCKER_BUILD" = '1' ] && spec/support/docker/build-alpine && return
 
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
@@ -62,15 +62,15 @@ install:
 
 
     if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
-      sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
+      sh spec/support/setup/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     fi
 
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/bin/install_osx_dependencies.sh
+      ALLOW_SUDO=1 sh spec/support/setup/install_osx_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
     else
-      sh spec/support/bin/install_linux_dependencies.sh
+      ALLOW_SUDO=1 sh spec/support/setup/install_linux_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
     fi
 
 before_script:
@@ -107,7 +107,7 @@ jobs:
       script: bundle exec rspec --tag system
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: TRAVIS_BUILD_ID=$TRAVIS_BUILD_ID docker run -v $PWD:/tmp/vim-esearch -it esearch-rspec -t nvim
+      script: spec/support/docker/rspec -t nvim
       env: NVIM_GUI=0 DOCKER_BUILD=1
       services: docker
       os: linux
@@ -128,7 +128,8 @@ jobs:
       env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
       script:
         - bundle exec rubocop --display-cop-names
-        - shellcheck spec/support/bin/*.sh # decided to not create another build
+          # -x: Allow 'source' outside of FILES
+        - shellcheck -x spec/support/**/*.sh spec/support/docker/run* spec/support/docker/rspec* spec/support/docker/docker-entrypoint.sh
       os: linux
     - name: 'Viml lint (Vint, VimLint)'
       env:
@@ -139,7 +140,7 @@ jobs:
         - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
         - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
       script:
-        - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
+        - sh "spec/support/scripts/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
         - "vint $VIML_DIRECTORIES"
       language: python
       python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1

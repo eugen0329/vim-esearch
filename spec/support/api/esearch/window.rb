@@ -22,16 +22,20 @@ class API::ESearch::Window
 
   def has_search_started?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
+      editor.trigger_cursor_moved_event!
       inside_search_window?
     end
   end
 
   def has_search_finished?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
+      editor.trigger_cursor_moved_event!
       parser.header_finished? || parser.header_errors?
     end
+  end
+
+  def errors
+    editor.lines
   end
 
   def has_reported_a_single_result?

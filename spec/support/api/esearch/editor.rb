@@ -5,9 +5,12 @@ require 'active_support/core_ext/class/attribute'
 
 # rubocop:disable Layout/ClassLength
 class API::ESearch::Editor
+  include API::Mixins::Throttling
+
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
 
   class_attribute :cache_enabled, default: true
+  class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
 
   attr_reader :cache, :vim_client_getter
 
@@ -32,11 +35,6 @@ class API::ESearch::Editor
     press! ":cd #{where}<Enter>"
   end
 
-  def press!(keys)
-    clear_cache
-    vim.normal(keys)
-  end
-
   def bufname(arg)
     echo("bufname('#{arg}')")
   end
@@ -45,16 +43,6 @@ class API::ESearch::Editor
     cached(:echo, arg) do
       vim.echo(arg)
     end
-  end
-
-  def press_with_user_mappings!(what)
-    clear_cache
-    vim.feedkeys what
-  end
-
-  def command!(string_to_execute)
-    clear_cache
-    command(string_to_execute)
   end
 
   def current_buffer_name
@@ -76,29 +64,38 @@ class API::ESearch::Editor
   end
 
   def locate_cursor!(line_number, column_number)
-    clear_cache
-    vim.command("call cursor(#{line_number},#{column_number})").to_i == 0
+    command!("call cursor(#{line_number},#{column_number})").to_i == 0
   end
 
   def close!
-    clear_cache
-    command('close!')
+    command!('close!')
   end
 
-  def delete_current_buffer!(ignore_unsaved_changes: false)
-    return command!('bdelete!') if ignore_unsaved_changes
+  # TODO: better name
+  def ls(include_unlisted: true)
+    return command('ls!') if include_unlisted
 
-    command!('bdelete')
+    command('ls')
+  end
+
+  def delete_all_buffers_and_clear_messages!
+    command!('%bwipeout! | messages clear')
+    # command!('%close')
+  end
+  alias cleanup! delete_all_buffers_and_clear_messages!
+
+  def delete_current_buffer!(ignore_unsaved_changes: false)
+    return command!('bwipeout!') if ignore_unsaved_changes
+
+    command!('bwipeout!')
   end
   alias bufdelete! delete_current_buffer!
 
   def locate_line!(line_number)
-    clear_cache
     locate_cursor! line_number, KEEP_HORIZONTAL_POSITION
   end
 
   def locate_column!(column_number)
-    clear_cache
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
@@ -119,14 +116,39 @@ class API::ESearch::Editor
     @with_ignore_cache = false
   end
 
-  private
-
-  def vim
-    vim_client_getter.call
+  def trigger_cursor_moved_event!
+    press!('<Esc>lh')
   end
 
   def command(string_to_execute)
     vim.command(string_to_execute)
+  end
+
+  def command!(string_to_execute)
+    clear_cache
+    throttle(:state_modifying_interactions, interval: throttle_interval) do
+      command(string_to_execute)
+    end
+  end
+
+  def press!(keyboard_keys)
+    clear_cache
+    throttle(:state_modifying_interactions, interval: throttle_interval) do
+      vim.normal(keyboard_keys)
+    end
+  end
+
+  def press_with_user_mappings!(keyboard_keys)
+    clear_cache
+    throttle(:state_modifying_interactions, interval: throttle_interval) do
+      vim.feedkeys keyboard_keys
+    end
+  end
+
+  private
+
+  def vim
+    vim_client_getter.call
   end
 
   def cached(name, *args)

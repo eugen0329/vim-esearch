@@ -6,6 +6,8 @@ require 'vimrunner/rspec'
 require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/tagged_logging'
+# reference global vars by human readable names (rubocop requirement)
+require 'English'
 
 require 'support/inflections'
 require 'support/custom_matchers'
@@ -17,7 +19,7 @@ Configuration.tap do |c|
   c.root = Pathname.new(File.expand_path('..', __dir__))
   c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
   c.search_event_timeout  = 8.seconds
-  c.search_freeze_timeout = 3.second
+  c.search_freeze_timeout = 10.second
   c.process_check_timeout = 10.second
 end
 
@@ -59,6 +61,7 @@ RSpec.configure do |c|
 
   c.color_mode = true
   c.order = :rand
+  c.seed = 1
   c.formatter = :documentation
   c.fail_fast = Configuration.ci? ? 3 : 10
   c.example_status_persistence_file_path = 'failed_specs.txt'
@@ -75,9 +78,10 @@ Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_vim do
-    load_vim_plugins!(
-      Configuration.vim_gui? ? Vimrunner.start_gvim : Vimrunner.start
-    )
+    load_vim_plugins!(Vimrunner::Server.new(
+      executable: Configuration.vim_path,
+      vimrc:      Configuration.vimrc_path
+    ).start)
   end
 end
 
@@ -88,6 +92,7 @@ VimrunnerNeovim::RSpec.configure do |c|
     load_vim_plugins!(VimrunnerNeovim::Server.new(
       nvim:          Configuration.nvim_path,
       gui:           Configuration.nvim_gui?,
+      vimrc:         Configuration.vimrc_path,
       timeout:       10,
       verbose_level: 0
     ).start)

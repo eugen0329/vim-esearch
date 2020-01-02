@@ -18,8 +18,8 @@ module VimrunnerNeovim
   class Server
     include PlatformCheck
 
-    VIMRC        = Vimrunner::Server::VIMRC
-    VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
+    VIMRC        = ::Vimrunner::Server::VIMRC
+    VIMRUNNER_RC = ::Vimrunner::Server::VIMRUNNER_RC
     REMOTE_EXPR_METHOD_NAMES = {
       prepend_with_escape_press:                        :remote_expr_prepended_with_escape_press,
       fallback_to_prepend_with_escape_press_on_timeout: :remote_expr_with_fallback_on_timeout,
@@ -123,7 +123,7 @@ module VimrunnerNeovim
 
     def remote_expr(expression)
       method_name = REMOTE_EXPR_METHOD_NAMES.fetch(remote_expr_execution_mode) do
-        raise "Unknown execution mode remote_expr_execution_mode: #{remote_expr_execution_mode}"
+        raise "Unknown remote_expr_execution_mode: #{remote_expr_execution_mode}"
       end
 
       public_send(method_name, expression)
