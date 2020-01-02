@@ -26,7 +26,8 @@ fu! esearch#adapter#grep#_options() abort
       elseif has_key(available_options, '-E')
         let regex = '-E'
       else
-        throw 'TODO58'
+        " use original value as it was earlier until properly tested
+        let regex = '--perl-regexp'
       endif
 
       if has_key(available_options, '--fixed-strings')
@@ -34,7 +35,8 @@ fu! esearch#adapter#grep#_options() abort
       elseif has_key(available_options, '-F')
         let literal_match = '-F'
       else
-        throw 'TODO58'
+        " use original value as it was earlier until properly tested
+        let literal_match = '--fixed-strings'
       endif
 
       if has_key(available_options, '--line-number')
@@ -42,7 +44,8 @@ fu! esearch#adapter#grep#_options() abort
       elseif has_key(available_options, '-n')
         let show_line_numbers = '-n'
       else
-        throw 'TODO58'
+        " use original value as it was earlier until properly tested
+        let show_line_numbers = '--line-number'
       endif
 
       if has_key(available_options, '--exclude-dir')
