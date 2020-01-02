@@ -4,7 +4,7 @@
 crossplatform_realpath() {
     [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
 }
-bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")"}"
+bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"
 
 set -eux
 

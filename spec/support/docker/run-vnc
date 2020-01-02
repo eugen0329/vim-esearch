@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# shellcheck source=./__fail_if_wrong_pwd.sh
+# shellcheck source=spec/support/docker/__fail_if_wrong_pwd.sh
 . "$(dirname "$0")/__fail_if_wrong_pwd.sh"
 
 DOCKER_RUN_ARGS_OVERRIDES="$DOCKER_RUN_ARGS_OVERRIDES -e RUN_VNC=1 -p 5900:5900" \
