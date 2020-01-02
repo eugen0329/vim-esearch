@@ -102,7 +102,7 @@ install_prebuilt_from_downloadable_archive() {
   version="$2"
   local_directory_path="$3"
   global_directory_path="$4"
-  create_link_to_default_in_local_directory="$5"
+  is_create_link_to_default_in_local_directory="$5"
   archive_file="$6"
   download_url="$7"
   binary_path_inside_unarchived_directory="$8"
@@ -124,7 +124,7 @@ install_prebuilt_from_downloadable_archive() {
       cp "$binary_path_inside_unarchived_directory" "$local_directory_path/$name-$version"
     fi
 
-    if is_true "$create_link_to_default_in_local_directory" ; then
+    if is_true "$is_create_link_to_default_in_local_directory" ; then
       ln -fs "$local_directory_path/$name-$version" "$local_directory_path/$name"
     fi
 

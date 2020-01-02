@@ -7,7 +7,7 @@ install_prebuilt_neovim() {
   version="${1:-'0.4.3'}"
   local_directory_path="$2"
   global_directory_path="$3"
-  create_link_to_default_in_local_directory="${4:-0}"
+  is_create_link_to_default_in_local_directory="${4:-0}"
   if is_linux; then
     archive_file='nvim.appimage'
     binary_path_inside_unarchived_directory="squashfs-root/usr/bin/nvim"
@@ -26,7 +26,7 @@ install_prebuilt_neovim() {
     "$version"                                 \
     "$local_directory_path"                    \
     "$global_directory_path"                   \
-    "$create_link_to_default_in_local_directory"   \
+    "$is_create_link_to_default_in_local_directory"   \
     "$archive_file"                            \
     "$download_url"                            \
     "$binary_path_inside_unarchived_directory" \
@@ -39,7 +39,7 @@ install_package_neovim() {
   version="$1"
   sudo="$2"
   link_path="${3:-}"
-  create_link_to_default_in_local_directory="${4:-0}"
+  is_create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
     echo 'Unsupported yet' && return 1
@@ -55,7 +55,7 @@ install_package_neovim() {
     echo 'Unsupported platform' && return 1
   fi
 
-  if  [ "$create_link_to_default_in_local_directory" = '1' ]; then
+  if  [ "$is_create_link_to_default_in_local_directory" = '1' ]; then
     create_symlink "$name" "$link_path"
   fi
 }
