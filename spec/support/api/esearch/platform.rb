@@ -28,6 +28,6 @@ class API::ESearch::Platform
   end
 
   def ps_commands
-    `ps -A -o command | sed 1d`.split("\n")
+    `ps -A -o pid,etime,command | sed 1d`.split("\n")
   end
 end

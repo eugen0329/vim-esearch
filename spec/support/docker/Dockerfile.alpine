@@ -35,6 +35,7 @@ WORKDIR $DEPS_DIR
 
 COPY --from=build-pt /go/bin/pt $BIN_DIR/pt
 COPY Gemfile* spec/support/setup/* spec/support/docker/docker-entrypoint.sh $DEPS_DIR/
+
 RUN set -eux; \
 # Runtime dependencies
     apk add --update --no-cache xvfb python3 git $DEBUG_PACKAGES; \

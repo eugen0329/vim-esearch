@@ -43,16 +43,21 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     end
 
     it 'aborts on search restart' do
-      2.times do
-        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+      # `#have_search_freezed` must be called first to prevent possible race
+      # condition errors
+      expect(esearch)
+        .to  have_search_started
+        .and have_search_freezed
+        .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
 
-        # `#have_search_freezed` must be called first to prevent possible race
-        # condition errors
-        expect(esearch)
-          .to  have_search_started
-          .and have_search_freezed
-          .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
-      end
+      # Duplication instead of 2.times {} as it's cannot be said what time a fail
+      # has happened
+      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+      expect(esearch)
+        .to  have_search_started
+        .and have_search_freezed
+        .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
     end
   end
 
