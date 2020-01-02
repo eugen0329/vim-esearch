@@ -1,7 +1,13 @@
 #!/bin/sh
 # shellcheck disable=SC2034
 
-[ ! -z "$PROVISION_LIB_SOURCE_ONCE" ] && return; PROVISION_LIB_SOURCE_ONCE=1
+[ ! -z "$PROVISION_LIB_SOURCE_ONCE" ] && return 0; PROVISION_LIB_SOURCE_ONCE=1
+
+set -eu
+
+running_script_absolute_path="$([ "$0" = '/*' ] && \ echo "$0" || echo "$PWD/${0#./}")"
+provision_directory="$(dirname "$running_script_absolute_path")"
+bin_directory="${1:-"$provision_directory/../bin"}"
 
 apt_get_arguement_to_install_less='--no-install-recommends'
 apk_argument_to_install_less='--no-cache'
@@ -9,10 +15,8 @@ pip3_argument_to_install_less='--no-cache'
 unarchive_tar="tar xvfz '%s'"
 unarchive_zip="unzip '%s'"
 
-provision_directory="$(dirname "$(crossplatform_realpath "$0")")"
-bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"
-CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { found=1; print $2 }; END {exit !found}' /etc/os-release)"
-CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { found=1; print $2 }; END {exit !found}' /etc/os-release)"
+CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release)"
+CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release)"
 CURRENT_KERNEL_NAME="$(uname -s)"
 
 # Macros for better readability
@@ -23,10 +27,6 @@ install_local=1
 dont_use_sudo=''
 using_sudo='sudo'
 link_to_default_in_local_directory=1
-
-crossplatform_realpath() {
-    [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
-}
 
 is_linux() {
   [ "$CURRENT_KERNEL_NAME" = 'Linux' ]
