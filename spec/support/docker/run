@@ -9,10 +9,10 @@
 #   - Set non-root uid:gid (for fixtures generation, taking screenshots etc.)
 #   - Mounts a volume to allow interacting with changes without rebuilds
 #   - Forwards ENV variables from HOST
-# -v "$PWD:/app"
+
 set -ex;
 # shellcheck disable=SC2086
-exec docker run --rm -u "$(id -u):$(id -g)"  \
+exec docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app" \
   -e "DANGEROUSLY_MAXIMIZE_PERFORMANCE=$DANGEROUSLY_MAXIMIZE_PERFORMANCE" \
   -e "SKIP_COMPATIBILITY_REGEXPS=$SKIP_COMPATIBILITY_REGEXPS" \
   -e "EDITOR_THROTTLE_INTERVAL=$EDITOR_THROTTLE_INTERVAL" \
