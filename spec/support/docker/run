@@ -6,7 +6,7 @@
 # Similar to what docker-compose.yml defines, but without introducing composer
 # as a dependency.
 # Does:
-#   - Set non-root uid:gid (for fixtures generation, taking screenshots etc.)
+#   - Sets non-root uid:gid (for fixtures generation, taking screenshots etc.)
 #   - Mounts a volume to allow interacting with changes without rebuilds
 #   - Forwards ENV variables from HOST
 
