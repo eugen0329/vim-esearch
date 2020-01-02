@@ -9,7 +9,13 @@ pip3_argument_to_install_less='--no-cache'
 unarchive_tar="tar xvfz '%s'"
 unarchive_zip="unzip '%s'"
 
-# Macros for readability
+provision_directory="$(dirname "$(crossplatform_realpath "$0")")"
+bin_directory="${1:-"$(dirname "$(crossplatform_realpath "$0")")/../bin"}"
+CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { found=1; print $2 }; END {exit !found}' /etc/os-release)"
+CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { found=1; print $2 }; END {exit !found}' /etc/os-release)"
+CURRENT_KERNEL_NAME="$(uname -s)"
+
+# Macros for better readability
 skip_install_local=''
 skip_global_install=''
 install_global=1
@@ -17,14 +23,6 @@ install_local=1
 dont_use_sudo=''
 using_sudo='sudo'
 link_to_default_in_local_directory=1
-
-get_current_os_release_id() {
-  awk -F= '$1=="ID_LIKE" { found=1; print $2 }; END {exit !found}' /etc/os-release || \
-    awk -F= '$1=="ID" { found=1; print $2 } END {exit !found}' /etc/os-release
-}
-
-CURRENT_OS_RELEASE_ID="$(get_current_os_release_id)"
-CURRENT_KERNEL_NAME="$(uname -s)"
 
 crossplatform_realpath() {
     [ "$1" = '/*' ] && \ echo "$1" || echo "$PWD/${1#./}"
@@ -40,6 +38,11 @@ is_alpine_linux() {
 
 is_debian_linux() {
   is_linux && [ "$CURRENT_OS_RELEASE_ID" = "debian" ]
+}
+
+is_debian_or_like_linux() {
+  is_linux && \
+    { [ "$CURRENT_OS_RELEASE_ID_LIKE" = "debian" ] || [ "$CURRENT_OS_RELEASE_ID" = "debian" ]; }
 }
 
 is_osx() {

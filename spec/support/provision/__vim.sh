@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__lib.sh
-. "$(dirname $0)/__lib.sh"
+. "$(dirname "$0")/__lib.sh"
 
 install_package_vim() {
   name=vim
