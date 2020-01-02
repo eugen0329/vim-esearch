@@ -51,13 +51,15 @@ RSpec.shared_examples 'an abortable backend' do |backend|
         .and have_search_freezed
         .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
 
-      # Duplication instead of 2.times {} as it's cannot be said what time a fail
-      # has happened
-      esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
-      expect(esearch)
-        .to  have_search_started
-        .and have_search_freezed
-        .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
+      KnownIssues.mark_example_pending_if_known_issue(self) do
+        # Duplication instead of 2.times {} as it's cannot be said what time a fail
+        # has happened
+        esearch.search!(search_string, cwd: empty_cwd_for_infinite_search)
+        expect(esearch)
+          .to  have_search_started
+          .and have_search_freezed
+          .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
+      end
     end
   end
 
