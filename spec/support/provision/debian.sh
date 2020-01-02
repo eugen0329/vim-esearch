@@ -3,34 +3,39 @@
 # shellcheck source=spec/support/provision/__provision.sh
 . "$(dirname "$0")/__provision.sh"
 
-into_local_directory="$bin_directory"
+bin_directory="${1:-"$provision_directory/../bin"}"
+plugins_directory="${2:-"$provision_directory/../vim_plugins"}"
+local_directory_path="$bin_directory"
 
 install_package_vim       \
   'latest'                \
-  "$using_sudo"
+  "$use_sudo"
 
 install_prebuilt_neovim   \
   "0.4.3"                 \
-  "$into_local_directory" \
+  "$local_directory_path" \
   "$skip_global_install"  \
-  "$link_to_default_in_local_directory"
+  "$create_link_to_default_in_local_directory"
 
 install_prebuilt_pt       \
   '2.2.0'                 \
-  "$into_local_directory" \
+  "$local_directory_path" \
   "$skip_global_install"  \
-  "$link_to_default_in_local_directory"
+  "$create_link_to_default_in_local_directory"
 
 install_package_ack       \
   'latest'                \
-  "$using_sudo"
+  "$use_sudo"
 
 install_package_ag        \
   'latest'                \
-  "$using_sudo"
+  "$use_sudo"
 
 install_prebuilt_rg       \
   '11.0.2'                \
-  "$into_local_directory" \
+  "$local_directory_path" \
   "$skip_global_install"  \
-  "$link_to_default_in_local_directory"
+  "$create_link_to_default_in_local_directory"
+
+# shellcheck source=spec/support/provision/plugins.sh
+sh "$provision_directory/default_plugins.sh" "${2:-"$provision_directory/../vim_plugins"}"

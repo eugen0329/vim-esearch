@@ -5,9 +5,9 @@
 
 install_prebuilt_pt() {
   version="$1"
-  into_local_directory="$2"
-  into_global_directory="$3"
-  link_to_default_in_local_directory="$4"
+  local_directory_path="$2"
+  global_directory_path="$3"
+  create_link_to_default_in_local_directory="$4"
   if is_linux; then
     directory_inside_archive="pt_linux_amd64"
     archive_file="$directory_inside_archive.tar.gz"
@@ -26,9 +26,9 @@ install_prebuilt_pt() {
   install_prebuilt_from_downloadable_archive   \
     'pt'                                       \
     "$version"                                 \
-    "$into_local_directory"                    \
-    "$into_global_directory"                   \
-    "$link_to_default_in_local_directory"      \
+    "$local_directory_path"                    \
+    "$global_directory_path"                   \
+    "$create_link_to_default_in_local_directory"   \
     "$archive_file"                            \
     "$download_url"                            \
     "$binary_path_inside_unarchived_directory" \
