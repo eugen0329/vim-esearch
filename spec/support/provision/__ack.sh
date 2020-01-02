@@ -18,7 +18,7 @@ install_package_ack() {
     $sudo dpkg-divert --local --divert /usr/bin/ack --rename --add /usr/bin/ack-grep || true
   elif is_alpine_linux; then
     apk add "$apk_argument_to_install_less" ack
-  elif os_osx; then
+  elif is_osx; then
     brew install ack
   else
     echo 'Unsupported platform' && return 1

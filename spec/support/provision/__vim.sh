@@ -19,7 +19,7 @@ install_package_vim() {
     $sudo apt-get install -y "$apt_get_arguement_to_install_less" vim-gtk
   elif is_alpine_linux; then
     apk add "$apk_argument_to_install_less" gvim
-  elif os_osx; then
+  elif is_osx; then
     brew update --verbose
     brew install --build-from-source "$provision_directory/brew_formulae/macvim.rb" -- --with-override-system-vi
   else
