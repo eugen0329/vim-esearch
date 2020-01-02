@@ -34,7 +34,7 @@ ENV XDG_DATA_HOME=$DEPS_DIR/XDG_DATA_HOME
 WORKDIR $DEPS_DIR
 
 COPY --from=build-pt /go/bin/pt $BIN_DIR/pt
-COPY Gemfile* spec/support/setup/* spec/support/docker/docker-entrypoint.sh $DEPS_DIR/
+COPY Gemfile* spec/support/provision/* spec/support/setup/* spec/support/docker/docker-entrypoint.sh $DEPS_DIR/
 
 RUN set -eux; \
 # Runtime dependencies
@@ -54,8 +54,7 @@ RUN set -eux; \
 # various builds including different base images, different platforms and
 # travis-ci, so it's an acceptable trade-off
     sh install_vim_dependencies.sh $PLUGINS_DIR; \
-    INSTALL='vim-global,neovim-local:default,ack-global,ag-global,rg-local:default' \
-      sh install_linux_dependencies.sh $BIN_DIR; \
+    sh alpine.sh $BIN_DIR; \
 # Temprorary fix for neovim .appimage which is not working under alpine distro so far
     apk add --no-cache neovim; \
     mkdir -p $BIN_DIR/squashfs-root/usr/bin; ln -s /usr/bin/nvim $BIN_DIR/squashfs-root/usr/bin/nvim; \
