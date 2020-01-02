@@ -143,7 +143,7 @@ describe 'esearch#backend', :backend do
     include_context 'a backend 2', 'system'
   end
 
-  describe '#vimproc', :vimproc do
+  describe '#vimproc', :vimproc, backend: :vimproc do
     before(:all) do
       press ':let g:esearch#backend#vimproc#updatetime = 30'
       press ':let g:esearch#backend#vimproc#read_timeout = 30'
