@@ -14,8 +14,8 @@ pip3_argument_to_install_less='--no-cache'
 unarchive_tar="tar xvfz '%s'"
 unarchive_zip="unzip '%s'"
 
-CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release)"
-CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release)"
+CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
+CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
 CURRENT_KERNEL_NAME="$(uname -s)"
 
 # Macros for better readability

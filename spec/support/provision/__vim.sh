@@ -4,7 +4,6 @@
 . "$(dirname "$0")/__lib.sh"
 
 install_package_vim() {
-  name='vim'
   version="$1"
   sudo="$2"
   link_path="${3:-}"
@@ -15,12 +14,15 @@ install_package_vim() {
   fi
 
   if is_debian_or_debian_like_linux; then
+    name='gvim'
     $sudo add-apt-repository ppa:jonathonf/vim -y
     $sudo apt update -y
     $sudo apt-get install -y "$apt_get_arguement_to_install_less" vim-gtk
   elif is_alpine_linux; then
+    name='gvim'
     apk add "$apk_argument_to_install_less" gvim
   elif is_osx; then
+    name='mvim'
     brew update --verbose
     brew install --build-from-source "$provision_directory/brew_formulae/macvim.rb" -- --with-override-system-vi
   else

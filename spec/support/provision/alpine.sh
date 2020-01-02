@@ -12,6 +12,7 @@ install_package_neovim    \
   "latest"                \
   "$dont_use_sudo"        \
   "$local_directory_path" \
+  "$create_link_to_default_in_local_directory"
 
 ## Doesn't work. Separate docker stage is used instead
 # install_prebuilt_pt       \
