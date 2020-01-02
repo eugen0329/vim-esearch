@@ -48,7 +48,7 @@ install_package_neovim() {
     echo 'Unsupported yet' && return 1
   elif is_alpine_linux; then
     apk add "$apk_argument_to_install_less" neovim
-  elif os_osx; then
+  elif is_osx; then
     echo 'Unsupported yet' && return 1
   else
     echo 'Unsupported platform' && return 1
