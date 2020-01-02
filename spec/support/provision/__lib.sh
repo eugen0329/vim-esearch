@@ -25,7 +25,7 @@ skip_global_install=''
 # install_local=1
 dont_use_sudo=''
 use_sudo='sudo'
-create_link_to_default_in_local_directory=1
+create_link_to_default_in_local_directory='1'
 pull_all_branches=''
 dont_checkout=''
 
@@ -48,6 +48,19 @@ is_debian_or_debian_like_linux() {
 
 is_osx() {
   [ "$CURRENT_KERNEL_NAME" = 'Darwin' ]
+}
+
+# workarounds as we don't have types in bash
+is_true() {
+  fail_unless_bool "$1"
+  [ "$1" = '1' ]
+}
+is_false() {
+  fail_unless_bool "$1"
+  [ "$1" = '0' ]
+}
+fail_unless_bool() {
+  [ "$1" = '1' ] || [ "$1" = '0' ] ||  exit 2
 }
 
 create_symlink() {
@@ -111,7 +124,7 @@ install_prebuilt_from_downloadable_archive() {
       cp "$binary_path_inside_unarchived_directory" "$local_directory_path/$name-$version"
     fi
 
-    if [ "$create_link_to_default_in_local_directory" = '1' ]; then
+    if is_true "$create_link_to_default_in_local_directory" ; then
       ln -fs "$local_directory_path/$name-$version" "$local_directory_path/$name"
     fi
 

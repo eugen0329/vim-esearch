@@ -29,7 +29,7 @@ install_package_vim() {
     echo 'Unsupported platform' && return 1
   fi
 
-  if  [ "$create_link_to_default_in_local_directory" = '1' ]; then
+  if is_true "$create_link_to_default_in_local_directory" ; then
     create_symlink "$name" "$link_path"
   fi
 }
