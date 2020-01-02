@@ -8,7 +8,7 @@ install_package_ack() {
   version="$1"
   sudo="$2"
   link_path="${3:-}"
-  create_link_to_default_in_local_directory="${4:-0}"
+  is_create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
     echo 'Unsupported yet' && return 1
@@ -25,7 +25,7 @@ install_package_ack() {
     echo 'Unsupported platform' && return 1
   fi
 
-  if is_true "$create_link_to_default_in_local_directory"; then
+  if is_true "$is_create_link_to_default_in_local_directory"; then
     create_symlink "$name" "$link_path"
   fi
 }
