@@ -69,7 +69,7 @@ create_symlink() {
 
   if [ -n "$link_path"  ]; then
     mkdir -p "$(dirname "$link_path")"
-    ln -sf "$(which "$executable")" "$link_path"
+    ln -sf "$(command -v "$executable")" "$link_path"
   else
     echo "Path must not be blank" && return 1
   fi

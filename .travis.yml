@@ -69,10 +69,10 @@ install:
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       # ALLOW_SUDO=1 sh spec/support/setup/install_osx_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
-      sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
+      sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     else
       # ALLOW_SUDO=1 sh spec/support/setup/install_linux_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
-      sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
+      sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     fi
 
 before_script:
@@ -82,6 +82,8 @@ before_script:
 after_failure:
   - env
   - ls -lah /usr/local/bin
+  - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
+  - ls -lah "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
 
 jobs:
   allow_failures:

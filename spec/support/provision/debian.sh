@@ -2,10 +2,7 @@
 
 # shellcheck source=spec/support/provision/__provision.sh
 . "$(dirname "$0")/__provision.sh"
-
-bin_directory="${1:-"$provision_directory/../bin"}"
-plugins_directory="${2:-"$provision_directory/../vim_plugins"}"
-local_directory_path="$bin_directory"
+local_directory_path="${1:-"$provision_directory/../bin"}"
 
 install_package_vim       \
   'latest'                \
