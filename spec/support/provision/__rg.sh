@@ -7,7 +7,7 @@ install_prebuilt_rg() {
   version="$1"
   local_directory_path="$2"
   global_directory_path="$3"
-  create_link_to_default_in_local_directory="$4"
+  create_link_to_default_in_local_directory="${4:-0}"
   if is_linux; then
     directory_inside_archive="ripgrep-$version-x86_64-unknown-linux-musl"
   elif is_osx; then

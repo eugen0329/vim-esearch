@@ -7,7 +7,7 @@ install_prebuilt_pt() {
   version="$1"
   local_directory_path="$2"
   global_directory_path="$3"
-  create_link_to_default_in_local_directory="$4"
+  create_link_to_default_in_local_directory="${4:-0}"
   if is_linux; then
     directory_inside_archive="pt_linux_amd64"
     archive_file="$directory_inside_archive.tar.gz"
