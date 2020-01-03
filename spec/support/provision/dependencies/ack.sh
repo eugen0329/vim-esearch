@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__installation_helpers.sh
-load "__installation_helpers.sh"
+. "$provision_directory/__installation_helpers.sh"
 
 install_package_ack() {
   local name='ack'

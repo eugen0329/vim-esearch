@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__installation_helpers.sh
-load "__installation_helpers.sh"
+. "$provision_directory/__installation_helpers.sh"
 
 install_prebuilt_rg() {
   local version="$1"
