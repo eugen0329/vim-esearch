@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__lib.sh
-. "$(dirname "$0")/__lib.sh"
+load "__lib.sh"
 
 install_prebuilt_rg() {
   local version="$1"
@@ -21,16 +21,16 @@ install_prebuilt_rg() {
   local unarchive_command="$unarchive_tar"
   local sudo="$dont_use_sudo"
 
-  install_prebuilt_from_downloadable_archive   \
-    'rg'                                       \
-    "$version"                                 \
-    "$local_directory_path"                    \
-    "$global_directory_path"                   \
-    "$create_link_to_default_in_local_directory"   \
-    "$archive_file"                            \
-    "$download_url"                            \
-    "$binary_path_inside_unarchived_directory" \
-    "$unarchive_command"                       \
+  install_prebuilt_from_downloadable_archive     \
+    'rg'                                         \
+    "$version"                                   \
+    "$local_directory_path"                      \
+    "$global_directory_path"                     \
+    "$create_link_to_default_in_local_directory" \
+    "$archive_file"                              \
+    "$download_url"                              \
+    "$binary_path_inside_unarchived_directory"   \
+    "$unarchive_command"                         \
     "$sudo"
 }
 
