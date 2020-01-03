@@ -32,6 +32,7 @@ teardown() {
   run "$local_bin_dir/rg"  --version
   assert_success
 
+  # seems, git-grep under alpine os doesn't have help key, but at least it works
   run git -C "$PROVISION_TEST_DIR" grep -h
   assert_output_includes 'usage: git grep'
   # seems, git-grep doesn't have --help or -h key under alpine os, but at least
