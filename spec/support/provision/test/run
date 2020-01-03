@@ -1,0 +1,5 @@
+#!/bin/sh
+
+docker run --rm \
+  -v "$(realpath "$(dirname "$0")/../"):/provision:ro" \
+  -it esearch-provision-bats "$@"
