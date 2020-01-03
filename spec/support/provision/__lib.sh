@@ -8,6 +8,10 @@ apk_argument_to_install_less='--no-cache'
 pip3_argument_to_install_less='--no-cache'
 unarchive_tar="tar xvfz '%s'"
 unarchive_zip="unzip '%s'"
+CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
+CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
+CURRENT_KERNEL_NAME="$(uname -s)"
+
 
 # Macros for better readability
 skip_local_install=''
@@ -18,13 +22,6 @@ dont_use_sudo=''
 use_sudo='sudo'
 create_link_to_default_in_local_directory='1'
 dont_checkout=''
-
-set -eux
-CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
-CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
-CURRENT_KERNEL_NAME="$(uname -s)"
-running_script_absolute_path="$([ "$0" = '/*' ] && \ echo "$0" || echo "$PWD/${0#./}")"
-provision_directory="$(dirname "$running_script_absolute_path")"
 
 is_linux() {
   [ "$CURRENT_KERNEL_NAME" = 'Linux' ]

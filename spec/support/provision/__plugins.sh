@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__lib.sh
-. "$(dirname "$0")/__lib.sh"
+load "__lib.sh"
 
 build_command_noop=''
 
