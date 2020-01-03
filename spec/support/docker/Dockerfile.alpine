@@ -68,5 +68,5 @@ RUN set -eux; \
     yes | pip3 uninstall pip;
 
 WORKDIR $APP_DIR
-ENTRYPOINT ["$DEPS_DIR/docker-entrypoint.sh"]
+ENTRYPOINT ["/deps/docker-entrypoint.sh"]
 CMD ["sh"]
