@@ -26,7 +26,7 @@ skip_global_install=''
 dont_use_sudo=''
 use_sudo='sudo'
 create_link_to_default_in_local_directory='1'
-pull_all_branches=''
+# pull_all_branches=''
 dont_checkout=''
 
 is_linux() {
@@ -64,8 +64,8 @@ fail_unless_bool() {
 }
 
 create_symlink() {
-  executable="$1"
-  link_path="$2"
+  local executable="$1"
+  local link_path="$2"
 
   if [ -n "$link_path"  ]; then
     mkdir -p "$(dirname "$link_path")"
@@ -76,10 +76,10 @@ create_symlink() {
 }
 
 git_clone_and_checkout() {
-  repository_url="$1"
-  clone_path="$2"
-  branch="${3:-'master'}"
-  commit_hash="${4:-"$dont_checkout"}"
+  local repository_url="$1"
+  local clone_path="$2"
+  local branch="${3:-"master"}"
+  local commit_hash="${4:-"$dont_checkout"}"
   if [ -e "$clone_path" ]; then
     echo 'do nothing for now. TODO'
   else
@@ -98,17 +98,17 @@ is_inside_git_repository() {
 }
 
 install_prebuilt_from_downloadable_archive() {
-  name="$1"
-  version="$2"
-  local_directory_path="$3"
-  global_directory_path="$4"
-  is_create_link_to_default_in_local_directory="$5"
-  archive_file="$6"
-  download_url="$7"
-  binary_path_inside_unarchived_directory="$8"
-  unarchive_command="$9"
-  sudo="${10}"
-  temporary_directory="/tmp/$name-$version"
+  local name="$1"
+  local version="$2"
+  local local_directory_path="$3"
+  local global_directory_path="$4"
+  local create_link_to_default_in_local_directory="$5"
+  local archive_file="$6"
+  local download_url="$7"
+  local binary_path_inside_unarchived_directory="$8"
+  local unarchive_command="$9"
+  local sudo="${10}"
+  local temporary_directory="/tmp/$name-$version"
 
   (
     rm -frv "$temporary_directory"
@@ -117,14 +117,14 @@ install_prebuilt_from_downloadable_archive() {
     wget -N "$download_url"
 
     # shellcheck disable=SC2059
-    unarchive=$(printf "$unarchive_command" "$archive_file")
+    local unarchive=$(printf "$unarchive_command" "$archive_file")
     eval "$unarchive"
 
     if [ -n "$local_directory_path" ]; then
       cp "$binary_path_inside_unarchived_directory" "$local_directory_path/$name-$version"
     fi
 
-    if is_true "$is_create_link_to_default_in_local_directory" ; then
+    if is_true "$create_link_to_default_in_local_directory" ; then
       ln -fs "$local_directory_path/$name-$version" "$local_directory_path/$name"
     fi
 

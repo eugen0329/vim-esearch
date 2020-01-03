@@ -4,42 +4,43 @@
 . "$(dirname "$0")/__lib.sh"
 
 install_prebuilt_neovim() {
-  version="${1:-'0.4.3'}"
-  local_directory_path="$2"
-  global_directory_path="$3"
-  is_create_link_to_default_in_local_directory="${4:-0}"
+  local version="$1"
+  local local_directory_path="$2"
+  local global_directory_path="$3"
+  local create_link_to_default_in_local_directory="${4:-0}"
   if is_linux; then
-    archive_file='nvim.appimage'
-    binary_path_inside_unarchived_directory="squashfs-root/usr/bin/nvim"
-    unarchive_command="chmod +x '$archive_file'; ./'$archive_file' --appimage-extract"
+    local archive_file='nvim.appimage'
+    local binary_path_inside_unarchived_directory="squashfs-root/usr/bin/nvim"
+    local unarchive_command="chmod +x '$archive_file'; ./'$archive_file' --appimage-extract"
   elif is_osx; then
-    archive_file='nvim-macos.tar.gz'
-    unarchive_command="$unarchive_tar"
+    local archive_file='nvim-macos.tar.gz'
+    local binary_path_inside_unarchived_directory="nvim-osx64/bin/nvim"
+    local unarchive_command="$unarchive_tar"
   else
     echo "Unsupported platform" && return 1
   fi
-  download_url="https://github.com/neovim/neovim/releases/download/v$version/$archive_file"
-  sudo="$dont_use_sudo"
+  local download_url="https://github.com/neovim/neovim/releases/download/v$version/$archive_file"
+  local sudo="$dont_use_sudo"
 
-  install_prebuilt_from_downloadable_archive   \
-    'nvim'                                     \
-    "$version"                                 \
-    "$local_directory_path"                    \
-    "$global_directory_path"                   \
-    "$is_create_link_to_default_in_local_directory"   \
-    "$archive_file"                            \
-    "$download_url"                            \
-    "$binary_path_inside_unarchived_directory" \
-    "$unarchive_command"                       \
+  install_prebuilt_from_downloadable_archive        \
+    'nvim'                                          \
+    "$version"                                      \
+    "$local_directory_path"                         \
+    "$global_directory_path"                        \
+    "$create_link_to_default_in_local_directory" \
+    "$archive_file"                                 \
+    "$download_url"                                 \
+    "$binary_path_inside_unarchived_directory"      \
+    "$unarchive_command"                            \
     "$sudo"
 }
 
 install_package_neovim() {
-  name=nvim
-  version="$1"
-  sudo="$2"
-  link_path="${3:-}"
-  is_create_link_to_default_in_local_directory="${4:-0}"
+  local name=nvim
+  local version="$1"
+  local sudo="$2"
+  local link_path="${3:-}"
+  local create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
     echo 'Unsupported yet' && return 1
@@ -55,8 +56,7 @@ install_package_neovim() {
     echo 'Unsupported platform' && return 1
   fi
 
-  if  [ "$is_create_link_to_default_in_local_directory" = '1' ]; then
+  if  [ "$create_link_to_default_in_local_directory" = '1' ]; then
     create_symlink "$name" "$link_path"
   fi
 }
-
