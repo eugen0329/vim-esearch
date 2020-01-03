@@ -27,7 +27,8 @@ fi
 . "$provision_directory/dependencies/rg.sh"
 # shellcheck source=spec/support/provision/dependencies/plugins.sh
 . "$provision_directory/dependencies/plugins.sh"
-# shellcheck source=spec/support/provision/dependencies/__installation_helpers.sh
+
+# shellcheck source=spec/support/provision/__installation_helpers.sh
 . "$provision_directory/__installation_helpers.sh"
 
 set -eux

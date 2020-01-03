@@ -4,7 +4,7 @@
 . "$(dirname "$0")/__fail_if_wrong_pwd.sh"
 
 # --pull=never is not supported in old docker versions
-docker inspect esearch-rspec 2>&1 1>/dev/null || \
+docker inspect esearch-rspec 1>/dev/null 2>&1 || \
   ( echo "The image needs to be built first " && exit 1 )
 
 # Similar to what docker-compose.yml defines, but without introducing composer

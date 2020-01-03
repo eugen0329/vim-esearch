@@ -53,8 +53,8 @@ RUN set -eux; \
 # Clearly an antipattern, but we have to be able to reuse this scripts for
 # various builds including different base images, different platforms and
 # travis-ci, so it's an acceptable trade-off
-:
-RUN \
+# :
+# RUN \
     sh alpine.sh $BIN_DIR $PLUGINS_DIR; \
 # Temprorary fix for neovim .appimage which is not working under alpine distro so far
     apk add --no-cache neovim; \

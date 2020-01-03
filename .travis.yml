@@ -126,7 +126,12 @@ jobs:
       script:
         - bundle exec rubocop --display-cop-names
           # -x: Allow 'source' outside of FILES
-        - shellcheck -e SC2039 -x spec/support/**/*.sh spec/support/docker/run* spec/support/docker/rspec* spec/support/docker/docker-entrypoint.sh
+        - shellcheck -e SC2039 -x
+            spec/support/**/*.sh
+            spec/support/**/build*
+            spec/support/**/run*
+            spec/support/docker/rspec*
+            spec/support/provision/bats
       os: linux
     - name: 'Viml lint (Vint, VimLint)'
       env:
