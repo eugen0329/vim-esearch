@@ -98,3 +98,9 @@ assert_file_exists() {
 assert_file_missing() {
   assert [ ! -f "$1" ]
 }
+
+assert_output_includes() {
+  if ! echo "$output" | grep "$1" 2>&1 1>/dev/null; then
+    flunk "Expected $output to include $1"
+  fi
+}

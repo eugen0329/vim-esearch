@@ -29,7 +29,7 @@ load "dependencies/pt.sh"
 load "dependencies/rg.sh"
 # shellcheck source=spec/support/provision/dependencies/plugins.sh
 load "dependencies/plugins.sh"
-# shellcheck source=spec/support/provision/dependencies/lib.sh
+# shellcheck source=spec/support/provision/dependencies/__installation_helpers.sh
 load "__installation_helpers.sh"
 
 set -eux
