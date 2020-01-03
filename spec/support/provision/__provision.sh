@@ -15,21 +15,21 @@ load() {
   . "$provision_directory/$1"
 }
 
-# shellcheck source=spec/support/provision/__vim.sh
-load "__vim.sh"
-# shellcheck source=spec/support/provision/__neovim.sh
-load "__neovim.sh"
-# shellcheck source=spec/support/provision/__ackloadsh
-load "__ack.sh"
-# shellcheck source=spec/support/provision/__agloadsh
-load "__ag.sh"
-# shellcheck source=spec/support/provision/__ptloadsh
-load "__pt.sh"
-# shellcheck source=spec/support/provision/__rgloadsh
-load "__rg.sh"
-# shellcheck source=spec/support/provision/__pluginsloadsh
-load "__plugins.sh"
-# shellcheck source=spec/support/provision/__libloadsh
-load "__lib.sh"
+# shellcheck source=spec/support/provision/dependencies/vim.sh
+load "dependencies/vim.sh"
+# shellcheck source=spec/support/provision/dependencies/neovim.sh
+load "dependencies/neovim.sh"
+# shellcheck source=spec/support/provision/dependencies/ack.sh
+load "dependencies/ack.sh"
+# shellcheck source=spec/support/provision/dependencies/ag.sh
+load "dependencies/ag.sh"
+# shellcheck source=spec/support/provision/dependencies/pt.sh
+load "dependencies/pt.sh"
+# shellcheck source=spec/support/provision/dependencies/rg.sh
+load "dependencies/rg.sh"
+# shellcheck source=spec/support/provision/dependencies/plugins.sh
+load "dependencies/plugins.sh"
+# shellcheck source=spec/support/provision/dependencies/lib.sh
+load "__installation_helpers.sh"
 
 set -eux
