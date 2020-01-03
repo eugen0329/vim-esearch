@@ -5,7 +5,7 @@ setup() {
   bin_directory="$PROVISION_TEST_DIR/bin"
   plugins_directory="$PROVISION_TEST_DIR/plugins"
   mkdir -p "$bin_directory" "$plugins_directory"
-  git init "$PROVISION_TEST_DIR" # to test git grep
+  git init "$PROVISION_TEST_DIR"
 }
 
 teardown() {
@@ -32,8 +32,10 @@ teardown() {
   run "$bin_directory/rg"  --version
   assert_success
 
+  # seems, git-grep under alpine os doesn't have help key, but at least it works
   run git -C "$PROVISION_TEST_DIR" grep -h
-  assert_success
+  assert_output_includes 'usage: git grep'
+  assert_equal "$status" 129
 
   assert_file_exists "$plugins_directory/vimproc.vim/plugin/vimproc.vim"
   assert_file_exists "$plugins_directory/vim-prettyprint/plugin/prettyprint.vim"
