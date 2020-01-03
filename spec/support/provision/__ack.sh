@@ -11,7 +11,7 @@ install_package_ack() {
   local create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
-    echo 'Unsupported yet' && return 1
+    echo 'Not implemented error' && return 2
   fi
 
   if is_debian_or_debian_like_linux; then
@@ -22,7 +22,7 @@ install_package_ack() {
   elif is_osx; then
     brew install ack
   else
-    echo 'Unsupported platform' && return 1
+    echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
   if is_true "$create_link_to_default_in_local_directory"; then

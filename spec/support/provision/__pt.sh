@@ -17,22 +17,22 @@ install_prebuilt_pt() {
     local archive_file="$directory_inside_archive.zip"
     local unarchive_command="$unarchive_zip"
   else
-    echo "Unsupported platform" && return 1
+    echo "Unsupported platform error: $(uname -a)" && return 1
   fi
   local download_url="https://github.com/monochromegane/the_platinum_searcher/releases/download/v$version/$archive_file"
   local binary_path_inside_unarchived_directory="$directory_inside_archive/pt"
   local sudo="$dont_use_sudo"
 
-  install_prebuilt_from_downloadable_archive   \
-    'pt'                                       \
-    "$version"                                 \
-    "$local_directory_path"                    \
-    "$global_directory_path"                   \
-    "$create_link_to_default_in_local_directory"   \
-    "$archive_file"                            \
-    "$download_url"                            \
-    "$binary_path_inside_unarchived_directory" \
-    "$unarchive_command"                       \
+  install_prebuilt_from_downloadable_archive     \
+    'pt'                                         \
+    "$version"                                   \
+    "$local_directory_path"                      \
+    "$global_directory_path"                     \
+    "$create_link_to_default_in_local_directory" \
+    "$archive_file"                              \
+    "$download_url"                              \
+    "$binary_path_inside_unarchived_directory"   \
+    "$unarchive_command"                         \
     "$sudo"
 }
 
