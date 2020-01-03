@@ -3,87 +3,82 @@
 
 [ -n "$__LIB_SH_SOURCE_ONCE" ] && return 0; __LIB_SH_SOURCE_ONCE=1
 
-current_os_release_id="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
-current_os_release_id_like="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
-current_kernel_name="$(uname -s)"
+apt_get_arguement_to_install_less='--no-install-recommends'
+apk_argument_to_install_less='--no-cache'
+pip3_argument_to_install_less='--no-cache'
+unarchive_tar="tar xvfz '%s'"
+unarchive_zip="unzip '%s'"
+CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
+CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
+CURRENT_KERNEL_NAME="$(uname -s)"
 
-apt_get_arguement_to_install_less="${apt_get_arguement_to_install_less:-"--no-install-recommends"}"
-apk_argument_to_install_less="${apk_argument_to_install_less:-"--no-cache"}"
-pip3_argument_to_install_less="${pip3_argument_to_install_less:-"--no-cache"}"
 
 # Macros for better readability
 skip_local_install=''
 skip_global_install=''
-skip_local_link=''
+# install_global=1
+# install_local=1
+dont_use_sudo=''
 use_sudo='sudo'
-skip_use_sudo=''
-create_link_to_default_in_local_bin=1
-create_link_to_default_in_global_bin=1
-skip_create_link_to_default_in_local_bin=0
-skip_create_link_to_default_in_global_bin=0
+create_link_to_default_in_local_directory='1'
+dont_checkout=''
 
 is_linux() {
-  [ "$current_kernel_name" = 'Linux' ]
+  [ "$CURRENT_KERNEL_NAME" = 'Linux' ]
 }
 
 is_alpine_linux() {
-  is_linux && [ "$current_os_release_id" = "alpine" ]
+  is_linux && [ "$CURRENT_OS_RELEASE_ID" = "alpine" ]
 }
 
 is_debian_or_debian_like_linux() {
   is_linux && \
-    { [ "$current_os_release_id_like" = "debian" ] || [ "$current_os_release_id" = "debian" ]; }
+    { [ "$CURRENT_OS_RELEASE_ID_LIKE" = "debian" ] || [ "$CURRENT_OS_RELEASE_ID" = "debian" ]; }
 }
 
 is_osx() {
-  [ "$current_kernel_name" = 'Darwin' ]
+  [ "$CURRENT_KERNEL_NAME" = 'Darwin' ]
 }
 
-unarchive() {
-  case $1 in
-    # *.tar.bz2)   tar xvjf "$1"    ;;
-    *.tar.gz)    tar xvzf "$1"    ;;
-    # *.tar.xz)    tar xvJf "$1"    ;;
-    # *.bz2)       bunzip2 "$1"     ;;
-    # *.rar)       unrar x "$1"     ;;
-    # *.gz)        gunzip "$1"      ;;
-    *.tar)       tar xvf "$1"     ;;
-    # *.tbz2)      tar xvjf "$1"    ;;
-    # *.tgz)       tar xvzf "$1"    ;;
-    *.zip)       unzip "$1"       ;;
-    # *.Z)         uncompress "$1"  ;;
-    # *.7z)        7z x "$1"        ;;
-    # *.xz)        unxz "$1"        ;;
-    # *.exe)       cabextract "$1"  ;;
-    *.appimage)  chmod +x "$1"; ./"$1" --appimage-extract ;;
-    *)           echo "$1: unrecognized file compression" && exit 10 ;;
-  esac
+# workarounds as we don't have types in bash
+is_true() {
+  fail_unless_bool "$1"
+  [ "$1" = '1' ]
+}
+is_false() {
+  fail_unless_bool "$1"
+  [ "$1" = '0' ]
+}
+fail_unless_bool() {
+  [ "$1" = '1' ] || [ "$1" = '0' ] ||  exit 2
 }
 
-create_global_executable_link() {
+create_symlink() {
   local executable="$1"
-  local link_dest="$2"
-  local forced_flag='-f'
+  local link_path="$2"
+  local forced_flag=
+  [ "${forced:-0}" = '0' ] || forced_flag='-f'
 
-  if [ -n "$link_dest"  ]; then
-    mkdir -p "$(dirname "$link_dest")"
-    ln -s "$forced_flag" "$(command -v "$executable")" "$link_dest"
+  if [ -n "$link_path"  ]; then
+    mkdir -p "$(dirname "$link_path")"
+    ln -s "$forced_flag" "$(command -v "$executable")" "$link_path" || true
   else
     echo "Path must not be blank" && return 1
   fi
 }
 
 git_clone_and_checkout() {
-  local repo="$1"
-  local dest="$2"
-  local version="$3"
+  local url="$1"
+  local path="$2"
+  local branch="${3:-"master"}"
+  local commit_hash="$4"
 
-  if [ "${forced:-0}" = '0' ] || ! is_git_repo "$dest" ; then
-    rm -rfv "$dest"
-    git clone "$repo" "$dest"
+  if [ "${forced:-0}" = '0' ] || ! is_git_repo "$path" ; then
+    rm -rfv "$path"
+    git clone -b "$branch" --single-branch "$url" "$path"
   fi
 
-  [ -z "$version" ] || git -C "$dest" checkout  "$version"
+  git -C "$path" checkout  "$commit_hash"
 }
 
 is_git_repo() {
@@ -94,67 +89,44 @@ cp_no_overwrite() {
   [ -e "$2" ] || cp "$1" "$2"
 }
 
-install_versioned_prebuilt() {
-  local name="$1"
-  local version="$2"
-  local src="$3"
-  local dest="$4"
-  local link_dest="$5"
-  local sudo="${6:-}"
-  local forced_flag='-f'
-  local cp_command=cp
-
-  # shellcheck disable=SC2059
-  $sudo mkdir -p "$dest"
-  # shellcheck disable=SC2059
-  $sudo "$cp_command" "$binary_path_inside_unarchived_directory" "$dest/$name-$version"
-
-  if [ -n "$link_dest" ] ; then
-    # shellcheck disable=SC2059
-    $sudo ln -s $forced_flag "$dest/$name-$version" "$link_dest"
-  fi
-}
-
 install_prebuilt_from_downloadable_archive() {
   local name="$1"
   local version="$2"
-  local dest="$3"
-  local create_link_to_default="$4"
-  local global_dest="$5"
-  local create_global_link_to_default="$6"
-  local archive_file="$7"
-  local download_url="$8"
-  local binary_path_inside_unarchived_directory="$9"
-  local sudo="${10:-}"
-  local temporary_directory="/tmp/$name-$version-installation"
-  local link_dest global_link_dest
-  [ "$create_link_to_default" = 0 ] || link_dest="$dest/$name"
-  [ "$create_global_link_to_default" = 0 ] || global_link_dest="$global_dest/$name"
-
+  local local_dir="$3"
+  local global_dir="$4"
+  local create_link_to_default_in_local_directory="$5"
+  local archive_file="$6"
+  local download_url="$7"
+  local binary_path_inside_unarchived_directory="$8"
+  local unarchive_command="$9"
+  local sudo="${10}"
+  local temporary_directory="/tmp/$name-$version"
+  local forced_flag=
+  local cp_command=cp_no_overwrite
+  [ "${forced:-0}" = '0' ] || forced_flag='-f'
+  [ "${forced:-0}" = '0' ] || cp_command='cp'
 
   (
     rm -frv "$temporary_directory"
     mkdir -p  "$temporary_directory"
-    cd  "$temporary_directory" || exit 3
+    cd        "$temporary_directory"
     wget -N "$download_url"
 
-    unarchive "$archive_file"
+    # shellcheck disable=SC2059
+    local unarchive="$(printf "$unarchive_command" "$archive_file")"
+    eval "$unarchive"
 
-    [ -z "$dest" ] ||                            \
-      install_versioned_prebuilt                 \
-      "$name"                                    \
-      "$version"                                 \
-      "$binary_path_inside_unarchived_directory" \
-      "$dest"                                    \
-      "$link_dest"
+    if [ -n "$local_dir" ]; then
+      "$cp_command" "$binary_path_inside_unarchived_directory" "$local_dir/$name-$version"
+    fi
 
-    [ -z "$global_dest" ] ||                     \
-      install_versioned_prebuilt                 \
-      "$name"                                    \
-      "$version"                                 \
-      "$binary_path_inside_unarchived_directory" \
-      "$global_dest"                             \
-      "$global_link_dest"
+    if is_true "$create_link_to_default_in_local_directory" ; then
+      ln -s $forced_flag "$local_dir/$name-$version" "$local_dir/$name" || true
+    fi
+
+    if [ -n "$global_dir" ] && [ ! -e "$global_dir/$name-$version" ]; then
+      "$cp_command" "$binary_path_inside_unarchived_directory" "$global_dir/$name-$version"
+    fi
   )
   rm -frv "$temporary_directory"
 }
