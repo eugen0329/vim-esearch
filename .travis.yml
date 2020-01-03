@@ -63,9 +63,9 @@ install:
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/provision/osx.sh "spec/support/bin" "spec/support/vim_plugins"
+      sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     else
-      sh spec/support/provision/debian.sh "spec/support/bin" "spec/support/vim_plugins"
+      sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     fi
 
 before_script:
