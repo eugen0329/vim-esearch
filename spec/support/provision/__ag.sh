@@ -4,11 +4,11 @@
 . "$(dirname "$0")/__lib.sh"
 
 install_package_ag() {
-  name='ag'
-  version="$1"
-  sudo="$2"
-  link_path="${3:-}"
-  is_create_link_to_default_in_local_directory="${4:-0}"
+  local name='ag'
+  local version="$1"
+  local sudo="$2"
+  local link_path="${3:-}"
+  local create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
     echo 'Unsupported yet' && return 1
@@ -24,7 +24,7 @@ install_package_ag() {
     echo 'Unsupported platform' && return 1
   fi
 
-  if  is_true "$is_create_link_to_default_in_local_directory"; then
+  if  is_true "$create_link_to_default_in_local_directory"; then
     create_symlink "$name" "$link_path"
   fi
 }
