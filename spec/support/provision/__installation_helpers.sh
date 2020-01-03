@@ -105,15 +105,16 @@ install_prebuilt_from_downloadable_archive() {
   local cp_command=cp_no_overwrite
   [ "${forced:-0}" = '0' ] || forced_flag='-f'
   [ "${forced:-0}" = '0' ] || cp_command='cp'
+  local unarchive
 
   (
     rm -frv "$temporary_directory"
     mkdir -p  "$temporary_directory"
-    cd        "$temporary_directory"
+    cd  "$temporary_directory" || exit 3
     wget -N "$download_url"
 
     # shellcheck disable=SC2059
-    local unarchive="$(printf "$unarchive_command" "$archive_file")"
+    unarchive="$(printf "$unarchive_command" "$archive_file")"
     eval "$unarchive"
 
     if [ -n "$local_dir" ]; then
