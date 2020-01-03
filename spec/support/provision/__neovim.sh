@@ -17,7 +17,7 @@ install_prebuilt_neovim() {
     local binary_path_inside_unarchived_directory="nvim-osx64/bin/nvim"
     local unarchive_command="$unarchive_tar"
   else
-    echo "Unsupported platform" && return 1
+    echo "Unsupported platform error: $(uname -a)" && return 1
   fi
   local download_url="https://github.com/neovim/neovim/releases/download/v$version/$archive_file"
   local sudo="$dont_use_sudo"
@@ -43,17 +43,17 @@ install_package_neovim() {
   local create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
-    echo 'Unsupported yet' && return 1
+    echo 'Not implemented error' && return 2
   fi
 
   if is_debian_or_debian_like_linux; then
-    echo 'Unsupported yet' && return 1
+    echo 'Not implemented error' && return 2
   elif is_alpine_linux; then
     apk add "$apk_argument_to_install_less" neovim
   elif is_osx; then
-    echo 'Unsupported yet' && return 1
+    echo 'Not implemented error' && return 2
   else
-    echo 'Unsupported platform' && return 1
+    echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
   if  [ "$create_link_to_default_in_local_directory" = '1' ]; then

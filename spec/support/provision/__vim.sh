@@ -11,7 +11,7 @@ install_package_vim() {
   local create_link_to_default_in_local_directory="${4:-0}"
 
   if [ "$version" != 'latest' ]; then
-    echo 'Unsupported yet' && return 1
+    echo 'Not implemented error' && return 2
   fi
 
   if is_debian_or_debian_like_linux; then
@@ -25,7 +25,7 @@ install_package_vim() {
     brew update --verbose
     brew install --build-from-source "$provision_directory/brew_formulae/macvim.rb" -- --with-override-system-vi
   else
-    echo 'Unsupported platform' && return 1
+    echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
   if is_true "$create_link_to_default_in_local_directory" ; then

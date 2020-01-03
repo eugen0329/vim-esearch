@@ -34,7 +34,7 @@ ENV XDG_DATA_HOME=$DEPS_DIR/XDG_DATA_HOME
 WORKDIR $DEPS_DIR
 
 COPY --from=build-pt /go/bin/pt $BIN_DIR/pt
-COPY Gemfile* spec/support/provision/* spec/support/setup/* spec/support/docker/docker-entrypoint.sh $DEPS_DIR/
+COPY Gemfile* spec/support/provision/* spec/support/docker/docker-entrypoint.sh $DEPS_DIR/
 
 RUN set -eux; \
 # Runtime dependencies

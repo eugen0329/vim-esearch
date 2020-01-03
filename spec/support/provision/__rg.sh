@@ -13,7 +13,7 @@ install_prebuilt_rg() {
   elif is_osx; then
     local directory_inside_archive="ripgrep-$version-x86_64-apple-darwin"
   else
-    echo "Unsupported platform" && return 1
+    echo "Unsupported platform error: $(uname -a)" && return 1
   fi
   local archive_file="$directory_inside_archive.tar.gz"
   local download_url="https://github.com/BurntSushi/ripgrep/releases/download/$version/$archive_file"
