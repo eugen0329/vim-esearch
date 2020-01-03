@@ -84,12 +84,12 @@ class API::ESearch::Editor
   end
   alias cleanup! delete_all_buffers_and_clear_messages!
 
-  def delete_current_buffer!(ignore_unsaved_changes: false)
-    return command!('bwipeout!') if ignore_unsaved_changes
+  def bufdelete!(ignore_unsaved_changes: false)
+    return command!('bdelete!') if ignore_unsaved_changes
 
-    command!('bwipeout!')
+    command!('bdelete')
   end
-  alias bufdelete! delete_current_buffer!
+  alias delete_current_buffer! bufdelete!
 
   def locate_line!(line_number)
     locate_cursor! line_number, KEEP_HORIZONTAL_POSITION

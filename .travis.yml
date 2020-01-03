@@ -131,7 +131,7 @@ jobs:
             spec/support/**/build*
             spec/support/**/run*
             spec/support/docker/rspec*
-            spec/support/provision/bats
+            spec/support/provision/test/bats
       os: linux
     - name: 'Viml lint (Vint, VimLint)'
       env:
