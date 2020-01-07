@@ -20,8 +20,8 @@ install_prebuilt_pt \
   "$local_bin_dir"  \
   "$create_link_to_default_in_local_bin"
 
-install_package_ack \
-  '3.2.0'           \
+install_package_ack                                                                                        \
+  'https://github.com/Homebrew/homebrew-core/blob/a34d39a63d090f1c5d4ccb7be7149195dc8059df/Formula/ack.rb' \
   "$use_sudo"
 
 install_package_ag  \
