@@ -7,7 +7,7 @@ install_prebuilt_neovim() {
   local version="$1"
   local local_directory_path="$2"
   local global_directory_path="$3"
-  local create_link_to_default_in_local_directory="${4:-0}"
+  local create_link_to_default_in_local_bin="${4:-0}"
   if is_linux; then
     local archive_file='nvim.appimage'
     local binary_path_inside_unarchived_directory="squashfs-root/usr/bin/nvim"
@@ -20,15 +20,15 @@ install_prebuilt_neovim() {
   local download_url="https://github.com/neovim/neovim/releases/download/v$version/$archive_file"
   local sudo="$dont_use_sudo"
 
-  install_prebuilt_from_downloadable_archive     \
-    'nvim'                                       \
-    "$version"                                   \
-    "$local_directory_path"                      \
-    "$global_directory_path"                     \
-    "$create_link_to_default_in_local_directory" \
-    "$archive_file"                              \
-    "$download_url"                              \
-    "$binary_path_inside_unarchived_directory"   \
+  install_prebuilt_from_downloadable_archive   \
+    'nvim'                                     \
+    "$version"                                 \
+    "$local_directory_path"                    \
+    "$global_directory_path"                   \
+    "$create_link_to_default_in_local_bin"     \
+    "$archive_file"                            \
+    "$download_url"                            \
+    "$binary_path_inside_unarchived_directory" \
     "$sudo"
 }
 

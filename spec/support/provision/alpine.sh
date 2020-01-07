@@ -17,7 +17,7 @@ install_package_neovim \
 # install_prebuilt_pt       \
 #   '2.2.0'                 \
 #   "$local_bin_dir" \
-#   "$create_link_to_default_in_local_directory"
+#   "$create_link_to_default_in_local_bin"
 
 install_package_ack    \
   'latest'
@@ -28,7 +28,7 @@ install_package_ag     \
 install_prebuilt_rg    \
   '11.0.2'             \
   "$local_bin_dir"         \
-  "$create_link_to_default_in_local_directory"
+  "$create_link_to_default_in_local_bin"
 
 # shellcheck source=spec/support/provision/plugins.sh
 sh "$provision_directory/default_plugins.sh" "${2:-"$provision_directory/../vim_plugins"}"
