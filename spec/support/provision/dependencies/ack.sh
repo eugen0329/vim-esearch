@@ -19,7 +19,7 @@ install_package_ack() {
 
     apk add "$apk_argument_to_install_less" ack
   elif is_osx; then
-    brew install "ack=$version"
+    brew install "ack@$version"
   else
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
