@@ -3,7 +3,7 @@
 # shellcheck source=spec/support/provision/__provision.sh
 . "$(dirname "$0")/__provision.sh"
 
-local_directory_path="${1:-"$provision_directory/../bin"}"
+local_bin_dir="${1:-"$provision_directory/../bin"}"
 
 install_package_vim       \
   'latest'                \
@@ -13,12 +13,11 @@ install_package_vim       \
 # install_package_neovim    \
 #   "latest"                \
 #   "$dont_use_sudo"        \
-#   "$local_directory_path"
+#   "$local_bin_dir"
 
 install_prebuilt_pt       \
   '2.2.0'                 \
-  "$local_directory_path" \
-  "$skip_global_install"  \
+  "$local_bin_dir" \
   "$create_link_to_default_in_local_directory"
 
 install_package_ack       \
@@ -31,8 +30,7 @@ install_package_ag        \
 
 install_prebuilt_rg       \
   '11.0.2'                \
-  "$local_directory_path" \
-  "$skip_global_install"  \
+  "$local_bin_dir" \
   "$create_link_to_default_in_local_directory"
 
 # shellcheck source=spec/support/provision/plugins.sh
