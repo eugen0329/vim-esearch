@@ -5,8 +5,8 @@
 
 local_bin_dir="${1:-"$provision_dir/../bin"}"
 
-install_package_vim       \
-  'latest'                \
+install_package_vim \
+  'latest'          \
   "$dont_use_sudo"
 
 ## Disabled
@@ -15,22 +15,22 @@ install_package_vim       \
 #   "$dont_use_sudo"        \
 #   "$local_bin_dir"
 
-install_prebuilt_pt       \
-  '2.2.0'                 \
-  "$local_bin_dir" \
+install_prebuilt_pt \
+  '2.2.0'           \
+  "$local_bin_dir"  \
   "$create_link_to_default_in_local_bin"
 
-install_package_ack       \
-  'latest'                \
+install_package_ack \
+  '3.2.0'           \
   "$use_sudo"
 
-install_package_ag        \
-  'latest'                \
+install_package_ag  \
+  'latest'          \
   "$use_sudo"
 
-install_prebuilt_rg       \
-  '11.0.2'                \
-  "$local_bin_dir" \
+install_prebuilt_rg \
+  '11.0.2'          \
+  "$local_bin_dir"  \
   "$create_link_to_default_in_local_bin"
 
 # shellcheck source=spec/support/provision/plugins.sh
