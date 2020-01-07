@@ -15,16 +15,12 @@ CURRENT_KERNEL_NAME="$(uname -s)"
 skip_local_install=''
 skip_global_install=''
 skip_local_link=''
-
 create_link_to_default_in_local_bin=1
 create_link_to_default_in_global_bin=1
 skip_create_link_to_default_in_local_bin=0
 skip_create_link_to_default_in_global_bin=0
-
 use_sudo='sudo'
 dont_use_sudo=''
-# create_link_to_default_in_local_directory='1'
-dont_checkout=''
 
 is_linux() {
   [ "$CURRENT_KERNEL_NAME" = 'Linux' ]
@@ -58,20 +54,20 @@ is_osx() {
 
 unarchive() {
   case $1 in
-    # *.tar.bz2)   tar xvjf $1    ;;
-    *.tar.gz)    tar xvzf $1    ;;
-    # *.tar.xz)    tar xvJf $1    ;;
-    # *.bz2)       bunzip2 $1     ;;
-    # *.rar)       unrar x $1     ;;
-    # *.gz)        gunzip $1      ;;
-    *.tar)       tar xvf $1     ;;
-    # *.tbz2)      tar xvjf $1    ;;
-    # *.tgz)       tar xvzf $1    ;;
-    *.zip)       unzip $1       ;;
-    # *.Z)         uncompress $1  ;;
-    # *.7z)        7z x $1        ;;
-    # *.xz)        unxz $1        ;;
-    # *.exe)       cabextract $1  ;;
+    # *.tar.bz2)   tar xvjf "$1"    ;;
+    *.tar.gz)    tar xvzf "$1"    ;;
+    # *.tar.xz)    tar xvJf "$1"    ;;
+    # *.bz2)       bunzip2 "$1"     ;;
+    # *.rar)       unrar x "$1"     ;;
+    # *.gz)        gunzip "$1"      ;;
+    *.tar)       tar xvf "$1"     ;;
+    # *.tbz2)      tar xvjf "$1"    ;;
+    # *.tgz)       tar xvzf "$1"    ;;
+    *.zip)       unzip "$1"       ;;
+    # *.Z)         uncompress "$1"  ;;
+    # *.7z)        7z x "$1"        ;;
+    # *.xz)        unxz "$1"        ;;
+    # *.exe)       cabextract "$1"  ;;
     *.appimage)  chmod +x "$1"; ./"$1" --appimage-extract ;;
     *)           echo "\`$1': unrecognized file compression" && exit 1 ;;
   esac

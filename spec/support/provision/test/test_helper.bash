@@ -30,5 +30,6 @@ assert_valid_link_exists() {
   [ -L "$1" ] && [ -e "$1" ] && { [ -z "${2:-}" ] || [ "$(readlink "$1")" = "$2" ]; }
 }
 
-provision_directory=/provision load /provision/__provision.sh
+provision_directory=/provision
+load /provision/__provision.sh
 set +x
