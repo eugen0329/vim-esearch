@@ -3,13 +3,13 @@
 
 [ -n "$__LIB_SH_SOURCE_ONCE" ] && return 0; __LIB_SH_SOURCE_ONCE=1
 
-apt_get_arguement_to_install_less='--no-install-recommends'
-apk_argument_to_install_less='--no-cache'
-pip3_argument_to_install_less='--no-cache'
 CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
 CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
 CURRENT_KERNEL_NAME="$(uname -s)"
 
+apt_get_arguement_to_install_less="${apt_get_arguement_to_install_less:-"--no-install-recommends"}"
+apk_argument_to_install_less="${apk_argument_to_install_less:-"--no-cache"}"
+pip3_argument_to_install_less="${pip3_argument_to_install_less:-"--no-cache"}"
 
 # Macros for better readability
 skip_local_install=''
@@ -39,19 +39,6 @@ is_osx() {
   [ "$CURRENT_KERNEL_NAME" = 'Darwin' ]
 }
 
-# workarounds as we don't have types in bash
-# is_true() {
-#   fail_unless_bool "$1"
-#   [ "$1" = '1' ]
-# }
-# is_false() {
-#   fail_unless_bool "$1"
-#   [ "$1" = '0' ]
-# }
-# fail_unless_bool() {
-#   [ "$1" = '1' ] || [ "$1" = '0' ] ||  exit 2
-# }
-
 unarchive() {
   case $1 in
     # *.tar.bz2)   tar xvjf "$1"    ;;
@@ -73,7 +60,7 @@ unarchive() {
   esac
 }
 
-create_symlink() {
+create_global_executable_link() {
   local executable="$1"
   local link_dest="$2"
   local forced_flag=
