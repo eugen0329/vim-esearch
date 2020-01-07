@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__installation_helpers.sh
-. "$provision_directory/__installation_helpers.sh"
+. "$provision_dir/__installation_helpers.sh"
 
 install_package_vim() {
   local name='gvim'
@@ -22,10 +22,10 @@ install_package_vim() {
   elif is_osx; then
     name='mvim'
     brew update --verbose
-    brew install --build-from-source "$provision_directory/brew_formulae/macvim.rb" -- --with-override-system-vi
+    brew install --build-from-source "$provision_dir/brew_formulae/macvim.rb" -- --with-override-system-vi
   else
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
-  [ -z "$local_link_dest" ] || create_symlink "$name" "$local_link_dest"
+  [ -z "$local_link_dest" ] || create_global_executable_link "$name" "$local_link_dest"
 }

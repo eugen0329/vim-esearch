@@ -77,7 +77,12 @@ after_failure:
   - ls -lah /usr/local/bin
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
-
+  - ack --help
+  - ag --help
+  - grep --help
+  - rg --help
+  - pt --help
+  - git grep -h
 jobs:
   allow_failures:
     - name: 'Acceptance tests of #backend#nvim'

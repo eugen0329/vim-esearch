@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__installation_helpers.sh
-. "$provision_directory/__installation_helpers.sh"
+. "$provision_dir/__installation_helpers.sh"
 
 install_prebuilt_neovim() {
   local version="$1"
@@ -52,5 +52,5 @@ install_package_neovim() {
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
-   [ -z "$local_link_dest" ] || create_symlink "$name" "$local_link_dest"
+  [ -z "$local_link_dest" ] || create_global_executable_link "$name" "$local_link_dest"
 }

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # shellcheck source=spec/support/provision/__installation_helpers.sh
-. "$provision_directory/__installation_helpers.sh"
+. "$provision_dir/__installation_helpers.sh"
 
 install_prebuilt_pt() {
   local version="$1"

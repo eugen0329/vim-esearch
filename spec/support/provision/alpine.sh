@@ -2,7 +2,7 @@
 
 # shellcheck source=spec/support/provision/__provision.sh
 . "$(dirname "$0")/__provision.sh"
-local_bin_dir="${1:-"$provision_directory/../bin"}"
+local_bin_dir="${1:-"$provision_dir/../bin"}"
 
 install_package_vim    \
   'latest'             \
@@ -31,4 +31,4 @@ install_prebuilt_rg    \
   "$create_link_to_default_in_local_bin"
 
 # shellcheck source=spec/support/provision/plugins.sh
-sh "$provision_directory/default_plugins.sh" "${2:-"$provision_directory/../vim_plugins"}"
+sh "$provision_dir/default_plugins.sh" "${2:-"$provision_dir/../vim_plugins"}"
