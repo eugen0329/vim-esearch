@@ -11,36 +11,32 @@ install_prebuilt_neovim() {
   if is_linux; then
     local archive_file='nvim.appimage'
     local binary_path_inside_unarchived_directory="squashfs-root/usr/bin/nvim"
-    local unarchive_command="chmod +x '$archive_file'; ./'$archive_file' --appimage-extract"
   elif is_osx; then
     local archive_file='nvim-macos.tar.gz'
     local binary_path_inside_unarchived_directory="nvim-osx64/bin/nvim"
-    local unarchive_command="$unarchive_tar"
   else
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
   local download_url="https://github.com/neovim/neovim/releases/download/v$version/$archive_file"
   local sudo="$dont_use_sudo"
 
-  install_prebuilt_from_downloadable_archive        \
-    'nvim'                                          \
-    "$version"                                      \
-    "$local_directory_path"                         \
-    "$global_directory_path"                        \
+  install_prebuilt_from_downloadable_archive     \
+    'nvim'                                       \
+    "$version"                                   \
+    "$local_directory_path"                      \
+    "$global_directory_path"                     \
     "$create_link_to_default_in_local_directory" \
-    "$archive_file"                                 \
-    "$download_url"                                 \
-    "$binary_path_inside_unarchived_directory"      \
-    "$unarchive_command"                            \
+    "$archive_file"                              \
+    "$download_url"                              \
+    "$binary_path_inside_unarchived_directory"   \
     "$sudo"
 }
 
 install_package_neovim() {
   local name=nvim
   local version="$1"
-  local sudo="$2"
-  local link_path="${3:-}"
-  local create_link_to_default_in_local_directory="${4:-0}"
+  local sudo="${2:-}"
+  local local_link_dest="${3:-}"
 
   if [ "$version" != 'latest' ]; then
     echo 'Not implemented error' && return 2
@@ -56,7 +52,5 @@ install_package_neovim() {
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
-  if  [ "$create_link_to_default_in_local_directory" = '1' ]; then
-    create_symlink "$name" "$link_path"
-  fi
+   [ -z "$local_link_dest" ] || create_symlink "$name" "$local_link_dest"
 }

@@ -1,11 +1,14 @@
-# Vendor code, taken from one of other project which use bats (de-facto standard
+# Vendor code, taken from another which use bats (de-facto standard
 # outlook of a test_helper.bash)
 ################################################################
 
 # guard against executing this block twice due to bats internals
 if [ -z "$PROVISION_TEST_DIR" ]; then
-  PROVISION_TEST_DIR="${BATS_TMPDIR}/provision"
+  PROVISION_TEST_DIR="${BATS_TMPDIR}/provision_test_dir"
   export PROVISION_TEST_DIR="$(mktemp -d "${PROVISION_TEST_DIR}.XXX" 2>/dev/null || echo "$PROVISION_TEST_DIR")"
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
 
   PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
   export PATH
@@ -41,6 +44,14 @@ assert_failure() {
 
 assert_equal() {
   if [ "$1" != "$2" ]; then
+    { echo "expected: $1"
+      echo "actual:   $2"
+    } | flunk
+  fi
+}
+
+assert_not_equal() {
+  if [ "$1" = "$2" ]; then
     { echo "expected: $1"
       echo "actual:   $2"
     } | flunk
@@ -104,3 +115,10 @@ assert_output_includes() {
     flunk "Expected $output to include $1"
   fi
 }
+
+assert_valid_link_exists() {
+  [ -L "$1" ] && [ -e "$1" ] && { [ -z "${2:-}" ] || [ "$(readlink "$1")" = "$2" ]; }
+}
+
+provision_directory=/provision load /provision/__provision.sh
+set +x

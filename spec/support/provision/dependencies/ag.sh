@@ -6,9 +6,8 @@
 install_package_ag() {
   local name='ag'
   local version="$1"
-  local sudo="$2"
-  local link_path="${3:-}"
-  local create_link_to_default_in_local_directory="${4:-0}"
+  local sudo="${2:-}"
+  local local_link_dest="${3:-}"
 
   if [ "$version" != 'latest' ]; then
     echo 'Not implemented error' && return 2
@@ -24,7 +23,5 @@ install_package_ag() {
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
 
-  if is_true "$create_link_to_default_in_local_directory"; then
-    create_symlink "$name" "$link_path"
-  fi
+  [ -z "$local_link_dest" ] || create_symlink "$name" "$local_link_dest"
 }

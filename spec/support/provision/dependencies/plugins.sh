@@ -9,7 +9,7 @@ build_command_noop=''
 install_vim_plugin() {
   local repo="$1"
   local dest="$2"
-  local version="${3:-"$dont_checkout"}"
+  local version="${3:-}"
   local build_commands="${4:-"$build_command_noop"}"
 
   git_clone_and_checkout \
