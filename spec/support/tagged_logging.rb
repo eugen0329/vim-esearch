@@ -18,6 +18,6 @@ module TaggedLogging
   end
 
   def log_warning
-    class_name_tagged { Configuration.log.warning { yield } }
+    class_name_tagged { Configuration.log.warn { yield } }
   end
 end

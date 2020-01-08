@@ -23,7 +23,7 @@ class API::ESearch::Window::EntriesParser
 
       loop do
         relative_path = next_file_relative_path!
-        raise MissingEntryError unless line_with_entry?
+        raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
 
         next_lines_with_entries! do |line|
           yield API::ESearch::Window::Entry.new(editor, relative_path, *line)

@@ -1,33 +1,41 @@
 # frozen_string_literal: true
 
-require 'yaml'
 require 'active_support/core_ext/class/attribute'
 
 # rubocop:disable Layout/ClassLength
 class API::ESearch::Editor
   include API::Mixins::Throttling
+  include TaggedLogging
+
+  ReadProxy = Struct.new(:editor) do
+    delegate :current_line_number,
+      :current_column_number,
+      :filetype,
+      :quickfix_window_name,
+      :current_buffer_name,
+      :line,
+      to: :editor
+  end
 
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
 
   class_attribute :cache_enabled, default: true
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
-
-  attr_reader :cache, :vim_client_getter
+  attr_reader :vim_client_getter
 
   def initialize(vim_client_getter)
     @vim_client_getter = vim_client_getter
-    @cache = CacheStore.new
   end
 
   def line(number)
-    echo("getline(#{number})")
+    echo(func("getline(#{number})"))
   end
 
   def lines(from: 1)
-    return enum_for(:lines, from: from) { echo("line('$')").to_i } unless block_given?
+    return enum_for(:lines, from: from) { echo(func("line('$')")) } unless block_given?
 
     from.upto(lines.size).each do |line_number|
-      yield(line(line_number))
+      yield(echo { |e| e.line(line_number) })
     end
   end
 
@@ -36,13 +44,7 @@ class API::ESearch::Editor
   end
 
   def bufname(arg)
-    echo("bufname('#{arg}')")
-  end
-
-  def echo(arg)
-    cached(:echo, arg) do
-      vim.echo(arg)
-    end
+    echo(func("bufname('#{arg}')"))
   end
 
   def current_buffer_name
@@ -50,17 +52,11 @@ class API::ESearch::Editor
   end
 
   def current_line_number
-    current_cursor_location[0]
+    echo(func("line('.')"))
   end
 
   def current_column_number
-    current_cursor_location[1]
-  end
-
-  def current_cursor_location
-    cached(:current_cursor_location) do
-      YAML.safe_load(echo("[line('.'),col('.')]"))
-    end
+    echo(func("col('.')"))
   end
 
   def locate_cursor!(line_number, column_number)
@@ -99,21 +95,12 @@ class API::ESearch::Editor
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
-  def quickfix_window_name_with_filetype
-    cached(:quickfix_window_name_with_filetype) do
-      YAML.safe_load(echo("[get(w:, 'quickfix_title', ''), &ft]"))
-    end
+  def filetype
+    echo(var('&ft'))
   end
 
   def quickfix_window_name
-    echo("get(w:, 'quickfix_title', '')")
-  end
-
-  def with_ignore_cache
-    @with_ignore_cache = true
-    yield
-  ensure
-    @with_ignore_cache = false
+    echo(func("get(w:, 'quickfix_title', '')"))
   end
 
   def trigger_cursor_moved_event!
@@ -147,20 +134,15 @@ class API::ESearch::Editor
 
   private
 
+  delegate :with_ignore_cache, :clear_cache, :var, :func, :echo, to: :reader
+
+  def reader
+    @reader ||= API::ESearch::Editor::Read::Batch
+                      .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
+  end
+
   def vim
     vim_client_getter.call
-  end
-
-  def cached(name, *args)
-    return yield if @with_ignore_cache || !cache_enabled?
-
-    cache.fetch([name, *args]) { yield }
-  end
-
-  def clear_cache
-    return if @with_ignore_cache || !cache_enabled?
-
-    cache.clear
   end
 end
 # rubocop:enable Layout/ClassLength
