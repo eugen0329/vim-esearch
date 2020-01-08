@@ -8,11 +8,10 @@ local_bin_dir="${1:-"$provision_dir/../bin"}"
 install_package_vim \
   'latest'
 
-## Disabled
-# install_package_neovim    \
-#   "latest"                \
-#   "$dont_use_sudo"        \
-#   "$local_bin_dir"
+install_package_neovim    \
+  "latest"                \
+  "$skip_use_sudo"        \
+  "$local_bin_dir"
 
 install_package_git_grep \
   'latest'

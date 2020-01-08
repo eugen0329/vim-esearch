@@ -24,7 +24,7 @@ test_install_package_global() {
 
   "$install_function" \
     "$version"        \
-    "$dont_use_sudo"  \
+    "$skip_use_sudo"  \
     "$skip_local_link"
 
   run "$name" --version
@@ -38,7 +38,7 @@ test_install_package_local_link() {
 
   "$install_function" \
     "$version"        \
-    "$dont_use_sudo"  \
+    "$skip_use_sudo"  \
     "$local_link_dest"
 
   run "$name" --version
@@ -55,11 +55,11 @@ test_install_package_idempotance() {
 
   "$install_function" \
     "$version"        \
-    "$dont_use_sudo"  \
+    "$skip_use_sudo"  \
     "$local_link_dest"
   "$install_function" \
     "$version"        \
-    "$dont_use_sudo"  \
+    "$skip_use_sudo"  \
     "$local_link_dest"
 
   run "$name" --version

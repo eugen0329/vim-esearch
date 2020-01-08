@@ -21,7 +21,7 @@ install_prebuilt_pt() {
   fi
   local download_url="https://github.com/monochromegane/the_platinum_searcher/releases/download/v$version/$archive_file"
   local binary_path_inside_unarchived_directory="$directory_inside_archive/pt"
-  local sudo="$dont_use_sudo"
+  local sudo="$skip_use_sudo"
 
   install_prebuilt_from_downloadable_archive   \
     'pt'                                       \

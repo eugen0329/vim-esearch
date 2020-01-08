@@ -20,7 +20,7 @@ install_prebuilt_rg() {
   local archive_file="$directory_inside_archive.tar.gz"
   local download_url="https://github.com/BurntSushi/ripgrep/releases/download/$version/$archive_file"
   local binary_path_inside_unarchived_directory="$directory_inside_archive/rg"
-  local sudo="$dont_use_sudo"
+  local sudo="$skip_use_sudo"
 
   install_prebuilt_from_downloadable_archive   \
     'rg'                                       \

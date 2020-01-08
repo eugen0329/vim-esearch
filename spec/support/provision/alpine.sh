@@ -6,11 +6,11 @@ local_bin_dir="${1:-"$provision_dir/../bin"}"
 
 install_package_vim    \
   'latest'             \
-  "$dont_use_sudo"
+  "$skip_use_sudo"
 
 install_package_neovim \
   "latest"             \
-  "$dont_use_sudo"     \
+  "$skip_use_sudo"     \
   "$local_bin_dir/nvim"
 
 ## Doesn't work. Separate docker stage is used instead

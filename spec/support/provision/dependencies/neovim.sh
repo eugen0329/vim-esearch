@@ -18,7 +18,7 @@ install_prebuilt_neovim() {
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi
   local download_url="https://github.com/neovim/neovim/releases/download/v$version/$archive_file"
-  local sudo="$dont_use_sudo"
+  local sudo="$skip_use_sudo"
 
   install_prebuilt_from_downloadable_archive   \
     'nvim'                                     \
