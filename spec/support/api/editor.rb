@@ -23,6 +23,8 @@ class API::Editor
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
   attr_reader :vim_client_getter
 
+  delegate :with_ignore_cache, :clear_cache, :var, :func, :echo, to: :reader
+
   def initialize(vim_client_getter)
     @vim_client_getter = vim_client_getter
   end
@@ -61,6 +63,14 @@ class API::Editor
 
   def locate_cursor!(line_number, column_number)
     command!("call cursor(#{line_number},#{column_number})").to_i == 0
+  end
+
+  def edit!(filename)
+    command!("edit #{filename}")
+  end
+
+  def pwd
+    command('pwd')
   end
 
   def close!
@@ -132,9 +142,11 @@ class API::Editor
     end
   end
 
-  private
+  def raw_echo(arg)
+    vim.echo(arg)
+  end
 
-  delegate :with_ignore_cache, :clear_cache, :var, :func, :echo, to: :reader
+  private
 
   def reader
     @reader ||= API::Editor::Read::Batch

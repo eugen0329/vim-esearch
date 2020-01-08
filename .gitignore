@@ -4,5 +4,7 @@
 
 /failed_specs.txt
 
+/.pry_history
+
 # screenshots
 /*.png

@@ -4,12 +4,12 @@ require 'fileutils'
 require 'pathname'
 
 class Fixtures::LazyFile
-  attr_reader :given_relative_path, :content, :kwargs
+  attr_reader :given_relative_path, :raw_content, :kwargs
   attr_accessor :working_directory
 
-  def initialize(content, given_relative_path = nil, **kwargs)
+  def initialize(raw_content, given_relative_path = nil, **kwargs)
     @given_relative_path = Pathname.new(given_relative_path).cleanpath.to_s if given_relative_path
-    @content = content
+    @raw_content = raw_content
     @kwargs = kwargs
   end
 
@@ -37,6 +37,17 @@ class Fixtures::LazyFile
   end
 
   private
+
+  def content
+    @content ||=
+      if raw_content.is_a? String
+        raw_content
+      elsif raw_content.is_a? Array
+        raw_content.join("\n")
+      else
+        raise RuntimeError
+      end
+  end
 
   def digest_name
     Digest::MD5.hexdigest([content, kwargs.to_a.sort].map(&:to_s).to_s)

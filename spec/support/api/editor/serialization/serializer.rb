@@ -13,7 +13,7 @@ class API::Editor::Serialization::Serializer
       "{#{object.map { |k, v| "'#{escape(k)}':#{serialize(v)}" }.join(',')}}"
     when String, Symbol
       "'#{escape(object)}'"
-    when Numeric, API::Editor::Serialization::Identifier
+    when Numeric, NilClass, API::Editor::Serialization::Identifier
       object
     else raise UnknownObjectTypeError, "what is it?? #{object.inspect}"
     end

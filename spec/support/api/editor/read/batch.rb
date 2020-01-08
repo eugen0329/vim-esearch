@@ -28,8 +28,22 @@ class API::Editor::Read::Batch < API::Editor::Read::Base
   end
 
   def echo(arg = nil, &block)
+    return arg if @collect
+
+    raise ArgumentError unless [arg, block].count(&:present?) == 1
+
     cached(:echo, arg, block) do
-      batch_arg = block_given? ? read_proxy.yield_self(&block) : arg
+      batch_arg =
+        if block.present?
+          begin
+            @collect = true
+            read_proxy.yield_self(&block)
+          ensure
+            @collect = false
+          end
+        else
+          arg
+        end
 
       deserialize(vim.echo(serialize(batch_arg)))
     end
