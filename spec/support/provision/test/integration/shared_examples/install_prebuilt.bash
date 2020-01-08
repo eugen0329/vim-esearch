@@ -1,3 +1,6 @@
+# shellcheck disable=SC2154
+load ../test_helper
+
 setup_install_prebuilt() {
   local install_prebuilt_function="$1" name="$2" version="$3"
 

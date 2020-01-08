@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# shellcheck source=spec/support/provision/__installation_helpers.sh
+# shellcheck source=spec/support/provision/__installation_helpers.sh disable=SC2154
 . "$provision_dir/__installation_helpers.sh"
 
 install_package_ag() {

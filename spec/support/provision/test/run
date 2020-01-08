@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # --pull=never is not supported in old docker versions
-docker inspect esearch-provision-bats 2>&1 1>/dev/null || \
+docker inspect esearch-provision-bats 1>/dev/null 2>&1 || \
   ( echo "The image needs to be built first " && exit 1 )
 
 docker run --rm \

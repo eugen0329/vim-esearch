@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# shellcheck source=spec/support/provision/__installation_helpers.sh
+# shellcheck source=spec/support/provision/__installation_helpers.sh disable=SC2154
 . "$provision_dir/__installation_helpers.sh"
 
 install_prebuilt_pt() {
@@ -35,4 +35,3 @@ install_prebuilt_pt() {
     "$binary_path_inside_unarchived_directory" \
     "$sudo"
 }
-

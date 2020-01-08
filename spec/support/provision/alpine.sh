@@ -27,7 +27,7 @@ install_package_ag     \
 
 install_prebuilt_rg    \
   '11.0.2'             \
-  "$local_bin_dir"         \
+  "$local_bin_dir"     \
   "$create_link_to_default_in_local_bin"
 
 # shellcheck source=spec/support/provision/plugins.sh

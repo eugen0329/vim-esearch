@@ -31,4 +31,4 @@ fi
 . "$provision_dir/__installation_helpers.sh"
 
 set -eu
-[ "${verbose:-0}" = '0' ] || set -x
+[ "${verbose:-1}" = '0' ] || set -x

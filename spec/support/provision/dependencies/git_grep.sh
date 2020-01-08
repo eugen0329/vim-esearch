@@ -3,10 +3,10 @@
 # shellcheck source=spec/support/provision/__installation_helpers.sh disable=SC2154
 . "$provision_dir/__installation_helpers.sh"
 
-install_package_vim() {
-  local name='gvim'
+install_package_git_grep() {
+  local name='git'
   local version="$1"
-  local sudo="$2"
+  local sudo="${2:-}"
   local local_link_dest="${3:-}"
 
   if [ "$version" != 'latest' ]; then
@@ -14,15 +14,11 @@ install_package_vim() {
   fi
 
   if is_debian_or_debian_like_linux; then
-    $sudo add-apt-repository ppa:jonathonf/vim -y
-    $sudo apt update -y
-    $sudo apt-get install -y "$apt_get_arguement_to_install_less" vim-gtk
+    echo 'Not implemented error' && return 2
   elif is_alpine_linux; then
-    apk add "$apk_argument_to_install_less" gvim
+    echo 'Not implemented error' && return 2
   elif is_osx; then
-    name='mvim'
-    brew update --verbose
-    brew install --build-from-source "$provision_dir/brew_formulae/macvim.rb" -- --with-override-system-vi
+    brew reinstall git -- --with-pcre2
   else
     echo "Unsupported platform error: $(uname -a)" && return 1
   fi

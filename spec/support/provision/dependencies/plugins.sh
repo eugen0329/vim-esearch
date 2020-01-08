@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# shellcheck source=spec/support/provision/__installation_helpers.sh
+# shellcheck source=spec/support/provision/__installation_helpers.sh disable=SC2154
 . "$provision_dir/__installation_helpers.sh"
 
 install_vim_plugin() {
@@ -14,6 +14,5 @@ install_vim_plugin() {
     "$dest"              \
     "$version"
 
-  [ -z "$build_commands" !=  ] || ( cd "$dest" && eval "$build_commands" )
+  [ -z "$build_commands" ] || ( cd "$dest" && eval "$build_commands" )
 }
-

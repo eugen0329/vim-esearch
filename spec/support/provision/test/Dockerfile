@@ -8,7 +8,7 @@ RUN set -eux; \
       ncurses \
     # Tests
       gcc make wget tar musl-dev; \
-    # we don't use bats/bats to be able to control base OS version
+    # we don't use bats/bats image to be able to control base image OS version
     git clone https://github.com/bats-core/bats-core /opt/bats/; \
     ln -s /opt/bats/bin/bats /usr/sbin/bats; \
     rm -rfv /opt/bats/.git;

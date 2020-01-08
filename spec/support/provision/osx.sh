@@ -6,8 +6,7 @@
 local_bin_dir="${1:-"$provision_dir/../bin"}"
 
 install_package_vim \
-  'latest'          \
-  "$dont_use_sudo"
+  'latest'
 
 ## Disabled
 # install_package_neovim    \
@@ -15,18 +14,19 @@ install_package_vim \
 #   "$dont_use_sudo"        \
 #   "$local_bin_dir"
 
+install_package_git_grep \
+  'latest'
+
 install_prebuilt_pt \
   '2.2.0'           \
   "$local_bin_dir"  \
   "$create_link_to_default_in_local_bin"
 
-install_package_ack                                                                                                  \
-  'https://raw.githubusercontent.com/Homebrew/homebrew-core/a34d39a63d090f1c5d4ccb7be7149195dc8059df/Formula/ack.rb' \
-  "$use_sudo"
+install_package_ack \
+  'https://raw.githubusercontent.com/Homebrew/homebrew-core/a34d39a63d090f1c5d4ccb7be7149195dc8059df/Formula/ack.rb'
 
 install_package_ag  \
-  'latest'          \
-  "$use_sudo"
+  'latest'
 
 install_prebuilt_rg \
   '11.0.2'          \
