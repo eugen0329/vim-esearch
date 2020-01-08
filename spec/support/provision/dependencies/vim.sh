@@ -6,7 +6,7 @@
 install_package_vim() {
   local name='gvim'
   local version="$1"
-  local sudo="$2"
+  local sudo="${2:-}"
   local local_link_dest="${3:-}"
 
   if [ "$version" != 'latest' ]; then
