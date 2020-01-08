@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/hash_with_indifferent_access'
+# require 'active_support/cache/memory_store'
 
 class CacheStore < HashWithIndifferentAccess
   def fetch(key)
@@ -12,4 +13,5 @@ class CacheStore < HashWithIndifferentAccess
     end
   end
   alias write_multi merge!
+  alias exists? key?
 end

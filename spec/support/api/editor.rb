@@ -8,7 +8,10 @@ class API::Editor
   include TaggedLogging
 
   ReadProxy = Struct.new(:editor) do
-    delegate :current_line_number,
+    delegate :echo,
+      :var,
+      :func,
+      :current_line_number,
       :current_column_number,
       :filetype,
       :quickfix_window_name,
@@ -150,7 +153,7 @@ class API::Editor
 
   def reader
     @reader ||= API::Editor::Read::Batch
-                      .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
+                .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
   end
 
   def vim
