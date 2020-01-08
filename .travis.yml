@@ -92,10 +92,10 @@ jobs:
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec --tag system
       os: osx
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
-      os: osx
+    # - name: 'Acceptance tests of #backend#nvim'
+    #   script: bundle exec rspec --tag nvim --seed 6880
+    #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+    #   os: osx
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
       os: osx

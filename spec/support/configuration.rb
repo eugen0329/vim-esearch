@@ -32,7 +32,7 @@ module Configuration
       if linux?
         bin_dir.join('squashfs-root', 'usr', 'bin', 'nvim').to_s
       else
-        bin_dir.join('nvim-osx64', 'bin', 'nvim').to_s
+        bin_dir.join('nvim').to_s
       end
     end
   end
