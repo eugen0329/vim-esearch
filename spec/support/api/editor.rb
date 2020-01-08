@@ -3,7 +3,7 @@
 require 'active_support/core_ext/class/attribute'
 
 # rubocop:disable Layout/ClassLength
-class API::ESearch::Editor
+class API::Editor
   include API::Mixins::Throttling
   include TaggedLogging
 
@@ -137,7 +137,7 @@ class API::ESearch::Editor
   delegate :with_ignore_cache, :clear_cache, :var, :func, :echo, to: :reader
 
   def reader
-    @reader ||= API::ESearch::Editor::Read::Batch
+    @reader ||= API::Editor::Read::Batch
                       .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
   end
 

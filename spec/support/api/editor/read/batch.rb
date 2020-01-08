@@ -13,7 +13,7 @@
 #   reader.echo { [line(1), line(2), line(3)] }       # => 1 call
 #   reader.echo { {first: line(1), second: line(2)} } # => 1 call
 
-class API::ESearch::Editor::Read::Batch < API::ESearch::Editor::Read::Base
+class API::Editor::Read::Batch < API::Editor::Read::Base
   include TaggedLogging
 
   delegate :serialize, to: :serializer

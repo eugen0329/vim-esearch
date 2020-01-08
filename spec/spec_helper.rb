@@ -28,7 +28,7 @@ ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 # sacrificing reliability (as with every optimization which involves caching
 # etc.). For other backends increase of running speed is about 1.5x - 2x times
 if Configuration.dangerously_maximize_performance?
-  API::ESearch::Editor.cache_enabled = true
+  API::Editor.cache_enabled = true
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
   VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
@@ -38,7 +38,7 @@ if Configuration.dangerously_maximize_performance?
     ESEARCH
   end
 else
-  API::ESearch::Editor.cache_enabled = false
+  API::Editor.cache_enabled = false
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each
@@ -62,7 +62,7 @@ RSpec.configure do |c|
   c.order = :rand
   c.seed = 1
   c.formatter = :documentation
-  c.fail_fast = Configuration.ci? ? 3 : 10
+  c.fail_fast = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.filter_run_excluding :compatibility_regexps if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }

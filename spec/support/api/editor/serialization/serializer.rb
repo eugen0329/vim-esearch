@@ -2,7 +2,7 @@
 
 require 'yaml'
 
-class API::ESearch::Editor::Serialization::Serializer
+class API::Editor::Serialization::Serializer
   class UnknownObjectTypeError < RuntimeError; end
 
   def serialize(object)
@@ -13,7 +13,7 @@ class API::ESearch::Editor::Serialization::Serializer
       "{#{object.map { |k, v| "'#{escape(k)}':#{serialize(v)}" }.join(',')}}"
     when String, Symbol
       "'#{escape(object)}'"
-    when Numeric, API::ESearch::Editor::Serialization::Identifier
+    when Numeric, API::Editor::Serialization::Identifier
       object
     else raise UnknownObjectTypeError, "what is it?? #{object.inspect}"
     end

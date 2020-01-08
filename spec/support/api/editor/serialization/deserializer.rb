@@ -2,7 +2,7 @@
 
 require 'yaml'
 
-class API::ESearch::Editor::Serialization::Deserializer
+class API::Editor::Serialization::Deserializer
   def deserialize(string)
     return string if string == ''
 

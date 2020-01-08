@@ -13,7 +13,7 @@
 #   reader.echo { [line(1), line(2), line(3)] }       # => 1 call
 #   reader.echo { {first: line(1), second: line(2)} } # => 1 call
 
-class API::ESearch::Editor::Read::Base
+class API::Editor::Read::Base
   delegate :serialize, to: :serializer
   delegate :deserialize, to: :deserializer
 
@@ -25,7 +25,7 @@ class API::ESearch::Editor::Read::Base
   end
 
   def id(string_representation)
-    API::ESearch::Editor::Serialization::Identifier.new(string_representation)
+    API::Editor::Serialization::Identifier.new(string_representation)
   end
   alias var  id
   alias func id
@@ -37,10 +37,10 @@ class API::ESearch::Editor::Read::Base
   end
 
   def serializer
-    @serializer ||= API::ESearch::Editor::Serialization::Serializer.new
+    @serializer ||= API::Editor::Serialization::Serializer.new
   end
 
   def deserializer
-    @deserializer ||= API::ESearch::Editor::Serialization::Deserializer.new
+    @deserializer ||= API::Editor::Serialization::Deserializer.new
   end
 end
