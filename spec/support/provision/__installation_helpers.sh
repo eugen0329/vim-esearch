@@ -3,9 +3,9 @@
 
 [ -n "$__LIB_SH_SOURCE_ONCE" ] && return 0; __LIB_SH_SOURCE_ONCE=1
 
-CURRENT_OS_RELEASE_ID="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
-CURRENT_OS_RELEASE_ID_LIKE="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
-CURRENT_KERNEL_NAME="$(uname -s)"
+current_os_release_id="$(awk -F= '$1=="ID" { print $2 }' /etc/os-release 2>/dev/null || true)"
+current_os_release_id_like="$(awk -F= '$1=="ID_LIKE" { print $2 }' /etc/os-release 2>/dev/null || true)"
+current_kernel_name="$(uname -s)"
 
 apt_get_arguement_to_install_less="${apt_get_arguement_to_install_less:-"--no-install-recommends"}"
 apk_argument_to_install_less="${apk_argument_to_install_less:-"--no-cache"}"
@@ -23,20 +23,20 @@ use_sudo='sudo'
 dont_use_sudo=''
 
 is_linux() {
-  [ "$CURRENT_KERNEL_NAME" = 'Linux' ]
+  [ "$current_kernel_name" = 'Linux' ]
 }
 
 is_alpine_linux() {
-  is_linux && [ "$CURRENT_OS_RELEASE_ID" = "alpine" ]
+  is_linux && [ "$current_os_release_id" = "alpine" ]
 }
 
 is_debian_or_debian_like_linux() {
   is_linux && \
-    { [ "$CURRENT_OS_RELEASE_ID_LIKE" = "debian" ] || [ "$CURRENT_OS_RELEASE_ID" = "debian" ]; }
+    { [ "$current_os_release_id_like" = "debian" ] || [ "$current_os_release_id" = "debian" ]; }
 }
 
 is_osx() {
-  [ "$CURRENT_KERNEL_NAME" = 'Darwin' ]
+  [ "$current_kernel_name" = 'Darwin' ]
 }
 
 unarchive() {
@@ -63,13 +63,10 @@ unarchive() {
 create_global_executable_link() {
   local executable="$1"
   local link_dest="$2"
-  local forced_flag=
-  # [ "${forced:-0}" = '0' ] || forced_flag='-f'
-  forced_flag='-f'
+  local forced_flag='-f'
 
   if [ -n "$link_dest"  ]; then
     mkdir -p "$(dirname "$link_dest")"
-    # if [ "${forced:-0}" = '1' ] && [  ]
     ln -s "$forced_flag" "$(command -v "$executable")" "$link_dest"
   else
     echo "Path must not be blank" && return 1
@@ -104,12 +101,8 @@ install_versioned_prebuilt() {
   local dest="$4"
   local link_dest="$5"
   local sudo="${6:-}"
-
-  local forced_flag=
-  local cp_command=cp_no_overwrite
-  # [ "${forced:-0}" = '0' ] || forced_flag='-f'
-  forced_flag='-f'
-  [ "${forced:-0}" = '0' ] || cp_command='cp'
+  local forced_flag='-f'
+  local cp_command=cp
 
   # shellcheck disable=SC2059
   $sudo mkdir -p "$dest"
