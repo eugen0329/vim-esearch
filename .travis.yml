@@ -60,17 +60,12 @@ install:
     [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
     [ "$LINT_FOR" = ruby ] && bundle install && return
 
-
-    if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
-      sh spec/support/setup/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
-    fi
-
     bundle install
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      ALLOW_SUDO=1 sh spec/support/setup/install_osx_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
+      sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     else
-      ALLOW_SUDO=1 sh spec/support/setup/install_linux_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/bin"
+      sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     fi
 
 before_script:
@@ -80,13 +75,15 @@ before_script:
 after_failure:
   - env
   - ls -lah /usr/local/bin
-
+  - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
+  - ls -lah "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+  - ack --help
+  - ag --help
+  - grep --help
+  - rg --help
+  - pt --help
+  - git grep -h
 jobs:
-  allow_failures:
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
-      os: osx
   include:
     # Why tests for two platforms:
     #   - tests rely on platform specific calls and should be crossplatform
@@ -95,6 +92,10 @@ jobs:
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec --tag system
       os: osx
+    # - name: 'Acceptance tests of #backend#nvim'
+    #   script: bundle exec rspec --tag nvim --seed 6880
+    #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+    #   os: osx
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rspec --tag vim8
       os: osx
@@ -128,8 +129,7 @@ jobs:
       env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
       script:
         - bundle exec rubocop --display-cop-names
-          # -x: Allow 'source' outside of FILES
-        - shellcheck -x spec/support/**/*.sh spec/support/docker/run* spec/support/docker/rspec* spec/support/docker/docker-entrypoint.sh
+        - spec/support/docker/shellcheck
       os: linux
     - name: 'Viml lint (Vint, VimLint)'
       env:

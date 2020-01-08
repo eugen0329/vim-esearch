@@ -36,4 +36,5 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
 
   # TODO: investigate
   pending! 'aborts on search restart', /expected to have 1.*process/, :osx, backend: :vimproc
+  pending! 'aborts on search restart', /has_no_process_matching/, :osx, backend: :vimproc
 end

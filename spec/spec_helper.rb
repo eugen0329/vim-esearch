@@ -9,7 +9,6 @@ require 'active_support/tagged_logging'
 # reference global vars by human readable names (rubocop requirement)
 require 'English'
 
-require 'support/inflections'
 require 'support/custom_matchers'
 require 'support/inflections'
 require 'known_issues'

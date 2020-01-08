@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# shellcheck source=spec/support/docker/__fail_if_wrong_pwd.sh
+. "$(dirname "$0")/__fail_if_wrong_pwd.sh"
+
+shellcheck() {
+  docker run --rm -v "$PWD:/mnt" koalaman/shellcheck "$@"
+}
+. spec/support/scripts/shellcheck.bash
