@@ -15,12 +15,12 @@ pip3_argument_to_install_less="${pip3_argument_to_install_less:-"--no-cache"}"
 skip_local_install=''
 skip_global_install=''
 skip_local_link=''
+use_sudo='sudo'
+skip_use_sudo=''
 create_link_to_default_in_local_bin=1
 create_link_to_default_in_global_bin=1
 skip_create_link_to_default_in_local_bin=0
 skip_create_link_to_default_in_global_bin=0
-use_sudo='sudo'
-dont_use_sudo=''
 
 is_linux() {
   [ "$current_kernel_name" = 'Linux' ]
@@ -56,7 +56,7 @@ unarchive() {
     # *.xz)        unxz "$1"        ;;
     # *.exe)       cabextract "$1"  ;;
     *.appimage)  chmod +x "$1"; ./"$1" --appimage-extract ;;
-    *)           echo "\`$1': unrecognized file compression" && exit 1 ;;
+    *)           echo "$1: unrecognized file compression" && exit 10 ;;
   esac
 }
 
