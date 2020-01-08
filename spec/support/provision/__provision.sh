@@ -16,6 +16,8 @@ fi
 . "$provision_dir/dependencies/vim.sh"
 # shellcheck source=spec/support/provision/dependencies/neovim.sh
 . "$provision_dir/dependencies/neovim.sh"
+# shellcheck source=spec/support/provision/dependencies/git_grep.sh
+. "$provision_dir/dependencies/git_grep.sh"
 # shellcheck source=spec/support/provision/dependencies/ack.sh
 . "$provision_dir/dependencies/ack.sh"
 # shellcheck source=spec/support/provision/dependencies/ag.sh
