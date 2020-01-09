@@ -16,7 +16,10 @@ module API::Mixins::RollbackState
     yield
   ensure
     42.times do
-      break if old_buffer_name == editor.current_buffer_name
+      if old_buffer_name == editor.current_buffer_name
+        log_debug { "old_buffer_name == editor.current_buffer_name is #{old_buffer_name == editor.current_buffer_name}" }
+        break
+      end
 
       editor.press! '<C-o>'
     end
@@ -27,9 +30,11 @@ module API::Mixins::RollbackState
   end
 
   def rollback_cursor_location_inside_buffer(editor)
-    old_line_number, old_column_number = editor.echo do |e|
-      [e.current_line_number, e.current_column_number]
-    end
+    # old_line_number, old_column_number = editor.echo do |e|
+    #   [e.current_line_number, e.current_column_number]
+    # end
+    old_line_number = editor.current_line_number
+    old_column_number = editor.current_column_number
 
     yield
   ensure

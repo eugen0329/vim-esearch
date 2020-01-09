@@ -3,6 +3,7 @@
 # TODO: rewrite
 RSpec.shared_context 'dumpable' do
   after(:each) do |example|
+    next
     unless example.exception.nil?
       if Configuration.screenshot_failures?
         prefix = 'screenshot'

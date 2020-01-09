@@ -38,7 +38,9 @@ COPY Gemfile* spec/support/provision spec/support/docker/docker-entrypoint.sh $D
 
 RUN set -eux; \
 # Runtime dependencies
-    apk add --update --no-cache xvfb python3 git $DEBUG_PACKAGES; \
+    apk add --update --no-cache xvfb python3 git $DEBUG_PACKAGES \
+# for pry
+    less; \
 # Build dependencies
     apk add --no-cache --virtual .builddeps gcc python3-dev musl-dev make wget tar; \
 # Python dependencies

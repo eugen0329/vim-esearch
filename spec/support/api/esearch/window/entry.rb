@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+require 'active_support/core_ext/object/instance_variables'
+
 class API::ESearch::Window::Entry
   include API::Mixins::RollbackState
+  include TaggedLogging
 
   class OpenEntryError < RuntimeError; end
 
@@ -20,21 +23,33 @@ class API::ESearch::Window::Entry
     context.to_i # takes leading int
   end
 
-  def open
+  def open(verify_buffer_name_after: false)
     old_buffer_name = editor.current_buffer_name
+    # require 'pry'; binding.pry
 
-    editor.with_ignore_cache do
-      rollback_open do
-        editor.locate_line! line_in_window + 1
-        editor.press_with_user_mappings! '\<Enter>'
-        raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
+    rollback_open do
+      editor.locate_line! line_in_window + 1
+      editor.press_with_user_mappings! '\<Enter>'
 
-        yield
-      end
+      # require 'pry'; binding.pry
+      # verify_buffer_name(old_buffer_name) unless verify_buffer_name_after
+      yield
+      verify_buffer_name(old_buffer_name)
+      # verify_buffer_name(old_buffer_name) if verify_buffer_name_after
     end
   end
 
   private
+
+  def verify_buffer_name(old_buffer_name)
+    raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
+  rescue
+    require 'pry'; binding.pry
+  end
+
+  def inspect
+    "<Entry:#{object_id} #{instance_values.except('editor').map { |k,v| "#{k}=#{v.inspect}" }.join(', ')}>"
+  end
 
   def rollback_open(&block)
     if rollback_inside_buffer_on_open?

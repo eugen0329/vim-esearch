@@ -22,6 +22,7 @@ exec docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/app"                \
   -e "EDITOR_THROTTLE_INTERVAL=$EDITOR_THROTTLE_INTERVAL"                 \
   -e "SCREENSHOT_FAILURES=$SCREENSHOT_FAILURES"                           \
   -e "LOG_LEVEL=$LOG_LEVEL"                                               \
+  -e "DEBUG_SPECS_PERFORMANCE=$DEBUG_SPECS_PERFORMANCE"                   \
   -e "GUI=$GUI"                                                           \
   -e "VIM_GUI=$VIM_GUI"                                                   \
   -e "NVIM_GUI=$NVIM_GUI"                                                 \

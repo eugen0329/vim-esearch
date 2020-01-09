@@ -6,6 +6,7 @@ require 'vimrunner/rspec'
 require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/tagged_logging'
+require 'batch-loader'
 # reference global vars by human readable names (rubocop requirement)
 require 'English'
 begin
@@ -29,6 +30,12 @@ end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
+if Configuration.debug_specs_performance?
+  vim_instance_getter = -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
+else
+  vim_instance_getter = -> { Vimrunner::Testing.instance }
+end
+
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
 # etc.). For other backends increase of running speed is about 1.5x - 2x times
@@ -38,7 +45,7 @@ if Configuration.dangerously_maximize_performance?
   VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
 
-  ESEARCH = API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+  ESEARCH = API::ESearch::Facade.new(vim_instance_getter)
   def esearch
     ESEARCH
   end
@@ -55,7 +62,7 @@ else
   API::ESearch::Platform.process_check_timeout = 20.seconds
 
   def esearch
-    @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+    @esearch ||= API::ESearch::Facade.new(vim_instance_getter)
   end
 end
 
