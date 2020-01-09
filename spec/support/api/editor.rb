@@ -17,6 +17,7 @@ class API::Editor
       :quickfix_window_name,
       :current_buffer_name,
       :line,
+      :lines_count,
       to: :editor
   end
 
@@ -26,22 +27,54 @@ class API::Editor
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
   attr_reader :vim_client_getter
 
-  delegate :with_ignore_cache, :clear_cache, :var, :func, :echo, to: :reader
+  delegate :with_ignore_cache, :var, :func, to: :reading
+  # delegate :with_ignore_cache, :clear_cache, :var, :func, :echo, to: :reading
 
   def initialize(vim_client_getter)
     @vim_client_getter = vim_client_getter
   end
 
   def line(number)
-    echo(func("getline(#{number})"))
+    echo2(func("getline(#{number})"))
   end
 
-  def lines(from: 1)
-    return enum_for(:lines, from: from) { echo(func("line('$')")) } unless block_given?
-
-    from.upto(lines.size).each do |line_number|
-      yield(echo { |e| e.line(line_number) })
+  def lines_iterator(from:, &block)
+    if Configuration.version == 3
+      first_line_from_range, size = batch_echo { [echo2(func("getline(#{from})")), echo2(func("line('$')"))] }
+    else
+      first_line_from_range, size = [echo2(func("getline(#{from})")), echo2(func("line('$')"))]
     end
+    return if size < from
+
+    yield first_line_from_range
+
+    (from + 1).upto(size).each do |line_number|
+      yield(line(line_number))
+      # yield(echo { |e| e.line(line_number) })
+    end
+  end
+
+  def lines_all(from:)
+    # lns, size = echo { |e| [e.func("getline(#{from},line('$'))"), e.func("line('$')")] }
+
+    if Configuration.version == 3
+      lns, size = batch_echo { [ echo2(func("getline(#{from},line('$'))")), echo2(func("line('$')")) ] }
+    else
+      lns, size = echo2(func("getline(#{from},line('$'))")), echo2(func("line('$')"))
+    end
+    lns.each { |l| yield l }
+  end
+
+  def lines(from: 1, &block)
+    return enum_for(:lines, from: from) { lines_count } unless block_given?
+    # first_line_from_range, size = echo { |e| [e.line(from), e.lines_count] }
+
+    return lines_all(from: from, &block)
+    return lines_iterator(from: from, &block)
+  end
+
+  def lines_count
+    echo2(func("line('$')"))
   end
 
   def cd!(where)
@@ -49,7 +82,7 @@ class API::Editor
   end
 
   def bufname(arg)
-    echo(func("bufname('#{arg}')"))
+    echo2(func("bufname('#{arg}')"))
   end
 
   def current_buffer_name
@@ -57,11 +90,11 @@ class API::Editor
   end
 
   def current_line_number
-    echo(func("line('.')"))
+    echo2(func("line('.')"))
   end
 
   def current_column_number
-    echo(func("col('.')"))
+    echo2(func("col('.')"))
   end
 
   def locate_cursor!(line_number, column_number)
@@ -91,7 +124,12 @@ class API::Editor
     command!('%bwipeout! | messages clear')
     # command!('%close')
   end
-  alias cleanup! delete_all_buffers_and_clear_messages!
+
+  def cleanup!
+    delete_all_buffers_and_clear_messages!
+    clear_cache
+  end
+  # alias cleanup! delete_all_buffers_and_clear_messages!
 
   def bufdelete!(ignore_unsaved_changes: false)
     return command!('bdelete!') if ignore_unsaved_changes
@@ -109,11 +147,11 @@ class API::Editor
   end
 
   def filetype
-    echo(var('&ft'))
+    echo2(var('&ft'))
   end
 
   def quickfix_window_name
-    echo(func("get(w:, 'quickfix_title', '')"))
+    echo2(func("get(w:, 'quickfix_title', '')"))
   end
 
   def trigger_cursor_moved_event!
@@ -132,6 +170,7 @@ class API::Editor
   end
 
   def press!(keyboard_keys)
+    log_debug { "press!: #{keyboard_keys}" }
     clear_cache
     throttle(:state_modifying_interactions, interval: throttle_interval) do
       vim.normal(keyboard_keys)
@@ -139,6 +178,7 @@ class API::Editor
   end
 
   def press_with_user_mappings!(keyboard_keys)
+    log_debug { "press_with_user_mappings!: #{keyboard_keys}" }
     clear_cache
     throttle(:state_modifying_interactions, interval: throttle_interval) do
       vim.feedkeys keyboard_keys
@@ -149,12 +189,88 @@ class API::Editor
     vim.echo(arg)
   end
 
-  private
-
-  def reader
-    @reader ||= API::Editor::Read::Batch
-                .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
+  def reading
+    @reading ||= API::Editor::Read::Batch
+      .new(self, vim_client_getter, cache_enabled)
+      # .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
   end
+
+  def echo2(arg)
+    if Configuration.version == 1
+      @sample = BatchLoader.for(arg).batch(cache: false) do |args, loader|
+        cached_args = args.select { |arg| reading.cache.exist?(arg) }
+        cached_results = cached_args.map { |arg| reading.cache.fetch(arg) }
+
+        new_args = args.reject { |arg| reading.cache.exist?(arg) }
+        new_results = new_args.empty? ? [] : deserialize(vim.echo(serialize(new_args)))
+
+
+        log_debug {  "1. cached_args: #{cached_args.map(&:to_s).zip(cached_results).to_h}" }
+        log_debug {  "2. new_args:    #{new_args.map(&:to_s).zip(new_results).to_h} #{VimrunnerSpy.echo_call_history.size}" }
+
+
+
+        (new_results.zip(new_args) + cached_results.zip(cached_args))
+          .each do |result, arg|
+          # require 'pry'; binding.pry if VimrunnerSpy.echo_call_history.size == 6
+          # require 'pry'; binding.pry if VimrunnerSpy.echo_call_history.size == 7
+          reading.cache.write(arg, result)
+          loader.call(arg, result)
+        end#.freeze
+        # (new_results + cached_results).zip(new_args + cached_args)
+      end
+      # def @sample.inspect
+      #   to_s.inspect
+      # end
+      # @sample.freeze
+    elsif Configuration.version == 2
+      @sample = BatchLoader.for(arg).batch(cache: true) do |args, loader|
+        new_results = args.zip(deserialize(vim.echo(serialize(args))))
+        log_debug { "args:  #{new_results.to_h}" }
+        new_results.each { |arg, result| loader.call(arg, result) }
+      end
+    else
+      reading.echo(arg)
+    end
+  end
+  delegate :batch_echo, to: :reading
+  delegate :serialize,   to: :serializer
+  delegate :deserialize, to: :deserializer
+  def serializer
+    @serializer ||= API::Editor::Serialization::Serializer.new
+  end
+  def deserializer
+    @deserializer ||= API::Editor::Serialization::Deserializer.new
+  end
+
+  attr_reader :key
+  def clear_cache
+    # log_debug { "clear_cache" }
+    eager!
+    reading.clear_cache
+    # BatchLoader::Executor.clear_current
+  end
+
+  def eager!
+    if block_given?
+      result = yield
+      @sample&.to_s
+      # @sample&.__sync&.to_s
+      return result
+    end
+
+    @sample&.to_s
+    true
+  end
+
+  def normalize_range(range)
+    from = [range.begin, 1].compact.max
+    to = [range.end, Float::INFINITY].compact.min
+    raise ArgumentError if from > to
+    [from, to]
+  end
+
+  private
 
   def vim
     vim_client_getter.call

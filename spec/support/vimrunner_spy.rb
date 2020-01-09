@@ -11,8 +11,9 @@ class VimrunnerSpy < BaseDecorator
 
   def echo(arg)
     @@echo_call_history ||= []
-    @@echo_call_history << [arg, clean_caller]
-    super(arg)
+    result = super(arg)
+    @@echo_call_history << [arg, result, clean_caller]
+    result
   end
 end
 

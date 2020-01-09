@@ -14,8 +14,9 @@ class API::ESearch::Window::EntriesParser
   end
 
   def parse
-    return enum_for(:parse) { 0 if editor.lines.size < 3 } unless block_given?
-    return if parse.size == 0 # rubocop:disable Style/ZeroLengthPredicate
+    return enum_for(:parse) unless block_given?
+    # return enum_for(:parse) { 0 if editor.lines.size < 3 } unless block_given?
+    # return if parse.size == 0 # rubocop:disable Style/ZeroLengthPredicate
 
     lines_iterator.rewind
     begin

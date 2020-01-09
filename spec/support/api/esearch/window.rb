@@ -11,6 +11,8 @@ class API::ESearch::Window
   class_attribute :search_freeze_timeout, default: Configuration.search_freeze_timeout
   attr_reader :editor
 
+  delegate :batch_echo, :eager!, to: :editor
+
   def initialize(editor)
     @editor = editor
   end
@@ -24,6 +26,9 @@ class API::ESearch::Window
     became_truthy_within?(timeout) do
       editor.trigger_cursor_moved_event!
       inside_search_window?
+      # return true if inside_search_window?
+      # editor.trigger_cursor_moved_event!
+      # false
     end
   end
 
@@ -31,6 +36,9 @@ class API::ESearch::Window
     became_truthy_within?(timeout) do
       editor.trigger_cursor_moved_event!
       parser.header_finished? || parser.header_errors?
+      # return true if parser.header_finished? || parser.header_errors?
+      # editor.trigger_cursor_moved_event!
+      # false
     end
   end
 
@@ -65,16 +73,23 @@ class API::ESearch::Window
   end
 
   def has_outputted_result_with_right_position_inside_file?(relative_path, line, column)
+    # require 'pry'; binding.pry
     location_in_file(relative_path, line) == [line, column]
   rescue MissingEntry
     false
   end
 
   def location_in_file(relative_path, line)
+    # require 'pry'; binding.pry
     entry = find_entry(relative_path, line)
+    # require 'pry'; binding.pry
     raise MissingEntry unless entry
 
-    entry.open { return [editor.current_line_number, editor.current_column_number] }
+    entry.open(verify_buffer_name_after: true) do
+      # return editor.echo { |e| [ e.current_line_number, e.current_column_number, e.current_buffer_name ] }.first(2)
+      return batch_echo { [editor.current_line_number, editor.current_column_number, editor.current_buffer_name] }.first(2)
+      # return [editor.current_line_number, editor.current_column_number]
+    end
   end
 
   def find_entry(relative_path, line)

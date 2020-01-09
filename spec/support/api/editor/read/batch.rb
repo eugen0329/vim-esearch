@@ -29,98 +29,45 @@ class API::Editor::Read::Batch < API::Editor::Read::Base
     @cache = CacheStore.new
   end
 
+  def batch_echo(&block)
+    return yield if Configuration.version != 3
+
+    begin
+      @echo_return_unevaluated = true
+      batch_arg = read_proxy.yield_self(&block)
+    ensure
+      @echo_return_unevaluated = false
+    end
+
+    echo(batch_arg)
+  end
+
   def echo(arg = nil, &block)
-    return arg if @collect_for_batch
+    return arg if @echo_return_unevaluated
     raise ArgumentError unless [arg, block].count(&:present?) == 1
 
-    batch_arg =
-      if block.present?
-        begin
-          @collect_for_batch = true
-          read_proxy.yield_self(&block)
-        ensure
-          @collect_for_batch = false
-        end
-      else
-        arg
-      end
 
-    result = cached([:echo, batch_arg]) do
-      shape, flat_batch = construct(batch_arg)
-      evaluated_batch = deserialize(vim.echo(serialize(flat_batch)))
-      reconstruct(shape, evaluated_batch)
+    return cached([:echo, arg]) if cache_exist?([:echo, arg])
+
+    result = begin
+
+      shape, batch, placeholders = constructor.accept(arg)
+      evaluated_batch = deserialize(vim.echo(serialize(batch)))
+      reconstructed = reconstrucor.accept(shape, evaluated_batch)
+
+      cache.write([:echo, arg], reconstructed)
+
+      #       log_debug do
+      #         cached_args = [arg].flatten.select { |arg| self.cache.exist?(arg) }
+      #         cached_results = cached_args.map { |arg| self.cache.fetch(arg) }
+      #         "1. cached_args: #{cached_args.map(&:to_s).zip(cached_results).to_h}"
+      #       end
+      log_debug { "new_args: #{batch.zip(evaluated_batch).to_h} #{VimrunnerSpy.echo_call_history.size}" }
+
+      reconstructed
     end
 
     result
-  end
-
-  # TODO: extract visitors code
-
-  def reconstruct(shape, evaluated_batch)
-    case shape
-    when Array then reconstruct_from_array(shape, evaluated_batch)
-    when Hash then reconstruct_from_hash(shape, evaluated_batch)
-    when Placeholder then reconstruct_from_placeholder(shape, evaluated_batch)
-    else shape
-    end
-  end
-
-  def construct(arg, flat_batch = [])
-    case arg
-    when Array then construct_from_array(arg, flat_batch)
-    when Hash then construct_from_hash(arg, flat_batch)
-    when API::Editor::Serialization::Identifier then construct_from_identifier(arg, flat_batch)
-    else [arg, flat_batch]
-    end
-  end
-
-  def reconstruct_from_placeholder(placeholder, evaluated_batch)
-    cached([:echo, placeholder.identifier]) do
-      evaluated_batch[placeholder.offset]
-    end
-  end
-
-  def reconstruct_from_hash(shape, evaluated_batch)
-    shape.map do |key, value|
-      reconstructed_value = reconstruct(value, evaluated_batch)
-      [key, reconstructed_value]
-    end.to_h
-  end
-
-  def reconstruct_from_array(shape, evaluated_batch)
-    shape.map { |value| reconstruct(value, evaluated_batch) }
-  end
-
-  def construct_from_identifier(identifier, flat_batch)
-    key = [:echo, identifier]
-    return [cached(key), flat_batch] if cache_exists?(key)
-
-    flat_batch = flat_batch.dup
-    flat_batch << identifier
-    [Placeholder.new(flat_batch.count - 1, identifier), flat_batch]
-  end
-
-  def construct_from_array(array, flat_batch)
-    flat_batch = flat_batch.dup
-
-    shape = array.map do |value|
-      shape, flat_batch = construct(value, flat_batch)
-      shape
-    end
-
-    [shape, flat_batch]
-  end
-
-  def construct_from_hash(hash, flat_batch)
-    flat_batch = flat_batch.dup
-
-    shape = hash.map do |key, value|
-      shape, flat_batch = construct(value, flat_batch)
-
-      [key, shape]
-    end.to_h
-
-    [shape, flat_batch]
   end
 
   def with_ignore_cache
@@ -133,20 +80,28 @@ class API::Editor::Read::Batch < API::Editor::Read::Base
   def clear_cache
     return if @with_ignore_cache || !cache_enabled
 
-    @cache.clear
+    cache.clear
   end
-
-  private
 
   def cached(key, &block)
     return block&.call if @with_ignore_cache || !cache_enabled
 
-    @cache.fetch(key, &block)
+    cache.fetch(key, &block)
   end
 
-  def cache_exists?(key)
+  def cache_exist?(key)
     return false if @with_ignore_cache || !cache_enabled
 
-    @cache.exists? key
+    cache.exist? key
+  end
+
+  private
+
+  def reconstrucor
+    @reconstrucor ||= API::Editor::Read::ReconstructVisitor.new(self)
+  end
+
+  def constructor
+    @constructor ||= API::Editor::Read::FlatBatchVisitor.new(self)
   end
 end

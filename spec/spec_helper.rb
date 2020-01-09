@@ -74,7 +74,7 @@ RSpec.configure do |c|
   c.order = :rand
   c.seed = 1
   c.formatter = :documentation
-  c.fail_fast = Configuration.ci? ? 3 : 1
+  c.fail_fast = Configuration.ci? ? 3 : 4
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.filter_run_excluding :compatibility_regexps if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
