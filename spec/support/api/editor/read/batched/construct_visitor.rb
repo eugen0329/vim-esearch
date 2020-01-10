@@ -27,7 +27,7 @@ class API::Editor::Read::Batched::ConstructVisitor
     batch = batch.dup
 
     placeholder = Placeholder(identifier)
-    batch.add!(identifier, placeholder)
+    batch.push(identifier, placeholder)
     [placeholder, batch]
   end
 

@@ -136,8 +136,8 @@ describe API::Editor, :editor do
       let(:ph1) { ph(id2, 22) }
       let(:evaluated_batch) do
         batch
-          .add!(id1, ph0)
-          .add!(id2, ph1)
+          .push(id1, ph0)
+          .push(id2, ph1)
       end
 
 

@@ -86,6 +86,7 @@ class API::ESearch::Window
     raise MissingEntry unless entry
 
     entry.open(verify_buffer_name_after: true) do
+      # require 'pry'; binding.pry
       # return editor.echo { |e| [ e.current_line_number, e.current_column_number, e.current_buffer_name ] }.first(2)
       return batch_echo { [editor.current_line_number, editor.current_column_number, editor.current_buffer_name] }.first(2)
       # return [editor.current_line_number, editor.current_column_number]

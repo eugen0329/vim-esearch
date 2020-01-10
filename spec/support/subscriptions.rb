@@ -10,6 +10,12 @@ ActiveSupport::Notifications.subscribe(/cache_read/) do |name, start, finish, id
   end
 end
 
+ActiveSupport::Notifications.subscribe(/cache_clear/) do |name, start, finish, id, payload|
+  Configuration.log.tagged(padded('cache.clear')) do
+    Configuration.log.debug { "CLEAR #{payload[:object_id]}" }
+  end
+end
+
 ActiveSupport::Notifications.subscribe(/cache_write_value/) do |name, start, finish, id, payload|
   Configuration.log.tagged(padded('cache.write')) do
     Configuration.log.debug do

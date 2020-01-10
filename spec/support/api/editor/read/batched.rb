@@ -15,9 +15,6 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
     end
   end
 
-  delegate :serialize,   to: :serializer
-  delegate :deserialize, to: :deserializer
-
   attr_reader :cache, :cache_enabled
 
   def initialize(read_proxy, vim_client_getter, cache_enabled)
