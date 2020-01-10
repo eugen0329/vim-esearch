@@ -205,6 +205,11 @@ class API::Editor
       # .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
   end
 
+  def magic_reading
+    @magic_reading ||= API::Editor::Read::MagicBatched
+      .new(self, vim_client_getter, cache_enabled)
+  end
+
   def echo2(arg)
     if Configuration.version == 1
       @sample = BatchLoader.for(arg).batch(cache: false) do |args, loader|
@@ -239,10 +244,26 @@ class API::Editor
         log_debug { "args:  #{new_results.to_h}" }
         new_results.each { |arg, result| loader.call(arg, result) }
       end
-    else
+    elsif Configuration.version == 3
       reading.echo(arg)
+    elsif Configuration.version == 4
+      API::Editor::Read::MagicBatched::Container.new(arg)
+      magic_reading.echo(arg)
+    else
+      raise
     end
   end
+
+  def batch_echo(&block)
+    if Configuration.version == 3
+      reading.batch_echo(&block)
+    elsif Configuration.version == 4
+      block.call
+    else
+      raise
+    end
+  end
+
   delegate :batch_echo, to: :reading
   delegate :serialize,   to: :serializer
   delegate :deserialize, to: :deserializer
@@ -257,7 +278,10 @@ class API::Editor
   def clear_cache
     # log_debug { "clear_cache" }
     eager!
-    reading.clear_cache
+    reading.clear_cache if Configuration.version == 3
+
+    magic_reading.clear_cache if Configuration.version == 4
+    API::Editor::Read::MagicBatched.cache.clear
     # BatchLoader::Executor.clear_current
   end
 

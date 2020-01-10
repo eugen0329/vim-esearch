@@ -52,7 +52,7 @@ module Configuration
   end
 
   def version
-    3
+    4
   end
 
   def debug_specs_performance?

@@ -30,6 +30,18 @@ class API::Editor::Read::Base
   alias var  id
   alias func id
 
+  def self.serializer
+    @serializer ||= API::Editor::Serialization::Serializer.new
+  end
+  def self.deserializer
+    @deserializer ||= API::Editor::Serialization::Deserializer.new
+  end
+
+  class << self
+    delegate :serialize, to: :serializer
+    delegate :deserialize, to: :deserializer
+  end
+
   private
 
   def vim
@@ -37,10 +49,10 @@ class API::Editor::Read::Base
   end
 
   def serializer
-    @serializer ||= API::Editor::Serialization::Serializer.new
+    self.class.serializer
   end
 
   def deserializer
-    @deserializer ||= API::Editor::Serialization::Deserializer.new
+    self.class.deserializer
   end
 end
