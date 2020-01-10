@@ -5,6 +5,7 @@ require 'rspec'
 require 'vimrunner/rspec'
 require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
+require 'active_support/notifications'
 require 'active_support/tagged_logging'
 require 'batch-loader'
 # reference global vars by human readable names (rubocop requirement)
@@ -17,6 +18,7 @@ end
 
 require 'support/custom_matchers'
 require 'support/inflections'
+require 'support/subscriptions'
 require 'known_issues'
 
 require 'support/configuration'

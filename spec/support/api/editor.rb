@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_support/core_ext/class/attribute'
+require 'active_support/notifications'
 
 # rubocop:disable Layout/ClassLength
 class API::Editor
@@ -159,29 +160,38 @@ class API::Editor
   end
 
   def command(string_to_execute)
-    vim.command(string_to_execute)
+    # instrument(:command, data: string_to_execute) do
+      vim.command(string_to_execute)
+    # end
   end
 
   def command!(string_to_execute)
     clear_cache
-    throttle(:state_modifying_interactions, interval: throttle_interval) do
-      command(string_to_execute)
+
+    instrument(:command!, data: string_to_execute) do
+      throttle(:state_modifying_interactions, interval: throttle_interval) do
+        command(string_to_execute)
+      end
     end
   end
 
   def press!(keyboard_keys)
-    log_debug { "press!: #{keyboard_keys}" }
     clear_cache
-    throttle(:state_modifying_interactions, interval: throttle_interval) do
-      vim.normal(keyboard_keys)
+
+    instrument(:press, data: keyboard_keys) do
+      throttle(:state_modifying_interactions, interval: throttle_interval) do
+        vim.normal(keyboard_keys)
+      end
     end
   end
 
   def press_with_user_mappings!(keyboard_keys)
-    log_debug { "press_with_user_mappings!: #{keyboard_keys}" }
     clear_cache
-    throttle(:state_modifying_interactions, interval: throttle_interval) do
-      vim.feedkeys keyboard_keys
+
+    instrument(:press_with_user_mappings!, data: keyboard_keys) do
+      throttle(:state_modifying_interactions, interval: throttle_interval) do
+        vim.feedkeys keyboard_keys
+      end
     end
   end
 
@@ -190,7 +200,7 @@ class API::Editor
   end
 
   def reading
-    @reading ||= API::Editor::Read::Batch
+    @reading ||= API::Editor::Read::Batched
       .new(self, vim_client_getter, cache_enabled)
       # .new(ReadProxy.new(self), vim_client_getter, cache_enabled)
   end
@@ -271,6 +281,11 @@ class API::Editor
   end
 
   private
+
+  def instrument(operation, options = {})
+    options.merge!(operation: operation)
+    ActiveSupport::Notifications.instrument("editor.#{operation}", options) { yield }
+  end
 
   def vim
     vim_client_getter.call
