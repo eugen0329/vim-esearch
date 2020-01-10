@@ -17,7 +17,6 @@ module API::Mixins::RollbackState
   ensure
     42.times do
       if old_buffer_name == editor.current_buffer_name
-        log_debug { "old_buffer_name == editor.current_buffer_name is #{old_buffer_name == editor.current_buffer_name}" }
         break
       end
 

@@ -4,7 +4,7 @@ require 'active_support/core_ext/object/instance_variables'
 
 class API::ESearch::Window::Entry
   include API::Mixins::RollbackState
-  include TaggedLogging
+  # include TaggedLogging
 
   class OpenEntryError < RuntimeError; end
 
