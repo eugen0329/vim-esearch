@@ -73,23 +73,17 @@ class API::ESearch::Window
   end
 
   def has_outputted_result_with_right_position_inside_file?(relative_path, line, column)
-    # require 'pry'; binding.pry
     location_in_file(relative_path, line) == [line, column]
   rescue MissingEntry
     false
   end
 
   def location_in_file(relative_path, line)
-    # require 'pry'; binding.pry
     entry = find_entry(relative_path, line)
-    # require 'pry'; binding.pry
     raise MissingEntry unless entry
 
-    entry.open(verify_buffer_name_after: true) do
-      # require 'pry'; binding.pry
-      # return editor.echo { |e| [ e.current_line_number, e.current_column_number, e.current_buffer_name ] }.first(2)
-      return batch_echo { [editor.current_line_number, editor.current_column_number, editor.current_buffer_name] }.first(2)
-      # return [editor.current_line_number, editor.current_column_number]
+    entry.open do
+      return batch_echo { [editor.current_line_number, editor.current_column_number] }
     end
   end
 

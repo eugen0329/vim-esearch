@@ -23,19 +23,15 @@ class API::ESearch::Window::Entry
     context.to_i # takes leading int
   end
 
-  def open(verify_buffer_name_after: false)
+  def open
     old_buffer_name = editor.current_buffer_name
-    # require 'pry'; binding.pry
 
     rollback_open do
       editor.locate_line! line_in_window + 1
       editor.press_with_user_mappings! '\<Enter>'
 
-      # require 'pry'; binding.pry
-      # verify_buffer_name(old_buffer_name) unless verify_buffer_name_after
       yield
-      verify_buffer_name(old_buffer_name)
-      # verify_buffer_name(old_buffer_name) if verify_buffer_name_after
+      verify_buffer_name(old_buffer_name) # TODO
     end
   end
 
@@ -44,7 +40,6 @@ class API::ESearch::Window::Entry
   def verify_buffer_name(old_buffer_name)
     raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
   rescue
-    require 'pry'; binding.pry
   end
 
   def inspect

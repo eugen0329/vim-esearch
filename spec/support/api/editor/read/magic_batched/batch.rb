@@ -22,13 +22,14 @@ class API::Editor::Read::MagicBatched::Batch
     self
   end
 
-  def lookup!(identity_map)
-    retrieved, @blank_containers = blank_containers.partition do |container|
-      next false unless identity_map.exist?(container.__argument__)
-      container.__value__ = identity_map.fetch(container.__argument__)
-      true
-    end
-    loaded_containers.concat(retrieved)
+  def lookup!(identity_map, &block)
+    retrieved_containers, @blank_containers =
+      blank_containers.partition do |container|
+        next false unless identity_map.exist?(container.__argument__)
+        container.__setobj__(identity_map.fetch(container.__argument__)) || true
+      end
+
+    loaded_containers.concat(retrieved_containers)
 
     self
   end
@@ -41,18 +42,24 @@ class API::Editor::Read::MagicBatched::Batch
       .yield_self(&evaluator)
     blank_containers
       .zip(values)
-      .each { |container, value| container.__value__ = value }
+      .each { |container, value| container.__setobj__(value) }
+
     loaded_containers.concat(blank_containers)
     blank_containers.clear
 
     self
   end
 
-  def write(identity_map)
-    loaded_containers.each do |container|
-      next if identity_map.exist?(container.__argument__)
-
-      identity_map.write(container.__argument__, container.__value__)
+  def write(identity_map, &block)
+    if block.nil?
+      loaded_containers.each do |container|
+        next if identity_map.exist?(container.__argument__)
+        identity_map.write(container.__argument__, container.__getobj__)
+      end
+    else
+      loaded_containers.each(&block)
     end
+
+    self
   end
 end

@@ -13,21 +13,17 @@ module API::Mixins::RollbackState
   def rollback_current_buffer(editor)
     old_buffer_name = editor.current_buffer_name
 
-    # require 'pry'; binding.pry
     yield
   ensure
     10.times do
-      # require 'pry'; binding.pry
       if old_buffer_name == editor.current_buffer_name
         break
       end
 
-      # require 'pry'; binding.pry
       editor.press! '<C-o>'
     end
 
     if old_buffer_name != editor.current_buffer_name
-      require 'pry'; binding.pry
       raise RollbackCurrentBufferError, "can't rollback to buffer #{old_buffer_name.inspect} #{editor.current_buffer_name.inspect}"
     end
   end

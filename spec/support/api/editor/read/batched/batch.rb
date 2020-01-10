@@ -33,7 +33,6 @@ class API::Editor::Read::Batched::Batch < Hash
     return self if values.is_a? String
 
     values.zip(lost_placeholders).each { |value, placeholder| placeholder.value = value  }
-    # require 'pry'; binding.pry if placeholders.any?(&:empty?)
     self
   end
 
