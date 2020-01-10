@@ -1,17 +1,14 @@
 class API::Editor::Read::MagicBatched::Batch
   attr_reader :blank_containers, :loaded_containers
 
-  def self.current
-    Thread.current[:batch] ||= new
-  end
-
-  def self.current=(new_current)
-    Thread.current[:batch] = new_current
-  end
-
-  def initialize
+  def initialize(eager_method)
+    @eager_method = eager_method
     @blank_containers  = []
     @loaded_containers = []
+  end
+
+  def eager!
+    @eager_method.call
   end
 
   def push(container)
@@ -47,8 +44,6 @@ class API::Editor::Read::MagicBatched::Batch
       .each { |container, value| container.__value__ = value }
     loaded_containers.concat(blank_containers)
     blank_containers.clear
-
-    raise if loaded_containers.any? { |c| c.__value__ == API::Editor::Read::MagicBatched::Container::NULL }
 
     self
   end

@@ -15,11 +15,6 @@ class API::Editor::Read::Batched::Batch < Hash
   end
 
   def lookup!(identity_map)
-    # log_debug do
-    #   # require 'pry'; binding.pry if identity_map.present?
-    #   "cached: #{identity_map.read_multi(*identifiers).transform_keys(&:to_s)}"
-    # end
-
     each do |id, placeholder|
       placeholder.value = identity_map.fetch(id) if identity_map.exist?(id)
     end

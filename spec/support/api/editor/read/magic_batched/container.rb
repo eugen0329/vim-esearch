@@ -1,3 +1,6 @@
+SimpleDelegator
+
+
 class API::Editor::Read::MagicBatched::Container < BasicObject
   NULL = ::Class.new
 
@@ -8,10 +11,10 @@ class API::Editor::Read::MagicBatched::Container < BasicObject
   attr_reader :__argument__
   attr_accessor :__value__
 
-  def initialize(__argument__)
+  def initialize(__argument__, __batch__)
     @__argument__ = __argument__
+    @__batch__ = __batch__
     @__value__    = NULL
-    __push_self_into_batch__!
   end
 
   def inspect
@@ -19,37 +22,30 @@ class API::Editor::Read::MagicBatched::Container < BasicObject
     "<Container of=#{__value__.inspect}>".inspect
   end
 
-  def to_s
-    __eager__!
-    __value__.to_s
-  end
-
-  def respond_to_missing?(name, _include_private = false)
+  def respond_to_missing?(name, include_private = false)
     return false if name == :marshal_dump || name == :_dump
 
     __eager__!
-    # we don't pass include_private to avoid delegation to private methods
-    __value__.respond_to?(name) # NOTE: no super for respond_to_missing? in BaseicObject
+    # NOTE: no super for respond_to_missing? in BaseicObject
+    __value__.respond_to?(name, include_private)
   end
 
   def method_missing(method, *args, **kwargs, &block)
     __eager__!
-    if __value__.respond_to?(method)
-      __value__.public_send(method, *args, **kwargs, &block)
-    else
-      super
-    end
+    return super unless __value__.respond_to?(method)
+    __value__.public_send(method, *args, **kwargs, &block)
   end
 
   private
 
   def __eager__!
-    return true if __value__ != NULL
+    return false if __value__ != NULL
 
-    ::API::Editor::Read::MagicBatched.evaluate_batch!
-  end
-
-  def __push_self_into_batch__!
-    ::API::Editor::Read::MagicBatched::Batch.current.push(self)
+    @__batch__.eager!
+    ::Object
+      .instance_method(:remove_instance_variable)
+      .bind(self)
+      .call(:@__batch__)
+    true
   end
 end

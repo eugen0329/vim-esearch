@@ -247,7 +247,6 @@ class API::Editor
     elsif Configuration.version == 3
       reading.echo(arg)
     elsif Configuration.version == 4
-      API::Editor::Read::MagicBatched::Container.new(arg)
       magic_reading.echo(arg)
     else
       raise
@@ -281,7 +280,6 @@ class API::Editor
     reading.clear_cache if Configuration.version == 3
 
     magic_reading.clear_cache if Configuration.version == 4
-    API::Editor::Read::MagicBatched.cache.clear
     # BatchLoader::Executor.clear_current
   end
 
