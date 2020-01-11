@@ -24,7 +24,7 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
     ensure
       @echo_skip_evaluation = false
     end
-    raise unless identifier.is_a? API::Editor::Serialization::Identifier
+    raise unless identifier.is_a? API::Editor::Serialization::VimlValue
 
     cache.exist?(identifier)
   end

@@ -76,7 +76,7 @@ RSpec.configure do |c|
   c.order = :rand
   c.seed = 1
   c.formatter = :documentation
-  c.fail_fast = Configuration.ci? ? 3 : 4
+  c.fail_fast = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.filter_run_excluding :compatibility_regexps if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
@@ -117,4 +117,12 @@ def load_vim_plugins!(vim)
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'),     'plugin/vimproc.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vim-prettyprint'), 'plugin/prettyprint.vim')
   vim
+end
+
+BACKTRACE_CLEANER = ActiveSupport::BacktraceCleaner.new.tap do |bc|
+  bc.add_filter { |line| line.gsub(Configuration.root.to_s, '') }
+end
+
+def clean_caller
+  BACKTRACE_CLEANER.clean(caller.tap(&:unshift))
 end

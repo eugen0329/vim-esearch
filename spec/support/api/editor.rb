@@ -28,14 +28,14 @@ class API::Editor
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
   attr_reader :vim_client_getter
 
-  delegate :cached?, :with_ignore_cache, :clear_cache, :var, :func, to: :reading
+  delegate :cached?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
 
   def initialize(vim_client_getter)
     @vim_client_getter = vim_client_getter
   end
 
   def line(number)
-    echo(func("getline(#{number})"))
+    echo(func('getline', number))
   end
 
   def lines_iterator(range = nil)
@@ -61,11 +61,11 @@ class API::Editor
     from, to = lines_range(range)
     to = "line('$')" if to.nil?
 
-    echo(func("getline(#{from},#{to})"))
+    echo(func("getline", from, to))
   end
 
   def lines_count
-    echo(func("line('$')"))
+    echo(func("line", '$'))
   end
 
   def cd!(where)
@@ -73,7 +73,7 @@ class API::Editor
   end
 
   def bufname(arg)
-    echo(func("bufname('#{arg}')"))
+    echo(func("bufname", arg))
   end
 
   def current_buffer_name
@@ -81,11 +81,11 @@ class API::Editor
   end
 
   def current_line_number
-    echo(func("line('.')"))
+    echo(func("line", '.'))
   end
 
   def current_column_number
-    echo(func("col('.')"))
+    echo(func("col", '.'))
   end
 
   def locate_cursor!(line_number, column_number)
@@ -142,7 +142,7 @@ class API::Editor
   end
 
   def quickfix_window_name
-    echo(func("get(w:, 'quickfix_title', '')"))
+    echo(func('get', 'w:', 'quickfix_title', ''))
   end
 
   def trigger_cursor_moved_event!
@@ -189,13 +189,13 @@ class API::Editor
     vim.echo(arg)
   end
 
-  def reading
-    @reading ||= API::Editor::Read::Batched
+  def reader
+    @reader ||= API::Editor::Read::Batched
       .new(self, vim_client_getter, cache_enabled)
   end
 
   def echo(arg)
-    reading.echo(arg)
+    reader.echo(arg)
   end
 
   private

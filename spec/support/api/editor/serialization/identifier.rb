@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
-API::Editor::Serialization::Identifier = Struct.new(:string_representation) do
+class API::Editor::Serialization::Identifier < API::Editor::Serialization::VimlValue
+  attr_reader :string_representation
   alias_method :to_s, :string_representation
+
+  def initialize(string_representation)
+  @string_representation = string_representation
+  end
 
   def inspect
     "<Id of=#{string_representation}>"

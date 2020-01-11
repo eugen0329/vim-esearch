@@ -24,12 +24,16 @@ class API::Editor::Read::Batched::Batch
     self
   end
 
-  def lookup!(identity_map)
+  def lookup!(identity_map, &block)
     retrieved_containers, @blank_containers =
-      blank_containers.partition do |container|
-        next false unless identity_map.exist?(container.__argument__)
+      if block.nil?
+        blank_containers.partition do |container|
+          next false unless identity_map.exist?(container.__argument__)
 
-        container.__setobj__(identity_map.fetch(container.__argument__)) || true
+          container.__setobj__(identity_map.fetch(container.__argument__)) || true
+        end
+      else
+        block.call(blank_containers)
       end
 
     loaded_containers.concat(retrieved_containers)

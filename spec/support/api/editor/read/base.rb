@@ -15,7 +15,10 @@ class API::Editor::Read::Base
     API::Editor::Serialization::Identifier.new(string_representation)
   end
   alias var  id
-  alias func id
+
+  def func(name, *arguments)
+    API::Editor::Serialization::FunctionCall.new(name, *arguments)
+  end
 
   def self.serializer
     @serializer ||= API::Editor::Serialization::Serializer.new

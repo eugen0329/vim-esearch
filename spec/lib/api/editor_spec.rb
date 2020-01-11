@@ -8,7 +8,7 @@ describe API::Editor, :editor do
 
   let(:editor) { API::Editor.new(method(:vim)) }
 
-  describe 'batch echo' do
+  describe 'echo' do
     context 'array' do
       let(:filename) { 'file.txt' }
       let!(:test_directory) { directory([file("a\nb", filename)]).persist! }
@@ -104,6 +104,37 @@ describe API::Editor, :editor do
         }
       end
       it { is_expected.to eq(original_object) }
+    end
+
+
+    def func(name, *arguments)
+      API::Editor::Serialization::FunctionCall.new(name, *arguments)
+    end
+    def id(string_representation)
+      API::Editor::Serialization::Identifier.new(string_representation)
+    end
+    alias var  id
+
+    context 'function call' do
+      subject { serializer.serialize(original_object) }
+
+      context 'without arguments' do
+        let(:original_object) { func('g:Given#Function') }
+
+        it { is_expected.to eq("g:Given#Function()") }
+      end
+
+      context 'when scalar arguments' do
+        let(:original_object) { func('g:Given#Function', 1, '2', var('&ft'), [], {}) }
+
+        it { is_expected.to eq("g:Given#Function(1,'2',&ft,[],{})") }
+      end
+
+      context 'when nested arguments' do
+        let(:original_object) { func('g:Given#Function', 1, '2', var('&ft'), [4, {}], {key5: [6]} ) }
+
+        it { is_expected.to eq("g:Given#Function(1,'2',&ft,[4,{}],{'key5':[6]})") }
+      end
     end
   end
 end
