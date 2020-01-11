@@ -52,7 +52,7 @@ module Configuration
   end
 
   def debug_specs_performance?
-    env_fetch('DEBUG_SPECS_PERFORMANCE', '0') == '1'
+    env_fetch('DEBUG_SPECS_PERFORMANCE') { ci? ? '0' : '1' } == '1'
   end
 
   def editor_throttle_interval

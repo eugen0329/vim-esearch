@@ -6,21 +6,6 @@ require 'active_support/notifications'
 # rubocop:disable Layout/ClassLength
 class API::Editor
   include API::Mixins::Throttling
-  include TaggedLogging
-
-  ReadProxy = Struct.new(:editor) do
-    delegate :echo,
-      :var,
-      :func,
-      :current_line_number,
-      :current_column_number,
-      :filetype,
-      :quickfix_window_name,
-      :current_buffer_name,
-      :line,
-      :lines_count,
-      to: :editor
-  end
 
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
 
@@ -29,13 +14,16 @@ class API::Editor
   attr_reader :vim_client_getter
 
   delegate :cached?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
+  # TODO
+  delegate :serialize, to: :reader
 
-  def initialize(vim_client_getter)
+  def initialize(vim_client_getter, cache_enabled: self.class.cache_enabled)
+    @cache_enabled = cache_enabled
     @vim_client_getter = vim_client_getter
   end
 
   def line(number)
-    echo(func('getline', number))
+    echo func('getline', number)
   end
 
   def lines_iterator(range = nil); end
@@ -60,11 +48,11 @@ class API::Editor
     from, to = lines_range(range)
     to = "line('$')" if to.nil?
 
-    echo(func('getline', from, to))
+    echo func('getline', from, to)
   end
 
   def lines_count
-    echo(func('line', '$'))
+    echo func('line', '$')
   end
 
   def cd!(where)
@@ -72,7 +60,7 @@ class API::Editor
   end
 
   def bufname(arg)
-    echo(func('bufname', arg))
+    echo func('bufname', arg)
   end
 
   def current_buffer_name
@@ -80,11 +68,11 @@ class API::Editor
   end
 
   def current_line_number
-    echo(func('line', '.'))
+    echo func('line', '.')
   end
 
   def current_column_number
-    echo(func('col', '.'))
+    echo func('col', '.')
   end
 
   def locate_cursor!(line_number, column_number)
@@ -137,11 +125,11 @@ class API::Editor
   end
 
   def filetype
-    echo(var('&ft'))
+    echo var('&ft')
   end
 
   def quickfix_window_name
-    echo(func('get', 'w:', 'quickfix_title', ''))
+    echo func('get', 'w:', 'quickfix_title', '')
   end
 
   def trigger_cursor_moved_event!
@@ -185,16 +173,16 @@ class API::Editor
   end
 
   def raw_echo(arg)
-    vim.echo(arg)
+    vim.echo arg
   end
 
   def reader
     @reader ||= API::Editor::Read::Batched
-                .new(self, vim_client_getter, cache_enabled)
+                .new(self, vim_client_getter, @cache_enabled)
   end
 
   def echo(arg)
-    reader.echo(arg)
+    reader.echo arg
   end
 
   private

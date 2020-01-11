@@ -7,7 +7,6 @@ require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/notifications'
 require 'active_support/tagged_logging'
-require 'batch-loader'
 # reference global vars by human readable names (rubocop requirement)
 require 'English'
 begin
@@ -32,11 +31,12 @@ end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
-vim_instance_getter = if Configuration.debug_specs_performance?
-                        -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
-                      else
-                        -> { Vimrunner::Testing.instance }
-                      end
+vim_instance_getter =
+  if Configuration.debug_specs_performance?
+    -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
+  else
+    -> { Vimrunner::Testing.instance }
+  end
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
@@ -44,7 +44,7 @@ vim_instance_getter = if Configuration.debug_specs_performance?
 if Configuration.dangerously_maximize_performance?
   API::Editor.cache_enabled = true
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
-  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
+  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
 
   ESEARCH = API::ESearch::Facade.new(vim_instance_getter)
@@ -73,16 +73,16 @@ RSpec.configure do |c|
   c.include DSL::ESearch
 
   c.color_mode = true
-  c.order = :rand
-  c.seed = 1
-  c.formatter = :documentation
-  c.fail_fast = Configuration.ci? ? 3 : 1
+  c.order      = :rand
+  c.seed       = 1
+  c.formatter  = :documentation
+  c.fail_fast  = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
-  c.filter_run_excluding :compatibility_regexps if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
+  c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
-  c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include

@@ -14,7 +14,6 @@ class VimrunnerSpy < DecoratorBase
   end
 
   def echo(arg)
-    __class__.echo_call_history ||= []
     result = super(arg)
     __class__.echo_call_history << [arg, result, clean_caller]
     result

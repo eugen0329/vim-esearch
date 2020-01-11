@@ -43,6 +43,7 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
 
   def cache
     return @null_cache if @with_ignore_cache || !cache_enabled
+
     @cache
   end
 

@@ -13,7 +13,7 @@ class API::Editor::Serialization::Serializer
     String                                   => :serialize_string_like,
     API::Editor::Serialization::FunctionCall => :serialize_function_call,
     API::Editor::Serialization::Identifier   => :serialize_identifier,
-    Float                                  => :serialize_numberic,
+    Float                                    => :serialize_numberic,
     Integer                                  => :serialize_numberic,
     NilClass                                 => :serialize_nil
   }.freeze

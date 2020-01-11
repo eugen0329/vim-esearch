@@ -4,7 +4,7 @@ require 'yaml'
 
 class API::Editor::Serialization::YAMLDeserializer
   def deserialize(string)
-    return string if string == '' || string.start_with?(' ')
+    return string if toplevel_string?(string)
 
     parsed = YAML.safe_load(string)
 
@@ -14,7 +14,10 @@ class API::Editor::Serialization::YAMLDeserializer
     end
 
     parsed
-  rescue StandardError
-    string
+  end
+
+  # TODO: Consider ro forbid toplevel strings
+  def toplevel_string?(string)
+    string == '' || string.start_with?(' ')
   end
 end

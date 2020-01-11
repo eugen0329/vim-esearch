@@ -14,4 +14,8 @@ class API::Editor::Serialization::FunctionCall < API::Editor::Serialization::Vim
     # classes
     "(#{name} #{arguments.join(' ')})"
   end
+
+  def inspect
+    "<FunctionCall #{self}>"
+  end
 end

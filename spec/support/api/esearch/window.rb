@@ -74,9 +74,7 @@ class API::ESearch::Window
     entry = find_entry(relative_path, line)
     raise MissingEntry unless entry
 
-    entry.open do
-      return [editor.current_line_number, editor.current_column_number]
-    end
+    entry.open { return [editor.current_line_number, editor.current_column_number] }
   end
 
   def find_entry(relative_path, line)
@@ -90,7 +88,6 @@ class API::ESearch::Window
   end
 
   def inside_search_window?
-    # PERF: can preload the first line
     editor.current_buffer_name.match?(/Search/)
   end
 

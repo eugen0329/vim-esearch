@@ -19,6 +19,10 @@ class API::ESearch::Window::HeaderParser
     header_line.match?(HEADER_REGEXP) && header_line.match?(/\. Finished\.\z/)
   end
 
+  def running?
+    header_line.match?(HEADER_REGEXP) && !header_line.match?(/\. Finished\.\z/)
+  end
+
   def errors?
     header_line.match?(/\AERRORS from/)
   end

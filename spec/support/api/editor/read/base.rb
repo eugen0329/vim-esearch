@@ -12,14 +12,6 @@ class API::Editor::Read::Base
     @read_proxy              = read_proxy
   end
 
-  def self.serializer
-    @serializer ||= API::Editor::Serialization::Serializer.new
-  end
-
-  def self.deserializer
-    @deserializer ||= API::Editor::Serialization::YAMLDeserializer.new
-  end
-
   private
 
   def vim
@@ -27,10 +19,10 @@ class API::Editor::Read::Base
   end
 
   def serializer
-    self.class.serializer
+    @serializer ||= API::Editor::Serialization::Serializer.new
   end
 
   def deserializer
-    self.class.deserializer
+    @deserializer ||= API::Editor::Serialization::YAMLDeserializer.new
   end
 end
