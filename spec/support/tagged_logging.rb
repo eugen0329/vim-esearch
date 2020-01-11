@@ -6,7 +6,7 @@ require 'active_support/backtrace_cleaner'
 # methods) to enforce performance
 module TaggedLogging
   BC = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-    bc.add_filter   { |line| line.gsub(Configuration.root.to_s, '') }
+    bc.add_filter { |line| line.gsub(Configuration.root.to_s, '') }
   end
 
   def class_name_tagged
@@ -29,8 +29,8 @@ module TaggedLogging
 
   def clean_caller
     BC.clean(caller)
-      # .reject { |l| l.include?('tagged_logging') }
-      # .select { |l| l.to_s.start_with?(Configuration.root.to_s) }
-      # .tap(&:shift)
+    # .reject { |l| l.include?('tagged_logging') }
+    # .select { |l| l.to_s.start_with?(Configuration.root.to_s) }
+    # .tap(&:shift)
   end
 end

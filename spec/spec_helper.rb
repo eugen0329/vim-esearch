@@ -32,11 +32,11 @@ end
 
 ActiveSupport::Dependencies.autoload_paths << 'spec/support'
 
-if Configuration.debug_specs_performance?
-  vim_instance_getter = -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
-else
-  vim_instance_getter = -> { Vimrunner::Testing.instance }
-end
+vim_instance_getter = if Configuration.debug_specs_performance?
+                        -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
+                      else
+                        -> { Vimrunner::Testing.instance }
+                      end
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching

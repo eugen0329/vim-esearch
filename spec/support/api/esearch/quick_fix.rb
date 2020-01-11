@@ -61,10 +61,8 @@ class API::ESearch::QuickFix
   private
 
   def inside_quickfix_search_window?
-    # quickfix_window_name, filetype = editor.echo do
-    #   [quickfix_window_name, filetype]
-    # end
-    quickfix_window_name, filetype = editor.quickfix_window_name, editor.filetype
+    quickfix_window_name = editor.quickfix_window_name
+    filetype = editor.filetype
     quickfix_window_name.match?(/\A:Search/) && filetype == 'qf'
     #   Fails in rubocop 0.78
     #   editor.current_buffer_name_with_filetype in [/Search/, 'qf']

@@ -33,6 +33,7 @@ class API::Editor::Read::Base
   def self.serializer
     @serializer ||= API::Editor::Serialization::Serializer.new
   end
+
   def self.deserializer
     @deserializer ||= API::Editor::Serialization::Deserializer.new
   end

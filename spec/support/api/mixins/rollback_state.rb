@@ -16,15 +16,14 @@ module API::Mixins::RollbackState
     yield
   ensure
     10.times do
-      if old_buffer_name == editor.current_buffer_name
-        break
-      end
+      break if old_buffer_name == editor.current_buffer_name
 
       editor.press! '<C-o>'
     end
 
     if old_buffer_name != editor.current_buffer_name
-      raise RollbackCurrentBufferError, "can't rollback to buffer #{old_buffer_name.inspect} #{editor.current_buffer_name.inspect}"
+      raise RollbackCurrentBufferError,
+        "can't rollback to buffer #{old_buffer_name.inspect} #{editor.current_buffer_name.inspect}"
     end
   end
 

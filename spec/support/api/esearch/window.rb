@@ -11,8 +11,6 @@ class API::ESearch::Window
   class_attribute :search_freeze_timeout, default: Configuration.search_freeze_timeout
   attr_reader :editor
 
-  delegate :batch_echo, :eager!, to: :editor
-
   def initialize(editor)
     @editor = editor
   end
@@ -83,7 +81,7 @@ class API::ESearch::Window
     raise MissingEntry unless entry
 
     entry.open do
-      return batch_echo { [editor.current_line_number, editor.current_column_number] }
+      return [editor.current_line_number, editor.current_column_number]
     end
   end
 

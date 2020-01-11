@@ -18,8 +18,10 @@ ARG APP_DIR=/app
 ARG DEPS_DIR=/deps
 ARG BIN_DIR=$DEPS_DIR/bin
 ARG PLUGINS_DIR=$DEPS_DIR/plugins
-# Sneak-peek into xvfb (+5mb). Should be empty on CI
-ARG DEBUG_PACKAGES='x11vnc xterm scrot'
+# x11vnc, xterm, scrot: sneak-peek into xvfb (+5mb).
+# less: for debug inside pry (+1mb)
+# Should be empty on CI.
+ARG DEBUG_PACKAGES='x11vnc xterm scrot less'
 
 ENV PLUGINS_DIR=$PLUGINS_DIR
 ENV BIN_DIR=$BIN_DIR
@@ -38,9 +40,7 @@ COPY Gemfile* spec/support/provision spec/support/docker/docker-entrypoint.sh $D
 
 RUN set -eux; \
 # Runtime dependencies
-    apk add --update --no-cache xvfb python3 git $DEBUG_PACKAGES \
-# for pry
-    less; \
+    apk add --update --no-cache xvfb python3 git $DEBUG_PACKAGES; \
 # Build dependencies
     apk add --no-cache --virtual .builddeps gcc python3-dev musl-dev make wget tar; \
 # Python dependencies

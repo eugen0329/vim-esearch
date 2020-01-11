@@ -1,46 +1,69 @@
-class API::Editor::Read::Batched::Batch < Hash
-  include TaggedLogging
+# frozen_string_literal: true
 
-  def push(identifier, placeholder)
-    self.[]=(identifier, placeholder)
+class API::Editor::Read::Batched::Batch
+  attr_reader :blank_containers, :loaded_containers
+
+  def initialize(eager_method)
+    @eager_method = eager_method
+    @blank_containers = []
+    @loaded_containers = []
+  end
+
+  def eager!
+    @eager_method.call
+  end
+
+  def push(container)
+    blank_containers << container
     self
   end
 
-  def identifiers
-    keys
-  end
-
-  def placeholders
-    values
+  def clear
+    blank_containers.clear
+    loaded_containers.clear
+    self
   end
 
   def lookup!(identity_map)
-    each do |id, placeholder|
-      placeholder.value = identity_map.fetch(id) if identity_map.exist?(id)
-    end
+    retrieved_containers, @blank_containers =
+      blank_containers.partition do |container|
+        next false unless identity_map.exist?(container.__argument__)
+
+        container.__setobj__(identity_map.fetch(container.__argument__)) || true
+      end
+
+    loaded_containers.concat(retrieved_containers)
 
     self
   end
 
   def evaluate!(&evaluator)
-    lost_identifiers, lost_placeholders = self
-      .select { |id, placeholder| placeholder.empty? }
-      .to_a
-      .transpose
+    return self unless blank_containers.present?
 
-    values = evaluator.call(lost_identifiers)
-    # todo
-    return self if values.is_a? String
+    values = blank_containers
+             .map(&:__argument__)
+             .yield_self(&evaluator)
+    blank_containers
+      .zip(values)
+      .each { |container, value| container.__setobj__(value) }
 
-    values.zip(lost_placeholders).each { |value, placeholder| placeholder.value = value  }
+    loaded_containers.concat(blank_containers)
+    blank_containers.clear
+
     self
   end
 
-  def write(identity_map)
-    each do |identifier, placeholder|
-      next if identity_map.exist?(identifier)
-      identity_map.write(identifier, placeholder.value)
+  def write(identity_map, &block)
+    if block.nil?
+      loaded_containers.each do |container|
+        next if identity_map.exist?(container.__argument__)
+
+        identity_map.write(container.__argument__, container.__getobj__)
+      end
+    else
+      loaded_containers.each(&block)
     end
+
+    self
   end
 end
-

@@ -51,10 +51,6 @@ module Configuration
     @vimrc_path ||= root.join('spec', 'support', 'vimrc.vim').to_s
   end
 
-  def version
-    4
-  end
-
   def debug_specs_performance?
     env_fetch('DEBUG_SPECS_PERFORMANCE', '1') == '1'
   end

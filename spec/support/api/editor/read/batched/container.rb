@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require 'delegate'
 
-class API::Editor::Read::MagicBatched::Container < Delegator
+# rubocop:disable Lint/UnderscorePrefixedVariableName
+class API::Editor::Read::Batched::Container < Delegator
   NULL = ::Class.new
 
   attr_reader :__argument__
@@ -27,3 +30,4 @@ class API::Editor::Read::MagicBatched::Container < Delegator
     remove_instance_variable(:@__batch__)
   end
 end
+# rubocop:enable Lint/UnderscorePrefixedVariableName

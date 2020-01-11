@@ -39,11 +39,10 @@ class API::ESearch::Window::Entry
 
   def verify_buffer_name(old_buffer_name)
     raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
-  rescue
   end
 
   def inspect
-    "<Entry:#{object_id} #{instance_values.except('editor').map { |k,v| "#{k}=#{v.inspect}" }.join(', ')}>"
+    "<Entry:#{object_id} #{instance_values.except('editor').map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
   end
 
   def rollback_open(&block)
