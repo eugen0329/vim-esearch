@@ -28,9 +28,6 @@ module API::Mixins::RollbackState
   end
 
   def rollback_cursor_location_inside_buffer(editor)
-    # old_line_number, old_column_number = editor.echo do |e|
-    #   [e.current_line_number, e.current_column_number]
-    # end
     old_line_number = editor.current_line_number
     old_column_number = editor.current_column_number
 

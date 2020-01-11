@@ -30,16 +30,13 @@ class API::ESearch::Window::Entry
       editor.locate_line! line_in_window + 1
       editor.press_with_user_mappings! '\<Enter>'
 
+      raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
+
       yield
-      verify_buffer_name(old_buffer_name) # TODO
     end
   end
 
   private
-
-  def verify_buffer_name(old_buffer_name)
-    raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
-  end
 
   def inspect
     "<Entry:#{object_id} #{instance_values.except('editor').map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"

@@ -3,7 +3,7 @@
 require 'active_support/notifications'
 
 def padded(str)
-  str.ljust(15)
+  str.rjust(15)
 end
 
 ActiveSupport::Notifications.subscribe(/cache_read/) do |_name, _start, _finish, _id, payload|

@@ -1,18 +1,5 @@
 # frozen_string_literal: true
 
-# Usage:
-#   object = OpenStruct.new.tap do |o|
-#     def o.line(number)
-#       reader.echo(reader.func("line(#{number})"))
-#     end
-#   end
-#
-#   object.reader = Batch.new(object, ...)
-#
-#   [object.line(1), object.line(2)]                   # => 2 calls
-#   reader.echo { [line(1), line(2), line(3)] }       # => 1 call
-#   reader.echo { {first: line(1), second: line(2)} } # => 1 call
-
 class API::Editor::Read::Base
   delegate :serialize, to: :serializer
   delegate :deserialize, to: :deserializer
@@ -36,11 +23,6 @@ class API::Editor::Read::Base
 
   def self.deserializer
     @deserializer ||= API::Editor::Serialization::Deserializer.new
-  end
-
-  class << self
-    delegate :serialize, to: :serializer
-    delegate :deserialize, to: :deserializer
   end
 
   private

@@ -10,13 +10,11 @@ class API::ESearch::Window::EntriesParser
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines(from: 3).with_index
+    @lines_iterator = editor.lines(3..).with_index
   end
 
   def parse
     return enum_for(:parse) unless block_given?
-
-    # return enum_for(:parse) { 0 if editor.lines.size < 3 } unless block_given?
 
     lines_iterator.rewind
     begin

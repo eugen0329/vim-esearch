@@ -26,15 +26,10 @@ describe 'esearch#backend', :backend do
         esearch.configuration.submit!
         esearch.cd! search_directory
       end
+
       after do
-        if Configuration.debug_specs_performance?
-          if backend == 'system'
-            expect(VimrunnerSpy.echo_call_history.count).to be < 7
-          elsif backend != 'vimproc'
-            expect(VimrunnerSpy.echo_call_history.count).to be < 8
-          else
-            expect(VimrunnerSpy.echo_call_history.count).to be < 10
-          end
+        if Configuration.debug_specs_performance? && backend == 'system'
+          expect(VimrunnerSpy.echo_call_history.count).to be < 7
         end
         esearch.cleanup!
       ensure

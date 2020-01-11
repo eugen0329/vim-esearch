@@ -28,7 +28,7 @@ class API::Editor
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
   attr_reader :vim_client_getter
 
-  delegate :with_ignore_cache, :clear_cache, :var, :func, to: :reading
+  delegate :cached?, :with_ignore_cache, :clear_cache, :var, :func, to: :reading
 
   def initialize(vim_client_getter)
     @vim_client_getter = vim_client_getter
@@ -38,28 +38,30 @@ class API::Editor
     echo(func("getline(#{number})"))
   end
 
-  def lines_iterator(from:)
-    first_line_from_range = line(from)
-    size = lines_count
-    return if size < from
+  def lines_iterator(range = nil)
+  end
 
-    yield first_line_from_range
+  def lines(range = nil, prefetch_count: 4, &block)
+    return enum_for(:lines, range) { lines_count } unless block_given?
 
-    (from + 1).upto(size).each do |line_number|
-      yield(line(line_number))
+    from, to = lines_range(range)
+
+    current_buffer_lines_count = lines_count
+    from.step(to, prefetch_count).each do |prefetch_from|
+      # Fetch lines from range first and only after that analyze
+      # current_buffer_lines_count to leverage batching mechanism
+      lines_array(prefetch_from..prefetch_from + prefetch_count - 1)
+        .each { |line_content| yield(line_content) }
+
+      break if current_buffer_lines_count < prefetch_from
     end
   end
 
-  def lines_all(from:)
-    lns = echo(func("getline(#{from},line('$'))"))
-    lns.each { |l| yield l }
-  end
+  def lines_array(range = nil)
+    from, to = lines_range(range)
+    to = "line('$')" if to.nil?
 
-  def lines(from: 1, &block)
-    return enum_for(:lines, from: from) { lines_count } unless block_given?
-
-    lines_all(from: from, &block)
-    # lines_iterator(from: from, &block)
+    echo(func("getline(#{from},#{to})"))
   end
 
   def lines_count
@@ -196,25 +198,17 @@ class API::Editor
     reading.echo(arg)
   end
 
-  delegate :serialize,   to: :serializer
-  delegate :deserialize, to: :deserializer
-  def serializer
-    @serializer ||= API::Editor::Serialization::Serializer.new
-  end
+  private
 
-  def deserializer
-    @deserializer ||= API::Editor::Serialization::Deserializer.new
-  end
+  def lines_range(range)
+    return [1, nil] if range.blank?
 
-  def normalize_range(range)
     from = [range.begin, 1].compact.max
-    to = [range.end, Float::INFINITY].compact.min
-    raise ArgumentError if from > to
+    to = range.end
+    raise ArgumentError if to.present? && from > to
 
     [from, to]
   end
-
-  private
 
   def instrument(operation, options = {})
     options.merge!(operation: operation)
