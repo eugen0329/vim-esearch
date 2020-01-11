@@ -26,6 +26,6 @@ class API::ESearch::Window::HeaderParser
   private
 
   def header_line
-    editor.line(1)
+    editor.lines.first
   end
 end

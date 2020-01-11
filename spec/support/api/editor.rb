@@ -191,7 +191,7 @@ class API::Editor
 
   def reading
     @reading ||= API::Editor::Read::Batched
-                 .new(self, vim_client_getter, cache_enabled)
+      .new(self, vim_client_getter, cache_enabled)
   end
 
   def echo(arg)

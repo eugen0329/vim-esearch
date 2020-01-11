@@ -3,7 +3,7 @@
 require 'active_support/core_ext/module/delegation'
 
 class API::Editor::Read::Batched < API::Editor::Read::Base
-  attr_reader :batch, :cache
+  attr_reader :batch, :cache, :cache_enabled
 
   def eager!
     return false if batch.blank?
@@ -42,9 +42,10 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
     container
   end
 
-  def initialize(read_proxy, vim_client_getter, _cache_enabled)
+  def initialize(read_proxy, vim_client_getter, cache_enabled)
     super(read_proxy, vim_client_getter)
     @batch = Batch.new(method(:eager!))
     @cache = CacheStore.new
+    @cache_enabled = cache_enabled
   end
 end

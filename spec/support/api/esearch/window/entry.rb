@@ -30,9 +30,14 @@ class API::ESearch::Window::Entry
       editor.locate_line! line_in_window + 1
       editor.press_with_user_mappings! '\<Enter>'
 
-      raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
-
+      opened_buffer_name = editor.current_buffer_name
       yield
+
+      # Checking after the block execution to let opened_buffer_name become
+      # preloaded in batch with other data during block execution to prevent N+1.
+      if old_buffer_name == opened_buffer_name
+        raise OpenEntryError, "Entry was opened incorrectly #{inspect}"
+      end
     end
   end
 
