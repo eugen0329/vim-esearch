@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class API::Editor::Read::Base
+  include API::Editor::Serialization::Helpers
   delegate :serialize, to: :serializer
   delegate :deserialize, to: :deserializer
 
@@ -11,21 +12,12 @@ class API::Editor::Read::Base
     @read_proxy              = read_proxy
   end
 
-  def id(string_representation)
-    API::Editor::Serialization::Identifier.new(string_representation)
-  end
-  alias var  id
-
-  def func(name, *arguments)
-    API::Editor::Serialization::FunctionCall.new(name, *arguments)
-  end
-
   def self.serializer
     @serializer ||= API::Editor::Serialization::Serializer.new
   end
 
   def self.deserializer
-    @deserializer ||= API::Editor::Serialization::Deserializer.new
+    @deserializer ||= API::Editor::Serialization::YAMLDeserializer.new
   end
 
   private

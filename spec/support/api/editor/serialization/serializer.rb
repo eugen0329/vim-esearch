@@ -3,25 +3,54 @@
 require 'yaml'
 
 class API::Editor::Serialization::Serializer
-  class UnknownObjectTypeError < RuntimeError; end
+  class UnknownSerializer < RuntimeError; end
+
+  CLASS_TO_SERIALIZER = {
+    Array                                    => :serialize_array_like,
+    Enumerator                               => :serialize_array_like,
+    Hash                                     => :serialize_hash,
+    Symbol                                   => :serialize_string_like,
+    String                                   => :serialize_string_like,
+    API::Editor::Serialization::FunctionCall => :serialize_function_call,
+    API::Editor::Serialization::Identifier   => :serialize_identifier,
+    Float                                  => :serialize_numberic,
+    Integer                                  => :serialize_numberic,
+    NilClass                                 => :serialize_nil
+  }.freeze
 
   def serialize(object)
-    case object
-    when Array, Enumerator
-      "[#{object.map { |element| serialize(element) }.join(',')}]"
-    when Hash
-      "{#{object.map { |k, v| "#{wrap_in_quotes(k.to_s)}:#{serialize(v)}" }.join(',')}}"
-    when String, Symbol
-      "#{wrap_in_quotes(object.to_s)}"
-    when API::Editor::Serialization::FunctionCall
-      "#{object.name}(#{serialize(object.arguments)[1..-2]})"
-    when Numeric, NilClass, API::Editor::Serialization::Identifier
-      object
-    else raise UnknownObjectTypeError, "what is it?? #{object.inspect}"
-    end
+    public_send(CLASS_TO_SERIALIZER.fetch(object.class), object)
+  rescue KeyError
+    raise UnknownSerializer, "what is it?? #{object.inspect}"
   end
 
-  private
+  def serialize_array_like(object)
+    "[#{object.map { |element| serialize(element) }.join(',')}]"
+  end
+
+  def serialize_hash(object)
+    "{#{object.map { |k, v| "#{wrap_in_quotes(k.to_s)}:#{serialize(v)}" }.join(',')}}"
+  end
+
+  def serialize_identifier(object)
+    object.string_representation
+  end
+
+  def serialize_string_like(object)
+    wrap_in_quotes(object.to_s).to_s
+  end
+
+  def serialize_numberic(object)
+    object.to_s
+  end
+
+  def serialize_nil(object)
+    object.to_s
+  end
+
+  def serialize_function_call(object)
+    "#{object.name}(#{serialize(object.arguments)[1..-2]})"
+  end
 
   def wrap_in_quotes(str)
     "'#{str.gsub("'", "''")}'"

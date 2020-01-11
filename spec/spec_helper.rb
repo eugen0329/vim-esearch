@@ -82,6 +82,7 @@ RSpec.configure do |c|
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+  c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
@@ -117,12 +118,4 @@ def load_vim_plugins!(vim)
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'),     'plugin/vimproc.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vim-prettyprint'), 'plugin/prettyprint.vim')
   vim
-end
-
-BACKTRACE_CLEANER = ActiveSupport::BacktraceCleaner.new.tap do |bc|
-  bc.add_filter { |line| line.gsub(Configuration.root.to_s, '') }
-end
-
-def clean_caller
-  BACKTRACE_CLEANER.clean(caller.tap(&:unshift))
 end

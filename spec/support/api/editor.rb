@@ -38,10 +38,9 @@ class API::Editor
     echo(func('getline', number))
   end
 
-  def lines_iterator(range = nil)
-  end
+  def lines_iterator(range = nil); end
 
-  def lines(range = nil, prefetch_count: 4, &block)
+  def lines(range = nil, prefetch_count: 4)
     return enum_for(:lines, range) { lines_count } unless block_given?
 
     from, to = lines_range(range)
@@ -61,11 +60,11 @@ class API::Editor
     from, to = lines_range(range)
     to = "line('$')" if to.nil?
 
-    echo(func("getline", from, to))
+    echo(func('getline', from, to))
   end
 
   def lines_count
-    echo(func("line", '$'))
+    echo(func('line', '$'))
   end
 
   def cd!(where)
@@ -73,7 +72,7 @@ class API::Editor
   end
 
   def bufname(arg)
-    echo(func("bufname", arg))
+    echo(func('bufname', arg))
   end
 
   def current_buffer_name
@@ -81,11 +80,11 @@ class API::Editor
   end
 
   def current_line_number
-    echo(func("line", '.'))
+    echo(func('line', '.'))
   end
 
   def current_column_number
-    echo(func("col", '.'))
+    echo(func('col', '.'))
   end
 
   def locate_cursor!(line_number, column_number)
@@ -191,7 +190,7 @@ class API::Editor
 
   def reader
     @reader ||= API::Editor::Read::Batched
-      .new(self, vim_client_getter, cache_enabled)
+                .new(self, vim_client_getter, cache_enabled)
   end
 
   def echo(arg)

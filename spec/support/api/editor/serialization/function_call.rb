@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class API::Editor::Serialization::FunctionCall < API::Editor::Serialization::VimlValue
   attr_reader :name, :arguments
 
@@ -7,6 +9,9 @@ class API::Editor::Serialization::FunctionCall < API::Editor::Serialization::Vim
   end
 
   def to_s
+    # Is only used for caching (and sometimes for debug). Display is done in
+    # the form of lisp functions to avoid coupling with serialization related
+    # classes
     "(#{name} #{arguments.join(' ')})"
   end
 end

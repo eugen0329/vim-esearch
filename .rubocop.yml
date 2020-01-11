@@ -53,3 +53,4 @@ Style/ClassAndModuleChildren:
 
 Layout/HashAlignment:
   EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table

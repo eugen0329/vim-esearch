@@ -32,8 +32,6 @@ describe 'esearch#backend', :backend do
           expect(VimrunnerSpy.echo_call_history.count).to be < 7
         end
         esearch.cleanup!
-      ensure
-        VimrunnerSpy.reset!
       end
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do

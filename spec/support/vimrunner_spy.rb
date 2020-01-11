@@ -3,7 +3,7 @@
 require 'delegate'
 
 class VimrunnerSpy < DecoratorBase
-  include TaggedLogging
+  include CleanCaller
 
   def self.echo_call_history
     @echo_call_history ||= []

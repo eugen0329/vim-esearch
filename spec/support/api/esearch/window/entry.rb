@@ -35,9 +35,7 @@ class API::ESearch::Window::Entry
 
       # Checking after the block execution to let opened_buffer_name become
       # preloaded in batch with other data during block execution to prevent N+1.
-      if old_buffer_name == opened_buffer_name
-        raise OpenEntryError, "Entry was opened incorrectly #{inspect}"
-      end
+      raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if old_buffer_name == opened_buffer_name
     end
   end
 

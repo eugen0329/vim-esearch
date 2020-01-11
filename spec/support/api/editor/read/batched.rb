@@ -3,7 +3,7 @@
 require 'active_support/core_ext/module/delegation'
 
 class API::Editor::Read::Batched < API::Editor::Read::Base
-  attr_reader :batch, :cache, :cache_enabled
+  attr_reader :batch, :cache_enabled
 
   def eager!
     return false if batch.blank?
@@ -34,6 +34,18 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
     cache.clear
   end
 
+  def with_ignore_cache
+    @with_ignore_cache = true
+    yield
+  ensure
+    @with_ignore_cache = false
+  end
+
+  def cache
+    return @null_cache if @with_ignore_cache || !cache_enabled
+    @cache
+  end
+
   def echo(argument)
     return argument if @echo_skip_evaluation
 
@@ -47,5 +59,6 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
     @batch = Batch.new(method(:eager!))
     @cache = CacheStore.new
     @cache_enabled = cache_enabled
+    @null_cache = ActiveSupport::Cache::NullStore.new
   end
 end
