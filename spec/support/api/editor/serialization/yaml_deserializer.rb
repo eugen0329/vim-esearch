@@ -3,8 +3,16 @@
 require 'yaml'
 
 class API::Editor::Serialization::YAMLDeserializer
-  def deserialize(string)
-    return string if toplevel_string?(string)
+  class ToplevelUnquotedStrError < RuntimeError; end
+
+  def deserialize(string, allow_toplevel_unquoted_strings = false)
+    if toplevel_unquoted_string?(string)
+      unless allow_toplevel_unquoted_strings
+        raise ToplevelUnquotedStrError,
+          "Is not allowed for deserialization: #{string.inspect}"
+      end
+      return string
+    end
 
     parsed = YAML.safe_load(string)
 
@@ -17,7 +25,7 @@ class API::Editor::Serialization::YAMLDeserializer
   end
 
   # TODO: Consider ro forbid toplevel strings
-  def toplevel_string?(string)
-    string == '' || string.start_with?(' ')
+  def toplevel_unquoted_string?(string)
+    string == '' || string.start_with?(' ') || string !~ /\A['"1-9{\[]/
   end
 end

@@ -2,78 +2,75 @@
 
 require 'spec_helper'
 
+# Just a superficial unit testing to allow isolate a problem (if the one
+# occurs) without involving Vimrunner.
+# For more rigorious specs refer to spec/lib/integration/serialization_spec.rb
 describe API::Editor::Serialization::YAMLDeserializer do
-  include API::Editor::Serialization::Helpers
-
-  let(:editor) { API::Editor.new(method(:vim)) }
   let(:deserializer) { API::Editor::Serialization::YAMLDeserializer.new }
-  let(:string) { '' }
+  let(:allow_toplevel_unquoted_strings) { false }
 
   subject { deserializer.deserialize(string) }
 
+  def deserialize(string)
+    deserializer.deserialize(string, allow_toplevel_unquoted_strings)
+  end
+
   context 'toplevel list' do
     context 'blank' do
-      let(:string) { '[]' }
-
-      it { is_expected.to eq([]) }
+      it { expect(deserialize('[]')).to eq([]) }
     end
 
     context 'non blank' do
-      let(:string) { '[1]' }
-      it { is_expected.to eq([1]) }
+      it { expect(deserialize('[1]')).to eq([1]) }
     end
   end
 
   context 'toplevel dict' do
     context 'blank' do
-      let(:string) { '{}' }
-
-      it { is_expected.to eq({}) }
+      it { expect(deserialize('{}')).to eq({}) }
     end
 
     context 'non blank' do
       let(:string) { "{'1': 2}" }
-      it { is_expected.to eq('1' => 2) }
+      it { expect(deserialize("{'1': 2}")).to eq('1' => 2) }
     end
   end
 
   context 'toplevel scalar' do
     context 'numbers' do
-      it { expect(deserializer.deserialize('1')).to eq(1) }
-      it { expect(deserializer.deserialize('1.2')).to eq(1.2) }
+      it { expect(deserialize('1')).to eq(1) }
+      it { expect(deserialize('1.2')).to eq(1.2) }
     end
 
     context 'string' do
       context 'blank' do
         let(:string) { '""' }
 
-        it { is_expected.to eq('') }
+        it { expect(deserialize('""')).to eq('') }
+        it { expect(deserialize("''")).to eq('') }
       end
 
       context 'non blank' do
         let(:string) { "'given string'" }
 
-        it { is_expected.to eq('given string') }
+        it { expect(deserialize("'given'")).to eq('given') }
+        it { expect(deserialize('"given"')).to eq('given') }
       end
 
-      # vim feature that should be avoided
+      # Consider to forbid toplevel strings
       context 'without surrounding quotes' do
-        context 'stripped (like after #strip call)' do
-          let(:string) { 'given string' }
+        let(:allow_toplevel_unquoted_strings) { true }
 
-          it { is_expected.to eq('given string') }
+        context 'stripped' do
+          it { expect(deserialize('no \w around')).to eq('no \w around') }
         end
 
         context 'with surrounding spaces' do
-          let(:string) { '  given string ' }
-
-          it { is_expected.to eq('  given string ') }
+          it { expect(deserialize(' given  ')).to eq(' given  ') }
         end
 
         context 'any other object with leading spaces' do
-          let(:string) { '  {} ' }
-
-          it { is_expected.to eq('  {} ') }
+          it { expect(deserialize('  {} ')).to eq('  {} ') }
         end
       end
     end

@@ -13,7 +13,7 @@ class API::ESearch::QuickFix
     @editor = editor
   end
 
-  def has_search_started?(timeout: 10.seconds)
+  def has_search_started?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.press!('lh') # press jk to close "Press ENTER or type command to continue" prompt
       inside_quickfix_search_window?
@@ -63,7 +63,8 @@ class API::ESearch::QuickFix
   def inside_quickfix_search_window?
     quickfix_window_name = editor.quickfix_window_name
     filetype = editor.filetype
-    quickfix_window_name.match?(/\A:Search/) && filetype == 'qf'
+
+    quickfix_window_name&.match?(/\A:Search/) && filetype == 'qf'
     #   Fails in rubocop 0.78
     #   editor.current_buffer_name_with_filetype in [/Search/, 'qf']
     #   true

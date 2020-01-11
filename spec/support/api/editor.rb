@@ -129,7 +129,7 @@ class API::Editor
   end
 
   def quickfix_window_name
-    echo func('get', 'w:', 'quickfix_title', '')
+    echo func('get', var('w:'), 'quickfix_title', '')
   end
 
   def trigger_cursor_moved_event!

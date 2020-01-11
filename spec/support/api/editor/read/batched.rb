@@ -10,7 +10,7 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
 
     batch
       .lookup!(cache)
-      .evaluate! { |identifiers| deserialize(vim.echo(serialize(identifiers))) }
+      .evaluate! { |viml_values| deserialize(vim.echo(serialize(viml_values))) }
       .write(cache)
       .clear
 

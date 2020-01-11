@@ -6,8 +6,6 @@ require 'yaml'
 describe 'Smoke of esearch#util' do
   include Helpers::FileSystem
 
-  around { |e| esearch.editor.with_ignore_cache(&e) }
-
   context '#parse_help_options' do
     shared_examples 'adapter help' do |adapter, path: adapter, arg: '--help'|
       let(:result) { esearch.editor.raw_echo("esearch#util#parse_help_options('#{path} --help')") }

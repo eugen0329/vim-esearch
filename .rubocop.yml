@@ -54,3 +54,6 @@ Style/ClassAndModuleChildren:
 Layout/HashAlignment:
   EnforcedColonStyle: table
   EnforcedHashRocketStyle: table
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space

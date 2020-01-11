@@ -9,6 +9,10 @@ describe API::Editor::Serialization::Serializer do
   let(:serializer) { API::Editor::Serialization::Serializer.new }
   subject { serializer.serialize(original_object) }
 
+  # It doesn't make a lot of sense to test non-viml values serialization
+  # in isolation due to potential false positives, so other values are tested in
+  # terms of integration with deseralization
+
   context API::Editor::Serialization::Identifier do
     context 'vim option variable' do
       let(:original_object) { var('&filetype') }

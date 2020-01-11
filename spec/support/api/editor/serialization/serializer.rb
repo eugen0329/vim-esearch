@@ -44,8 +44,8 @@ class API::Editor::Serialization::Serializer
     object.to_s
   end
 
-  def serialize_nil(object)
-    object.to_s
+  def serialize_nil(_object)
+    "''"
   end
 
   def serialize_function_call(object)
