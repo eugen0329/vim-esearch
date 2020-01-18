@@ -23,6 +23,7 @@ class Editor::Read::Batched::Container < Delegator
     @__value__
   end
 
+  alias __class__ class
   def class
     __getobj__.class
   end

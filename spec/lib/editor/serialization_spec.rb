@@ -82,11 +82,11 @@ describe Editor::Serialization do
           context_when 'allow_toplevel_unquoted_string: false' do
             it do
               expect { subject.call('') }
-                .to raise_error( ToplevelUnquotedStrError)
+                .to raise_error(ToplevelUnquotedStrError)
             end
             it do
               expect { subject.call('non-blank') }
-                .to raise_error( ToplevelUnquotedStrError)
+                .to raise_error(ToplevelUnquotedStrError)
             end
           end
         end
@@ -112,7 +112,7 @@ describe Editor::Serialization do
         context_when 'allow_toplevel_unquoted_string: false' do
           it do
             expect { subject.call('non-blank') }
-              .to raise_error( ToplevelUnquotedStrError)
+              .to raise_error(ToplevelUnquotedStrError)
           end
         end
       end

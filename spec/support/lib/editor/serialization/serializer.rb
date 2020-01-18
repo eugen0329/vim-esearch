@@ -6,16 +6,16 @@ class Editor::Serialization::Serializer
   class UnknownSerializer < RuntimeError; end
 
   CLASS_TO_SERIALIZER = {
-    Array                                    => :serialize_array_like,
-    Enumerator                               => :serialize_array_like,
-    Hash                                     => :serialize_hash,
-    Symbol                                   => :serialize_string_like,
-    String                                   => :serialize_string_like,
+    Array                               => :serialize_array_like,
+    Enumerator                          => :serialize_array_like,
+    Hash                                => :serialize_hash,
+    Symbol                              => :serialize_string_like,
+    String                              => :serialize_string_like,
     Editor::Serialization::FunctionCall => :serialize_function_call,
     Editor::Serialization::Identifier   => :serialize_identifier,
-    Float                                    => :serialize_numberic,
-    Integer                                  => :serialize_numberic,
-    NilClass                                 => :serialize_nil
+    Float                               => :serialize_numberic,
+    Integer                             => :serialize_numberic,
+    NilClass                            => :serialize_nil
   }.freeze
 
   def serialize(object)

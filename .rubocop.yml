@@ -43,7 +43,6 @@ AllCops:
   Exclude:
     - 'spec/support/**/brew_formulae/**/*'
     - 'spec/support/bin/**/*'
-    - 'spec/support/helpers/file_system.rb' # args forwarding is not implemented in rubocop yet
 
 Style/ClassAndModuleChildren:
   EnforcedStyle: compact
