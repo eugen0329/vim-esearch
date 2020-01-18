@@ -83,6 +83,7 @@ RSpec.configure do |c|
   c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+  c.alias_it_should_behave_like_to :context_when, 'when'
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include

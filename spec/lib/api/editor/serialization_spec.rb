@@ -9,116 +9,111 @@ describe API::Editor::Serialization do
   let(:serializer) { API::Editor::Serialization::Serializer.new }
   let(:deserializer) { API::Editor::Serialization::YAMLDeserializer.new }
 
-  describe 'Serialization, or There and Back Again' do
+  describe 'serialize -> eval -> deserialize' do
     let(:allow_toplevel_unquoted_strings) { false }
-
-    def serialize_eval_deserialize(obj)
-      obj
-        .then { |ruby_object| serializer.serialize(ruby_object)   }
-        .then { |serialized|  editor.raw_echo(serialized)         }
-        .then { |evaluated|   deserializer.deserialize(evaluated, allow_toplevel_unquoted_strings) }
-    end
-
-    shared_context 'it works when unquoted toplevel str allowed' do
+    shared_context 'allow_toplevel_unquoted_strings: true' do
       let(:allow_toplevel_unquoted_strings) { true }
     end
-    shared_context 'it !work when unquoted toplevel str !allowed' do
+    shared_context 'allow_toplevel_unquoted_string: false' do
       let(:allow_toplevel_unquoted_strings) { false }
     end
-    shared_context 'it works when unquoted toplevel str !allowed' do
-      let(:allow_toplevel_unquoted_strings) { false }
-    end
-    shared_examples 'obj == obj.serialize.eval.deserialize' do |obj:|
-      it { expect(serialize_eval_deserialize(obj)).to eq(obj) }
-    end
-    shared_examples 'obj.serialize.eval.deserialize RAISES err' do |obj:, err:|
-      it { expect { serialize_eval_deserialize(obj) }.to raise_error(err) }
+
+    subject(:serialize_eval_deserialize) do
+      proc do |obj|
+        obj
+          .then { |ruby_object| serializer.serialize(ruby_object)   }
+          .then { |serialized|  editor.raw_echo(serialized)         }
+          .then { |evaluated|   deserializer.deserialize(evaluated, allow_toplevel_unquoted_strings) }
+      end
     end
 
     context 'literals' do
       context 'integer' do
-        it_behaves_like 'it works when unquoted toplevel str allowed' do
-          it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1
+        context_when 'allow_toplevel_unquoted_strings: true' do
+          it { expect(subject.call(1)).to eq(1) }
         end
 
-        it_behaves_like 'it works when unquoted toplevel str !allowed' do
-          it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1
+        context_when 'allow_toplevel_unquoted_string: false' do
+          it { expect(subject.call(1)).to eq(1) }
         end
       end
 
       context 'float' do
         context 'regular' do
-          it_behaves_like 'it works when unquoted toplevel str allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1.2
+          context_when 'allow_toplevel_unquoted_strings: true' do
+            it { expect(subject.call(1.2)).to eq(1.2) }
           end
 
-          it_behaves_like 'it works when unquoted toplevel str !allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1.2
+          context_when 'allow_toplevel_unquoted_string: false' do
+            it { expect(subject.call(1.2)).to eq(1.2) }
           end
         end
 
         context 'tiny' do
-          it_behaves_like 'it works when unquoted toplevel str allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1e-20
+          context_when 'allow_toplevel_unquoted_strings: true' do
+            it { expect(subject.call(1e-20)).to eq(1e-20) }
           end
 
-          it_behaves_like 'it works when unquoted toplevel str !allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1e-20
+          context_when 'allow_toplevel_unquoted_string: false' do
+            it { expect(subject.call(1e-20)).to eq(1e-20) }
           end
         end
 
         context 'huge' do
           before { pending 'YAML.safe_load cannot handle "1.0e10"' }
 
-          it_behaves_like 'it works when unquoted toplevel str allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1e+20
+          context_when 'allow_toplevel_unquoted_strings: true' do
+            it { expect(subject.call(1e+20)).to eq(1e+20) }
           end
 
-          it_behaves_like 'it works when unquoted toplevel str !allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 1e+20
+          context_when 'allow_toplevel_unquoted_string: false' do
+            it { expect(subject.call(1e+20)).to eq(1e+20) }
           end
         end
       end
 
       context 'string' do
-        context 'top level' do
-          it_behaves_like 'it works when unquoted toplevel str allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: ''
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: 'non-blank string'
+        context 'toplevel' do
+          context_when 'allow_toplevel_unquoted_strings: true' do
+            it { expect(subject.call('')).to eq('') }
+            it { expect(subject.call('non-blank')).to eq('non-blank') }
           end
 
-          it_behaves_like 'it !work when unquoted toplevel str !allowed' do
-            it_behaves_like 'obj.serialize.eval.deserialize RAISES err',
-              obj: '',
-              err: ToplevelUnquotedStrError
-            it_behaves_like 'obj.serialize.eval.deserialize RAISES err',
-              obj: 'non-blank string',
-              err: ToplevelUnquotedStrError
+          context_when 'allow_toplevel_unquoted_string: false' do
+            it do
+              expect { subject.call('') }
+                .to raise_error ToplevelUnquotedStrError
+            end
+            it do
+              expect { subject.call('non-blank') }
+                .to raise_error ToplevelUnquotedStrError
+            end
           end
         end
 
         context "wrapped with array (like [''])" do
-          it_behaves_like 'it works when unquoted toplevel str allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: ['']
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: ['non-blank string']
+          context_when 'allow_toplevel_unquoted_strings: true' do
+            it { expect(subject.call([''])).to eq(['']) }
+            it { expect(subject.call(['non-blank'])).to eq(['non-blank']) }
           end
 
-          it_behaves_like 'it works when unquoted toplevel str !allowed' do
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: ['']
-            it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: ['non-blank string']
+          context_when 'allow_toplevel_unquoted_string: false' do
+            it { expect(subject.call([''])).to eq(['']) }
+            it { expect(subject.call(['non-blank'])).to eq(['non-blank']) }
           end
         end
       end
 
       context 'nil' do
-        it_behaves_like 'it works when unquoted toplevel str allowed' do
-          it { expect(serialize_eval_deserialize(nil)).to eq('') }
+        context_when 'allow_toplevel_unquoted_strings: true' do
+          it { expect(subject.call(nil)).to eq('') }
         end
 
-        it_behaves_like 'it !work when unquoted toplevel str !allowed' do
-          it_behaves_like 'obj.serialize.eval.deserialize RAISES err',
-            obj: nil,
-            err: ToplevelUnquotedStrError
+        context_when 'allow_toplevel_unquoted_string: false' do
+          it do
+            expect { subject.call('non-blank') }
+              .to raise_error ToplevelUnquotedStrError
+          end
         end
       end
     end
@@ -126,27 +121,32 @@ describe API::Editor::Serialization do
     # non-scalars are pretty stable, no need to test wrapped/unwrapped
     context 'array' do
       context 'blank' do
-        it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: []
+        it { expect(subject.call([])).to eq([]) }
       end
 
       context 'non blank' do
-        it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: [1, '2', [], {}, [3], {'4' => 5}]
+        let(:obj) { [1, '2', [], {}, [3], {'4' => 5}] }
+
+        it { expect(subject.call(obj)).to eq(obj) }
       end
     end
 
     context 'hash' do
       context 'blank' do
-        it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: {}
+        it { expect(subject.call({})).to eq({}) }
       end
 
       context 'non blank' do
-        it_behaves_like 'obj == obj.serialize.eval.deserialize', obj: {
-          '1' => 2,
-          '3' => [],
-          '4' => {},
-          '5' => [6],
-          '7' => {'8' => 9}
-        }
+        let(:obj) do
+          {
+            '1' => 2,
+            '3' => [],
+            '4' => {},
+            '5' => [6],
+            '7' => {'8' => 9}
+          }
+        end
+        it { expect(subject.call(obj)).to eq(obj) }
       end
     end
   end
