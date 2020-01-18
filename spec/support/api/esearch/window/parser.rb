@@ -17,8 +17,8 @@ class API::ESearch::Window::Parser
     header_parser.finished?
   end
 
-  def header_search?
-    header_parser.finished?
+  def header_running?
+    header_parser.running?
   end
 
   def header

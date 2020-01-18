@@ -12,21 +12,23 @@ module API::Mixins::RollbackState
 
   def rollback_current_buffer(editor)
     old_buffer_name = editor.current_buffer_name
+
     yield
   ensure
-    42.times do
+    10.times do
       break if old_buffer_name == editor.current_buffer_name
 
       editor.press! '<C-o>'
     end
 
     if old_buffer_name != editor.current_buffer_name
-      raise RollbackCurrentBufferError, "can't rollback to buffer #{old_buffer_name}"
+      raise RollbackCurrentBufferError,
+        "can't rollback to buffer #{old_buffer_name.inspect} #{editor.current_buffer_name.inspect}"
     end
   end
 
   def rollback_cursor_location_inside_buffer(editor)
-    old_line_number   = editor.current_line_number
+    old_line_number = editor.current_line_number
     old_column_number = editor.current_column_number
 
     yield

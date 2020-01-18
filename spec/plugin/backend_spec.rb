@@ -26,7 +26,13 @@ describe 'esearch#backend', :backend do
         esearch.configuration.submit!
         esearch.cd! search_directory
       end
-      after { esearch.cleanup! }
+
+      after do
+        if Configuration.debug_specs_performance? && backend == 'system'
+          expect(VimrunnerSpy.echo_call_history.count).to be < 7
+        end
+        esearch.cleanup!
+      end
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
         esearch.search!(to_search(search_string))
@@ -49,6 +55,8 @@ describe 'esearch#backend', :backend do
 
   shared_examples 'works with adapter' do |adapter, adapter_bin|
     context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
+      let(:adapter) { adapter }
+
       before do
         esearch.configure(adapter: adapter, regex: 1)
 
@@ -121,17 +129,19 @@ describe 'esearch#backend', :backend do
 
   shared_examples 'a backend 2' do |backend|
     context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
+      let(:backend) { backend }
+
       before { esearch.configure(backend: backend) }
 
       describe '#out#win' do
         before { esearch.configure(out: 'win') }
 
-        include_context 'works with adapter', :ag
-        include_context 'works with adapter', :ack
-        include_context 'works with adapter', :git
-        include_context 'works with adapter', :grep
-        include_context 'works with adapter', :pt, Configuration.pt_path
-        include_context 'works with adapter', :rg, Configuration.rg_path
+        include_context 'works with adapter', 'ag'
+        include_context 'works with adapter', 'ack'
+        include_context 'works with adapter', 'git'
+        include_context 'works with adapter', 'grep'
+        include_context 'works with adapter', 'pt', Configuration.pt_path
+        include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
 

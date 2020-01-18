@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class API::ESearch::Core
-  include TaggedLogging
   include API::Mixins::VimTypes
 
   attr_reader :editor
@@ -11,9 +10,7 @@ class API::ESearch::Core
   end
 
   def search!(search_string, **kwargs)
-    keyboard = ":call esearch#init(#{search_args(**kwargs)})<Enter>#{search_string}<Enter>"
-    log_debug { keyboard }
-    editor.press! keyboard
+    editor.press! ":call esearch#init(#{search_args(kwargs)})<Enter>#{search_string}<Enter>"
   end
 
   private
@@ -21,6 +18,6 @@ class API::ESearch::Core
   def search_args(**kwargs)
     return nil if kwargs.blank?
 
-    to_vim_dict(kwargs)
+    editor.serialize(kwargs)
   end
 end

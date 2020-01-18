@@ -3,7 +3,7 @@
 RSpec.shared_examples 'an abortable backend' do |backend|
   let(:adapter) { 'ag' }
   let(:out) { 'win' }
-  let(:empty_cwd_for_infinite_search) { nil }
+  let(:empty_cwd_for_infinite_search) { '' }
   # We will identify our command using UUID search_string (generated as a static
   # string intetionally)
   let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }

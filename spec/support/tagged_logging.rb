@@ -1,23 +1,21 @@
 # frozen_string_literal: true
 
-# methods are intentionally without positional argument support (like in logger
-# methods) to enforce performance
 module TaggedLogging
-  def class_name_tagged
-    Configuration.log.tagged(self.class.to_s) do
+  def tag_with_classname
+    Configuration.log.tagged([self.class.to_s, object_id].join(':')) do
       yield
     end
   end
 
   def log_debug
-    class_name_tagged { Configuration.log.debug { yield } }
+    tag_with_classname { Configuration.log.debug { yield } }
   end
 
   def log_info
-    class_name_tagged { Configuration.log.info { yield } }
+    tag_with_classname { Configuration.log.info { yield } }
   end
 
   def log_warning
-    class_name_tagged { Configuration.log.warning { yield } }
+    tag_with_classname { Configuration.log.warn { yield } }
   end
 end

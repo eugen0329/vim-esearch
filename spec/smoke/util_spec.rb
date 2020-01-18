@@ -6,12 +6,10 @@ require 'yaml'
 describe 'Smoke of esearch#util' do
   include Helpers::FileSystem
 
-  around { |e| esearch.editor.with_ignore_cache(&e) }
-
   context '#parse_help_options' do
     shared_examples 'adapter help' do |adapter, path: adapter, arg: '--help'|
-      let(:result) { esearch.editor.echo("esearch#util#parse_help_options('#{path} --help')") }
-      let(:deserialized_result) { YAML.safe_load(result) }
+      let(:result) { esearch.editor.raw_echo("esearch#util#parse_help_options('#{path} --help')") }
+      let(:deserialized_result) { Editor::Serialization::YAMLDeserializer.new.deserialize(result) }
       let(:option_regexp) { /\A-{1,2}[a-zA-Z0-9][-a-zA-Z0-9]*/ }
 
       it "for command `#{adapter} #{arg}` outputs seemingly valid results" do

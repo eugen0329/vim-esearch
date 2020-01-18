@@ -5,12 +5,19 @@ require 'rspec'
 require 'vimrunner/rspec'
 require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
+require 'active_support/notifications'
 require 'active_support/tagged_logging'
 # reference global vars by human readable names (rubocop requirement)
 require 'English'
+begin
+  require 'pry'
+  Pry.config.history.file = '.pry_history'
+rescue LoadError # rubocop:disable Lint/SuppressedException
+end
 
 require 'support/custom_matchers'
 require 'support/inflections'
+require 'support/subscriptions'
 require 'known_issues'
 
 require 'support/configuration'
@@ -22,23 +29,30 @@ Configuration.tap do |c|
   c.process_check_timeout = 10.second
 end
 
-ActiveSupport::Dependencies.autoload_paths << 'spec/support'
+ActiveSupport::Dependencies.autoload_paths += ['spec/support', 'spec/support/lib']
+
+vim_instance_getter =
+  if Configuration.debug_specs_performance?
+    -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
+  else
+    -> { Vimrunner::Testing.instance }
+  end
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
 # etc.). For other backends increase of running speed is about 1.5x - 2x times
 if Configuration.dangerously_maximize_performance?
-  API::ESearch::Editor.cache_enabled = true
+  Editor.cache_enabled = true
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
-  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepend_with_escape_press_on_timeout
+  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
 
-  ESEARCH = API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+  ESEARCH = API::ESearch::Facade.new(vim_instance_getter)
   def esearch
     ESEARCH
   end
 else
-  API::ESearch::Editor.cache_enabled = false
+  Editor.cache_enabled = false
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each
@@ -50,7 +64,7 @@ else
   API::ESearch::Platform.process_check_timeout = 20.seconds
 
   def esearch
-    @esearch ||= API::ESearch::Facade.new(-> { Vimrunner::Testing.instance })
+    @esearch ||= API::ESearch::Facade.new(vim_instance_getter)
   end
 end
 
@@ -59,15 +73,17 @@ RSpec.configure do |c|
   c.include DSL::ESearch
 
   c.color_mode = true
-  c.order = :rand
-  c.seed = 1
-  c.formatter = :documentation
-  c.fail_fast = Configuration.ci? ? 3 : 10
+  c.order      = :rand
+  c.seed       = 1
+  c.formatter  = :documentation
+  c.fail_fast  = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
-  c.filter_run_excluding :compatibility_regexps if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
+  c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+  c.alias_it_should_behave_like_to :context_when, 'when'
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include

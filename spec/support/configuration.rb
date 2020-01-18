@@ -51,6 +51,10 @@ module Configuration
     @vimrc_path ||= root.join('spec', 'support', 'vimrc.vim').to_s
   end
 
+  def debug_specs_performance?
+    env_fetch('DEBUG_SPECS_PERFORMANCE') { ci? ? '0' : '1' } == '1'
+  end
+
   def editor_throttle_interval
     env_fetch('EDITOR_THROTTLE_INTERVAL', 0.0).to_f
   end

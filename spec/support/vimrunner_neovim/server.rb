@@ -21,9 +21,9 @@ module VimrunnerNeovim
     VIMRC        = ::Vimrunner::Server::VIMRC
     VIMRUNNER_RC = ::Vimrunner::Server::VIMRUNNER_RC
     REMOTE_EXPR_METHOD_NAMES = {
-      prepend_with_escape_press:                        :remote_expr_prepended_with_escape_press,
-      fallback_to_prepend_with_escape_press_on_timeout: :remote_expr_with_fallback_on_timeout,
-      default:                                          :remote_expr_default
+      prepend_with_escape_press:                           :remote_expr_prepended_with_escape_press,
+      fallback_to_prepending_with_escape_press_on_timeout: :remote_expr_with_fallback_on_timeout,
+      default:                                             :remote_expr_default
     }.freeze
     class_attribute :remote_expr_execution_mode,
                     default: :prepend_with_escape_press

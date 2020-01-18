@@ -23,14 +23,14 @@ class API::ESearch::Window
   def has_search_started?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.trigger_cursor_moved_event!
-      inside_search_window?
+      break true if inside_search_window?
     end
   end
 
   def has_search_finished?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.trigger_cursor_moved_event!
-      parser.header_finished? || parser.header_errors?
+      break true if parser.header_finished? || parser.header_errors?
     end
   end
 

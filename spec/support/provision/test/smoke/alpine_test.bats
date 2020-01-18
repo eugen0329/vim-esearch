@@ -36,7 +36,7 @@ teardown() {
   assert_output_includes 'usage: git grep'
   # seems, git-grep doesn't have --help or -h key under alpine os, but at least
   # this workaround works
-  assert_equal "$status" 129 
+  assert_equal "$status" 129
 
   assert_file_exists "$plugins_dir/vimproc.vim/plugin/vimproc.vim"
   assert_file_exists "$plugins_dir/vim-prettyprint/plugin/prettyprint.vim"

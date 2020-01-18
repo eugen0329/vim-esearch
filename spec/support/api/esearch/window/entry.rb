@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'active_support/core_ext/object/instance_variables'
+
 class API::ESearch::Window::Entry
   include API::Mixins::RollbackState
 
@@ -23,18 +25,26 @@ class API::ESearch::Window::Entry
   def open
     old_buffer_name = editor.current_buffer_name
 
-    editor.with_ignore_cache do
-      rollback_open do
-        editor.locate_line! line_in_window + 1
-        editor.press_with_user_mappings! '\<Enter>'
-        raise OpenEntryError, "can't open entry #{inspect}" if old_buffer_name == editor.current_buffer_name
+    rollback_open do
+      editor.locate_line! line_in_window + 1
+      editor.press_with_user_mappings! '\<Enter>'
 
-        yield
-      end
+      opened_buffer_name = editor.current_buffer_name
+      yield
+
+      # Checking after the block execution to let opened_buffer_name become
+      # preloaded in batch with other data during block execution to prevent N+1.
+      # If eager strategy is used then current buffer name verification is just
+      # postponed to be executed after yielding
+      raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if old_buffer_name == opened_buffer_name
     end
   end
 
   private
+
+  def inspect
+    "<Entry:#{object_id} #{instance_values.except('editor').map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
+  end
 
   def rollback_open(&block)
     if rollback_inside_buffer_on_open?

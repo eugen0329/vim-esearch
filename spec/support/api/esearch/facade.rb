@@ -36,7 +36,7 @@ class API::ESearch::Facade
 
   # rubocop:disable Lint/DuplicateMethods
   def editor
-    @editor ||= API::ESearch::Editor.new(vim_client_getter)
+    @editor ||= Editor.new(vim_client_getter)
   end
 
   def platform

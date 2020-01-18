@@ -10,12 +10,11 @@ class API::ESearch::Window::EntriesParser
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines(from: 3).with_index
+    @lines_iterator = editor.lines(3..).with_index
   end
 
   def parse
-    return enum_for(:parse) { 0 if editor.lines.size < 3 } unless block_given?
-    return if parse.size == 0 # rubocop:disable Style/ZeroLengthPredicate
+    return enum_for(:parse) unless block_given?
 
     lines_iterator.rewind
     begin
@@ -23,7 +22,7 @@ class API::ESearch::Window::EntriesParser
 
       loop do
         relative_path = next_file_relative_path!
-        raise MissingEntryError unless line_with_entry?
+        raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
 
         next_lines_with_entries! do |line|
           yield API::ESearch::Window::Entry.new(editor, relative_path, *line)

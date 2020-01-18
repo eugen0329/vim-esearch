@@ -18,8 +18,10 @@ ARG APP_DIR=/app
 ARG DEPS_DIR=/deps
 ARG BIN_DIR=$DEPS_DIR/bin
 ARG PLUGINS_DIR=$DEPS_DIR/plugins
-# Sneak-peek into xvfb (+5mb). Should be empty on CI
-ARG DEBUG_PACKAGES='x11vnc xterm scrot'
+# x11vnc, xterm, scrot: sneak-peek into xvfb (+5mb).
+# less: for debug inside pry (+1mb)
+# Should be empty on CI.
+ARG DEBUG_PACKAGES='x11vnc xterm scrot less'
 
 ENV PLUGINS_DIR=$PLUGINS_DIR
 ENV BIN_DIR=$BIN_DIR
