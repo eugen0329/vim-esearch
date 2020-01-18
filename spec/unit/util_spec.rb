@@ -11,9 +11,9 @@ describe 'esearch#util' do
   describe '#parse_help_options' do
     let(:help_content) { format(layout, help_output) }
     let(:help_file) { file(help_content) }
-    let(:result) { esearch.editor.raw_echo("esearch#util#parse_help_options('cat #{help_file}')") }
+    let(:eval_result) { esearch.editor.raw_echo("esearch#util#parse_help_options('cat #{help_file}')") }
     let!(:fixture_directory) { directory([help_file], 'parse_help_options').persist! }
-    let(:deserialized_result) { API::Editor::Serialization::YAMLDeserializer.new.deserialize(result) }
+    let(:deserialized_result) { API::Editor::Serialization::YAMLDeserializer.new.deserialize(eval_result) }
     let(:layout) do
       <<~HELP_LAYOUT
         Usage: grep [OPTION]... PATTERN [FILE]...

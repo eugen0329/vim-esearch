@@ -4,9 +4,9 @@ require 'delegate'
 
 # rubocop:disable Lint/UnderscorePrefixedVariableName
 class API::Editor::Read::Batched::Container < Delegator
-  NULL = ::Class.new
+  NULL = ::Class.new.freeze
 
-  attr_reader :__argument__
+  attr_reader :__argument__, :__value__
 
   def initialize(__argument__, __batch__)
     super(NULL)
@@ -21,6 +21,10 @@ class API::Editor::Read::Batched::Container < Delegator
   def __getobj__
     __eager__! if @__value__ == NULL
     @__value__
+  end
+
+  def class
+    __getobj__.class
   end
 
   private

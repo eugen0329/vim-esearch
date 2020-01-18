@@ -13,7 +13,7 @@ class API::Editor
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
   attr_reader :vim_client_getter
 
-  delegate :cached?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
+  delegate :cached?, :evaluated?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
   # TODO
   delegate :serialize, to: :reader
 
@@ -26,21 +26,19 @@ class API::Editor
     echo func('getline', number)
   end
 
-  def lines_iterator(range = nil); end
-
   def lines(range = nil, prefetch_count: 4)
-    return enum_for(:lines, range) { lines_count } unless block_given?
+    raise ArgumentError unless prefetch_count.positive?
+    return enum_for(:lines, range, prefetch_count: prefetch_count) { lines_count } unless block_given?
 
     from, to = lines_range(range)
+    current_lines_count = lines_count
 
-    current_buffer_lines_count = lines_count
     from.step(to, prefetch_count).each do |prefetch_from|
-      # Fetch lines from range first and only after that analyze
-      # current_buffer_lines_count to leverage batching mechanism
-      lines_array(prefetch_from..prefetch_from + prefetch_count - 1)
-        .each { |line_content| yield(line_content) }
+      break if evaluated?(current_lines_count) && current_lines_count < prefetch_from
 
-      break if current_buffer_lines_count < prefetch_from
+      prefetch_to = [to || Float::INFINITY, prefetch_from + prefetch_count - 1].min
+      lines_array(prefetch_from..prefetch_to)
+        .each { |line_content| yield(line_content) }
     end
   end
 
@@ -189,6 +187,8 @@ class API::Editor
 
   def lines_range(range)
     return [1, nil] if range.blank?
+
+    raise ArgumentError if range.begin.present? && range.begin < 1
 
     from = [range.begin, 1].compact.max
     to = range.end

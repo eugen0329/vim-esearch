@@ -19,11 +19,11 @@ describe API::Editor::Serialization do
     end
 
     subject(:serialize_eval_deserialize) do
-      proc do |obj|
-        obj
-          .then { |ruby_object| serializer.serialize(ruby_object)   }
-          .then { |serialized|  editor.raw_echo(serialized)         }
-          .then { |evaluated|   deserializer.deserialize(evaluated, allow_toplevel_unquoted_strings) }
+      proc do |ruby_object|
+        serializer
+          .serialize(ruby_object)
+          .then { |serialized| editor.raw_echo(serialized) }
+          .then { |evaluated|  deserializer.deserialize(evaluated, allow_toplevel_unquoted_strings) }
       end
     end
 
@@ -125,9 +125,9 @@ describe API::Editor::Serialization do
       end
 
       context 'non blank' do
-        let(:obj) { [1, '2', [], {}, [3], {'4' => 5}] }
+        let(:ruby_object) { [1, '2', [], {}, [3], {'4' => 5}] }
 
-        it { expect(subject.call(obj)).to eq(obj) }
+        it { expect(subject.call(ruby_object)).to eq(ruby_object) }
       end
     end
 
@@ -137,7 +137,7 @@ describe API::Editor::Serialization do
       end
 
       context 'non blank' do
-        let(:obj) do
+        let(:ruby_object) do
           {
             '1' => 2,
             '3' => [],
@@ -146,7 +146,7 @@ describe API::Editor::Serialization do
             '7' => {'8' => 9}
           }
         end
-        it { expect(subject.call(obj)).to eq(obj) }
+        it { expect(subject.call(ruby_object)).to eq(ruby_object) }
       end
     end
   end

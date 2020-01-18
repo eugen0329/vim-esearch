@@ -12,6 +12,22 @@ class API::Editor::Read::Base
     @read_proxy              = read_proxy
   end
 
+  def cache
+    raise NotImplementedError
+  end
+
+  def cached?
+    raise NotImplementedError
+  end
+
+  def with_ignore_cache
+    raise NotImplementedError
+  end
+
+  def evaluated?
+    raise NotImplementedError
+  end
+
   private
 
   def vim
