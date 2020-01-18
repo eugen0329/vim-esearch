@@ -2,7 +2,7 @@
 
 require 'yaml'
 
-class API::Editor::Serialization::YAMLDeserializer
+class Editor::Serialization::YAMLDeserializer
   class ToplevelUnquotedStrError < RuntimeError; end
 
   def deserialize(string, allow_toplevel_unquoted_strings = false)

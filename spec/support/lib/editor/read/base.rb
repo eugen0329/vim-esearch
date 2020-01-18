@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class API::Editor::Read::Base
-  include API::Editor::Serialization::Helpers
+class Editor::Read::Base
+  include Editor::Serialization::Helpers
   delegate :serialize, to: :serializer
   delegate :deserialize, to: :deserializer
 
@@ -35,10 +35,10 @@ class API::Editor::Read::Base
   end
 
   def serializer
-    @serializer ||= API::Editor::Serialization::Serializer.new
+    @serializer ||= Editor::Serialization::Serializer.new
   end
 
   def deserializer
-    @deserializer ||= API::Editor::Serialization::YAMLDeserializer.new
+    @deserializer ||= Editor::Serialization::YAMLDeserializer.new
   end
 end

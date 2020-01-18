@@ -29,7 +29,7 @@ Configuration.tap do |c|
   c.process_check_timeout = 10.second
 end
 
-ActiveSupport::Dependencies.autoload_paths << 'spec/support'
+ActiveSupport::Dependencies.autoload_paths += ['spec/support', 'spec/support/lib']
 
 vim_instance_getter =
   if Configuration.debug_specs_performance?
@@ -42,7 +42,7 @@ vim_instance_getter =
 # sacrificing reliability (as with every optimization which involves caching
 # etc.). For other backends increase of running speed is about 1.5x - 2x times
 if Configuration.dangerously_maximize_performance?
-  API::Editor.cache_enabled = true
+  Editor.cache_enabled = true
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
   VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
@@ -52,7 +52,7 @@ if Configuration.dangerously_maximize_performance?
     ESEARCH
   end
 else
-  API::Editor.cache_enabled = false
+  Editor.cache_enabled = false
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each

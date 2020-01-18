@@ -2,12 +2,12 @@
 
 require 'spec_helper'
 
-describe API::Editor::Serialization do
-  ToplevelUnquotedStrError = API::Editor::Serialization::YAMLDeserializer::ToplevelUnquotedStrError
+describe Editor::Serialization do
+  ToplevelUnquotedStrError = Editor::Serialization::YAMLDeserializer::ToplevelUnquotedStrError
 
-  let(:editor) { API::Editor.new(method(:vim)) }
-  let(:serializer) { API::Editor::Serialization::Serializer.new }
-  let(:deserializer) { API::Editor::Serialization::YAMLDeserializer.new }
+  let(:editor) { Editor.new(method(:vim)) }
+  let(:serializer) { Editor::Serialization::Serializer.new }
+  let(:deserializer) { Editor::Serialization::YAMLDeserializer.new }
 
   describe 'serialize -> eval -> deserialize' do
     let(:allow_toplevel_unquoted_strings) { false }
@@ -82,11 +82,11 @@ describe API::Editor::Serialization do
           context_when 'allow_toplevel_unquoted_string: false' do
             it do
               expect { subject.call('') }
-                .to raise_error ToplevelUnquotedStrError
+                .to raise_error( ToplevelUnquotedStrError)
             end
             it do
               expect { subject.call('non-blank') }
-                .to raise_error ToplevelUnquotedStrError
+                .to raise_error( ToplevelUnquotedStrError)
             end
           end
         end
@@ -112,7 +112,7 @@ describe API::Editor::Serialization do
         context_when 'allow_toplevel_unquoted_string: false' do
           it do
             expect { subject.call('non-blank') }
-              .to raise_error ToplevelUnquotedStrError
+              .to raise_error( ToplevelUnquotedStrError)
           end
         end
       end

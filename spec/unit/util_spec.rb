@@ -13,7 +13,7 @@ describe 'esearch#util' do
     let(:help_file) { file(help_content) }
     let(:eval_result) { esearch.editor.raw_echo("esearch#util#parse_help_options('cat #{help_file}')") }
     let!(:fixture_directory) { directory([help_file], 'parse_help_options').persist! }
-    let(:deserialized_result) { API::Editor::Serialization::YAMLDeserializer.new.deserialize(eval_result) }
+    let(:deserialized_result) { Editor::Serialization::YAMLDeserializer.new.deserialize(eval_result) }
     let(:layout) do
       <<~HELP_LAYOUT
         Usage: grep [OPTION]... PATTERN [FILE]...

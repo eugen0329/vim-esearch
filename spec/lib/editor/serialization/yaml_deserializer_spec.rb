@@ -5,8 +5,8 @@ require 'spec_helper'
 # Just a superficial unit testing to allow isolate a problem (if the one
 # occurs) without involving Vimrunner.
 # For more rigorious specs refer to spec/lib/integration/serialization_spec.rb
-describe API::Editor::Serialization::YAMLDeserializer do
-  let(:deserializer) { API::Editor::Serialization::YAMLDeserializer.new }
+describe Editor::Serialization::YAMLDeserializer do
+  let(:deserializer) { Editor::Serialization::YAMLDeserializer.new }
   let(:allow_toplevel_unquoted_strings) { false }
 
   subject { deserializer.deserialize(string) }

@@ -3,7 +3,7 @@
 require 'delegate'
 
 # rubocop:disable Lint/UnderscorePrefixedVariableName
-class API::Editor::Read::Batched::Container < Delegator
+class Editor::Read::Batched::Container < Delegator
   NULL = ::Class.new.freeze
 
   attr_reader :__argument__, :__value__

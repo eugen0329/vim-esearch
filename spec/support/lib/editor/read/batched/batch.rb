@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class API::Editor::Read::Batched::Batch
+class Editor::Read::Batched::Batch
   attr_reader :blank_containers, :loaded_containers
 
   def initialize(eager_method)

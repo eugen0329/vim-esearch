@@ -2,7 +2,7 @@
 
 require 'yaml'
 
-class API::Editor::Serialization::Serializer
+class Editor::Serialization::Serializer
   class UnknownSerializer < RuntimeError; end
 
   CLASS_TO_SERIALIZER = {
@@ -11,8 +11,8 @@ class API::Editor::Serialization::Serializer
     Hash                                     => :serialize_hash,
     Symbol                                   => :serialize_string_like,
     String                                   => :serialize_string_like,
-    API::Editor::Serialization::FunctionCall => :serialize_function_call,
-    API::Editor::Serialization::Identifier   => :serialize_identifier,
+    Editor::Serialization::FunctionCall => :serialize_function_call,
+    Editor::Serialization::Identifier   => :serialize_identifier,
     Float                                    => :serialize_numberic,
     Integer                                  => :serialize_numberic,
     NilClass                                 => :serialize_nil

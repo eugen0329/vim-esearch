@@ -3,7 +3,7 @@
 require 'active_support/core_ext/module/delegation'
 require 'active_support/cache'
 
-class API::Editor::Read::Batched < API::Editor::Read::Base
+class Editor::Read::Batched < Editor::Read::Base
   NULL_CACHE = ::ActiveSupport::Cache::NullStore.new
 
   attr_reader :batch, :cache_enabled
@@ -30,13 +30,13 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
     ensure
       @echo_skip_evaluation = false
     end
-    raise unless expression.is_a? API::Editor::Serialization::VimlExpr
+    raise unless expression.is_a? Editor::Serialization::VimlExpr
 
     cache.exist?(expression)
   end
 
   def evaluated?(container)
-    container.__value__ != API::Editor::Read::Batched::Container::NULL
+    container.__value__ != Editor::Read::Batched::Container::NULL
   end
 
   def clear_cache

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 # Bse class for serializable values
-class API::Editor::Serialization::VimlExpr
+class Editor::Serialization::VimlExpr
 end

@@ -9,7 +9,7 @@ describe 'Smoke of esearch#util' do
   context '#parse_help_options' do
     shared_examples 'adapter help' do |adapter, path: adapter, arg: '--help'|
       let(:result) { esearch.editor.raw_echo("esearch#util#parse_help_options('#{path} --help')") }
-      let(:deserialized_result) { API::Editor::Serialization::YAMLDeserializer.new.deserialize(result) }
+      let(:deserialized_result) { Editor::Serialization::YAMLDeserializer.new.deserialize(result) }
       let(:option_regexp) { /\A-{1,2}[a-zA-Z0-9][-a-zA-Z0-9]*/ }
 
       it "for command `#{adapter} #{arg}` outputs seemingly valid results" do

@@ -4,7 +4,7 @@ require 'active_support/core_ext/class/attribute'
 require 'active_support/notifications'
 
 # rubocop:disable Layout/ClassLength
-class API::Editor
+class Editor
   include API::Mixins::Throttling
 
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
@@ -175,7 +175,7 @@ class API::Editor
   end
 
   def reader
-    @reader ||= API::Editor::Read::Batched
+    @reader ||= Editor::Read::Batched
                 .new(self, vim_client_getter, @cache_enabled)
   end
 

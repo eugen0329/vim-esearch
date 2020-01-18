@@ -2,10 +2,10 @@
 
 require 'spec_helper'
 
-describe API::Editor, :editor do
+describe Editor, :editor do
   include Helpers::FileSystem
   let(:cache_enabled) { true }
-  let(:editor) { API::Editor.new(method(:vim), cache_enabled: cache_enabled) }
+  let(:editor) { Editor.new(method(:vim), cache_enabled: cache_enabled) }
   let(:filename) { 'file.txt' }
   let(:file_lines) { %w[a b c d] }
   let!(:test_directory) { directory([file(file_lines, filename)]).persist! }
@@ -20,29 +20,9 @@ describe API::Editor, :editor do
   describe '#lines' do
     let(:prefetch_count) { file_lines.count }
     subject { editor.lines(prefetch_count: prefetch_count) }
-
     before do
       editor.cd!   test_directory
       editor.edit! filename
-    end
-
-    shared_examples 'yields each line using prefetching' do
-      let(:prefetch_count) { 2 }
-
-      # verify the setup
-      before { expect(file_lines.count).to eq(prefetch_count * 2) }
-
-      it 'yields each line using prefetching' do
-        expect(vim).to receive(:echo).once.and_call_original
-        expect(subject.next).to eq(file_lines[0])
-        expect(subject.next).to eq(file_lines[1])
-
-        expect(vim).to receive(:echo).once.and_call_original
-        expect(subject.next).to eq(file_lines[2])
-        expect(subject.next).to eq(file_lines[3])
-
-        expect { subject.next }.to raise_error(StopIteration)
-      end
     end
 
     context 'return value' do
@@ -94,6 +74,25 @@ describe API::Editor, :editor do
 
       it { expect { editor.lines(prefetch_count: -1) }.to raise_error(ArgumentError) }
       it { expect { editor.lines(prefetch_count: 0) }.to  raise_error(ArgumentError) }
+    end
+
+    shared_examples 'yields each line using prefetching' do
+      let(:prefetch_count) { 2 }
+
+      # verify the setup
+      before { expect(file_lines.count).to eq(prefetch_count * 2) }
+
+      it 'yields each line using prefetching' do
+        expect(vim).to receive(:echo).once.and_call_original
+        expect(subject.next).to eq(file_lines[0])
+        expect(subject.next).to eq(file_lines[1])
+
+        expect(vim).to receive(:echo).once.and_call_original
+        expect(subject.next).to eq(file_lines[2])
+        expect(subject.next).to eq(file_lines[3])
+
+        expect { subject.next }.to raise_error(StopIteration)
+      end
     end
 
     context_when 'cache_enabled: true' do

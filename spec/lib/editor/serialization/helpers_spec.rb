@@ -2,11 +2,11 @@
 
 require 'spec_helper'
 
-describe API::Editor::Serialization::Helpers do
+describe Editor::Serialization::Helpers do
   include described_class
 
-  let(:editor) { API::Editor.new(method(:vim)) }
-  let(:serializer) { API::Editor::Serialization::Serializer.new }
+  let(:editor) { Editor.new(method(:vim)) }
+  let(:serializer) { Editor::Serialization::Serializer.new }
   subject { serializer.serialize(original_object) }
 
   context 'viml variables' do
