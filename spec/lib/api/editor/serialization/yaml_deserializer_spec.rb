@@ -31,7 +31,6 @@ describe API::Editor::Serialization::YAMLDeserializer do
     end
 
     context 'non blank' do
-      let(:string) { "{'1': 2}" }
       it { expect(deserialize("{'1': 2}")).to eq('1' => 2) }
     end
   end
@@ -44,15 +43,11 @@ describe API::Editor::Serialization::YAMLDeserializer do
 
     context 'string' do
       context 'blank' do
-        let(:string) { '""' }
-
         it { expect(deserialize('""')).to eq('') }
         it { expect(deserialize("''")).to eq('') }
       end
 
       context 'non blank' do
-        let(:string) { "'given string'" }
-
         it { expect(deserialize("'given'")).to eq('given') }
         it { expect(deserialize('"given"')).to eq('given') }
       end

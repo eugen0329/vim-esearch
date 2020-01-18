@@ -39,13 +39,13 @@ class API::ESearch::Configuration
 
   def adapter
     cache.fetch('adapter') do
-      editor.echo('get(get(g:, "esearch", {}), "adapter", esearch#opts#default_adapter())')
+      editor.raw_echo('get(get(g:, "esearch", {}), "adapter", esearch#opts#default_adapter())')
     end
   end
 
   def output
     cache.fetch('out') do
-      editor.echo('get(get(g:, "esearch", {}), "out", g:esearch#defaults#out)')
+      editor.raw_echo('get(get(g:, "esearch", {}), "out", g:esearch#defaults#out)')
     end
   end
 end

@@ -2,30 +2,26 @@
 
 require 'spec_helper'
 
-describe API::Editor::Serialization::Serializer do
-  include API::Editor::Serialization::Helpers
+describe API::Editor::Serialization::Helpers do
+  include described_class
 
   let(:editor) { API::Editor.new(method(:vim)) }
   let(:serializer) { API::Editor::Serialization::Serializer.new }
   subject { serializer.serialize(original_object) }
 
-  # It doesn't make a lot of sense to test non-viml values serialization
-  # in isolation due to potential false positives, so other values are tested in
-  # terms of integration with deseralization
-
-  context API::Editor::Serialization::Identifier do
+  context 'viml variables' do
     context 'vim option variable' do
       let(:original_object) { var('&filetype') }
       it { is_expected.to eq('&filetype') }
     end
 
-    context 'vim autoload variable' do
+    context 'vim autoloadable variable' do
       let(:original_object) { var('g:a#b') }
       it { is_expected.to eq('g:a#b') }
     end
   end
 
-  context API::Editor::Serialization::FunctionCall do
+  context 'viml function calls' do
     context 'without arguments' do
       let(:original_object) { func('g:Given#Function') }
 

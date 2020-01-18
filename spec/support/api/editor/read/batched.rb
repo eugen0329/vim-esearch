@@ -20,13 +20,13 @@ class API::Editor::Read::Batched < API::Editor::Read::Base
   def cached?
     begin
       @echo_skip_evaluation = true
-      identifier = yield
+      expression = yield
     ensure
       @echo_skip_evaluation = false
     end
-    raise unless identifier.is_a? API::Editor::Serialization::VimlValue
+    raise unless expression.is_a? API::Editor::Serialization::VimlExpr
 
-    cache.exist?(identifier)
+    cache.exist?(expression)
   end
 
   def clear_cache

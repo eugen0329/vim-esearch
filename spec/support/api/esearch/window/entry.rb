@@ -34,6 +34,8 @@ class API::ESearch::Window::Entry
 
       # Checking after the block execution to let opened_buffer_name become
       # preloaded in batch with other data during block execution to prevent N+1.
+      # If eager strategy is used then current buffer name verification is just
+      # postponed to be executed after yielding
       raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if old_buffer_name == opened_buffer_name
     end
   end
