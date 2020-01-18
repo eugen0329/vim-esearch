@@ -18,7 +18,7 @@ install_package_git_grep() {
   elif is_alpine_linux; then
     echo 'Not implemented error' && return 2
   elif is_osx; then
-    :
+    : # nothing is required anymore
     # brew reinstall git -- --with-pcre2
   else
     echo "Unsupported platform error: $(uname -a)" && return 1
