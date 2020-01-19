@@ -13,7 +13,7 @@ module VimlValue
       float        = '-'?[1-9][0-9]*'.'[0-9]+;
       tab          = [\t];
       whitespace   = [ ];
-      separator    = [{}\[\]():,];
+      separator    = [:,{}()\[\]];
 
       export eof_ch = 0;
       any_ch        = any - eof_ch;
@@ -83,4 +83,3 @@ module VimlValue
     end
   end
 end
-

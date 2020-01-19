@@ -28,6 +28,8 @@ fi
 . "$provision_dir/dependencies/rg.sh"
 # shellcheck source=spec/support/provision/dependencies/plugins.sh
 . "$provision_dir/dependencies/plugins.sh"
+# shellcheck source=spec/support/provision/dependencies/ragel.sh
+. "$provision_dir/dependencies/ragel.sh"
 
 # shellcheck source=spec/support/provision/__installation_helpers.sh
 . "$provision_dir/__installation_helpers.sh"

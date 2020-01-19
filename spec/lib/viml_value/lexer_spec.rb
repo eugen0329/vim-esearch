@@ -23,6 +23,6 @@ describe VimlValue::Lexer, :editor do
     end
   end
 
-  it { expect(%q|1|).to   be_tokenized_as([:NUMBER, val(1  )])   }
-  it { expect(%q|1.2|).to be_tokenized_as([:NUMBER, val(1.2)]) }
+  it { expect('1').to   be_tokenized_as([:NUMBER, val(1)]) }
+  it { expect('1.2').to be_tokenized_as([:NUMBER, val(1.2)]) }
 end

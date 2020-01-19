@@ -17,6 +17,9 @@ teardown() {
   sh /provision/alpine.sh "$local_bin_dir" "$plugins_dir" >&3
   # assert_success
 
+  run ragel --version
+  assert_success
+
   run vim --version
   assert_output_includes "+clientserver"
 
