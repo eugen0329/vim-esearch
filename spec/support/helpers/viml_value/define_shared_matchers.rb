@@ -6,7 +6,7 @@ module Helpers::VimlValue::DefineSharedMatchers
   # Pretty ugly way to reduce duplication (other approaches involve even
   # more problems mostly tied with implicit dependencies)
 
-  def define_action_matcher!(matcher_name, what_does, &action)
+  def define_action_matcher!(matcher_name, verb:, &action)
     matcher matcher_name do |expected|
       match do |_actual|
         @processed = instance_exec(&action)
@@ -14,19 +14,19 @@ module Helpers::VimlValue::DefineSharedMatchers
       end
 
       description do |actual|
-        "#{what_does} #{actual.inspect} as #{expected.inspect}"
+        "#{verb} #{actual.inspect} as #{expected.inspect}"
       end
 
       failure_message do |actual|
         ["expected #{VimlValue::Lexer}",
-         "to #{what_does} #{actual.inspect}",
+         "to #{verb} #{actual.inspect}",
          "as #{expected.inspect},",
          "got #{@processed.inspect}"].join(' ')
       end
     end
   end
 
-  def define_raise_on_action_matcher!(matcher_name, what_does, &action)
+  def define_raise_on_action_matcher!(matcher_name, verb:, &action)
     matcher matcher_name do |exception|
       supports_block_expectations
 
@@ -38,13 +38,13 @@ module Helpers::VimlValue::DefineSharedMatchers
       end
 
       description do |actual|
-        "raise #{exception} while #{what_does} #{actual.inspect}"
+        "raise #{exception} while #{verb} #{actual.inspect}"
       end
 
       failure_message do |actual|
         ["expected #{described_class}",
          "to raise #{exception}",
-         "while #{what_does} #{actual.inspect},",
+         "while #{verb} #{actual.inspect},",
          "got #{@processed.inspect}"].join(' ')
       end
     end
