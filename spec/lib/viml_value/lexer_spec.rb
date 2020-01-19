@@ -3,100 +3,113 @@
 require 'spec_helper'
 
 describe VimlValue::Lexer do
-  def tokenize(input)
-    described_class.new.tap { |l| l.scan_setup(input) }.each.to_a
-  end
+  include Helpers::Tokenizing
+  context 'NUMERIC' do
+    context 'integer' do
+      it { expect('1').to   be_tokenized_as([:NUMERIC, val(1, [0, 1])])    }
+      it { expect('0').to   be_tokenized_as([:NUMERIC, val(0, [0, 1])])    }
 
-  def val(ruby_value)
-    VimlValue::Lexer::TokenData.new(ruby_value)
-  end
-
-  shared_examples 'it tokenizes vim internal literal' do |name, type, ruby_value|
-    it { expect(tokenize("v:#{name}")).to         eq([[type, val(ruby_value)]]) }
-
-    it { expect { tokenize "a:#{name}" }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize "l:#{name}" }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize "w:#{name}" }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize "b:#{name}" }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize "g:#{name}" }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize "s:#{name}" }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize name.to_s }.to raise_error(VimlValue::ParseError) }
-  end
-
-  context 'int' do
-    it { expect(tokenize('1')).to    eq([[:NUMERIC, val(1)]])    }
-    it { expect(tokenize('-1')).to   eq([[:NUMERIC, val(-1)]])   }
-
-    it { expect { tokenize('0') }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize('-0') }.to raise_error(VimlValue::ParseError) }
-  end
-
-  context 'bool' do
-    it_behaves_like 'it tokenizes vim internal literal', 'true',  :BOOLEAN, true
-    it_behaves_like 'it tokenizes vim internal literal', 'false', :BOOLEAN, false
-  end
-
-  context 'null' do
-    it_behaves_like 'it tokenizes vim internal literal', 'null', :NULL, nil
-  end
-
-  context 'float' do
-    it { expect(tokenize('1.0')).to eq([[:NUMERIC, val(1.0)]])  }
-    it { expect(tokenize('1.2')).to eq([[:NUMERIC, val(1.2)]])  }
-    it { expect(tokenize('0.2')).to eq([[:NUMERIC, val(0.2)]])  }
-    it { expect(tokenize('-1.0')).to eq([[:NUMERIC, val(-1.0)]]) }
-    it { expect(tokenize('-1.2')).to eq([[:NUMERIC, val(-1.2)]]) }
-    it { expect(tokenize('-0.2')).to eq([[:NUMERIC, val(-0.2)]]) }
-
-    it { expect { tokenize('1.') }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize('.1') }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize('01.0') }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize('-01.0') }.to raise_error(VimlValue::ParseError) }
-  end
-
-  context 'string' do
-    it { expect(tokenize("'1'")).to eq([[:STRING, val('1')]]) }
-    it { expect(tokenize('"1"')).to eq([[:STRING, val('1')]]) }
-
-    context 'escaping escaping' do
-      context 'of surrounding quotes' do
-        context 'with backslash' do
-          context 'single quote' do
-            it { expect { tokenize("'\\''") }.to raise_error(VimlValue::ParseError) }
-            it { expect(tokenize("'\\'")).to eq([[:STRING, val('\\')]]) }
-            it { expect(tokenize("'\\\\'")).to eq([[:STRING, val('\\\\')]]) }
-          end
-
-          context 'double quote' do
-            it { expect(tokenize('"\\""')).to eq([[:STRING, val('"')]]) }
-            it { expect { tokenize('"\\"') }.to raise_error(VimlValue::ParseError) }
-            it { expect(tokenize('"\\\\"')).to eq([[:STRING, val('\\')]]) }
-          end
-        end
-
-        context 'with duplication' do
-          context 'mixing single and double-quoted' do
-            it { expect(tokenize(%q|"''"|)).to eq([[:STRING, val("''")]]) }
-            it { expect(tokenize(%q|'""'|)).to eq([[:STRING, val('""')]]) }
-          end
-
-          context 'single-quoted' do
-            it { expect(tokenize("''''")).to eq([[:STRING, val("'")]]) }
-            it { expect(tokenize("''''''")).to eq([[:STRING, val("''")]]) }
-          end
-
-          context 'double-quoted' do
-            xit { expect { tokenize('""""') }.to raise_error(VimlValue::ParseError) }
-            xit { expect { tokenize('""""""') }.to raise_error(VimlValue::ParseError) }
-          end
-        end
+      context 'with +|- sign' do
+        it { expect('+1').to  be_tokenized_as([:NUMERIC, val(1, [0, 2])])  }
+        it { expect('+0').to  be_tokenized_as([:NUMERIC, val(0, [0, 2])])  }
+        it { expect('-1').to  be_tokenized_as([:NUMERIC, val(-1, [0, 2])]) }
+        it { expect('-0').to  be_tokenized_as([:NUMERIC, val(0, [0, 2])])  }
       end
 
-      context 'special characters' do
-        # it { expect(tokenize(%q|"\n"|).to be_parsed_as(%q|\n|) }
-        # it { expect(tokenize(%q|"\t"|).to be_parsed_as(%q|\t|) }
+      context 'leading zeros' do
+        it { expect('01').to  be_tokenized_as([:NUMERIC, val(1, [0, 2])])  }
+        it { expect('-01').to be_tokenized_as([:NUMERIC, val(-1, [0, 3])]) }
       end
     end
 
+    context 'float' do
+      it { expect('1.0').to be_tokenized_as([:NUMERIC, val(1.0, [0, 3])]) }
+      it { expect('1.2').to be_tokenized_as([:NUMERIC, val(1.2, [0, 3])]) }
+      it { expect('0.2').to be_tokenized_as([:NUMERIC, val(0.2, [0, 3])]) }
+      it { expect('1.').to  raise_on_tokenizing(VimlValue::ParseError)    }
+      it { expect('.1').to  raise_on_tokenizing(VimlValue::ParseError)    }
+
+      context 'leading zeros' do
+        it { expect('01.0').to  be_tokenized_as([:NUMERIC, val(1.0,  [0, 4])]) }
+        it { expect('-01.0').to be_tokenized_as([:NUMERIC, val(-1.0, [0, 5])]) }
+      end
+
+      context 'with +|- sign' do
+        it { expect('+1.2').to be_tokenized_as([:NUMERIC, val(1.2, [0, 4])])    }
+        it { expect('+1.0').to be_tokenized_as([:NUMERIC, val(1.0, [0, 4])])    }
+        it { expect('+0.2').to be_tokenized_as([:NUMERIC, val(0.2, [0, 4])])    }
+
+        it { expect('-1.0').to be_tokenized_as([:NUMERIC, val(-1.0, [0, 4])])   }
+        it { expect('-1.2').to be_tokenized_as([:NUMERIC, val(-1.2, [0, 4])])   }
+        it { expect('-0.2').to be_tokenized_as([:NUMERIC, val(-0.2, [0, 4])])   }
+      end
+
+      context 'exponential form' do
+        it { expect('1.2e34').to   be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 6])])  }
+        it { expect('1.2e034').to  be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 7])])  }
+        it { expect('1.2e+34').to  be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 7])])  }
+        it { expect('1.2e+034').to be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 8])])  }
+        it { expect('1.2e-34').to  be_tokenized_as([:NUMERIC, val(1.2e-34, [0, 7])]) }
+        it { expect('1.2e-34').to  be_tokenized_as([:NUMERIC, val(1.2e-34, [0, 7])]) }
+
+        it { expect('1.2E34').to   be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 6])])  }
+        it { expect('1.2E034').to  be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 7])])  }
+        it { expect('1.2E+34').to  be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 7])])  }
+        it { expect('1.2E+034').to be_tokenized_as([:NUMERIC, val(1.2e34,  [0, 8])])  }
+        it { expect('1.2E-34').to  be_tokenized_as([:NUMERIC, val(1.2e-34, [0, 7])]) }
+        it { expect('1.2E-34').to  be_tokenized_as([:NUMERIC, val(1.2e-34, [0, 7])]) }
+      end
+    end
+  end
+
+  context 'BOOLEAN' do
+    it { expect('v:true').to  be_tokenized_as([:BOOLEAN, val(true,  [0, 6])]) }
+    it { expect('v:false').to be_tokenized_as([:BOOLEAN, val(false, [0, 7])]) }
+    it { expect(':true').to   raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect(':false').to  raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect('true').to    raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect('false').to   raise_on_tokenizing(VimlValue::ParseError) }
+  end
+
+  context 'DICT_RECURSIVE_REF' do
+    it { expect(%q|{...}|).to  be_tokenized_as([:DICT_RECURSIVE_REF, val(nil, [0, 5])]) }
+    it { expect(%q|{....}|).to raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect(%q|{..}|).to   raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect(%q|{.}|).to    raise_on_tokenizing(VimlValue::ParseError) }
+  end
+
+  context 'LIST_RECURSIVE_REF' do
+    it { expect(%q|[...]|).to  be_tokenized_as([:LIST_RECURSIVE_REF, val(nil, [0, 5])]) }
+    it { expect(%q|[....]|).to raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect(%q|[..]|).to   raise_on_tokenizing(VimlValue::ParseError) }
+    it { expect(%q|[.]|).to    raise_on_tokenizing(VimlValue::ParseError) }
+  end
+
+  context 'FUNCREF' do
+    it do
+      expect("function('tr')")
+        .to be_tokenized_as([:FUNCREF, val(nil,  [0,  8])],
+                            ['(',      val('(',  [8,  9])],
+                            [:STRING,  val('tr', [9, 13])],
+                            [')',      val(')',  [13, 14])])
+    end
+  end
+
+  context 'STRING' do
+    it { expect("'1'").to    be_tokenized_as([:STRING, val('1',  [0, 3])])  }
+    it { expect('"1"').to    be_tokenized_as([:STRING, val('1',  [0, 3])])  }
+    it { expect(%q|"''"|).to be_tokenized_as([:STRING, val("''", [0, 4])]) }
+    it { expect(%q|'""'|).to be_tokenized_as([:STRING, val('""', [0, 4])]) }
+  end
+
+  context 'SEPARATOR' do
+    it { expect(':').to be_tokenized_as([':', val(':', [0, 1])]) }
+    it { expect(',').to be_tokenized_as([',', val(',', [0, 1])]) }
+    it { expect('{').to be_tokenized_as(['{', val('{', [0, 1])]) }
+    it { expect('}').to be_tokenized_as(['}', val('}', [0, 1])]) }
+    it { expect('(').to be_tokenized_as(['(', val('(', [0, 1])]) }
+    it { expect(')').to be_tokenized_as([')', val(')', [0, 1])]) }
+    it { expect('[').to be_tokenized_as(['[', val('[', [0, 1])]) }
+    it { expect(']').to be_tokenized_as([']', val(']', [0, 1])]) }
   end
 end

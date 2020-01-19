@@ -72,4 +72,3 @@ Style/PercentLiteralDelimiters:
     '%Q':    '||'
   Include:
     - 'spec/lib/viml_value/*_spec.rb'
-

@@ -3,7 +3,7 @@ token STRING NUMERIC BOOLEAN NULL FUNCREF COLON ','
       DICT_RECURSIVE_REF LIST_RECURSIVE_REF
 rule
   toplevel: toplevel_value | nothing
-  # Consider to disallow toplevel literals
+  # Consider to disallow literals within toplevel
   toplevel_value: value
 
   value
@@ -45,19 +45,18 @@ end
 
 ---- inner -----
 
-  def initialize(lexer, input)
+  def initialize(lexer)
     @lexer = lexer
-    @lexer.scan_setup(input)
     @builder = VimlValue::TreeBuilder.new
     super()
   end
 
-  def parse
-    parsed = do_parse
-    parsed
-  rescue Racc::ParseError => e
-    raise VimlValue::ParseError, e.message
+  def parse(input)
+    @lexer.scan_setup(input)
+    do_parse
   end
+
+  private
 
   def next_token
     @lexer.next_token

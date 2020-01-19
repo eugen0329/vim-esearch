@@ -5,8 +5,10 @@ module VimlValue
 
   def self.load(viml, lexer: Lexer, parser: Parser, visitor: Visitors::ToRuby)
     tree = parser
-           .new(lexer.new, viml)
-           .parse
+           .new(lexer.new)
+           .parse(viml)
+
+    return tree if tree.blank?
 
     visitor.new.accept(tree)
   end

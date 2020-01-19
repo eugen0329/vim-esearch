@@ -79,17 +79,21 @@ module VimlValue
     private_methods.select { |m| m.to_s =~ /\A_lexer.*[^=]\z/ }
       .each { |m| define_method(m) { self.class.send(m) } }
 
-    def each(&block)
-      return enum_for(:each) if block.nil?
+    def initialize(input = nil)
+      scan_setup(input) unless input.nil?
+    end
 
-      @block = block
+    def each_token(&block)
+      return enum_for(:each_token) if block.nil?
+
+      @yielder = Enumerator::Yielder.new(&block)
 
       p = @p
       %% write exec noend;
       # %
       @p = p # preserve data pointer just in case
     ensure
-      @block = nil
+      @yielder = nil
     end
 
     def next_token
@@ -100,15 +104,16 @@ module VimlValue
 
     # input
     attr_reader :data, :data_unpacked
-    # for ragel
+    # ragel internals
     attr_accessor :ts, :te, :stack, :top, :cs, :act, :p
 
+    # For compliance with other lexers like rexical and oedipus_lex
     def scan_setup(input)
       @data = input
       @data_unpacked = input.unpack("C*")
-      @iterator = each
+      @iterator = each_token
 
-      # for ragel
+      # ragel internals
       @ts, @te     = nil,  nil            # start, end position
       @stack, @top = [], 0                # for fcall and fret
       @cs          = %%{ write start; }%% # current state
@@ -128,10 +133,14 @@ module VimlValue
       raise ParseError, message
     end
 
-    TokenData = Struct.new(:val, :start, :end)
+    TokenData = Struct.new(:val, :start, :end) do
+      def inspect
+        [val.inspect, start, self.end].join(':')
+      end
+    end
 
-    def emit(type, val)
-      @block.call([type, TokenData.new(val, ts, te)])
+    def emit(type, val, tstart = ts, tend = te)
+      @yielder.yield([type, TokenData.new(val, tstart, tend)])
     end
 
     def single_quote
@@ -148,6 +157,7 @@ module VimlValue
 
     def start_str!
       @str_buffer = String.new
+      @str_tstart = ts
     end
 
     def str_append!(tail)
@@ -155,7 +165,8 @@ module VimlValue
     end
 
     def end_and_emit_str!
-      emit(:STRING, @str_buffer);
+      emit(:STRING, @str_buffer, @str_tstart, te)
+      @str_tstart = nil
       @str_buffer = nil
     end
   end
