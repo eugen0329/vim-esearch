@@ -40,8 +40,8 @@ module VimlValue
 
       main := |*
         (whitespace | tab)*;
-        number             => { emit(:NUMERIC, data[ts...te].to_i)   };
-        float              => { emit(:NUMERIC, data[ts...te].to_f)   };
+        number             => { emit(:NUMERIC, token.to_i)           };
+        float              => { emit(:NUMERIC, token.to_f)           };
         single_quote       => { start_str!; fcall single_quoted_str; };
         double_quote       => { start_str!; fcall double_quoted_str; };
         vtrue              => { emit(:BOOLEAN, true)                 };
@@ -52,14 +52,14 @@ module VimlValue
         list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
         separator          => { emit(data[ts], data[ts])             };
         eof_ch             => { fbreak;                              };
-        any_ch             => { raise ParseError, "Unexpected char: " + data[ts]; };
+        any_ch             => { failure "Unexpected char"            };
       *|;
 
       single_quoted_str := |*
         single_quote    => { end_and_emit_str!; fret;           };
         single_quote{2} => { str_append! single_quote;          };
-        any_ch          => { str_append! data[ts...te]          };
-        eof_ch          => { raise ParseError, "Unexpected end" };
+        any_ch          => { str_append! token                  };
+        eof_ch          => { failure "Unexpected end of string" };
       *|;
 
       double_quoted_str := |*
@@ -67,8 +67,8 @@ module VimlValue
         backslash single_quote => { str_append! single_quote;          };
         backslash double_quote => { str_append! double_quote;          };
         backslash{2}           => { str_append! backslash;             };
-        any_ch                 => { str_append! data[ts...te]          };
-        eof_ch                 => { raise ParseError, "Unexpected end" };
+        any_ch                 => { str_append! token                  };
+        eof_ch                 => { failure "Unexpected end of string" };
       *|;
 
     }%%
@@ -120,10 +120,20 @@ module VimlValue
 
     private
 
-    TokenData = Struct.new(:val)
+    def token
+      data[ts...te]
+    end
+
+    def failure(message, value = nil)
+      message = [message, value].join(': ')
+      message = [message, 'at', p].join(' ')
+      raise ParseError, message
+    end
+
+    TokenData = Struct.new(:val, :start, :end)
 
     def emit(type, val)
-      @block.call([type, TokenData.new(val)])
+      @block.call([type, TokenData.new(val, ts, te)])
     end
 
     def single_quote

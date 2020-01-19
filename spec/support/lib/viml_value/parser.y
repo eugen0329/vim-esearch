@@ -67,3 +67,12 @@ require_relative 'tree_builder'
   def next_token
     @lexer.next_token
   end
+
+  def on_error(token_id, value, value_stack)
+    if token_to_str(token_id) == '$end'
+      raise ParseError, "Unexpected end of tokens stream"
+    else
+      location = [value.start, value.end].join(':')
+      raise ParseError, "Unexpected token #{token_to_str(token_id)} at position #{location}"
+    end
+  end

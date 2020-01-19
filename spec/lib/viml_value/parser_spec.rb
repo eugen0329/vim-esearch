@@ -3,14 +3,6 @@
 require 'spec_helper'
 
 describe VimlValue::Parser do
-  def parse(input)
-    parsed = described_class
-             .new(VimlValue::Lexer.new, input)
-             .parse
-
-    VimlValue::ToRuby.new.accept(parsed)
-  end
-
   def function(name)
     VimlValue::ToRuby::Funcref.new(name)
   end
@@ -30,7 +22,7 @@ describe VimlValue::Parser do
   matcher :raise_on_parsing do |exception|
     supports_block_expectations
     match do |actual|
-      @parsed = parse(actual)
+      @parsed = VimlValue.load(actual)
       false
     rescue exception
       true
@@ -50,7 +42,7 @@ describe VimlValue::Parser do
 
   matcher :be_parsed_as do |expected|
     match do |actual|
-      @parsed = parse(actual)
+      @parsed = VimlValue.load(actual)
       eq(expected).matches?(@parsed)
     end
 
@@ -248,11 +240,6 @@ describe VimlValue::Parser do
               it { expect(wrap.call("'''\\'")).to  be_parsed_as(wrap_result.call("'\\"))   }
             end
           end
-        end
-
-        context 'special characters' do
-          # it { expect(wrap.call %q|"\n"|).to be_parsed_as(wrap_result.call %q|\n|) }
-          # it { expect(wrap.call %q|"\t"|).to be_parsed_as(wrap_result.call %q|\t|) }
         end
       end
     end
