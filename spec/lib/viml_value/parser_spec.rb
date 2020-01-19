@@ -11,7 +11,7 @@ describe VimlValue::Parser do
     VimlValue::ToRuby.new.accept(parsed)
   end
 
-  shared_examples 'wrapped values' do |wrap, wrap_result|
+  shared_examples 'wrapped value' do |wrap, wrap_result|
     shared_examples 'it parses vim internal literal' do |name, ruby_value|
       it { expect(parse(wrap.call("v:#{name}"))).to eq(wrap_result.call(ruby_value)) }
 
@@ -143,15 +143,15 @@ describe VimlValue::Parser do
   end
 
   context 'toplevel' do
-    include_examples 'wrapped values',
-      ->(v) { v },
-      ->(v) { v }
+    include_examples 'wrapped value',
+      ->(given_string)    { given_string },
+      ->(expected_object) { expected_object }
   end
 
   context 'inside list' do
-    include_examples 'wrapped values',
-      ->(v) { "[#{v}]" },
-      ->(v) { [v] }
+    include_examples 'wrapped value',
+      ->(given_string)    { "[#{given_string}]" },
+      ->(expected_object) { [expected_object] }
 
     context 'trailing comma' do
       it { expect(  parse('[1,]')  ).to eq([1]) }
@@ -161,13 +161,68 @@ describe VimlValue::Parser do
   end
 
   context 'inside dict' do
-    include_examples 'wrapped values',
-      ->(v) { "{'key': #{v}}" },
-      ->(v) { {'key' => v} }
+    include_examples 'wrapped value',
+      ->(given_string)    { "{'key': #{given_string}}" },
+      ->(expected_object) { {'key' => expected_object} }
 
+    context 'trailing comma' do
       it { expect(  parse('{"key": 1,}')  ).to eq({'key' => 1}) }
       it { expect { parse('{"key": 1,,]') }.to raise_error(VimlValue::ParseError) }
       it { expect { parse('{"key":,}')    }.to raise_error(VimlValue::ParseError) }
       it { expect { parse('{,}')          }.to raise_error(VimlValue::ParseError) }
+    end
+
+    context 'incorrect pairs' do
+      it { expect { parse(%q|{1}|)   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|{1: 1}|) }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|{1: '1'}|) }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|{''}|)  }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|{""}|)  }.to raise_error(VimlValue::ParseError) }
+    end
+  end
+
+  context 'not balanced bracket sequence' do
+    context 'of lists' do
+      it { expect { parse("[")   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("]")   }.to raise_error(VimlValue::ParseError) }
+
+      it { expect { parse("[[")  }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("]]")  }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("][")  }.to raise_error(VimlValue::ParseError) }
+
+      it { expect { parse("[[]") }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("[]]") }.to raise_error(VimlValue::ParseError) }
+
+      it { expect { parse("[]][")  }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("][[]")  }.to raise_error(VimlValue::ParseError) }
+    end
+
+    context 'of dicts' do
+      it { expect { parse("{")   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("}")   }.to raise_error(VimlValue::ParseError) }
+
+      it { expect { parse("{{")  }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("}}")  }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse("}{")  }.to raise_error(VimlValue::ParseError) }
+    end
+
+    context 'of strings' do
+      it { expect { parse(%q|'|)   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|"|)   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|'''|)   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(%q|"""|)   }.to raise_error(VimlValue::ParseError) }
+    end
+
+    context 'mixed [] and {}' do
+      context 'inside list' do
+        it { expect { parse("[{]")   }.to raise_error(VimlValue::ParseError) }
+        it { expect { parse("[}]")   }.to raise_error(VimlValue::ParseError) }
+      end
+
+      context 'inside dict' do
+        it { expect { parse("{'key': [}")   }.to raise_error(VimlValue::ParseError) }
+        it { expect { parse("{'key': ]}")   }.to raise_error(VimlValue::ParseError) }
+      end
+    end
   end
 end
