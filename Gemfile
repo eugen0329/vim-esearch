@@ -4,6 +4,7 @@ ruby '2.7.0'
 
 gem 'activesupport'
 gem 'pry'
+gem 'racc'
 gem 'rake'
 gem 'rspec'
 gem 'rubocop'
