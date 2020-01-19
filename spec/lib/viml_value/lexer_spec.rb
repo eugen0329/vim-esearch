@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe VimlValue::Lexer, :editor do
+describe VimlValue::Lexer do
   def tokenize(input)
     described_class.new.tap { |l| l.scan_setup(input) }.each.to_a
   end
@@ -27,8 +27,8 @@ describe VimlValue::Lexer, :editor do
     it { expect(tokenize('1')).to    eq([[:NUMBER, val(1)]])    }
     it { expect(tokenize('-1')).to   eq([[:NUMBER, val(-1)]])   }
 
-    it { expect { tokenize '0' }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize '-0' }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize('0') }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize('-0') }.to raise_error(VimlValue::ParseError) }
   end
 
   context 'bool' do
@@ -48,10 +48,10 @@ describe VimlValue::Lexer, :editor do
     it { expect(tokenize('-1.2')).to eq([[:NUMBER, val(-1.2)]]) }
     it { expect(tokenize('-0.2')).to eq([[:NUMBER, val(-0.2)]]) }
 
-    it { expect { tokenize '1.' }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize '.1' }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize '01.0' }.to raise_error(VimlValue::ParseError) }
-    it { expect { tokenize '-01.0' }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize('1.') }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize('.1') }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize('01.0') }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize('-01.0') }.to raise_error(VimlValue::ParseError) }
   end
 
   context 'string' do
