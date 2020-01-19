@@ -1,5 +1,7 @@
 module VimlValue
   class ToRuby
+    Funcref = Struct.new(:name)
+
     def accept(tree)
       visit(tree)
     end
@@ -27,12 +29,16 @@ module VimlValue
         .map { |value| visit(value) }
     end
 
+    def visit_funcref(node)
+      Funcref.new(visit_value(node))
+    end
+
     def visit_value(node)
       node.children.first
     end
-    alias visit_bool visit_value
-    alias visit_null visit_value
-    alias visit_string visit_value
-    alias visit_number visit_value
+    alias visit_bool    visit_value
+    alias visit_null    visit_value
+    alias visit_string  visit_value
+    alias visit_number  visit_value
   end
 end

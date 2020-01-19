@@ -76,8 +76,8 @@ describe VimlValue::Lexer do
 
         context 'with duplication' do
           context 'mixing single and double-quoted' do
-            it { expect(tokenize(%q("''"))).to eq([[:STRING, val("''")]]) }
-            it { expect(tokenize(%q('""'))).to eq([[:STRING, val('""')]]) }
+            it { expect(tokenize(%q|"''"|)).to eq([[:STRING, val("''")]]) }
+            it { expect(tokenize(%q|'""'|)).to eq([[:STRING, val('""')]]) }
           end
 
           context 'single-quoted' do

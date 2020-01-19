@@ -42,7 +42,7 @@ module VimlValue
         # list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
         separator          => { emit(data[ts], data[ts])             };
         eof_ch             => { fbreak;                              };
-        any_ch             => { raise ParseError, "Unexpected char"; };
+        any_ch             => { raise ParseError, "Unexpected char: " + data[ts]; };
       *|;
 
       single_quoted_str := |*
