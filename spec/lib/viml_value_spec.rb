@@ -4,7 +4,6 @@ require 'spec_helper'
 
 describe VimlValue do
   include Helpers::VimlValue::Load
-  include VimlValue::AST::Sexp
 
   # rubocop:disable Style/LambdaCall
   shared_examples 'wrapped value' do |wrap, wrap_result|
@@ -27,18 +26,18 @@ describe VimlValue do
     end
 
     context 'function references' do
-      it { expect(wrap.(%q|function('tr')|)).to  be_loaded_as(wrap_result.(function('tr'))) }
-      it { expect(wrap.(%q|function ('tr')|)).to be_loaded_as(wrap_result.(function('tr'))) }
-      it { expect(wrap.(%q|function("tr")|)).to  be_loaded_as(wrap_result.(function('tr'))) }
+      it { expect(wrap.("function('tr')")).to  be_loaded_as(wrap_result.(function('tr'))) }
+      it { expect(wrap.("function ('tr')")).to be_loaded_as(wrap_result.(function('tr'))) }
+      it { expect(wrap.('function("tr")')).to  be_loaded_as(wrap_result.(function('tr'))) }
 
-      it { expect(wrap.(%q|function|)).to      raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function()|)).to    raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function(1)|)).to   raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function({})|)).to  raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function([])|)).to  raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function("tr"|)).to raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function"tr")|)).to raise_on_load(VimlValue::ParseError) }
-      it { expect(wrap.(%q|function "tr"|)).to raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function')).to      raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function()')).to    raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function(1)')).to   raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function({})')).to  raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function([])')).to  raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function("tr"')).to raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function"tr")')).to raise_on_load(VimlValue::ParseError) }
+      it { expect(wrap.('function "tr"')).to raise_on_load(VimlValue::ParseError) }
     end
 
     context 'boolean' do
@@ -51,8 +50,8 @@ describe VimlValue do
     end
 
     context 'recursive references' do
-      it { expect(wrap.(%q|{...}|)).to be_loaded_as(wrap_result.(dict_recursive_ref)) }
-      it { expect(wrap.(%q|[...]|)).to be_loaded_as(wrap_result.(list_recursive_ref)) }
+      it { expect(wrap.('{...}')).to be_loaded_as(wrap_result.(dict_recursive_ref)) }
+      it { expect(wrap.('[...]')).to be_loaded_as(wrap_result.(list_recursive_ref)) }
     end
 
     context 'string' do
@@ -93,40 +92,40 @@ describe VimlValue do
               # is valid in terms of tokenization, but invalid as a viml value
               # A bit verbose, but it helps to understand how tricky escaping works
               # in vim and to ensure that everything works properly
-              it { expect(wrap.(%q|\\"""""|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|"\\""""|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|""\\"""|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|"""\\""|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|""""\\"|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|\\'''''|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|'\\''''|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|''\\'''|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|'''\\''|)).to raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|''''\\'|)).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('\\"""""')).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('"\\""""')).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('""\\"""')).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('"""\\""')).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('""""\\"')).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("\\'''''")).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("'\\''''")).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("''\\'''")).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("'''\\''")).to raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("''''\\'")).to raise_on_load(VimlValue::ParseError) }
 
-              it { expect(wrap.(%q|\\""""|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|"\\"""|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|""\\""|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|"""\\"|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|""""\\|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|\\''''|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|'\\'''|)).to  be_loaded_as(wrap_result.("\\'"))       }
-              it { expect(wrap.(%q|''\\''|)).to  raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|'''\\'|)).to  be_loaded_as(wrap_result.("'\\"))       }
-              it { expect(wrap.(%q|''''\\|)).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('\\""""')).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('"\\"""')).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('""\\""')).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('"""\\"')).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('""""\\')).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("\\''''")).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("'\\'''")).to  be_loaded_as(wrap_result.("\\'")) }
+              it { expect(wrap.("''\\''")).to  raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("'''\\'")).to  be_loaded_as(wrap_result.("'\\")) }
+              it { expect(wrap.("''''\\")).to  raise_on_load(VimlValue::ParseError) }
 
-              it { expect(wrap.(%q|\\"""|)).to   raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|"\\""|)).to   be_loaded_as(wrap_result.('"'))         }
-              it { expect(wrap.(%q|""\\"|)).to   raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|"""\\|)).to   raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|\\'''|)).to   raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|'\\''|)).to   raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|''\\'|)).to   raise_on_load(VimlValue::ParseError) }
-              it { expect(wrap.(%q|'''\\|)).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('\\"""')).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('"\\""')).to   be_loaded_as(wrap_result.('"')) }
+              it { expect(wrap.('""\\"')).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.('"""\\')).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("\\'''")).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("'\\''")).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("''\\'")).to   raise_on_load(VimlValue::ParseError) }
+              it { expect(wrap.("'''\\")).to   raise_on_load(VimlValue::ParseError) }
 
-              it { expect(wrap.(%q|"\\'"|)).to   be_loaded_as(wrap_result.("'"))   }
-              it { expect(wrap.(%q|'\\'''|)).to  be_loaded_as(wrap_result.("\\'")) }
-              it { expect(wrap.(%q|'''\\'|)).to  be_loaded_as(wrap_result.("'\\")) }
+              it { expect(wrap.(%q|"\\'"|)).to be_loaded_as(wrap_result.("'")) }
+              it { expect(wrap.("'\\'''")).to  be_loaded_as(wrap_result.("\\'")) }
+              it { expect(wrap.("'''\\'")).to  be_loaded_as(wrap_result.("'\\")) }
             end
           end
         end
@@ -154,7 +153,7 @@ describe VimlValue do
     it { expect('1,2').to raise_on_load(VimlValue::ParseError) }
 
     context 'trailing comma' do
-      it { expect('[1,]').to  be_loaded_as([1])                       }
+      it { expect('[1,]').to  be_loaded_as([1]) }
       it { expect('[1,,]').to raise_on_load(VimlValue::ParseError) }
       it { expect('[,]').to   raise_on_load(VimlValue::ParseError) }
     end
@@ -176,11 +175,11 @@ describe VimlValue do
     end
 
     context 'incorrect pairs' do
-      it { expect(%q|{1}|).to      raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|{1: 1}|).to   raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|{1: '1'}|).to raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|{''}|).to     raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|{""}|).to     raise_on_load(VimlValue::ParseError) }
+      it { expect('{1}').to      raise_on_load(VimlValue::ParseError) }
+      it { expect('{1: 1}').to   raise_on_load(VimlValue::ParseError) }
+      it { expect("{1: '1'}").to raise_on_load(VimlValue::ParseError) }
+      it { expect("{''}").to     raise_on_load(VimlValue::ParseError) }
+      it { expect('{""}').to     raise_on_load(VimlValue::ParseError) }
     end
   end
 
@@ -216,10 +215,10 @@ describe VimlValue do
     end
 
     context 'of strings' do
-      it { expect(%q|'|).to raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|"|).to raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|'''|).to raise_on_load(VimlValue::ParseError) }
-      it { expect(%q|"""|).to raise_on_load(VimlValue::ParseError) }
+      it { expect("'").to raise_on_load(VimlValue::ParseError) }
+      it { expect('"').to raise_on_load(VimlValue::ParseError) }
+      it { expect("'''").to raise_on_load(VimlValue::ParseError) }
+      it { expect('"""').to raise_on_load(VimlValue::ParseError) }
     end
 
     context 'mixed [] and {}' do

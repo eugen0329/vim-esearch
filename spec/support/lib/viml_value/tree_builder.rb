@@ -30,7 +30,7 @@ class VimlValue::TreeBuilder
   end
 
   def pair(key, value)
-    node(:string, [key, value])
+    node(:pair, [key, value])
   end
 
   def dict_recursive_ref

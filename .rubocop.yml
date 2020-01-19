@@ -64,12 +64,15 @@ Layout/SpaceInsideHashLiteralBraces:
 Style/PercentQLiterals:
   Exclude:
     - 'spec/lib/viml_value/*_spec.rb'
+    - 'spec/lib/viml_value_spec.rb'
 Style/RedundantPercentQ: # to preserve alignments
   Exclude:
     - 'spec/lib/viml_value/*_spec.rb'
+    - 'spec/lib/viml_value_spec.rb'
 Style/PercentLiteralDelimiters:
   PreferredDelimiters:
     '%q':    '||'
     '%Q':    '||'
   Include:
     - 'spec/lib/viml_value/*_spec.rb'
+    - 'spec/lib/viml_value_spec.rb'
