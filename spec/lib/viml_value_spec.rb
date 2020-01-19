@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe VimlValue::Parser do
+describe VimlValue do
   include Helpers::Parsing
 
   # rubocop:disable Style/LambdaCall

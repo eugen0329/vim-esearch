@@ -15,11 +15,11 @@ module Helpers::Parsing
   end
 
   def dict_recursive_ref
-    VimlValue::Visitors::ToRuby::DictRecursiveReference
+    VimlValue::Visitors::ToRuby::DictRecursiveRef
   end
 
   def list_recursive_ref
-    VimlValue::Visitors::ToRuby::ListRecursiveReference
+    VimlValue::Visitors::ToRuby::ListRecursiveRef
   end
 
   matcher :raise_on_parsing do |exception|

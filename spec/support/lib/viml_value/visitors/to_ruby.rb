@@ -6,12 +6,12 @@ class VimlValue::Visitors::ToRuby
       "function(#{name.inspect})"
     end
   end
-  class DictRecursiveReference
+  class DictRecursiveRef
     def self.inspect
       '{...}'
     end
   end
-  class ListRecursiveReference
+  class ListRecursiveRef
     def self.inspect
       '[...]'
     end
@@ -49,11 +49,11 @@ class VimlValue::Visitors::ToRuby
   end
 
   def visit_dict_recursive_ref(_node)
-    DictRecursiveReference
+    DictRecursiveRef
   end
 
   def visit_list_recursive_ref(_node)
-    ListRecursiveReference
+    ListRecursiveRef
   end
 
   def visit_value(node)

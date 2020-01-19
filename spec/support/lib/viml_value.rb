@@ -8,7 +8,7 @@ module VimlValue
            .new(lexer.new)
            .parse(viml)
 
-    return tree if tree.blank?
+    return tree if tree.nil?
 
     visitor.new.accept(tree)
   end

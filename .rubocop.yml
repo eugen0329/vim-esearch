@@ -60,10 +60,11 @@ Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
 
 ### Parser specs
+# use %q|| instead of %q() to simplify escaping testing
 Style/PercentQLiterals:
   Exclude:
     - 'spec/lib/viml_value/*_spec.rb'
-Style/RedundantPercentQ: # to preserve alignment
+Style/RedundantPercentQ: # to preserve alignments
   Exclude:
     - 'spec/lib/viml_value/*_spec.rb'
 Style/PercentLiteralDelimiters:
