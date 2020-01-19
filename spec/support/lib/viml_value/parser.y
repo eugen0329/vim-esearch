@@ -11,31 +11,32 @@ rule
     | literal
 
   list
-    : '[' values ']'     { result = @builder.list(val[1]) }
-    | '[' ']'            { result = @builder.list([]) }
+    : '[' values optional_comma ']' { result = @builder.list(val[1]) }
+    | '[' ']'                       { result = @builder.list([]) }
 
   values
-    : values ',' value   { result = val[0] << val[2] }
-    | value              { result = [val[0]] }
+    : values ',' value              { result = val[0] << val[2] }
+    | value                         { result = [val[0]] }
 
   dict
-    : '{' pairs '}'      { result = @builder.dict(val[1]) }
-    | '{' '}'            { result = @builder.dict([]) }
+    : '{' pairs optional_comma '}'  { result = @builder.dict(val[1]) }
+    | '{' '}'                       { result = @builder.dict([]) }
 
   pairs
-    : pairs ',' pair     { result = val[0] << val[2] }
-    | pair               { result = [val[0]] }
+    : pairs ',' pair                { result = val[0] << val[2] }
+    | pair                          { result = [val[0]] }
 
-  pair: string ':' value { result = @builder.pair(val[0], val[2]) }
+  pair: string ':' value            { result = @builder.pair(val[0], val[2]) }
 
   literal
     : string
-    | NUMBER                 { result = @builder.number(val[0]) }
-    | BOOL                   { result = @builder.bool(val[0]) }
-    | NULL                   { result = @builder.null(val[0]) }
-    | FUNCREF '(' STRING ')' { result = @builder.funcref(val[2]) }
+    | NUMBER                        { result = @builder.number(val[0]) }
+    | BOOL                          { result = @builder.bool(val[0]) }
+    | NULL                          { result = @builder.null(val[0]) }
+    | FUNCREF '(' STRING ')'        { result = @builder.funcref(val[2]) }
 
-  string: STRING             { result = @builder.string(val[0]) }
+  string: STRING                    { result = @builder.string(val[0]) }
+  optional_comma: ',' | nothing
   nothing:
 end
 
