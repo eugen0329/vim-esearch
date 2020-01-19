@@ -10,7 +10,7 @@ module VimlValue
       getkey (data_unpacked[p] || self.class.lexer_ex_eof_ch);
 
       integer      = '-'?[1-9][0-9]*;
-      float        = '-'?[1-9][0-9]*'.'[0-9]+;
+      float        = '-'?('0'|[1-9][0-9]*)'.'[0-9]+;
       tab          = [\t];
       whitespace   = [ ];
       separator    = [:,{}()\[\]];

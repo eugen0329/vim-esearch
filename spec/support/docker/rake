@@ -3,6 +3,6 @@
 # shellcheck source=spec/support/docker/__fail_if_wrong_pwd.sh
 . "$(dirname "$0")/__fail_if_wrong_pwd.sh"
 
-# Forward env var used by 'rspec/core/rake_task'
-DOCKER_RUN_ARGS_OVERRIDES="-e SPEC='$SPEC'" \
+# Forward env vars used by 'rspec/core/rake_task'
+DOCKER_RUN_ARGS_OVERRIDES="-e SPEC="$SPEC" -e RSPEC_OPTS="$RSPEC_OPTS"" \
   exec "$(dirname "$0")/run" bundle exec rake "$@"

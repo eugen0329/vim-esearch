@@ -23,6 +23,25 @@ describe VimlValue::Lexer, :editor do
     end
   end
 
-  it { expect('1').to   be_tokenized_as([:NUMBER, val(1)]) }
-  it { expect('1.2').to be_tokenized_as([:NUMBER, val(1.2)]) }
+  context 'int' do
+    it { expect(tokenize '1').to    eq([[:NUMBER, val(1)]])    }
+    it { expect(tokenize '-1').to   eq([[:NUMBER, val(-1)]])   }
+
+    it { expect{tokenize '0'}.to raise_error(VimlValue::ParseError) }
+    it { expect{tokenize '-0'}.to raise_error(VimlValue::ParseError) }
+  end
+
+  context 'float' do
+    it { expect(tokenize '1.0').to eq([[:NUMBER, val(1.0)]])  }
+    it { expect(tokenize '1.2').to eq([[:NUMBER, val(1.2)]])  }
+    it { expect(tokenize '0.2').to eq([[:NUMBER, val(0.2)]])  }
+    it { expect(tokenize '-1.0').to eq([[:NUMBER, val(-1.0)]]) }
+    it { expect(tokenize '-1.2').to eq([[:NUMBER, val(-1.2)]]) }
+    it { expect(tokenize '-0.2').to eq([[:NUMBER, val(-0.2)]]) }
+
+    it { expect{tokenize '1.'}.to raise_error(VimlValue::ParseError) }
+    it { expect{tokenize '.1'}.to raise_error(VimlValue::ParseError) }
+    it { expect{tokenize '01.0'}.to raise_error(VimlValue::ParseError) }
+    it { expect{tokenize '-01.0'}.to raise_error(VimlValue::ParseError) }
+  end
 end
