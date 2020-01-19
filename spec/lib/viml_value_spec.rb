@@ -2,10 +2,12 @@
 
 require 'spec_helper'
 
+# rubocop:disable Style/LambdaCall
 describe VimlValue do
   include Helpers::VimlValue::Load
 
-  # rubocop:disable Style/LambdaCall
+  # Attempt to reuse tests for loading val inside different parsing contexts
+  # (like val, [val], {'key': val} etc.)
   shared_examples 'wrapped value' do |wrap, wrap_result|
     context 'integer' do
       it { expect(wrap.('0')).to  be_loaded_as(wrap_result.(0))  }
@@ -132,7 +134,6 @@ describe VimlValue do
       end
     end
   end
-  # rubocop:enable Style/LambdaCall
 
   context 'toplevel' do
     include_examples 'wrapped value',
@@ -234,3 +235,4 @@ describe VimlValue do
     end
   end
 end
+# rubocop:enable Style/LambdaCall

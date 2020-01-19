@@ -7,7 +7,7 @@ module Helpers::VimlValue::Load
   # Pretty ugly way to reduce duplication (other approaches involve even
   # more problems mostly tied with implicit dependencies)
   define_action_matcher!(:be_loaded_as, 'load') { VimlValue.load(actual) }
-  define_raise_on_action_matcher!(:raise_on_load, 'while loading') { VimlValue.load(actual) }
+  define_raise_on_action_matcher!(:raise_on_load, 'loading') { VimlValue.load(actual) }
 
   included do
     def self.function(name)

@@ -9,7 +9,7 @@ module Helpers::VimlValue::Tokenize
   define_action_matcher!(:be_tokenized_as, 'tokenize') do
     VimlValue::Lexer.new(actual).each_token.to_a
   end
-  define_raise_on_action_matcher!(:raise_on_tokenizing, 'while tokenizing') do
+  define_raise_on_action_matcher!(:raise_on_tokenizing, 'tokenizing') do
     VimlValue::Lexer.new(actual).each_token.to_a
   end
 

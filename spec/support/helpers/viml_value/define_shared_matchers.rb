@@ -29,6 +29,7 @@ module Helpers::VimlValue::DefineSharedMatchers
   def define_raise_on_action_matcher!(matcher_name, what_does, &action)
     matcher matcher_name do |exception|
       supports_block_expectations
+
       match do |_actual|
         @processed = instance_exec(&action)
         false
