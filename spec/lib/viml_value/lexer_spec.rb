@@ -3,7 +3,8 @@
 require 'spec_helper'
 
 describe VimlValue::Lexer do
-  include Helpers::Tokenizing
+  include Helpers::VimlValue::Tokenize
+
   context 'NUMERIC' do
     context 'integer' do
       it { expect('1').to   be_tokenized_as([:NUMERIC, val(1, [0, 1])])    }

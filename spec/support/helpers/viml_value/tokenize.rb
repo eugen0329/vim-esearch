@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Helpers::Tokenizing
+module Helpers::VimlValue::Tokenize
   extend ActiveSupport::Concern
   extend RSpec::Matchers::DSL
 

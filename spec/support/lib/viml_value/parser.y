@@ -39,6 +39,7 @@ rule
     | LIST_RECURSIVE_REF            { result = @builder.list_recursive_ref }
 
   string: STRING                    { result = @builder.string(val[0]) }
+
   optional_comma: ',' | nothing
   nothing:
 end

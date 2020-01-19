@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Helpers::Parsing
+module Helpers::VimlValue::Load
   extend ActiveSupport::Concern
   extend RSpec::Matchers::DSL
 
@@ -22,7 +22,7 @@ module Helpers::Parsing
     VimlValue::Visitors::ToRuby::ListRecursiveRef
   end
 
-  matcher :raise_on_parsing do |exception|
+  matcher :raise_on_load do |exception|
     supports_block_expectations
     match do |actual|
       @parsed = VimlValue.load(actual)
@@ -43,7 +43,7 @@ module Helpers::Parsing
     end
   end
 
-  matcher :be_parsed_as do |expected|
+  matcher :be_loaded_as do |expected|
     match do |actual|
       @parsed = VimlValue.load(actual)
       eq(expected).matches?(@parsed)
