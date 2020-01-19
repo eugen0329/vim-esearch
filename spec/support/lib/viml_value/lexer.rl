@@ -13,8 +13,14 @@ module VimlValue
       float        = '-'?('0'|[1-9][0-9]*)'.'[0-9]+;
       double_quote = '"';
       single_quote = "'";
-      backslash    = '\\';
+      vtrue        = 'v:true';
+      vfalse       = 'v:false';
+      vnull        = 'v:null';
+      funcref      = 'function';
+      # dict_recursive_ref = '{...}';
+      # list_recursive_ref = '[...]';
 
+      backslash    = '\\';
       tab          = [\t];
       whitespace   = [ ];
       separator    = [:,{}()\[\]];
@@ -28,6 +34,12 @@ module VimlValue
         float              => { emit(:NUMBER, data[ts...te].to_f)    };
         single_quote       => { start_str!; fcall single_quoted_str; };
         double_quote       => { start_str!; fcall double_quoted_str; };
+        vtrue              => { emit(:BOOL,  true)                   };
+        vfalse             => { emit(:BOOL, false)                   };
+        vnull              => { emit(:NULL,  nil)                    };
+        funcref            => { emit(:FUNCREF, nil)                  };
+        # dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)       };
+        # list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
         separator          => { emit(data[ts], data[ts])             };
         eof_ch             => { fbreak;                              };
         any_ch             => { raise ParseError, "Unexpected char"; };

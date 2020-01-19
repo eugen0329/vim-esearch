@@ -11,16 +11,16 @@ describe VimlValue::Lexer, :editor do
     VimlValue::Lexer::TokenData.new(ruby_value)
   end
 
-  matcher :be_tokenized_as do |expected|
-    diffable
-    match do |actual|
-      @actual = tokenize(actual)
-      eq([expected]).matches? @actual
-    end
+  shared_examples 'it tokenizes vim internal literal' do |name, type, ruby_value|
+    it { expect(tokenize("v:#{name}")).to         eq([[type, val(ruby_value)]]) }
 
-    failure_message do |actual|
-      "expected #{actual.inspect} to be tokenized as #{expected.inspect}, got #{@actual.inspect}"
-    end
+    it { expect { tokenize "a:#{name}" }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize "l:#{name}" }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize "w:#{name}" }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize "b:#{name}" }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize "g:#{name}" }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize "s:#{name}" }.to raise_error(VimlValue::ParseError) }
+    it { expect { tokenize name.to_s }.to raise_error(VimlValue::ParseError) }
   end
 
   context 'int' do
@@ -29,6 +29,15 @@ describe VimlValue::Lexer, :editor do
 
     it { expect { tokenize '0' }.to raise_error(VimlValue::ParseError) }
     it { expect { tokenize '-0' }.to raise_error(VimlValue::ParseError) }
+  end
+
+  context 'bool' do
+    it_behaves_like 'it tokenizes vim internal literal', 'true',  :BOOL, true
+    it_behaves_like 'it tokenizes vim internal literal', 'false', :BOOL, false
+  end
+
+  context 'null' do
+    it_behaves_like 'it tokenizes vim internal literal', 'null', :NULL, nil
   end
 
   context 'float' do
