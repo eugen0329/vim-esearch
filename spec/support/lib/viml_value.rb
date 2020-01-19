@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 module VimlValue
-  def self.load(viml, lexer: Lexer, parser: Parser, visitor: ToRuby)
+  class ParseError < RuntimeError; end
+
+  def self.load(viml, lexer: Lexer, parser: Parser, visitor: Visitors::ToRuby)
     tree = parser
            .new(lexer.new, viml)
            .parse

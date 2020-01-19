@@ -43,17 +43,12 @@ rule
   nothing:
 end
 
----- header ----
-
-require_relative 'errors'
-require_relative 'tree_builder'
-
 ---- inner -----
 
   def initialize(lexer, input)
     @lexer = lexer
     @lexer.scan_setup(input)
-    @builder = TreeBuilder.new
+    @builder = VimlValue::TreeBuilder.new
     super()
   end
 

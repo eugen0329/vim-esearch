@@ -4,19 +4,19 @@ require 'spec_helper'
 
 describe VimlValue::Parser do
   def function(name)
-    VimlValue::ToRuby::Funcref.new(name)
+    VimlValue::Visitors::ToRuby::Funcref.new(name)
   end
 
   def self.function(name)
-    VimlValue::ToRuby::Funcref.new(name)
+    VimlValue::Visitors::ToRuby::Funcref.new(name)
   end
 
   def dict_recursive_ref
-    VimlValue::ToRuby::DictRecursiveReference
+    VimlValue::Visitors::ToRuby::DictRecursiveReference
   end
 
   def list_recursive_ref
-    VimlValue::ToRuby::ListRecursiveReference
+    VimlValue::Visitors::ToRuby::ListRecursiveReference
   end
 
   matcher :raise_on_parsing do |exception|

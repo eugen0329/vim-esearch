@@ -43,6 +43,8 @@ AllCops:
   Exclude:
     - 'spec/support/**/brew_formulae/**/*'
     - 'spec/support/bin/**/*'
+    - 'spec/support/lib/viml_value/parser.rb'
+    - 'spec/support/lib/viml_value/lexer.rb'
 
 Style/ClassAndModuleChildren:
   EnforcedStyle: compact
