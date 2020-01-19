@@ -10,6 +10,23 @@ module VimlValue
       send(:"visit_#{node.type}", node)
     end
 
+    def visit_dict(node)
+      node
+        .children
+        .map { |pair| visit_pair(pair) }
+        .to_h
+    end
+
+    def visit_pair(pair)
+      [visit_string(pair.children.first), visit(pair.children.last)]
+    end
+
+    def visit_list(node)
+      node
+        .children
+        .map { |value| visit(value) }
+    end
+
     def visit_value(node)
       node.children.first
     end
