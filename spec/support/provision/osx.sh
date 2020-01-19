@@ -5,6 +5,9 @@
 
 local_bin_dir="${1:-"$provision_dir/../bin"}"
 
+install_package_ragel \
+  'latest'
+
 install_package_vim \
   'latest'
 

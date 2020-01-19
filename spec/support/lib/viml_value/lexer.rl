@@ -5,12 +5,16 @@ require_relative 'errors'
 module VimlValue
   class Lexer
     %%{
-      machine lexer; # %
+      machine lexer; # % fix syntax highlight
       access self.;
       getkey (data_unpacked[p] || self.class.lexer_ex_eof_ch);
 
       integer      = '-'?[1-9][0-9]*;
       float        = '-'?('0'|[1-9][0-9]*)'.'[0-9]+;
+      double_quote = '"';
+      single_quote = "'";
+      backslash    = '\\';
+
       tab          = [\t];
       whitespace   = [ ];
       separator    = [:,{}()\[\]];
@@ -22,9 +26,27 @@ module VimlValue
         (whitespace | tab)*;
         integer            => { emit(:NUMBER, data[ts...te].to_i)    };
         float              => { emit(:NUMBER, data[ts...te].to_f)    };
+        single_quote       => { start_str!; fcall single_quoted_str; };
+        double_quote       => { start_str!; fcall double_quoted_str; };
         separator          => { emit(data[ts], data[ts])             };
         eof_ch             => { fbreak;                              };
         any_ch             => { raise ParseError, "Unexpected char"; };
+      *|;
+
+      single_quoted_str := |*
+        single_quote    => { end_and_emit_str!; fret;           };
+        single_quote{2} => { str_append! single_quote;          };
+        any_ch          => { str_append! data[ts...te]          };
+        eof_ch          => { raise ParseError, "Unexpected end" };
+      *|;
+
+      double_quoted_str := |*
+        double_quote           => { end_and_emit_str!; fret;           };
+        backslash single_quote => { str_append! single_quote;          };
+        backslash double_quote => { str_append! double_quote;          };
+        backslash{2}           => { str_append! backslash;             };
+        any_ch                 => { str_append! data[ts...te]          };
+        eof_ch                 => { raise ParseError, "Unexpected end" };
       *|;
 
     }%%
@@ -80,6 +102,31 @@ module VimlValue
 
     def emit(type, val)
       @block.call([type, TokenData.new(val)])
+    end
+
+    def single_quote
+      "'"
+    end
+
+    def double_quote
+      '"'
+    end
+
+    def backslash
+      '\\'
+    end
+
+    def start_str!
+      @str_buffer = String.new
+    end
+
+    def str_append!(tail)
+      @str_buffer << tail
+    end
+
+    def end_and_emit_str!
+      emit(:STRING, @str_buffer);
+      @str_buffer = nil
     end
   end
 end
