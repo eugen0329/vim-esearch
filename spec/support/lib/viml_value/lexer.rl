@@ -17,8 +17,8 @@ module VimlValue
       vfalse       = 'v:false';
       vnull        = 'v:null';
       funcref      = 'function';
-      # dict_recursive_ref = '{...}';
-      # list_recursive_ref = '[...]';
+      dict_recursive_ref = '{...}';
+      list_recursive_ref = '[...]';
 
       backslash    = '\\';
       tab          = [\t];
@@ -35,11 +35,11 @@ module VimlValue
         single_quote       => { start_str!; fcall single_quoted_str; };
         double_quote       => { start_str!; fcall double_quoted_str; };
         vtrue              => { emit(:BOOL,  true)                   };
-        vfalse             => { emit(:BOOL, false)                   };
+        vfalse             => { emit(:BOOL,  false)                  };
         vnull              => { emit(:NULL,  nil)                    };
         funcref            => { emit(:FUNCREF, nil)                  };
-        # dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)       };
-        # list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
+        dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)       };
+        list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
         separator          => { emit(data[ts], data[ts])             };
         eof_ch             => { fbreak;                              };
         any_ch             => { raise ParseError, "Unexpected char: " + data[ts]; };

@@ -1,6 +1,8 @@
 module VimlValue
   class ToRuby
     Funcref = Struct.new(:name)
+    DictRecursiveReference = Class.new
+    ListRecursiveReference = Class.new
 
     def accept(tree)
       visit(tree)
@@ -31,6 +33,14 @@ module VimlValue
 
     def visit_funcref(node)
       Funcref.new(visit_value(node))
+    end
+
+    def visit_dict_recursive_ref(node)
+      DictRecursiveReference
+    end
+
+    def visit_list_recursive_ref(node)
+      ListRecursiveReference
     end
 
     def visit_value(node)

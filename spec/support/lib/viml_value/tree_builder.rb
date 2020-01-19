@@ -34,13 +34,13 @@ module VimlValue
       node(:string, [key, value])
     end
 
-    # def dict_recursive_ref
-    #   node(:dict_recursive_ref)
-    # end
+    def dict_recursive_ref
+      node(:dict_recursive_ref)
+    end
 
-    # def list_recursive_ref
-    #   node(:list_recursive_ref)
-    # end
+    def list_recursive_ref
+      node(:list_recursive_ref)
+    end
 
     private
 

@@ -17,6 +17,13 @@ describe VimlValue::Parser do
   def self.function(name)
     VimlValue::ToRuby::Funcref.new(name)
   end
+  def dict_recursive_ref
+    VimlValue::ToRuby::DictRecursiveReference
+  end
+
+  def list_recursive_ref
+    VimlValue::ToRuby::ListRecursiveReference
+  end
 
   shared_examples 'wrapped value' do |wrap, wrap_result|
     shared_examples 'it parses vim internal literal' do |name, ruby_value|
@@ -74,6 +81,18 @@ describe VimlValue::Parser do
       it { expect { parse(wrap.call(%q|function("tr"|))   }.to raise_error(VimlValue::ParseError) }
       it { expect { parse(wrap.call(%q|function"tr")|))   }.to raise_error(VimlValue::ParseError) }
       it { expect { parse(wrap.call(%q|function "tr"|))   }.to raise_error(VimlValue::ParseError) }
+    end
+
+    context 'recursive references' do
+      it { expect(parse(wrap.call(%q|{...}|))).to eq(wrap_result.call(dict_recursive_ref))  }
+      it { expect(parse(wrap.call(%q|[...]|))).to eq(wrap_result.call(list_recursive_ref))  }
+
+      it { expect { parse(wrap.call(%q|[....]|))   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(wrap.call(%q|{....}|))   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(wrap.call(%q|[..]|))   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(wrap.call(%q|{..}|))   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(wrap.call(%q|[.]|))   }.to raise_error(VimlValue::ParseError) }
+      it { expect { parse(wrap.call(%q|{.}|))   }.to raise_error(VimlValue::ParseError) }
     end
 
     context 'string' do
@@ -165,14 +184,14 @@ describe VimlValue::Parser do
 
   context 'toplevel' do
     include_examples 'wrapped value',
-      ->(given_string)    { given_string },
-      ->(expected_object) { expected_object }
+      ->(given_str)    { given_str },
+      ->(expected_obj) { expected_obj }
   end
 
   context 'inside list' do
     include_examples 'wrapped value',
-      ->(given_string)    { "[#{given_string}]" },
-      ->(expected_object) { [expected_object] }
+      ->(given_str)    { "[#{given_str}]" },
+      ->(expected_obj) { [expected_obj] }
 
     it { expect { parse('1,2') }.to raise_error(VimlValue::ParseError) }
 
@@ -185,8 +204,8 @@ describe VimlValue::Parser do
 
   context 'inside dict' do
     include_examples 'wrapped value',
-      ->(given_string)    { "{'key': #{given_string}}" },
-      ->(expected_object) { {'key' => expected_object} }
+      ->(given_str)    { "{'key': #{given_str}}" },
+      ->(expected_obj) { {'key' => expected_obj} }
 
     context 'trailing comma' do
       it { expect(parse('{"key": 1,}')).to eq('key' => 1) }
@@ -206,8 +225,8 @@ describe VimlValue::Parser do
 
   context 'inside deeply nested structure' do
     include_examples 'wrapped value',
-      ->(given_string)    { %Q|[1,[ { 'key' : #{given_string} } , 2, function('Fn'), ["3"]], 4]| },
-      ->(expected_object) { [1, [{'key' => expected_object}, 2, function('Fn'), ['3']], 4] }
+      ->(given_str)    { %Q|[1,[ { 'key' : #{given_str} } , 2, function('Fn'), ["3"]], 4]| },
+      ->(expected_obj) { [1, [{'key' => expected_obj}, 2, function('Fn'), ['3']], 4] }
   end
 
   context 'not balanced bracket sequence' do
