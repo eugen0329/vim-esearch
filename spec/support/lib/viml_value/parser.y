@@ -35,7 +35,7 @@ rule
     | NULL                   { result = @builder.null(val[0]) }
     | FUNCREF '(' STRING ')' { result = @builder.funcref(val[2]) }
 
-  string : STRING            { result = @builder.string(val[0]) }
+  string: STRING             { result = @builder.string(val[0]) }
   nothing:
 end
 

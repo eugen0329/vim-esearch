@@ -5,13 +5,13 @@ require 'spec_helper'
 describe VimlValue::Parser do
   def parse(input)
     parsed = described_class
-      .new(VimlValue::Lexer.new, input)
-      .parse
+             .new(VimlValue::Lexer.new, input)
+             .parse
 
     VimlValue::ToRuby.new.accept(parsed)
   end
 
-  shared_examples 'it tokenizes vim internal literal' do |name, type, ruby_value|
+  shared_examples 'it tokenizes vim internal literal' do |name, _type, ruby_value|
     it { expect(parse("v:#{name}")).to         eq(ruby_value) }
 
     it { expect { parse "a:#{name}" }.to raise_error(VimlValue::ParseError) }
@@ -58,39 +58,80 @@ describe VimlValue::Parser do
     it { expect(parse("'1'")).to eq('1') }
     it { expect(parse('"1"')).to eq('1') }
 
-    context 'escaping escaping' do
+    # rubocop:disable Layout/SpaceInsideParens
+    context 'escaping' do
       context 'of surrounding quotes' do
         context 'with backslash' do
           context 'single quote' do
-            it { expect { parse("'\\''") }.to raise_error(VimlValue::ParseError) }
-            it { expect(parse("'\\'")).to eq('\\') }
-            it { expect(parse("'\\\\'")).to eq('\\\\') }
+            it { expect { parse("'\\''")  }.to raise_error(VimlValue::ParseError) }
+            it { expect(  parse("'\\'")   ).to eq('\\') }
+            it { expect(  parse("'\\\\'") ).to eq('\\\\') }
           end
 
           context 'double quote' do
-            it { expect(parse('"\\""')).to eq('"') }
-            it { expect { parse('"\\"') }.to raise_error(VimlValue::ParseError) }
-            it { expect(parse('"\\\\"')).to eq('\\') }
+            it { expect(  parse('"\\""') ).to eq('"') }
+            it { expect { parse('"\\"')  }.to raise_error(VimlValue::ParseError) }
+            it { expect(  parse('"\\\\"')).to eq('\\') }
           end
         end
 
         context 'with duplication' do
-          context 'mixing single and double-quoted' do
-            it { expect(parse(%q("''"))).to eq("''") }
-            it { expect(parse(%q('""'))).to eq('""') }
-          end
-
           context 'single-quoted' do
             it { expect(parse("''''")).to eq("'") }
             it { expect(parse("''''''")).to eq("''") }
           end
 
           context 'double-quoted' do
-            xit { expect { parse('""""') }.to raise_error(VimlValue::ParseError) }
-            xit { expect { parse('""""""') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('""""') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('""""""') }.to raise_error(VimlValue::ParseError) }
+          end
+
+          context 'mixing single and double-quoted' do
+            # have to be tested in terms of integration as some quotes escaping
+            # is valid in terms of tokenization, but invalid as a viml value
+            it { expect(parse(%q("''"))).to eq("''") }
+            it { expect(parse(%q('""'))).to eq('""') }
+
+            # A bit verbose, but helps to understand how tricky escaping works
+            # in vim and ensure that everything works properly
+            it { expect { parse('\\"""""') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('"\\""""') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('""\\"""') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('"""\\""') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('""""\\"') }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("\\'''''") }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("'\\''''") }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("''\\'''") }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("'''\\''") }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("''''\\'") }.to raise_error(VimlValue::ParseError) }
+
+            it { expect { parse('\\""""')  }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('"\\"""')  }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('""\\""')  }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('"""\\"')  }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('""""\\')  }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("\\''''")  }.to raise_error(VimlValue::ParseError) }
+            it { expect(  parse("'\\'''")  ).to eq("\\'")                          }
+            it { expect { parse("''\\''")  }.to raise_error(VimlValue::ParseError) }
+            it { expect(  parse("'''\\'")  ).to eq("'\\")                          }
+            it { expect { parse("''''\\")  }.to raise_error(VimlValue::ParseError) }
+
+            it { expect { parse('\\"""')   }.to raise_error(VimlValue::ParseError) }
+            it { expect(  parse('"\\""')   ).to eq('"')                            }
+            it { expect { parse('""\\"')   }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse('"""\\')   }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("\\'''")   }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("'\\''")   }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("''\\'")   }.to raise_error(VimlValue::ParseError) }
+            it { expect { parse("'''\\")   }.to raise_error(VimlValue::ParseError) }
+
+            it { expect(parse(%q("\\'"))).to eq("'") }
+            it { expect(parse("'\\'''")).to  eq("\\'") }
+            it { expect(parse("'''\\'")).to  eq("'\\") }
           end
         end
       end
+      # rubocop:enable Layout/SpaceInsideParens
 
       context 'special characters' do
         # it { expect(parse(%q|"\n"|).to be_parsed_as(%q|\n|) }
