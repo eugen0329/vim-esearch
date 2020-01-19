@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=spec/support/docker/__fail_if_wrong_pwd.sh
+. "$(dirname "$0")/__fail_if_wrong_pwd.sh"
+
+exec "$(dirname "$0")/run" ragel -e -L -F0 -R \
+  spec/support/lib/viml_value/lexer.rl \
+  -o spec/support/lib/viml_value/lexer.rb
