@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module VimlValue
   class ToRuby
     Funcref = Struct.new(:name)
@@ -35,20 +37,20 @@ module VimlValue
       Funcref.new(visit_value(node))
     end
 
-    def visit_dict_recursive_ref(node)
+    def visit_dict_recursive_ref(_node)
       DictRecursiveReference
     end
 
-    def visit_list_recursive_ref(node)
+    def visit_list_recursive_ref(_node)
       ListRecursiveReference
     end
 
     def visit_value(node)
       node.children.first
     end
-    alias visit_bool    visit_value
+    alias visit_boolean visit_value
     alias visit_null    visit_value
     alias visit_string  visit_value
-    alias visit_number  visit_value
+    alias visit_numeric visit_value
   end
 end

@@ -9,8 +9,18 @@ module VimlValue
       access self.;
       getkey (data_unpacked[p] || self.class.lexer_ex_eof_ch);
 
-      integer      = '-'?[1-9][0-9]*;
-      float        = '-'?('0'|[1-9][0-9]*)'.'[0-9]+;
+      ### Vim types (from :h type())
+      # Number:     0 (|v:t_number|)
+      # String:     1 (|v:t_string|)
+      # Funcref:    2 (|v:t_func|)
+      # List:       3 (|v:t_list|)
+      # Dictionary: 4 (|v:t_dict|)
+      # Float:      5 (|v:t_float|)
+      # Boolean:    6 (|v:true| and |v:false|)
+      # Null:       7 (|v:null|)
+
+      number       = [+\-]?[0-9]+;
+      float        = [+\-]?[0-9]+'.'[0-9]+([Ee][+\-]?[0-9]+)?;
       double_quote = '"';
       single_quote = "'";
       vtrue        = 'v:true';
@@ -30,12 +40,12 @@ module VimlValue
 
       main := |*
         (whitespace | tab)*;
-        integer            => { emit(:NUMBER, data[ts...te].to_i)    };
-        float              => { emit(:NUMBER, data[ts...te].to_f)    };
+        number             => { emit(:NUMERIC, data[ts...te].to_i)   };
+        float              => { emit(:NUMERIC, data[ts...te].to_f)   };
         single_quote       => { start_str!; fcall single_quoted_str; };
         double_quote       => { start_str!; fcall double_quoted_str; };
-        vtrue              => { emit(:BOOL,  true)                   };
-        vfalse             => { emit(:BOOL,  false)                  };
+        vtrue              => { emit(:BOOLEAN, true)                 };
+        vfalse             => { emit(:BOOLEAN, false)                };
         vnull              => { emit(:NULL,  nil)                    };
         funcref            => { emit(:FUNCREF, nil)                  };
         dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)       };

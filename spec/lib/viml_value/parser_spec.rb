@@ -55,7 +55,7 @@ describe VimlValue::Parser do
     end
 
     description do |actual|
-      "parse #{actual.inspect} as #{@parsed.inspect}"
+      "parse #{actual.inspect} as #{expected.inspect}"
     end
 
     failure_message do |actual|
@@ -67,7 +67,7 @@ describe VimlValue::Parser do
   end
 
   shared_examples 'wrapped value' do |wrap, wrap_result|
-    shared_examples 'it can parse vim internal variable' do |name, ruby_value|
+    shared_examples 'it can parse vim internal (starts with v:) variable' do |name, ruby_value|
       it { expect(wrap.call("v:#{name}")).to be_parsed_as(wrap_result.call(ruby_value)) }
 
       it { expect(wrap.call("a:#{name}")).to raise_on_parsing(VimlValue::ParseError) }
@@ -80,41 +80,67 @@ describe VimlValue::Parser do
       it { expect(wrap.call(name.to_s)).to   raise_on_parsing(VimlValue::ParseError) }
     end
 
-    context 'int' do
-      it { expect(wrap.call('1')).to  be_parsed_as(wrap_result.call(1))  }
-      it { expect(wrap.call('-1')).to be_parsed_as(wrap_result.call(-1)) }
+    context 'integer' do
+      it { expect(wrap.call('1')).to   be_parsed_as(wrap_result.call(1))    }
+      it { expect(wrap.call('0')).to   be_parsed_as(wrap_result.call(0))    }
 
-      it { expect(wrap.call('0')).to  raise_on_parsing(VimlValue::ParseError) }
-      it { expect(wrap.call('-0')).to raise_on_parsing(VimlValue::ParseError) }
-    end
+      context 'with +|- sign' do
+        it { expect(wrap.call('+1')).to  be_parsed_as(wrap_result.call(1))  }
+        it { expect(wrap.call('+0')).to  be_parsed_as(wrap_result.call(0))  }
+        it { expect(wrap.call('-1')).to  be_parsed_as(wrap_result.call(-1)) }
+        it { expect(wrap.call('-0')).to  be_parsed_as(wrap_result.call(0))  }
+      end
 
-    context 'bool' do
-      it_behaves_like 'it can parse vim internal variable', 'true',  true
-      it_behaves_like 'it can parse vim internal variable', 'false', false
-    end
-
-    context 'null' do
-      it_behaves_like 'it can parse vim internal variable', 'null', nil
+      context 'leading zeros' do
+        it { expect(wrap.call('01')).to  be_parsed_as(wrap_result.call(1))  }
+        it { expect(wrap.call('-01')).to be_parsed_as(wrap_result.call(-1)) }
+      end
     end
 
     context 'float' do
-      it { expect(wrap.call('1.0')).to  be_parsed_as(wrap_result.call(1.0))  }
-      it { expect(wrap.call('1.2')).to  be_parsed_as(wrap_result.call(1.2))  }
-      it { expect(wrap.call('0.2')).to  be_parsed_as(wrap_result.call(0.2))  }
-      it { expect(wrap.call('-1.0')).to be_parsed_as(wrap_result.call(-1.0)) }
-      it { expect(wrap.call('-1.2')).to be_parsed_as(wrap_result.call(-1.2)) }
-      it { expect(wrap.call('-0.2')).to be_parsed_as(wrap_result.call(-0.2)) }
-
+      # vim :help floating-point-format
+      it { expect(wrap.call('1.0')).to  be_parsed_as(wrap_result.call(1.0))      }
+      it { expect(wrap.call('1.2')).to  be_parsed_as(wrap_result.call(1.2))      }
+      it { expect(wrap.call('0.2')).to  be_parsed_as(wrap_result.call(0.2))      }
       it { expect(wrap.call('1.')).to    raise_on_parsing(VimlValue::ParseError) }
       it { expect(wrap.call('.1')).to    raise_on_parsing(VimlValue::ParseError) }
-      it { expect(wrap.call('01.0')).to  raise_on_parsing(VimlValue::ParseError) }
-      it { expect(wrap.call('-01.0')).to raise_on_parsing(VimlValue::ParseError) }
+
+      context 'leading zeros' do
+        it { expect(wrap.call('01.0')).to  be_parsed_as(wrap_result.call(1.0))   }
+        it { expect(wrap.call('-01.0')).to be_parsed_as(wrap_result.call(-1.0))  }
+      end
+
+      context 'with +|- sign' do
+        it { expect(wrap.call('+1.2')).to be_parsed_as(wrap_result.call(1.2))    }
+        it { expect(wrap.call('+1.0')).to be_parsed_as(wrap_result.call(1.0))    }
+        it { expect(wrap.call('+0.2')).to be_parsed_as(wrap_result.call(0.2))    }
+
+        it { expect(wrap.call('-1.0')).to be_parsed_as(wrap_result.call(-1.0))   }
+        it { expect(wrap.call('-1.2')).to be_parsed_as(wrap_result.call(-1.2))   }
+        it { expect(wrap.call('-0.2')).to be_parsed_as(wrap_result.call(-0.2))   }
+      end
+
+      context 'exponential form' do
+        it { expect(wrap.call('1.2e34')).to   be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2e034')).to  be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2e+34')).to  be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2e+034')).to be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2e-34')).to  be_parsed_as(wrap_result.call(1.2e-34)) }
+        it { expect(wrap.call('1.2e-34')).to  be_parsed_as(wrap_result.call(1.2e-34)) }
+
+        it { expect(wrap.call('1.2E34')).to   be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2E034')).to  be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2E+34')).to  be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2E+034')).to be_parsed_as(wrap_result.call(1.2e34))  }
+        it { expect(wrap.call('1.2E-34')).to  be_parsed_as(wrap_result.call(1.2e-34)) }
+        it { expect(wrap.call('1.2E-34')).to  be_parsed_as(wrap_result.call(1.2e-34)) }
+      end
     end
 
     context 'function references' do
-      it { expect(wrap.call(%q|function('tr')|)).to  be_parsed_as(wrap_result.call(function('tr')))  }
-      it { expect(wrap.call(%q|function ('tr')|)).to be_parsed_as(wrap_result.call(function('tr')))  }
-      it { expect(wrap.call(%q|function("tr")|)).to  be_parsed_as(wrap_result.call(function('tr')))  }
+      it { expect(wrap.call(%q|function('tr')|)).to  be_parsed_as(wrap_result.call(function('tr'))) }
+      it { expect(wrap.call(%q|function ('tr')|)).to be_parsed_as(wrap_result.call(function('tr'))) }
+      it { expect(wrap.call(%q|function("tr")|)).to  be_parsed_as(wrap_result.call(function('tr'))) }
 
       it { expect(wrap.call(%q|function|)).to      raise_on_parsing(VimlValue::ParseError) }
       it { expect(wrap.call(%q|function()|)).to    raise_on_parsing(VimlValue::ParseError) }
@@ -126,9 +152,18 @@ describe VimlValue::Parser do
       it { expect(wrap.call(%q|function "tr"|)).to raise_on_parsing(VimlValue::ParseError) }
     end
 
+    context 'boolean' do
+      it_behaves_like 'it can parse vim internal (starts with v:) variable', 'true',  true
+      it_behaves_like 'it can parse vim internal (starts with v:) variable', 'false', false
+    end
+
+    context 'v:null' do
+      it_behaves_like 'it can parse vim internal (starts with v:) variable', 'null', nil
+    end
+
     context 'recursive references' do
-      it { expect(wrap.call(%q|{...}|)).to be_parsed_as(wrap_result.call(dict_recursive_ref))  }
-      it { expect(wrap.call(%q|[...]|)).to be_parsed_as(wrap_result.call(list_recursive_ref))  }
+      it { expect(wrap.call(%q|{...}|)).to be_parsed_as(wrap_result.call(dict_recursive_ref)) }
+      it { expect(wrap.call(%q|[...]|)).to be_parsed_as(wrap_result.call(list_recursive_ref)) }
 
       it { expect(wrap.call(%q|[....]|)).to raise_on_parsing(VimlValue::ParseError) }
       it { expect(wrap.call(%q|{....}|)).to raise_on_parsing(VimlValue::ParseError) }

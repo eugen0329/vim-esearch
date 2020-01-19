@@ -2,12 +2,12 @@
 
 module VimlValue
   class TreeBuilder
-    def number(tstring)
-      node(:number, [val(tstring)])
+    def numeric(tstring)
+      node(:numeric, [val(tstring)])
     end
 
-    def bool(tstring)
-      node(:bool, [val(tstring)])
+    def boolean(tstring)
+      node(:boolean, [val(tstring)])
     end
 
     def null(tstring)

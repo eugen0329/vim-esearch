@@ -24,16 +24,16 @@ describe VimlValue::Lexer do
   end
 
   context 'int' do
-    it { expect(tokenize('1')).to    eq([[:NUMBER, val(1)]])    }
-    it { expect(tokenize('-1')).to   eq([[:NUMBER, val(-1)]])   }
+    it { expect(tokenize('1')).to    eq([[:NUMERIC, val(1)]])    }
+    it { expect(tokenize('-1')).to   eq([[:NUMERIC, val(-1)]])   }
 
     it { expect { tokenize('0') }.to raise_error(VimlValue::ParseError) }
     it { expect { tokenize('-0') }.to raise_error(VimlValue::ParseError) }
   end
 
   context 'bool' do
-    it_behaves_like 'it tokenizes vim internal literal', 'true',  :BOOL, true
-    it_behaves_like 'it tokenizes vim internal literal', 'false', :BOOL, false
+    it_behaves_like 'it tokenizes vim internal literal', 'true',  :BOOLEAN, true
+    it_behaves_like 'it tokenizes vim internal literal', 'false', :BOOLEAN, false
   end
 
   context 'null' do
@@ -41,12 +41,12 @@ describe VimlValue::Lexer do
   end
 
   context 'float' do
-    it { expect(tokenize('1.0')).to eq([[:NUMBER, val(1.0)]])  }
-    it { expect(tokenize('1.2')).to eq([[:NUMBER, val(1.2)]])  }
-    it { expect(tokenize('0.2')).to eq([[:NUMBER, val(0.2)]])  }
-    it { expect(tokenize('-1.0')).to eq([[:NUMBER, val(-1.0)]]) }
-    it { expect(tokenize('-1.2')).to eq([[:NUMBER, val(-1.2)]]) }
-    it { expect(tokenize('-0.2')).to eq([[:NUMBER, val(-0.2)]]) }
+    it { expect(tokenize('1.0')).to eq([[:NUMERIC, val(1.0)]])  }
+    it { expect(tokenize('1.2')).to eq([[:NUMERIC, val(1.2)]])  }
+    it { expect(tokenize('0.2')).to eq([[:NUMERIC, val(0.2)]])  }
+    it { expect(tokenize('-1.0')).to eq([[:NUMERIC, val(-1.0)]]) }
+    it { expect(tokenize('-1.2')).to eq([[:NUMERIC, val(-1.2)]]) }
+    it { expect(tokenize('-0.2')).to eq([[:NUMERIC, val(-0.2)]]) }
 
     it { expect { tokenize('1.') }.to raise_error(VimlValue::ParseError) }
     it { expect { tokenize('.1') }.to raise_error(VimlValue::ParseError) }
