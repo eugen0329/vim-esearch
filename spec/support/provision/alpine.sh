@@ -4,6 +4,10 @@
 . "$(dirname "$0")/__provision.sh"
 local_bin_dir="${1:-"$provision_dir/../bin"}"
 
+install_package_ragel \
+  'latest'            \
+  "$skip_use_sudo"
+
 install_package_vim    \
   'latest'             \
   "$skip_use_sudo"

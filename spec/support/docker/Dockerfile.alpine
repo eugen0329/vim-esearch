@@ -49,7 +49,6 @@ RUN set -eux; \
     echo 'gem: --no-document' >> /etc/gemrc; \
     gem install bundler; \
     bundle config set no-cache 'true'; \
-    bundle config set frozen 'true'; \
     bundle install; \
 # OS dependencies
 # Clearly an antipattern, but we have to be able to reuse this scripts for
