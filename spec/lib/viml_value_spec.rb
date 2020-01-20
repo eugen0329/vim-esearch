@@ -19,10 +19,10 @@ describe VimlValue do
       end
 
       context 'float' do
-        it { expect(subject.call([1.2])).to eq([1.2]) }
-        it { expect(subject.call([1e-20])).to eq([1e-20]) }
-        it { expect(subject.call([1e+20])).to eq([1e+20]) }
-        it { expect(subject.call([-1.2])).to eq([-1.2]) }
+        it { expect(subject.call([1.2])).to    eq([1.2])    }
+        it { expect(subject.call([1e-20])).to  eq([1e-20])  }
+        it { expect(subject.call([1e+20])).to  eq([1e+20])  }
+        it { expect(subject.call([-1.2])).to   eq([-1.2])   }
         it { expect(subject.call([-1e-20])).to eq([-1e-20]) }
         it { expect(subject.call([-1e+20])).to eq([-1e+20]) }
       end
@@ -33,7 +33,7 @@ describe VimlValue do
       end
     end
 
-    context 'nil hehe' do
+    context 'nil' do
       it { expect(subject.call([nil])).to eq([nil]) }
     end
 
