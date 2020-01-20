@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Editor::Serialization::Helpers do
+describe VimlValue::SerializationHelpers do
   include described_class
 
   let(:editor) { Editor.new(method(:vim)) }

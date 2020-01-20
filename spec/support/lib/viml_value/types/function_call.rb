@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Editor::Serialization::FunctionCall < Editor::Serialization::VimlExpr
+class VimlValue::Types::FunctionCall < VimlValue::Types::Expression
   attr_reader :name, :arguments
 
   def initialize(name, *arguments)

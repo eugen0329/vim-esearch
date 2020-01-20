@@ -5,14 +5,15 @@ require 'spec_helper'
 # Just a superficial unit testing to allow isolate a problem (if the one
 # occurs) without involving Vimrunner.
 # For more rigorious specs refer to spec/lib/integration/serialization_spec.rb
-describe Editor::Serialization::YAMLDeserializer do
+describe 'VimlValue#dump' do
   let(:deserializer) { Editor::Serialization::YAMLDeserializer.new }
   let(:allow_toplevel_unquoted_strings) { false }
 
   subject { deserializer.deserialize(string) }
 
   def deserialize(string)
-    deserializer.deserialize(string, allow_toplevel_unquoted_strings)
+    VimlValue.load(string)
+    # deserializer.deserialize(string, allow_toplevel_unquoted_strings)
   end
 
   context 'toplevel list' do

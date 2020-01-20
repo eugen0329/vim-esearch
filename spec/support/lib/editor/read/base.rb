@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Editor::Read::Base
-  include Editor::Serialization::Helpers
+  include VimlValue::SerializationHelpers
   delegate :serialize, to: :serializer
   delegate :deserialize, to: :deserializer
 

@@ -1,22 +1,6 @@
 # frozen_string_literal: true
 
 class VimlValue::Visitors::ToRuby
-  Funcref = Struct.new(:name) do
-    def inspect
-      "function(#{name.inspect})"
-    end
-  end
-  class DictRecursiveRef
-    def self.inspect
-      '{...}'
-    end
-  end
-  class ListRecursiveRef
-    def self.inspect
-      '[...]'
-    end
-  end
-
   def accept(tree)
     visit(tree)
   end
@@ -45,15 +29,15 @@ class VimlValue::Visitors::ToRuby
   end
 
   def visit_funcref(node)
-    Funcref.new(visit_value(node))
+    VimlValue::Types::Funcref.new(visit_value(node))
   end
 
   def visit_dict_recursive_ref(_node)
-    DictRecursiveRef
+    VimlValue::Types::DictRecursiveRef
   end
 
   def visit_list_recursive_ref(_node)
-    ListRecursiveRef
+    VimlValue::Types::ListRecursiveRef
   end
 
   def visit_value(node)
