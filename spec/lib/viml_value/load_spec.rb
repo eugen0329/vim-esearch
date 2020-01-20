@@ -4,18 +4,15 @@ require 'spec_helper'
 
 # rubocop:disable Style/LambdaCall
 describe 'VimlValue#load' do
-  include Helpers::VimlValue::Load
+  include VimlValue::SerializationHelpers
   extend Helpers::VimlValue::DefineSharedMatchers
 
-  define_action_matcher!(:be_loaded_as, verb: 'load') do
-    VimlValue.load(actual, allow_toplevel_literals: true)
+  define_transformation_matcher!(:be_loaded_as, verb: 'load')
+  define_raise_on_transformation_matcher!(:raise_on_load, verb: 'loading')
+
+  subject do
+    proc { |actual| VimlValue.load(actual, allow_toplevel_literals: true) }
   end
-  define_raise_on_action_matcher!(:raise_on_load, verb: 'loading') do
-    VimlValue.load(actual, allow_toplevel_literals: true)
-  end
-  # subject do
-  #   proc { |actual| VimlValue.load(actual, allow_toplevel_literals: true) }
-  # end
 
   # Attempt to reuse tests for loading val inside different parsing contexts
   # (like val, [val], {'key': val} etc.)
@@ -195,12 +192,6 @@ describe 'VimlValue#load' do
     end
   end
 
-  context 'smoke test inside deeply nested structure' do
-    include_examples 'wrapped value',
-      ->(given_str)    { %|[1,[ { 'key' : #{given_str} } , 2,  [ "3"  ]], 4 ]| },
-      ->(expected_obj) { [1, [{'key' => expected_obj}, 2, ['3']], 4] }
-  end
-
   context 'not balanced bracket sequence' do
     context 'of lists' do
       it { expect('[').to raise_on_load(VimlValue::ParseError) }
@@ -244,6 +235,12 @@ describe 'VimlValue#load' do
         it { expect("{'key': ]}").to raise_on_load(VimlValue::ParseError) }
       end
     end
+  end
+
+  context 'smoke test inside deeply nested structure' do
+    include_examples 'wrapped value',
+      ->(given_str)    { %|  [1,[ { 'key' : #{given_str} } , 2,  [ "3"  ]], 4 ]| },
+      ->(expected_obj) { [1, [{'key' => expected_obj}, 2, ['3']], 4] }
   end
 end
 # rubocop:enable Style/LambdaCall

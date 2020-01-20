@@ -3,7 +3,14 @@
 require 'spec_helper'
 
 describe VimlValue::Lexer do
-  include Helpers::VimlValue::Tokenize
+  extend Helpers::VimlValue::DefineSharedMatchers
+
+  define_transformation_matcher!(:be_tokenized_as, verb: 'tokenize')
+    # VimlValue::Lexer.new(value).each_token.to_a
+  define_raise_on_transformation_matcher!(:raise_on_tokenizing, verb: 'tokenizing')
+  subject do
+    proc { |value| VimlValue::Lexer.new(value).each_token.to_a }
+  end
 
   context 'NUMERIC' do
     context 'integer' do

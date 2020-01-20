@@ -5,6 +5,14 @@ require 'spec_helper'
 describe VimlValue::Parser do
   include Helpers::VimlValue::Parse
   include VimlValue::AST::Sexp
+  extend Helpers::VimlValue::DefineSharedMatchers
+
+  define_transformation_matcher!(:be_parsed_as, verb: 'parse')
+  define_raise_on_transformation_matcher!(:raise_on_parse, verb: 'parsing')
+
+  subject do
+    proc { |actual| VimlValue::Parser.new(VimlValue::Lexer.new).parse(actual) }
+  end
 
   it { expect('').to be_parsed_as(nil) }
 

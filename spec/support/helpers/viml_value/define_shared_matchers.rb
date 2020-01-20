@@ -6,10 +6,10 @@ module Helpers::VimlValue::DefineSharedMatchers
   # Pretty ugly way to reduce duplication (other approaches involve even
   # more problems mostly tied with implicit dependencies)
 
-  def define_action_matcher!(matcher_name, verb:, &action)
+  def define_transformation_matcher!(matcher_name, verb:)
     matcher matcher_name do |expected|
-      match do |_actual|
-        @processed = instance_exec(&action)
+      match do |actual|
+        @processed = subject.call(actual)
         eq(expected).matches?(@processed)
       end
 
@@ -26,12 +26,12 @@ module Helpers::VimlValue::DefineSharedMatchers
     end
   end
 
-  def define_raise_on_action_matcher!(matcher_name, verb:, &action)
+  def define_raise_on_transformation_matcher!(matcher_name, verb:)
     matcher matcher_name do |exception|
       supports_block_expectations
 
-      match do |_actual|
-        @processed = instance_exec(&action)
+      match do |actual|
+        @processed = subject.call(actual)
         false
       rescue exception
         true
