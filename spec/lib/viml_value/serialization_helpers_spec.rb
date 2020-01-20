@@ -6,8 +6,7 @@ describe VimlValue::SerializationHelpers do
   include described_class
 
   let(:editor) { Editor.new(method(:vim)) }
-  let(:serializer) { Editor::Serialization::Serializer.new }
-  subject { serializer.serialize(original_object) }
+  subject { VimlValue.dump(original_object) }
 
   context 'viml variables' do
     context 'vim option variable' do

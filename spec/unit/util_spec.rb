@@ -6,14 +6,13 @@ require 'yaml'
 describe 'esearch#util' do
   include Helpers::FileSystem
 
-  around { |e| esearch.editor.with_ignore_cache(&e) }
-
   describe '#parse_help_options' do
     let(:help_content) { format(layout, help_output) }
     let(:help_file) { file(help_content) }
-    let(:eval_result) { esearch.editor.raw_echo("esearch#util#parse_help_options('cat #{help_file}')") }
     let!(:fixture_directory) { directory([help_file], 'parse_help_options').persist! }
-    let(:deserialized_result) { VimlValue.load(eval_result) }
+    subject(:output) do
+      VimlValue.load(vim.echo("esearch#util#parse_help_options('cat #{help_file}')"))
+    end
     let(:layout) do
       <<~HELP_LAYOUT
         Usage: grep [OPTION]... PATTERN [FILE]...
@@ -36,7 +35,7 @@ describe 'esearch#util' do
     # NOTE: those ugly space paddings are kept by intent (as copied from actual
     # grep --help)
     context '#keys' do
-      subject { deserialized_result.keys }
+      subject { output.keys }
 
       context 'when -s{hort} --long' do
         let(:help_output) { '  -E, --extended-regexp     PATTERN is an {..}' }
