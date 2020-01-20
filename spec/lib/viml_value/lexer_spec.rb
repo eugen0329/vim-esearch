@@ -3,13 +3,14 @@
 require 'spec_helper'
 
 describe VimlValue::Lexer do
+  include Helpers::VimlValue::Tokenize
   include Helpers::VimlValue::Convert
 
   alias_matcher :be_tokenized_as,     :be_converted_by_calling_subject_as
   alias_matcher :raise_on_tokenizing, :raise_on_converting_by_calling_subject
 
   subject do
-    ->(actual) { VimlValue::Lexer.new(value).each_token.to_a }
+    ->(value) { VimlValue::Lexer.new(value).each_token.to_a }
   end
 
   context 'NUMERIC' do

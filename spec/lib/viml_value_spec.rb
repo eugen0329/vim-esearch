@@ -5,7 +5,7 @@ require 'spec_helper'
 describe VimlValue do
   describe 'dump -> eval -> load' do
     subject(:dump_eval_load) do
-      proc do |ruby_object|
+      lambda do |ruby_object|
         VimlValue.dump(ruby_object)
           .then { |dumped|    vim.echo(dumped) }
           .then { |evaluated| VimlValue.load(evaluated, allow_toplevel_literals: false) }
@@ -33,8 +33,14 @@ describe VimlValue do
       end
     end
 
+    context 'nil hehe' do
+      it { expect(subject.call([nil])).to eq([nil]) }
+    end
+
     context 'hash' do
-      it { expect(subject.call({})).to eq({}) }
+      context 'blank' do
+        it { expect(subject.call({})).to eq({}) }
+      end
 
       context 'non blank' do
         let(:ruby_object) do

@@ -9,7 +9,7 @@ describe VimlValue::Parser do
   alias_matcher :be_parsed_as, :be_converted_by_calling_subject_as
 
   subject do
-    ->(actual) { VimlValue::Parser.new(VimlValue::Lexer.new).parse(actual) }
+    ->(value) { VimlValue::Parser.new(VimlValue::Lexer.new).parse(value) }
   end
 
   it { expect('').to be_parsed_as(nil) }

@@ -11,21 +11,19 @@ describe 'VimlValue#load' do
   alias_matcher :raise_on_loading, :raise_on_converting_by_calling_subject
 
   subject do
-    ->(actual) { VimlValue.load(actual, allow_toplevel_literals: true) }
+    ->(value) { VimlValue.load(value, allow_toplevel_literals: true) }
   end
 
-  # Attempt to reuse tests for loading val inside different parsing contexts
-  # (like val, [val], {'key': val} etc.)
+  # To reuse tests for loading value inside different parsing contexts
+  # (like value, [value], {'key': value} etc.)
   shared_examples 'wrapped value' do |wrap, wrap_result|
     context 'integer' do
-      it { expect(wrap.('0')).to  be_loaded_as(wrap_result.(01))  }
+      it { expect(wrap.('0')).to  be_loaded_as(wrap_result.(0))  }
       it { expect(wrap.('1')).to  be_loaded_as(wrap_result.(1))  }
       it { expect(wrap.('-2')).to be_loaded_as(wrap_result.(-2)) }
     end
 
     context 'float' do
-      # it { is_expected.to load(wrap.('0.0')).as(wrap_result.(0.0)) }
-
       # from vim :help floating-point-format
       it { expect(wrap.('0.0')).to         be_loaded_as(wrap_result.(0.0))         }
       it { expect(wrap.('123.456')).to     be_loaded_as(wrap_result.(123.456))     }
@@ -241,7 +239,7 @@ describe 'VimlValue#load' do
     end
   end
 
-  context 'smoke test inside deeply nested structure' do
+  context 'smoke tests inside deeply nested structure' do
     include_examples 'wrapped value',
       ->(given_str)    { %|  [1,[ { 'key' : #{given_str} } , 2,  [ "3"  ]], 4 ]| },
       ->(expected_obj) { [1, [{'key' => expected_obj}, 2, ['3']], 4] }

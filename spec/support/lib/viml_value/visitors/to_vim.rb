@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class VimlValue::Visitors::ToViml
+class VimlValue::Visitors::ToVim
   CLASS_VISIT_METHODS = {
     Array                          => :visit_array_like,
     Enumerator                     => :visit_array_like,
@@ -13,7 +13,6 @@ class VimlValue::Visitors::ToViml
     Integer                        => :visit_numeric,
     NilClass                       => :visit_nil
   }.freeze
-
 
   def accept(object)
     visit(object)
@@ -46,7 +45,7 @@ class VimlValue::Visitors::ToViml
   end
 
   def visit_nil(_object)
-    "''"
+    "v:null"
   end
 
   def visit_function_call(object)

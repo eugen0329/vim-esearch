@@ -13,7 +13,7 @@ module VimlValue
     Visitors::ToRuby.new.accept(tree)
   end
 
-  def self.dump(object, visitor: Visitors::ToViml)
+  def self.dump(object, visitor: Visitors::ToVim)
     visitor.new.accept(object)
   end
 end
