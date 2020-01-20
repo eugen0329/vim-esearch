@@ -38,19 +38,19 @@ module VimlValue
 
       main := |*
         (whitespace | tab)*;
-        number             => { emit(:NUMERIC, token.to_i)           };
-        float              => { emit(:NUMERIC, token.to_f)           };
-        single_quote       => { start_str!; fcall single_quoted_str; };
-        double_quote       => { start_str!; fcall double_quoted_str; };
-        vtrue              => { emit(:BOOLEAN, true)                 };
-        vfalse             => { emit(:BOOLEAN, false)                };
-        vnull              => { emit(:NULL,  nil)                    };
-        funcref            => { emit(:FUNCREF, nil)                  };
-        dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)       };
-        list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
-        separator          => { emit(data[ts], data[ts])             };
-        eof_ch             => { fbreak;                              };
-        any_ch             => { failure "Unexpected char"            };
+        number             => { emit(:NUMERIC, token.to_i)                 };
+        float              => { emit(:NUMERIC, token.to_f)                 };
+        single_quote       => { start_str!; fcall single_quoted_str;       };
+        double_quote       => { start_str!; fcall double_quoted_str;       };
+        vtrue              => { emit(:BOOLEAN, true)                       };
+        vfalse             => { emit(:BOOLEAN, false)                      };
+        vnull              => { emit(:NULL,  nil)                          };
+        funcref            => { emit(:FUNCREF, nil)                        };
+        dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)             };
+        list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)             };
+        separator          => { emit(data[ts], data[ts])                   };
+        eof_ch             => { fbreak;                                    };
+        any_ch             => { failure "Unexpected char #{token.inspect}" };
       *|;
 
       single_quoted_str := |*
@@ -127,10 +127,8 @@ module VimlValue
       data[ts...te]
     end
 
-    def failure(message, value = nil)
-      message = [message, value].join(': ')
-      message = [message, 'at', p].join(' ')
-      raise ParseError, message
+    def failure(message)
+      raise ParseError, [message, 'at', p].join(' ')
     end
 
     TokenData = Struct.new(:val, :start, :end) do

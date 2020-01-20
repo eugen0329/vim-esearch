@@ -3,8 +3,11 @@ token STRING NUMERIC BOOLEAN NULL FUNCREF COLON ','
       DICT_RECURSIVE_REF LIST_RECURSIVE_REF
 rule
   toplevel: toplevel_value | nothing
-  # Consider to disallow literals within toplevel
-  toplevel_value: value
+
+  toplevel_value:
+    : list
+    | dict
+    | literal                       { raise_unless_toplevel_literals_allowed }
 
   value
     : list
@@ -46,9 +49,10 @@ end
 
 ---- inner -----
 
-  def initialize(lexer)
+  def initialize(lexer, allow_toplevel_literals: true)
     @lexer = lexer
     @builder = VimlValue::TreeBuilder.new
+    @allow_toplevel_literals = allow_toplevel_literals
     super()
   end
 
@@ -70,4 +74,9 @@ end
       location = [value.start, value.end].join(':')
       raise ParseError, "Unexpected token #{token_to_str(token_id)} at position #{location}"
     end
+  end
+
+  def raise_unless_toplevel_literals_allowed
+    return if @allow_toplevel_literals
+    raise ParseError, "Toplevel lietrals aren't allowed due to parsing ambiguity"
   end
