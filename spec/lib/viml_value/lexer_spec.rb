@@ -3,13 +3,13 @@
 require 'spec_helper'
 
 describe VimlValue::Lexer do
-  extend Helpers::VimlValue::DefineSharedMatchers
+  include Helpers::VimlValue::Convert
 
-  define_transformation_matcher!(:be_tokenized_as, verb: 'tokenize')
-    # VimlValue::Lexer.new(value).each_token.to_a
-  define_raise_on_transformation_matcher!(:raise_on_tokenizing, verb: 'tokenizing')
+  alias_matcher :be_tokenized_as,     :be_converted_by_calling_subject_as
+  alias_matcher :raise_on_tokenizing, :raise_on_converting_by_calling_subject
+
   subject do
-    proc { |value| VimlValue::Lexer.new(value).each_token.to_a }
+    ->(actual) { VimlValue::Lexer.new(value).each_token.to_a }
   end
 
   context 'NUMERIC' do
