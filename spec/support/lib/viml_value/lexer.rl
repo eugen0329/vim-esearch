@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Big thanks to ruby_parser, graphql-ruby and oga maintainers (who also use
+# ragel) for inspiring some implementations ideas and for saving hours (and even
+# more) of ragel lexer integration
 module VimlValue
   class Lexer
     %%{
@@ -97,7 +100,7 @@ module VimlValue
     end
 
     def next_token
-      @iterator.next
+      @each_token.next
     rescue StopIteration
       nil
     end
@@ -109,9 +112,14 @@ module VimlValue
 
     # For compliance with other lexers like rexical and oedipus_lex
     def scan_setup(input)
+      @each_token = each_token
       @data = input
-      @data_unpacked = input.unpack("C*")
-      @iterator = each_token
+      @data_unpacked =
+        if input.encoding == Encoding::UTF_8
+          input.unpack("U*")
+        else
+          input.unpack("C*")
+        end
 
       # ragel internals
       @ts, @te     = nil,  nil            # start, end position

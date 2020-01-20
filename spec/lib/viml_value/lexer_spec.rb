@@ -9,8 +9,9 @@ describe VimlValue::Lexer do
   alias_matcher :be_tokenized_as,     :be_converted_by_calling_subject_as
   alias_matcher :raise_on_tokenizing, :raise_on_converting_by_calling_subject
 
+  let(:encoding) { Encoding::ASCII }
   subject do
-    ->(value) { VimlValue::Lexer.new(value).each_token.to_a }
+    ->(str) { VimlValue::Lexer.new(str.dup.force_encoding(encoding)).each_token.to_a }
   end
 
   context 'NUMERIC' do
@@ -109,6 +110,12 @@ describe VimlValue::Lexer do
     it { expect('"1"').to    be_tokenized_as([[:STRING, val('1',  [0, 3])]])  }
     it { expect(%q|"''"|).to be_tokenized_as([[:STRING, val("''", [0, 4])]]) }
     it { expect(%q|'""'|).to be_tokenized_as([[:STRING, val('""', [0, 4])]]) }
+
+    context 'UTF-8 encoding' do
+      let(:encoding) { Encoding::UTF_8 }
+
+      it { expect("'Σ'").to be_tokenized_as([[:STRING, val('Σ',  [0, 3])]]) }
+    end
   end
 
   context 'SEPARATOR' do
