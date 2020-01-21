@@ -19,7 +19,7 @@ describe VimlValue::Lexer do
     end
 
     alias_matcher :be_tokenized_as, :be_processed_by_calling_subject_as
-    alias_matcher :fail_tokenizing_with, :raise_on_calling_subject
+    alias_matcher :fail_tokenizing_with, :fail_on_calling_subject_with
 
     context 'NUMERIC' do
       context 'integer' do

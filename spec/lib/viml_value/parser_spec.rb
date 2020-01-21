@@ -16,7 +16,7 @@ describe VimlValue::Parser do
     end
 
     alias_matcher :be_parsed_as, :be_processed_by_calling_subject_as
-    alias_matcher :fail_parsing_with, :raise_on_calling_subject
+    alias_matcher :fail_parsing_with, :fail_on_calling_subject_with
 
     context 'nothing' do
       it { expect('').to be_parsed_as(nil) }

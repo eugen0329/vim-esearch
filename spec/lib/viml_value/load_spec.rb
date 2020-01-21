@@ -17,7 +17,7 @@ describe VimlValue do
     end
 
     alias_matcher :be_loaded_as, :be_processed_by_calling_subject_as
-    alias_matcher :fail_loading_with, :raise_on_calling_subject
+    alias_matcher :fail_loading_with, :fail_on_calling_subject_with
 
     shared_examples 'literals wrapped inside parsing context' do |wrap_actual, wrap_expected|
       let(:actual)   { wrap_actual.to_proc }

@@ -31,7 +31,7 @@ module Helpers::VimlValue
     end
   end
 
-  matcher :raise_on_calling_subject do |exception|
+  matcher :fail_on_calling_subject_with do |exception|
     match do |actual|
       block = -> { @actual_return_value = subject.call(actual) }
       raise_error(exception).matches? block
