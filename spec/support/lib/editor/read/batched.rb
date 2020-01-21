@@ -30,7 +30,7 @@ class Editor::Read::Batched < Editor::Read::Base
     ensure
       @echo_skip_evaluation = false
     end
-    raise unless expression.is_a? Editor::Serialization::VimlExpr
+    raise unless expression.is_a? VimlValue::Serializable::Expression
 
     cache.exist?(expression)
   end
@@ -64,7 +64,7 @@ class Editor::Read::Batched < Editor::Read::Base
 
     batch
       .lookup!(cache)
-      .evaluate! { |viml_values| deserialize(vim.echo(serialize(viml_values))) }
+      .evaluate! { |viml_values| VimlValue.load(vim.echo(VimlValue.dump(viml_values))) }
       .write(cache)
       .clear
 

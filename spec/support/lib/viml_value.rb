@@ -3,13 +3,17 @@
 module VimlValue
   class ParseError < RuntimeError; end
 
-  def self.load(viml, lexer: Lexer, parser: Parser, visitor: Visitors::ToRuby)
-    tree = parser
-           .new(lexer.new)
-           .parse(viml)
+  def self.load(string, allow_toplevel_literals = false)
+    tree = Parser
+           .new(Lexer.new(string), allow_toplevel_literals)
+           .parse
 
     return tree if tree.nil?
 
-    visitor.new.accept(tree)
+    Visitors::ToRuby.new.accept(tree)
+  end
+
+  def self.dump(object, visitor: Visitors::ToVim)
+    visitor.new.accept(object)
   end
 end

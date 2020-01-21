@@ -1,22 +1,6 @@
 # frozen_string_literal: true
 
 class VimlValue::Visitors::ToRuby
-  Funcref = Struct.new(:name) do
-    def inspect
-      "function(#{name.inspect})"
-    end
-  end
-  class DictRecursiveRef
-    def self.inspect
-      '{...}'
-    end
-  end
-  class ListRecursiveRef
-    def self.inspect
-      '[...]'
-    end
-  end
-
   def accept(tree)
     visit(tree)
   end
@@ -34,33 +18,33 @@ class VimlValue::Visitors::ToRuby
       .to_h
   end
 
-  def visit_pair(pair)
-    [visit_string(pair.children.first), visit(pair.children.last)]
-  end
-
   def visit_list(node)
     node
       .children
       .map { |value| visit(value) }
   end
 
+  def visit_pair(pair)
+    [visit_string(pair.children.first), visit(pair.children.last)]
+  end
+
   def visit_funcref(node)
-    Funcref.new(visit_value(node))
+    VimlValue::Types::Funcref.new(visit_string(node))
   end
 
   def visit_dict_recursive_ref(_node)
-    DictRecursiveRef
+    VimlValue::Types::DictRecursiveRef.new
   end
 
   def visit_list_recursive_ref(_node)
-    ListRecursiveRef
+    VimlValue::Types::ListRecursiveRef.new
   end
 
-  def visit_value(node)
+  def visit_literal(node)
     node.children.first
   end
-  alias visit_boolean visit_value
-  alias visit_null    visit_value
-  alias visit_string  visit_value
-  alias visit_numeric visit_value
+  alias visit_boolean visit_literal
+  alias visit_null    visit_literal
+  alias visit_string  visit_literal
+  alias visit_numeric visit_literal
 end

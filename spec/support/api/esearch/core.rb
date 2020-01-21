@@ -18,6 +18,6 @@ class API::ESearch::Core
   def search_args(**kwargs)
     return nil if kwargs.blank?
 
-    editor.serialize(kwargs)
+    VimlValue.dump(kwargs)
   end
 end

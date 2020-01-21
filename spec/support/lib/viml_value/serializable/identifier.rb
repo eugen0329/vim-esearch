@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Editor::Serialization::Identifier < Editor::Serialization::VimlExpr
+class VimlValue::Serializable::Identifier < VimlValue::Serializable::Expression
   attr_reader :string_representation
   alias to_s string_representation
 

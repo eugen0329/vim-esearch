@@ -14,8 +14,6 @@ class Editor
   attr_reader :vim_client_getter
 
   delegate :cached?, :evaluated?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
-  # TODO
-  delegate :serialize, to: :reader
 
   def initialize(vim_client_getter, cache_enabled: self.class.cache_enabled)
     @cache_enabled = cache_enabled

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Big thanks to ruby_parser, graphql-ruby and oga maintainers (who also use
+# ragel) for inspiring some implementations ideas and for saving hours (and even
+# more) of ragel lexer integration
 module VimlValue
   class Lexer
     %%{
@@ -7,7 +10,7 @@ module VimlValue
       access self.;
       getkey (data_unpacked[p] || self.class.lexer_ex_eof_ch);
 
-      ### Vim types (from :h type())
+      ### Vim types (from :help type())
       # Number:     0 (|v:t_number|)
       # String:     1 (|v:t_string|)
       # Funcref:    2 (|v:t_func|)
@@ -38,19 +41,19 @@ module VimlValue
 
       main := |*
         (whitespace | tab)*;
-        number             => { emit(:NUMERIC, token.to_i)           };
-        float              => { emit(:NUMERIC, token.to_f)           };
-        single_quote       => { start_str!; fcall single_quoted_str; };
-        double_quote       => { start_str!; fcall double_quoted_str; };
-        vtrue              => { emit(:BOOLEAN, true)                 };
-        vfalse             => { emit(:BOOLEAN, false)                };
-        vnull              => { emit(:NULL,  nil)                    };
-        funcref            => { emit(:FUNCREF, nil)                  };
-        dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)       };
-        list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)       };
-        separator          => { emit(data[ts], data[ts])             };
-        eof_ch             => { fbreak;                              };
-        any_ch             => { failure "Unexpected char"            };
+        number             => { emit(:NUMERIC, token.to_i)                 };
+        float              => { emit(:NUMERIC, token.to_f)                 };
+        single_quote       => { start_str!; fcall single_quoted_str;       };
+        double_quote       => { start_str!; fcall double_quoted_str;       };
+        vtrue              => { emit(:BOOLEAN, true)                       };
+        vfalse             => { emit(:BOOLEAN, false)                      };
+        vnull              => { emit(:NULL,  nil)                          };
+        funcref            => { emit(:FUNCREF, nil)                        };
+        dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)             };
+        list_recursive_ref => { emit(:LIST_RECURSIVE_REF, nil)             };
+        separator          => { emit(data[ts], data[ts])                   };
+        eof_ch             => { fbreak;                                    };
+        any_ch             => { failure "Unexpected char #{token.inspect}" };
       *|;
 
       single_quoted_str := |*
@@ -79,41 +82,49 @@ module VimlValue
     private_methods.select { |m| m.to_s =~ /\A_lexer.*[^=]\z/ }
       .each { |m| define_method(m) { self.class.send(m) } }
 
-    def initialize(input = nil)
-      scan_setup(input) unless input.nil?
+
+    attr_reader :data, :data_unpacked
+    attr_accessor :ts, :te, :stack, :top, :cs, :act, :p # ragel internals
+
+    def initialize(input)
+      @data = input
+      @data_unpacked =
+        if input.encoding == Encoding::UTF_8
+          input.unpack("U*")
+        else
+          input.unpack("C*")
+        end
+      reset!
     end
 
     def each_token(&block)
-      return enum_for(:each_token) if block.nil?
+      return @each_token if block.nil?
 
       @yielder = Enumerator::Yielder.new(&block)
+      reset_ragel!
 
       p = @p
       %% write exec noend;
       # %
       @p = p # preserve data pointer just in case
     ensure
-      @yielder = nil
+      reset!
     end
 
     def next_token
-      @iterator.next
+      @each_token.next
     rescue StopIteration
       nil
     end
 
-    # input
-    attr_reader :data, :data_unpacked
-    # ragel internals
-    attr_accessor :ts, :te, :stack, :top, :cs, :act, :p
+    def reset!
+      @each_token = enum_for(:each_token)
+      @yielder = nil
+    end
 
-    # For compliance with other lexers like rexical and oedipus_lex
-    def scan_setup(input)
-      @data = input
-      @data_unpacked = input.unpack("C*")
-      @iterator = each_token
+    private
 
-      # ragel internals
+    def reset_ragel!
       @ts, @te     = nil,  nil            # start, end position
       @stack, @top = [], 0                # for fcall and fret
       @cs          = %%{ write start; }%% # current state
@@ -121,21 +132,17 @@ module VimlValue
       @p = 0                              # data pointer
     end
 
-    private
-
     def token
       data[ts...te]
     end
 
-    def failure(message, value = nil)
-      message = [message, value].join(': ')
-      message = [message, 'at', p].join(' ')
-      raise ParseError, message
+    def failure(message)
+      raise ParseError, "#{message} at #{p}. In: #{data.inspect}"
     end
 
-    TokenData = Struct.new(:val, :start, :end) do
+    TokenData = Struct.new(:value, :start, :end) do
       def inspect
-        [val.inspect, start, self.end].join(':')
+        map(&:inspect).join(':')
       end
     end
 

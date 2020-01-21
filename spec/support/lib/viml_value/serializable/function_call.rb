@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Editor::Serialization::FunctionCall < Editor::Serialization::VimlExpr
+class VimlValue::Serializable::FunctionCall < VimlValue::Serializable::Expression
   attr_reader :name, :arguments
 
   def initialize(name, *arguments)
@@ -9,9 +9,6 @@ class Editor::Serialization::FunctionCall < Editor::Serialization::VimlExpr
   end
 
   def to_s
-    # Is only used for caching (and sometimes for debug). Display is done in
-    # the sexp-like form to avoid coupling with serialization related
-    # classes
     "(#{name} #{arguments.join(' ')})"
   end
 
