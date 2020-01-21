@@ -1,5 +1,11 @@
+# frozen_string_literal: true
+
 class VimlValue::Types::DictRecursiveRef
-  def self.inspect
+  def inspect
     '{...}'
+  end
+
+  def ==(other)
+    self.class == other.class
   end
 end

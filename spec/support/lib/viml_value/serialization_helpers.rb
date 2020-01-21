@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module VimlValue::SerializationHelpers
   def var(string_representation)
     VimlValue::Types::Identifier.new(string_representation)
@@ -12,10 +14,10 @@ module VimlValue::SerializationHelpers
   end
 
   def dict_recursive_ref
-    VimlValue::Types::DictRecursiveRef
+    VimlValue::Types::DictRecursiveRef.new
   end
 
   def list_recursive_ref
-    VimlValue::Types::ListRecursiveRef
+    VimlValue::Types::ListRecursiveRef.new
   end
 end

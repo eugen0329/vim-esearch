@@ -2,16 +2,16 @@
 
 class VimlValue::Visitors::ToVim
   CLASS_VISIT_METHODS = {
-    Array                          => :visit_array_like,
-    Enumerator                     => :visit_array_like,
+    Enumerable                     => :visit_array_like,
     Hash                           => :visit_hash,
     Symbol                         => :visit_string_like,
     String                         => :visit_string_like,
     VimlValue::Types::FunctionCall => :visit_function_call,
     VimlValue::Types::Identifier   => :visit_identifier,
-    Float                          => :visit_numeric,
-    Integer                        => :visit_numeric,
-    NilClass                       => :visit_nil
+    Numeric                        => :visit_numeric,
+    NilClass                       => :visit_nil,
+    TrueClass                      => :visit_true,
+    FalseClass                     => :visit_false
   }.freeze
 
   def accept(object)
@@ -25,19 +25,19 @@ class VimlValue::Visitors::ToVim
   end
 
   def visit_array_like(object)
-    "[#{object.map { |element| visit(element) }.join(',')}]"
+    "[#{visit_values(object)}]"
   end
 
   def visit_hash(object)
-    "{#{object.map { |k, v| "#{wrap_in_quotes(k.to_s)}:#{visit(v)}" }.join(',')}}"
+    "{#{object.map { |k, v| "#{visit_string_like(k.to_s)}:#{visit(v)}" }.join(',')}}"
   end
 
   def visit_identifier(object)
-    object.string_representation
+    object.to_s
   end
 
   def visit_string_like(object)
-    wrap_in_quotes(object.to_s).to_s
+    "'#{object.to_s.gsub("'", "''")}'"
   end
 
   def visit_numeric(object)
@@ -45,22 +45,32 @@ class VimlValue::Visitors::ToVim
   end
 
   def visit_nil(_object)
-    "v:null"
+    'v:null'
+  end
+
+  def visit_true(_object)
+    'v:true'
+  end
+
+  def visit_false(_object)
+    'v:false'
   end
 
   def visit_function_call(object)
-    "#{object.name}(#{visit(object.arguments)[1..-2]})"
+    "#{object.name}(#{visit_values(object.arguments)})"
   end
 
-  def wrap_in_quotes(str)
-    "'#{str.gsub("'", "''")}'"
+  # Name is choosen to correspond to the non-terminal in parser.y
+  def visit_values(object)
+    object.map { |element| visit(element) }.join(',')
   end
 
   def dispatch_cache
     @dispatch_cache ||= Hash.new do |h, klass|
-      method = CLASS_VISIT_METHODS.fetch(klass) { h[klass.superclass] }
-      raise unless method
-      h[klass] = method
+      ancestor = klass.ancestors.find { |a| CLASS_VISIT_METHODS.key?(a) }
+      raise TypeError, "don't know how to dump #{klass.name}" unless ancestor
+
+      h[klass] = CLASS_VISIT_METHODS[ancestor]
     end
   end
 end

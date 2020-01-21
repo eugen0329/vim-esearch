@@ -26,7 +26,7 @@ describe VimlValue::SerializationHelpers do
       it { expect(dumped).to eq('g:Given#Function()') }
     end
 
-    context 'when scalar arguments' do
+    context 'when not-nested arguments' do
       let(:original_object) { func('g:Given#Function', 1, '2', var('&ft'), [], {}) }
 
       it { expect(dumped).to eq("g:Given#Function(1,'2',&ft,[],{})") }

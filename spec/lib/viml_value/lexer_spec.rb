@@ -5,6 +5,7 @@ require 'spec_helper'
 describe VimlValue::Lexer do
   include Helpers::VimlValue::Tokenize
   include Helpers::VimlValue
+  ParseError = VimlValue::ParseError
 
   let(:encoding) { Encoding::ASCII }
   subject(:tokenizing) do
@@ -43,8 +44,8 @@ describe VimlValue::Lexer do
       it { expect('1.0').to become([[:NUMERIC, val(1.0, [0, 3])]]).after(tokenizing) }
       it { expect('1.2').to become([[:NUMERIC, val(1.2, [0, 3])]]).after(tokenizing) }
       it { expect('0.2').to become([[:NUMERIC, val(0.2, [0, 3])]]).after(tokenizing) }
-      it { expect('1.').to  fail_with(VimlValue::ParseError).while(tokenizing)       }
-      it { expect('.1').to  fail_with(VimlValue::ParseError).while(tokenizing)       }
+      it { expect('1.').to  fail_with(ParseError).while(tokenizing)                  }
+      it { expect('.1').to  fail_with(ParseError).while(tokenizing)                  }
 
       context 'leading zeros' do
         it { expect('01.0').to  become([[:NUMERIC, val(1.0,  [0, 4])]]).after(tokenizing) }
@@ -82,24 +83,24 @@ describe VimlValue::Lexer do
   context 'BOOLEAN' do
     it { expect('v:true').to  become([[:BOOLEAN, val(true,  [0, 6])]]).after(tokenizing) }
     it { expect('v:false').to become([[:BOOLEAN, val(false, [0, 7])]]).after(tokenizing).after(tokenizing) }
-    it { expect(':true').to   fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect(':false').to  fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect('true').to    fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect('false').to   fail_with(VimlValue::ParseError).while(tokenizing) }
+    it { expect(':true').to   fail_with(ParseError).while(tokenizing) }
+    it { expect(':false').to  fail_with(ParseError).while(tokenizing) }
+    it { expect('true').to    fail_with(ParseError).while(tokenizing) }
+    it { expect('false').to   fail_with(ParseError).while(tokenizing) }
   end
 
   context 'DICT_RECURSIVE_REF' do
     it { expect(%q|{...}|).to  become([[:DICT_RECURSIVE_REF, val(nil, [0, 5])]]).after(tokenizing) }
-    it { expect(%q|{....}|).to fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect(%q|{..}|).to   fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect(%q|{.}|).to    fail_with(VimlValue::ParseError).while(tokenizing) }
+    it { expect(%q|{....}|).to fail_with(ParseError).while(tokenizing) }
+    it { expect(%q|{..}|).to   fail_with(ParseError).while(tokenizing) }
+    it { expect(%q|{.}|).to    fail_with(ParseError).while(tokenizing) }
   end
 
   context 'LIST_RECURSIVE_REF' do
     it { expect(%q|[...]|).to  become([[:LIST_RECURSIVE_REF, val(nil, [0, 5])]]).after(tokenizing) }
-    it { expect(%q|[....]|).to fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect(%q|[..]|).to   fail_with(VimlValue::ParseError).while(tokenizing) }
-    it { expect(%q|[.]|).to    fail_with(VimlValue::ParseError).while(tokenizing) }
+    it { expect(%q|[....]|).to fail_with(ParseError).while(tokenizing) }
+    it { expect(%q|[..]|).to   fail_with(ParseError).while(tokenizing) }
+    it { expect(%q|[.]|).to    fail_with(ParseError).while(tokenizing) }
   end
 
   context 'FUNCREF' do
@@ -121,7 +122,7 @@ describe VimlValue::Lexer do
     context 'UTF-8 encoding' do
       let(:encoding) { Encoding::UTF_8 }
 
-      it { expect("'Σ'").to become([[:STRING, val('Σ',  [0, 3])]]).after(tokenizing) }
+      it { expect("'Σ'").to become([[:STRING, val('Σ', [0, 3])]]).after(tokenizing) }
     end
   end
 

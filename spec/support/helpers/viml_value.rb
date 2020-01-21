@@ -43,8 +43,7 @@ module Helpers::VimlValue
     end
 
     failure_message do
-      "#{name.to_s.tr('_', ' ')} #{exception} but #{@processed.inspect} has returned"
+      "#{name.to_s.tr('_', ' ')} #{exception} but #{@processed.inspect} has been returned"
     end
   end
 end
-
