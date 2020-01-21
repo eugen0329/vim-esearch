@@ -5,7 +5,7 @@ module Helpers::VimlValue
 
   def tok(token_type, ruby_value, location)
     token_value = VimlValue::Lexer::TokenData
-      .new(ruby_value, location.begin, location.end)
+                  .new(ruby_value, location.begin, location.end)
 
     [token_type, token_value]
   end
