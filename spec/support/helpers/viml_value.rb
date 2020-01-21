@@ -10,49 +10,44 @@ module Helpers::VimlValue
     [token_type, token_value]
   end
 
-  matcher :become do |expected|
+  matcher :be_processed_by_calling_subject_as do |expected|
     match do |actual|
-      @processed = @method.call(actual)
-      match(expected).matches?(@processed)
-    end
-
-    chain :after do |method|
-      @method = method
-    end
-
-    description do
-      expected_list = RSpec::Matchers::EnglishPhrasing.list(expected)
-      "return#{expected_list} after processing #{actual.inspect}"
-    end
-
-    failure_message do |actual|
-      expected_list = RSpec::Matchers::EnglishPhrasing.list(expected)
-      ["to return#{expected_list}",
-       "after processing #{actual.inspect},",
-       "got #{@processed.inspect}"].join(' ')
-    end
-  end
-
-  matcher :fail_with do |exception|
-    supports_block_expectations
-
-    match do |actual|
-      @processed = @method.call(actual)
-      false
-    rescue exception
-      true
-    end
-
-    chain :while do |method|
-      @method = method
+      @actual_return_value = subject.call(actual)
+      match(expected).matches?(@actual_return_value)
     end
 
     description do |actual|
-      "#{name.to_s.tr('_', ' ')} #{exception} while processing #{actual.inspect}"
+      "return#{human_readable(expected)} after processing #{actual.inspect}"
+    end
+
+    failure_message do |actual|
+      ["to return#{human_readable(expected)}",
+       "after processing #{actual.inspect},",
+       "got #{@actual_return_value.inspect}"].join(' ')
+    end
+
+    def human_readable(object)
+      RSpec::Matchers::EnglishPhrasing.list(object)
+    end
+  end
+
+  matcher :raise_on_calling_subject do |exception|
+    match do |actual|
+      block = -> { @actual_return_value = subject.call(actual) }
+      raise_error(exception).matches? block
+    end
+
+    description do |actual|
+      "#{human_readable_name} #{exception} while processing #{actual.inspect}"
     end
 
     failure_message do
-      "#{name.to_s.tr('_', ' ')} #{exception} but #{@processed.inspect} has been returned"
+      ["#{human_readable_name} #{exception}",
+       "but #{@actual_return_value.inspect} was returned"].join(' ')
+    end
+
+    def human_readable_name
+      name.to_s.tr('_', ' ')
     end
   end
 end

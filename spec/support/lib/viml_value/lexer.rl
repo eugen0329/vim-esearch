@@ -137,7 +137,7 @@ module VimlValue
     end
 
     def failure(message)
-      raise ParseError, [message, 'at', p].join(' ')
+      raise ParseError, "#{message} at #{p}. In: #{data.inspect}"
     end
 
     TokenData = Struct.new(:value, :start, :end) do

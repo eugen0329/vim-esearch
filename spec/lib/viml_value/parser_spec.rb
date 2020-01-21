@@ -8,122 +8,118 @@ describe VimlValue::Parser do
 
   describe '#parse' do
     ParseError = VimlValue::ParseError
-    subject(:parsing) do
-      ->(value) { VimlValue::Parser.new(VimlValue::Lexer.new(value)).parse }
+    let(:allow_toplevel_literals) { true }
+    subject do
+      lambda do |value|
+        VimlValue::Parser.new(VimlValue::Lexer.new(value), allow_toplevel_literals).parse
+      end
     end
 
-    # NOTE It is crucial for readability to keep indentations for visual
-    # comprasion, so
-    #   expect(actual).to become(expected).after(method)     }
-    #   expect(actual).to fail_with(exception).while(method) }
-    # is used instead of
-    #   expect(method.call(actual)).to    eq(expected)           }
-    #   expect { method.call(actual) }.to raise_error(exception) }
-    # Also it's impossible to obtain actual being processed within block, so it
-    # allows having better output messages
+    alias_matcher :be_parsed_as, :be_processed_by_calling_subject_as
+    alias_matcher :fail_parsing_with, :raise_on_calling_subject
 
     context 'nothing' do
-      it { expect('').to become(nil).after(parsing) }
+      it { expect('').to be_parsed_as(nil) }
     end
 
     context 'literals' do
-      it { expect('1').to              become(s(:numeric, 1)).after(parsing)         }
-      it { expect('1.2').to            become(s(:numeric, 1.2)).after(parsing)       }
-      it { expect('"str1"').to         become(s(:string,  'str1')).after(parsing)    }
-      it { expect("'str2'").to         become(s(:string,  'str2')).after(parsing)    }
-      it { expect('v:null').to         become(s(:null,    nil)).after(parsing)       }
-      it { expect('v:true').to         become(s(:boolean, true)).after(parsing)      }
-      it { expect('v:false').to        become(s(:boolean, false)).after(parsing)     }
-      it { expect('v:false').to        become(s(:boolean, false)).after(parsing)     }
-      it { expect('[...]').to          become(s(:list_recursive_ref)).after(parsing) }
-      it { expect('{...}').to          become(s(:dict_recursive_ref)).after(parsing) }
-      it { expect('function("tr")').to become(s(:funcref, 'tr')).after(parsing)      }
-      it { expect("function('tr')").to become(s(:funcref, 'tr')).after(parsing)      }
+      it { expect('1').to              be_parsed_as(s(:numeric, 1))         }
+      it { expect('1.2').to            be_parsed_as(s(:numeric, 1.2))       }
+      it { expect('"str1"').to         be_parsed_as(s(:string,  'str1'))    }
+      it { expect("'str2'").to         be_parsed_as(s(:string,  'str2'))    }
+      it { expect('v:null').to         be_parsed_as(s(:null,    nil))       }
+      it { expect('v:true').to         be_parsed_as(s(:boolean, true))      }
+      it { expect('v:false').to        be_parsed_as(s(:boolean, false))     }
+      it { expect('v:false').to        be_parsed_as(s(:boolean, false))     }
+      it { expect('[...]').to          be_parsed_as(s(:list_recursive_ref)) }
+      it { expect('{...}').to          be_parsed_as(s(:dict_recursive_ref)) }
+      it { expect('function("tr")').to be_parsed_as(s(:funcref, 'tr'))      }
+      it { expect("function('tr')").to be_parsed_as(s(:funcref, 'tr'))      }
     end
 
     context 'list' do
       context 'blank' do
-        it { expect('[]').to     become(s(:list)).after(parsing)      }
-        it { expect('[,]').to    fail_with(ParseError).while(parsing) }
+        it { expect('[]').to  be_parsed_as(s(:list)) }
+        it { expect('[,]').to fail_parsing_with(ParseError) }
       end
 
       context 'non-blank' do
-        it { expect('[1.2]').to  become(s(:list, s(:numeric, 1.2))).after(parsing) }
-        it { expect('[1.2,]').to become(s(:list, s(:numeric, 1.2))).after(parsing) }
-        it { expect('[1,,]').to  fail_with(ParseError).while(parsing)              }
+        it { expect('[1.2]').to  be_parsed_as(s(:list, s(:numeric, 1.2))) }
+        it { expect('[1.2,]').to be_parsed_as(s(:list, s(:numeric, 1.2))) }
+        it { expect('[1,,]').to  fail_parsing_with(ParseError)            }
       end
     end
 
     context 'dict' do
       context 'blank' do
-        it { expect('{}').to  become(s(:dict)).after(parsing)      }
-        it { expect('{,}').to fail_with(ParseError).while(parsing) }
+        it { expect('{}').to  be_parsed_as(s(:dict)) }
+        it { expect('{,}').to fail_parsing_with(ParseError) }
       end
 
       context 'non-blank' do
         let(:expected) { s(:dict, s(:pair, s(:string, 'key_str'), s(:numeric, 1.2))) }
 
-        it { expect('{"key_str": 1.2}').to   become(expected).after(parsing)      }
-        it { expect('{"key_str": 1.2,}').to  become(expected).after(parsing)      }
-        it { expect('{"key_str": 1.2,,]').to fail_with(ParseError).while(parsing) }
-        it { expect('{"key_str":,}').to      fail_with(ParseError).while(parsing) }
+        it { expect('{"key_str": 1.2}').to   be_parsed_as(expected)      }
+        it { expect('{"key_str": 1.2,}').to  be_parsed_as(expected)      }
+        it { expect('{"key_str": 1.2,,]').to fail_parsing_with(ParseError) }
+        it { expect('{"key_str":,}').to      fail_parsing_with(ParseError) }
       end
 
       context 'incorrect pairs' do
-        it { expect('{1}').to      fail_with(ParseError).while(parsing) }
-        it { expect('{1: 1}').to   fail_with(ParseError).while(parsing) }
-        it { expect("{1: '1'}").to fail_with(ParseError).while(parsing) }
-        it { expect("{''}").to     fail_with(ParseError).while(parsing) }
-        it { expect('{""}').to     fail_with(ParseError).while(parsing) }
+        it { expect('{1}').to      fail_parsing_with(ParseError) }
+        it { expect('{1: 1}').to   fail_parsing_with(ParseError) }
+        it { expect("{1: '1'}").to fail_parsing_with(ParseError) }
+        it { expect("{''}").to     fail_parsing_with(ParseError) }
+        it { expect('{""}').to     fail_parsing_with(ParseError) }
       end
     end
 
     context 'not balanced bracket sequences' do
       context 'of lists' do
-        it { expect('[').to    fail_with(ParseError).while(parsing) }
-        it { expect(']').to    fail_with(ParseError).while(parsing) }
+        it { expect('[').to    fail_parsing_with(ParseError) }
+        it { expect(']').to    fail_parsing_with(ParseError) }
 
-        it { expect('[[').to   fail_with(ParseError).while(parsing) }
-        it { expect(']]').to   fail_with(ParseError).while(parsing) }
-        it { expect('][').to   fail_with(ParseError).while(parsing) }
+        it { expect('[[').to   fail_parsing_with(ParseError) }
+        it { expect(']]').to   fail_parsing_with(ParseError) }
+        it { expect('][').to   fail_parsing_with(ParseError) }
 
-        it { expect('[[]').to  fail_with(ParseError).while(parsing) }
-        it { expect('[]]').to  fail_with(ParseError).while(parsing) }
+        it { expect('[[]').to  fail_parsing_with(ParseError) }
+        it { expect('[]]').to  fail_parsing_with(ParseError) }
 
-        it { expect('[]][').to fail_with(ParseError).while(parsing) }
-        it { expect('][[]').to fail_with(ParseError).while(parsing) }
+        it { expect('[]][').to fail_parsing_with(ParseError) }
+        it { expect('][[]').to fail_parsing_with(ParseError) }
       end
 
       context 'of dicts' do
-        it { expect('{').to  fail_with(ParseError).while(parsing) }
-        it { expect('}').to  fail_with(ParseError).while(parsing) }
+        it { expect('{').to  fail_parsing_with(ParseError) }
+        it { expect('}').to  fail_parsing_with(ParseError) }
 
-        it { expect('{{').to fail_with(ParseError).while(parsing) }
-        it { expect('}}').to fail_with(ParseError).while(parsing) }
-        it { expect('}{').to fail_with(ParseError).while(parsing) }
+        it { expect('{{').to fail_parsing_with(ParseError) }
+        it { expect('}}').to fail_parsing_with(ParseError) }
+        it { expect('}{').to fail_parsing_with(ParseError) }
       end
 
       context 'of strings' do
-        it { expect("'").to   fail_with(ParseError).while(parsing) }
-        it { expect('"').to   fail_with(ParseError).while(parsing) }
-        it { expect("'''").to fail_with(ParseError).while(parsing) }
-        it { expect('"""').to fail_with(ParseError).while(parsing) }
+        it { expect("'").to   fail_parsing_with(ParseError) }
+        it { expect('"').to   fail_parsing_with(ParseError) }
+        it { expect("'''").to fail_parsing_with(ParseError) }
+        it { expect('"""').to fail_parsing_with(ParseError) }
       end
 
       context 'mixed [] and {}' do
         context 'inside list' do
-          it { expect('[{]').to fail_with(ParseError).while(parsing) }
-          it { expect('[}]').to fail_with(ParseError).while(parsing) }
+          it { expect('[{]').to fail_parsing_with(ParseError) }
+          it { expect('[}]').to fail_parsing_with(ParseError) }
         end
 
         context 'inside dict' do
-          it { expect("{'key_str': [}").to fail_with(ParseError).while(parsing) }
-          it { expect("{'key_str': ]}").to fail_with(ParseError).while(parsing) }
+          it { expect("{'key_str': [}").to fail_parsing_with(ParseError) }
+          it { expect("{'key_str': ]}").to fail_parsing_with(ParseError) }
         end
       end
     end
 
-    context 'sequential calling described method' do
+    context 'sequential calling of described method' do
       let(:value) { '[1]' }
       subject(:parser) { VimlValue::Parser.new(VimlValue::Lexer.new(value)) }
 

@@ -95,11 +95,15 @@ describe Editor, :editor do
       end
     end
 
-    context_when 'cache_enabled: true' do
+    context 'when cache_enabled: true' do
+      let(:cache_enabled) { true }
+
       include_examples 'yields each line using prefetching'
     end
 
-    context_when 'cache_enabled: false' do
+    context 'when cache_enabled: false' do
+      let(:cache_enabled) { false }
+
       include_examples 'yields each line using prefetching'
     end
   end
@@ -112,7 +116,9 @@ describe Editor, :editor do
       editor.edit! filename
     end
 
-    context_when 'cache_enabled: true' do
+    context 'when cache_enabled: true' do
+      let(:cache_enabled) { true }
+
       context 'when batches are identical' do
         it 'fetches values once' do
           expect(vim).to receive(:echo).once.and_call_original
@@ -142,7 +148,9 @@ describe Editor, :editor do
       end
     end
 
-    context_when 'cache_enabled: false' do
+    context 'when cache_enabled: false' do
+      let(:cache_enabled) { false }
+
       context 'when batches are identical' do
         it 'fetches ignoring caching' do
           expect(vim).to receive(:echo).twice.with('[getline(1),getline(2)]').and_call_original

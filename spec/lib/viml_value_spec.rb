@@ -3,6 +3,8 @@
 require 'spec_helper'
 
 describe VimlValue do
+  include VimlValue::SerializationHelpers
+
   describe 'dump -> eval -> load' do
     subject(:dump_eval_load) do
       lambda do |ruby_object|
@@ -32,6 +34,18 @@ describe VimlValue do
         it { expect(dump_eval_load.call([''])).to          eq([''])          }
         it { expect(dump_eval_load.call(['non-blank'])).to eq(['non-blank']) }
       end
+    end
+
+    context 'expressions' do
+      let(:variable) { var('&compatible') }
+      let(:function1) { func('tr', 'hi', 'h', 'H') }
+      let(:function2) { func('values', '1' => -2, '3' => '4') }
+      let(:string) { 'regular string' }
+
+      let(:actual) { [variable, function1, function2, string] }
+      let(:expected) { [0, 'Hi', [-2, '4'], string] }
+
+      it { expect(dump_eval_load.call(actual)).to eq(expected) }
     end
 
     context 'nil' do
