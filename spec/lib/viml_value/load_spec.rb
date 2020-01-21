@@ -7,6 +7,8 @@ describe 'VimlValue#load' do
   include Helpers::VimlValue
   include VimlValue::SerializationHelpers
   ParseError = VimlValue::ParseError
+  DictRecursiveRef = VimlValue::Types::DictRecursiveRef
+  ListRecursiveRef = VimlValue::Types::ListRecursiveRef
 
   let(:allow_toplevel_literals) { true }
   subject(:loading) do
@@ -72,8 +74,8 @@ describe 'VimlValue#load' do
     end
 
     context 'recursive references' do
-      it { expect(actual.('{...}')).to become(expected.(dict_recursive_ref)).after(loading) }
-      it { expect(actual.('[...]')).to become(expected.(list_recursive_ref)).after(loading) }
+      it { expect(actual.('{...}')).to become(expected.(be_a(DictRecursiveRef))).after(loading) }
+      it { expect(actual.('[...]')).to become(expected.(be_a(ListRecursiveRef))).after(loading) }
     end
 
     context 'string' do

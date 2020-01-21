@@ -2,16 +2,16 @@
 
 class VimlValue::Visitors::ToVim
   CLASS_VISIT_METHODS = {
-    Enumerable                     => :visit_array_like,
-    Hash                           => :visit_hash,
-    Symbol                         => :visit_string_like,
-    String                         => :visit_string_like,
-    VimlValue::Types::FunctionCall => :visit_function_call,
-    VimlValue::Types::Identifier   => :visit_identifier,
-    Numeric                        => :visit_numeric,
-    NilClass                       => :visit_nil,
-    TrueClass                      => :visit_true,
-    FalseClass                     => :visit_false
+    Enumerable                            => :visit_enumerable,
+    Hash                                  => :visit_hash,
+    Symbol                                => :visit_string_like,
+    String                                => :visit_string_like,
+    VimlValue::Serializable::FunctionCall => :visit_function_call,
+    VimlValue::Serializable::Identifier   => :visit_identifier,
+    Numeric                               => :visit_numeric,
+    NilClass                              => :visit_nil,
+    TrueClass                             => :visit_true,
+    FalseClass                            => :visit_false
   }.freeze
 
   def accept(object)
@@ -24,7 +24,7 @@ class VimlValue::Visitors::ToVim
     send(dispatch_cache[object.class], object)
   end
 
-  def visit_array_like(object)
+  def visit_enumerable(object)
     "[#{visit_values(object)}]"
   end
 

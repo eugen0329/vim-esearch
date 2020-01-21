@@ -30,7 +30,7 @@ class Editor::Read::Batched < Editor::Read::Base
     ensure
       @echo_skip_evaluation = false
     end
-    raise unless expression.is_a? VimlValue::Types::Expression
+    raise unless expression.is_a? VimlValue::Serializable::Expression
 
     cache.exist?(expression)
   end

@@ -3,10 +3,17 @@
 module Helpers::VimlValue
   extend RSpec::Matchers::DSL
 
+  def tok(token_type, ruby_value, location)
+    token_value = VimlValue::Lexer::TokenData
+      .new(ruby_value, location.begin, location.end)
+
+    [token_type, token_value]
+  end
+
   matcher :become do |expected|
     match do |actual|
       @processed = @method.call(actual)
-      eq(expected).matches?(@processed)
+      match(expected).matches?(@processed)
     end
 
     chain :after do |method|
@@ -14,12 +21,14 @@ module Helpers::VimlValue
     end
 
     description do
-      "return #{expected.inspect} after processing #{actual.inspect}"
+      expected_list = RSpec::Matchers::EnglishPhrasing.list(expected)
+      "return#{expected_list} after processing #{actual.inspect}"
     end
 
     failure_message do |actual|
-      ["to become #{expected.inspect}",
-       "from #{actual.inspect},",
+      expected_list = RSpec::Matchers::EnglishPhrasing.list(expected)
+      ["to return#{expected_list}",
+       "after processing #{actual.inspect},",
        "got #{@processed.inspect}"].join(' ')
     end
   end

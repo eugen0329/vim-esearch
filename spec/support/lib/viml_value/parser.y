@@ -56,8 +56,8 @@ end
     super()
   end
 
-  def parse(input)
-    @lexer.scan_setup(input)
+  def parse
+    @lexer.reset!
     do_parse
   end
 

@@ -9,7 +9,7 @@ describe 'esearch#util' do
   describe '#parse_help_options' do
     let(:help_content) { format(layout, help_output) }
     let(:help_file) { file(help_content) }
-    let!(:fixture_directory) { directory([help_file], 'parse_help_options').persist! }
+    let!(:fixture_directory) { directory([help_file], 'parse_help_options/').persist! }
     subject(:output) do
       VimlValue.load(vim.echo("esearch#util#parse_help_options('cat #{help_file}')"))
     end

@@ -2,23 +2,23 @@
 
 class VimlValue::TreeBuilder
   def numeric(tstring)
-    node(:numeric, [val(tstring)])
+    node(:numeric, [token_value(tstring)])
   end
 
   def boolean(tstring)
-    node(:boolean, [val(tstring)])
+    node(:boolean, [token_value(tstring)])
   end
 
   def null(tstring)
-    node(:null, [val(tstring)])
+    node(:null, [token_value(tstring)])
   end
 
   def funcref(tname)
-    node(:funcref, [val(tname)])
+    node(:funcref, [token_value(tname)])
   end
 
   def string(tstring)
-    node(:string, [val(tstring)])
+    node(:string, [token_value(tstring)])
   end
 
   def dict(pairs)
@@ -29,8 +29,8 @@ class VimlValue::TreeBuilder
     node(:list, values)
   end
 
-  def pair(key, value)
-    node(:pair, [key, value])
+  def pair(key, token_value)
+    node(:pair, [key, token_value])
   end
 
   def dict_recursive_ref
@@ -43,8 +43,8 @@ class VimlValue::TreeBuilder
 
   private
 
-  def val(token)
-    token.val
+  def token_value(token)
+    token.value
   end
 
   def node(type, children = [])
