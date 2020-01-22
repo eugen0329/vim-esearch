@@ -6,6 +6,7 @@ require 'spec_helper'
 describe VimlValue do
   include Helpers::VimlValue
   include VimlValue::SerializationHelpers
+
   ParseError = VimlValue::ParseError
   DictRecursiveRef = VimlValue::Types::DictRecursiveRef
   ListRecursiveRef = VimlValue::Types::ListRecursiveRef
@@ -197,7 +198,7 @@ describe VimlValue do
     context 'inside list' do
       include_examples 'values wrapped inside a parsing context',
         ->(given_str)    { "[#{given_str}]" },
-        ->(expected_obj) { [expected_obj]      }
+        ->(expected_obj) { [expected_obj]   }
     end
 
     context 'inside dict' do
@@ -209,19 +210,20 @@ describe VimlValue do
     context 'inside deeply nested structure' do
       include_examples 'values wrapped inside a parsing context',
         ->(given_str)    { %(  [1,[ { 'key' : #{given_str}, } , 2,  [ "3"  ]], 4,]) },
-        ->(expected_obj) { [1, [{'key' => expected_obj}, 2, ['3']], 4] }
+        ->(expected_obj) { [1, [{'key' => expected_obj}, 2, ['3']], 4]              }
     end
 
     context 'toplevel' do
       it { expect('').to         be_loaded_as(nil) }
       it { expect('1,2').to      fail_loading_with(ParseError) }
       it { expect('"key": 1').to fail_loading_with(ParseError) }
+      it { expect("'key': 1").to fail_loading_with(ParseError) }
 
       context 'when allow_toplevel_literals == true' do
         let(:allow_toplevel_literals) { true }
 
         include_examples 'values wrapped inside a parsing context',
-          ->(given_str)    { given_str },
+          ->(given_str)    { given_str    },
           ->(expected_obj) { expected_obj }
       end
 
@@ -230,7 +232,7 @@ describe VimlValue do
 
         context 'collections' do
           include_examples 'collections wrapped inside a parsing context',
-            ->(given_str)    { given_str },
+            ->(given_str)    { given_str    },
             ->(expected_obj) { expected_obj }
         end
 
@@ -245,6 +247,7 @@ describe VimlValue do
           it { expect('[...]').to          fail_loading_with(ParseError) }
           it { expect('{...}').to          fail_loading_with(ParseError) }
           it { expect('function("tr")').to fail_loading_with(ParseError) }
+          it { expect("function('tr')").to fail_loading_with(ParseError) }
         end
       end
     end

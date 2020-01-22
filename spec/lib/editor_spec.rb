@@ -41,7 +41,7 @@ describe Editor, :editor do
       it { expect(editor.lines(2..test_lines.count).to_a).to     eq(test_lines[1..])    }
       it { expect(editor.lines(2..test_lines.count - 1).to_a).to eq(test_lines[1..-2])  }
       it { expect(editor.lines(test_lines.count + 1..).to_a).to  eq([])                 }
-      it { expect(editor.lines(test_lines.count..).to_a).to      eq(test_lines)         }
+      it { expect(editor.lines(test_lines.count..).to_a).to      eq(test_lines.last)    }
 
       it { expect { editor.lines(0..0).to_a   }.to raise_error(ArgumentError) }
       it { expect { editor.lines(0..1).to_a   }.to raise_error(ArgumentError) }
