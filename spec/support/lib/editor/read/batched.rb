@@ -36,7 +36,7 @@ class Editor::Read::Batched < Editor::Read::Base
   end
 
   def evaluated?(container)
-    container.__value__ != Editor::Read::Batched::Container::NULL
+    !container.__value__.equal?(Editor::Read::Batched::Container::UNDEFINED)
   end
 
   def clear_cache
