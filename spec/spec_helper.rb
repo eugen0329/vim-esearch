@@ -15,7 +15,6 @@ begin
 rescue LoadError # rubocop:disable Lint/SuppressedException
 end
 
-require 'support/custom_matchers'
 require 'support/inflections'
 require 'support/subscriptions'
 require 'known_issues'

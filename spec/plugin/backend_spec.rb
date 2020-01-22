@@ -8,6 +8,7 @@ require 'plugin/shared_contexts/dumpable.rb'
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
   include Helpers::Strings
+  include Helpers::Errors
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context "when searching for #{dump(search_string)}" do

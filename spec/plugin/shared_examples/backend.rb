@@ -2,6 +2,8 @@
 
 # TODO: completely rewrite
 RSpec.shared_examples 'a backend' do |backend|
+  include Helpers::Errors
+
   %w[ack ag git grep pt rg].each do |adapter|
     context "with #{adapter} adapter", :relative_paths do
       around do |example|
@@ -31,14 +33,11 @@ RSpec.shared_examples 'a backend' do |backend|
           press ":call esearch#init({'cwd': '#{context_fixtures_path}/#{directory}'})<Enter>#{test_query}<Enter>"
 
           # TODO: reduce duplication
-          expect {
-            press('j') # press j to close "Press ENTER or type command to continue" prompt
-            bufname('%') =~ /Search/
-          }.to become_true_within(5.second)
+          expect(esearch).to have_search_started
 
-          expect(esearch).to have_not_reported_errors
-          expect { line(1) == 'Matches in 1 lines, 1 file(s). Finished.' }.to become_true_within(10.seconds),
-            -> { "Expected first line to match /Finish/, got `#{line(1)}`" }
+          expect(esearch)
+            .to  have_search_finished
+            .and have_not_reported_errors
 
           expect(buffer_content)
             .to include(expected_file_content)
