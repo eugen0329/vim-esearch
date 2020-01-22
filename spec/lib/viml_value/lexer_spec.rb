@@ -9,7 +9,7 @@ describe VimlValue::Lexer do
   let(:encoding) { Encoding::ASCII }
 
   describe '#next_token' do
-    subject(:tokenizing) do
+    subject do
       lambda do |str|
         lexer = VimlValue::Lexer.new(str.dup.force_encoding(encoding))
         Enumerator
@@ -18,8 +18,13 @@ describe VimlValue::Lexer do
       end
     end
 
-    alias_matcher :be_tokenized_as, :be_processed_by_calling_subject_as
-    alias_matcher :fail_tokenizing_with, :fail_on_calling_subject_with
+    def be_tokenized_as(expected)
+      Helpers::VimlValue::BeTokenizedAs.new(expected, &subject)
+    end
+
+    def fail_tokenizing_with(expected)
+      Helpers::VimlValue::FailTokenizingWith.new(expected, &subject)
+    end
 
     context 'NUMERIC' do
       context 'integer' do

@@ -12,12 +12,18 @@ describe VimlValue do
 
   describe '#load' do
     let(:allow_toplevel_literals) { true }
+    let(:options) { {allow_toplevel_literals: allow_toplevel_literals} }
     subject do
-      ->(value) { VimlValue.load(value, allow_toplevel_literals) }
+      ->(string) { VimlValue.load(string, **options) }
     end
 
-    alias_matcher :be_loaded_as, :be_processed_by_calling_subject_as
-    alias_matcher :fail_loading_with, :fail_on_calling_subject_with
+    def be_loaded_as(expected)
+      Helpers::VimlValue::BeLoadedAs.new(expected, &subject)
+    end
+
+    def fail_loading_with(exception)
+      Helpers::VimlValue::FailLoadingWith.new(exception, &subject)
+    end
 
     shared_examples 'literals wrapped inside parsing context' do |wrap_actual, wrap_expected|
       let(:actual)   { wrap_actual.to_proc }

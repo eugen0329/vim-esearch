@@ -49,7 +49,7 @@ end
 
 ---- inner -----
 
-  def initialize(lexer, allow_toplevel_literals = false)
+  def initialize(lexer, allow_toplevel_literals: false)
     @lexer = lexer
     @builder = VimlValue::TreeBuilder.new
     @allow_toplevel_literals = allow_toplevel_literals
