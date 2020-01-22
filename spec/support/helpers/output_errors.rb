@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Helpers::Errors
+module Helpers::OutputErrors
   extend RSpec::Matchers::DSL
 
   matcher :have_not_reported_errors do
