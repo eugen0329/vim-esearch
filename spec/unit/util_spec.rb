@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'yaml'
 
 describe 'esearch#util' do
   include Helpers::FileSystem
@@ -10,9 +9,6 @@ describe 'esearch#util' do
     let(:help_content) { format(layout, help_output) }
     let(:help_file) { file(help_content) }
     let!(:fixture_directory) { directory([help_file], 'parse_help_options/').persist! }
-    subject(:output) do
-      VimlValue.load(vim.echo("esearch#util#parse_help_options('cat #{help_file}')"))
-    end
     let(:layout) do
       <<~HELP_LAYOUT
         Usage: grep [OPTION]... PATTERN [FILE]...
@@ -23,6 +19,10 @@ describe 'esearch#util' do
         {..} 'fgrep' means 'grep -F'. {..}
         -r is given, - otherwise.  If fewer than two FILEs are given, assume -h.
       HELP_LAYOUT
+    end
+
+    subject(:output) do
+      VimlValue.load(vim.echo("esearch#util#parse_help_options('cat #{help_file}')"))
     end
 
     # Double checks to avoid matching layout

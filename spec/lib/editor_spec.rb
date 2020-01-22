@@ -10,13 +10,6 @@ describe Editor, :editor do
   let(:test_lines) { %w[a b c d] }
   let!(:test_directory) { directory([file(test_lines, filename)]).persist! }
 
-  shared_examples 'cache_enabled: true' do
-    let(:cache_enabled) { true }
-  end
-  shared_examples 'cache_enabled: false' do
-    let(:cache_enabled) { false }
-  end
-
   describe '#lines' do
     let(:prefetch_count) { test_lines.count }
     subject { editor.lines(prefetch_count: prefetch_count) }

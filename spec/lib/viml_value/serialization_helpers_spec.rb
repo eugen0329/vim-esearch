@@ -43,7 +43,7 @@ describe VimlValue::SerializationHelpers do
 
   describe '#funcref' do
     subject(:loaded) { VimlValue.load(viml_string, allow_toplevel_literals: true) }
-    let(:viml_string) { "FunctionName('Given#FunctionName')" }
+    let(:viml_string) { "function('Given#FunctionName')" }
 
     it { expect(loaded).to eq(funcref('Given#FunctionName')) }
   end

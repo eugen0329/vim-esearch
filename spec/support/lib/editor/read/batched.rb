@@ -62,6 +62,8 @@ class Editor::Read::Batched < Editor::Read::Base
   def eager!
     return false if batch.blank?
 
+    # TODO: capture and inspect
+    # VIM_EXCEPTION = /Vim\(.+\):E\d+:/
     batch
       .lookup!(cache)
       .evaluate! { |viml_values| VimlValue.load(vim.echo(VimlValue.dump(viml_values))) }

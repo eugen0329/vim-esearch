@@ -69,7 +69,6 @@ end
 
 RSpec.configure do |c|
   c.include DSL::Vim
-  c.include DSL::ESearch
 
   c.color_mode = true
   c.order      = :rand
