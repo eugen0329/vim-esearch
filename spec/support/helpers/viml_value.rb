@@ -11,7 +11,7 @@ module Helpers::VimlValue
   end
 
   # Documented in: https://rubydoc.info/github/rspec/rspec-expectations/RSpec/Matchers
-  # Section: Custom Matcher from scratch
+  # Section: Custom matcher from scratch
   # Is used instead of DSL syntax to specify parameters more explicitly
   class BeProcessedAs
     include RSpec::Matchers::Composable

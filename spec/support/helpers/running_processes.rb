@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Helpers::RunningProcesses
   extend RSpec::Matchers::DSL
 
