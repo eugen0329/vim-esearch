@@ -7,8 +7,8 @@ describe Editor, :editor do
   let(:cache_enabled) { true }
   let(:editor) { Editor.new(method(:vim), cache_enabled: cache_enabled) }
   let(:filename) { 'file.txt' }
-  let(:file_lines) { %w[a b c d] }
-  let!(:test_directory) { directory([file(file_lines, filename)]).persist! }
+  let(:test_lines) { %w[a b c d] }
+  let!(:test_directory) { directory([file(test_lines, filename)]).persist! }
 
   shared_examples 'cache_enabled: true' do
     let(:cache_enabled) { true }
@@ -18,7 +18,7 @@ describe Editor, :editor do
   end
 
   describe '#lines' do
-    let(:prefetch_count) { file_lines.count }
+    let(:prefetch_count) { test_lines.count }
     subject { editor.lines(prefetch_count: prefetch_count) }
     before do
       editor.cd!   test_directory
@@ -30,17 +30,18 @@ describe Editor, :editor do
       it { expect(editor.lines {}).to be_nil }
       it do
         expect { |yield_probe| editor.lines(&yield_probe) }
-          .to yield_successive_args(*file_lines)
+          .to yield_successive_args(*test_lines)
       end
     end
 
     context 'range' do
-      it { expect(editor.lines(1..).to_a).to                   eq(file_lines)         }
-      it { expect(editor.lines(1..file_lines.count).to_a).to   eq(file_lines)         }
-      it { expect(editor.lines(2..file_lines.count).to_a).to   eq(file_lines[1..])    }
-      it { expect(editor.lines(2..file_lines.count - 1).to_a).to eq(file_lines[1..-2]) }
-      it { expect(editor.lines(1..1).to_a).to eq([file_lines.first]) }
-      it { expect(editor.lines(file_lines.count + 1..).to_a).to eq([]) }
+      it { expect(editor.lines(1..).to_a).to                     eq(test_lines)         }
+      it { expect(editor.lines(1..1).to_a).to                    eq([test_lines.first]) }
+      it { expect(editor.lines(1..test_lines.count).to_a).to     eq(test_lines)         }
+      it { expect(editor.lines(2..test_lines.count).to_a).to     eq(test_lines[1..])    }
+      it { expect(editor.lines(2..test_lines.count - 1).to_a).to eq(test_lines[1..-2])  }
+      it { expect(editor.lines(test_lines.count + 1..).to_a).to  eq([])                 }
+      it { expect(editor.lines(test_lines.count..).to_a).to      eq(test_lines)         }
 
       it { expect { editor.lines(0..0).to_a   }.to raise_error(ArgumentError) }
       it { expect { editor.lines(0..1).to_a   }.to raise_error(ArgumentError) }
@@ -55,20 +56,20 @@ describe Editor, :editor do
         let(:prefetch_count) { 1 }
 
         it do
-          expect(vim).to receive(:echo).exactly(file_lines.count).and_call_original
-          expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(file_lines)
+          expect(vim).to receive(:echo).exactly(test_lines.count).and_call_original
+          expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(test_lines)
         end
       end
 
       # TODO: better name
       context 'lines_count % prefetch_count != 0' do
         let(:divisor) { 2 }
-        let(:prefetch_count) { file_lines.count / divisor + 1 }
-        before { expect(file_lines.count / prefetch_count).not_to eq(0) } # verify the setup
+        let(:prefetch_count) { test_lines.count / divisor + 1 }
+        before { expect(test_lines.count / prefetch_count).not_to eq(0) } # verify the setup
 
         it do
-          expect(vim).to receive(:echo).exactly(file_lines.count / divisor).and_call_original
-          expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(file_lines)
+          expect(vim).to receive(:echo).exactly(test_lines.count / divisor).and_call_original
+          expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(test_lines)
         end
       end
 
@@ -80,16 +81,16 @@ describe Editor, :editor do
       let(:prefetch_count) { 2 }
 
       # verify the setup
-      before { expect(file_lines.count).to eq(prefetch_count * 2) }
+      before { expect(test_lines.count).to eq(prefetch_count * 2) }
 
       it 'yields each line using prefetching' do
         expect(vim).to receive(:echo).once.and_call_original
-        expect(subject.next).to eq(file_lines[0])
-        expect(subject.next).to eq(file_lines[1])
+        expect(subject.next).to eq(test_lines[0])
+        expect(subject.next).to eq(test_lines[1])
 
         expect(vim).to receive(:echo).once.and_call_original
-        expect(subject.next).to eq(file_lines[2])
-        expect(subject.next).to eq(file_lines[3])
+        expect(subject.next).to eq(test_lines[2])
+        expect(subject.next).to eq(test_lines[3])
 
         expect { subject.next }.to raise_error(StopIteration)
       end
@@ -109,7 +110,7 @@ describe Editor, :editor do
   end
 
   describe '#echo' do
-    let(:first_2_lines) { file_lines.first(2) }
+    let(:first_2_lines) { test_lines.first(2) }
 
     before do
       editor.cd!   test_directory

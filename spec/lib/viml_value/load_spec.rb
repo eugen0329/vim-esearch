@@ -25,7 +25,7 @@ describe VimlValue do
       Helpers::VimlValue::FailLoadingWith.new(exception, &subject)
     end
 
-    shared_examples 'literals wrapped inside parsing context' do |wrap_actual, wrap_expected|
+    shared_examples 'literals wrapped inside a parsing context' do |wrap_actual, wrap_expected|
       let(:actual)   { wrap_actual.to_proc }
       let(:expected) { wrap_expected.to_proc }
 
@@ -163,7 +163,7 @@ describe VimlValue do
       end
     end
 
-    shared_examples 'collections wrapped inside parsing context' do |wrap_actual, wrap_expected|
+    shared_examples 'collections wrapped inside a parsing context' do |wrap_actual, wrap_expected|
       let(:actual)   { wrap_actual.to_proc }
       let(:expected) { wrap_expected.to_proc }
 
@@ -185,31 +185,31 @@ describe VimlValue do
       end
     end
 
-    shared_examples 'values wrapped inside parsing context' do |wrap_actual, wrap_expected|
-      include_examples 'literals wrapped inside parsing context',
+    shared_examples 'values wrapped inside a parsing context' do |wrap_actual, wrap_expected|
+      include_examples 'literals wrapped inside a parsing context',
         wrap_actual,
         wrap_expected
-      include_examples 'collections wrapped inside parsing context',
+      include_examples 'collections wrapped inside a parsing context',
         wrap_actual,
         wrap_expected
     end
 
     context 'inside list' do
-      include_examples 'values wrapped inside parsing context',
-        ->(str) { "[#{str}]" },
-        ->(obj) { [obj]      }
+      include_examples 'values wrapped inside a parsing context',
+        ->(given_str)    { "[#{given_str}]" },
+        ->(expected_obj) { [expected_obj]      }
     end
 
     context 'inside dict' do
-      include_examples 'values wrapped inside parsing context',
-        ->(str) { "{'key': #{str}}" },
-        ->(obj) { {'key' => obj} }
+      include_examples 'values wrapped inside a parsing context',
+        ->(given_str)    { "{'key': #{given_str}}" },
+        ->(expected_obj) { {'key' => expected_obj} }
     end
 
     context 'inside deeply nested structure' do
-      include_examples 'values wrapped inside parsing context',
-        ->(str) { %(  [1,[ { 'key' : #{str}, } , 2,  [ "3"  ]], 4,]) },
-        ->(obj) { [1, [{'key' => obj}, 2, ['3']], 4] }
+      include_examples 'values wrapped inside a parsing context',
+        ->(given_str)    { %(  [1,[ { 'key' : #{given_str}, } , 2,  [ "3"  ]], 4,]) },
+        ->(expected_obj) { [1, [{'key' => expected_obj}, 2, ['3']], 4] }
     end
 
     context 'toplevel' do
@@ -220,18 +220,18 @@ describe VimlValue do
       context 'when allow_toplevel_literals == true' do
         let(:allow_toplevel_literals) { true }
 
-        include_examples 'values wrapped inside parsing context',
-          ->(str) { str },
-          ->(obj) { obj }
+        include_examples 'values wrapped inside a parsing context',
+          ->(given_str)    { given_str },
+          ->(expected_obj) { expected_obj }
       end
 
       context 'when allow_toplevel_literals == false' do
         let(:allow_toplevel_literals) { false }
 
         context 'collections' do
-          include_examples 'collections wrapped inside parsing context',
-            ->(str) { str },
-            ->(obj) { obj }
+          include_examples 'collections wrapped inside a parsing context',
+            ->(given_str)    { given_str },
+            ->(expected_obj) { expected_obj }
         end
 
         context 'literals' do
