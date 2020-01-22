@@ -10,44 +10,75 @@ module Helpers::VimlValue
     [token_type, token_value]
   end
 
-  matcher :be_processed_by_calling_subject_as do |expected|
-    match do |actual|
-      @actual_return_value = subject.call(actual)
-      match(expected).matches?(@actual_return_value)
+  # Documented in: https://rubydoc.info/github/rspec/rspec-expectations/RSpec/Matchers
+  # Section: Custom matcher from scratch
+  # Is used instead of DSL syntax to specify parameters more explicitly
+  class BeProcessedAs
+    include RSpec::Matchers::Composable
+
+    def initialize(expected, &process_proc)
+      @process_proc = process_proc
+      @expected = expected
     end
 
-    description do |actual|
-      "return#{human_readable(expected)} after processing #{actual.inspect}"
+    def matches?(actual)
+      @actual = actual
+      @processed = @process_proc.call(actual)
+      values_match?(@expected, @processed)
     end
 
-    failure_message do |actual|
-      ["to return#{human_readable(expected)}",
-       "after processing #{actual.inspect},",
-       "got #{@actual_return_value.inspect}"].join(' ')
+    def description
+      "return#{human_readable(@expected)} after processing #{@actual.inspect}"
     end
 
+    def failure_message
+      ["to return#{human_readable(@expected)}",
+       "after processing #{@actual.inspect},",
+       "got #{@processed.inspect}"].join(' ')
+    end
+
+    # helps to expand messages for be_kind_of matchers etc.
     def human_readable(object)
       RSpec::Matchers::EnglishPhrasing.list(object)
     end
   end
 
-  matcher :fail_on_calling_subject_with do |exception|
-    match do |actual|
-      block = -> { @actual_return_value = subject.call(actual) }
-      raise_error(exception).matches? block
+  class FailProcessingWith
+    include RSpec::Matchers::Composable
+
+    def initialize(exception, &process_proc)
+      @process_proc = process_proc
+      @exception = exception
     end
 
-    description do |actual|
-      "#{human_readable_name} #{exception} while processing #{actual.inspect}"
+    def matches?(actual)
+      @actual = actual
+      @processed = @process_proc.call(actual)
+      false
+    rescue Exception => e # rubocop:disable Lint/RescueException
+      values_match?(@exception, e)
     end
 
-    failure_message do
-      ["#{human_readable_name} #{exception}",
-       "but #{@actual_return_value.inspect} was returned"].join(' ')
+    def description
+      "#{human_readable_name} #{@exception} while processing #{@actual.inspect}"
+    end
+
+    def failure_message
+      ["#{human_readable_name} #{@exception}",
+       "but #{@processed.inspect} was returned"].join(' ')
     end
 
     def human_readable_name
-      name.to_s.tr('_', ' ')
+      self.class.name.demodulize.underscore.tr('_', ' ')
     end
   end
+
+  class BeParsedAs < BeProcessedAs; end
+  class FailParsingWith < FailProcessingWith; end
+
+  class BeTokenizedAs < BeProcessedAs; end
+  class FailTokenizingWith < FailProcessingWith; end
+
+  class BeLoadedAs < BeProcessedAs; end
+  class FailLoadingWith < FailProcessingWith; end
 end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'yaml'
 
 describe 'Smoke of esearch#util' do
   include Helpers::FileSystem

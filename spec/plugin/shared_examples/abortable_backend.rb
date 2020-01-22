@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.shared_examples 'an abortable backend' do |backend|
+  include Helpers::RunningProcesses
+
   let(:adapter) { 'ag' }
   let(:out) { 'win' }
   let(:empty_cwd_for_infinite_search) { '' }

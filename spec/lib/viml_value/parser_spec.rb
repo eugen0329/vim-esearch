@@ -9,14 +9,20 @@ describe VimlValue::Parser do
   describe '#parse' do
     ParseError = VimlValue::ParseError
     let(:allow_toplevel_literals) { true }
+    let(:options) { {allow_toplevel_literals: allow_toplevel_literals} }
     subject do
       lambda do |value|
-        VimlValue::Parser.new(VimlValue::Lexer.new(value), allow_toplevel_literals).parse
+        VimlValue::Parser.new(VimlValue::Lexer.new(value), **options).parse
       end
     end
 
-    alias_matcher :be_parsed_as, :be_processed_by_calling_subject_as
-    alias_matcher :fail_parsing_with, :fail_on_calling_subject_with
+    def be_parsed_as(expected)
+      Helpers::VimlValue::BeParsedAs.new(expected, &subject)
+    end
+
+    def fail_parsing_with(expected)
+      Helpers::VimlValue::FailParsingWith.new(expected, &subject)
+    end
 
     context 'nothing' do
       it { expect('').to be_parsed_as(nil) }
@@ -29,7 +35,6 @@ describe VimlValue::Parser do
       it { expect("'str2'").to         be_parsed_as(s(:string,  'str2'))    }
       it { expect('v:null').to         be_parsed_as(s(:null,    nil))       }
       it { expect('v:true').to         be_parsed_as(s(:boolean, true))      }
-      it { expect('v:false').to        be_parsed_as(s(:boolean, false))     }
       it { expect('v:false').to        be_parsed_as(s(:boolean, false))     }
       it { expect('[...]').to          be_parsed_as(s(:list_recursive_ref)) }
       it { expect('{...}').to          be_parsed_as(s(:dict_recursive_ref)) }

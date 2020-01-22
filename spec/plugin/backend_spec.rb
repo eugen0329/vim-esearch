@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'plugin/shared_examples/backend.rb'
-require 'plugin/shared_examples/abortable_backend.rb'
-require 'plugin/shared_contexts/dumpable.rb'
+require 'plugin/shared_examples/backend'
+require 'plugin/shared_examples/abortable_backend'
+require 'plugin/shared_contexts/dumpable'
 
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
   include Helpers::Strings
+  include Helpers::OutputErrors
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context "when searching for #{dump(search_string)}" do

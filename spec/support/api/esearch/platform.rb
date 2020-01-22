@@ -11,7 +11,7 @@ class API::ESearch::Platform
 
   def has_no_process_matching?(command_pattern, timeout: process_check_timeout)
     became_truthy_within?(timeout) do
-      # we a not interesting in `ignore_pattern` as in
+      # we are not interesting in `ignore_pattern` as in
       # `has_running_processes_matching?` as any process matching
       # `command_pattern` (no matter a perent or a child) have to not be runned
       # or to be killed during the timeout

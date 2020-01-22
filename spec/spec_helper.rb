@@ -15,7 +15,6 @@ begin
 rescue LoadError # rubocop:disable Lint/SuppressedException
 end
 
-require 'support/custom_matchers'
 require 'support/inflections'
 require 'support/subscriptions'
 require 'known_issues'
@@ -70,7 +69,6 @@ end
 
 RSpec.configure do |c|
   c.include DSL::Vim
-  c.include DSL::ESearch
 
   c.color_mode = true
   c.order      = :rand
