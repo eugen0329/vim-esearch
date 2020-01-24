@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'shared_examples'
 
 describe Editor, :editor do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
 
   let(:cache_enabled) { false }
-  let(:reader) { Editor::Read::Batched.new(method(:vim), cache_enabled) }
+  let(:subject) { Editor::Read::Batched.new(method(:vim), cache_enabled) }
 
   describe '#echo' do
     def abs(numeric)
-      reader.echo func('abs', numeric)
+      subject.echo func('abs', numeric)
     end
 
     context 'when cache_enabled: true' do
@@ -80,55 +81,27 @@ describe Editor, :editor do
     end
 
     describe 'errors' do
-      it { expect { reader.echo(func('undefined')).to_s }.to raise_error(Editor::Read::Base::ReadError) }
-      it { expect { reader.echo(func('Undefined')).to_s }.to raise_error(Editor::Read::Base::ReadError) }
-      it { expect { reader.echo(var('undefined')).to_s }.to  raise_error(Editor::Read::Base::ReadError) }
+      it { expect { subject.echo(func('undefined')).to_s }.to raise_error(Editor::Read::Base::ReadError) }
+      it { expect { subject.echo(func('Undefined')).to_s }.to raise_error(Editor::Read::Base::ReadError) }
+      it { expect { subject.echo(var('undefined')).to_s }.to  raise_error(Editor::Read::Base::ReadError) }
     end
   end
 
-  describe '#cache' do
-    context 'cache_enabled: true' do
-      let(:cache_enabled) { true }
+  include_context 'inherited from Editor::Read::Base'
 
-      it { expect(reader.cache).to be_a(ActiveSupport::Cache::NullStore) }
-    end
-
-    context 'cache_enabled: true' do
-      let(:cache_enabled) { false }
-
-      it { expect(reader.cache).to be_a(CacheStore) }
-    end
+  describe '#with_ignore_cache' do
+    include_examples '#with_ignore_cache'
   end
 
-  describe '#clear_cache' do
-    it do
-      expect(reader.cache).to receive(:clear).once
-      expect(reader).to receive(:eager!).once
-      reader.clear_cache
-    end
-  end
+  describe '#with_ignore_cache' do
+    include_examples '#handle_state_change!'
 
-  context '#with_ignore_cache' do
-    around { |e| reader.with_ignore_cache(&e) }
-
-    context '#cache call' do
-      it { expect(reader.cache).to be_a ActiveSupport::Cache::NullStore }
-    end
-
-    context '#echo call' do
-      let(:calls_count) { 2 }
-
-      it "doesn't cache a single call" do
-        expect(vim).to receive(:echo).exactly(calls_count).and_call_original
-
-        calls_count.times { reader.echo(func('abs', -1)).to_s }
-      end
-
-      it "doesn't cache batch" do
-        expect(vim).to receive(:echo).exactly(calls_count).and_call_original
-
-        calls_count.times { reader.echo([func('abs', -1), func('abs', -2)]).to_s }
-      end
+    it 'eager loads values' do
+      expect(vim).to receive(:echo).once.and_call_original
+      container = subject.echo(func('abs', -1))
+      expect { subject.handle_state_change! }
+        .to change { container.__value__ }
+        .from(Editor::Read::Batched::Container::UNDEFINED)
     end
   end
 end

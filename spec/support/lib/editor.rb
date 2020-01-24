@@ -14,7 +14,7 @@ class Editor
   class_attribute :reader_class, default: Editor::Read::Batched
   attr_reader :vim_client_getter, :reader
 
-  delegate :cached?, :evaluated?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
+  delegate :cached?, :evaluated?, :with_ignore_cache, :handle_state_change!, :var, :func, to: :reader
 
   def initialize(vim_client_getter, **kwargs)
     @cache_enabled = kwargs.fetch(:cache_enabled) { self.class.cache_enabled }
@@ -105,7 +105,7 @@ class Editor
 
   def cleanup!
     delete_all_buffers_and_clear_messages!
-    clear_cache
+    handle_state_change!
   end
   # alias cleanup! delete_all_buffers_and_clear_messages!
 
@@ -143,7 +143,7 @@ class Editor
   end
 
   def command!(string_to_execute)
-    clear_cache
+    handle_state_change!
 
     instrument(:command!, data: string_to_execute) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -153,7 +153,7 @@ class Editor
   end
 
   def press!(keyboard_keys)
-    clear_cache
+    handle_state_change!
 
     instrument(:press, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -163,7 +163,7 @@ class Editor
   end
 
   def press_with_user_mappings!(keyboard_keys)
-    clear_cache
+    handle_state_change!
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -173,7 +173,7 @@ class Editor
   end
 
   def raw_echo(arg)
-    vim.echo arg
+    vim.echo(arg)
   end
 
   def echo(arg)
