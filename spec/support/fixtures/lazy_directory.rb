@@ -15,9 +15,13 @@ class Fixtures::LazyDirectory
   end
 
   def persist!
-    return self if persisted?
-
     directory_path = path
+
+    if persisted?
+      files.each { |f| f.working_directory = directory_path }
+      return self
+    end
+
     FileUtils.mkdir_p(directory_path)
     files.each do |f|
       f.working_directory = directory_path
@@ -32,7 +36,7 @@ class Fixtures::LazyDirectory
   end
 
   def path
-    Pathname.new(fixtures_directory.join(name))
+    Pathname(fixtures_directory.join(name))
   end
 
   def name

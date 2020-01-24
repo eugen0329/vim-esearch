@@ -6,20 +6,17 @@ describe Editor, :editor do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
 
-  let(:filename) { 'file.txt' }
   let(:test_lines) { %w[a b c d] }
-  let!(:test_directory) { directory([file(test_lines, filename)]).persist! }
+  let(:test_file) { file(test_lines, 'file.txt') }
+  let!(:test_directory) { directory([test_file]).persist! }
   let(:cache_enabled) { false }
   let(:editor) { described_class.new(method(:vim), cache_enabled: cache_enabled) }
+
+  before { editor.edit! test_file.path }
 
   shared_examples 'it works with reader' do |reader_class|
     let(:reader) { reader_class.new(method(:vim), cache_enabled) }
     let(:editor) { described_class.new(method(:vim), reader: reader, cache_enabled: cache_enabled) }
-
-    before do
-      editor.cd!   test_directory
-      editor.edit! filename
-    end
 
     describe '#lines' do
       context 'return value' do
