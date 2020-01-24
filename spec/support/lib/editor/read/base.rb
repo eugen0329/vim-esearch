@@ -4,7 +4,7 @@ class Editor::Read::Base
   include VimlValue::SerializationHelpers
 
   VIM_EXCEPTION_REGEXP = /\AVim(\(echo\))?:E\d+:/.freeze
-  NULL_CACHE = ::ActiveSupport::Cache::NullStore.new
+  NULL_CACHE = ::ActiveSupport::Cache::NullStore.new.freeze
 
   class ReadError < RuntimeError; end
 

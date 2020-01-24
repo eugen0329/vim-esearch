@@ -10,6 +10,7 @@ describe Editor, :editor do
   let(:subject) { Editor::Read::Eager.new(method(:vim), cache_enabled) }
 
   describe '#echo' do
+    # arbitrary expression which is easy to use for inspection of the method
     def abs(numeric)
       subject.echo func('abs', numeric)
     end
