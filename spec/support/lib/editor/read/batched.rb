@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/module/delegation'
 require 'active_support/cache'
 
 class Editor::Read::Batched < Editor::Read::Base
