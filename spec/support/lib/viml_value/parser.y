@@ -2,12 +2,11 @@ class VimlValue::Parser
 token STRING NUMERIC BOOLEAN NULL FUNCREF COLON ','
       DICT_RECURSIVE_REF LIST_RECURSIVE_REF
 rule
-  toplevel: toplevel_value | nothing
-
-  toplevel_value:
+  toplevel:
     : list
     | dict
     | literal                       { raise_unless_toplevel_literals_allowed }
+    | nothing
 
   value
     : list
@@ -72,7 +71,7 @@ end
       raise ParseError, "Unexpected end of tokens stream"
     else
       location = [value.start, value.end].join(':')
-      raise ParseError, "Unexpected token #{token_to_str(token_id)} at position #{location}"
+      raise ParseError, "Unexpected token #{token_to_str(token_id)} at location #{location}"
     end
   end
 
