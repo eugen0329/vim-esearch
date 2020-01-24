@@ -10,7 +10,11 @@ RSpec.shared_context 'inherited from Editor::Read::Base' do
       before { expect(calls_count).to be > 1 } # verify the setup
 
       it "doesn't cache echo calls" do
-        expect(vim).to receive(:echo).exactly(calls_count).and_call_original
+        expect(vim)
+          .to receive(:echo)
+          .exactly(calls_count)
+          .with('[abs(-1)]')
+          .and_return('[1]')
 
         calls_count.times do
           expect(subject.echo(func('abs', -1))).to eq(1)
@@ -23,7 +27,7 @@ RSpec.shared_context 'inherited from Editor::Read::Base' do
     let(:cache_enabled) { true }
 
     it 'clears cache' do
-      expect(vim).to receive(:echo).twice.and_call_original
+      expect(vim).to receive(:echo).twice.with('[abs(-1)]').and_return('[1]')
       2.times { subject.echo(func('abs', -1)).to_s }
       subject.handle_state_change!
       2.times { subject.echo(func('abs', -1)).to_s }

@@ -20,8 +20,12 @@ describe Editor, :editor do
       let(:cache_enabled) { true }
 
       context 'when batches are identical' do
-        it 'fetches values once' do
-          expect(vim).to receive(:echo).once.and_call_original
+        it 'fetches batches once' do
+          expect(vim)
+            .to receive(:echo)
+            .once
+            .with('[abs(-1),abs(-2)]')
+            .and_return('[1,2]')
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect([abs(-1), abs(-2)]).to eq([1, 2])
@@ -29,8 +33,12 @@ describe Editor, :editor do
       end
 
       context 'when the second batch is smaller' do
-        it 'fetches values once' do
-          expect(vim).to receive(:echo).once.and_call_original
+        it 'uses result from first batch to exec only 1 query' do
+          expect(vim)
+            .to receive(:echo)
+            .once
+            .with('[abs(-1),abs(-2)]')
+            .and_return('[1, 2]')
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect(abs(-2)).to eq(2)
@@ -39,10 +47,10 @@ describe Editor, :editor do
 
       context 'when the first batch is smaller' do
         it 'fetches only missing values' do
-          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
-          expect(abs(-1)).to eq(1)
+          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_return('[1]')
+          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_return('[2]')
 
-          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_call_original
+          expect(abs(-1)).to eq(1)
           expect([abs(-1), abs(-2)]).to eq([1, 2])
         end
       end
@@ -52,8 +60,12 @@ describe Editor, :editor do
       let(:cache_enabled) { false }
 
       context 'when batches are identical' do
-        it 'fetches in batch ignoring caching' do
-          expect(vim).to receive(:echo).twice.with('[abs(-1),abs(-2)]').and_call_original
+        it 'fetches batch twice' do
+          expect(vim)
+            .to receive(:echo)
+            .twice
+            .with('[abs(-1),abs(-2)]')
+            .and_return('[1,2]')
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect([abs(-1), abs(-2)]).to eq([1, 2])
@@ -61,21 +73,29 @@ describe Editor, :editor do
       end
 
       context 'when the second batch is smaller' do
-        it 'fetches in batch ignoring caching' do
-          expect(vim).to receive(:echo).once.with('[abs(-1),abs(-2)]').and_call_original
-          expect([abs(-1), abs(-2)]).to eq([1, 2])
+        it "doesn't use result from batch executed earlier" do
+          expect(vim)
+            .to receive(:echo)
+            .once
+            .with('[abs(-1),abs(-2)]')
+            .and_return('[1,2]')
+          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_return('[2]')
 
-          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_call_original
+          expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect(abs(-2)).to eq(2)
         end
       end
 
       context 'when the first batch is smaller' do
-        it 'fetches in batch ignoring caching' do
-          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
-          expect(abs(-1)).to eq(1)
+        it "doesn't use result from batch executed earlier" do
+          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_return('[1]')
+          expect(vim)
+            .to receive(:echo)
+            .once
+            .with('[abs(-1),abs(-2)]')
+            .and_return('[1,2]')
 
-          expect(vim).to receive(:echo).once.with('[abs(-1),abs(-2)]').and_call_original
+          expect(abs(-1)).to eq(1)
           expect([abs(-1), abs(-2)]).to eq([1, 2])
         end
       end
@@ -98,8 +118,9 @@ describe Editor, :editor do
     include_examples '#handle_state_change!'
 
     it 'loads lazy values' do
-      expect(vim).to receive(:echo).once.and_call_original
+      expect(vim).to receive(:echo).once.with('[abs(-1)]').and_return('[1]')
       container = subject.echo(func('abs', -1))
+
       expect { subject.handle_state_change! }
         .to change { container.__value__ }
         .from(Editor::Read::Batched::Container::UNDEFINED)

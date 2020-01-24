@@ -4,7 +4,6 @@ class Editor::Read::Base
   include VimlValue::SerializationHelpers
 
   VIM_EXCEPTION_REGEXP = /\AVim(\(echo\))?:E\d+:/.freeze
-  NULL_CACHE = ::ActiveSupport::Cache::NullStore.new.freeze
 
   class ReadError < RuntimeError; end
 
@@ -38,7 +37,7 @@ class Editor::Read::Base
   private
 
   def cache
-    return NULL_CACHE if @with_ignore_cache || !cache_enabled
+    return null_cache if @with_ignore_cache || !cache_enabled
 
     @cache
   end
@@ -48,6 +47,10 @@ class Editor::Read::Base
     raise ReadError, result if VIM_EXCEPTION_REGEXP.match?(result)
 
     result
+  end
+
+  def null_cache
+    @null_cache ||= ActiveSupport::Cache::NullStore.new
   end
 
   def vim
