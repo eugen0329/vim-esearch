@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require_relative 'shared_examples'
+require_relative 'inherited_from_reader_base_shared_examples'
 
 describe Editor, :editor do
   include Helpers::FileSystem
@@ -27,7 +27,7 @@ describe Editor, :editor do
         end
       end
 
-      context 'when the last batch is smaller' do
+      context 'when the second batch is smaller' do
         it 'fetches values once' do
           expect(vim).to receive(:echo).once.and_call_original
 
@@ -51,7 +51,7 @@ describe Editor, :editor do
       let(:cache_enabled) { false }
 
       context 'when batches are identical' do
-        it 'fetches ignoring caching' do
+        it 'fetches in batch ignoring caching' do
           expect(vim).to receive(:echo).twice.with('[abs(-1),abs(-2)]').and_call_original
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
@@ -59,8 +59,8 @@ describe Editor, :editor do
         end
       end
 
-      context 'when the last batch is smaller' do
-        it 'fetches ignoring caching' do
+      context 'when the second batch is smaller' do
+        it 'fetches in batch ignoring caching' do
           expect(vim).to receive(:echo).once.with('[abs(-1),abs(-2)]').and_call_original
           expect([abs(-1), abs(-2)]).to eq([1, 2])
 
@@ -70,7 +70,7 @@ describe Editor, :editor do
       end
 
       context 'when the first batch is smaller' do
-        it 'fetches ignoring caching' do
+        it 'fetches in batch ignoring caching' do
           expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
           expect(abs(-1)).to eq(1)
 
@@ -80,7 +80,7 @@ describe Editor, :editor do
       end
     end
 
-    describe 'errors' do
+    describe 'errors handling' do
       it { expect { subject.echo(func('undefined')).to_s }.to raise_error(Editor::Read::Base::ReadError) }
       it { expect { subject.echo(func('Undefined')).to_s }.to raise_error(Editor::Read::Base::ReadError) }
       it { expect { subject.echo(var('undefined')).to_s }.to  raise_error(Editor::Read::Base::ReadError) }
@@ -93,10 +93,10 @@ describe Editor, :editor do
     include_examples '#with_ignore_cache'
   end
 
-  describe '#with_ignore_cache' do
+  describe '#handle_state_change!' do
     include_examples '#handle_state_change!'
 
-    it 'eager loads values' do
+    it 'loads lazy values' do
       expect(vim).to receive(:echo).once.and_call_original
       container = subject.echo(func('abs', -1))
       expect { subject.handle_state_change! }
