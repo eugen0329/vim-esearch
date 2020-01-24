@@ -4,23 +4,24 @@ require 'spec_helper'
 
 describe Editor, :editor do
   include Helpers::FileSystem
+  include VimlValue::SerializationHelpers
+
   let(:cache_enabled) { true }
   let(:editor) { Editor.new(method(:vim), cache_enabled: cache_enabled) }
-  let(:filename) { 'file.txt' }
-  let(:test_lines) { %w[a b c d] }
-  let!(:test_directory) { directory([file(test_lines, filename)]).persist! }
 
   describe '#lines' do
-    let(:prefetch_count) { test_lines.count }
-    subject { editor.lines(prefetch_count: prefetch_count) }
+    let(:filename) { 'file.txt' }
+    let(:test_lines) { %w[a b c d] }
+    let!(:test_directory) { directory([file(test_lines, filename)]).persist! }
+
     before do
       editor.cd!   test_directory
       editor.edit! filename
     end
 
     context 'return value' do
-      it { expect(subject).to be_a(Enumerator) }
-      it { expect(editor.lines {}).to be_nil }
+      it { expect(editor.lines).to be_a(Enumerator) }
+      it { expect(editor.lines {}).to be_nil        }
       it do
         expect { |yield_probe| editor.lines(&yield_probe) }
           .to yield_successive_args(*test_lines)
@@ -72,6 +73,7 @@ describe Editor, :editor do
 
     shared_examples 'yields each line using prefetching' do
       let(:prefetch_count) { 2 }
+      subject { editor.lines(prefetch_count: prefetch_count) }
 
       # verify the setup
       before { expect(test_lines.count).to eq(prefetch_count * 2) }
@@ -99,80 +101,6 @@ describe Editor, :editor do
       let(:cache_enabled) { false }
 
       include_examples 'yields each line using prefetching'
-    end
-  end
-
-  describe '#echo' do
-    let(:first_2_lines) { test_lines.first(2) }
-
-    before do
-      editor.cd!   test_directory
-      editor.edit! filename
-    end
-
-    context 'when cache_enabled: true' do
-      let(:cache_enabled) { true }
-
-      context 'when batches are identical' do
-        it 'fetches values once' do
-          expect(vim).to receive(:echo).once.and_call_original
-
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
-
-      context 'when the last batch is smaller' do
-        it 'fetches values once' do
-          expect(vim).to receive(:echo).once.and_call_original
-
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-          expect(editor.line(2)).to eq('b')
-        end
-      end
-
-      context 'when the first batch is smaller' do
-        it 'fetches only missing values' do
-          expect(vim).to receive(:echo).once.with('[getline(1)]').and_call_original
-          expect(editor.line(1)).to eq('a')
-
-          expect(vim).to receive(:echo).once.with('[getline(2)]').and_call_original
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
-    end
-
-    context 'when cache_enabled: false' do
-      let(:cache_enabled) { false }
-
-      context 'when batches are identical' do
-        it 'fetches ignoring caching' do
-          expect(vim).to receive(:echo).twice.with('[getline(1),getline(2)]').and_call_original
-
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
-
-      context 'when the last batch is smaller' do
-        it 'fetches ignoring caching' do
-          expect(vim).to receive(:echo).once.with('[getline(1),getline(2)]').and_call_original
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-
-          expect(vim).to receive(:echo).once.with('[getline(2)]').and_call_original
-          expect(editor.line(2)).to eq('b')
-        end
-      end
-
-      context 'when the first batch is smaller' do
-        it 'fetches ignoring caching' do
-          expect(vim).to receive(:echo).once.with('[getline(1)]').and_call_original
-          expect(editor.line(1)).to eq('a')
-
-          expect(vim).to receive(:echo).once.with('[getline(1),getline(2)]').and_call_original
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
     end
   end
 end

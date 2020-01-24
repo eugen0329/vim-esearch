@@ -3,10 +3,11 @@
 require 'spec_helper'
 
 describe Editor, :editor do
+  include Helpers::FileSystem
   include VimlValue::SerializationHelpers
 
   let(:cache_enabled) { false }
-  let(:reader) { Editor::Read::Eager.new(method(:vim), cache_enabled) }
+  let(:reader) { Editor::Read::Batched.new(method(:vim), cache_enabled) }
 
   describe '#echo' do
     def abs(numeric)
@@ -17,9 +18,8 @@ describe Editor, :editor do
       let(:cache_enabled) { true }
 
       context 'when batches are identical' do
-        it 'fetches each value once separately' do
-          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
-          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_call_original
+        it 'fetches values once' do
+          expect(vim).to receive(:echo).once.and_call_original
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect([abs(-1), abs(-2)]).to eq([1, 2])
@@ -27,9 +27,8 @@ describe Editor, :editor do
       end
 
       context 'when the last batch is smaller' do
-        it 'fetches each value once separately' do
-          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
-          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_call_original
+        it 'fetches values once' do
+          expect(vim).to receive(:echo).once.and_call_original
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect(abs(-2)).to eq(2)
@@ -37,7 +36,7 @@ describe Editor, :editor do
       end
 
       context 'when the first batch is smaller' do
-        it 'fetches each value once separately' do
+        it 'fetches only missing values' do
           expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
           expect(abs(-1)).to eq(1)
 
@@ -51,9 +50,8 @@ describe Editor, :editor do
       let(:cache_enabled) { false }
 
       context 'when batches are identical' do
-        it 'fetches ignoring caching separately' do
-          expect(vim).to receive(:echo).twice.with('[abs(-1)]').and_call_original
-          expect(vim).to receive(:echo).twice.with('[abs(-2)]').and_call_original
+        it 'fetches ignoring caching' do
+          expect(vim).to receive(:echo).twice.with('[abs(-1),abs(-2)]').and_call_original
 
           expect([abs(-1), abs(-2)]).to eq([1, 2])
           expect([abs(-1), abs(-2)]).to eq([1, 2])
@@ -61,21 +59,21 @@ describe Editor, :editor do
       end
 
       context 'when the last batch is smaller' do
-        it 'fetches ignoring caching separately' do
-          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
-          expect(vim).to receive(:echo).twice.with('[abs(-2)]').and_call_original
-
+        it 'fetches ignoring caching' do
+          expect(vim).to receive(:echo).once.with('[abs(-1),abs(-2)]').and_call_original
           expect([abs(-1), abs(-2)]).to eq([1, 2])
+
+          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_call_original
           expect(abs(-2)).to eq(2)
         end
       end
 
       context 'when the first batch is smaller' do
-        it 'fetches ignoring caching separately' do
-          expect(vim).to receive(:echo).twice.with('[abs(-1)]').and_call_original
+        it 'fetches ignoring caching' do
+          expect(vim).to receive(:echo).once.with('[abs(-1)]').and_call_original
           expect(abs(-1)).to eq(1)
 
-          expect(vim).to receive(:echo).once.with('[abs(-2)]').and_call_original
+          expect(vim).to receive(:echo).once.with('[abs(-1),abs(-2)]').and_call_original
           expect([abs(-1), abs(-2)]).to eq([1, 2])
         end
       end
@@ -88,4 +86,3 @@ describe Editor, :editor do
     end
   end
 end
-

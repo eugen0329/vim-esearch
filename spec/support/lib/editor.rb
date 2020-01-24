@@ -174,7 +174,7 @@ class Editor
 
   def reader
     @reader ||= Editor::Read::Batched
-                .new(self, vim_client_getter, @cache_enabled)
+                .new(vim_client_getter, @cache_enabled)
   end
 
   def echo(arg)
