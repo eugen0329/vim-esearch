@@ -87,5 +87,42 @@ describe Editor, :editor do
       it { expect { reader.echo(var('undefined')).to_s }.to  raise_error(Editor::Read::Base::ReadError) }
     end
   end
-end
 
+  describe '#cache' do
+    context 'cache_enabled: true' do
+      let(:cache_enabled) { true }
+
+      it { expect(reader.cache).to be_a(ActiveSupport::Cache::NullStore) }
+    end
+
+    context 'cache_enabled: true' do
+      let(:cache_enabled) { false }
+
+      it { expect(reader.cache).to be_a(CacheStore) }
+    end
+  end
+
+  describe '#clear_cache' do
+    it do
+      expect(reader.cache).to receive(:clear).once
+      reader.clear_cache
+    end
+  end
+
+  context '#with_ignore_cache' do
+    around { |e| reader.with_ignore_cache(&e) }
+
+    context '#cache call' do
+      it { expect(reader.cache).to be_a(ActiveSupport::Cache::NullStore) }
+    end
+    context '#echo call' do
+      let(:calls_count) { 2 }
+
+      it do
+        expect(vim).to receive(:echo).exactly(calls_count).and_call_original
+
+        calls_count.times { reader.echo(func('abs', -1)).to_s }
+      end
+    end
+  end
+end

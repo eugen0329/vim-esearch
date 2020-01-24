@@ -6,12 +6,9 @@ require 'active_support/cache'
 class Editor::Read::Eager < Editor::Read::Base
   NULL_CACHE = ::ActiveSupport::Cache::NullStore.new
 
-  attr_reader :cache_enabled
-
   def initialize(vim_client_getter, cache_enabled)
-    super(vim_client_getter)
+    super(vim_client_getter, cache_enabled)
     @cache = CacheStore.new
-    @cache_enabled = cache_enabled
   end
 
   def echo(serializable_argument)
@@ -22,13 +19,6 @@ class Editor::Read::Eager < Editor::Read::Base
 
   def clear_cache
     cache.clear
-  end
-
-  def with_ignore_cache
-    @with_ignore_cache = true
-    yield
-  ensure
-    @with_ignore_cache = false
   end
 
   def cache
