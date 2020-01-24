@@ -82,11 +82,11 @@ module Configuration
   end
 
   def bin_dir
-    @bin_dir ||= Pathname.new(env_fetch('BIN_DIR') { root.join('spec', 'support', 'bin') })
+    @bin_dir ||= Pathname(env_fetch('BIN_DIR') { root.join('spec', 'support', 'bin') })
   end
 
   def scripts_dir
-    @scripts_dir ||= Pathname.new(env_fetch('SCRIPTS_DIR') { root.join('spec', 'support', 'scripts') })
+    @scripts_dir ||= Pathname(env_fetch('SCRIPTS_DIR') { root.join('spec', 'support', 'scripts') })
   end
 
   def skip_compatibility_regexps?
@@ -94,7 +94,7 @@ module Configuration
   end
 
   def plugins_dir
-    @plugins_dir ||= Pathname.new(env_fetch('PLUGINS_DIR') { root.join('spec', 'support', 'vim_plugins') })
+    @plugins_dir ||= Pathname(env_fetch('PLUGINS_DIR') { root.join('spec', 'support', 'vim_plugins') })
   end
 
   def dangerously_maximize_performance?

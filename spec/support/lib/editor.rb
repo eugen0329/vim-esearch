@@ -11,13 +11,17 @@ class Editor
 
   class_attribute :cache_enabled, default: true
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
-  attr_reader :vim_client_getter
+  class_attribute :reader_class, default: Editor::Read::Batched
+  attr_reader :vim_client_getter, :reader
 
-  delegate :cached?, :evaluated?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
+  delegate :cached?, :evaluated?, :with_ignore_cache, :handle_state_change!, :var, :func, to: :reader
 
-  def initialize(vim_client_getter, cache_enabled: self.class.cache_enabled)
-    @cache_enabled = cache_enabled
+  def initialize(vim_client_getter, **kwargs)
+    @cache_enabled = kwargs.fetch(:cache_enabled) { self.class.cache_enabled }
     @vim_client_getter = vim_client_getter
+    @reader = kwargs.fetch(:reader) do
+      self.class.reader_class.new(vim_client_getter, @cache_enabled)
+    end
   end
 
   def line(number)
@@ -101,7 +105,7 @@ class Editor
 
   def cleanup!
     delete_all_buffers_and_clear_messages!
-    clear_cache
+    handle_state_change!
   end
   # alias cleanup! delete_all_buffers_and_clear_messages!
 
@@ -139,7 +143,7 @@ class Editor
   end
 
   def command!(string_to_execute)
-    clear_cache
+    handle_state_change!
 
     instrument(:command!, data: string_to_execute) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -149,7 +153,7 @@ class Editor
   end
 
   def press!(keyboard_keys)
-    clear_cache
+    handle_state_change!
 
     instrument(:press, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -159,7 +163,7 @@ class Editor
   end
 
   def press_with_user_mappings!(keyboard_keys)
-    clear_cache
+    handle_state_change!
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -169,12 +173,7 @@ class Editor
   end
 
   def raw_echo(arg)
-    vim.echo arg
-  end
-
-  def reader
-    @reader ||= Editor::Read::Batched
-                .new(self, vim_client_getter, @cache_enabled)
+    vim.echo(arg)
   end
 
   def echo(arg)

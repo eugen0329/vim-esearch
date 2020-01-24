@@ -4,77 +4,64 @@ require 'spec_helper'
 
 describe Editor, :editor do
   include Helpers::FileSystem
-  let(:cache_enabled) { true }
-  let(:editor) { Editor.new(method(:vim), cache_enabled: cache_enabled) }
-  let(:filename) { 'file.txt' }
+  include VimlValue::SerializationHelpers
+
   let(:test_lines) { %w[a b c d] }
-  let!(:test_directory) { directory([file(test_lines, filename)]).persist! }
+  let(:test_file) { file(test_lines, 'file.txt') }
+  let!(:test_directory) { directory([test_file]).persist! }
+  let(:cache_enabled) { false }
+  let(:editor) { described_class.new(method(:vim), cache_enabled: cache_enabled) }
 
-  describe '#lines' do
-    let(:prefetch_count) { test_lines.count }
-    subject { editor.lines(prefetch_count: prefetch_count) }
-    before do
-      editor.cd!   test_directory
-      editor.edit! filename
+  before { editor.edit! test_file.path }
+
+  shared_examples 'it works with reader' do |reader_class|
+    let(:reader) { reader_class.new(method(:vim), cache_enabled) }
+    let(:editor) { described_class.new(method(:vim), reader: reader, cache_enabled: cache_enabled) }
+
+    describe '#lines' do
+      context 'return value' do
+        it { expect(editor.lines).to be_a(Enumerator) }
+        it { expect(editor.lines {}).to be_nil        }
+        it do
+          expect { |yield_probe| editor.lines(&yield_probe) }
+            .to yield_successive_args(*test_lines)
+        end
+      end
+
+      context 'range argument' do
+        it { expect(editor.lines(1..).to_a).to                     eq(test_lines)         }
+        it { expect(editor.lines(1..1).to_a).to                    eq([test_lines.first]) }
+        it { expect(editor.lines(1..test_lines.count).to_a).to     eq(test_lines)         }
+        it { expect(editor.lines(2..test_lines.count).to_a).to     eq(test_lines[1..])    }
+        it { expect(editor.lines(2..test_lines.count - 1).to_a).to eq(test_lines[1..-2])  }
+        it { expect(editor.lines(test_lines.count + 1..).to_a).to  eq([])                 }
+        it { expect(editor.lines(test_lines.count..).to_a).to      eq([test_lines.last])  }
+
+        it { expect { editor.lines(0..0).to_a   }.to raise_error(ArgumentError) }
+        it { expect { editor.lines(0..1).to_a   }.to raise_error(ArgumentError) }
+        it { expect { editor.lines(1..0).to_a   }.to raise_error(ArgumentError) }
+        it { expect { editor.lines(2..1).to_a   }.to raise_error(ArgumentError) }
+        it { expect { editor.lines(-1..2).to_a  }.to raise_error(ArgumentError) }
+        it { expect { editor.lines(-2..-1).to_a }.to raise_error(ArgumentError) }
+      end
     end
+  end
 
-    context 'return value' do
-      it { expect(subject).to be_a(Enumerator) }
-      it { expect(editor.lines {}).to be_nil }
+  shared_examples 'it optimizes #lines with prefetching in blocks' do
+    context 'when prefetch_count: 1' do
+      let(:prefetch_count) { 1 }
+
       it do
-        expect { |yield_probe| editor.lines(&yield_probe) }
-          .to yield_successive_args(*test_lines)
+        expect(vim).to receive(:echo).exactly(test_lines.count).and_call_original
+        expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(test_lines)
       end
     end
 
-    context 'range' do
-      it { expect(editor.lines(1..).to_a).to                     eq(test_lines)         }
-      it { expect(editor.lines(1..1).to_a).to                    eq([test_lines.first]) }
-      it { expect(editor.lines(1..test_lines.count).to_a).to     eq(test_lines)         }
-      it { expect(editor.lines(2..test_lines.count).to_a).to     eq(test_lines[1..])    }
-      it { expect(editor.lines(2..test_lines.count - 1).to_a).to eq(test_lines[1..-2])  }
-      it { expect(editor.lines(test_lines.count + 1..).to_a).to  eq([])                 }
-      it { expect(editor.lines(test_lines.count..).to_a).to      eq([test_lines.last])  }
-
-      it { expect { editor.lines(0..0).to_a   }.to raise_error(ArgumentError) }
-      it { expect { editor.lines(0..1).to_a   }.to raise_error(ArgumentError) }
-      it { expect { editor.lines(1..0).to_a   }.to raise_error(ArgumentError) }
-      it { expect { editor.lines(2..1).to_a   }.to raise_error(ArgumentError) }
-      it { expect { editor.lines(-1..2).to_a  }.to raise_error(ArgumentError) }
-      it { expect { editor.lines(-2..-1).to_a }.to raise_error(ArgumentError) }
-    end
-
-    context 'prefetch_count' do
-      context 'when is set to 1' do
-        let(:prefetch_count) { 1 }
-
-        it do
-          expect(vim).to receive(:echo).exactly(test_lines.count).and_call_original
-          expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(test_lines)
-        end
-      end
-
-      # TODO: better name
-      context 'lines_count % prefetch_count != 0' do
-        let(:divisor) { 2 }
-        let(:prefetch_count) { test_lines.count / divisor + 1 }
-        before { expect(test_lines.count / prefetch_count).not_to eq(0) } # verify the setup
-
-        it do
-          expect(vim).to receive(:echo).exactly(test_lines.count / divisor).and_call_original
-          expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(test_lines)
-        end
-      end
-
-      it { expect { editor.lines(prefetch_count: -1) }.to raise_error(ArgumentError) }
-      it { expect { editor.lines(prefetch_count: 0) }.to  raise_error(ArgumentError) }
-    end
-
-    shared_examples 'yields each line using prefetching' do
+    context 'when prefetch_count: >1' do
       let(:prefetch_count) { 2 }
 
-      # verify the setup
-      before { expect(test_lines.count).to eq(prefetch_count * 2) }
+      subject { editor.lines(prefetch_count: prefetch_count) }
+      before { expect(test_lines.count).to eq(prefetch_count * 2) } # verify the setup
 
       it 'yields each line using prefetching' do
         expect(vim).to receive(:echo).once.and_call_original
@@ -89,90 +76,34 @@ describe Editor, :editor do
       end
     end
 
-    context 'when cache_enabled: true' do
-      let(:cache_enabled) { true }
+    context 'when lines.count is not a multiple of prefetch_count' do
+      let(:prefetch_blocks_count) { 2 }
+      let(:prefetch_count) { test_lines.count / prefetch_blocks_count + 1 }
+      before { expect(test_lines.count / prefetch_count).not_to eq(0) } # verify the setup
 
-      include_examples 'yields each line using prefetching'
+      it do
+        expect(vim)
+          .to receive(:echo)
+          .exactly((test_lines.count / prefetch_blocks_count).to_i)
+          .and_call_original
+
+        expect(editor.lines(prefetch_count: prefetch_count).to_a).to eq(test_lines)
+      end
     end
 
-    context 'when cache_enabled: false' do
-      let(:cache_enabled) { false }
-
-      include_examples 'yields each line using prefetching'
+    context 'invalid prefetch_count' do
+      it { expect { editor.lines(prefetch_count: -1) }.to raise_error(ArgumentError) }
+      it { expect { editor.lines(prefetch_count: 0) }.to  raise_error(ArgumentError) }
     end
   end
 
-  describe '#echo' do
-    let(:first_2_lines) { test_lines.first(2) }
+  context 'when reader == Editor::Read::Eager' do
+    include_examples 'it works with reader', Editor::Read::Eager
+  end
 
-    before do
-      editor.cd!   test_directory
-      editor.edit! filename
-    end
-
-    context 'when cache_enabled: true' do
-      let(:cache_enabled) { true }
-
-      context 'when batches are identical' do
-        it 'fetches values once' do
-          expect(vim).to receive(:echo).once.and_call_original
-
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
-
-      context 'when the last batch is smaller' do
-        it 'fetches values once' do
-          expect(vim).to receive(:echo).once.and_call_original
-
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-          expect(editor.line(2)).to eq('b')
-        end
-      end
-
-      context 'when the first batch is smaller' do
-        it 'fetches only missing values' do
-          expect(vim).to receive(:echo).once.with('[getline(1)]').and_call_original
-          expect(editor.line(1)).to eq('a')
-
-          expect(vim).to receive(:echo).once.with('[getline(2)]').and_call_original
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
-    end
-
-    context 'when cache_enabled: false' do
-      let(:cache_enabled) { false }
-
-      context 'when batches are identical' do
-        it 'fetches ignoring caching' do
-          expect(vim).to receive(:echo).twice.with('[getline(1),getline(2)]').and_call_original
-
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
-
-      context 'when the last batch is smaller' do
-        it 'fetches ignoring caching' do
-          expect(vim).to receive(:echo).once.with('[getline(1),getline(2)]').and_call_original
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-
-          expect(vim).to receive(:echo).once.with('[getline(2)]').and_call_original
-          expect(editor.line(2)).to eq('b')
-        end
-      end
-
-      context 'when the first batch is smaller' do
-        it 'fetches ignoring caching' do
-          expect(vim).to receive(:echo).once.with('[getline(1)]').and_call_original
-          expect(editor.line(1)).to eq('a')
-
-          expect(vim).to receive(:echo).once.with('[getline(1),getline(2)]').and_call_original
-          expect([editor.line(1), editor.line(2)]).to eq(first_2_lines)
-        end
-      end
+  context 'when reader == Editor::Read::Batched' do
+    include_examples 'it works with reader', Editor::Read::Batched do
+      it_behaves_like 'it optimizes #lines with prefetching in blocks'
     end
   end
 end

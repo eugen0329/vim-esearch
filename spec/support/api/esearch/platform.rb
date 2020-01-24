@@ -6,7 +6,12 @@ class API::ESearch::Platform
   class_attribute :process_check_timeout, default: Configuration.process_check_timeout
 
   def grep_and_kill_process_by!(pattern, signal: 'KILL')
-    `ps -A -o pid,command | grep "#{pattern}" | grep -v grep | awk '{print $1}' | xargs kill -s #{signal}`
+    pids = `ps -A -o pid,command | grep "#{pattern}" | grep -v grep | awk '{print $1}'`.split("\n")
+
+    # as far as POSIX xargs doesn't have -r option
+    pids.each do |pid|
+      `kill -s #{signal} #{pid}`
+    end
   end
 
   def has_no_process_matching?(command_pattern, timeout: process_check_timeout)

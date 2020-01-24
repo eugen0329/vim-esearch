@@ -2,30 +2,56 @@
 
 class Editor::Read::Base
   include VimlValue::SerializationHelpers
-  attr_reader :vim_client_getter, :read_proxy
 
-  def initialize(read_proxy, vim_client_getter)
-    @vim_client_getter       = vim_client_getter
-    @read_proxy              = read_proxy
+  VIM_EXCEPTION_REGEXP = /\AVim(\(echo\))?:E\d+:/.freeze
+
+  class ReadError < RuntimeError; end
+
+  attr_reader :vim_client_getter, :cache_enabled
+
+  def initialize(vim_client_getter, cache_enabled)
+    @vim_client_getter = vim_client_getter
+    @cache_enabled = cache_enabled
+    @cache = CacheStore.new
   end
 
-  def cache
+  def echo
     raise NotImplementedError
   end
 
-  def cached?
-    raise NotImplementedError
+  def handle_state_change!
+    cache.clear
+  end
+
+  def evaluated?(_value)
+    true
   end
 
   def with_ignore_cache
-    raise NotImplementedError
-  end
-
-  def evaluated?
-    raise NotImplementedError
+    @with_ignore_cache = true
+    yield
+  ensure
+    @with_ignore_cache = false
   end
 
   private
+
+  def cache
+    return null_cache if @with_ignore_cache || !cache_enabled
+
+    @cache
+  end
+
+  def evaluate(str)
+    result = vim.echo(str)
+    raise ReadError, result if VIM_EXCEPTION_REGEXP.match?(result)
+
+    result
+  end
+
+  def null_cache
+    @null_cache ||= ActiveSupport::Cache::NullStore.new
+  end
 
   def vim
     vim_client_getter.call

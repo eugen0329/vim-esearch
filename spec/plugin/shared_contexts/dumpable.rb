@@ -8,7 +8,7 @@ RSpec.shared_context 'dumpable' do
     unless example.exception.nil?
       if Configuration.screenshot_failures?
         prefix = 'screenshot'
-        example_location = Pathname.new(example.id).cleanpath.to_s.gsub(File::SEPARATOR, '_')
+        example_location = Pathname(example.id).cleanpath.to_s.gsub(File::SEPARATOR, '_')
         timestamp = Time.now.strftime('%H_%M_%S')
         name = [prefix, timestamp, example_location].join('_')
         file_name = RSpec::Core::ShellEscape.conditionally_quote("#{name}.png")
