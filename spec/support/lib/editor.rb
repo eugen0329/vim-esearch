@@ -11,13 +11,17 @@ class Editor
 
   class_attribute :cache_enabled, default: true
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
-  attr_reader :vim_client_getter
+  class_attribute :reader_class, default: Editor::Read::Batched
+  attr_reader :vim_client_getter, :reader
 
   delegate :cached?, :evaluated?, :with_ignore_cache, :clear_cache, :var, :func, to: :reader
 
-  def initialize(vim_client_getter, cache_enabled: self.class.cache_enabled)
-    @cache_enabled = cache_enabled
+  def initialize(vim_client_getter, **kwargs)
+    @cache_enabled = kwargs.fetch(:cache_enabled) { self.class.cache_enabled }
     @vim_client_getter = vim_client_getter
+    @reader = kwargs.fetch(:reader) do
+      self.class.reader_class.new(vim_client_getter, @cache_enabled)
+    end
   end
 
   def line(number)
@@ -170,11 +174,6 @@ class Editor
 
   def raw_echo(arg)
     vim.echo arg
-  end
-
-  def reader
-    @reader ||= Editor::Read::Batched
-                .new(vim_client_getter, @cache_enabled)
   end
 
   def echo(arg)

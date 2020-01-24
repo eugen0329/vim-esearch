@@ -42,6 +42,7 @@ vim_instance_getter =
 # etc.). For other backends increase of running speed is about 1.5x - 2x times
 if Configuration.dangerously_maximize_performance?
   Editor.cache_enabled = true
+  Editor.reader_class = Editor::Read::Batched
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
   VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
@@ -52,6 +53,7 @@ if Configuration.dangerously_maximize_performance?
   end
 else
   Editor.cache_enabled = false
+  Editor.reader_class = Editor::Read::Eager
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
   VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each
