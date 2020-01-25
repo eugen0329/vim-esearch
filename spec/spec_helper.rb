@@ -32,9 +32,9 @@ ActiveSupport::Dependencies.autoload_paths = ['spec/support', 'spec/support/lib'
 
 vim_instance_getter =
   if Configuration.debug_specs_performance?
-    -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
+    -> { VimrunnerSpy.new(Configuration.vim) }
   else
-    -> { Vimrunner::Testing.instance }
+    Configuration.method(:vim)
   end
 
 # Required mostly for improvimg performance of neovim backend testing by
@@ -71,6 +71,7 @@ end
 
 RSpec.configure do |c|
   c.include DSL::Vim
+  # c.add_formatter(DumpVimEnvironmentErrorFormatter)
 
   c.color_mode = true
   c.order      = :rand

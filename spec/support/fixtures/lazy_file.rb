@@ -44,8 +44,10 @@ class Fixtures::LazyFile
         raw_content
       elsif raw_content.is_a? Array
         raw_content.join("\n")
+      elsif raw_content.nil?
+        ''
       else
-        raise RuntimeError
+        raise ArgumentError
       end
   end
 
