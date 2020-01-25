@@ -42,7 +42,6 @@ teardown() {
   assert_equal "$status" 129
 
   assert_file_exists "$plugins_dir/vimproc.vim/plugin/vimproc.vim"
-  assert_file_exists "$plugins_dir/vim-prettyprint/plugin/prettyprint.vim"
   # pt is installed on a separate docker build stage
   assert_file_missing "$local_bin_dir/pt"
 }

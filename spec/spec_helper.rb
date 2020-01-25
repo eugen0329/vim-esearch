@@ -114,6 +114,5 @@ end
 def load_vim_plugins!(vim)
   vim.add_plugin(Configuration.root,                                'plugin/esearch.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'),     'plugin/vimproc.vim')
-  vim.add_plugin(Configuration.plugins_dir.join('vim-prettyprint'), 'plugin/prettyprint.vim')
   vim
 end
