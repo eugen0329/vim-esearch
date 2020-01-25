@@ -8,8 +8,6 @@ require 'vimrunner/errors'
 require 'vimrunner/client'
 require 'vimrunner/platform'
 
-require_relative 'server'
-
 # almost copypasted from vimrunner due to inability to write an extension for it
 
 module VimrunnerNeovim

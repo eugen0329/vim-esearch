@@ -6,22 +6,23 @@ describe VimlValue::Parser do
   include VimlValue::AST::Sexp
   include Helpers::VimlValue
 
+  ParseError ||= VimlValue::ParseError
+
   describe '#parse' do
-    ParseError = VimlValue::ParseError
     let(:allow_toplevel_literals) { true }
     let(:options) { {allow_toplevel_literals: allow_toplevel_literals} }
-    subject do
+    subject(:parse_proc) do
       lambda do |value|
         VimlValue::Parser.new(VimlValue::Lexer.new(value), **options).parse
       end
     end
 
     def be_parsed_as(expected)
-      Helpers::VimlValue::BeParsedAs.new(expected, &subject)
+      Helpers::VimlValue::BeParsedAs.new(expected, &parse_proc)
     end
 
     def fail_parsing_with(expected)
-      Helpers::VimlValue::FailParsingWith.new(expected, &subject)
+      Helpers::VimlValue::FailParsingWith.new(expected, &parse_proc)
     end
 
     context 'nothing' do
@@ -111,7 +112,7 @@ describe VimlValue::Parser do
         it { expect('"""').to fail_parsing_with(ParseError) }
       end
 
-      context 'mixed [] and {}' do
+      context 'inside list' do
         context 'inside list' do
           it { expect('[{]').to fail_parsing_with(ParseError) }
           it { expect('[}]').to fail_parsing_with(ParseError) }
@@ -128,7 +129,7 @@ describe VimlValue::Parser do
       let(:value) { '[1]' }
       subject(:parser) { VimlValue::Parser.new(VimlValue::Lexer.new(value)) }
 
-      it { expect(subject.parse).to eq(subject.parse) }
+      it { expect(parser.parse).to eq(parser.parse) }
     end
   end
 end

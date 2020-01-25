@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe VimlValue::Lexer do
   include Helpers::VimlValue
-  ParseError = VimlValue::ParseError
+  ParseError ||= VimlValue::ParseError
 
   let(:encoding) { Encoding::ASCII }
 

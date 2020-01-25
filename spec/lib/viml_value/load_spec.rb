@@ -7,9 +7,9 @@ describe VimlValue do
   include Helpers::VimlValue
   include VimlValue::SerializationHelpers
 
-  ParseError = VimlValue::ParseError
-  DictRecursiveRef = VimlValue::Types::DictRecursiveRef
-  ListRecursiveRef = VimlValue::Types::ListRecursiveRef
+  ParseError ||= VimlValue::ParseError
+  DictRecursiveRef ||= VimlValue::Types::DictRecursiveRef
+  ListRecursiveRef ||= VimlValue::Types::ListRecursiveRef
 
   describe '#load' do
     let(:allow_toplevel_literals) { true }
