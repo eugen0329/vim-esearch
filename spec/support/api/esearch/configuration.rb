@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class API::ESearch::Configuration
-  include API::Mixins::VimTypes
-
   attr_reader :editor, :cache, :staged_configuration
   attr_writer :output
 
@@ -19,7 +17,7 @@ class API::ESearch::Configuration
   end
 
   def submit!
-    dict = to_vim_dict(staged_configuration)
+    dict = VimlValue.dump(staged_configuration)
     editor.command!("if !exists('g:esearch') | "\
                      "let g:esearch = #{dict} | "\
                      'else | '\
