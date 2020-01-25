@@ -16,13 +16,7 @@ module Debug
   end
 
   def buffer_configuration
-    reader.echo(var('b:esearch')).except('request')
-  rescue Editor::Read::Base::ReadError => e
-    e.message
-  end
-
-  def request_configuration
-    reader.echo(var('b:esearch'))['request']
+    reader.echo(var('b:esearch'))
   rescue Editor::Read::Base::ReadError => e
     e.message
   end
@@ -53,11 +47,15 @@ module Debug
   end
 
   def verbose_log
-    readlines(server.verbose_log_file)
+    return readlines(server.verbose_log_file) if neovim?
+
+    nil
   end
 
   def nvim_log
-    readlines(server.nvim_log_file)
+    return readlines(server.nvim_log_file) if neovim?
+
+    nil
   end
 
   def messages
@@ -90,6 +88,10 @@ module Debug
   end
 
   private
+
+  def neovim?
+    server.is_a?(VimrunnerNeovim::Server)
+  end
 
   # Eager reader with disabled caching is used for reliability
   def reader
