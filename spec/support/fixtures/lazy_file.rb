@@ -36,6 +36,10 @@ class Fixtures::LazyFile
     [relative_path, content].map(&:to_s).to_s
   end
 
+  def lines
+    content.split("\n")
+  end
+
   private
 
   def content

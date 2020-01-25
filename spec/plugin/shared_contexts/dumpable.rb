@@ -16,34 +16,34 @@ RSpec.shared_context 'dumpable' do
         puts 'Failed to take a screenshot' unless $CHILD_STATUS.success?
       end
 
-      if vim.server.is_a?(VimrunnerNeovim::Server)
-        puts `ls /tmp`
-        puts `ps -A -o pid,command | sed 1d | grep nvim`
-        if File.exist?(vim.server.verbose_log_file)
-          puts 'VERBOSE log start', '*' * 10
-          puts File.readlines(vim.server.verbose_log_file).to_a
-          puts '*' * 10, 'VERBOSE log end'
-        else
-          puts "Verbose log in is missing #{vim.server.verbose_log_file}"
-        end
+      # if vim.server.is_a?(VimrunnerNeovim::Server)
+        # puts `ls /tmp`
+        # puts `ps -A -o pid,command | sed 1d | grep nvim`
+        # if File.exist?(vim.server.verbose_log_file)
+        #   puts 'VERBOSE log start', '*' * 10
+        #   puts File.readlines(vim.server.verbose_log_file).to_a
+        #   puts '*' * 10, 'VERBOSE log end'
+        # else
+        #   puts "Verbose log in is missing #{vim.server.verbose_log_file}"
+        # end
 
-        if File.exist?(vim.server.nvim_log_file)
-          puts 'vim.server.nvim_log_file log'
-          puts 'vim.server.nvim_log_file log start', '*' * 10
-          puts File.readlines(vim.server.nvim_log_file).to_a
-          puts '*' * 10, 'vim.server.nvim_log_file log end'
-        else
-          puts '$NVIM_LOG_FILE is missing'
-        end
-      end
+        # if File.exist?(vim.server.nvim_log_file)
+        #   puts 'vim.server.nvim_log_file log'
+        #   puts 'vim.server.nvim_log_file log start', '*' * 10
+        #   puts File.readlines(vim.server.nvim_log_file).to_a
+        #   puts '*' * 10, 'vim.server.nvim_log_file log end'
+        # else
+        #   puts '$NVIM_LOG_FILE is missing'
+        # end
+      # end
 
-      if File.exist?('/tmp/esearch_log.txt')
-        puts 'INTERNAL log start', '*' * 10
-        puts File.readlines('/tmp/esearch_log.txt').to_a
-        puts '*' * 10, 'INTERNAL log end'
-      else
-        puts 'INTERNAL log is missing', '*' * 10
-      end
+      # if File.exist?('/tmp/esearch_log.txt')
+      #   puts 'INTERNAL log start', '*' * 10
+      #   puts File.readlines('/tmp/esearch_log.txt').to_a
+      #   puts '*' * 10, 'INTERNAL log end'
+      # else
+      #   puts 'INTERNAL log is missing', '*' * 10
+      # end
 
       # press('j') # press j to close "Press ENTER or type command to continue" prompt
       # puts ':messages', cmd('messages')
@@ -54,10 +54,10 @@ RSpec.shared_context 'dumpable' do
       # puts "PWD: #{expr('$PWD')}, GETCWD(): #{expr('getcwd()')}"
       # puts "Last buf #{expr('bufnr("$")')}, curr buf  #{expr('bufnr("%")')}"
 
-      puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
-      puts expr('&runtimepath')
+      # puts "\n" * 2, '#' * 10, 'RUNTIMEPATH'
+      # puts expr('&runtimepath')
 
-      puts 'buffers:', cmd('ls!')
+      # puts 'buffers:', cmd('ls!')
 
       # if exists('*prettyprint#prettyprint')
         # puts "\n" * 2, '#' * 10, 'G:ESEARCH'
@@ -81,16 +81,16 @@ RSpec.shared_context 'dumpable' do
       # puts "\n" * 2, '#' * 10, 'au User'
       # puts cmd('au User')
 
-      sc = expr('esearch#backend#vimproc#scope()')
-      s = expr('esearch#backend#vimproc#sid()')
-      puts "\n" * 2, '#' * 10, 's:completed(s:requests[0])'
-      puts expr("#{s}completed(#{sc}.requests[0])")
-      puts "\n" * 2, '#' * 10, '[len(request.data), request.data_ptr, exists ->, type ->, request.out_finish()]'
-      puts cmd("echo [len(#{sc}.requests[0].data)]")
-      puts cmd("echo [#{sc}.requests[0].data_ptr]")
-      puts cmd("echo has_key(#{sc}.requests[0], 'out_finish')")
-      puts cmd("echo [type(#{sc}.requests[0].out_finish)]")
-      puts cmd("echo [#{sc}.requests[0].out_finish()]")
+      # sc = expr('esearch#backend#vimproc#scope()')
+      # s = expr('esearch#backend#vimproc#sid()')
+      # puts "\n" * 2, '#' * 10, 's:completed(s:requests[0])'
+      # puts expr("#{s}completed(#{sc}.requests[0])")
+      # puts "\n" * 2, '#' * 10, '[len(request.data), request.data_ptr, exists ->, type ->, request.out_finish()]'
+      # puts cmd("echo [len(#{sc}.requests[0].data)]")
+      # puts cmd("echo [#{sc}.requests[0].data_ptr]")
+      # puts cmd("echo has_key(#{sc}.requests[0], 'out_finish')")
+      # puts cmd("echo [type(#{sc}.requests[0].out_finish)]")
+      # puts cmd("echo [#{sc}.requests[0].out_finish()]")
     end
   end
 end

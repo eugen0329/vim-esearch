@@ -75,7 +75,6 @@ RSpec.configure do |c|
 
   c.color_mode = true
   c.order      = :rand
-  c.seed       = 1
   c.formatter  = :documentation
   c.fail_fast  = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'

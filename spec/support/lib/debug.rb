@@ -43,8 +43,24 @@ module Debug
     reader.echo_command('ls!').split("\n")
   end
 
-  def runtimepath
+  def runtimepaths
     reader.echo(var('&runtimepath')).split(',')
+  end
+
+  def plugin_log(path = '/tmp/esearch_log.txt')
+    readlines(path)
+  end
+
+  def verbose_log
+    raise unless server.is_a?(VimrunnerNeovim::Server)
+
+    readlines(server.verbose_log_file)
+  end
+
+  def nvim_log
+    raise unless server.is_a?(VimrunnerNeovim::Server)
+
+    readlines(server.nvim_log_file)
   end
 
   def messages
@@ -76,5 +92,19 @@ module Debug
 
   def reader
     @reader ||= Editor::Read::Eager.new(Configuration.method(:vim), false)
+  end
+
+  private_class_method
+
+  def readlines(path)
+    if File.exist?(path)
+      File.readlines(path).map(&:chomp)
+    else
+      nil
+    end
+  end
+
+  def server
+    Configuration.vim.server
   end
 end
