@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 require 'pathname'
-require 'shellwords'
+require 'mkmf'
+require 'English' # reference global vars by human readable names
 
 module Debug
   extend VimlValue::SerializationHelpers
 
-  module_function
+  extend self
 
   def global_configuration
     reader.echo(var('g:esearch'))
@@ -47,19 +48,15 @@ module Debug
     reader.echo(var('&runtimepath')).split(',')
   end
 
-  def plugin_log(path = '/tmp/esearch_log.txt')
+  def plugin_log(path: '/tmp/esearch_log.txt')
     readlines(path)
   end
 
   def verbose_log
-    raise unless server.is_a?(VimrunnerNeovim::Server)
-
     readlines(server.verbose_log_file)
   end
 
   def nvim_log
-    raise unless server.is_a?(VimrunnerNeovim::Server)
-
     readlines(server.nvim_log_file)
   end
 
@@ -77,31 +74,32 @@ module Debug
     reader.echo func('getline', 1, func('line', '$'))
   end
 
-  # TODO
-  def screenshot
-    shell_command.to_s
+  def screenshot!(directory: Configuration.root)
+    timestamp = Time.now.strftime('%H_%M_%S_%L')
+    path = Pathname(directory).join("screenshot_#{timestamp}.png")
 
-    prefix = 'screenshot'
-    example_location = Pathname(RSpec.current_example.id).cleanpath.to_s.gsub(File::SEPARATOR, '_')
-    timestamp = Time.now.strftime('%H_%M_%S')
-    name = [prefix, timestamp, example_location].join('_')
-    file_name = Shellwords.escape("#{name}.png")
-    # `scrot #{file_name}`
-    puts 'Failed to take a screenshot' unless $CHILD_STATUS.success?
+    unless find_executable0('scrot')
+      Configuration.log.warning("Can't find scrot executable")
+      return nil
+    end
+
+    `scrot #{path}`
+    return path if $CHILD_STATUS.success?
+
+    nil
   end
 
+  private
+
+  # Eager reader with disabled caching is used for reliability
   def reader
     @reader ||= Editor::Read::Eager.new(Configuration.method(:vim), false)
   end
 
-  private_class_method
-
   def readlines(path)
-    if File.exist?(path)
-      File.readlines(path).map(&:chomp)
-    else
-      nil
-    end
+    return File.readlines(path).map(&:chomp) if File.exist?(path)
+
+    nil
   end
 
   def server

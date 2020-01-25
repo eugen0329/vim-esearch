@@ -6,35 +6,35 @@ RSpec.shared_context 'dumpable' do
     next unless Configuration.ci?
 
     unless example.exception.nil?
-      if Configuration.screenshot_failures?
-        prefix = 'screenshot'
-        example_location = Pathname(example.id).cleanpath.to_s.gsub(File::SEPARATOR, '_')
-        timestamp = Time.now.strftime('%H_%M_%S')
-        name = [prefix, timestamp, example_location].join('_')
-        file_name = RSpec::Core::ShellEscape.conditionally_quote("#{name}.png")
-        `scrot #{file_name}`
-        puts 'Failed to take a screenshot' unless $CHILD_STATUS.success?
-      end
+      # if Configuration.screenshot_failures?
+      #   prefix = 'screenshot'
+      #   example_location = Pathname(example.id).cleanpath.to_s.gsub(File::SEPARATOR, '_')
+      #   timestamp = Time.now.strftime('%H_%M_%S')
+      #   name = [prefix, timestamp, example_location].join('_')
+      #   file_name = RSpec::Core::ShellEscape.conditionally_quote("#{name}.png")
+      #   `scrot #{file_name}`
+      #   puts 'Failed to take a screenshot' unless $CHILD_STATUS.success?
+      # end
 
       # if vim.server.is_a?(VimrunnerNeovim::Server)
-        # puts `ls /tmp`
-        # puts `ps -A -o pid,command | sed 1d | grep nvim`
-        # if File.exist?(vim.server.verbose_log_file)
-        #   puts 'VERBOSE log start', '*' * 10
-        #   puts File.readlines(vim.server.verbose_log_file).to_a
-        #   puts '*' * 10, 'VERBOSE log end'
-        # else
-        #   puts "Verbose log in is missing #{vim.server.verbose_log_file}"
-        # end
+      # puts `ls /tmp`
+      # puts `ps -A -o pid,command | sed 1d | grep nvim`
+      # if File.exist?(vim.server.verbose_log_file)
+      #   puts 'VERBOSE log start', '*' * 10
+      #   puts File.readlines(vim.server.verbose_log_file).to_a
+      #   puts '*' * 10, 'VERBOSE log end'
+      # else
+      #   puts "Verbose log in is missing #{vim.server.verbose_log_file}"
+      # end
 
-        # if File.exist?(vim.server.nvim_log_file)
-        #   puts 'vim.server.nvim_log_file log'
-        #   puts 'vim.server.nvim_log_file log start', '*' * 10
-        #   puts File.readlines(vim.server.nvim_log_file).to_a
-        #   puts '*' * 10, 'vim.server.nvim_log_file log end'
-        # else
-        #   puts '$NVIM_LOG_FILE is missing'
-        # end
+      # if File.exist?(vim.server.nvim_log_file)
+      #   puts 'vim.server.nvim_log_file log'
+      #   puts 'vim.server.nvim_log_file log start', '*' * 10
+      #   puts File.readlines(vim.server.nvim_log_file).to_a
+      #   puts '*' * 10, 'vim.server.nvim_log_file log end'
+      # else
+      #   puts '$NVIM_LOG_FILE is missing'
+      # end
       # end
 
       # if File.exist?('/tmp/esearch_log.txt')
@@ -60,19 +60,19 @@ RSpec.shared_context 'dumpable' do
       # puts 'buffers:', cmd('ls!')
 
       # if exists('*prettyprint#prettyprint')
-        # puts "\n" * 2, '#' * 10, 'G:ESEARCH'
-        # puts pretty('g:esearch')
-        # puts "\n" * 2, '#' * 10, "B:ESEARCH.without('request')"
-        # puts pretty('b:esearch.without("request")')
-        # puts "\n" * 2, '#' * 10, 'REQUEST'
-        # puts pretty('b:esearch.request')
-        # puts "\n" * 2, '#' * 10, '[UPDATETIME]'
-        # puts pretty('&ut')
-        # puts "\n" * 2, '#' * 10, '[COMMAND]'
-        # puts pretty('b:esearch.request.command')
+      # puts "\n" * 2, '#' * 10, 'G:ESEARCH'
+      # puts pretty('g:esearch')
+      # puts "\n" * 2, '#' * 10, "B:ESEARCH.without('request')"
+      # puts pretty('b:esearch.without("request")')
+      # puts "\n" * 2, '#' * 10, 'REQUEST'
+      # puts pretty('b:esearch.request')
+      # puts "\n" * 2, '#' * 10, '[UPDATETIME]'
+      # puts pretty('&ut')
+      # puts "\n" * 2, '#' * 10, '[COMMAND]'
+      # puts pretty('b:esearch.request.command')
       # else
-        # puts "\n" * 2, '#' * 10, '[COMMAND]'
-        # puts expr('b:esearch.request.command')
+      # puts "\n" * 2, '#' * 10, '[COMMAND]'
+      # puts expr('b:esearch.request.command')
       # end
 
       # puts "\n" * 2, '#' * 10, 'SCRIPTNAMES'

@@ -13,8 +13,8 @@ class API::ESearch::Facade
   }.with_indifferent_access
 
   delegate :search!, to: :core
-  delegate :configure, :configure!,    to: :configuration
-  delegate :cd!, :edit!, :cleanup!,            to: :editor
+  delegate :configure, :configure!, to: :configuration
+  delegate :cd!, :edit!, :cleanup!, to: :editor
   delegate :grep_and_kill_process_by!,
     :has_no_process_matching?,
     to: :platform

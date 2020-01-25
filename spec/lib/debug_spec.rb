@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'mkmf'
 
 describe Debug, :debug do
   include Helpers::FileSystem
@@ -32,7 +33,7 @@ describe Debug, :debug do
       esearch.editor.command!([
         'let g:esearch = "global_configuration"',
         'let b:esearch = {"request": "request_configuration", "anything_without_request": 2}',
-        'au User TestAutocommand echo 1',
+        'au User TestAutocommand echo 1'
       ].join('|'))
     end
 
@@ -44,14 +45,20 @@ describe Debug, :debug do
     end
 
     context 'logging' do
-      context 'vim' do
-        context 'present' do
-          it { expect(debug.plugin_log(log_file.path)).to eq(log_file.lines) }
-        end
+      shared_examples '.plugin_log' do
+        describe '.plugin_log' do
+          context 'present' do
+            it { expect(debug.plugin_log(path: log_file.path)).to eq(log_file.lines) }
+          end
 
-        context 'missing' do
-          it { expect(debug.plugin_log('missing')).to be_nil }
+          context 'nonexisting' do
+            it { expect(debug.plugin_log(path: 'nonexisting')).to be_nil }
+          end
         end
+      end
+
+      context 'vim' do
+        include_examples '.plugin_log'
       end
 
       context 'neovim' do
@@ -59,12 +66,24 @@ describe Debug, :debug do
 
         around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
-        context 'present' do
-          it { expect(debug.plugin_log(log_file.path)).to eq(log_file.lines) }
+        include_examples '.plugin_log'
 
+        describe '.verbose_log_file' do
           it do
             expect(server).to receive(:verbose_log_file).and_return(log_file.path)
             expect(debug.verbose_log).to eq(log_file.lines)
+          end
+
+          it do
+            expect(server).to receive(:verbose_log_file).and_return('nonexisting')
+            expect(debug.verbose_log).to be_nil
+          end
+        end
+
+        describe '.nvim_log_file' do
+          it do
+            expect(server).to receive(:nvim_log_file).and_return('nonexisting')
+            expect(debug.nvim_log).to be_nil
           end
 
           it do
@@ -72,20 +91,24 @@ describe Debug, :debug do
             expect(debug.nvim_log).to eq(log_file.lines)
           end
         end
+      end
+    end
 
-        context 'missing' do
-          it { expect(debug.plugin_log(log_file.path)).to eq(log_file.lines) }
+    context 'screenshot' do
+      subject(:result) { debug.screenshot! }
 
-          it do
-            expect(server).to receive(:verbose_log_file).and_return('missing')
-            expect(debug.verbose_log).to be_nil
-          end
+      before { skip "Can't find scrot executable" unless find_executable0('scrot') }
+      after  { result&.delete }
 
-          it do
-            expect(server).to receive(:nvim_log_file).and_return('missing')
-            expect(debug.nvim_log).to be_nil
-          end
-        end
+      context 'success' do
+        it { expect(result).to be_file }
+        it { expect(result.size).to be > 0 }
+      end
+
+      context 'failure' do
+        subject(:result) { debug.screenshot!(directory: 'nonexisting') }
+
+        it { expect(result).to be_nil }
       end
     end
 
@@ -98,7 +121,7 @@ describe Debug, :debug do
     end
 
     context 'esearch configurations' do
-      it { expect(debug.global_configuration).to  eq("global_configuration")  }
+      it { expect(debug.global_configuration).to  eq('global_configuration')  }
       it { expect(debug.buffer_configuration).to  eq(buffer_configuration)    }
       it { expect(debug.request_configuration).to eq('request_configuration') }
       it { expect(debug.buffer_content).to        eq(test_lines)              }

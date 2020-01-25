@@ -7,8 +7,6 @@ require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/notifications'
 require 'active_support/tagged_logging'
-# reference global vars by human readable names (rubocop requirement)
-require 'English'
 begin
   require 'pry'
   Pry.config.history.file = '.pry_history'
