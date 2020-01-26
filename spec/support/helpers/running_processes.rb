@@ -11,7 +11,7 @@ module Helpers::RunningProcesses
 
       became_truthy_within?(timeout) do
         @processes = esearch.platform.processess_matching(command_pattern, ignore_pattern)
-        esearch.platform.processess_matching(command_pattern, ignore_pattern).count == count
+        @processes.count == count
       end
     end
 

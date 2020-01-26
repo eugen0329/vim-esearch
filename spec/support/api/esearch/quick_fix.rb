@@ -65,10 +65,5 @@ class API::ESearch::QuickFix
     filetype = editor.filetype
 
     quickfix_window_name&.match?(/\A:Search/) && filetype == 'qf'
-    #   Fails in rubocop 0.78
-    #   editor.current_buffer_name_with_filetype in [/Search/, 'qf']
-    #   true
-    # rescue NoMatchingPatternError
-    #   false
   end
 end
