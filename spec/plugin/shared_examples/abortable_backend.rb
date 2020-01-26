@@ -76,6 +76,4 @@ RSpec.shared_examples 'an abortable backend' do |backend|
 
     include_examples 'abort on actions'
   end
-
-  include_context 'dumpable'
 end

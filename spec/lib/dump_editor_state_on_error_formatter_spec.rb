@@ -58,13 +58,15 @@ describe DumpEditorStateOnErrorFormatter do
 
     context 'output indentation' do
       let(:indentation_level) { 2 }
-      let(:output_without_color) { output.gsub(console_color_code_regexp, '') }
+      let(:output_lines_without_color) do
+        output.gsub(console_color_code_regexp, '')
+      end
 
       it 'outputes with correct indentation' do
         indentation_level.times { formatter.example_group_started(dummy_notification) }
         formatter.example_failed(dummy_notification)
 
-        expect(output_without_color.split("\n"))
+        expect(output_lines_without_color)
           .to all start_with('  ' * indentation_level)
       end
 
@@ -73,7 +75,7 @@ describe DumpEditorStateOnErrorFormatter do
         indentation_level.times { formatter.example_group_finished(dummy_notification) }
         formatter.example_failed(dummy_notification)
 
-        expect(output_without_color.split("\n"))
+        expect(output_lines_without_color)
           .to include start_with(/[^\s]/)
       end
     end

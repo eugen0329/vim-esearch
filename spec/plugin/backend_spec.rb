@@ -3,7 +3,6 @@
 require 'spec_helper'
 require 'plugin/shared_examples/backend'
 require 'plugin/shared_examples/abortable_backend'
-require 'plugin/shared_contexts/dumpable'
 
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
@@ -145,8 +144,6 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
-
-    include_context 'dumpable'
   end
 
   describe '#system', :system do

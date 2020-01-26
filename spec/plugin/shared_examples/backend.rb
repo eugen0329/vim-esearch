@@ -54,6 +54,4 @@ RSpec.shared_examples 'a backend' do |backend|
       end
     end
   end
-
-  include_context 'dumpable'
 end

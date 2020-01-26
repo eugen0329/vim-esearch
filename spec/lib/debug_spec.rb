@@ -16,20 +16,20 @@ describe Debug do
 
   describe '.plugin_log' do
     shared_examples 'it reads and outputs plugin log' do
-      context 'present' do
+      context 'when present' do
         it { expect(debug.plugin_log(path: log_file.path)).to eq(log_file.lines) }
       end
 
-      context 'missing' do
+      context 'when missing' do
         it { expect(debug.plugin_log(path: 'missing')).to be_nil }
       end
     end
 
-    context 'vim server' do
+    context 'when vim server' do
       it_behaves_like 'it reads and outputs plugin log'
     end
 
-    context 'neovim server' do
+    context 'when neovim server' do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
       it_behaves_like 'it reads and outputs plugin log'
@@ -39,22 +39,22 @@ describe Debug do
   describe '.nvim_log' do
     let(:server) { Configuration.vim.server }
 
-    context 'vim server' do
+    context 'when vim server' do
       # or should it be an exception?
       it { expect(debug.nvim_log).to be_nil }
     end
 
-    context 'neovim server' do
+    context 'when neovim server' do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
-      context 'present' do
+      context 'when present' do
         it do
           expect(server).to receive(:nvim_log_file).and_return(log_file.path)
           expect(debug.nvim_log).to eq(log_file.lines)
         end
       end
 
-      context 'missing' do
+      context 'when missing' do
         it do
           expect(server).to receive(:nvim_log_file).and_return('missing')
           expect(debug.nvim_log).to be_nil
@@ -66,22 +66,22 @@ describe Debug do
   describe '.verbose_log_file' do
     let(:server) { Configuration.vim.server }
 
-    context 'vim server' do
+    context 'when vim server' do
       # or should it be an exception?
       it { expect(debug.verbose_log).to be_nil }
     end
 
-    context 'neovim server' do
+    context 'when neovim server' do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
-      context 'present' do
+      context 'when present' do
         it do
           expect(server).to receive(:verbose_log_file).and_return(log_file.path)
           expect(debug.verbose_log).to eq(log_file.lines)
         end
       end
 
-      context 'missing' do
+      context 'when missing' do
         it do
           expect(server).to receive(:verbose_log_file).and_return('missing')
           expect(debug.verbose_log).to be_nil
@@ -104,20 +104,20 @@ describe Debug do
     it { expect(debug.working_directories).to match(expected) }
   end
 
-  context '.screenshot!' do
+  describe '.screenshot!' do
     subject(:screenshot_file) { debug.screenshot! }
 
     before { skip "Can't find scrot executable" unless find_executable0('scrot') }
     after  { screenshot_file&.delete }
 
-    context 'success' do
+    context 'when success' do
       subject(:screenshot_file) { debug.screenshot! }
 
       it { expect(screenshot_file).to be_file }
       it { expect(screenshot_file.size).to be > 0 }
     end
 
-    context 'failure' do
+    context 'when failure' do
       subject(:screenshot_file) { debug.screenshot!(directory: 'missing') }
 
       it { expect(screenshot_file).to be_nil }
@@ -135,9 +135,7 @@ describe Debug do
   end
 
   describe '.runtimepaths' do
-    it do
-      expect(debug.runtimepaths).to include Configuration.root.to_s
-    end
+    it { expect(debug.runtimepaths).to include Configuration.root.to_s }
   end
 
   describe '.sourced_scripts' do
@@ -152,7 +150,7 @@ describe Debug do
     it { expect(debug.buffer_content).to eq(test_file.lines) }
   end
 
-  context '.buffer_configuration' do
+  describe '.buffer_configuration' do
     context 'when defined' do
       before { esearch.editor.command!('let b:esearch = {"option": ["..."]}') }
 
