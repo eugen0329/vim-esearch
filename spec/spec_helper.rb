@@ -69,7 +69,7 @@ end
 
 RSpec.configure do |c|
   c.include DSL::Vim
-  # c.add_formatter(DumpVimEnvironmentErrorFormatter)
+  c.add_formatter(DumpVimEnvironmentErrorFormatter)
 
   c.color_mode = true
   c.order      = :rand

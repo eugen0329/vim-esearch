@@ -20,8 +20,8 @@ describe Debug do
         it { expect(debug.plugin_log(path: log_file.path)).to eq(log_file.lines) }
       end
 
-      context 'nonexisting' do
-        it { expect(debug.plugin_log(path: 'nonexisting')).to be_nil }
+      context 'missing' do
+        it { expect(debug.plugin_log(path: 'missing')).to be_nil }
       end
     end
 
@@ -55,12 +55,11 @@ describe Debug do
       end
 
       context 'missing' do
-      it do
-        expect(server).to receive(:nvim_log_file).and_return('nonexisting')
-        expect(debug.nvim_log).to be_nil
+        it do
+          expect(server).to receive(:nvim_log_file).and_return('missing')
+          expect(debug.nvim_log).to be_nil
+        end
       end
-      end
-
     end
   end
 
@@ -84,7 +83,7 @@ describe Debug do
 
       context 'missing' do
         it do
-          expect(server).to receive(:verbose_log_file).and_return('nonexisting')
+          expect(server).to receive(:verbose_log_file).and_return('missing')
           expect(debug.verbose_log).to be_nil
         end
       end
@@ -119,9 +118,12 @@ describe Debug do
     end
 
     context 'failure' do
-      subject(:screenshot_file) { debug.screenshot!(directory: 'nonexisting') }
+      subject(:screenshot_file) { debug.screenshot!(directory: 'missing') }
 
-      it { expect(screenshot_file).to be_nil }
+      it do
+        require 'pry'; binding.pry
+        expect(screenshot_file).to be_nil
+      end
     end
   end
 

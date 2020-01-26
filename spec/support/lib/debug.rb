@@ -7,7 +7,7 @@ require 'English' # reference global vars by human readable names
 module Debug
   extend VimlValue::SerializationHelpers
 
-  extend self
+  extend self # instead of module_function to maintain private methods
 
   def global_configuration
     reader.echo(var('g:esearch'))
@@ -63,7 +63,7 @@ module Debug
   end
 
   def update_time
-    reader.echo(var('&ut'))
+    reader.echo(var('&updatetime'))
   rescue Editor::Read::Base::ReadError => e
     e.message
   end
