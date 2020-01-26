@@ -71,8 +71,6 @@ install:
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
     # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi
-
-after_failure:
   - env
   - ls -lah /usr/local/bin
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
@@ -82,7 +80,8 @@ after_failure:
   - grep --help
   - rg --help
   - pt --help
-  - git grep -h
+  - git grep -h || true
+
 jobs:
   include:
     # Why tests for two platforms:
