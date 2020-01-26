@@ -120,10 +120,7 @@ describe Debug do
     context 'failure' do
       subject(:screenshot_file) { debug.screenshot!(directory: 'missing') }
 
-      it do
-        require 'pry'; binding.pry
-        expect(screenshot_file).to be_nil
-      end
+      it { expect(screenshot_file).to be_nil }
     end
   end
 
