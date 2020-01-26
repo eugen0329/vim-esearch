@@ -25,7 +25,7 @@ module Configuration
   end
 
   def log_level
-    env_fetch('LOG_LEVEL') { 'info' }
+    env_fetch('LOG_LEVEL') { 'debug' }
   end
 
   def nvim_path
