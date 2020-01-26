@@ -59,7 +59,7 @@ describe DumpEditorStateOnErrorFormatter do
     context 'output indentation' do
       let(:indentation_level) { 2 }
       let(:output_lines_without_color) do
-        output.gsub(console_color_code_regexp, '')
+        output.gsub(console_color_code_regexp, '').split("\n")
       end
 
       it 'outputes with correct indentation' do

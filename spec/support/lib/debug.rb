@@ -6,7 +6,6 @@ require 'English' # reference global vars by human readable names
 
 module Debug
   extend VimlValue::SerializationHelpers
-
   extend self # instead of module_function to maintain private methods
 
   def global_configuration

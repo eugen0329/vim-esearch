@@ -5,7 +5,7 @@ VimlValue::Types::Funcref = Struct.new(:name) do
     "function(#{name.inspect})"
   end
 
-  def pretty_print(q)
-    q.text(inspect)
+  def pretty_print(pretty_print)
+    pretty_print.text(inspect)
   end
 end

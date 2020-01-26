@@ -90,7 +90,8 @@ Vimrunner::RSpec.configure do |c|
   c.start_vim do
     load_vim_plugins!(Vimrunner::Server.new(
       executable: Configuration.vim_path,
-      vimrc:      Configuration.vimrc_path
+      vimrc:      Configuration.vimrc_path,
+      timeout:    10
     ).start)
   end
 end

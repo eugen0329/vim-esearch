@@ -76,7 +76,6 @@ module VimrunnerNeovim
     def connect(options = {})
       connect!(options)
     rescue Timeout::Error
-      puts 'Timeout' * 10
       nil
     end
 

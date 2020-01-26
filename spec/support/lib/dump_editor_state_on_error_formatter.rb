@@ -12,7 +12,26 @@ class DumpEditorStateOnErrorFormatter
   end
 
   def example_failed(_notification)
-    data = {
+    state_string = state_hash
+                   .map { |key, value| "#{current_indentation}### #{key}:\n#{value}" }
+                   .join("\n")
+                   .concat("\n")
+
+    output << colorize(state_string)
+  end
+
+  def example_group_started(_notification)
+    @group_level += 1
+  end
+
+  def example_group_finished(_notification)
+    @group_level -= 1
+  end
+
+  private
+
+  def state_hash
+    {
       buffers:              format_array(Debug.buffers),
       buffer_content:       format_array(Debug.buffer_content),
       working_directories:  format_hash(Debug.working_directories.transform_values(&:to_s)),
@@ -28,24 +47,7 @@ class DumpEditorStateOnErrorFormatter
       update_time:          prepend_indent(Debug.update_time),
       screenshot_path:      prepend_indent(Debug.screenshot!)
     }
-
-    data = data
-           .map { |key, value| "#{current_indentation}### #{key}:\n#{value}" }
-           .join("\n")
-           .concat("\n")
-
-    output << colorize(data)
   end
-
-  def example_group_started(_notification)
-    @group_level += 1
-  end
-
-  def example_group_finished(_notification)
-    @group_level -= 1
-  end
-
-  private
 
   def format_hash(object)
     prepend_indent(PP.pp(object, String.new).gsub("\n", "\n#{current_indentation}"))
