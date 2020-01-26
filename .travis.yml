@@ -122,6 +122,7 @@ jobs:
     # Unit tests
     - name: 'Unit tests'
       script: spec/support/docker/rake RSPEC_OPTS='--tag ~backend'
+      env: NVIM_GUI=0 DOCKER_BUILD=1
       os: linux
 
     # Linters
