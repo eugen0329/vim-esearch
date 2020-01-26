@@ -5,7 +5,11 @@ require 'pp'
 class DumpEditorStateOnErrorFormatter
   attr_reader :output
 
-  RSpec::Core::Formatters.register self, :example_failed, :example_group_started, :example_group_finished,
+  RSpec::Core::Formatters.register self,
+    :example_failed,
+    :example_group_started,
+    :example_group_finished
+
   def initialize(output)
     @output = output
     @group_level = 0
