@@ -75,12 +75,13 @@ before_script:
   - ls -lah /usr/local/bin
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
-  - ack --help || true
-  - ag --help || true
-  - grep --help || true
-  - "$TRAVIS_BUILD_DIR/spec/support/bin/rg" --help || true
-  - "$TRAVIS_BUILD_DIR/spec/support/bin/pt" --help || true
-  - git grep -h || true
+  - |
+    ack --help || true
+    ag --help || true
+    grep --help || true
+    "$TRAVIS_BUILD_DIR/spec/support/bin/rg" --help || true
+    "$TRAVIS_BUILD_DIR/spec/support/bin/pt" --help || true
+    git grep -h || true
 
 jobs:
   include:
