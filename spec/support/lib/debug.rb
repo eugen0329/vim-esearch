@@ -76,7 +76,7 @@ module Debug
     path = Pathname(directory).join("screenshot_#{timestamp}.png")
 
     unless find_executable0('scrot')
-      Configuration.log.warning("Can't find scrot executable")
+      Configuration.log.warn("Can't find scrot executable")
       return nil
     end
 

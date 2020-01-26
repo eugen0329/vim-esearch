@@ -121,7 +121,7 @@ jobs:
 
     # Unit tests
     - name: 'Unit tests'
-      script: bundle exec rake RSPEC_OPTS='--tag ~backend'
+      script: spec/support/docker/rake RSPEC_OPTS='--tag ~backend'
       os: linux
 
     # Linters
