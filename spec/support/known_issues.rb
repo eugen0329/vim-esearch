@@ -25,6 +25,8 @@ class KnownIssues
         skip "known issue with #{issue.description_pattern} #{issue.metadata}"
       end
     end
+
+    setup_random
   end
 
   def self.mark_example_pending_if_known_issue(spec)
@@ -57,6 +59,35 @@ class KnownIssues
                         description_pattern,
                         nil,
                         normalize_metadata(metadata))
+  end
+  class_attribute :random_issues, default: []
+  def random!(description_pattern, exception_pattern, *metadata)
+    random_issues << Issue.new(:random,
+                        description_pattern,
+                        exception_pattern,
+                        normalize_metadata(metadata))
+  end
+
+  def self.setup_random
+    random_issues.each do |issue|
+      meta = {
+        full_description: /#{Regexp.quote(issue.description_pattern)}/,
+        **issue.metadata
+      }
+      random_issues = self.random_issues
+      RSpec.configuration.after(:each, **meta) do |e|
+        description = RSpec.current_example.description
+        metadata    = RSpec.current_example.metadata
+
+        issue = random_issues.find do |i|
+          i.metadata <= metadata &&
+            description.include?(i.description_pattern) &&
+            (e.exception.nil? || e.exception.message.match?(issue.exception_pattern))
+        end
+
+        skip "random failure with #{issue.description_pattern} #{issue.metadata}" if issue
+      end
+    end
   end
 
   private
