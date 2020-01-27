@@ -78,7 +78,6 @@ RSpec.configure do |c|
   c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
-  c.add_formatter(DumpEditorStateOnErrorFormatter)
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
