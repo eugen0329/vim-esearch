@@ -61,8 +61,8 @@ class KnownIssues
                         normalize_metadata(metadata))
   end
   class_attribute :random_issues, default: []
-  def random!(description_pattern, exception_pattern, *metadata)
-    random_issues << Issue.new(:random,
+  def random_failure!(description_pattern, exception_pattern, *metadata)
+    random_issues << Issue.new(:random_failure,
                         description_pattern,
                         exception_pattern,
                         normalize_metadata(metadata))

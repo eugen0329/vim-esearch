@@ -30,12 +30,11 @@ describe KnownIssues do
     end
 
     it 'skips matching only full metadata' do
-      executed = []
       group = RSpec.describe do
-        example('example with skippable description', :skippable_tag) {  }
-        example('another description', :another_tag) {  }
-        example('example with skippable description', :another_tag) {  }
-        example('another description', :skippable_tag) {  }
+        example('example with skippable description', :skippable_tag) {}
+        example('another description', :another_tag) {}
+        example('example with skippable description', :another_tag) {}
+        example('another description', :skippable_tag) {}
       end.tap(&:run)
 
       expect(group.examples.first).to be_skipped
@@ -43,10 +42,10 @@ describe KnownIssues do
     end
   end
 
-  describe '#random!' do
+  describe '#random_failure!' do
     before do
       known_issues.allow_tests_to_fail_matching_by_metadata do
-        random! 'skippable description', /skippable exception/, :skippable_tag
+        random_failure! 'skippable description', /skippable exception/, :skippable_tag
       end
     end
 
@@ -55,7 +54,7 @@ describe KnownIssues do
         it do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
-              raise 'skippable exception'
+              expect(1).to eq(2), 'skippable exception'
             end
           end.tap(&:run)
 
@@ -63,7 +62,7 @@ describe KnownIssues do
         end
       end
 
-      context "when exception doesn't matches" do
+      context "when exception doesn't match" do
         it do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
@@ -71,9 +70,7 @@ describe KnownIssues do
             end
           end.tap(&:run)
 
-          expect(group.examples)
-            .to all not_be_pending
-            .and not_be_skipped
+          expect(group.examples).to all not_be_pending.and not_be_skipped
           expect(group.examples.map(&:exception)).to all be_present
         end
       end
@@ -100,6 +97,84 @@ describe KnownIssues do
           end
           example('another exception', :another_tag) do
             raise 'skippable exception'
+          end
+        end.tap(&:run)
+
+        expect(group.examples).to all not_be_pending.and(not_be_skipped)
+        expect(group.examples.map(&:exception)).to all be_present
+      end
+    end
+  end
+
+  describe '#pending!' do
+    before do
+      known_issues.allow_tests_to_fail_matching_by_metadata do
+        pending! 'skippable description', /skippable exception/, :skippable_tag
+      end
+    end
+
+    context 'when metadata matches' do
+      context 'when exception matches' do
+        it do
+          known_issues_klass = known_issues
+          group = RSpec.describe do
+            example('skippable description', :skippable_tag) do
+              known_issues_klass.mark_example_pending_if_known_issue(self) do
+                expect(1).to eq(2), 'skippable exception'
+              end
+            end
+          end.tap(&:run)
+
+          expect(group.examples).to all be_pending.and not_be_skipped
+        end
+      end
+
+      context "when exception doesn't match" do
+        it do
+          group = RSpec.describe do
+            example('skippable description', :skippable_tag) do
+              known_issues_klass.mark_example_pending_if_known_issue(self) do
+                raise 'another exception'
+              end
+            end
+          end.tap(&:run)
+
+          expect(group.examples).to all not_be_pending.and not_be_skipped
+          expect(group.examples.map(&:exception)).to all be_present
+        end
+      end
+
+      context "when exceptions isn't raised" do
+        it do
+          group = RSpec.describe do
+            example('skippable description', :skippable_tag) do
+              known_issues_klass.mark_example_pending_if_known_issue(self) {}
+            end
+          end.tap(&:run)
+
+          expect(group.examples).to all not_be_pending.and(not_be_skipped)
+          expect(group.examples.map(&:exception)).to all be_present
+        end
+      end
+    end
+
+    context "when metadata doesn't match" do
+      it do
+        group = RSpec.describe do
+          example('another description', :skippable_tag) do
+            known_issues_klass.mark_example_pending_if_known_issue(self) do
+              expect(1).to eq(2), 'skippable exception'
+            end
+          end
+          example('skippable description', :another_tag) do
+            known_issues_klass.mark_example_pending_if_known_issue(self) do
+              expect(1).to eq(2), 'skippable exception'
+            end
+          end
+          example('another exception', :another_tag) do
+            known_issues_klass.mark_example_pending_if_known_issue(self) do
+              expect(1).to eq(2), 'skippable exception'
+            end
           end
         end.tap(&:run)
 
