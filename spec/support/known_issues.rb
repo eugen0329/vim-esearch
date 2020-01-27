@@ -30,6 +30,8 @@ class KnownIssues
   def self.mark_example_pending_if_known_issue(spec)
     yield
   rescue Exception => e # rubocop:disable Lint/RescueException
+    description = RSpec.current_example.description
+    metadata = RSpec.current_example.metadata
     issue = pending_issues.find do |i|
       i.metadata <= metadata &&
         description.include?(i.description_pattern) &&
@@ -50,10 +52,10 @@ class KnownIssues
                         normalize_metadata(metadata))
   end
 
-  def skip!(description_pattern, exception_pattern, *metadata)
+  def skip!(description_pattern, *metadata)
     skip_issues << Issue.new(:skip,
                         description_pattern,
-                        exception_pattern,
+                        nil,
                         normalize_metadata(metadata))
   end
 
