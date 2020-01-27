@@ -51,7 +51,7 @@ describe KnownIssues do
 
     context 'when metadata matches' do
       context 'when exception matches' do
-        it do
+        it 'marks an example with #skip call' do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
               expect(1).to eq(2), 'skippable exception'
@@ -63,7 +63,7 @@ describe KnownIssues do
       end
 
       context "when exception doesn't match" do
-        it do
+        it "doesn't rescue the exception" do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
               raise 'another_exception'
@@ -76,7 +76,7 @@ describe KnownIssues do
       end
 
       context "when exceptions isn't raised" do
-        it do
+        it 'marks an example with #skip call' do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) {}
           end.tap(&:run)
@@ -87,7 +87,7 @@ describe KnownIssues do
     end
 
     context "when metadata doesn't match" do
-      it do
+      it "doesn't rescue the exception" do
         group = RSpec.describe do
           example('another description', :skippable_tag) do
             raise 'skippable exception'
@@ -115,7 +115,7 @@ describe KnownIssues do
 
     context 'when metadata matches' do
       context 'when exception matches' do
-        it do
+        it 'marks an example with #pending call' do
           known_issues_klass = known_issues
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
@@ -130,7 +130,7 @@ describe KnownIssues do
       end
 
       context "when exception doesn't match" do
-        it do
+        it "doesn't rescue the exception" do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
               known_issues_klass.mark_example_pending_if_known_issue(self) do
@@ -145,7 +145,7 @@ describe KnownIssues do
       end
 
       context "when exceptions isn't raised" do
-        it do
+        it 'invokes pending and fails an example (as #pending normally do)' do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
               known_issues_klass.mark_example_pending_if_known_issue(self) {}
@@ -159,7 +159,7 @@ describe KnownIssues do
     end
 
     context "when metadata doesn't match" do
-      it do
+      it "doesn't rescue the exception" do
         group = RSpec.describe do
           example('another description', :skippable_tag) do
             known_issues_klass.mark_example_pending_if_known_issue(self) do

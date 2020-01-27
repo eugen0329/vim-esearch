@@ -35,6 +35,6 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   skip! '/3\d*5/', :osx, adapter: :git, matching: :regexp
 
   # TODO: investigate
-  pending! 'aborts on search restart', /expected to have 1.*process/, :osx, backend: :vimproc
-  pending! 'aborts on search restart', /has_no_process_matching/, :osx, backend: :vimproc
+  random_failure! 'aborts on search restart', /.*/, :osx, backend: :vimproc
+  random_failure! 'aborts on bufdelete',      /.*/, :osx, backend: :vimproc
 end
