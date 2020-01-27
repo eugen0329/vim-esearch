@@ -19,6 +19,11 @@ class Editor::Read::Base
     raise NotImplementedError
   end
 
+  # TODO
+  def echo_command(command)
+    vim.command(command)
+  end
+
   def handle_state_change!
     cache.clear
   end

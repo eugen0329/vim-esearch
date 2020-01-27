@@ -9,7 +9,6 @@ RSpec.shared_examples 'a backend' do |backend|
       around do |example|
         esearch.configure!(backend: backend, adapter: adapter, out: 'win')
         example.run
-        cmd('close!') if bufname('%') =~ /Search/
       end
 
       context 'with relative path' do
@@ -18,6 +17,7 @@ RSpec.shared_examples 'a backend' do |backend|
         let(:directory) { 'directory' }
         let(:expected_filename) { 'file_inside_directory.txt' }
         let(:test_query) { 'content' }
+        let(:directory_path) { "#{context_fixtures_path}/#{directory}" }
 
         before do
           esearch.configure!(regex: 0)
@@ -25,12 +25,12 @@ RSpec.shared_examples 'a backend' do |backend|
           esearch.configuration.adapter_bin = Configuration.pt_path if adapter == 'pt'
           esearch.configuration.adapter_bin = Configuration.rg_path if adapter == 'rg'
 
-          cmd "cd #{context_fixtures_path}"
+          esearch.editor.cd! context_fixtures_path
         end
         after { esearch.cleanup! }
 
         it 'provides correct path when searching outside the cwd' do
-          press ":call esearch#init({'cwd': '#{context_fixtures_path}/#{directory}'})<Enter>#{test_query}<Enter>"
+          esearch.editor.press! ":call esearch#init({'cwd': '#{directory_path}'})<Enter>#{test_query}<Enter>"
 
           # TODO: reduce duplication
           expect(esearch).to have_search_started
@@ -39,21 +39,20 @@ RSpec.shared_examples 'a backend' do |backend|
             .to  have_search_finished
             .and have_not_reported_errors
 
-          expect(buffer_content)
+          expect(esearch.editor.lines.to_a.join("\n"))
             .to include(expected_file_content)
             .and include(expected_filename)
             .and not_include('content_of_file_outside')
 
-          press_with_respecting_mappings '\<Enter>'
-          expect(line(1))
+          esearch.editor.press_with_user_mappings! '\<Enter>'
+          expect(esearch.editor.lines.first)
             .to include(expected_file_content)
             .and not_include('content_of_file_outside')
 
-          expect(bufname('%')).to end_with([directory, expected_filename].join('/'))
+          expect(esearch.editor.current_buffer_name)
+            .to end_with([directory, expected_filename].join('/'))
         end
       end
     end
   end
-
-  include_context 'dumpable'
 end

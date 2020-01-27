@@ -3,7 +3,6 @@
 require 'spec_helper'
 require 'plugin/shared_examples/backend'
 require 'plugin/shared_examples/abortable_backend'
-require 'plugin/shared_contexts/dumpable'
 
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
@@ -145,8 +144,6 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
-
-    include_context 'dumpable'
   end
 
   describe '#system', :system do
@@ -156,8 +153,8 @@ describe 'esearch#backend', :backend do
 
   describe '#vimproc', :vimproc, backend: :vimproc do
     before(:all) do
-      press ':let g:esearch#backend#vimproc#updatetime = 30'
-      press ':let g:esearch#backend#vimproc#read_timeout = 30'
+      esearch.editor.press! ':let g:esearch#backend#vimproc#updatetime = 30'
+      esearch.editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30'
     end
 
     include_context 'a backend', 'vimproc'
@@ -170,7 +167,7 @@ describe 'esearch#backend', :backend do
 
     # TODO
     before(:each) do
-      press ':let g:esearch#util#unicode_enabled = 0<Enter>'
+      esearch.editor.press! ':let g:esearch#util#unicode_enabled = 0<Enter>'
     end
 
     include_context 'a backend', 'nvim'
@@ -179,7 +176,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
-    before { press ':let g:esearch#backend#vim8#timer = 100<Enter>' }
+    before { esearch.editor.press! ':let g:esearch#backend#vim8#timer = 100<Enter>' }
 
     include_context 'a backend', 'vim8'
     include_context 'a backend 2', 'vim8'

@@ -7,8 +7,6 @@ require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/notifications'
 require 'active_support/tagged_logging'
-# reference global vars by human readable names (rubocop requirement)
-require 'English'
 begin
   require 'pry'
   Pry.config.history.file = '.pry_history'
@@ -28,13 +26,13 @@ Configuration.tap do |c|
   c.process_check_timeout = 10.second
 end
 
-ActiveSupport::Dependencies.autoload_paths += ['spec/support', 'spec/support/lib']
+ActiveSupport::Dependencies.autoload_paths = ['spec/support', 'spec/support/lib']
 
 vim_instance_getter =
   if Configuration.debug_specs_performance?
-    -> { VimrunnerSpy.new(Vimrunner::Testing.instance) }
+    -> { VimrunnerSpy.new(Configuration.vim) }
   else
-    -> { Vimrunner::Testing.instance }
+    Configuration.method(:vim)
   end
 
 # Required mostly for improvimg performance of neovim backend testing by
@@ -70,11 +68,8 @@ else
 end
 
 RSpec.configure do |c|
-  c.include DSL::Vim
-
   c.color_mode = true
   c.order      = :rand
-  c.seed       = 1
   c.formatter  = :documentation
   c.fail_fast  = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
@@ -83,6 +78,7 @@ RSpec.configure do |c|
   c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+  c.add_formatter(DumpEditorStateOnErrorFormatter)
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
@@ -94,7 +90,8 @@ Vimrunner::RSpec.configure do |c|
   c.start_vim do
     load_vim_plugins!(Vimrunner::Server.new(
       executable: Configuration.vim_path,
-      vimrc:      Configuration.vimrc_path
+      vimrc:      Configuration.vimrc_path,
+      timeout:    10
     ).start)
   end
 end
@@ -116,6 +113,5 @@ end
 def load_vim_plugins!(vim)
   vim.add_plugin(Configuration.root,                                'plugin/esearch.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'),     'plugin/vimproc.vim')
-  vim.add_plugin(Configuration.plugins_dir.join('vim-prettyprint'), 'plugin/prettyprint.vim')
   vim
 end

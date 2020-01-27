@@ -52,7 +52,7 @@ module VimrunnerNeovim
       # >= 14  Anything pending in a ":finally" clause.
       # >= 15  Every executed Ex command (truncated at 200 characters).
       @verbose_level    = options.fetch(:verbose_level, 0)
-      @verbose_log_file = options.fetch(:verbose_log_file) { '/tmp/vimrunner_neovim_verbose_log.log' }
+      @verbose_log_file = options.fetch(:verbose_log_file) { '/tmp/vimrunner_neovim_verbose.log' }
 
       # $NVIM_LOG_FILE variable for nvim
       @nvim_log_file = options.fetch(:nvim_log_file) { "#{Dir.home}/.local/share/nvim/log" }
@@ -76,7 +76,6 @@ module VimrunnerNeovim
     def connect(options = {})
       connect!(options)
     rescue Timeout::Error
-      puts 'Timeout' * 10
       nil
     end
 

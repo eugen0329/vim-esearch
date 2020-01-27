@@ -5,6 +5,7 @@ require_relative 'platform_check'
 
 module Configuration
   extend PlatformCheck
+  extend Vimrunner::Testing
 
   module_function
 

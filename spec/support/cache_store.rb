@@ -16,7 +16,8 @@ class CacheStore < ActiveSupport::Cache::MemoryStore
   end
 
   def write(name, value, options = nil)
-    instrument(:write_value, name, merged_options(options).merge(value: value)) {}
-    super
+    instrument(:write_value, name, merged_options(options).merge(value: value)) do
+      super
+    end
   end
 end

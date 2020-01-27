@@ -71,18 +71,18 @@ install:
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
     # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi
-
-after_failure:
   - env
   - ls -lah /usr/local/bin
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
   - ls -lah "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
-  - ack --help
-  - ag --help
-  - grep --help
-  - rg --help
-  - pt --help
-  - git grep -h
+  - |
+    ack --help || true
+    ag --help || true
+    grep --help || true
+    "$TRAVIS_BUILD_DIR/spec/support/bin/rg" --help || true
+    "$TRAVIS_BUILD_DIR/spec/support/bin/pt" --help || true
+    git grep -h || true
+
 jobs:
   include:
     # Why tests for two platforms:
@@ -121,7 +121,8 @@ jobs:
 
     # Unit tests
     - name: 'Unit tests'
-      script: bundle exec rake RSPEC_OPTS='--tag ~backend'
+      script: spec/support/docker/rake RSPEC_OPTS='--tag ~backend'
+      env: NVIM_GUI=0 DOCKER_BUILD=1
       os: linux
 
     # Linters

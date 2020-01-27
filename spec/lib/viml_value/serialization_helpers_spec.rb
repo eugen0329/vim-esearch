@@ -10,11 +10,13 @@ describe VimlValue::SerializationHelpers do
 
     context 'vim option variable' do
       let(:ruby_object) { var('&filetype') }
+
       it { expect(dumped).to eq('&filetype') }
     end
 
     context 'vim autoloadable variable' do
       let(:ruby_object) { var('g:a#b') }
+
       it { expect(dumped).to eq('g:a#b') }
     end
   end

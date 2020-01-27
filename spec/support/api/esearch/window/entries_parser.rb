@@ -17,16 +17,13 @@ class API::ESearch::Window::EntriesParser
     return enum_for(:parse) unless block_given?
 
     lines_iterator.rewind
-    begin
-      # fast_forward_header!
 
-      loop do
-        relative_path = next_file_relative_path!
-        raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
+    loop do
+      relative_path = next_file_relative_path!
+      raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
 
-        next_lines_with_entries! do |line|
-          yield API::ESearch::Window::Entry.new(editor, relative_path, *line)
-        end
+      next_lines_with_entries! do |line|
+        yield API::ESearch::Window::Entry.new(editor, relative_path, *line)
       end
     rescue StopIteration
       nil
@@ -37,10 +34,6 @@ class API::ESearch::Window::EntriesParser
 
   def line_with_entry?
     lines_iterator.peek[0].match?(FILE_ENTRY_REGEXP)
-  end
-
-  def fast_forward_header!
-    lines_iterator.next while lines_iterator.peek[0].match?(API::ESearch::Window::HeaderParser::HEADER_REGEXP)
   end
 
   def next_file_relative_path!

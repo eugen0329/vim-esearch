@@ -4,14 +4,13 @@ require 'timeout'
 
 module API::Mixins::BecomeTruthyWithinTimeout
   def became_truthy_within?(timeout)
-    Timeout.timeout(timeout, Timeout::Error) do
-      loop do
-        return true if yield
+    t0 = Time.now
 
-        sleep 0.1
-      end
+    loop do
+      break true  if yield
+      break false if Time.now - t0 > timeout
+
+      sleep 0.1
     end
-  rescue Timeout::Error
-    false
   end
 end

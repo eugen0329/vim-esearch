@@ -9,10 +9,22 @@ class KnownIssues
                      :exception_pattern,
                      :metadata)
 
-  class_attribute :issues, default: []
+  class_attribute :pending_issues, default: []
+  class_attribute :skip_issues, default: []
 
   def self.allow_tests_to_fail_matching_by_metadata(&block)
     new.instance_eval(&block)
+
+    skip_issues.each do |issue|
+      meta = {
+        full_description: /#{Regexp.quote(issue.description_pattern)}/,
+        **issue.metadata
+      }
+
+      RSpec.configuration.prepend_before(:each, **meta) do
+        skip "known issue with #{issue.description_pattern} #{issue.metadata}"
+      end
+    end
   end
 
   def self.mark_example_pending_if_known_issue(spec)
@@ -20,8 +32,7 @@ class KnownIssues
   rescue Exception => e # rubocop:disable Lint/RescueException
     description = RSpec.current_example.description
     metadata = RSpec.current_example.metadata
-
-    issue = issues.find do |i|
+    issue = pending_issues.find do |i|
       i.metadata <= metadata &&
         description.include?(i.description_pattern) &&
         e.message.match?(i.exception_pattern)
@@ -35,16 +46,16 @@ class KnownIssues
   end
 
   def pending!(description_pattern, exception_pattern, *metadata)
-    issues << Issue.new(:pending,
+    pending_issues << Issue.new(:pending,
                         description_pattern,
                         exception_pattern,
                         normalize_metadata(metadata))
   end
 
-  def skip!(description_pattern, exception_pattern, *metadata)
-    issues << Issue.new(:skip,
+  def skip!(description_pattern, *metadata)
+    skip_issues << Issue.new(:skip,
                         description_pattern,
-                        exception_pattern,
+                        nil,
                         normalize_metadata(metadata))
   end
 

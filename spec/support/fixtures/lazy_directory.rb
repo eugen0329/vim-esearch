@@ -36,7 +36,7 @@ class Fixtures::LazyDirectory
   end
 
   def path
-    Pathname(fixtures_directory.join(name))
+    Pathname(fixtures_directory.join(name)).cleanpath
   end
 
   def name
