@@ -15,7 +15,7 @@ class KnownIssues
   def self.allow_tests_to_fail_matching_by_metadata(&block)
     new.instance_eval(&block)
 
-    skip_issues.find do |issue|
+    skip_issues.each do |issue|
       meta = {
         full_description: /#{Regexp.quote(issue.description_pattern)}/,
         **issue.metadata
