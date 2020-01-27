@@ -5,8 +5,7 @@ require 'spec_helper'
 describe KnownIssues do
   around do |e|
     require 'rspec/core/sandbox'
-    RSpec::Core::Sandbox.sandboxed do |config|
-      config.before(:context) { RSpec.current_example = nil }
+    RSpec::Core::Sandbox.sandboxed do |_config|
       e.run
     end
   end
@@ -21,6 +20,9 @@ describe KnownIssues do
 
   define_negated_matcher :not_be_skipped, :be_skipped
   define_negated_matcher :not_be_pending, :be_pending
+  matcher :have_exception_present do
+    match { |example| example.exception.present? }
+  end
 
   describe '#skip!' do
     before do
@@ -38,7 +40,7 @@ describe KnownIssues do
       end.tap(&:run)
 
       expect(group.examples.first).to be_skipped
-      expect(group.examples[1..]).to all not_be_pending.and(not_be_skipped)
+      expect(group.examples[1..]).to all not_be_pending & not_be_skipped
     end
   end
 
@@ -66,12 +68,12 @@ describe KnownIssues do
         it "doesn't rescue the exception" do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
-              raise 'another_exception'
+              expect(2).to eq(4), 'another_exception'
             end
           end.tap(&:run)
 
           expect(group.examples).to all not_be_pending.and not_be_skipped
-          expect(group.examples.map(&:exception)).to all be_present
+          expect(group.examples).to all have_exception_present
         end
       end
 
@@ -100,8 +102,8 @@ describe KnownIssues do
           end
         end.tap(&:run)
 
-        expect(group.examples).to all not_be_pending.and(not_be_skipped)
-        expect(group.examples.map(&:exception)).to all be_present
+        expect(group.examples).to all not_be_pending & not_be_skipped
+        expect(group.examples).to all have_exception_present
       end
     end
   end
@@ -134,13 +136,13 @@ describe KnownIssues do
           group = RSpec.describe do
             example('skippable description', :skippable_tag) do
               known_issues_klass.mark_example_pending_if_known_issue(self) do
-                raise 'another exception'
+                expect(2).to eq(4), 'another_exception'
               end
             end
           end.tap(&:run)
 
           expect(group.examples).to all not_be_pending.and not_be_skipped
-          expect(group.examples.map(&:exception)).to all be_present
+          expect(group.examples).to all have_exception_present
         end
       end
 
@@ -152,8 +154,8 @@ describe KnownIssues do
             end
           end.tap(&:run)
 
-          expect(group.examples).to all not_be_pending.and(not_be_skipped)
-          expect(group.examples.map(&:exception)).to all be_present
+          expect(group.examples).to all not_be_pending & not_be_skipped
+          expect(group.examples).to all have_exception_present
         end
       end
     end
@@ -178,8 +180,8 @@ describe KnownIssues do
           end
         end.tap(&:run)
 
-        expect(group.examples).to all not_be_pending.and(not_be_skipped)
-        expect(group.examples.map(&:exception)).to all be_present
+        expect(group.examples).to all not_be_pending & not_be_skipped
+        expect(group.examples).to all have_exception_present
       end
     end
   end

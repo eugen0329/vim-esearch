@@ -31,9 +31,9 @@ class KnownIssues
     random_issues.each do |issue|
       config.prepend_after(:example, **hook_filters(issue)) do |example|
         if example.exception.nil?
-          skip "random success with #{issue.description_substring} #{issue.meta}"
+          skip "random success with #{issue.description_substring.inspect} #{issue.meta}"
         elsif  example.exception.message.match?(issue.exception_pattern)
-          skip "random failure with #{issue.description_substring} #{issue.meta}"
+          skip "random failure with #{issue.description_substring.inspect} #{issue.meta}"
         end
       end
     end
