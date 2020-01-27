@@ -14,22 +14,20 @@ class KnownIssues
 
   def self.allow_tests_to_fail_matching_by_metadata(&block)
     new.instance_eval(&block)
+
+    skip_issues.find do |issue|
+      meta = {
+        full_description: /#{Regexp.quote(issue.description_pattern)}/,
+        **issue.metadata
+      }
+
+      RSpec.configuration.prepend_before(:each, **meta) do
+        skip "known issue with #{issue.description_pattern} #{issue.metadata}"
+      end
+    end
   end
 
   def self.mark_example_pending_if_known_issue(spec)
-    description = RSpec.current_example.description
-    metadata = RSpec.current_example.metadata
-
-    issue = skip_issues.find do |i|
-      i.metadata <= metadata && description.include?(i.description_pattern)
-    end
-
-    if issue
-      spec.public_send(:skip,
-                       "known issue with #{issue.description_pattern} #{issue.metadata}")
-      return
-    end
-
     yield
   rescue Exception => e # rubocop:disable Lint/RescueException
     issue = pending_issues.find do |i|
