@@ -8,6 +8,7 @@ describe 'esearch#backend', :backend do
   include Helpers::FileSystem
   include Helpers::Strings
   include Helpers::OutputErrors
+  include Helpers::ReportEditorStateOnError
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context "when searching for #{dump(search_string)}" do
@@ -27,12 +28,14 @@ describe 'esearch#backend', :backend do
         esearch.cd! search_directory
       end
 
-      after do
+      append_after do
         if Configuration.debug_specs_performance? && backend == 'system'
           expect(VimrunnerSpy.echo_call_history.count).to be < 7
         end
         esearch.cleanup!
       end
+
+      include_context 'report editor state on error'
 
       it "finds 1 entry of #{dump(search_string)} inside a file containing #{dump(kwargs[:in])}" do
         esearch.search!(to_search(search_string))

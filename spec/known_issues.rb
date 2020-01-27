@@ -2,8 +2,22 @@
 
 require 'support/known_issues'
 
-# https://relishapp.com/rspec/rspec-core/docs/metadata/user-defined-metadata
+# Match examples by user defined metadata and mark it with skip or pending:
+#   https://relishapp.com/rspec/rspec-core/docs/metadata/user-defined-metadata
+# The same approach is used in other repos (ex. JRuby) to avoid overcrowding
+# example bodies with inline if-condition-then-pending and to keep all the
+# pending examples info in one place. In addition, only exceptions matching
+# exception_pattern are handled to avoid false positives.
+#
+# Usage:
+#   pending!        description_substring, exception_pattern, **other_metadata
+#   skip!           description_substring, **other_metadata
+#   random_failure! description_substring, exception_pattern, **other_metadata
+#
+# #skip! and pending! follow RSpec semantics
+# #random_failure! works like pending, but won't fail if an example is succeeded
 KnownIssues.allow_tests_to_fail_matching_by_metadata do
+  # Aren't implemented by grep
   pending! '[[:digit:]]', /position_inside_file/, adapter: :grep, matching: :regexp
   pending! '\d{2}',       /position_inside_file/, adapter: :grep, matching: :regexp
   pending! 'a{2}',        /position_inside_file/, adapter: :grep, matching: :regexp
@@ -12,6 +26,7 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   pending! '(?<name>',    /position_inside_file/, adapter: :grep, matching: :regexp
   pending! '(?P<name>',   /position_inside_file/, adapter: :grep, matching: :regexp
 
+  # Aren't implemented by git-grep
   pending! '[[:digit:]]{2}', /position_inside_file/, adapter: :git, matching: :regexp
   pending! '\d{2}',          /position_inside_file/, adapter: :git, matching: :regexp
   pending! 'a{2}',           /position_inside_file/, adapter: :git, matching: :regexp
@@ -35,6 +50,6 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   skip! '/3\d*5/', :osx, adapter: :git, matching: :regexp
 
   # TODO: investigate
-  pending! 'aborts on search restart', /expected to have 1.*process/, :osx, backend: :vimproc
-  pending! 'aborts on search restart', /has_no_process_matching/, :osx, backend: :vimproc
+  random_failure! 'aborts on search restart', /.*/, :osx, backend: :vimproc
+  random_failure! 'aborts on bufdelete',      /.*/, :osx, backend: :vimproc
 end
