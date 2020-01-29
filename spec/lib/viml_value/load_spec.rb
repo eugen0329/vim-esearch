@@ -6,6 +6,7 @@ require 'spec_helper'
 describe VimlValue do
   include Helpers::VimlValue
   include VimlValue::SerializationHelpers
+  extend VimlValue::SerializationHelpers
 
   ParseError ||= VimlValue::ParseError
   DictRecursiveRef ||= VimlValue::Types::DictRecursiveRef
@@ -50,8 +51,8 @@ describe VimlValue do
 
       context 'function references' do
         it { expect(actual.("function('tr')")).to  be_loaded_as(expected.(funcref('tr'))) }
-        it { expect(actual.("function ('tr')")).to be_loaded_as(expected.(funcref('tr'))) }
         it { expect(actual.('function("tr")')).to  be_loaded_as(expected.(funcref('tr'))) }
+        it { expect(actual.("function ('tr')")).to be_loaded_as(expected.(funcref('tr'))) }
 
         it { expect(actual.('function')).to      fail_loading_with(ParseError) }
         it { expect(actual.('function()')).to    fail_loading_with(ParseError) }
@@ -74,8 +75,8 @@ describe VimlValue do
       end
 
       context 'recursive references' do
-        it { expect(actual.('{...}')).to be_loaded_as(expected.(be_a(DictRecursiveRef))) }
-        it { expect(actual.('[...]')).to be_loaded_as(expected.(be_a(ListRecursiveRef))) }
+        it { expect(actual.('{...}')).to be_loaded_as(expected.(DictRecursiveRef.new)) }
+        it { expect(actual.('[...]')).to be_loaded_as(expected.(ListRecursiveRef.new)) }
       end
 
       context 'string' do
@@ -205,6 +206,12 @@ describe VimlValue do
       include_examples 'values wrapped inside a parsing context',
         ->(given_str)    { "{'key': #{given_str}}" },
         ->(expected_obj) { {'key' => expected_obj} }
+    end
+
+    context 'inside funcref curried arguments list' do
+      include_examples 'values wrapped inside a parsing context',
+        ->(given_str)    { "function('Fn', #{given_str})" },
+        ->(expected_obj) { funcref('Fn', expected_obj) }
     end
 
     context 'inside deeply nested structure' do

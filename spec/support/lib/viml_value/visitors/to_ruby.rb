@@ -29,7 +29,8 @@ class VimlValue::Visitors::ToRuby
   end
 
   def visit_funcref(node)
-    VimlValue::Types::Funcref.new(visit_string(node))
+    VimlValue::Types::Funcref.new(visit_string(node.children.first),
+                                  *node.children[1..].map { |n| visit(n) })
   end
 
   def visit_dict_recursive_ref(_node)

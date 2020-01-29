@@ -1,5 +1,5 @@
 class VimlValue::Parser
-token STRING NUMERIC BOOLEAN NULL FUNCREF COLON ','
+token STRING NUMERIC BOOLEAN NULL FUNCREF
       DICT_RECURSIVE_REF LIST_RECURSIVE_REF
 rule
   toplevel:
@@ -33,14 +33,18 @@ rule
 
   literal
     : string
+    | funcref
     | NUMERIC                       { result = @builder.numeric(val[0]) }
     | BOOLEAN                       { result = @builder.boolean(val[0]) }
     | NULL                          { result = @builder.null(val[0]) }
-    | FUNCREF '(' STRING ')'        { result = @builder.funcref(val[2]) }
     | DICT_RECURSIVE_REF            { result = @builder.dict_recursive_ref }
     | LIST_RECURSIVE_REF            { result = @builder.list_recursive_ref }
 
-  string: STRING                    { result = @builder.string(val[0]) }
+    funcref
+    : FUNCREF '(' string ')'            { result = @builder.funcref(val[2]) }
+    | FUNCREF '(' string ',' values ')' { result = @builder.funcref(val[2], val[4]) }
+
+  string: STRING                        { result = @builder.string(val[0]) }
 
   optional_comma: ',' | nothing
   nothing:
@@ -67,11 +71,12 @@ end
   end
 
   def on_error(token_id, value, value_stack)
+    msg = "While parsing: #{@lexer.data}\n"
     if token_to_str(token_id) == '$end'
-      raise ParseError, "Unexpected end of tokens stream"
+      raise ParseError, msg + "Unexpected end of tokens stream"
     else
       location = [value.start, value.end].join(':')
-      raise ParseError, "Unexpected token #{token_to_str(token_id)} at location #{location}"
+      raise ParseError, msg + "Unexpected token #{token_to_str(token_id)} at location #{location}"
     end
   end
 

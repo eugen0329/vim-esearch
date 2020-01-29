@@ -39,8 +39,17 @@ describe VimlValue::Parser do
       it { expect('v:false').to        be_parsed_as(s(:boolean, false))     }
       it { expect('[...]').to          be_parsed_as(s(:list_recursive_ref)) }
       it { expect('{...}').to          be_parsed_as(s(:dict_recursive_ref)) }
-      it { expect('function("tr")').to be_parsed_as(s(:funcref, 'tr'))      }
-      it { expect("function('tr')").to be_parsed_as(s(:funcref, 'tr'))      }
+
+      it { expect('function("tr")').to be_parsed_as(s(:funcref, s(:string, 'tr'))) }
+      it { expect("function('tr')").to be_parsed_as(s(:funcref, s(:string, 'tr'))) }
+      it do
+        expect("function('fn', 1)")
+          .to be_parsed_as(s(:funcref, s(:string, 'fn'), s(:numeric, 1)))
+      end
+      it do
+        expect("function('fn', [1])")
+          .to be_parsed_as(s(:funcref, s(:string, 'fn'), s(:list, s(:numeric, 1))))
+      end
     end
 
     context 'list' do

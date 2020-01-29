@@ -9,7 +9,7 @@ module VimlValue::SerializationHelpers
     VimlValue::Serializable::FunctionCall.new(name, *arguments)
   end
 
-  def funcref(name)
-    VimlValue::Types::Funcref.new(name)
+  def funcref(*args)
+    VimlValue::Types::Funcref.new(*args)
   end
 end
