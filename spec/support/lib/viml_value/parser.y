@@ -72,11 +72,19 @@ end
   end
 
   def on_error(token_id, value, value_stack)
+    msg = "While parsing: #{@lexer.data}\n"
     if token_to_str(token_id) == '$end'
+<<<<<<< 4e37f04cc4139ce0b814f28fb1daf054f2bee3a1
       raise ParseError, "#{context}Unexpected end of tokens stream"
     else
       location = [value.start, value.end].join(':')
       raise ParseError,  "#{context}Unexpected token #{token_to_str(token_id)} at location #{location}"
+=======
+      raise ParseError, msg + "Unexpected end of tokens stream"
+    else
+      location = [value.start, value.end].join(':')
+      raise ParseError, msg + "Unexpected token #{token_to_str(token_id)} at location #{location}"
+>>>>>>> implement parsing for curried arguments
     end
   end
 
