@@ -10,7 +10,7 @@ class API::ESearch::Window::EntriesParser
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines(3..).with_index
+    @lines_iterator = editor.lines(3..).with_index(3)
   end
 
   def parse
@@ -22,11 +22,15 @@ class API::ESearch::Window::EntriesParser
       relative_path = next_file_relative_path!
       raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
 
-      next_lines_with_entries! do |line|
-        yield API::ESearch::Window::Entry.new(editor, relative_path, *line)
+      next_lines_with_entries! do |line_content, line_in_window|
+        yield API::ESearch::Window::Entry
+          .new(editor,
+               relative_path,
+               line_content,
+               line_in_window)
       end
     rescue StopIteration
-      nil
+      return nil
     end
   end
 

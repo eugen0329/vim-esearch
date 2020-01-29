@@ -49,6 +49,7 @@ describe 'esearch#backend', :backend do
 
           expect(esearch)
             .to  have_reported_a_single_result
+            .and have_search_highlight(line, column)
             .and have_outputted_result_from_file_in_line(expected_path, line)
             .and have_outputted_result_with_right_position_inside_file(expected_path, line, column)
         end
@@ -71,6 +72,7 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3
           include_context 'finds 1 entry of', /3\d+5/, in: "\n__345", line: 2, column: 3
           include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3
+          include_context 'finds 1 entry of', /5$/,    in: "\n__5_5", line: 2, column: 5
 
           # are required mostly to choose the best commandline options for adapters
           context 'compatibility with syntax', :compatibility_regexps do

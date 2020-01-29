@@ -10,7 +10,7 @@ endfu
 
 fu! esearch#regex#finalize(exp, opts) abort
   let vexp = a:exp.vim
-  let vexp = escape(vexp, '$')
+  " let vexp = escape(vexp, '$')
 
   if a:opts.word
     let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'

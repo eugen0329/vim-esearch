@@ -146,6 +146,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
         \})
 
+  let b:esearch.debug = []
   " call esearch#log#debug('extend b:esearch.request after', '/tmp/esearch_log.txt')
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
   " call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')

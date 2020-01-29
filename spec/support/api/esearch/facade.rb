@@ -22,6 +22,7 @@ class API::ESearch::Facade
   delegate :has_search_started?,
     :has_search_finished?,
     :has_reported_a_single_result?,
+    :has_search_highlight?,
     :has_outputted_result_from_file_in_line?,
     :has_outputted_result_with_right_position_inside_file?,
     :has_not_reported_errors?,

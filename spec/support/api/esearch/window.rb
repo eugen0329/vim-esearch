@@ -34,6 +34,21 @@ class API::ESearch::Window
     end
   end
 
+  include VimlValue::SerializationHelpers
+
+  def matches; end
+
+  def has_search_highlight?(line, column)
+    matches = editor.echo(func('Matches', var('b:esearch.exp.vim_match')))
+                    .map { |line_in_window, start, stop| [line_in_window, [start, stop]] }
+                    .to_h
+
+    line_in_window = entries.first.left_padding
+    padding = entries.first.left_padding
+    line2line_in_window = entries.map { |e| [e.line_number, e.line_in_window] }.to_h
+    matches[line2line_in_window[line]].first == padding + column
+  end
+
   def errors
     editor.lines
   end
@@ -74,7 +89,7 @@ class API::ESearch::Window
     entry = find_entry(relative_path, line)
     raise MissingEntry unless entry
 
-    entry.open { return [editor.current_line_number, editor.current_column_number] }
+    entry.open { [editor.current_line_number, editor.current_column_number] }
   end
 
   def find_entry(relative_path, line)
