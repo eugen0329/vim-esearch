@@ -27,6 +27,7 @@ module VimlValue
       vtrue        = 'v:true';
       vfalse       = 'v:false';
       vnull        = 'v:null';
+      vnone        = 'v:none' | 'None';
       funcref      = 'function';
       dict_recursive_ref = '{...}';
       list_recursive_ref = '[...]';
@@ -47,6 +48,7 @@ module VimlValue
         double_quote       => { start_str!; fcall double_quoted_str;       };
         vtrue              => { emit(:BOOLEAN, true)                       };
         vfalse             => { emit(:BOOLEAN, false)                      };
+        vnone              => { emit(:NONE, nil)                           };
         vnull              => { emit(:NULL,  nil)                          };
         funcref            => { emit(:FUNCREF, nil)                        };
         dict_recursive_ref => { emit(:DICT_RECURSIVE_REF, nil)             };

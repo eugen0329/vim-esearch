@@ -12,4 +12,8 @@ module VimlValue::SerializationHelpers
   def funcref(*args)
     VimlValue::Types::Funcref.new(*args)
   end
+
+  def none
+    VimlValue::Types::None.new
+  end
 end

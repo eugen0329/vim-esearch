@@ -1,5 +1,5 @@
 class VimlValue::Parser
-token STRING NUMERIC BOOLEAN NULL FUNCREF
+token STRING NUMERIC BOOLEAN NONE NULL FUNCREF
       DICT_RECURSIVE_REF LIST_RECURSIVE_REF
 rule
   toplevel:
@@ -37,6 +37,7 @@ rule
     | NUMERIC                           { result = @builder.numeric(val[0]) }
     | BOOLEAN                           { result = @builder.boolean(val[0]) }
     | NULL                              { result = @builder.null(val[0]) }
+    | NONE                              { result = @builder.none }
     | DICT_RECURSIVE_REF                { result = @builder.dict_recursive_ref }
     | LIST_RECURSIVE_REF                { result = @builder.list_recursive_ref }
 

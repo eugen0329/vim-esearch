@@ -54,6 +54,10 @@ describe VimlValue do
       it { expect(dump_eval_load.call([nil])).to eq([nil]) }
     end
 
+    context 'none' do
+      it { expect(dump_eval_load.call([none])).to eq([none]) }
+    end
+
     context 'boolean' do
       it { expect(dump_eval_load.call([true])).to  eq([true])  }
       it { expect(dump_eval_load.call([false])).to eq([false]) }

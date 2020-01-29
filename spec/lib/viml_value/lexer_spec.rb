@@ -95,6 +95,21 @@ describe VimlValue::Lexer do
       it { expect('false').to   fail_tokenizing_with(ParseError) }
     end
 
+    context 'NULL' do
+      it { expect('v:null').to  be_tokenized_as([tok(:NULL, nil, 0..6)]) }
+      it { expect('g:null').to  fail_tokenizing_with(ParseError) }
+      it { expect(':null').to   fail_tokenizing_with(ParseError) }
+      it { expect('null').to    fail_tokenizing_with(ParseError) }
+    end
+
+    context 'NONE' do
+      it { expect('v:none').to  be_tokenized_as([tok(:NONE, nil, 0..6)]) }
+      it { expect('None').to    be_tokenized_as([tok(:NONE, nil, 0..4)]) }
+      it { expect('g:none').to  fail_tokenizing_with(ParseError) }
+      it { expect(':none').to   fail_tokenizing_with(ParseError) }
+      it { expect('none').to    fail_tokenizing_with(ParseError) }
+    end
+
     context 'DICT_RECURSIVE_REF' do
       it { expect(%q|{...}|).to  be_tokenized_as([tok(:DICT_RECURSIVE_REF, nil, 0..5)]) }
       it { expect(%q|{....}|).to fail_tokenizing_with(ParseError) }
