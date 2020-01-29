@@ -9,7 +9,7 @@ class VimlValue::Serializable::FunctionCall < VimlValue::Serializable::Expressio
   end
 
   def to_s
-    "(#{name} #{arguments.join(' ')})"
+    "(#{name} #{arguments.map(&:inspect).join(' ')})"
   end
 
   def inspect
