@@ -9,8 +9,12 @@ class VimlValue::TreeBuilder
     node(:boolean, [token_value(tstring)])
   end
 
-  def null(tstring)
-    node(:null, [token_value(tstring)])
+  def none
+    node(:none)
+  end
+
+  def null(tnull)
+    node(:null, [token_value(tnull)])
   end
 
   def funcref(tstring, *curried_args)

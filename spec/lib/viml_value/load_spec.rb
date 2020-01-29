@@ -8,9 +8,10 @@ describe VimlValue do
   include VimlValue::SerializationHelpers
   extend VimlValue::SerializationHelpers
 
-  ParseError ||= VimlValue::ParseError
+  ParseError       ||= VimlValue::ParseError
   DictRecursiveRef ||= VimlValue::Types::DictRecursiveRef
   ListRecursiveRef ||= VimlValue::Types::ListRecursiveRef
+  None             ||= VimlValue::Types::None
 
   describe '#load' do
     let(:allow_toplevel_literals) { true }
@@ -72,6 +73,11 @@ describe VimlValue do
 
       context 'v:null' do
         it { expect(actual.('v:null')).to be_loaded_as(expected.(nil)) }
+      end
+
+      context 'v:none' do
+        it { expect(actual.('v:none')).to be_loaded_as(expected.(None.new)) }
+        it { expect(actual.('None')).to   be_loaded_as(expected.(None.new)) }
       end
 
       context 'recursive references' do
@@ -249,6 +255,8 @@ describe VimlValue do
           it { expect('"str1"').to         fail_loading_with(ParseError) }
           it { expect("'str2'").to         fail_loading_with(ParseError) }
           it { expect('v:null').to         fail_loading_with(ParseError) }
+          it { expect('v:none').to         fail_loading_with(ParseError) }
+          it { expect('None').to           fail_loading_with(ParseError) }
           it { expect('v:true').to         fail_loading_with(ParseError) }
           it { expect('v:false').to        fail_loading_with(ParseError) }
           it { expect('[...]').to          fail_loading_with(ParseError) }

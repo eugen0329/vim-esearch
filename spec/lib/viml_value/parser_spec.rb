@@ -35,6 +35,8 @@ describe VimlValue::Parser do
       it { expect('"str1"').to         be_parsed_as(s(:string,  'str1'))    }
       it { expect("'str2'").to         be_parsed_as(s(:string,  'str2'))    }
       it { expect('v:null').to         be_parsed_as(s(:null,    nil))       }
+      it { expect('v:none').to         be_parsed_as(s(:none))               }
+      it { expect('None').to           be_parsed_as(s(:none))               }
       it { expect('v:true').to         be_parsed_as(s(:boolean, true))      }
       it { expect('v:false').to        be_parsed_as(s(:boolean, false))     }
       it { expect('[...]').to          be_parsed_as(s(:list_recursive_ref)) }

@@ -28,6 +28,10 @@ class VimlValue::Visitors::ToRuby
     [visit_string(pair.children.first), visit(pair.children.last)]
   end
 
+  def visit_none(_node)
+    VimlValue::Types::None.new
+  end
+
   def visit_funcref(node)
     VimlValue::Types::Funcref.new(
       visit_string(node.children.first),
