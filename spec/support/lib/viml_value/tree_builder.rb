@@ -13,8 +13,8 @@ class VimlValue::TreeBuilder
     node(:null, [token_value(tstring)])
   end
 
-  def funcref(tname, curried_args=[])
-    node(:funcref, [tname, *curried_args])
+  def funcref(tstring, *curried_args)
+    node(:funcref, [tstring, *curried_args])
   end
 
   def string(tstring)

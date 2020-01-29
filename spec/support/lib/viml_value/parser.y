@@ -5,7 +5,7 @@ rule
   toplevel:
     : list
     | dict
-    | literal                       { raise_unless_toplevel_literals_allowed }
+    | literal                           { raise_unless_toplevel_literals_allowed }
     | nothing
 
   value
@@ -14,31 +14,31 @@ rule
     | literal
 
   list
-    : '[' values optional_comma ']' { result = @builder.list(val[1]) }
-    | '[' ']'                       { result = @builder.list([]) }
+    : '[' values optional_comma ']'     { result = @builder.list(val[1]) }
+    | '[' ']'                           { result = @builder.list([]) }
 
   values
-    : values ',' value              { result = val[0] << val[2] }
-    | value                         { result = [val[0]] }
+    : values ',' value                  { result = val[0] << val[2] }
+    | value                             { result = [val[0]] }
 
   dict
-    : '{' pairs optional_comma '}'  { result = @builder.dict(val[1]) }
-    | '{' '}'                       { result = @builder.dict([]) }
+    : '{' pairs optional_comma '}'      { result = @builder.dict(val[1]) }
+    | '{' '}'                           { result = @builder.dict([]) }
 
   pairs
-    : pairs ',' pair                { result = val[0] << val[2] }
-    | pair                          { result = [val[0]] }
+    : pairs ',' pair                    { result = val[0] << val[2] }
+    | pair                              { result = [val[0]] }
 
-  pair: string ':' value            { result = @builder.pair(val[0], val[2]) }
+  pair: string ':' value                { result = @builder.pair(val[0], val[2]) }
 
   literal
     : string
     | funcref
-    | NUMERIC                       { result = @builder.numeric(val[0]) }
-    | BOOLEAN                       { result = @builder.boolean(val[0]) }
-    | NULL                          { result = @builder.null(val[0]) }
-    | DICT_RECURSIVE_REF            { result = @builder.dict_recursive_ref }
-    | LIST_RECURSIVE_REF            { result = @builder.list_recursive_ref }
+    | NUMERIC                           { result = @builder.numeric(val[0]) }
+    | BOOLEAN                           { result = @builder.boolean(val[0]) }
+    | NULL                              { result = @builder.null(val[0]) }
+    | DICT_RECURSIVE_REF                { result = @builder.dict_recursive_ref }
+    | LIST_RECURSIVE_REF                { result = @builder.list_recursive_ref }
 
     funcref
     : FUNCREF '(' string ')'            { result = @builder.funcref(val[2]) }
