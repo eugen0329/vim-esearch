@@ -6,6 +6,7 @@ class VimlValue::Visitors::ToVim
     Hash                                  => :visit_hash,
     Symbol                                => :visit_string_like,
     String                                => :visit_string_like,
+    VimlValue::Types::Funcref             => :visit_funcref,
     VimlValue::Serializable::FunctionCall => :visit_function_call,
     VimlValue::Serializable::Identifier   => :visit_identifier,
     Numeric                               => :visit_numeric,
@@ -54,6 +55,11 @@ class VimlValue::Visitors::ToVim
 
   def visit_false(_object)
     'v:false'
+  end
+
+  def visit_funcref(object)
+    args = [visit_string_like(object.name), visit_values(object.args)]
+    "function(#{args.join(', ')})"
   end
 
   def visit_function_call(object)
