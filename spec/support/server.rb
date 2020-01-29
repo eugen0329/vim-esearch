@@ -6,8 +6,7 @@ class Server < DecoratorBase
   def self.neovim(...)
     new(VimrunnerNeovim::Server.new(...))
   end
-
-  def connect
-    Client.new(__getobj__.connect)
-  end
+  # def new_client
+  #   Client.new(__getobj__)
+  # end
 end

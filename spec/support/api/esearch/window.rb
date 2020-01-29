@@ -46,7 +46,7 @@ class API::ESearch::Window
     line_in_window = entries.first.left_padding
     padding = entries.first.left_padding
     line2line_in_window = entries.map { |e| [e.line_number, e.line_in_window] }.to_h
-    matches[line2line_in_window[line]].first == padding + column
+    matches[line2line_in_window[line]] == [padding + column.begin, padding + column.end]
   end
 
   def errors

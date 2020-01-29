@@ -51,7 +51,7 @@ describe 'esearch#backend', :backend do
             .to  have_reported_a_single_result
             .and have_search_highlight(line, column)
             .and have_outputted_result_from_file_in_line(expected_path, line)
-            .and have_outputted_result_with_right_position_inside_file(expected_path, line, column)
+            .and have_outputted_result_with_right_position_inside_file(expected_path, line, column.begin)
         end
       end
     end
@@ -69,64 +69,65 @@ describe 'esearch#backend', :backend do
 
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do
-          include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3
-          include_context 'finds 1 entry of', /3\d+5/, in: "\n__345", line: 2, column: 3
-          include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3
-          include_context 'finds 1 entry of', /5$/,    in: "\n__5_5", line: 2, column: 5
+          include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3..6
+          include_context 'finds 1 entry of', /3\d+5/, in: "\n__345", line: 2, column: 3..6
+          include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3..6
+          include_context 'finds 1 entry of', /5$/,    in: "\n__5_5", line: 2, column: 5..6
+          include_context 'finds 1 entry of', /^5/,    in: "_5_\n5_", line: 2, column: 1..2
 
           # are required mostly to choose the best commandline options for adapters
           context 'compatibility with syntax', :compatibility_regexps do
-            include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
+            include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3..5, other_files: [
               file("1\n2_3\n4",    '1.txt'),
               file("a\n\nbb\nccc", '2.txt')
             ]
-            include_context 'finds 1 entry of', /a{2}/, in: "a\n__aa_a_", line: 2, column: 3
-            include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_", line: 2, column: 3, other_files: [
+            include_context 'finds 1 entry of', /a{2}/,  in: "a\n__aa_a_", line: 2, column: 3..5
+            include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_",    line: 2, column: 3..5, other_files: [
               file("1\n2_3\n4",    '1.txt'),
               file("a\n\nbb\nccc", '2.txt')
             ]
-            include_context 'finds 1 entry of', /(?<=the)cat/, in: "\nthecat", line: 2, column: 4, other_files: [
+            include_context 'finds 1 entry of', /(?<=the)cat/, in: "\nthecat", line: 2, column: 4..7, other_files: [
               file("\n___cat", '1.txt'),
               file("\n_hecat", '2.txt')
             ]
-            include_context 'finds 1 entry of', /(?<name>\d)+5/, in: "\n__345", line: 2, column: 3
-            include_context 'finds 1 entry of', '(?P<name>\d)+5', in: "\n__345", line: 2, column: 3
-            include_context 'finds 1 entry of', /(?:\d)+34/, in: "\n__345", line: 2, column: 3
+            include_context 'finds 1 entry of', /(?<name>\d)+5/,  in: "\n__345", line: 2, column: 3..6
+            include_context 'finds 1 entry of', '(?P<name>\d)+5', in: "\n__345", line: 2, column: 3..6
+            include_context 'finds 1 entry of', /(?:\d)+34/,      in: "\n__345", line: 2, column: 3..6
           end
         end
 
         context 'when matching literal', :literal do
           before { esearch.configure(adapter: adapter, regex: 0) }
           # potential errors with escaping
-          include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3
-          include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '>',      in: "_\n__>_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '2 > 1',  in: "_\n_2 > 1_", line: 2, column: 2
-          include_context 'finds 1 entry of', '2 < 1',  in: "_\n_2 < 1_", line: 2, column: 2
-          include_context 'finds 1 entry of', '2 >> 1', in: "_\n2 >> 1_", line: 2, column: 1
-          include_context 'finds 1 entry of', '2 << 1', in: "_\n2 << 1_", line: 2, column: 1
-          include_context 'finds 1 entry of', '"',      in: "_\n__\"_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '\'',     in: "_\n__\'_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3
-          include_context 'finds 1 entry of', ')',      in: "_\n__)_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '[',      in: "_\n__[_",    line: 2, column: 3
-          include_context 'finds 1 entry of', ']',      in: "_\n__]_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '\\',     in: "_\n__\\_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '$',      in: "_\n__$_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '//',     in: "_\n__//_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '\\\\',   in: "_\n_\\\\_",  line: 2, column: 2
-          include_context 'finds 1 entry of', '\/',     in: "_\n__\\/_",  line: 2, column: 3
-          include_context 'finds 1 entry of', '^',      in: "_\n__^_",    line: 2, column: 3
-          include_context 'finds 1 entry of', ';',      in: "_\n__;_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '&',      in: "_\n__&_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '~',      in: "_\n__~_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '==',     in: "_\n__==_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3
-          include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3
+          include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3..4
+          include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '>',      in: "_\n__>_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '2 > 1',  in: "_\n_2 > 1_", line: 2, column: 2..7
+          include_context 'finds 1 entry of', '2 < 1',  in: "_\n_2 < 1_", line: 2, column: 2..7
+          include_context 'finds 1 entry of', '2 >> 1', in: "_\n2 >> 1_", line: 2, column: 1..7
+          include_context 'finds 1 entry of', '2 << 1', in: "_\n2 << 1_", line: 2, column: 1..7
+          include_context 'finds 1 entry of', '"',      in: "_\n__\"_",   line: 2, column: 3..4
+          include_context 'finds 1 entry of', '\'',     in: "_\n__\'_",   line: 2, column: 3..4
+          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', ')',      in: "_\n__)_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '[',      in: "_\n__[_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', ']',      in: "_\n__]_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '\\',     in: "_\n__\\_",   line: 2, column: 3..4
+          include_context 'finds 1 entry of', '\\\\',   in: "_\n_\\\\_",  line: 2, column: 2..4
+          include_context 'finds 1 entry of', '//',     in: "_\n__//_",   line: 2, column: 3..5
+          include_context 'finds 1 entry of', '\/',     in: "_\n__\\/_",  line: 2, column: 3..5
+          include_context 'finds 1 entry of', '$',      in: "_\n__$_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '^',      in: "_\n__^_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', ';',      in: "_\n__;_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '&',      in: "_\n__&_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '~',      in: "_\n__~_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '==',     in: "_\n__==_",   line: 2, column: 3..5
+          include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3..4
           # invalid as regexps, but valid for literal match
-          include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3
-          include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3
+          include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3..5
+          include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3..5
         end
       end
     end
