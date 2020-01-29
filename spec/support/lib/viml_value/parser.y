@@ -71,16 +71,19 @@ end
   end
 
   def on_error(token_id, value, value_stack)
-    msg = "While parsing: #{@lexer.data}\n"
     if token_to_str(token_id) == '$end'
-      raise ParseError, msg + "Unexpected end of tokens stream"
+      raise ParseError, "#{context}Unexpected end of tokens stream"
     else
       location = [value.start, value.end].join(':')
-      raise ParseError, msg + "Unexpected token #{token_to_str(token_id)} at location #{location}"
+      raise ParseError,  "#{context}Unexpected token #{token_to_str(token_id)} at location #{location}"
     end
   end
 
   def raise_unless_toplevel_literals_allowed
     return if @allow_toplevel_literals
-    raise ParseError, "Toplevel lietrals aren't allowed due to parsing ambiguity"
+    raise ParseError, "#{context}Toplevel lietrals aren't allowed due to parsing ambiguity"
+  end
+
+  def context
+    "While parsing: #{@lexer.data}\n"
   end
