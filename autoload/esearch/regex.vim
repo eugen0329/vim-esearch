@@ -16,8 +16,13 @@ fu! esearch#regex#finalize(exp, opts) abort
     let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'
   endif
 
-  " To avoid matching pseudo LineNr
-  let vexp = '\%>1l\%(\s\+\d\+\s.*\)\@<='.vexp
+  if vexp[0] ==# '^'
+    let vexp = '\%>1l\%(\s\+\d\+\s.*\)\@<='.vexp[1:-1]
+  else
+    " To avoid matching pseudo LineNr
+    let vexp = '\%>1l\%(\s\+\d\+\s.*\)\@<='.vexp
+  endif
+
   if !a:opts.case
     let vexp = '\c'.vexp
   endif

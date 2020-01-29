@@ -89,11 +89,11 @@ Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_vim do
-    load_vim_plugins!(Server.vim(
+    load_vim_plugins!(Client.new(Server.vim(
       executable: Configuration.vim_path,
       vimrc:      Configuration.vimrc_path,
       timeout:    10
-    ).start)
+    ).start))
   end
 end
 
@@ -101,13 +101,13 @@ VimrunnerNeovim::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_nvim do
-    load_vim_plugins!(Server.neovim(
+    load_vim_plugins!(Client.new(Server.neovim(
       nvim:          Configuration.nvim_path,
       gui:           Configuration.nvim_gui?,
       vimrc:         Configuration.vimrc_path,
       timeout:       10,
       verbose_level: 0
-    ).start)
+    ).start))
   end
 end
 

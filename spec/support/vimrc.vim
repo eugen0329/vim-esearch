@@ -39,13 +39,11 @@ fu! Matches(pattern) abort
   return hits
 endfu
 
-
 function! VimrunnerEvaluate(expr)
   try
-    let output = eval(a:expr)
+    let result =  eval(a:expr)
+    return [result]
   catch
-    let output = v:exception
+    return v:exception
   endtry
-
-  return [output]
 endfunction
