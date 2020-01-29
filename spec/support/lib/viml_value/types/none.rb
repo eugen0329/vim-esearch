@@ -8,8 +8,4 @@ class VimlValue::Types::None
   def ==(other)
     self.class == other.class
   end
-
-  def ==(other)
-    self.class == other.class
-  end
 end
