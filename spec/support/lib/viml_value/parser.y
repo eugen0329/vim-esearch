@@ -42,7 +42,7 @@ rule
 
     funcref
     : FUNCREF '(' string ')'            { result = @builder.funcref(val[2]) }
-    | FUNCREF '(' string ',' values ')' { result = @builder.funcref(val[2], val[4]) }
+    | FUNCREF '(' string ',' values ')' { result = @builder.funcref(val[2], *val[4]) }
 
   string: STRING                        { result = @builder.string(val[0]) }
 

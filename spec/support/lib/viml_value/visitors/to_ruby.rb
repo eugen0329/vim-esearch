@@ -29,6 +29,7 @@ class VimlValue::Visitors::ToRuby
   end
 
   def visit_funcref(node)
+    # require 'pry'; binding.pry
     VimlValue::Types::Funcref.new(
       visit_string(node.children.first),
       *node.children[1..].map { |n| visit(n) }

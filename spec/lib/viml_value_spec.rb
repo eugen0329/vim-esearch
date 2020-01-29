@@ -40,10 +40,12 @@ describe VimlValue do
       let(:variable) { var('&compatible') }
       let(:function1) { func('tr', 'hi', 'h', 'H') }
       let(:function2) { func('values', '1' => -2, '3' => '4') }
+      let(:funcref1)   { funcref('sort', [2, 1]) }
+      let(:funcref2)   { funcref('sort') }
       let(:string) { 'regular string' }
 
-      let(:actual) { [variable, function1, function2, string] }
-      let(:expected) { [0, 'Hi', [-2, '4'], string] }
+      let(:actual) { [variable, function1, function2, funcref1, funcref2, string] }
+      let(:expected) { [0, 'Hi', [-2, '4'], funcref1, funcref2, string] }
 
       it { expect(dump_eval_load.call(actual)).to eq(expected) }
     end
