@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 class VimlValue::Types::None
   def inspect
-    "v:none"
+    'v:none'
   end
 
   def pretty_print(pretty_print)

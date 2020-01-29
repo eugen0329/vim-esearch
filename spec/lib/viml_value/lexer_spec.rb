@@ -96,7 +96,7 @@ describe VimlValue::Lexer do
     end
 
     context 'NULL' do
-      it { expect('v:null').to  be_tokenized_as([tok(:NULL, nil,  0..6)]) }
+      it { expect('v:null').to  be_tokenized_as([tok(:NULL, nil, 0..6)]) }
       it { expect('g:null').to  fail_tokenizing_with(ParseError) }
       it { expect(':null').to   fail_tokenizing_with(ParseError) }
       it { expect('null').to    fail_tokenizing_with(ParseError) }

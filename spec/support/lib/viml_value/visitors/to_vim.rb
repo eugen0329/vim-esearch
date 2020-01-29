@@ -7,6 +7,7 @@ class VimlValue::Visitors::ToVim
     Symbol                                => :visit_string_like,
     String                                => :visit_string_like,
     VimlValue::Types::Funcref             => :visit_funcref,
+    VimlValue::Types::None                => :visit_none,
     VimlValue::Serializable::FunctionCall => :visit_function_call,
     VimlValue::Serializable::Identifier   => :visit_identifier,
     Numeric                               => :visit_numeric,
@@ -39,6 +40,10 @@ class VimlValue::Visitors::ToVim
 
   def visit_string_like(object)
     "'#{object.to_s.gsub("'", "''")}'"
+  end
+
+  def visit_none(_object)
+    'v:none'
   end
 
   def visit_numeric(object)
