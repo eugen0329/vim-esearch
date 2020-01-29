@@ -3,7 +3,7 @@
 class Editor::Read::Base
   include VimlValue::SerializationHelpers
 
-  VIM_EXCEPTION_REGEXP = /\AVim(\(echo\))?:E\d+:/.freeze
+  VIM_EXCEPTION_REGEXP = /\AVim(\(\w+\))?:E\d+:/.freeze
 
   class ReadError < RuntimeError; end
 

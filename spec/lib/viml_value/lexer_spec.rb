@@ -9,7 +9,7 @@ describe VimlValue::Lexer do
   let(:encoding) { Encoding::ASCII }
 
   describe '#next_token' do
-    subject do
+    subject(:tokens_enum) do
       lambda do |str|
         lexer = VimlValue::Lexer.new(str.dup.force_encoding(encoding))
         Enumerator
@@ -19,11 +19,11 @@ describe VimlValue::Lexer do
     end
 
     def be_tokenized_as(expected)
-      Helpers::VimlValue::BeTokenizedAs.new(expected, &subject)
+      Helpers::VimlValue::BeTokenizedAs.new(expected, &tokens_enum)
     end
 
     def fail_tokenizing_with(expected)
-      Helpers::VimlValue::FailTokenizingWith.new(expected, &subject)
+      Helpers::VimlValue::FailTokenizingWith.new(expected, &tokens_enum)
     end
 
     context 'NUMERIC' do
@@ -177,7 +177,7 @@ describe VimlValue::Lexer do
       end
     end
 
-    context 'rewind' do
+    context 'rewinding' do
       it { expect(subject.to_a).to        eq(tokens)              }
       it { expect(subject.rewind.to_a).to eq(subject.rewind.to_a) }
 
@@ -196,7 +196,7 @@ describe VimlValue::Lexer do
       end
     end
 
-    context 'peek' do
+    context 'peeking' do
       it { expect(subject.peek).to eq(tokens.first) }
       it { expect(subject.peek).to eq(subject.peek) }
     end

@@ -123,10 +123,11 @@ describe VimlValue do
               end
 
               context 'mixing duplication and backslash' do
-                # Have to be tested within integration tests as some quotes escaping
-                # is valid in terms of tokenization, but invalid in terms of racc parsing
-                # A bit verbose, but it helps to understand how tricky escaping works
-                # in vim and to ensure that everything works properly
+                # Have to be tested within integration tests as some quotes
+                # escaping are valid in terms of tokenization, but invalid in
+                # terms of racc parsing A bit verbose, but it helps to
+                # understand how tricky escaping works in vim and to ensure that
+                # everything works properly
                 it { expect(actual.('\\"""""')).to fail_loading_with(ParseError)  }
                 it { expect(actual.('"\\""""')).to fail_loading_with(ParseError)  }
                 it { expect(actual.('""\\"""')).to fail_loading_with(ParseError)  }
@@ -176,20 +177,20 @@ describe VimlValue do
       let(:expected) { wrap_expected.to_proc }
 
       context 'list' do
-        it { expect('[]').to  be_loaded_as([])  }
-        it { expect('[1]').to be_loaded_as([1]) }
+        it { expect(actual.('[]')).to  be_loaded_as(expected.([] ))  }
+        it { expect(actual.('[1]')).to be_loaded_as(expected.([1])) }
       end
 
       context 'dict' do
-        it { expect('{}').to be_loaded_as({}) }
-        it { expect('{"key": 2}').to be_loaded_as('key'=> 2) }
+        it { expect(actual.('{}')).to be_loaded_as(expected.({})) }
+        it { expect(actual.('{"key": 2}')).to be_loaded_as(expected.('key'=> 2)) }
       end
 
       context 'invalid' do
-        it { expect(']').to fail_loading_with(ParseError) }
-        it { expect('}').to fail_loading_with(ParseError) }
-        it { expect('[').to fail_loading_with(ParseError) }
-        it { expect('{').to fail_loading_with(ParseError) }
+        it { expect(actual.(']')).to fail_loading_with(ParseError) }
+        it { expect(actual.('}')).to fail_loading_with(ParseError) }
+        it { expect(actual.('[')).to fail_loading_with(ParseError) }
+        it { expect(actual.('{')).to fail_loading_with(ParseError) }
       end
     end
 

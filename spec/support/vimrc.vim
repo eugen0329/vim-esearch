@@ -20,3 +20,32 @@ set runtimepath-=~/.vim/after
 " Assigning to 2 prevents it from hiding (no matter how many tabs left) and
 " therefore fixes vim bug.
 set showtabline=2
+
+fu! Matches(pattern) abort
+
+  try
+    let old_search = @/
+    let @/ = a:pattern
+
+    let hits = []
+    let nowhere = ''
+		redir => nowhere
+    silent %s//\=add(hits, [line('.'), col('.'), col('.')+len(submatch(0))])/gn
+    redir END
+  finally
+    let @/ = old_search
+  endtry
+
+  return hits
+endfu
+
+
+function! VimrunnerEvaluate(expr)
+  try
+    let output = eval(a:expr)
+  catch
+    let output = v:exception
+  endtry
+
+  return [output]
+endfunction

@@ -114,4 +114,8 @@ module Configuration
 
     value
   end
+
+  def vim
+    @vim ||= Client.new(super)
+  end
 end

@@ -16,14 +16,14 @@ module Helpers::VimlValue
   class BeProcessedAs
     include RSpec::Matchers::Composable
 
-    def initialize(expected, &process_proc)
-      @process_proc = process_proc
+    def initialize(expected, &processing_proc)
+      @processing_proc = processing_proc
       @expected = expected
     end
 
     def matches?(actual)
       @actual = actual
-      @processed = @process_proc.call(actual)
+      @processed = @processing_proc.call(actual)
       values_match?(@expected, @processed)
     end
 
@@ -46,14 +46,14 @@ module Helpers::VimlValue
   class FailProcessingWith
     include RSpec::Matchers::Composable
 
-    def initialize(exception, &process_proc)
-      @process_proc = process_proc
+    def initialize(exception, &processing_proc)
+      @processing_proc = processing_proc
       @exception = exception
     end
 
     def matches?(actual)
       @actual = actual
-      @processed = @process_proc.call(actual)
+      @processed = @processing_proc.call(actual)
       false
     rescue Exception => e # rubocop:disable Lint/RescueException
       values_match?(@exception, e)

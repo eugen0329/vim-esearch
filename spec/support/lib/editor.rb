@@ -46,7 +46,7 @@ class Editor
 
   def lines_array(range = nil)
     from, to = lines_range(range)
-    to = "line('$')" if to.nil?
+    to = func('line', '$') if to.nil?
 
     echo func('getline', from, to)
   end
