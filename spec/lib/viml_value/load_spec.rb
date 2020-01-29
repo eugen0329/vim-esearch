@@ -76,8 +76,8 @@ describe VimlValue do
       end
 
       context 'v:none' do
-        it { expect(actual.('v:none')).to be_loaded_as(expected.(none)) }
-        it { expect(actual.('None')).to   be_loaded_as(expected.(none)) }
+        it { expect(actual.('v:none')).to be_loaded_as(expected.(None.new)) }
+        it { expect(actual.('None')).to   be_loaded_as(expected.(None.new)) }
       end
 
       context 'recursive references' do
