@@ -83,7 +83,6 @@ fu! InspectSyntax(places) abort
 
   let inspected = []
   for p in a:places
-    norm! gg
     let found = search('\%>3l'. p)
 
     if found == 0

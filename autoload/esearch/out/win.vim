@@ -45,11 +45,12 @@ if !exists('g:esearch#out#win#context_syntax_highlight')
 endif
 
 let s:syntax_regexps = {
-      \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
-      \ 'light_eruby': '\%(\.erb\)$',
-      \ 'yaml': '\%(yaml\|\.yml\)$',
+      \ 'win_context_ruby': '\.rb$',
       \ 'win_context_c': '\.c$',
+      \ 'win_context_javascript': '\.js$',
+      \ 'win_context_python': '\.py$',
       \ 'win_context_go': '\.go$',
+      \ 'win_context_sh': '\.sh$',
       \}
 if exists('g:esearch#out#win#syntax_regeps')
   call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)

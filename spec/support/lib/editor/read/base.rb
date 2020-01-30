@@ -51,7 +51,7 @@ class Editor::Read::Base
   def evaluate(str)
     result = vim.echo(str)
     if VIM_EXCEPTION_REGEXP.match?(result) ||
-        VIMRUNNER_EXCEPTION_REGEXP.match?(result)
+       VIMRUNNER_EXCEPTION_REGEXP.match?(result)
       raise ReadError, result
     end
 

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
-describe 'esearch#backend', :backend do
+describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::Syntax
 
@@ -25,7 +27,6 @@ describe 'esearch#backend', :backend do
         do {} while();
 
         "string"
-        "str with escaped slash\"
         "str with escape\\n"
         "long string#{'.' * 100}"
 
@@ -65,57 +66,56 @@ describe 'esearch#backend', :backend do
 
     it do
       is_expected.to have_highlights(
-        'goto':                    %w[cStatement Statement],
-        'continue':                %w[cStatement Statement],
-        'break':                   %w[cStatement Statement],
-        'return':                  %w[cStatement Statement],
-        'asm':                     %w[cStatement Statement],
+        'goto':                   %w[cStatement Statement],
+        'continue':               %w[cStatement Statement],
+        'break':                  %w[cStatement Statement],
+        'return':                 %w[cStatement Statement],
+        'asm':                    %w[cStatement Statement],
 
-        'case':                    %w[cLabel Label],
-        'default':                 %w[cLabel Label],
+        'case':                   %w[cLabel Label],
+        'default':                %w[cLabel Label],
 
-        'if':                      %w[cConditional Conditional],
-        'else':                    %w[cConditional Conditional],
-        'switch':                  %w[cConditional Conditional],
+        'if':                     %w[cConditional Conditional],
+        'else':                   %w[cConditional Conditional],
+        'switch':                 %w[cConditional Conditional],
 
-        'while':                   %w[cRepeat Repeat],
-        'for':                     %w[cRepeat Repeat],
-        'do':                      %w[cRepeat Repeat],
+        'while':                  %w[cRepeat Repeat],
+        'for':                    %w[cRepeat Repeat],
+        'do':                     %w[cRepeat Repeat],
 
-        '"string"':                %w[cString String],
-        '"str with escaped slash\\"': %w[cString String],
-        '"str with escape\\\\n"':     %w[cString String],
-        '"long string[^"]\+$':     %w[cString String],
+        '"string"':               %w[cString String],
+        '"str with escape\\\\n"': %w[cString String],
+        '"long string[^"]\\+$':   %w[cString String],
 
-        '// comment line':         %w[cComment Comment],
-        '/\* comment block':       %w[cComment Comment],
-        '/\* long comment':        %w[cComment Comment],
+        '// comment line':        %w[cComment Comment],
+        '/\* comment block':      %w[cComment Comment],
+        '/\* long comment':       %w[cComment Comment],
 
-        '#define':                 %w[cDefine Macro],
-        '#undef':                  %w[cDefine Macro],
+        '#define':                %w[cDefine Macro],
+        '#undef':                 %w[cDefine Macro],
 
-        '#pragma':                 %w[cPreProc PreProc],
-        '#line':                   %w[cPreProc PreProc],
-        '#warning':                %w[cPreProc PreProc],
-        '#warn':                   %w[cPreProc PreProc],
-        '#error':                  %w[cPreProc PreProc],
+        '#pragma':                %w[cPreProc PreProc],
+        '#line':                  %w[cPreProc PreProc],
+        '#warning':               %w[cPreProc PreProc],
+        '#warn':                  %w[cPreProc PreProc],
+        '#error':                 %w[cPreProc PreProc],
 
-        'struct':                  %w[cStructure Structure],
-        'union':                   %w[cStructure Structure],
-        'enum':                    %w[cStructure Structure],
-        'typedef':                 %w[cStructure Structure],
+        'struct':                 %w[cStructure Structure],
+        'union':                  %w[cStructure Structure],
+        'enum':                   %w[cStructure Structure],
+        'typedef':                %w[cStructure Structure],
 
-        'static':                  %w[cStorageClass StorageClass],
-        'register':                %w[cStorageClass StorageClass],
-        'auto':                    %w[cStorageClass StorageClass],
-        'volatile':                %w[cStorageClass StorageClass],
-        'extern':                  %w[cStorageClass StorageClass],
-        'const':                   %w[cStorageClass StorageClass]
+        'static':                 %w[cStorageClass StorageClass],
+        'register':               %w[cStorageClass StorageClass],
+        'auto':                   %w[cStorageClass StorageClass],
+        'volatile':               %w[cStorageClass StorageClass],
+        'extern':                 %w[cStorageClass StorageClass],
+        'const':                  %w[cStorageClass StorageClass]
       )
     end
 
-    it "keeps lines highligh untouched" do
-      expect(c_code).to have_line_numbers_highlight(["esearchLnum", "LineNr"])
+    it 'keeps lines highligh untouched' do
+      expect(c_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

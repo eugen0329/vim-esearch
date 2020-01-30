@@ -16,7 +16,6 @@ for(;;) {}
 do {} while();
 
 "string"
-"str with escaped slash"
 "str with escape\n"
 "long string...................................................................................................."
 

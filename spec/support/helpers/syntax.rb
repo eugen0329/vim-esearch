@@ -19,17 +19,17 @@ module Helpers::Syntax
 
     match do |code|
       line_numbers = code
-        .split("\n")
-        .each.with_index(1)
-        .reject { |l, i| l.empty? }
-        .map { |_, i| i }
+                     .split("\n")
+                     .each.with_index(1)
+                     .reject { |l, _i| l.empty? }
+                     .map { |_, i| i }
 
-      regexps = line_numbers.map { |i|  "^\\s\\+#{i}\\ze\\s" }
+      regexps = line_numbers.map { |i| "^\\s\\+#{i}\\ze\\s" }
 
       syntax_names = esearch
-        .editor
-        .detailed_inspect_syntax(regexps)
-        .to_a
+                     .editor
+                     .detailed_inspect_syntax(regexps)
+                     .to_a
 
       @actual = line_numbers.zip(syntax_names).to_h
       @expected = line_numbers.zip([expected] * line_numbers.count).to_h
@@ -37,5 +37,4 @@ module Helpers::Syntax
       values_match?(@expected, @actual)
     end
   end
-
 end
