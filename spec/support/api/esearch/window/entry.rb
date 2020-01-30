@@ -18,7 +18,7 @@ class API::ESearch::Window::Entry
     @line_in_window = line_in_window
   end
 
-  def line_number
+  def line_in_file
     line_content.to_i # takes leading int
   end
 
@@ -50,6 +50,7 @@ class API::ESearch::Window::Entry
       # If eager strategy is used then current buffer name verification is just
       # postponed to be executed after yielding
       raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if old_buffer_name == opened_buffer_name
+
       result
     end
   end

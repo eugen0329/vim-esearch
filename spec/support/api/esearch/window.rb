@@ -36,17 +36,15 @@ class API::ESearch::Window
 
   include VimlValue::SerializationHelpers
 
-  def matches; end
+  def has_search_highlight?(relative_path, line, column)
+    entry = find_entry(relative_path, line)
+    padding = entry.left_padding
 
-  def has_search_highlight?(line, column)
-    matches = editor.echo(func('Matches', var('b:esearch.exp.vim_match')))
-                    .map { |line_in_window, start, stop| [line_in_window, [start, stop]] }
-                    .to_h
+    expected_match = [entry.line_in_window,
+                      padding + column.begin,
+                      padding + column.end]
 
-    line_in_window = entries.first.left_padding
-    padding = entries.first.left_padding
-    line2line_in_window = entries.map { |e| [e.line_number, e.line_in_window] }.to_h
-    matches[line2line_in_window[line]] == [padding + column.begin, padding + column.end]
+    editor.matches_for('ESearchMatch') == [expected_match]
   end
 
   def errors
@@ -94,7 +92,7 @@ class API::ESearch::Window
 
   def find_entry(relative_path, line)
     parser.entries.find do |entry|
-      entry.relative_path == relative_path && entry.line_number == line
+      entry.relative_path == relative_path && entry.line_in_file == line
     end
   end
 

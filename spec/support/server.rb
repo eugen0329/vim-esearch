@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Server < DecoratorBase
   def self.vim(...)
     new(Vimrunner::Server.new(...))
@@ -6,7 +8,4 @@ class Server < DecoratorBase
   def self.neovim(...)
     new(VimrunnerNeovim::Server.new(...))
   end
-  # def new_client
-  #   Client.new(__getobj__)
-  # end
 end

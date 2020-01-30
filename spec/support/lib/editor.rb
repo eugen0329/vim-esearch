@@ -63,6 +63,10 @@ class Editor
     echo func('bufname', arg)
   end
 
+  def matches_for(group)
+    echo func('Matches', group)
+  end
+
   def current_buffer_name
     bufname('%')
   end

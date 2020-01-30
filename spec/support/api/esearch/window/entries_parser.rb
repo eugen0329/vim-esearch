@@ -10,13 +10,15 @@ class API::ESearch::Window::EntriesParser
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines(3..).with_index(3)
+    @lines_iterator = editor.lines.with_index(1)
   end
 
   def parse
     return enum_for(:parse) unless block_given?
 
     lines_iterator.rewind
+    lines_iterator.next # skip header
+    lines_iterator.next # skip blank line
 
     loop do
       relative_path = next_file_relative_path!

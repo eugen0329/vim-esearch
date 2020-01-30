@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Client < DecoratorBase
   def echo(*expressions)
     arg = expressions.join(' ').gsub("'", "''")

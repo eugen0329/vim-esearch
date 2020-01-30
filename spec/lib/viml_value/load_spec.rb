@@ -177,7 +177,7 @@ describe VimlValue do
       let(:expected) { wrap_expected.to_proc }
 
       context 'list' do
-        it { expect(actual.('[]')).to  be_loaded_as(expected.([] ))  }
+        it { expect(actual.('[]')).to  be_loaded_as(expected.([])) }
         it { expect(actual.('[1]')).to be_loaded_as(expected.([1])) }
       end
 

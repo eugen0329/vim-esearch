@@ -21,17 +21,29 @@ set runtimepath-=~/.vim/after
 " therefore fixes vim bug.
 set showtabline=2
 
-fu! Matches(pattern) abort
+fu! Matches(group) abort
+  let found = {}
 
+  for m in getmatches()
+    if m.group == a:group
+      let found = m
+      break
+    endif
+  endfor
+
+  if empty(found)
+    return []
+  endif
+
+  let hits = []
   try
     let old_search = @/
-    let @/ = a:pattern
-
-    let hits = []
+    let @/ = found.pattern
     let nowhere = ''
 		redir => nowhere
     silent %s//\=add(hits, [line('.'), col('.'), col('.')+len(submatch(0))])/gn
     redir END
+  catch /Vim(substitute):E486: Pattern not found/
   finally
     let @/ = old_search
   endtry
@@ -39,10 +51,10 @@ fu! Matches(pattern) abort
   return hits
 endfu
 
+
 function! VimrunnerEvaluate(expr)
   try
-    let result =  eval(a:expr)
-    return [result]
+    return string(eval(a:expr))
   catch
     return v:exception
   endtry

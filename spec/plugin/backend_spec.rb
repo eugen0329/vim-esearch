@@ -49,7 +49,7 @@ describe 'esearch#backend', :backend do
 
           expect(esearch)
             .to  have_reported_a_single_result
-            .and have_search_highlight(line, column)
+            .and have_search_highlight(expected_path, line, column)
             .and have_outputted_result_from_file_in_line(expected_path, line)
             .and have_outputted_result_with_right_position_inside_file(expected_path, line, column.begin)
         end
