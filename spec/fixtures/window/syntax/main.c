@@ -17,7 +17,7 @@ do {} while();
 
 "string"
 "escaped_slash\\"
-"escaped_char\d"
+"escaped_char\n"
 "long_string...................................................................................................."
 
 // comment line

@@ -28,7 +28,7 @@ describe 'esearch#backend', :backend do
 
       "string"
       "escaped_slash\\\\"
-      "escaped_char\\d"
+      "escaped_char\\n"
       "long_string#{'.' * 100}"
 
       // comment line
@@ -105,12 +105,12 @@ describe 'esearch#backend', :backend do
 
         '"string"':                %w[cString String],
         '"escaped_slash\\\\\\\\"': %w[cString String],
-        '"escaped_char\\\\d"':     %w[cString String],
+        '"escaped_char\\\\n"':     %w[cString String],
         '"long_string[^"]\+$':     %w[cString String],
 
         '// comment line':         %w[cCommentL Comment],
-        '/\* comment block':       %w[cComment  Comment],
-        '/\* long comment':        %w[cComment  Comment],
+        '/\* comment block':       %w[cComment Comment],
+        '/\* long comment':        %w[cComment Comment],
 
         '#define':                 %w[cDefine Macro],
         '#undef':                  %w[cDefine Macro],
