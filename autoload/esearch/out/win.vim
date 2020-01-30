@@ -41,13 +41,14 @@ else
 endif
 
 if !exists('g:esearch#out#win#context_syntax_highlight')
-  let g:esearch#out#win#context_syntax_highlight = 0
+  let g:esearch#out#win#context_syntax_highlight = 1
 endif
 
 let s:syntax_regexps = {
       \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
       \ 'light_eruby': '\%(\.erb\)$',
       \ 'yaml': '\%(yaml\|\.yml\)$',
+      \ 'win_context_c': '\.c$',
       \}
 if exists('g:esearch#out#win#syntax_regeps')
   call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
@@ -146,7 +147,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
         \})
 
-  let b:esearch.debug = []
   " call esearch#log#debug('extend b:esearch.request after', '/tmp/esearch_log.txt')
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
   " call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')
@@ -258,30 +258,29 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     if filename !=# a:esearch.prev_filename
       let a:esearch.request.files_count += 1
       if g:esearch#out#win#context_syntax_highlight
-        for [s,r] in items(s:syntax_regexps)
+        for [syn_name,r] in items(s:syntax_regexps)
+          let g:eee = 1
           if filename =~ r
-            if index(a:esearch.syn_regions_loaded, s) < 0
-              let c = s:load_context_syntax(s)
-              call add(a:esearch.syn_regions_loaded, s)
+            if index(a:esearch.syn_regions_loaded, syn_name) < 0
+              let context_syntax = s:load_context_syntax(syn_name)
+              call add(a:esearch.syn_regions_loaded, syn_name)
             else
-              let c = '@'.toupper(s)
+              let context_syntax = '@'.toupper(syn_name)
             endif
             break
           endif
         endfor
       endif
 
-      " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%4dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
       call esearch#util#setline(a:bufnr, line, '')
       let line += 1
       call esearch#util#setline(a:bufnr, line, filename)
       let line += 1
 
-      " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%%%dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
-      if exists('c') && exists('s')
+      if exists('context_syntax') && exists('syn_name')
         exe printf('syntax region context%s '
-              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(s), line, c)
-        unlet c
+              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(syn_name), line, context_syntax)
+        unlet context_syntax
       endif
     endif
 

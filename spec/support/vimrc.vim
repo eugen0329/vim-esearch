@@ -40,8 +40,8 @@ fu! Matches(group) abort
     let old_search = @/
     let @/ = found.pattern
     let nowhere = ''
-		redir => nowhere
-    silent %s//\=add(hits, [line('.'), col('.'), col('.')+len(submatch(0))])/gn
+    redir => nowhere
+      silent %s//\=add(hits, [line('.'), col('.'), col('.')+len(submatch(0))])/gn
     redir END
   catch /Vim(substitute):E486: Pattern not found/
   finally
@@ -51,7 +51,6 @@ fu! Matches(group) abort
   return hits
 endfu
 
-
 function! VimrunnerEvaluate(expr)
   try
     return string(eval(a:expr))
@@ -59,3 +58,56 @@ function! VimrunnerEvaluate(expr)
     return v:exception
   endtry
 endfunction
+
+function! SynStack()  abort
+  echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+endfunc
+
+fu! PreloadSyntax() abort
+  norm! gg
+  while 1
+    norm! 10j
+    redraw!
+
+    if line('.') == line('$')
+      break
+    endif
+  endwhile
+endfu
+
+fu! InspectSyntax(places) abort
+  call PreloadSyntax()
+
+  let inspected = []
+  for p in a:places
+    norm! gg
+    let found = search('\%>3l'. p)
+
+    if found == 0
+      call add(inspected, ['ERR_NOT_FOUND', 'ERR_NOT_FOUND'])
+      continue
+    endif
+
+    let l:s = synID(line('.'), col('.'), 0)
+    let name = synIDattr(l:s, 'name')
+
+    if empty(name)
+      call add(inspected, ['ERR_EMPTY_SYNTAX_NAME', 'ERR_EMPTY_SYNTAX_NAME'])
+      continue
+    endif
+    " let links_to = synIDattr(synIDtrans(l:s), 'name')
+    let hlstr = ''
+    redir => hlstr
+    silent exe 'hi '.name
+    redir END
+    let m = matchlist(hlstr, 'links to \(\w\+\)$')
+    if len(m) < 2
+      throw 'Incorrect hi link. ' . 'Name: ' .name. '. Hlstr:' . hlstr
+    endif
+    let links_to = m[1]
+
+    call add(inspected, [name, links_to])
+  endfor
+
+  return inspected
+endfu

@@ -6,6 +6,7 @@ if !exists('g:esearch#adapter#ag#bin')
 endif
 
 let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
+let s:format3 = '^\(\d\+\)\:\(\d\+\)\:\(.*\)$'
 
 fu! esearch#adapter#ag#_options() abort
   if !exists('s:options')
@@ -46,14 +47,32 @@ fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
   let i = a:from
   let limit = a:to + 1
 
+  if isdirectory(b:esearch.cwd)
+    let dir = 1
+  else
+    let dir = 0
+  endif
+
   while i < limit
-    let el = matchlist(a:raw[i], format)[1:4]
-    if len(el) != 4
-      if index(a:broken_results, a:raw[i]) < 0
-        call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
+    if dir == 1
+      let el = matchlist(a:raw[i], format)[1:4]
+      if len(el) != 4
+        if index(a:broken_results, a:raw[i]) < 0
+          call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
+        endif
+      else
+        call add(results, {'filename': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3]})
       endif
     else
-      call add(results, {'filename': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3]})
+      let el = matchlist(a:raw[i], s:format3)[1:3]
+      if len(el) != 3
+        if index(a:broken_results, a:raw[i]) < 0
+          call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
+        endif
+      else
+        call add(results, {'filename': b:esearch.cwd, 'lnum': el[0], 'col': el[1], 'text': el[2]})
+      endif
+
     endif
     let i += 1
   endwhile
