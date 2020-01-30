@@ -110,12 +110,14 @@ fu! SyntaxAt(ln, column) abort
   redir END
   let m = matchlist(hlstr, 'links to \(\w\+\)$')
   if len(m) < 2
-    throw 'Vimrunner(SyntaxAt): Can''t parse hi link at ' . a:ln . ":" . a:column . ".\n"
-          \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"
-          \ . "               " . repeat(' ', a:column-1) . "^\n"
-          \ . "`hi link ".name."` output contains: " . substitute(hlstr, "\\n", "\\\\n", 'g')
+    let link_to = 'IS_NOT_A_LINK'
+    " throw 'Vimrunner(SyntaxAt): Can''t parse hl link at ' . a:ln . ":" . a:column . ".\n"
+    "       \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"
+    "       \ . "               " . repeat(' ', a:column-1) . "^\n"
+    "       \ . "`hi link ".name."` output contains: " . substitute(hlstr, "\\n", "\\\\n", 'g')
+  else
+    let links_to = m[1]
   endif
-  let links_to = m[1]
 
   return [name, links_to]
 endfu
