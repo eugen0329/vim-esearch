@@ -45,16 +45,18 @@ if !exists('g:esearch#out#win#context_syntax_highlight')
 endif
 
 let s:syntax_regexps = {
-      \ 'win_context_ruby': '\.rb$',
-      \ 'win_context_c': '\.c$',
-      \ 'win_context_javascript': '\.js$',
-      \ 'win_context_python': '\.py$',
-      \ 'win_context_go': '\.go$',
-      \ 'win_context_sh': '\.sh$',
+      \ '.c':  'win_context_c',
+      \ '.sh': 'win_context_sh',
+      \ '.js': 'win_context_javascript',
+      \ '.rb': 'win_context_ruby',
+      \ '.py': 'win_context_python',
+      \ '.go': 'win_context_go',
+      \ '.html': 'win_context_html',
       \}
-if exists('g:esearch#out#win#syntax_regeps')
-  call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
-endif
+
+" if exists('g:esearch#out#win#syntax_regeps')
+  " call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
+" endif
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
@@ -260,18 +262,18 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     if filename !=# a:esearch.prev_filename
       let a:esearch.request.files_count += 1
       if g:esearch#out#win#context_syntax_highlight
-        for [syn_name,r] in items(s:syntax_regexps)
-          let g:eee = 1
-          if filename =~ r
-            if index(a:esearch.syn_regions_loaded, syn_name) < 0
-              let context_syntax = s:load_context_syntax(syn_name)
-              call add(a:esearch.syn_regions_loaded, syn_name)
-            else
-              let context_syntax = '@'.toupper(syn_name)
-            endif
-            break
+        try
+          let ext = matchstr(filename, '\..*$')
+          let context_syntax_name = s:syntax_regexps[ext]
+          if index(a:esearch.syn_regions_loaded, context_syntax_name) < 0
+            let context_syntax = s:load_context_syntax(context_syntax_name)
+            call add(a:esearch.syn_regions_loaded, context_syntax_name)
+          else
+            let context_syntax = '@'.toupper(context_syntax_name)
           endif
-        endfor
+        catch
+          " suppress for now
+        endtry
       endif
 
       call esearch#util#setline(a:bufnr, line, '')
@@ -279,9 +281,9 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       call esearch#util#setline(a:bufnr, line, filename)
       let line += 1
 
-      if exists('context_syntax') && exists('syn_name')
+      if exists('context_syntax') && exists('context_syntax_name')
         exe printf('syntax region context%s '
-              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(syn_name), line, context_syntax)
+              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(context_syntax_name), line, context_syntax)
         unlet context_syntax
       endif
     endif
