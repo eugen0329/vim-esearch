@@ -27,7 +27,7 @@ describe 'esearch#backend', :backend do
       do {} while();
 
       "string"
-      "str with escaped slash\\\\"
+      "str with escaped slash\"
       "str with escape\\n"
       "long string#{'.' * 100}"
 
@@ -71,7 +71,7 @@ describe 'esearch#backend', :backend do
       type _ interface {}
 
       "string"
-      "str with escaped slash\\\\"
+      "str with escaped slash\"
       "str with escape\\n"
       "long string#{'.' * 100}"
       `raw string`
@@ -120,6 +120,31 @@ describe 'esearch#backend', :backend do
     end
   end
 
+  matcher :have_line_numbers_highlight do |expected|
+    diffable
+    attr_reader :actual, :expected
+
+    match do |code|
+      line_numbers = code
+        .split("\n")
+        .each.with_index(1)
+        .reject { |l, i| l.empty? }
+        .map { |_, i| i }
+
+      regexps = line_numbers.map { |i|  "^\\s\\+#{i}\\ze\\s" }
+
+      syntax_names = esearch
+        .editor
+        .detailed_inspect_syntax(regexps)
+        .to_a
+
+      @actual = line_numbers.zip(syntax_names).to_h
+      @expected = line_numbers.zip([expected] * line_numbers.count).to_h
+
+      values_match?(@expected, @actual)
+    end
+  end
+
   describe 'c' do
     subject { main_c }
     it do
@@ -142,7 +167,7 @@ describe 'esearch#backend', :backend do
         'do':                      %w[cRepeat Repeat],
 
         '"string"':                %w[cString String],
-        '"str with escaped slash\\\\\\\\"': %w[cString String],
+        '"str with escaped slash\\"': %w[cString String],
         '"str with escape\\\\n"':     %w[cString String],
         '"long string[^"]\+$':     %w[cString String],
 
@@ -172,13 +197,17 @@ describe 'esearch#backend', :backend do
         'const':                   %w[cStorageClass StorageClass]
       )
     end
+
+    it "keeps lines highligh untouched" do
+      expect(c_code).to have_line_numbers_highlight(["esearchLnum", "LineNr"])
+    end
   end
 
   describe 'go' do
     subject { main_go }
 
-    it do
-      is_expected.to have_highlights(
+    it 'contains matches' do
+      is_expected.to have_highlights({
         'package': %w[goDirective   Statement],
         'import':  %w[goDirective   Statement],
 
@@ -190,7 +219,7 @@ describe 'esearch#backend', :backend do
         'interface':  %w[goDeclType          Keyword],
 
         '"string"':                %w[goString    String],
-        '"str with escaped slash\\\\\\\\"': %w[goString    String],
+        '"str with escaped slash\\"': %w[goString    String],
         '"str with escape\\\\n"':     %w[goString    String],
         '"long string[^"]\+$':     %w[goString    String],
         '`raw string`$':     %w[goRawString String],
@@ -212,7 +241,11 @@ describe 'esearch#backend', :backend do
 
         'for':    %w[ goRepeat            Repeat],
         'range':  %w[ goRepeat            Repeat],
-      )
+      })
+    end
+
+    it "keeps lines highligh untouched" do
+      expect(go_code).to have_line_numbers_highlight(["esearchLnum", "LineNr"])
     end
   end
 end

@@ -30,15 +30,18 @@ fu! Matches(group) abort
       break
     endif
   endfor
-
   if empty(found)
     return []
   endif
 
+  return MatchesForPattern(found.pattern)
+endfu
+
+fu! MatchesForPattern(pattern) abort
   let hits = []
   try
     let old_search = @/
-    let @/ = found.pattern
+    let @/ = a:pattern
     let nowhere = ''
     redir => nowhere
       silent %s//\=add(hits, [line('.'), col('.'), col('.')+len(submatch(0))])/gn
@@ -88,25 +91,61 @@ fu! InspectSyntax(places) abort
       continue
     endif
 
-    let l:s = synID(line('.'), col('.'), 0)
-    let name = synIDattr(l:s, 'name')
+    call add(inspected, SyntaxAt(line('.'), col('.')))
+  endfor
 
-    if empty(name)
-      call add(inspected, ['ERR_EMPTY_SYNTAX_NAME', 'ERR_EMPTY_SYNTAX_NAME'])
-      continue
-    endif
-    " let links_to = synIDattr(synIDtrans(l:s), 'name')
-    let hlstr = ''
-    redir => hlstr
-    silent exe 'hi '.name
-    redir END
-    let m = matchlist(hlstr, 'links to \(\w\+\)$')
-    if len(m) < 2
-      throw 'Incorrect hi link. ' . 'Name: ' .name. '. Hlstr:' . hlstr
-    endif
-    let links_to = m[1]
+  return inspected
+endfu
 
-    call add(inspected, [name, links_to])
+fu! SyntaxAt(ln, column) abort
+  let l:s = synID(a:ln, a:column, 0)
+  let name = synIDattr(l:s, 'name')
+
+  if empty(name)
+    return ['ERR_EMPTY_SYNTAX_NAME', 'ERR_EMPTY_SYNTAX_NAME']
+  endif
+  " let links_to = synIDattr(synIDtrans(l:s), 'name')
+  let hlstr = ''
+  redir => hlstr
+  silent exe 'hi '.name
+  redir END
+  let m = matchlist(hlstr, 'links to \(\w\+\)$')
+  if len(m) < 2
+    throw 'Vimrunner(SyntaxAt): Can''t parse hi link at ' . a:ln . ":" . a:column . ".\n"
+          \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"
+          \ . "               " . repeat(' ', a:column-1) . "^\n"
+          \ . "`hi link ".name."` output contains: " . substitute(hlstr, "\\n", "\\\\n", 'g')
+  endif
+  let links_to = m[1]
+
+  return [name, links_to]
+endfu
+
+
+fu! DetailedInspectSyntax(places) abort
+  call PreloadSyntax()
+
+  let inspected = []
+  for p in a:places
+    norm! gg
+
+    let found = []
+    for [line_number, begin, end] in MatchesForPattern('\%>3l'.p)
+
+      for column_number in range(begin, end-1)
+        let [name, links_to] = SyntaxAt(line_number, column_number)
+
+        if !empty(found) && found != [name, links_to]
+          throw 'Vimrunner(DetailedInspectSyntax): Found different match at ' . line_number . ":" . column_number
+                \ . ".\n Line contains: \"" . getline(line_number) . '"'
+                \ . ".\n Encountered: " . string(found)
+        endif
+
+        let found = [name, links_to]
+      endfor
+    endfor
+
+    call add(inspected, found )
   endfor
 
   return inspected

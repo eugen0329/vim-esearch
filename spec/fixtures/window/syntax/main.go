@@ -8,7 +8,7 @@ type _ struct {}
 type _ interface {}
 
 "string"
-"str with escaped slash\\"
+"str with escaped slash"
 "str with escape\n"
 "long string...................................................................................................."
 `raw string`
