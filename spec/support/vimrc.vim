@@ -121,7 +121,6 @@ fu! SyntaxAt(ln, column) abort
   return [name, links_to]
 endfu
 
-
 fu! DetailedInspectSyntax(places) abort
   call PreloadSyntax()
 
@@ -135,13 +134,14 @@ fu! DetailedInspectSyntax(places) abort
       for column_number in range(begin, end-1)
         let [name, links_to] = SyntaxAt(line_number, column_number)
 
-        if !empty(found) && found != [name, links_to]
-          throw 'Vimrunner(DetailedInspectSyntax): Found different match at ' . line_number . ":" . column_number
+        if empty(found)
+          let found = [name, links_to]
+        elseif found != [name, links_to]
+          throw 'Vimrunner(DetailedInspectSyntax): Found different syntax at ' . line_number . ":" . column_number
                 \ . ".\n Line contains: \"" . getline(line_number) . '"'
-                \ . ".\n Encountered: " . string(found)
+                \ . ".\n Encountered earlier: " . string(found)
+                \ . ".\n Encountered now:     " . string([name, links_to])
         endif
-
-        let found = [name, links_to]
       endfor
     endfor
 
