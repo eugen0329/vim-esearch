@@ -9,8 +9,8 @@ syn keyword cRepeat       while for do
 syn keyword cStructure    struct union enum typedef
 syn keyword cStorageClass static register auto volatile extern const
 
-syn region cCommentL start="//"  end="$"
-syn region cComment  start="/\*" end="\*/\|$"
+syn region cComment start="//"  end="$"
+syn region cComment start="/\*" end="\*/\|$"
 
 syn match cSpecial display contained "\\\(x\x\+\|\o\{1,3}\|.\|$\)"
 if !exists("c_no_utf")
@@ -27,7 +27,6 @@ hi def link cConditional  Conditional
 hi def link cRepeat       Repeat
 hi def link cStructure    Structure
 hi def link cStorageClass StorageClass
-hi def link cCommentL     Comment
 hi def link cComment      Comment
 hi def link cString       String
 hi def link cDefine       Macro

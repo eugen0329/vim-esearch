@@ -7,8 +7,8 @@ require 'plugin/shared_examples/abortable_backend'
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
 
-  let(:ccode) do
-    <<~CCODE
+  let(:c_code) do
+    <<~C_CODE
       goto
       break
       return
@@ -27,9 +27,9 @@ describe 'esearch#backend', :backend do
       do {} while();
 
       "string"
-      "escaped_slash\\\\"
-      "escaped_char\\n"
-      "long_string#{'.' * 100}"
+      "str with escaped slash\\\\"
+      "str with escape\\n"
+      "long string#{'.' * 100}"
 
       // comment line
       /* comment block */
@@ -55,14 +55,52 @@ describe 'esearch#backend', :backend do
       volatile var;
       extern var;
       const var;
-    CCODE
+    C_CODE
   end
+  let(:main_c) { file(c_code, 'main.c') }
 
-  let(:main_c) { file(ccode, 'main.c') }
+  let(:go_code) do
+    <<~GO_CODE
+      package main
+      import "fmt"
+
+      var a int
+      const b int
+      func main() {}
+      type _ struct {}
+      type _ interface {}
+
+      "string"
+      "str with escaped slash\\\\"
+      "str with escape\\n"
+      "long string#{'.' * 100}"
+      `raw string`
+
+      // comment line
+      /* comment block */
+      /* long comment #{'.' * 100}*/
+
+      defer
+      go
+      goto
+      return
+      break
+      continue
+      fallthrough
+
+      case
+      default
+
+      for {}
+      range()
+    GO_CODE
+  end
+  let(:main_go) { file(go_code, 'main.go') }
 
   let!(:test_directory) do
     directory([
-                main_c
+                main_c,
+                main_go,
               ], 'window/syntax/').persist!
   end
 
@@ -104,11 +142,11 @@ describe 'esearch#backend', :backend do
         'do':                      %w[cRepeat Repeat],
 
         '"string"':                %w[cString String],
-        '"escaped_slash\\\\\\\\"': %w[cString String],
-        '"escaped_char\\\\n"':     %w[cString String],
-        '"long_string[^"]\+$':     %w[cString String],
+        '"str with escaped slash\\\\\\\\"': %w[cString String],
+        '"str with escape\\\\n"':     %w[cString String],
+        '"long string[^"]\+$':     %w[cString String],
 
-        '// comment line':         %w[cCommentL Comment],
+        '// comment line':         %w[cComment Comment],
         '/\* comment block':       %w[cComment Comment],
         '/\* long comment':        %w[cComment Comment],
 
@@ -132,6 +170,48 @@ describe 'esearch#backend', :backend do
         'volatile':                %w[cStorageClass StorageClass],
         'extern':                  %w[cStorageClass StorageClass],
         'const':                   %w[cStorageClass StorageClass]
+      )
+    end
+  end
+
+  describe 'go' do
+    subject { main_go }
+
+    it do
+      is_expected.to have_highlights(
+        'package': %w[goDirective   Statement],
+        'import':  %w[goDirective   Statement],
+
+        'var':     %w[goDeclaration Keyword],
+        'const':   %w[goDeclaration Keyword],
+        'type':    %w[goDeclaration Keyword],
+        'func':    %w[goDeclaration Keyword],
+        'struct':     %w[goDeclType          Keyword],
+        'interface':  %w[goDeclType          Keyword],
+
+        '"string"':                %w[goString    String],
+        '"str with escaped slash\\\\\\\\"': %w[goString    String],
+        '"str with escape\\\\n"':     %w[goString    String],
+        '"long string[^"]\+$':     %w[goString    String],
+        '`raw string`$':     %w[goRawString String],
+
+        '// comment line':         %w[goComment Comment],
+        '/\* comment block':       %w[goComment Comment],
+        '/\* long comment':        %w[goComment Comment],
+
+        'defer':       %w[goStatement         Statement],
+        'go':          %w[goStatement         Statement],
+        'goto':        %w[goStatement         Statement],
+        'return':      %w[goStatement         Statement],
+        'break':       %w[goStatement         Statement],
+        'continue':    %w[goStatement         Statement],
+        'fallthrough': %w[goStatement         Statement],
+
+        'case':    %w[goLabel             Label],
+        'default': %w[goLabel             Label],
+
+        'for':    %w[ goRepeat            Repeat],
+        'range':  %w[ goRepeat            Repeat],
       )
     end
   end

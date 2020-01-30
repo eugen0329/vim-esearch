@@ -24,7 +24,7 @@ describe Editor, :editor do
 
     describe '#matches_for' do
       before do
-        editor.press! 'Opattern1'
+        editor.press! "O#{' ' * 4}pattern1"
         editor.command! <<~VIML
           hi Matchgroup1 ctermfg=red
           hi Matchgroup2 ctermfg=red
@@ -35,7 +35,7 @@ describe Editor, :editor do
       after { editor.press! 'u' }
 
       it do
-        expect(editor.matches_for('Matchgroup1')).to eq([[1, 1, 1 + 'pattern1'.length]])
+        expect(editor.matches_for('Matchgroup1')).to eq([[1, 4, 4 + 'pattern1'.length]])
         expect(editor.matches_for('Matchgroup2')).to be_empty
       end
     end

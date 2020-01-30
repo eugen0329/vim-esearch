@@ -49,6 +49,7 @@ let s:syntax_regexps = {
       \ 'light_eruby': '\%(\.erb\)$',
       \ 'yaml': '\%(yaml\|\.yml\)$',
       \ 'win_context_c': '\.c$',
+      \ 'win_context_go': '\.go$',
       \}
 if exists('g:esearch#out#win#syntax_regeps')
   call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
