@@ -28,6 +28,10 @@ class Fixtures::LazyFile
     given_relative_path || digest_name
   end
 
+  def basename
+    File.basename(relative_path)
+  end
+
   def to_s
     path.to_s
   end

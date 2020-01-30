@@ -18,6 +18,28 @@ describe Editor, :editor do
     let(:reader) { reader_class.new(method(:vim), cache_enabled) }
     let(:editor) { described_class.new(method(:vim), reader: reader, cache_enabled: cache_enabled) }
 
+    describe '#current_buffer_name' do
+      it { expect(editor.current_buffer_name).to eq(test_file.path.to_s) }
+    end
+
+    describe '#matches_for' do
+      before do
+        editor.press! 'Opattern1'
+        editor.command! <<~VIML
+          hi Matchgroup1 ctermfg=red
+          hi Matchgroup2 ctermfg=red
+          call matchadd('Matchgroup1', 'pattern1')
+          call matchadd('Matchgroup2', 'pattern2')
+        VIML
+      end
+      after { editor.press! 'u' }
+
+      it do
+        expect(editor.matches_for('Matchgroup1')).to eq([[1, 1, 1 + 'pattern1'.length]])
+        expect(editor.matches_for('Matchgroup2')).to be_empty
+      end
+    end
+
     describe '#lines' do
       context 'return value' do
         it { expect(editor.lines).to be_a(Enumerator) }
@@ -97,13 +119,29 @@ describe Editor, :editor do
     end
   end
 
-  context 'when reader == Editor::Read::Eager' do
-    include_examples 'it works with reader', Editor::Read::Eager
+  context 'vim', :vim do
+    context 'when reader == Editor::Read::Eager' do
+      include_examples 'it works with reader', Editor::Read::Eager
+    end
+
+    context 'when reader == Editor::Read::Batched' do
+      include_examples 'it works with reader', Editor::Read::Batched do
+        it_behaves_like 'it optimizes #lines with prefetching in blocks'
+      end
+    end
   end
 
-  context 'when reader == Editor::Read::Batched' do
-    include_examples 'it works with reader', Editor::Read::Batched do
-      it_behaves_like 'it optimizes #lines with prefetching in blocks'
+  context 'neovim', :neovim do
+    around  { |e| use_nvim(&e) }
+
+    context 'when reader == Editor::Read::Eager' do
+      include_examples 'it works with reader', Editor::Read::Eager
+    end
+
+    context 'when reader == Editor::Read::Batched' do
+      include_examples 'it works with reader', Editor::Read::Batched do
+        it_behaves_like 'it optimizes #lines with prefetching in blocks'
+      end
     end
   end
 end

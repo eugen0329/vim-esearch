@@ -10,23 +10,29 @@ class API::ESearch::Window::EntriesParser
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines(3..).with_index
+    @lines_iterator = editor.lines.with_index(1)
   end
 
   def parse
     return enum_for(:parse) unless block_given?
 
     lines_iterator.rewind
+    lines_iterator.next # skip header
+    lines_iterator.next # skip blank line
 
     loop do
       relative_path = next_file_relative_path!
       raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
 
-      next_lines_with_entries! do |line|
-        yield API::ESearch::Window::Entry.new(editor, relative_path, *line)
+      next_lines_with_entries! do |line_content, line_in_window|
+        yield API::ESearch::Window::Entry
+          .new(editor,
+               relative_path,
+               line_content,
+               line_in_window)
       end
     rescue StopIteration
-      nil
+      return nil
     end
   end
 

@@ -46,7 +46,7 @@ class Editor
 
   def lines_array(range = nil)
     from, to = lines_range(range)
-    to = "line('$')" if to.nil?
+    to = func('line', '$') if to.nil?
 
     echo func('getline', from, to)
   end
@@ -61,6 +61,10 @@ class Editor
 
   def bufname(arg)
     echo func('bufname', arg)
+  end
+
+  def matches_for(group)
+    echo func('Matches', group)
   end
 
   def current_buffer_name

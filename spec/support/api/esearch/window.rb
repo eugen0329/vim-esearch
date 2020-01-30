@@ -34,6 +34,19 @@ class API::ESearch::Window
     end
   end
 
+  include VimlValue::SerializationHelpers
+
+  def has_search_highlight?(relative_path, line, column)
+    entry = find_entry(relative_path, line)
+    padding = entry.left_padding
+
+    expected_match = [entry.line_in_window,
+                      padding + column.begin,
+                      padding + column.end]
+
+    editor.matches_for('ESearchMatch') == [expected_match]
+  end
+
   def errors
     editor.lines
   end
@@ -74,12 +87,12 @@ class API::ESearch::Window
     entry = find_entry(relative_path, line)
     raise MissingEntry unless entry
 
-    entry.open { return [editor.current_line_number, editor.current_column_number] }
+    entry.open { [editor.current_line_number, editor.current_column_number] }
   end
 
   def find_entry(relative_path, line)
     parser.entries.find do |entry|
-      entry.relative_path == relative_path && entry.line_number == line
+      entry.relative_path == relative_path && entry.line_in_file == line
     end
   end
 
