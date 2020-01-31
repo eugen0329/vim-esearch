@@ -57,9 +57,6 @@ let s:syntax_regexps = {
       \ '.html': 'win_context_html',
       \}
 
-" if exists('g:esearch#out#win#syntax_regeps')
-  " call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
-" endif
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
@@ -136,7 +133,7 @@ fu! esearch#out#win#init(opts) abort
 
   let b:esearch = extend(a:opts, {
         \ 'last_filename':          '',
-        \ 'context_beginning_line':    0,
+        \ 'context_beginning_line': 0,
         \ 'max_lines_found':        0,
         \ 'ignore_batches':         0,
         \ '_columns':               {},
