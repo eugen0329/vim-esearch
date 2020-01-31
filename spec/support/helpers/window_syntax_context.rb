@@ -1,9 +1,19 @@
 # frozen_string_literal: true
 
-module Helpers::Syntax
+module Helpers::WindowSyntaxContext
   extend RSpec::Matchers::DSL
 
-  matcher :have_highlights do |expected|
+  # wrap with \bname\b and allow matches only after 3d line
+  def word(name)
+    "\\%>3l\\<#{name}\\>"
+  end
+
+  # allow matches only after 3d line
+  def region(text)
+    "\\%>3l#{text}"
+  end
+
+  matcher :have_highligh_aliases do |expected|
     diffable
 
     match do
@@ -14,8 +24,9 @@ module Helpers::Syntax
   end
 
   matcher :have_line_numbers_highlight do |expected|
-    diffable
     attr_reader :actual, :expected
+
+    diffable
 
     match do |code|
       line_numbers = code

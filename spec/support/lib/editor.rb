@@ -75,12 +75,12 @@ class Editor
     echo func('line', '.')
   end
 
-  def inspect_syntax(locations)
-    echo func('InspectSyntax', locations)
+  def inspect_syntax(location_patterns)
+    echo func('DetailedInspectSyntax', location_patterns)
   end
 
-  def detailed_inspect_syntax(locations)
-    echo func('DetailedInspectSyntax', locations)
+  def detailed_inspect_syntax(location_patterns)
+    echo func('DetailedInspectSyntax', location_patterns)
   end
 
   def current_column_number

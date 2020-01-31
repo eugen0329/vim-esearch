@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
-  include Helpers::Syntax
+  include Helpers::WindowSyntaxContext
 
   describe 'ruby' do
     let(:ruby_code) do
@@ -74,61 +74,61 @@ describe 'esearch window context syntax' do
     end
 
     it 'contains matches' do
-      is_expected.to have_highlights(
-        'and':            %w[rubyControl Statement],
-        'break':          %w[rubyControl Statement],
-        'in':             %w[rubyControl Statement],
-        'next':           %w[rubyControl Statement],
-        'not':            %w[rubyControl Statement],
-        'or':             %w[rubyControl Statement],
-        'redo':           %w[rubyControl Statement],
-        'rescue':         %w[rubyControl Statement],
-        'retry':          %w[rubyControl Statement],
-        'return':         %w[rubyControl Statement],
-        'case':           %w[rubyControl Statement],
-        'begin':          %w[rubyControl Statement],
-        'do':             %w[rubyControl Statement],
-        'for':            %w[rubyControl Statement],
-        'if':             %w[rubyControl Statement],
-        'unless':         %w[rubyControl Statement],
-        'while':          %w[rubyControl Statement],
-        'until':          %w[rubyControl Statement],
-        'else':           %w[rubyControl Statement],
-        'elsif':          %w[rubyControl Statement],
-        'ensure':         %w[rubyControl Statement],
-        'then':           %w[rubyControl Statement],
-        'when':           %w[rubyControl Statement],
-        'end':            %w[rubyControl Statement],
+      is_expected.to have_highligh_aliases(
+        word('and')              => %w[rubyControl Statement],
+        word('break')            => %w[rubyControl Statement],
+        word('in')               => %w[rubyControl Statement],
+        word('next')             => %w[rubyControl Statement],
+        word('not')              => %w[rubyControl Statement],
+        word('or')               => %w[rubyControl Statement],
+        word('redo')             => %w[rubyControl Statement],
+        word('rescue')           => %w[rubyControl Statement],
+        word('retry')            => %w[rubyControl Statement],
+        word('return')           => %w[rubyControl Statement],
+        word('case')             => %w[rubyControl Statement],
+        word('begin')            => %w[rubyControl Statement],
+        word('do')               => %w[rubyControl Statement],
+        word('for')              => %w[rubyControl Statement],
+        word('if')               => %w[rubyControl Statement],
+        word('unless')           => %w[rubyControl Statement],
+        word('while')            => %w[rubyControl Statement],
+        word('until')            => %w[rubyControl Statement],
+        word('else')             => %w[rubyControl Statement],
+        word('elsif')            => %w[rubyControl Statement],
+        word('ensure')           => %w[rubyControl Statement],
+        word('then')             => %w[rubyControl Statement],
+        word('when')             => %w[rubyControl Statement],
+        word('end')              => %w[rubyControl Statement],
 
-        '"string"':       %w[rubyString String],
-        '"string\\\\n"':  %w[rubyString String],
-        '"str#{ing}"':    %w[rubyString String],
-        "'string'":       %w[rubyString String],
+        region('"string"')       => %w[rubyString String],
+        region('"string\\\\n"')  => %w[rubyString String],
+        region('"str#{ing}"')    => %w[rubyString String], # rubocop:disable Lint/InterpolationCheck
+        region("'string'")       => %w[rubyString String],
 
-        'true':           %w[rubyBoolean Boolean],
-        'false':          %w[rubyBoolean Boolean],
+        word('true')             => %w[rubyBoolean Boolean],
+        word('false')            => %w[rubyBoolean Boolean],
 
-        '# comment':      %w[rubyComment Comment],
-        '#comment':       %w[rubyComment Comment],
-        '# long comment': %w[rubyComment Comment],
+        region('# comment')      => %w[rubyComment Comment],
+        region('#comment')       => %w[rubyComment Comment],
+        region('# long comment') => %w[rubyComment Comment],
 
-        'alias':          %w[rubyDefine Define],
-        'def':            %w[rubyDefine Define],
-        'undef':          %w[rubyDefine Define],
-        'class':          %w[rubyDefine Define],
-        'module':         %w[rubyDefine Define],
+        word('alias')            => %w[rubyDefine Define],
+        word('def')              => %w[rubyDefine Define],
+        word('undef')            => %w[rubyDefine Define],
+        word('class')            => %w[rubyDefine Define],
+        word('module')           => %w[rubyDefine Define],
 
-        'super':          %w[rubyKeyword Keyword],
-        'yield':          %w[rubyKeyword Keyword],
+        word('super')            => %w[rubyKeyword Keyword],
+        word('yield')            => %w[rubyKeyword Keyword],
 
-        'nil':            %w[rubyPseudoVariable Constant],
-        'self':           %w[rubyPseudoVariable Constant],
-        '__ENCODING__':   %w[rubyPseudoVariable Constant],
-        '__dir__':        %w[rubyPseudoVariable Constant],
-        '__FILE__':       %w[rubyPseudoVariable Constant],
-        '__LINE__':       %w[rubyPseudoVariable Constant],
-        '__callee__':     %w[rubyPseudoVariable Constant],
-        '__method__':     %w[rubyPseudoVariable Constant]
+        word('nil')              => %w[rubyPseudoVariable Constant],
+        word('self')             => %w[rubyPseudoVariable Constant],
+        word('__ENCODING__')     => %w[rubyPseudoVariable Constant],
+        word('__dir__')          => %w[rubyPseudoVariable Constant],
+        word('__FILE__')         => %w[rubyPseudoVariable Constant],
+        word('__LINE__')         => %w[rubyPseudoVariable Constant],
+        word('__callee__')       => %w[rubyPseudoVariable Constant],
+        word('__method__')       => %w[rubyPseudoVariable Constant]
       )
     end
 

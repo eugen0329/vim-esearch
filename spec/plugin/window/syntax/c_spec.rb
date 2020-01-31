@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
-  include Helpers::Syntax
+  include Helpers::WindowSyntaxContext
 
   describe 'c' do
     let(:c_code) do
@@ -65,52 +65,52 @@ describe 'esearch window context syntax' do
     end
 
     it do
-      is_expected.to have_highlights(
-        'goto':                   %w[cStatement Statement],
-        'continue':               %w[cStatement Statement],
-        'break':                  %w[cStatement Statement],
-        'return':                 %w[cStatement Statement],
-        'asm':                    %w[cStatement Statement],
+      is_expected.to have_highligh_aliases(
+        word('goto')                     => %w[cStatement Statement],
+        word('continue')                 => %w[cStatement Statement],
+        word('break')                    => %w[cStatement Statement],
+        word('return')                   => %w[cStatement Statement],
+        word('asm')                      => %w[cStatement Statement],
 
-        'case':                   %w[cLabel Label],
-        'default':                %w[cLabel Label],
+        word('case')                     => %w[cLabel Label],
+        word('default')                  => %w[cLabel Label],
 
-        'if':                     %w[cConditional Conditional],
-        'else':                   %w[cConditional Conditional],
-        'switch':                 %w[cConditional Conditional],
+        word('if')                       => %w[cConditional Conditional],
+        word('else')                     => %w[cConditional Conditional],
+        word('switch')                   => %w[cConditional Conditional],
 
-        'while':                  %w[cRepeat Repeat],
-        'for':                    %w[cRepeat Repeat],
-        'do':                     %w[cRepeat Repeat],
+        word('while')                    => %w[cRepeat Repeat],
+        word('for')                      => %w[cRepeat Repeat],
+        word('do')                       => %w[cRepeat Repeat],
 
-        '"string"':               %w[cString String],
-        '"str with escape\\\\n"': %w[cString String],
-        '"long string[^"]\\+$':   %w[cString String],
+        region('"string"')               => %w[cString String],
+        region('"str with escape\\\\n"') => %w[cString String],
+        region('"long string[^"]\\+$')   => %w[cString String],
 
-        '// comment line':        %w[cComment Comment],
-        '/\* comment block':      %w[cComment Comment],
-        '/\* long comment':       %w[cComment Comment],
+        region('// comment line')        => %w[cComment Comment],
+        region('/\* comment block')      => %w[cComment Comment],
+        region('/\* long comment')       => %w[cComment Comment],
 
-        '#define':                %w[cDefine Macro],
-        '#undef':                 %w[cDefine Macro],
+        region('#define')                => %w[cDefine Macro],
+        region('#undef')                 => %w[cDefine Macro],
 
-        '#pragma':                %w[cPreProc PreProc],
-        '#line':                  %w[cPreProc PreProc],
-        '#warning':               %w[cPreProc PreProc],
-        '#warn':                  %w[cPreProc PreProc],
-        '#error':                 %w[cPreProc PreProc],
+        region('#pragma')                => %w[cPreProc PreProc],
+        region('#line')                  => %w[cPreProc PreProc],
+        region('#warning')               => %w[cPreProc PreProc],
+        region('#warn')                  => %w[cPreProc PreProc],
+        region('#error')                 => %w[cPreProc PreProc],
 
-        'struct':                 %w[cStructure Structure],
-        'union':                  %w[cStructure Structure],
-        'enum':                   %w[cStructure Structure],
-        'typedef':                %w[cStructure Structure],
+        word('struct')                   => %w[cStructure Structure],
+        word('union')                    => %w[cStructure Structure],
+        word('enum')                     => %w[cStructure Structure],
+        word('typedef')                  => %w[cStructure Structure],
 
-        'static':                 %w[cStorageClass StorageClass],
-        'register':               %w[cStorageClass StorageClass],
-        'auto':                   %w[cStorageClass StorageClass],
-        'volatile':               %w[cStorageClass StorageClass],
-        'extern':                 %w[cStorageClass StorageClass],
-        'const':                  %w[cStorageClass StorageClass]
+        word('static')                   => %w[cStorageClass StorageClass],
+        word('register')                 => %w[cStorageClass StorageClass],
+        word('auto')                     => %w[cStorageClass StorageClass],
+        word('volatile')                 => %w[cStorageClass StorageClass],
+        word('extern')                   => %w[cStorageClass StorageClass],
+        word('const')                    => %w[cStorageClass StorageClass]
       )
     end
 

@@ -83,7 +83,7 @@ fu! InspectSyntax(places) abort
 
   let inspected = []
   for p in a:places
-    let found = search('\%>3l'. p)
+    let found = search(p)
 
     if found == 0
       call add(inspected, ['ERR_NOT_FOUND', 'ERR_NOT_FOUND'])
@@ -110,11 +110,11 @@ fu! SyntaxAt(ln, column) abort
   redir END
   let m = matchlist(hlstr, 'links to \(\w\+\)$')
   if len(m) < 2
-    let link_to = 'IS_NOT_A_LINK'
-    " throw 'Vimrunner(SyntaxAt): Can''t parse hl link at ' . a:ln . ":" . a:column . ".\n"
-    "       \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"
-    "       \ . "               " . repeat(' ', a:column-1) . "^\n"
-    "       \ . "`hi link ".name."` output contains: " . substitute(hlstr, "\\n", "\\\\n", 'g')
+    echoerr 'Vimrunner(SyntaxAt): Can''t parse hl link at ' . a:ln . ":" . a:column . ".\n"
+          \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"
+          \ . "              " . repeat(' ', a:column-1) . "^\n"
+          \ . "`hi link ".name."` output contains: " . substitute(hlstr, "\\n", "\\\\n", 'g')
+    let links_to = 'IS_NOT_A_LINK'
   else
     let links_to = m[1]
   endif
@@ -130,7 +130,7 @@ fu! DetailedInspectSyntax(places) abort
     norm! gg
 
     let found = []
-    for [line_number, begin, end] in MatchesForPattern('\%>3l'.p)
+    for [line_number, begin, end] in MatchesForPattern(p)
 
       for column_number in range(begin, end-1)
         let [name, links_to] = SyntaxAt(line_number, column_number)
@@ -138,10 +138,12 @@ fu! DetailedInspectSyntax(places) abort
         if empty(found)
           let found = [name, links_to]
         elseif found != [name, links_to]
-          throw 'Vimrunner(DetailedInspectSyntax): Found different syntax at ' . line_number . ":" . column_number
-                \ . ".\n Line contains: \"" . getline(line_number) . '"'
-                \ . ".\n Encountered earlier: " . string(found)
-                \ . ".\n Encountered now:     " . string([name, links_to])
+          throw 'Vimrunner(DetailedInspectSyntax): Found different syntax at ' . line_number . ":" . column_number . ".\n"
+                \ . "Line contains: \"" . getline(line_number) . "\"\n"
+                \ . "                " . repeat(' ', column_number-1) . "^\n"
+                \ . "Encountered earlier: " . string(found) . ".\n"
+                \ . "Encountered now:     " . string([name, links_to]) . ".\n"
+                \ . "While inspecting:    \"" . escape(p, '"') . '"'
         endif
       endfor
     endfor

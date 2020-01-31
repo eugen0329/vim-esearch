@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
-  include Helpers::Syntax
+  include Helpers::WindowSyntaxContext
 
   describe 'sh' do
     let(:sh_code) do
@@ -37,24 +37,24 @@ describe 'esearch window context syntax' do
     end
 
     it 'contains matches' do
-      is_expected.to have_highlights(
-        '\\$deref':      %w[shDerefSimple PreProc],
-        '\\$1':          %w[shDerefSimple PreProc],
+      is_expected.to have_highligh_aliases(
+        '\\$deref'              => %w[shDerefSimple PreProc],
+        '\\$1'                  => %w[shDerefSimple PreProc],
 
-        'case':          %w[shKeyword Keyword],
-        'esac':          %w[shKeyword Keyword],
-        'do':            %w[shKeyword Keyword],
-        'done':          %w[shKeyword Keyword],
-        'for':           %w[shKeyword Keyword],
-        'in':            %w[shKeyword Keyword],
-        'if':            %w[shKeyword Keyword],
-        'fi':            %w[shKeyword Keyword],
-        'until':         %w[shKeyword Keyword],
-        'while':         %w[shKeyword Keyword],
+        word('case')            => %w[shKeyword Keyword],
+        word('esac')            => %w[shKeyword Keyword],
+        word('do')              => %w[shKeyword Keyword],
+        word('done')            => %w[shKeyword Keyword],
+        word('for')             => %w[shKeyword Keyword],
+        word('in')              => %w[shKeyword Keyword],
+        word('if')              => %w[shKeyword Keyword],
+        word('fi')              => %w[shKeyword Keyword],
+        word('until')           => %w[shKeyword Keyword],
+        word('while')           => %w[shKeyword Keyword],
 
-        '"string"':      %w[shDoubleQuote String],
-        '"string\\\\n"': %w[shDoubleQuote String],
-        "'string'":      %w[shSingleQuote String]
+        region('"string"')      => %w[shDoubleQuote String],
+        region('"string\\\\n"') => %w[shDoubleQuote String],
+        region("'string'")      => %w[shSingleQuote String]
       )
     end
 

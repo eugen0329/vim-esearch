@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
-  include Helpers::Syntax
+  include Helpers::WindowSyntaxContext
 
   describe 'go' do
     let(:go_code) do
@@ -52,40 +52,40 @@ describe 'esearch window context syntax' do
     end
 
     it 'contains matches' do
-      is_expected.to have_highlights(
-        'package':                    %w[goDirective Statement],
-        'import':                     %w[goDirective Statement],
+      is_expected.to have_highligh_aliases(
+        word('package')                      => %w[goDirective Statement],
+        word('import')                       => %w[goDirective Statement],
 
-        'var':                        %w[goDeclaration Keyword],
-        'const':                      %w[goDeclaration Keyword],
-        'type':                       %w[goDeclaration Keyword],
-        'func':                       %w[goDeclaration Keyword],
-        'struct':                     %w[goDeclType Keyword],
-        'interface':                  %w[goDeclType Keyword],
+        word('var')                          => %w[goDeclaration Keyword],
+        word('const')                        => %w[goDeclaration Keyword],
+        word('type')                         => %w[goDeclaration Keyword],
+        word('func')                         => %w[goDeclaration Keyword],
+        word('struct')                       => %w[goDeclType Keyword],
+        word('interface')                    => %w[goDeclType Keyword],
 
-        '"string"':                   %w[goString String],
-        '"str with escaped slash\\"': %w[goString String],
-        '"str with escape\\\\n"':     %w[goString String],
-        '"long string[^"]\\+$':       %w[goString String],
-        '`raw string`$':              %w[goRawString String],
+        region('"string"')                   => %w[goString String],
+        region('"str with escaped slash\\"') => %w[goString String],
+        region('"str with escape\\\\n"')     => %w[goString String],
+        region('"long string[^"]\\+$')       => %w[goString String],
+        region('`raw string`$')              => %w[goRawString String],
 
-        '// comment line':            %w[goComment Comment],
-        '/\* comment block':          %w[goComment Comment],
-        '/\* long comment':           %w[goComment Comment],
+        region('// comment line')            => %w[goComment Comment],
+        region('/\* comment block')          => %w[goComment Comment],
+        region('/\* long comment')           => %w[goComment Comment],
 
-        'defer':                      %w[goStatement Statement],
-        'go':                         %w[goStatement Statement],
-        'goto':                       %w[goStatement Statement],
-        'return':                     %w[goStatement Statement],
-        'break':                      %w[goStatement Statement],
-        'continue':                   %w[goStatement Statement],
-        'fallthrough':                %w[goStatement Statement],
+        word('defer')                        => %w[goStatement Statement],
+        word('go')                           => %w[goStatement Statement],
+        word('goto')                         => %w[goStatement Statement],
+        word('return')                       => %w[goStatement Statement],
+        word('break')                        => %w[goStatement Statement],
+        word('continue')                     => %w[goStatement Statement],
+        word('fallthrough')                  => %w[goStatement Statement],
 
-        'case':                       %w[goLabel Label],
-        'default':                    %w[goLabel Label],
+        word('case')                         => %w[goLabel Label],
+        word('default')                      => %w[goLabel Label],
 
-        'for':                        %w[goRepeat Repeat],
-        'range':                      %w[goRepeat Repeat]
+        word('for')                          => %w[goRepeat Repeat],
+        word('range')                        => %w[goRepeat Repeat]
       )
     end
 

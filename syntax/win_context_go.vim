@@ -10,7 +10,7 @@ syn keyword goConditional if else switch select
 syn keyword goLabel       case default
 syn keyword goRepeat      for range
 
-syn region goString    start=+"+   skip=+\\\\\|\\"+ end=+\|$+
+syn region goString    start=+"+   skip=+\\\\\|\\"+ end=+"\|$+
 syn region goRawString start=+`+   end=+`+
 syn region goComment   start="/\*" end="\*/\|$"
 syn region goComment   start="//"  end="$"

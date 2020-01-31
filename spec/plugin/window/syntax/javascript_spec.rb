@@ -4,7 +4,7 @@ require 'spec_helper'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
-  include Helpers::Syntax
+  include Helpers::WindowSyntaxContext
 
   describe 'javascript' do
     let(:javascript_code) do
@@ -28,11 +28,11 @@ describe 'esearch window context syntax' do
 
 
         "string"
-        "str with escape\\n"
+        "str_with_escape\\n"
         "long string#{'.' * 100}"
 
         'string'
-        'str with escape\\n'
+        'str_with_escape\\n'
         'long string#{'.' * 100}'
 
         return
@@ -81,67 +81,67 @@ describe 'esearch window context syntax' do
     end
 
     it 'contains matches' do
-      is_expected.to have_highlights(
-        'if':                     %w[javaScriptConditional Conditional],
-        'else':                   %w[javaScriptConditional Conditional],
-        'switch':                 %w[javaScriptConditional Conditional],
+      is_expected.to have_highligh_aliases(
+        word('if')                       => %w[javaScriptConditional Conditional],
+        word('else')                     => %w[javaScriptConditional Conditional],
+        word('switch')                   => %w[javaScriptConditional Conditional],
 
-        'while':                  %w[javaScriptRepeat Repeat],
-        'for':                    %w[javaScriptRepeat Repeat],
-        'do':                     %w[javaScriptRepeat Repeat],
-        'in':                     %w[javaScriptRepeat Repeat],
+        word('while')                    => %w[javaScriptRepeat Repeat],
+        word('for')                      => %w[javaScriptRepeat Repeat],
+        word('do')                       => %w[javaScriptRepeat Repeat],
+        word('\<in\>')                   => %w[javaScriptRepeat Repeat],
 
-        'break':                  %w[javaScriptBranch Conditional],
-        'continue':               %w[javaScriptBranch Conditional],
+        word('break')                    => %w[javaScriptBranch Conditional],
+        word('continue')                 => %w[javaScriptBranch Conditional],
 
-        'new':                    %w[javaScriptOperator Operator],
-        'delete':                 %w[javaScriptOperator Operator],
-        'instanceof':             %w[javaScriptOperator Operator],
-        'typeof':                 %w[javaScriptOperator Operator],
+        word('new')                      => %w[javaScriptOperator Operator],
+        word('delete')                   => %w[javaScriptOperator Operator],
+        word('instanceof')               => %w[javaScriptOperator Operator],
+        word('typeof')                   => %w[javaScriptOperator Operator],
 
-        '"string"':               %w[javaScriptStringD String],
-        '"str with escape\\\\n"': %w[javaScriptStringD String],
-        '"long string[^"]\\+$':   %w[javaScriptStringD String],
+        region('"string"')               => %w[javaScriptStringD String],
+        region('"str_with_escape\\\\n"') => %w[javaScriptStringD String],
+        region('"long string[^"]\\+$')   => %w[javaScriptStringD String],
 
-        "'string'":               %w[javaScriptStringS String],
-        "'str with escape\\\\n'": %w[javaScriptStringS String],
-        "'long string[^']\\+$":   %w[javaScriptStringS String],
+        region("'string'")               => %w[javaScriptStringS String],
+        region("'str_with_escape\\\\n'") => %w[javaScriptStringS String],
+        region("'long string[^']\\+$")   => %w[javaScriptStringS String],
 
-        'return':                 %w[javaScriptStatement Statement],
-        'with':                   %w[javaScriptStatement Statement],
+        word('return')                   => %w[javaScriptStatement Statement],
+        word('\<with\>')                 => %w[javaScriptStatement Statement],
 
-        '// comment line':        %w[javaScriptComment Comment],
-        '/\* comment block':      %w[javaScriptComment Comment],
-        '/\* long comment':       %w[javaScriptComment Comment],
+        region('// comment line')        => %w[javaScriptComment Comment],
+        region('/\* comment block')      => %w[javaScriptComment Comment],
+        region('/\* long comment')       => %w[javaScriptComment Comment],
 
-        'null':                   %w[javaScriptNull Keyword],
-        'undefined':              %w[javaScriptNull Keyword],
+        word('null')                     => %w[javaScriptNull Keyword],
+        word('undefined')                => %w[javaScriptNull Keyword],
 
-        'true':                   %w[javaScriptBoolean Boolean],
-        'false':                  %w[javaScriptBoolean Boolean],
+        word('true')                     => %w[javaScriptBoolean Boolean],
+        word('false')                    => %w[javaScriptBoolean Boolean],
 
-        'arguments':              %w[javaScriptIdentifier Identifier],
-        'this':                   %w[javaScriptIdentifier Identifier],
-        'var':                    %w[javaScriptIdentifier Identifier],
-        '\<let':                  %w[javaScriptIdentifier Identifier],
+        word('arguments')                => %w[javaScriptIdentifier Identifier],
+        word('this')                     => %w[javaScriptIdentifier Identifier],
+        word('var')                      => %w[javaScriptIdentifier Identifier],
+        word('\<let')                    => %w[javaScriptIdentifier Identifier],
 
-        'case':                   %w[javaScriptLabel Label],
-        'default':                %w[javaScriptLabel Label],
+        word('case')                     => %w[javaScriptLabel Label],
+        word('default')                  => %w[javaScriptLabel Label],
 
-        'try':                    %w[javaScriptException Exception],
-        'catch':                  %w[javaScriptException Exception],
-        'finally':                %w[javaScriptException Exception],
-        'throw':                  %w[javaScriptException Exception],
+        word('try')                      => %w[javaScriptException Exception],
+        word('catch')                    => %w[javaScriptException Exception],
+        word('finally')                  => %w[javaScriptException Exception],
+        word('throw')                    => %w[javaScriptException Exception],
 
-        'abstract':               %w[javaScriptReserved Keyword],
-        'class':                  %w[javaScriptReserved Keyword],
-        'const':                  %w[javaScriptReserved Keyword],
-        'debugger':               %w[javaScriptReserved Keyword],
-        'export':                 %w[javaScriptReserved Keyword],
-        'extends':                %w[javaScriptReserved Keyword],
-        'import':                 %w[javaScriptReserved Keyword],
+        word('abstract')                 => %w[javaScriptReserved Keyword],
+        word('class')                    => %w[javaScriptReserved Keyword],
+        word('const')                    => %w[javaScriptReserved Keyword],
+        word('debugger')                 => %w[javaScriptReserved Keyword],
+        word('export')                   => %w[javaScriptReserved Keyword],
+        word('extends')                  => %w[javaScriptReserved Keyword],
+        word('import')                   => %w[javaScriptReserved Keyword],
 
-        'function':               %w[javaScriptFunction Function]
+        word('function')                 => %w[javaScriptFunction Function]
       )
     end
 

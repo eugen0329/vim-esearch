@@ -12,11 +12,7 @@ syn keyword cStorageClass static register auto volatile extern const
 syn region cComment start="//"  end="$"
 syn region cComment start="/\*" end="\*/\|$"
 
-syn match cSpecial display contained "\\\(x\x\+\|\o\{1,3}\|.\|$\)"
-if !exists("c_no_utf")
-  syn match cSpecial  display contained "\\\(u\x\{4}\|U\x\{8}\)"
-endif
-syn region  cString start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+ contains=cSpecial extend
+syn region  cString start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
 
 syn match  cDefine   '#\(define\|undef\)\>'
 syn match  cPreProc   '#\(pragma\|line\|warning\|warn\|error\)\>'
