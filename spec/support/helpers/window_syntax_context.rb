@@ -51,12 +51,12 @@ module Helpers::WindowSyntaxContext
                      .map { |_, line_number| line_number }
 
       location_regexps = line_numbers
-        .map { |line_number| "^\\s\\+#{line_number}\\ze\\s" }
+                         .map { |line_number| "^\\s\\+#{line_number}\\ze\\s" }
 
       highlight_names = esearch
-                     .editor
-                     .syntax_aliases_at(location_regexps)
-                     .to_a
+                        .editor
+                        .syntax_aliases_at(location_regexps)
+                        .to_a
 
       @actual = line_numbers.zip(highlight_names).to_h
       @expected = line_numbers.zip([expected] * line_numbers.count).to_h

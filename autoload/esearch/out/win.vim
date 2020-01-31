@@ -298,7 +298,7 @@ fu! s:init_context_syntax(esearch, line) abort
     return
   endif
 
-  if a:esearch.last_filename != ''
+  if a:esearch.last_filename !=# ''
     let ext = matchstr(a:esearch.last_filename, '\..*$')
     if !has_key(s:syntax_regexps, ext)
       return

@@ -37,4 +37,4 @@ hi def link es_javaScopeDecl		javaStorageClass
 hi def link es_javaComment		Comment
 hi def link es_javaString			String
 
-let b:current_syntax = 'win_context_c'
+let b:current_syntax = 'win_context_java'

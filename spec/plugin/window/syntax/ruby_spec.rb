@@ -79,6 +79,12 @@ describe 'esearch window context syntax' do
 
     include_context 'setup syntax testing'
 
+    # 1. Verification is done in a single example for performance reasons (as
+    # vim's +clientserver is too sluggish; it doesn't affect debuggability as
+    # the matcher is diffable)
+    # 2. Lines that can cause matching across line end (e.g. not terminated strings
+    # or comments) are not groupped and scattered across source_file to cause as
+    # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
         word('and')                    => %w[es_rubyControl Statement],
