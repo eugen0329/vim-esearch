@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'ruby' do
-    let(:source_text) do
-      <<~SOURCE_TEXT
+    let(:source_file_content) do
+      <<~SOURCE
         <div attr="double-quoted"></div>
 
         <div attr=
@@ -24,15 +25,11 @@ describe 'esearch window context syntax' do
 
         <incorrectly-closed></incorrectly-closed
         <any-other-tag>
-      SOURCE_TEXT
+      SOURCE
     end
-    let(:source_file) { file(source_text, 'main.html') }
-    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
+    let(:source_file) { file(source_file_content, 'main.html') }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: source_file.path.to_s
-    end
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -58,10 +55,6 @@ describe 'esearch window context syntax' do
         region('</incorrectly-closed', at: ..2) => %w[es_htmlEndTag Identifier],
         region('</incorrectly-closed', at: 2..) => %w[es_htmlTagName Statement]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(source_text).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

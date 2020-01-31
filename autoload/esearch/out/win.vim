@@ -48,13 +48,15 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
 endif
 
 let s:syntax_regexps = {
-      \ '.c':  'win_context_c',
-      \ '.sh': 'win_context_sh',
-      \ '.js': 'win_context_javascript',
-      \ '.rb': 'win_context_ruby',
-      \ '.py': 'win_context_python',
-      \ '.go': 'win_context_go',
+      \ '.c':    'win_context_c',
+      \ '.sh':   'win_context_sh',
+      \ '.js':   'win_context_javascript',
+      \ '.go':   'win_context_go',
+      \ '.php':   'win_context_php',
       \ '.html': 'win_context_html',
+      \ '.java': 'win_context_java',
+      \ '.rb':   'win_context_ruby',
+      \ '.py':   'win_context_python',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
@@ -278,7 +280,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   endwhile
 endfu
 
-fu! s:syn_sync(esearch) abort
+fu! s:set_syntax_sync(esearch) abort
   if !g:esearch#out#win#context_syntax_highlight
         \ || a:esearch['max_lines_found'] < 1
     return
@@ -563,7 +565,7 @@ fu! esearch#out#win#finish(bufnr) abort
   call esearch#out#win#update(a:bufnr)
 
   call s:init_context_syntax(esearch, line('$'))
-  call s:syn_sync(esearch)
+  call s:set_syntax_sync(esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)
 

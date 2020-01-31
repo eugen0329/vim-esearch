@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'javascript' do
-    let(:javascript_code) do
-      <<~JAVASCRIPT_CODE
+    let(:source_file_content) do
+      <<~SOURCE
         if
         else
         switch
@@ -72,15 +73,11 @@ describe 'esearch window context syntax' do
         import
 
         function
-      JAVASCRIPT_CODE
+      SOURCE
     end
-    let(:source_file) { file(javascript_code, 'main.js') }
-    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
+    let(:source_file) { file(source_file_content, 'main.js') }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: source_file.path.to_s
-    end
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -148,10 +145,6 @@ describe 'esearch window context syntax' do
 
         word('function')                 => %w[es_javaScriptFunction Function]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(javascript_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

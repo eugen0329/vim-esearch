@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'go' do
-    let(:go_code) do
-      <<~GO_CODE
+    let(:source_file_content) do
+      <<~SOURCE
         package main
         import "fmt"
 
@@ -44,15 +45,11 @@ describe 'esearch window context syntax' do
 
         for {}
         range()
-      GO_CODE
+      SOURCE
     end
-    let(:main_go) { file(go_code, 'main.go') }
-    let!(:test_directory) { directory([main_go], 'window/syntax/').persist! }
+    let(:source_file) { file(source_file_content, 'main.go') }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: main_go.path.to_s
-    end
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -93,10 +90,6 @@ describe 'esearch window context syntax' do
         word('for')                          => %w[es_goRepeat Repeat],
         word('range')                        => %w[es_goRepeat Repeat]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(go_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

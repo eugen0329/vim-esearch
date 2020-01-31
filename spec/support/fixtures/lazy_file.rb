@@ -44,8 +44,6 @@ class Fixtures::LazyFile
     content.split("\n")
   end
 
-  private
-
   def content
     @content ||=
       if raw_content.is_a? String

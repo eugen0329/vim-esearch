@@ -87,11 +87,10 @@ fu! SyntaxAt(ln, column) abort
   endfor
 
   if len(m) < 2
-    throw 'Vimrunner(SyntaxAt): Can''t parse hl link at ' . a:ln . ":" . a:column . ".\n"
+    throw 'Vimrunner(SyntaxAt): Can''t parse highlight data at ' . a:ln . ":" . a:column . ".\n"
           \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"
           \ . "              " . repeat(' ', a:column-1) . "^\n"
           \ . "`hi link ".name."` output contains: " . substitute(hlstr, "\\n", "\\\\n", 'g')
-    let links_to = 'IS_NOT_A_LINK'
   else
     let links_to = m[1]
   endif

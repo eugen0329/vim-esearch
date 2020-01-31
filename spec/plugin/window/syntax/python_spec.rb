@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'python' do
-    let(:python_code) do
-      <<~PYTHON_CODE
+    let(:source_file_content) do
+      <<~SOURCE
         False
         None
         True
@@ -86,16 +87,11 @@ describe 'esearch window context syntax' do
 
         async
         await
-      PYTHON_CODE
+      SOURCE
     end
-    let(:source_file) { file(python_code, 'main.py') }
-    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
+    let(:source_file) { file(source_file_content, 'main.py') }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', out: 'win')
-      esearch.search! '^', cwd: source_file.path.to_s
-      expect(esearch).to have_search_finished
-    end
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -179,10 +175,6 @@ describe 'esearch window context syntax' do
         word('async')                  => %w[es_pythonAsync Statement],
         word('await')                  => %w[es_pythonAsync Statement]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(python_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

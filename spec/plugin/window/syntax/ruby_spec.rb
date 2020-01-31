@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'ruby' do
-    let(:ruby_code) do
-      <<~RUBY_CODE
+    let(:source_file_content) do
+      <<~SOURCE
         and
         break
         in
@@ -72,15 +73,11 @@ describe 'esearch window context syntax' do
         __LINE__
         __callee__
         __method__
-      RUBY_CODE
+      SOURCE
     end
-    let(:source_file) { file(ruby_code, 'main.rb') }
-    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
+    let(:source_file) { file(source_file_content, 'main.rb') }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: source_file.path.to_s
-    end
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -151,10 +148,6 @@ describe 'esearch window context syntax' do
         word('__callee__')             => %w[es_rubyPseudoVariable Constant],
         word('__method__')             => %w[es_rubyPseudoVariable Constant]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(ruby_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

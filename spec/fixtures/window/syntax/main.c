@@ -1,47 +1,45 @@
-goto
-break
-return
-continue
-asm
-
-case
-default
-
 if
 else
 switch
 
-while(1) {}
-for(;;) {}
-do {} while();
+while
+for
+do
 
-"string"
-"str with escape\n"
-"long string...................................................................................................."
+true
+false
 
-#define
-#undef
+null
 
-"unterminated string
+this
+super
 
-#pragma
-#line
-#warning
-#warn
-#error
+new
+instanceof
 
-// comment line
-/* comment block */
-/* long comment ....................................................................................................*/
+return
 
-struct{}
-union{}
-enum{}
-typedef{}
+static
+synchronized
+transient
+volatile
+final
+strictfp
+serializable
 
-static var;
-register var;
-auto var;
-volatile var;
-extern var;
-const var;
+throw
+try
+catch
+finally
+
+assert
+
+extends
+implements
+interface
+enum
+
+public
+protected
+private
+abstract

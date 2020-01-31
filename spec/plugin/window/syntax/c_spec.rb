@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'c' do
-    let(:c_code) do
-      <<~C_CODE
+    let(:source_file_content) do
+      <<~SOURCE
         goto
         break
         return
@@ -56,15 +57,11 @@ describe 'esearch window context syntax' do
         volatile var;
         extern var;
         const var;
-      C_CODE
+      SOURCE
     end
-    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
-    let(:source_file) { file(c_code, 'main.c') }
+    let(:source_file) { file(source_file_content, 'main.c') }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: source_file.path.to_s
-    end
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -116,10 +113,6 @@ describe 'esearch window context syntax' do
         word('extern')                   => %w[es_cStorageClass StorageClass],
         word('const')                    => %w[es_cStorageClass StorageClass]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(c_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end

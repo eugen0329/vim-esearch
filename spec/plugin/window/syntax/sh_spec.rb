@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require_relative 'setup_syntax_testing_shared_context'
 
 describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
   describe 'sh' do
-    let(:sh_code) do
-      <<~SH_CODE
+    let(:source_file_content) do
+      <<~SOURCE
         'string'
         "string"
         "string\\n"
@@ -29,15 +30,10 @@ describe 'esearch window context syntax' do
         fi
         until
         while
-      SH_CODE
+      SOURCE
     end
-    let(:source_file) { file(sh_code, 'main.sh') }
-    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
-
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: source_file.path.to_s
-    end
+    let(:source_file) { file(source_file_content, 'main.sh') }
+    include_context 'setup syntax testing'
 
     it do
       is_expected.to have_highligh_aliases(
@@ -62,10 +58,6 @@ describe 'esearch window context syntax' do
         word('until')                  => %w[es_shKeyword Keyword],
         word('while')                  => %w[es_shKeyword Keyword]
       )
-    end
-
-    it 'keeps lines highligh untouched' do
-      expect(sh_code).to have_line_numbers_highlight(%w[esearchLnum LineNr])
     end
   end
 end
