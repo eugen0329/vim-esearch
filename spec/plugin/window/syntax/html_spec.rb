@@ -17,25 +17,21 @@ describe 'esearch window context syntax' do
     let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
 
     before do
-      # esearch.editor.command('set background=dark | colorscheme solarized')
-      # esearch.editor.command('colorscheme default')
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
       esearch.search! '^', cwd: source_file.path.to_s
     end
 
     it 'contains matches' do
       is_expected.to have_highligh_aliases(
-        '<\\zediv'             => %w[htmlTag Function],
-        '<\\zenonexisting-tag' => %w[htmlTag Function],
-        '<\\zsdiv'             => %w[htmlTagName Statement],
-        '</\\zsdiv'            => %w[htmlTagName Statement],
-        '\\zs</\\zediv'        => %w[htmlEndTag Identifier],
-        '<\\zs/\\zediv'        => %w[htmlEndTag Identifier],
-        '</\\zsdiv\\ze'        => %w[htmlTagName Statement],
-        'attr1'                => %w[htmlTag Function],
-        'at-tr2'               => %w[htmlTag Function],
-        '"1"'                  => %w[htmlString String],
-        "'2'"                  => %w[htmlString String]
+        region('<div', at: ..1)             => %w[htmlTag Function],
+        region('<nonexisting-tag', at: ..1) => %w[htmlTag Function],
+        region('</div', at: ..2)            => %w[htmlEndTag Identifier],
+        region('<div', at: 1..)             => %w[htmlTagName Statement],
+        region('</div', at: 2..)            => %w[htmlTagName Statement],
+        word('attr1')                       => %w[htmlTag Function],
+        word('at-tr2')                      => %w[htmlTag Function],
+        region('"1"')                       => %w[htmlString String],
+        region("'2'")                       => %w[htmlString String]
       )
     end
 

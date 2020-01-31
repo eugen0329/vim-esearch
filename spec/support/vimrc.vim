@@ -78,24 +78,6 @@ fu! PreloadSyntax() abort
   endwhile
 endfu
 
-fu! InspectSyntax(places) abort
-  call PreloadSyntax()
-
-  let inspected = []
-  for p in a:places
-    let found = search(p)
-
-    if found == 0
-      call add(inspected, ['ERR_NOT_FOUND', 'ERR_NOT_FOUND'])
-      continue
-    endif
-
-    call add(inspected, SyntaxAt(line('.'), col('.')))
-  endfor
-
-  return inspected
-endfu
-
 fu! SyntaxAt(ln, column) abort
   let l:s = synID(a:ln, a:column, 0)
   let name = synIDattr(l:s, 'name')
@@ -122,7 +104,7 @@ fu! SyntaxAt(ln, column) abort
   return [name, links_to]
 endfu
 
-fu! DetailedInspectSyntax(places) abort
+fu! InspectSyntax(places) abort
   call PreloadSyntax()
 
   let inspected = []
@@ -138,7 +120,7 @@ fu! DetailedInspectSyntax(places) abort
         if empty(found)
           let found = [name, links_to]
         elseif found != [name, links_to]
-          throw 'Vimrunner(DetailedInspectSyntax): Found different syntax at ' . line_number . ":" . column_number . ".\n"
+          throw 'Vimrunner(InspectSyntax): Found different syntax at ' . line_number . ":" . column_number . ".\n"
                 \ . "Line contains: \"" . getline(line_number) . "\"\n"
                 \ . "                " . repeat(' ', column_number-1) . "^\n"
                 \ . "Encountered earlier: " . string(found) . ".\n"

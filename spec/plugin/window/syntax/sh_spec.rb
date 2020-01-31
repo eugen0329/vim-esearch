@@ -38,8 +38,8 @@ describe 'esearch window context syntax' do
 
     it 'contains matches' do
       is_expected.to have_highligh_aliases(
-        '\\$deref'              => %w[shDerefSimple PreProc],
-        '\\$1'                  => %w[shDerefSimple PreProc],
+        region('\\$deref')      => %w[shDerefSimple PreProc],
+        region('\\$1')          => %w[shDerefSimple PreProc],
 
         word('case')            => %w[shKeyword Keyword],
         word('esac')            => %w[shKeyword Keyword],

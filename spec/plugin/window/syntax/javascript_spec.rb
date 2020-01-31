@@ -89,7 +89,7 @@ describe 'esearch window context syntax' do
         word('while')                    => %w[javaScriptRepeat Repeat],
         word('for')                      => %w[javaScriptRepeat Repeat],
         word('do')                       => %w[javaScriptRepeat Repeat],
-        word('\<in\>')                   => %w[javaScriptRepeat Repeat],
+        word('in')                       => %w[javaScriptRepeat Repeat],
 
         word('break')                    => %w[javaScriptBranch Conditional],
         word('continue')                 => %w[javaScriptBranch Conditional],
@@ -108,7 +108,7 @@ describe 'esearch window context syntax' do
         region("'long string[^']\\+$")   => %w[javaScriptStringS String],
 
         word('return')                   => %w[javaScriptStatement Statement],
-        word('\<with\>')                 => %w[javaScriptStatement Statement],
+        word('with')                     => %w[javaScriptStatement Statement],
 
         region('// comment line')        => %w[javaScriptComment Comment],
         region('/\* comment block')      => %w[javaScriptComment Comment],
@@ -123,7 +123,7 @@ describe 'esearch window context syntax' do
         word('arguments')                => %w[javaScriptIdentifier Identifier],
         word('this')                     => %w[javaScriptIdentifier Identifier],
         word('var')                      => %w[javaScriptIdentifier Identifier],
-        word('\<let')                    => %w[javaScriptIdentifier Identifier],
+        word('let')                      => %w[javaScriptIdentifier Identifier],
 
         word('case')                     => %w[javaScriptLabel Label],
         word('default')                  => %w[javaScriptLabel Label],

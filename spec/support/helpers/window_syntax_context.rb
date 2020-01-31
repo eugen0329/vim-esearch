@@ -2,15 +2,28 @@
 
 module Helpers::WindowSyntaxContext
   extend RSpec::Matchers::DSL
+  VIM_REGEXP_START_MATCH = '\\zs'
+  VIM_REGEXP_END_MATCH = '\\ze'
+  VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES = '\\%>3l'
+  VIM_REGEXP_WORD_START = '\\<'
+  VIM_REGEXP_WORD_END = '\\>'
 
-  # wrap with \bname\b and allow matches only after 3d line
-  def word(name)
-    "\\%>3l\\<#{name}\\>"
+  def word(text)
+    [VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES,
+     VIM_REGEXP_WORD_START,
+     text,
+     VIM_REGEXP_WORD_END].join
   end
 
-  # allow matches only after 3d line
-  def region(text)
-    "\\%>3l#{text}"
+  def region(text, at: nil)
+    vim_regexp = text.dup
+
+    if at
+      vim_regexp.insert(at.end, VIM_REGEXP_END_MATCH) if at.end
+      vim_regexp.insert(at.begin, VIM_REGEXP_START_MATCH) if at.begin
+    end
+
+    [VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES, vim_regexp].join
   end
 
   matcher :have_highligh_aliases do |expected|
@@ -35,11 +48,11 @@ module Helpers::WindowSyntaxContext
                      .reject { |l, _i| l.empty? }
                      .map { |_, i| i }
 
-      regexps = line_numbers.map { |i| "^\\s\\+#{i}\\ze\\s" }
+      location_regexps = line_numbers.map { |i| "^\\s\\+#{i}\\ze\\s" }
 
       syntax_names = esearch
                      .editor
-                     .detailed_inspect_syntax(regexps)
+                     .inspect_syntax(location_regexps)
                      .to_a
 
       @actual = line_numbers.zip(syntax_names).to_h
