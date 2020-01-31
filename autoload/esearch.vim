@@ -23,6 +23,7 @@ fu! esearch#init(...) abort
   " Read search string
   """""""""""""""
   call opts.set_default('cwd', getcwd())
+  call opts.set_default('single_file', isdirectory(opts.cwd))
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
@@ -63,7 +64,7 @@ fu! esearch#init(...) abort
   call opts.set_default('batch_size', g:esearch.batch_size)
   call opts.set_default('out', g:esearch.out)
   call opts.set_default('context_width', g:esearch.context_width)
-  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'exp', 'out', 'batch_size', 'context_width'), {
+  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file', 'exp', 'out', 'batch_size', 'context_width'), {
         \ 'title': s:title(pattern),
         \ 'request': request,
         \})

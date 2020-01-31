@@ -74,12 +74,12 @@ describe 'esearch window context syntax' do
         __method__
       RUBY_CODE
     end
-    let(:main_rb) { file(ruby_code, 'main.rb') }
-    let!(:test_directory) { directory([main_rb], 'window/syntax/').persist! }
+    let(:source_file) { file(ruby_code, 'main.rb') }
+    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
 
     before do
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: main_rb.path.to_s
+      esearch.search! '^', cwd: source_file.path.to_s
     end
 
     it do

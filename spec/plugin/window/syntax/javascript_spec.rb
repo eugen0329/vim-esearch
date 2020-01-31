@@ -74,12 +74,12 @@ describe 'esearch window context syntax' do
         function
       JAVASCRIPT_CODE
     end
-    let(:main_js) { file(javascript_code, 'main.js') }
-    let!(:test_directory) { directory([main_js], 'window/syntax/').persist! }
+    let(:source_file) { file(javascript_code, 'main.js') }
+    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
 
     before do
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: main_js.path.to_s
+      esearch.search! '^', cwd: source_file.path.to_s
     end
 
     it do

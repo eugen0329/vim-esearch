@@ -58,12 +58,12 @@ describe 'esearch window context syntax' do
         const var;
       C_CODE
     end
-    let!(:test_directory) { directory([main_c], 'window/syntax/').persist! }
-    let(:main_c) { file(c_code, 'main.c') }
+    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
+    let(:source_file) { file(c_code, 'main.c') }
 
     before do
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: main_c.path.to_s
+      esearch.search! '^', cwd: source_file.path.to_s
     end
 
     it do

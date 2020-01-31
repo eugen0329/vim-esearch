@@ -88,12 +88,12 @@ describe 'esearch window context syntax' do
         await
       PYTHON_CODE
     end
-    let(:main_rb) { file(python_code, 'main.py') }
-    let!(:test_directory) { directory([main_rb], 'window/syntax/').persist! }
+    let(:source_file) { file(python_code, 'main.py') }
+    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
 
     before do
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', out: 'win')
-      esearch.search! '^', cwd: main_rb.path.to_s
+      esearch.search! '^', cwd: source_file.path.to_s
       expect(esearch).to have_search_finished
     end
 

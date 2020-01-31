@@ -31,12 +31,12 @@ describe 'esearch window context syntax' do
         while
       SH_CODE
     end
-    let(:main_sh) { file(sh_code, 'main.sh') }
-    let!(:test_directory) { directory([main_sh], 'window/syntax/').persist! }
+    let(:source_file) { file(sh_code, 'main.sh') }
+    let!(:test_directory) { directory([source_file], 'window/syntax/').persist! }
 
     before do
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
-      esearch.search! '^', cwd: main_sh.path.to_s
+      esearch.search! '^', cwd: source_file.path.to_s
     end
 
     it do

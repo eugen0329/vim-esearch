@@ -39,7 +39,7 @@ fu! esearch#adapter#ag#requires_pty() abort
   return 1
 endfu
 
-fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
+fu! esearch#adapter#ag#parse_results(esearch, raw, from, to, broken_results, ...) abort
   if empty(a:raw) | return [] | endif
   let format = s:format
   let results = []
@@ -47,14 +47,8 @@ fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
   let i = a:from
   let limit = a:to + 1
 
-  if isdirectory(b:esearch.cwd)
-    let dir = 1
-  else
-    let dir = 0
-  endif
-
   while i < limit
-    if dir == 1
+    if a:esearch.single_file
       let el = matchlist(a:raw[i], format)[1:4]
       if len(el) != 4
         if index(a:broken_results, a:raw[i]) < 0

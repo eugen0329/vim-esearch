@@ -42,7 +42,7 @@ fu! esearch#adapter#git#is_broken_result(line) abort
   return empty(matchlist(a:line, s:format)[1:3])
 endfu
 
-fu! esearch#adapter#git#parse_results(raw, from, to, broken_results, pattern) abort
+fu! esearch#adapter#git#parse_results(esearch, raw, from, to, broken_results, pattern) abort
   if empty(a:raw) | return [] | endif
   let format = s:format
   let results = []
