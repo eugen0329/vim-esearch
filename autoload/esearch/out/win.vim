@@ -43,6 +43,9 @@ endif
 if !exists('g:esearch#out#win#context_syntax_highlight')
   let g:esearch#out#win#context_syntax_highlight = 1
 endif
+if !exists('g:esearch#out#win#context_syntax_max_lines')
+  let g:esearch#out#win#context_syntax_max_lines = 500
+endif
 
 let s:syntax_regexps = {
       \ '.c':  'win_context_c',
@@ -86,7 +89,8 @@ fu! esearch#out#win#init(opts) abort
       endtry
       unlet b:esearch
     endif
-    let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
+    " let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
+    let match_highlight_id = -1
   else
     let match_highlight_id = -1
   endif
@@ -132,15 +136,17 @@ fu! esearch#out#win#init(opts) abort
   setlocal foldmethod=expr
 
   let b:esearch = extend(a:opts, {
-        \ 'prev_filename':       '',
-        \ 'ignore_batches':     0,
-        \ '_columns':            {},
-        \ '_match_highlight_id': match_highlight_id,
-        \ '__broken_results':    [],
-        \ 'errors':              [],
-        \ 'data':                [],
-        \ 'syn_regions_loaded':                [],
-        \ 'without':             function('esearch#util#without')
+        \ 'last_filename':          '',
+        \ 'context_beginning_line':    0,
+        \ 'max_lines_found':        0,
+        \ 'ignore_batches':         0,
+        \ '_columns':               {},
+        \ '_match_highlight_id':    match_highlight_id,
+        \ '__broken_results':       [],
+        \ 'errors':                 [],
+        \ 'data':                   [],
+        \ 'context_syntax_regions': {},
+        \ 'without':                function('esearch#util#without')
         \})
   " call esearch#log#debug('extend b:esearch after', '/tmp/esearch_log.txt')
 
@@ -201,7 +207,6 @@ fu! s:escape_title(title) abort
   return escape(name, '=')
 endfu
 
-
 fu! esearch#out#win#trigger_key_press(...) abort
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
@@ -216,7 +221,6 @@ fu! esearch#out#win#update(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
-
 
   let data = esearch.request.data
   let data_size = len(data)
@@ -259,60 +263,87 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let filename    = substitute(parsed[i].filename, sub_expression, '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
-    if filename !=# a:esearch.prev_filename
+    if filename !=# a:esearch.last_filename
       let a:esearch.request.files_count += 1
-      if g:esearch#out#win#context_syntax_highlight
-        try
-          let ext = matchstr(filename, '\..*$')
-          let context_syntax_name = s:syntax_regexps[ext]
-          if index(a:esearch.syn_regions_loaded, context_syntax_name) < 0
-            let context_syntax = s:load_context_syntax(context_syntax_name)
-            call add(a:esearch.syn_regions_loaded, context_syntax_name)
-          else
-            let context_syntax = '@'.toupper(context_syntax_name)
-          endif
-        catch
-          " suppress for now
-        endtry
-      endif
+      call s:init_context_syntax(a:esearch, line)
 
       call esearch#util#setline(a:bufnr, line, '')
       let line += 1
       call esearch#util#setline(a:bufnr, line, filename)
       let line += 1
-
-      if exists('context_syntax') && exists('context_syntax_name')
-        exe printf('syntax region context%s '
-              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(context_syntax_name), line, context_syntax)
-        unlet context_syntax
-      endif
+      let a:esearch.context_beginning_line = line
     endif
-
 
     call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, context))
     let a:esearch._columns[line] = parsed[i].col
-    let a:esearch.prev_filename = filename
+    let a:esearch.last_filename = filename
     let line += 1
     let i    += 1
   endwhile
 endfu
 
-fu! s:load_context_syntax(ft) abort
-  let c = '@' . toupper(a:ft)
+fu! s:syn_sync(esearch) abort
+  if !g:esearch#out#win#context_syntax_highlight
+        \ || a:esearch['max_lines_found'] < 1
+    return
+  endif
+
+  syntax sync clear
+  exe 'syntax sync minlines='.min([
+        \ a:esearch['max_lines_found'],
+        \ g:esearch#out#win#context_syntax_max_lines,
+        \ ])
+endfu
+
+fu! s:init_context_syntax(esearch, line) abort
+  if !g:esearch#out#win#context_syntax_highlight
+    return
+  endif
+
+  if a:esearch.last_filename != ''
+    let ext = matchstr(a:esearch.last_filename, '\..*$')
+    if !has_key(s:syntax_regexps, ext)
+      return
+    endif
+
+    let name = s:syntax_regexps[ext]
+    if !has_key(a:esearch.context_syntax_regions, name)
+      let a:esearch.context_syntax_regions[name] = {
+            \ 'cluster': s:include_syntax_cluster(name),
+            \ 'region_name': name,
+            \ }
+    endif
+
+    let a:esearch['max_lines_found'] = max([
+          \ a:line - a:esearch.context_beginning_line,
+          \ a:esearch['max_lines_found']])
+
+    let region = a:esearch.context_syntax_regions[name]
+    exe printf('syntax region %s start="^\%%%dl" end="\%%%dl$" transparent contains=%s,esearchLnum',
+          \ region.region_name,
+          \ a:esearch.context_beginning_line,
+          \ a:line,
+          \ region['cluster'])
+  endif
+
+endfu
+
+fu! s:include_syntax_cluster(ft) abort
+  let cluster_name = '@' . toupper(a:ft)
 
   if exists('b:current_syntax')
     let syntax_save = b:current_syntax
     unlet b:current_syntax
   endif
 
-  exe 'syntax include' c 'syntax/' . a:ft . '.vim'
+  exe 'syntax include' cluster_name 'syntax/' . a:ft . '.vim'
 
   if exists('syntax_save')
     let b:current_syntax = syntax_save
   elseif exists('b:current_syntax')
     unlet b:current_syntax
   endif
-  return c
+  return cluster_name
 endfu
 
 fu! s:context(line, esearch) abort
@@ -534,6 +565,9 @@ fu! esearch#out#win#finish(bufnr) abort
   " Update using all remaining request.data
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
+
+  call s:init_context_syntax(esearch, line('$'))
+  call s:syn_sync(esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)
 

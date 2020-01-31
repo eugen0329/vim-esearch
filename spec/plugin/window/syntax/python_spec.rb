@@ -90,8 +90,9 @@ describe 'esearch window context syntax' do
     let!(:test_directory) { directory([main_rb], 'window/syntax/').persist! }
 
     before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag')
+      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', out: 'win')
       esearch.search! '^', cwd: main_rb.path.to_s
+      expect(esearch).to have_search_finished
     end
 
     it 'contains matches' do

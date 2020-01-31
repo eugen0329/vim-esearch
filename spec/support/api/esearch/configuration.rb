@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class API::ESearch::Configuration
+  include VimlValue::SerializationHelpers
+
   attr_reader :editor, :cache, :staged_configuration
   attr_writer :output
 
@@ -37,13 +39,13 @@ class API::ESearch::Configuration
 
   def adapter
     cache.fetch('adapter') do
-      editor.raw_echo('get(get(g:, "esearch", {}), "adapter", esearch#opts#default_adapter())')
+      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'adapter', func('esearch#opts#default_adapter'))
     end
   end
 
   def output
     cache.fetch('out') do
-      editor.raw_echo('get(get(g:, "esearch", {}), "out", g:esearch#defaults#out)')
+      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', 'g:esearch#defaults#out')
     end
   end
 end
