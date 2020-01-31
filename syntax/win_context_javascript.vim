@@ -2,44 +2,37 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn keyword javaScriptConditional if else switch
-syn keyword javaScriptRepeat      while for do in
-syn keyword javaScriptBranch      break continue
-syn keyword javaScriptOperator    new delete instanceof typeof
-syn keyword javaScriptStatement   return with
-syn keyword javaScriptNull        null undefined
-syn keyword javaScriptBoolean     true false
-syn keyword javaScriptIdentifier  arguments this var let
+syn keyword es_javaScriptConditional if else switch
+syn keyword es_javaScriptRepeat      while for do in
+syn keyword es_javaScriptBranch      break continue
+syn keyword es_javaScriptOperator    new delete instanceof typeof
+syn keyword es_javaScriptStatement   return with
+syn keyword es_javaScriptNull        null undefined
+syn keyword es_javaScriptBoolean     true false
+syn keyword es_javaScriptIdentifier  arguments this var let
+syn keyword es_javaScriptLabel       case default
+syn keyword es_javaScriptException   try catch finally throw
+syn keyword es_javaScriptReserved    abstract class const debugger export extends import
+syn keyword es_javaScriptFunction  function
+syn region  es_javaScriptComment start="//"  end="$"
+syn region  es_javaScriptComment start="/\*" end="\*/\|$"
+syn region  es_javaScriptStringD start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
+syn region  es_javaScriptStringS start=+L\='+ skip=+\\\\\|\\'+ end=+'\|$+
 
-syn keyword javaScriptLabel       case default
-syn keyword javaScriptException   try catch finally throw
-
-syn keyword javaScriptReserved    abstract class const debugger export extends import
-
-
-syn keyword javaScriptFunction  function
-
-
-syn region javaScriptComment start="//"  end="$"
-syn region javaScriptComment start="/\*" end="\*/\|$"
-
-syn region  javaScriptStringD start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
-syn region  javaScriptStringS start=+L\='+ skip=+\\\\\|\\'+ end=+'\|$+
-
-hi def link javaScriptConditional  Conditional
-hi def link javaScriptRepeat       Repeat
-hi def link javaScriptBranch       Conditional
-hi def link javaScriptOperator     Operator
-hi def link javaScriptStatement    Statement
-hi def link javaScriptNull         Keyword
-hi def link javaScriptBoolean      Boolean
-hi def link javaScriptIdentifier   Identifier
-hi def link javaScriptLabel        Label
-hi def link javaScriptException    Exception
-hi def link javaScriptReserved     Keyword
-hi def link javaScriptFunction     Function
-hi def link javaScriptComment      Comment
-hi def link javaScriptStringD      String
-hi def link javaScriptStringS      String
+hi def link es_javaScriptConditional  Conditional
+hi def link es_javaScriptRepeat       Repeat
+hi def link es_javaScriptBranch       Conditional
+hi def link es_javaScriptOperator     Operator
+hi def link es_javaScriptStatement    Statement
+hi def link es_javaScriptNull         Keyword
+hi def link es_javaScriptBoolean      Boolean
+hi def link es_javaScriptIdentifier   Identifier
+hi def link es_javaScriptLabel        Label
+hi def link es_javaScriptException    Exception
+hi def link es_javaScriptReserved     Keyword
+hi def link es_javaScriptFunction     Function
+hi def link es_javaScriptComment      Comment
+hi def link es_javaScriptStringD      String
+hi def link es_javaScriptStringS      String
 
 let b:current_syntax = 'win_context_javascript'

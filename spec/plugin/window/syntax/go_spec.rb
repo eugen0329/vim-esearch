@@ -54,44 +54,44 @@ describe 'esearch window context syntax' do
       esearch.search! '^', cwd: main_go.path.to_s
     end
 
-    it 'contains matches' do
+    it do
       is_expected.to have_highligh_aliases(
-        word('package')                      => %w[goDirective Statement],
-        word('import')                       => %w[goDirective Statement],
+        word('package')                      => %w[es_goDirective Statement],
+        word('import')                       => %w[es_goDirective Statement],
 
-        word('var')                          => %w[goDeclaration Keyword],
-        word('const')                        => %w[goDeclaration Keyword],
-        word('type')                         => %w[goDeclaration Keyword],
-        word('func')                         => %w[goDeclaration Keyword],
-        word('struct')                       => %w[goDeclType Keyword],
-        word('interface')                    => %w[goDeclType Keyword],
+        word('var')                          => %w[es_goDeclaration Keyword],
+        word('const')                        => %w[es_goDeclaration Keyword],
+        word('type')                         => %w[es_goDeclaration Keyword],
+        word('func')                         => %w[es_goDeclaration Keyword],
+        word('struct')                       => %w[es_goDeclType Keyword],
+        word('interface')                    => %w[es_goDeclType Keyword],
 
-        region('"string"')                   => %w[goString String],
-        region('"str with escaped slash\\"') => %w[goString String],
-        region('"str with escape\\\\n"')     => %w[goString String],
-        region('"long string[^"]\\+$')       => %w[goString String],
-        region('`raw string`$')              => %w[goRawString String],
+        region('"string"')                   => %w[es_goString String],
+        region('"str with escaped slash\\"') => %w[es_goString String],
+        region('"str with escape\\\\n"')     => %w[es_goString String],
+        region('"long string[^"]\\+$')       => %w[es_goString String],
+        region('`raw string`$')              => %w[es_goRawString String],
 
-        word('defer')                        => %w[goStatement Statement],
-        word('go')                           => %w[goStatement Statement],
-        word('goto')                         => %w[goStatement Statement],
-        word('return')                       => %w[goStatement Statement],
-        word('break')                        => %w[goStatement Statement],
-        word('continue')                     => %w[goStatement Statement],
-        word('fallthrough')                  => %w[goStatement Statement],
+        word('defer')                        => %w[es_goStatement Statement],
+        word('go')                           => %w[es_goStatement Statement],
+        word('goto')                         => %w[es_goStatement Statement],
+        word('return')                       => %w[es_goStatement Statement],
+        word('break')                        => %w[es_goStatement Statement],
+        word('continue')                     => %w[es_goStatement Statement],
+        word('fallthrough')                  => %w[es_goStatement Statement],
 
-        region('"unterminated string')       => %w[goString String],
-        region('`unterminated raw string')   => %w[goRawString String],
+        region('"unterminated string')       => %w[es_goString String],
+        region('`unterminated raw string')   => %w[es_goRawString String],
 
-        word('case')                         => %w[goLabel Label],
-        word('default')                      => %w[goLabel Label],
+        word('case')                         => %w[es_goLabel Label],
+        word('default')                      => %w[es_goLabel Label],
 
-        region('// comment line')            => %w[goComment Comment],
-        region('/\* comment block')          => %w[goComment Comment],
-        region('/\* long comment')           => %w[goComment Comment],
+        region('// comment line')            => %w[es_goComment Comment],
+        region('/\* comment block')          => %w[es_goComment Comment],
+        region('/\* long comment')           => %w[es_goComment Comment],
 
-        word('for')                          => %w[goRepeat Repeat],
-        word('range')                        => %w[goRepeat Repeat]
+        word('for')                          => %w[es_goRepeat Repeat],
+        word('range')                        => %w[es_goRepeat Repeat]
       )
     end
 

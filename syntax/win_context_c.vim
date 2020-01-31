@@ -2,30 +2,27 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn keyword cStatement    goto break return continue asm
-syn keyword cLabel        case default
-syn keyword cConditional  if else switch
-syn keyword cRepeat       while for do
-syn keyword cStructure    struct union enum typedef
-syn keyword cStorageClass static register auto volatile extern const
+syn keyword es_cStatement    goto break return continue asm
+syn keyword es_cLabel        case default
+syn keyword es_cConditional  if else switch
+syn keyword es_cRepeat       while for do
+syn keyword es_cStructure    struct union enum typedef
+syn keyword es_cStorageClass static register auto volatile extern const
+syn region  es_cComment       start="//"  end="$"
+syn region  es_cComment       start="/\*" end="\*/\|$"
+syn region  es_cString       start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
+syn match   es_cDefine        '#\(define\|undef\)\>'
+syn match   es_cPreProc       '#\(pragma\|line\|warning\|warn\|error\)\>'
 
-syn region cComment start="//"  end="$"
-syn region cComment start="/\*" end="\*/\|$"
-
-syn region  cString start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
-
-syn match  cDefine   '#\(define\|undef\)\>'
-syn match  cPreProc   '#\(pragma\|line\|warning\|warn\|error\)\>'
-
-hi def link cStatement    Statement
-hi def link cLabel        Label
-hi def link cConditional  Conditional
-hi def link cRepeat       Repeat
-hi def link cStructure    Structure
-hi def link cStorageClass StorageClass
-hi def link cComment      Comment
-hi def link cString       String
-hi def link cDefine       Macro
-hi def link cPreProc      PreProc
+hi def link es_cStatement    Statement
+hi def link es_cLabel        Label
+hi def link es_cConditional  Conditional
+hi def link es_cRepeat       Repeat
+hi def link es_cStructure    Structure
+hi def link es_cStorageClass StorageClass
+hi def link es_cComment      Comment
+hi def link es_cString       String
+hi def link es_cDefine       Macro
+hi def link es_cPreProc      PreProc
 
 let b:current_syntax = 'win_context_c'

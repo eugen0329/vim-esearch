@@ -34,6 +34,8 @@ module Helpers::WindowSyntaxContext
       @actual = expected.keys.zip(syntax_names).to_h
       values_match?(expected, @actual)
     end
+
+    description { 'have highlight aliases' }
   end
 
   matcher :have_line_numbers_highlight do |expected|

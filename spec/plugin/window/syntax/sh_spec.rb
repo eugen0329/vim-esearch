@@ -39,28 +39,28 @@ describe 'esearch window context syntax' do
       esearch.search! '^', cwd: main_sh.path.to_s
     end
 
-    it 'contains matches' do
+    it do
       is_expected.to have_highligh_aliases(
-        region('"string"')             => %w[shDoubleQuote String],
-        region('"string\\\\n"')        => %w[shDoubleQuote String],
-        region("'string'")             => %w[shSingleQuote String],
+        region('"string"')             => %w[es_shDoubleQuote String],
+        region('"string\\\\n"')        => %w[es_shDoubleQuote String],
+        region("'string'")             => %w[es_shSingleQuote String],
 
-        region('\\$deref')             => %w[shDerefSimple PreProc],
-        region('\\$1')                 => %w[shDerefSimple PreProc],
+        region('\\$deref')             => %w[es_shDerefSimple PreProc],
+        region('\\$1')                 => %w[es_shDerefSimple PreProc],
 
-        region("'unterminated string") => %w[shSingleQuote String],
-        region('"unterminated string') => %w[shDoubleQuote String],
+        region("'unterminated string") => %w[es_shSingleQuote String],
+        region('"unterminated string') => %w[es_shDoubleQuote String],
 
-        word('case')                   => %w[shKeyword Keyword],
-        word('esac')                   => %w[shKeyword Keyword],
-        word('do')                     => %w[shKeyword Keyword],
-        word('done')                   => %w[shKeyword Keyword],
-        word('for')                    => %w[shKeyword Keyword],
-        word('in')                     => %w[shKeyword Keyword],
-        word('if')                     => %w[shKeyword Keyword],
-        word('fi')                     => %w[shKeyword Keyword],
-        word('until')                  => %w[shKeyword Keyword],
-        word('while')                  => %w[shKeyword Keyword]
+        word('case')                   => %w[es_shKeyword Keyword],
+        word('esac')                   => %w[es_shKeyword Keyword],
+        word('do')                     => %w[es_shKeyword Keyword],
+        word('done')                   => %w[es_shKeyword Keyword],
+        word('for')                    => %w[es_shKeyword Keyword],
+        word('in')                     => %w[es_shKeyword Keyword],
+        word('if')                     => %w[es_shKeyword Keyword],
+        word('fi')                     => %w[es_shKeyword Keyword],
+        word('until')                  => %w[es_shKeyword Keyword],
+        word('while')                  => %w[es_shKeyword Keyword]
       )
     end
 

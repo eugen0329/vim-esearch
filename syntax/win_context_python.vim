@@ -2,34 +2,32 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn keyword pythonStatement   False None True
-syn keyword pythonStatement   as assert break continue del exec global
-syn keyword pythonStatement   lambda nonlocal pass print return with yield
-syn keyword pythonStatement   class def nextgroup=pythonFunction skipwhite
-syn match   pythonFunction    "\h\w*" display contained
-syn keyword pythonConditional elif else if
-syn keyword pythonRepeat      for while
-syn keyword pythonOperator    and in is not or
-syn keyword pythonException   except finally raise try
-syn keyword pythonInclude     from import
-syn keyword pythonAsync       async await
-
-syn match   pythonComment "#.*$" contains=pythonTodo,@Spell
-
-syn region  pythonString
+syn keyword es_pythonStatement   False None True
+syn keyword es_pythonStatement   as assert break continue del exec global
+syn keyword es_pythonStatement   lambda nonlocal pass print return with yield
+syn keyword es_pythonStatement   class def nextgroup=es_pythonFunction skipwhite
+syn match   es_pythonFunction    "\h\w*" display contained
+syn keyword es_pythonConditional elif else if
+syn keyword es_pythonRepeat      for while
+syn keyword es_pythonOperator    and in is not or
+syn keyword es_pythonException   except finally raise try
+syn keyword es_pythonInclude     from import
+syn keyword es_pythonAsync       async await
+syn match   es_pythonComment "#.*$" contains=pythonTodo,@Spell
+syn region  es_pythonString
       \ start=+[uU]\=[rR]\?\z(['"]\)+ end="\z1\|$" skip="\\\\\|\\\z1"
-syn region  pythonString
+syn region  es_pythonString
       \ start=+[uU]\=[rR]\?\z('''\|"""\)+ end="\z1\|$" keepend
 
-hi def link pythonStatement   Statement
-hi def link pythonFunction    Function
-hi def link pythonConditional Conditional
-hi def link pythonRepeat      Repeat
-hi def link pythonOperator    Operator
-hi def link pythonException   Exception
-hi def link pythonInclude     Include
-hi def link pythonAsync       Statement
-hi def link pythonComment     Comment
-hi def link pythonString      String
+hi def link es_pythonStatement   Statement
+hi def link es_pythonFunction    Function
+hi def link es_pythonConditional Conditional
+hi def link es_pythonRepeat      Repeat
+hi def link es_pythonOperator    Operator
+hi def link es_pythonException   Exception
+hi def link es_pythonInclude     Include
+hi def link es_pythonAsync       Statement
+hi def link es_pythonComment     Comment
+hi def link es_pythonString      String
 
 let b:current_syntax = 'win_context_python'

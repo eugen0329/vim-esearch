@@ -34,29 +34,29 @@ describe 'esearch window context syntax' do
       esearch.search! '^', cwd: source_file.path.to_s
     end
 
-    it 'contains matches' do
+    it do
       is_expected.to have_highligh_aliases(
-        region('<div', at: ..1)                 => %w[htmlTag Function],
-        region('<div', at: 1..)                 => %w[htmlTagName Statement],
-        region('</div', at: ..2)                => %w[htmlEndTag Identifier],
-        region('</div', at: 2..)                => %w[htmlTagName Statement],
+        region('<div', at: ..1)                 => %w[es_htmlTag Function],
+        region('<div', at: 1..)                 => %w[es_htmlTagName Statement],
+        region('</div', at: ..2)                => %w[es_htmlEndTag Identifier],
+        region('</div', at: 2..)                => %w[es_htmlTagName Statement],
 
-        region('<nonexisting-tag', at: ..1)     => %w[htmlTag Function],
-        word('attr')                            => %w[htmlTag Function],
-        region('attr=$')                        => %w[htmlTag Function],
-        word('at-tr')                           => %w[htmlTag Function],
-        region('"double-quoted"')               => %w[htmlString String],
-        region("'single-quoted'")               => %w[htmlString String],
+        region('<nonexisting-tag', at: ..1)     => %w[es_htmlTag Function],
+        word('attr')                            => %w[es_htmlTag Function],
+        region('attr=$')                        => %w[es_htmlTag Function],
+        word('at-tr')                           => %w[es_htmlTag Function],
+        region('"double-quoted"')               => %w[es_htmlString String],
+        region("'single-quoted'")               => %w[es_htmlString String],
 
-        region('"unterminated double-quoted')   => %w[htmlString String],
-        region("'unterminated single-quoted")   => %w[htmlString String],
-        region('<without-closing-tag', at: ..1) => %w[htmlTag Function],
-        region('<without-closing-tag', at: 1..) => %w[htmlTagName Statement],
+        region('"unterminated double-quoted')   => %w[es_htmlString String],
+        region("'unterminated single-quoted")   => %w[es_htmlString String],
+        region('<without-closing-tag', at: ..1) => %w[es_htmlTag Function],
+        region('<without-closing-tag', at: 1..) => %w[es_htmlTagName Statement],
 
-        region('<incorrectly-closed', at: ..1)  => %w[htmlTag Function],
-        region('<incorrectly-closed', at: 1..)  => %w[htmlTagName Statement],
-        region('</incorrectly-closed', at: ..2) => %w[htmlEndTag Identifier],
-        region('</incorrectly-closed', at: 2..) => %w[htmlTagName Statement]
+        region('<incorrectly-closed', at: ..1)  => %w[es_htmlTag Function],
+        region('<incorrectly-closed', at: 1..)  => %w[es_htmlTagName Statement],
+        region('</incorrectly-closed', at: ..2) => %w[es_htmlEndTag Identifier],
+        region('</incorrectly-closed', at: 2..) => %w[es_htmlTagName Statement]
       )
     end
 

@@ -89,8 +89,7 @@ fu! esearch#out#win#init(opts) abort
       endtry
       unlet b:esearch
     endif
-    " let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
-    let match_highlight_id = -1
+    let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
   else
     let match_highlight_id = -1
   endif
