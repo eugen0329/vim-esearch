@@ -15,7 +15,6 @@ delete
 instanceof
 typeof
 
-
 "string"
 "str_with_escape\n"
 "long string...................................................................................................."
@@ -27,12 +26,15 @@ typeof
 return
 with
 
-// comment line
-/* comment block */
-/* long comment ....................................................................................................*/
+"unterminated string
+'unterminated string
 
 null
 undefined
+
+// comment line
+/* comment block */
+/* long comment ....................................................................................................*/
 
 true
 false

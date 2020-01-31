@@ -90,7 +90,14 @@ fu! SyntaxAt(ln, column) abort
   redir => hlstr
   silent exe 'hi '.name
   redir END
-  let m = matchlist(hlstr, 'links to \(\w\+\)$')
+
+  for regexp in  [ 'links to \(\w\+\)$',  'xxx \(cleared\)']
+    let m = matchlist(hlstr, regexp)
+    if len(m) > 1
+      break
+    endif
+  endfor
+
   if len(m) < 2
     throw 'Vimrunner(SyntaxAt): Can''t parse hl link at ' . a:ln . ":" . a:column . ".\n"
           \ . "Inside line: \"" . escape(getline(a:ln), '"') . '"' . ".\n"

@@ -24,10 +24,6 @@ describe 'esearch window context syntax' do
         "long string#{'.' * 100}"
         `raw string`
 
-        // comment line
-        /* comment block */
-        /* long comment #{'.' * 100}*/
-
         defer
         go
         goto
@@ -36,8 +32,15 @@ describe 'esearch window context syntax' do
         continue
         fallthrough
 
+        "unterminated string
+        `unterminated raw string
+
         case
         default
+
+        // comment line
+        /* comment block */
+        /* long comment #{'.' * 100}*/
 
         for {}
         range()
@@ -69,10 +72,6 @@ describe 'esearch window context syntax' do
         region('"long string[^"]\\+$')       => %w[goString String],
         region('`raw string`$')              => %w[goRawString String],
 
-        region('// comment line')            => %w[goComment Comment],
-        region('/\* comment block')          => %w[goComment Comment],
-        region('/\* long comment')           => %w[goComment Comment],
-
         word('defer')                        => %w[goStatement Statement],
         word('go')                           => %w[goStatement Statement],
         word('goto')                         => %w[goStatement Statement],
@@ -81,8 +80,15 @@ describe 'esearch window context syntax' do
         word('continue')                     => %w[goStatement Statement],
         word('fallthrough')                  => %w[goStatement Statement],
 
+        region('"unterminated string')       => %w[goString String],
+        region('`unterminated raw string')   => %w[goRawString String],
+
         word('case')                         => %w[goLabel Label],
         word('default')                      => %w[goLabel Label],
+
+        region('// comment line')            => %w[goComment Comment],
+        region('/\* comment block')          => %w[goComment Comment],
+        region('/\* long comment')           => %w[goComment Comment],
 
         word('for')                          => %w[goRepeat Repeat],
         word('range')                        => %w[goRepeat Repeat]

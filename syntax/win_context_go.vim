@@ -11,7 +11,7 @@ syn keyword goLabel       case default
 syn keyword goRepeat      for range
 
 syn region goString    start=+"+   skip=+\\\\\|\\"+ end=+"\|$+
-syn region goRawString start=+`+   end=+`+
+syn region goRawString start=+`+   end=+`\|$+
 syn region goComment   start="/\*" end="\*/\|$"
 syn region goComment   start="//"  end="$"
 

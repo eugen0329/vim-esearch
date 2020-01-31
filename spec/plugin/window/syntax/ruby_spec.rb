@@ -42,18 +42,27 @@ describe 'esearch window context syntax' do
         true.call
         false.call
 
-        # comment
-        #comment
-        # long comment #{'.' * 100}*/
+        "unterminated string
+        'unterminated string
 
         alias
         def
         undef
-        class
-        module
+        class Classname
+        module Modulename
 
-        super.call
-        yield.call
+        Constant
+        method
+
+        # comment
+        #comment
+        # long comment #{'.' * 100}*/
+
+        super
+        yield
+        include
+        extend
+        prepend
 
         nil
         self
@@ -75,60 +84,71 @@ describe 'esearch window context syntax' do
 
     it 'contains matches' do
       is_expected.to have_highligh_aliases(
-        word('and')              => %w[rubyControl Statement],
-        word('break')            => %w[rubyControl Statement],
-        word('in')               => %w[rubyControl Statement],
-        word('next')             => %w[rubyControl Statement],
-        word('not')              => %w[rubyControl Statement],
-        word('or')               => %w[rubyControl Statement],
-        word('redo')             => %w[rubyControl Statement],
-        word('rescue')           => %w[rubyControl Statement],
-        word('retry')            => %w[rubyControl Statement],
-        word('return')           => %w[rubyControl Statement],
-        word('case')             => %w[rubyControl Statement],
-        word('begin')            => %w[rubyControl Statement],
-        word('do')               => %w[rubyControl Statement],
-        word('for')              => %w[rubyControl Statement],
-        word('if')               => %w[rubyControl Statement],
-        word('unless')           => %w[rubyControl Statement],
-        word('while')            => %w[rubyControl Statement],
-        word('until')            => %w[rubyControl Statement],
-        word('else')             => %w[rubyControl Statement],
-        word('elsif')            => %w[rubyControl Statement],
-        word('ensure')           => %w[rubyControl Statement],
-        word('then')             => %w[rubyControl Statement],
-        word('when')             => %w[rubyControl Statement],
-        word('end')              => %w[rubyControl Statement],
+        word('and')                    => %w[rubyControl Statement],
+        word('break')                  => %w[rubyControl Statement],
+        word('in')                     => %w[rubyControl Statement],
+        word('next')                   => %w[rubyControl Statement],
+        word('not')                    => %w[rubyControl Statement],
+        word('or')                     => %w[rubyControl Statement],
+        word('redo')                   => %w[rubyControl Statement],
+        word('rescue')                 => %w[rubyControl Statement],
+        word('retry')                  => %w[rubyControl Statement],
+        word('return')                 => %w[rubyControl Statement],
+        word('case')                   => %w[rubyControl Statement],
+        word('begin')                  => %w[rubyControl Statement],
+        word('do')                     => %w[rubyControl Statement],
+        word('for')                    => %w[rubyControl Statement],
+        word('if')                     => %w[rubyControl Statement],
+        word('unless')                 => %w[rubyControl Statement],
+        word('while')                  => %w[rubyControl Statement],
+        word('until')                  => %w[rubyControl Statement],
+        word('else')                   => %w[rubyControl Statement],
+        word('elsif')                  => %w[rubyControl Statement],
+        word('ensure')                 => %w[rubyControl Statement],
+        word('then')                   => %w[rubyControl Statement],
+        word('when')                   => %w[rubyControl Statement],
+        word('end')                    => %w[rubyControl Statement],
 
-        region('"string"')       => %w[rubyString String],
-        region('"string\\\\n"')  => %w[rubyString String],
-        region('"str#{ing}"')    => %w[rubyString String], # rubocop:disable Lint/InterpolationCheck
-        region("'string'")       => %w[rubyString String],
+        region('"string"')             => %w[rubyString String],
+        region('"string\\\\n"')        => %w[rubyString String],
+        region('"str#{ing}"')          => %w[rubyString String], # rubocop:disable Lint/InterpolationCheck
+        region("'string'")             => %w[rubyString String],
 
-        word('true')             => %w[rubyBoolean Boolean],
-        word('false')            => %w[rubyBoolean Boolean],
+        word('true')                   => %w[rubyBoolean Boolean],
+        word('false')                  => %w[rubyBoolean Boolean],
 
-        region('# comment')      => %w[rubyComment Comment],
-        region('#comment')       => %w[rubyComment Comment],
-        region('# long comment') => %w[rubyComment Comment],
+        region("'unterminated string") => %w[rubyString String],
+        region('"unterminated string') => %w[rubyString String],
 
-        word('alias')            => %w[rubyDefine Define],
-        word('def')              => %w[rubyDefine Define],
-        word('undef')            => %w[rubyDefine Define],
-        word('class')            => %w[rubyDefine Define],
-        word('module')           => %w[rubyDefine Define],
+        word('alias')                  => %w[rubyDefine Define],
+        word('def')                    => %w[rubyDefine Define],
+        word('undef')                  => %w[rubyDefine Define],
+        word('class')                  => %w[rubyDefine Define],
+        word('module')                 => %w[rubyDefine Define],
+        word('Classname')              => %w[rubyConstant Constant],
+        word('Modulename')             => %w[rubyConstant Constant],
 
-        word('super')            => %w[rubyKeyword Keyword],
-        word('yield')            => %w[rubyKeyword Keyword],
+        word('Constant')               => %w[rubyConstant Constant],
+        word('method')                 => %w[win_context_ruby cleared],
 
-        word('nil')              => %w[rubyPseudoVariable Constant],
-        word('self')             => %w[rubyPseudoVariable Constant],
-        word('__ENCODING__')     => %w[rubyPseudoVariable Constant],
-        word('__dir__')          => %w[rubyPseudoVariable Constant],
-        word('__FILE__')         => %w[rubyPseudoVariable Constant],
-        word('__LINE__')         => %w[rubyPseudoVariable Constant],
-        word('__callee__')       => %w[rubyPseudoVariable Constant],
-        word('__method__')       => %w[rubyPseudoVariable Constant]
+        region('# comment')            => %w[rubyComment Comment],
+        region('#comment')             => %w[rubyComment Comment],
+        region('# long comment')       => %w[rubyComment Comment],
+
+        word('super')                  => %w[rubyKeyword Keyword],
+        word('yield')                  => %w[rubyKeyword Keyword],
+        word('include')                => %w[rubyKeyword Keyword],
+        word('extend')                 => %w[rubyKeyword Keyword],
+        word('prepend')                => %w[rubyKeyword Keyword],
+
+        word('nil')                    => %w[rubyPseudoVariable Constant],
+        word('self')                   => %w[rubyPseudoVariable Constant],
+        word('__ENCODING__')           => %w[rubyPseudoVariable Constant],
+        word('__dir__')                => %w[rubyPseudoVariable Constant],
+        word('__FILE__')               => %w[rubyPseudoVariable Constant],
+        word('__LINE__')               => %w[rubyPseudoVariable Constant],
+        word('__callee__')             => %w[rubyPseudoVariable Constant],
+        word('__method__')             => %w[rubyPseudoVariable Constant]
       )
     end
 

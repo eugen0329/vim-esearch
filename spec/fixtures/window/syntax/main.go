@@ -13,10 +13,6 @@ type _ interface {}
 "long string...................................................................................................."
 `raw string`
 
-// comment line
-/* comment block */
-/* long comment ....................................................................................................*/
-
 defer
 go
 goto
@@ -25,8 +21,15 @@ break
 continue
 fallthrough
 
+"unterminated string
+`unterminated raw string
+
 case
 default
+
+// comment line
+/* comment block */
+/* long comment ....................................................................................................*/
 
 for {}
 range()

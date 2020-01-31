@@ -9,8 +9,15 @@ describe 'esearch window context syntax' do
   describe 'sh' do
     let(:sh_code) do
       <<~SH_CODE
+        'string'
+        "string"
+        "string\\n"
+
         $deref
         $1
+
+        "unterminated string
+        'unterminated string
 
         case
         esac
@@ -22,10 +29,6 @@ describe 'esearch window context syntax' do
         fi
         until
         while
-
-        'string'
-        "string"
-        "string\\n"
       SH_CODE
     end
     let(:main_sh) { file(sh_code, 'main.sh') }
@@ -38,23 +41,26 @@ describe 'esearch window context syntax' do
 
     it 'contains matches' do
       is_expected.to have_highligh_aliases(
-        region('\\$deref')      => %w[shDerefSimple PreProc],
-        region('\\$1')          => %w[shDerefSimple PreProc],
+        region('"string"')             => %w[shDoubleQuote String],
+        region('"string\\\\n"')        => %w[shDoubleQuote String],
+        region("'string'")             => %w[shSingleQuote String],
 
-        word('case')            => %w[shKeyword Keyword],
-        word('esac')            => %w[shKeyword Keyword],
-        word('do')              => %w[shKeyword Keyword],
-        word('done')            => %w[shKeyword Keyword],
-        word('for')             => %w[shKeyword Keyword],
-        word('in')              => %w[shKeyword Keyword],
-        word('if')              => %w[shKeyword Keyword],
-        word('fi')              => %w[shKeyword Keyword],
-        word('until')           => %w[shKeyword Keyword],
-        word('while')           => %w[shKeyword Keyword],
+        region('\\$deref')             => %w[shDerefSimple PreProc],
+        region('\\$1')                 => %w[shDerefSimple PreProc],
 
-        region('"string"')      => %w[shDoubleQuote String],
-        region('"string\\\\n"') => %w[shDoubleQuote String],
-        region("'string'")      => %w[shSingleQuote String]
+        region("'unterminated string") => %w[shSingleQuote String],
+        region('"unterminated string') => %w[shDoubleQuote String],
+
+        word('case')                   => %w[shKeyword Keyword],
+        word('esac')                   => %w[shKeyword Keyword],
+        word('do')                     => %w[shKeyword Keyword],
+        word('done')                   => %w[shKeyword Keyword],
+        word('for')                    => %w[shKeyword Keyword],
+        word('in')                     => %w[shKeyword Keyword],
+        word('if')                     => %w[shKeyword Keyword],
+        word('fi')                     => %w[shKeyword Keyword],
+        word('until')                  => %w[shKeyword Keyword],
+        word('while')                  => %w[shKeyword Keyword]
       )
     end
 

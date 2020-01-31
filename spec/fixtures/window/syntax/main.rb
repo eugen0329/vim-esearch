@@ -31,18 +31,27 @@ end
 true.call
 false.call
 
-# comment
-#comment
-# long comment ....................................................................................................*/
+"unterminated string
+'unterminated string
 
 alias
 def
 undef
-class
-module
+class Classname
+module Modulename
 
-super.call
-yield.call
+Constant
+method
+
+# comment
+#comment
+# long comment ....................................................................................................*/
+
+super
+yield
+include
+extend
+prepend
 
 nil
 self

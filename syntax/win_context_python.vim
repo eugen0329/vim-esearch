@@ -17,9 +17,9 @@ syn keyword pythonAsync       async await
 syn match   pythonComment "#.*$" contains=pythonTodo,@Spell
 
 syn region  pythonString
-      \ start=+[uU]\=[rR]\?\z(['"]\)+ end="\z1" skip="\\\\\|\\\z1"
+      \ start=+[uU]\=[rR]\?\z(['"]\)+ end="\z1\|$" skip="\\\\\|\\\z1"
 syn region  pythonString
-      \ start=+[uU]\=[rR]\?\z('''\|"""\)+ end="\z1" keepend
+      \ start=+[uU]\=[rR]\?\z('''\|"""\)+ end="\z1\|$" keepend
 
 hi def link pythonStatement   Statement
 hi def link pythonFunction    Function

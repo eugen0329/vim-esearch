@@ -33,7 +33,6 @@ describe 'esearch window context syntax' do
         else
         if
 
-
         "string"
         "string\\n"
         'string'
@@ -74,6 +73,9 @@ describe 'esearch window context syntax' do
         not
         or
 
+        "unterminated string
+        'unterminated string
+
         except
         finally
         raise
@@ -97,82 +99,85 @@ describe 'esearch window context syntax' do
 
     it 'contains matches' do
       is_expected.to have_highligh_aliases(
-        word('False')                => %w[pythonStatement Statement],
-        word('None')                 => %w[pythonStatement Statement],
-        word('True')                 => %w[pythonStatement Statement],
-        word('as')                   => %w[pythonStatement Statement],
-        word('assert')               => %w[pythonStatement Statement],
-        word('break')                => %w[pythonStatement Statement],
-        word('continue')             => %w[pythonStatement Statement],
-        word('del')                  => %w[pythonStatement Statement],
-        word('exec')                 => %w[pythonStatement Statement],
-        word('global')               => %w[pythonStatement Statement],
-        word('lambda')               => %w[pythonStatement Statement],
-        word('nonlocal')             => %w[pythonStatement Statement],
-        word('pass')                 => %w[pythonStatement Statement],
-        word('print')                => %w[pythonStatement Statement],
-        word('return')               => %w[pythonStatement Statement],
-        word('with')                 => %w[pythonStatement Statement],
-        word('yield')                => %w[pythonStatement Statement],
+        word('False')                  => %w[pythonStatement Statement],
+        word('None')                   => %w[pythonStatement Statement],
+        word('True')                   => %w[pythonStatement Statement],
+        word('as')                     => %w[pythonStatement Statement],
+        word('assert')                 => %w[pythonStatement Statement],
+        word('break')                  => %w[pythonStatement Statement],
+        word('continue')               => %w[pythonStatement Statement],
+        word('del')                    => %w[pythonStatement Statement],
+        word('exec')                   => %w[pythonStatement Statement],
+        word('global')                 => %w[pythonStatement Statement],
+        word('lambda')                 => %w[pythonStatement Statement],
+        word('nonlocal')               => %w[pythonStatement Statement],
+        word('pass')                   => %w[pythonStatement Statement],
+        word('print')                  => %w[pythonStatement Statement],
+        word('return')                 => %w[pythonStatement Statement],
+        word('with')                   => %w[pythonStatement Statement],
+        word('yield')                  => %w[pythonStatement Statement],
 
-        word('class')                => %w[pythonStatement Statement],
-        word('def')                  => %w[pythonStatement Statement],
-        word('Classname')            => %w[pythonFunction Function],
-        word('function')             => %w[pythonFunction Function],
+        word('class')                  => %w[pythonStatement Statement],
+        word('def')                    => %w[pythonStatement Statement],
+        word('Classname')              => %w[pythonFunction Function],
+        word('function')               => %w[pythonFunction Function],
 
-        word('elif')                 => %w[pythonConditional Conditional],
-        word('else')                 => %w[pythonConditional Conditional],
-        word('if')                   => %w[pythonConditional Conditional],
+        word('elif')                   => %w[pythonConditional Conditional],
+        word('else')                   => %w[pythonConditional Conditional],
+        word('if')                     => %w[pythonConditional Conditional],
 
-        region('"string"')           => %w[pythonString String],
-        region('"string\\\\n"')      => %w[pythonString String],
-        region("'string'")           => %w[pythonString String],
-        region("'string\\\\n'")      => %w[pythonString String],
-        region('"""string"""')       => %w[pythonString String],
-        region('"""string\\\\n"""')  => %w[pythonString String],
-        region("'''string'''")       => %w[pythonString String],
-        region("'''string\\\\n'''")  => %w[pythonString String],
+        region('"string"')             => %w[pythonString String],
+        region('"string\\\\n"')        => %w[pythonString String],
+        region("'string'")             => %w[pythonString String],
+        region("'string\\\\n'")        => %w[pythonString String],
+        region('"""string"""')         => %w[pythonString String],
+        region('"""string\\\\n"""')    => %w[pythonString String],
+        region("'''string'''")         => %w[pythonString String],
+        region("'''string\\\\n'''")    => %w[pythonString String],
 
-        region('r"string"')          => %w[pythonString String],
-        region('r"string\\\\n"')     => %w[pythonString String],
-        region("r'string'")          => %w[pythonString String],
-        region("r'string\\\\n'")     => %w[pythonString String],
-        region('r"""string"""')      => %w[pythonString String],
-        region('r"""string\\\\n"""') => %w[pythonString String],
-        region("r'''string'''")      => %w[pythonString String],
-        region("r'''string\\\\n'''") => %w[pythonString String],
-        region('R"string"')          => %w[pythonString String],
-        region('R"string\\\\n"')     => %w[pythonString String],
-        region("R'string'")          => %w[pythonString String],
-        region("R'string\\\\n'")     => %w[pythonString String],
-        region('R"""string"""')      => %w[pythonString String],
-        region('R"""string\\\\n"""') => %w[pythonString String],
-        region("R'''string'''")      => %w[pythonString String],
-        region("R'''string\\\\n'''") => %w[pythonString String],
+        region('r"string"')            => %w[pythonString String],
+        region('r"string\\\\n"')       => %w[pythonString String],
+        region("r'string'")            => %w[pythonString String],
+        region("r'string\\\\n'")       => %w[pythonString String],
+        region('r"""string"""')        => %w[pythonString String],
+        region('r"""string\\\\n"""')   => %w[pythonString String],
+        region("r'''string'''")        => %w[pythonString String],
+        region("r'''string\\\\n'''")   => %w[pythonString String],
+        region('R"string"')            => %w[pythonString String],
+        region('R"string\\\\n"')       => %w[pythonString String],
+        region("R'string'")            => %w[pythonString String],
+        region("R'string\\\\n'")       => %w[pythonString String],
+        region('R"""string"""')        => %w[pythonString String],
+        region('R"""string\\\\n"""')   => %w[pythonString String],
+        region("R'''string'''")        => %w[pythonString String],
+        region("R'''string\\\\n'''")   => %w[pythonString String],
 
-        word('for')                  => %w[pythonRepeat Repeat],
-        word('while')                => %w[pythonRepeat Repeat],
+        word('for')                    => %w[pythonRepeat Repeat],
+        word('while')                  => %w[pythonRepeat Repeat],
 
-        region('# comment')          => %w[pythonComment Comment],
-        region('#comment')           => %w[pythonComment Comment],
-        region('# long comment')     => %w[pythonComment Comment],
+        region('# comment')            => %w[pythonComment Comment],
+        region('#comment')             => %w[pythonComment Comment],
+        region('# long comment')       => %w[pythonComment Comment],
 
-        word('and')                  => %w[pythonOperator Operator],
-        word('in')                   => %w[pythonOperator Operator],
-        word('is')                   => %w[pythonOperator Operator],
-        word('not')                  => %w[pythonOperator Operator],
-        word('or')                   => %w[pythonOperator Operator],
+        word('and')                    => %w[pythonOperator Operator],
+        word('in')                     => %w[pythonOperator Operator],
+        word('is')                     => %w[pythonOperator Operator],
+        word('not')                    => %w[pythonOperator Operator],
+        word('or')                     => %w[pythonOperator Operator],
 
-        word('except')               => %w[pythonException Exception],
-        word('finally')              => %w[pythonException Exception],
-        word('raise')                => %w[pythonException Exception],
-        word('try')                  => %w[pythonException Exception],
+        region("'unterminated string") => %w[pythonString String],
+        region('"unterminated string') => %w[pythonString String],
 
-        word('from')                 => %w[pythonInclude Include],
-        word('import')               => %w[pythonInclude Include],
+        word('except')                 => %w[pythonException Exception],
+        word('finally')                => %w[pythonException Exception],
+        word('raise')                  => %w[pythonException Exception],
+        word('try')                    => %w[pythonException Exception],
 
-        word('async')                => %w[pythonAsync Statement],
-        word('await')                => %w[pythonAsync Statement]
+        word('from')                   => %w[pythonInclude Include],
+        word('import')                 => %w[pythonInclude Include],
+
+        word('async')                  => %w[pythonAsync Statement],
+        word('await')                  => %w[pythonAsync Statement]
       )
     end
 

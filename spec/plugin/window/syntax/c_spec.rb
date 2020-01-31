@@ -30,18 +30,20 @@ describe 'esearch window context syntax' do
         "str with escape\\n"
         "long string#{'.' * 100}"
 
-        // comment line
-        /* comment block */
-        /* long comment #{'.' * 100}*/
-
         #define
         #undef
+
+        "unterminated string
 
         #pragma
         #line
         #warning
         #warn
         #error
+
+        // comment line
+        /* comment block */
+        /* long comment #{'.' * 100}*/
 
         struct{}
         union{}
@@ -87,18 +89,20 @@ describe 'esearch window context syntax' do
         region('"str with escape\\\\n"') => %w[cString String],
         region('"long string[^"]\\+$')   => %w[cString String],
 
-        region('// comment line')        => %w[cComment Comment],
-        region('/\* comment block')      => %w[cComment Comment],
-        region('/\* long comment')       => %w[cComment Comment],
-
         region('#define')                => %w[cDefine Macro],
         region('#undef')                 => %w[cDefine Macro],
+
+        region('"unterminated string')   => %w[cString String],
 
         region('#pragma')                => %w[cPreProc PreProc],
         region('#line')                  => %w[cPreProc PreProc],
         region('#warning')               => %w[cPreProc PreProc],
         region('#warn')                  => %w[cPreProc PreProc],
         region('#error')                 => %w[cPreProc PreProc],
+
+        region('// comment line')        => %w[cComment Comment],
+        region('/\* comment block')      => %w[cComment Comment],
+        region('/\* long comment')       => %w[cComment Comment],
 
         word('struct')                   => %w[cStructure Structure],
         word('union')                    => %w[cStructure Structure],

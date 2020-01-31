@@ -19,18 +19,20 @@ do {} while();
 "str with escape\n"
 "long string...................................................................................................."
 
-// comment line
-/* comment block */
-/* long comment ....................................................................................................*/
-
 #define
 #undef
+
+"unterminated string
 
 #pragma
 #line
 #warning
 #warn
 #error
+
+// comment line
+/* comment block */
+/* long comment ....................................................................................................*/
 
 struct{}
 union{}

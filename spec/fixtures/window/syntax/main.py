@@ -22,7 +22,6 @@ elif
 else
 if
 
-
 "string"
 "string\n"
 'string'
@@ -62,6 +61,9 @@ in
 is
 not
 or
+
+"unterminated string
+'unterminated string
 
 except
 finally

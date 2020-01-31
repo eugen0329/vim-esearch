@@ -26,7 +26,6 @@ describe 'esearch window context syntax' do
         instanceof
         typeof
 
-
         "string"
         "str_with_escape\\n"
         "long string#{'.' * 100}"
@@ -38,12 +37,15 @@ describe 'esearch window context syntax' do
         return
         with
 
-        // comment line
-        /* comment block */
-        /* long comment #{'.' * 100}*/
+        "unterminated string
+        'unterminated string
 
         null
         undefined
+
+        // comment line
+        /* comment block */
+        /* long comment #{'.' * 100}*/
 
         true
         false
@@ -110,12 +112,15 @@ describe 'esearch window context syntax' do
         word('return')                   => %w[javaScriptStatement Statement],
         word('with')                     => %w[javaScriptStatement Statement],
 
-        region('// comment line')        => %w[javaScriptComment Comment],
-        region('/\* comment block')      => %w[javaScriptComment Comment],
-        region('/\* long comment')       => %w[javaScriptComment Comment],
+        region("'unterminated string")   => %w[javaScriptStringS String],
+        region('"unterminated string')   => %w[javaScriptStringD String],
 
         word('null')                     => %w[javaScriptNull Keyword],
         word('undefined')                => %w[javaScriptNull Keyword],
+
+        region('// comment line')        => %w[javaScriptComment Comment],
+        region('/\* comment block')      => %w[javaScriptComment Comment],
+        region('/\* long comment')       => %w[javaScriptComment Comment],
 
         word('true')                     => %w[javaScriptBoolean Boolean],
         word('false')                    => %w[javaScriptBoolean Boolean],

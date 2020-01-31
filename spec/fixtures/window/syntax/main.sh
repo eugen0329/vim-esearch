@@ -1,5 +1,12 @@
+'string'
+"string"
+"string\n"
+
 $deref
 $1
+
+"unterminated string
+'unterminated string
 
 case
 esac
@@ -11,7 +18,3 @@ if
 fi
 until
 while
-
-'string'
-"string"
-"string\n"
