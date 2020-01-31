@@ -16,7 +16,7 @@ class Fixtures::LazyFile
   def persist!
     absolute_path = path
     FileUtils.mkdir_p(absolute_path.dirname) unless absolute_path.dirname.directory?
-    File.open(absolute_path, open_mode) { |f| f.puts(content) } unless absolute_path.file?
+    File.open(absolute_path, open_mode) { |f| f.puts(content) } # unless absolute_path.file?
     self
   end
 
@@ -43,8 +43,6 @@ class Fixtures::LazyFile
   def lines
     content.split("\n")
   end
-
-  private
 
   def content
     @content ||=

@@ -75,6 +75,10 @@ class Editor
     echo func('line', '.')
   end
 
+  def syntax_aliases_at(location_regexps)
+    echo func('CollectSyntaxAliases', location_regexps)
+  end
+
   def current_column_number
     echo func('col', '.')
   end

@@ -4,6 +4,7 @@ class Editor::Read::Base
   include VimlValue::SerializationHelpers
 
   VIM_EXCEPTION_REGEXP = /\AVim(\(\w+\))?:E\d+:/.freeze
+  VIMRUNNER_EXCEPTION_REGEXP = /\AVimrunner(\(\w+\))?/.freeze
 
   class ReadError < RuntimeError; end
 
@@ -49,7 +50,10 @@ class Editor::Read::Base
 
   def evaluate(str)
     result = vim.echo(str)
-    raise ReadError, result if VIM_EXCEPTION_REGEXP.match?(result)
+    if VIM_EXCEPTION_REGEXP.match?(result) ||
+       VIMRUNNER_EXCEPTION_REGEXP.match?(result)
+      raise ReadError, result
+    end
 
     result
   end

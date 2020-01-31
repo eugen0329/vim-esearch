@@ -33,6 +33,9 @@ Style/BlockDelimiters:
     - 'spec/**/shared_examples/*.rb'
   # EnforcedStyle: braces_for_chaining
 
+Lint/BooleanSymbol:
+  Enabled: false
+
 Style/DoubleNegation:
   Enabled: false # TODO
 
@@ -43,6 +46,7 @@ AllCops:
   Exclude:
     - 'spec/support/**/brew_formulae/**/*'
     - 'spec/support/bin/**/*'
+    - 'spec/fixtures/**/*'
     - 'spec/support/lib/viml_value/parser.rb'
     - 'spec/support/lib/viml_value/lexer.rb'
 

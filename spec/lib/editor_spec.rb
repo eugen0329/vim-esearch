@@ -24,18 +24,18 @@ describe Editor, :editor do
 
     describe '#matches_for' do
       before do
-        editor.press! 'Opattern1'
+        editor.press! "O#{' ' * 4}str_matching_pattern"
         editor.command! <<~VIML
           hi Matchgroup1 ctermfg=red
           hi Matchgroup2 ctermfg=red
-          call matchadd('Matchgroup1', 'pattern1')
-          call matchadd('Matchgroup2', 'pattern2')
+          call matchadd('Matchgroup1', 'str_matching_pattern')
+          call matchadd('Matchgroup2', 'pattern_without_matches_in_file')
         VIML
       end
       after { editor.press! 'u' }
 
       it do
-        expect(editor.matches_for('Matchgroup1')).to eq([[1, 1, 1 + 'pattern1'.length]])
+        expect(editor.matches_for('Matchgroup1')).to eq([[1, 5, 5 + 'str_matching_pattern'.length]])
         expect(editor.matches_for('Matchgroup2')).to be_empty
       end
     end

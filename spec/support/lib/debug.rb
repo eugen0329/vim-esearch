@@ -71,9 +71,13 @@ module Debug
     reader.echo func('getline', 1, func('line', '$'))
   end
 
-  def screenshot!(directory: Configuration.root)
-    timestamp = Time.now.strftime('%H_%M_%S_%L')
-    path = Pathname(directory).join("screenshot_#{timestamp}.png")
+  def screenshot!(name = nil, directory: Configuration.root)
+    if name.nil?
+      timestamp = Time.now.strftime('%H_%M_%S_%L')
+      name = "screenshot_#{timestamp}.png"
+    end
+
+    path = Pathname(directory).join(name)
 
     unless find_executable0('scrot')
       Configuration.log.warn("Can't find scrot executable")

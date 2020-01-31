@@ -41,17 +41,24 @@ else
 endif
 
 if !exists('g:esearch#out#win#context_syntax_highlight')
-  let g:esearch#out#win#context_syntax_highlight = 0
+  let g:esearch#out#win#context_syntax_highlight = 1
+endif
+if !exists('g:esearch#out#win#context_syntax_max_lines')
+  let g:esearch#out#win#context_syntax_max_lines = 500
 endif
 
 let s:syntax_regexps = {
-      \ 'light_ruby': 'Rakefile\|Capfile\|Gemfile\|\%(\.rb\|\.ru\)$',
-      \ 'light_eruby': '\%(\.erb\)$',
-      \ 'yaml': '\%(yaml\|\.yml\)$',
+      \ '.c':    'win_context_c',
+      \ '.sh':   'win_context_sh',
+      \ '.js':   'win_context_javascript',
+      \ '.go':   'win_context_go',
+      \ '.php':   'win_context_php',
+      \ '.html': 'win_context_html',
+      \ '.java': 'win_context_java',
+      \ '.rb':   'win_context_ruby',
+      \ '.py':   'win_context_python',
       \}
-if exists('g:esearch#out#win#syntax_regeps')
-  call extend(s:syntax_regexps, g:esearch#out#win#syntax_regeps)
-endif
+
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
@@ -127,15 +134,17 @@ fu! esearch#out#win#init(opts) abort
   setlocal foldmethod=expr
 
   let b:esearch = extend(a:opts, {
-        \ 'prev_filename':       '',
-        \ 'ignore_batches':     0,
-        \ '_columns':            {},
-        \ '_match_highlight_id': match_highlight_id,
-        \ '__broken_results':    [],
-        \ 'errors':              [],
-        \ 'data':                [],
-        \ 'syn_regions_loaded':                [],
-        \ 'without':             function('esearch#util#without')
+        \ 'last_filename':          '',
+        \ 'context_beginning_line': 0,
+        \ 'max_lines_found':        0,
+        \ 'ignore_batches':         0,
+        \ '_columns':               {},
+        \ '_match_highlight_id':    match_highlight_id,
+        \ '__broken_results':       [],
+        \ 'errors':                 [],
+        \ 'data':                   [],
+        \ 'context_syntax_regions': {},
+        \ 'without':                function('esearch#util#without')
         \})
   " call esearch#log#debug('extend b:esearch after', '/tmp/esearch_log.txt')
 
@@ -146,7 +155,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'out_finish':   function('esearch#out#win#_is_render_finished')
         \})
 
-  let b:esearch.debug = []
   " call esearch#log#debug('extend b:esearch.request after', '/tmp/esearch_log.txt')
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
   " call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')
@@ -197,7 +205,6 @@ fu! s:escape_title(title) abort
   return escape(name, '=')
 endfu
 
-
 fu! esearch#out#win#trigger_key_press(...) abort
   " call feedkeys("\<Plug>(esearch-Nop)")
   call feedkeys("g\<ESC>", 'n')
@@ -213,7 +220,6 @@ fu! esearch#out#win#update(bufnr) abort
   let ignore_batches = esearch.ignore_batches
   let request = esearch.request
 
-
   let data = esearch.request.data
   let data_size = len(data)
   if data_size > request.data_ptr
@@ -225,7 +231,7 @@ fu! esearch#out#win#update(bufnr) abort
       let request.data_ptr += esearch.batch_size
     endif
 
-    let parsed = esearch#adapter#{esearch.adapter}#parse_results(
+    let parsed = esearch#adapter#{esearch.adapter}#parse_results(esearch,
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
     call setbufvar(a:bufnr, '&ma', 1)
@@ -255,61 +261,87 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let filename    = substitute(parsed[i].filename, sub_expression, '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
-    if filename !=# a:esearch.prev_filename
+    if filename !=# a:esearch.last_filename
       let a:esearch.request.files_count += 1
-      if g:esearch#out#win#context_syntax_highlight
-        for [s,r] in items(s:syntax_regexps)
-          if filename =~ r
-            if index(a:esearch.syn_regions_loaded, s) < 0
-              let c = s:load_context_syntax(s)
-              call add(a:esearch.syn_regions_loaded, s)
-            else
-              let c = '@'.toupper(s)
-            endif
-            break
-          endif
-        endfor
-      endif
+      call s:init_context_syntax(a:esearch, line)
 
-      " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%4dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
       call esearch#util#setline(a:bufnr, line, '')
       let line += 1
       call esearch#util#setline(a:bufnr, line, filename)
       let line += 1
-
-      " exe printf('syntax region contextRUBY  matchgroup=easysearchLnum start="^\%%%dl\s\+\d\+" end="^$" keepend contains=@RUBY', line)
-      if exists('c') && exists('s')
-        exe printf('syntax region context%s '
-              \ .'start="^\%%%dl\s\+\d\+\s" end="^$" keepend contains=%s,esearchLnum', toupper(s), line, c)
-        unlet c
-      endif
+      let a:esearch.context_beginning_line = line
     endif
-
 
     call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, context))
     let a:esearch._columns[line] = parsed[i].col
-    let a:esearch.prev_filename = filename
+    let a:esearch.last_filename = filename
     let line += 1
     let i    += 1
   endwhile
 endfu
 
-fu! s:load_context_syntax(ft) abort
-  let c = '@' . toupper(a:ft)
+fu! s:set_syntax_sync(esearch) abort
+  if !g:esearch#out#win#context_syntax_highlight
+        \ || a:esearch['max_lines_found'] < 1
+    return
+  endif
+
+  syntax sync clear
+  exe 'syntax sync minlines='.min([
+        \ a:esearch['max_lines_found'],
+        \ g:esearch#out#win#context_syntax_max_lines,
+        \ ])
+endfu
+
+fu! s:init_context_syntax(esearch, line) abort
+  if !g:esearch#out#win#context_syntax_highlight
+    return
+  endif
+
+  if a:esearch.last_filename !=# ''
+    let ext = matchstr(a:esearch.last_filename, '\..*$')
+    if !has_key(s:syntax_regexps, ext)
+      return
+    endif
+
+    let name = s:syntax_regexps[ext]
+    if !has_key(a:esearch.context_syntax_regions, name)
+      let a:esearch.context_syntax_regions[name] = {
+            \ 'cluster': s:include_syntax_cluster(name),
+            \ 'region_name': name,
+            \ }
+    endif
+
+    let a:esearch['max_lines_found'] = max([
+          \ a:line - a:esearch.context_beginning_line,
+          \ a:esearch['max_lines_found']])
+
+    let region = a:esearch.context_syntax_regions[name]
+    exe printf('syntax region %s start="^\%%%dl" end="\%%%dl$" transparent contains=%s,esearchLnum',
+          \ region.region_name,
+          \ a:esearch.context_beginning_line,
+          \ a:line,
+          \ region['cluster'])
+  endif
+
+endfu
+
+fu! s:include_syntax_cluster(ft) abort
+  let cluster_name = '@' . toupper(a:ft)
 
   if exists('b:current_syntax')
     let syntax_save = b:current_syntax
     unlet b:current_syntax
   endif
 
-  exe 'syntax include' c 'syntax/' . a:ft . '.vim'
+  exe 'syntax include' cluster_name 'syntax/' . a:ft . '.vim'
 
   if exists('syntax_save')
     let b:current_syntax = syntax_save
   elseif exists('b:current_syntax')
     unlet b:current_syntax
   endif
-  return c
+  return cluster_name
 endfu
 
 fu! s:context(line, esearch) abort
@@ -531,6 +563,9 @@ fu! esearch#out#win#finish(bufnr) abort
   " Update using all remaining request.data
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
+
+  call s:init_context_syntax(esearch, line('$'))
+  call s:set_syntax_sync(esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)
 

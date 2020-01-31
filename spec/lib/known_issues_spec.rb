@@ -92,13 +92,13 @@ describe KnownIssues do
       it "doesn't rescue the exception" do
         group = RSpec.describe do
           example('another description', :skippable_tag) do
-            raise 'skippable failure'
+            expect(1).to eq(2), 'skippable failure'
           end
           example('skippable description', :another_tag) do
-            raise 'skippable failure'
+            expect(1).to eq(2), 'skippable failure'
           end
           example('another failure', :another_tag) do
-            raise 'skippable failure'
+            expect(1).to eq(2), 'skippable failure'
           end
         end.tap(&:run)
 

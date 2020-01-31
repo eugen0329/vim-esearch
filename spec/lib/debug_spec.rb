@@ -110,17 +110,35 @@ describe Debug do
     before { skip "Can't find scrot executable" unless find_executable0('scrot') }
     after  { screenshot_file&.delete }
 
-    context 'when success' do
-      subject(:screenshot_file) { debug.screenshot! }
+    context 'default name' do
+      context 'when success' do
+        subject(:screenshot_file) { debug.screenshot! }
 
-      it { expect(screenshot_file).to be_file }
-      it { expect(screenshot_file.size).to be > 0 }
+        it { expect(screenshot_file).to be_file }
+        it { expect(screenshot_file.size).to be > 0 }
+      end
+
+      context 'when failure' do
+        subject(:screenshot_file) { debug.screenshot!(directory: 'missing') }
+
+        it { expect(screenshot_file).to be_nil }
+      end
     end
 
-    context 'when failure' do
-      subject(:screenshot_file) { debug.screenshot!(directory: 'missing') }
+    context 'custom name' do
+      context 'when success' do
+        subject(:screenshot_file) { debug.screenshot!('custom_name.png') }
 
-      it { expect(screenshot_file).to be_nil }
+        it { expect(screenshot_file.basename.to_s).to eq('custom_name.png') }
+        it { expect(screenshot_file).to be_file }
+        it { expect(screenshot_file.size).to be > 0 }
+      end
+
+      context 'when failure' do
+        subject(:screenshot_file) { debug.screenshot!('custom_name.png', directory: 'missing') }
+
+        it { expect(screenshot_file).to be_nil }
+      end
     end
   end
 

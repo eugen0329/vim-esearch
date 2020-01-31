@@ -86,7 +86,7 @@ fu! esearch#out#qflist#update() abort
       let request.data_ptr += esearch.batch_size
     endif
 
-    let parsed = esearch#adapter#{esearch.adapter}#parse_results(
+    let parsed = esearch#adapter#{esearch.adapter}#parse_results(esearch,
           \ data, from, to, esearch.__broken_results, esearch.exp.vim)
 
 
