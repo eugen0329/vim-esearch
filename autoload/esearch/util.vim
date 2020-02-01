@@ -300,6 +300,115 @@ fu! esearch#util#map_name(char) abort
   return 0
 endfu
 
+fu! s:is_inside(group, c)
+  return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
+endfu
+
+fu! esearch#util#is_combination_with(char) abort
+  let printable = strtrans(a:char)
+
+  let super_prefix = strtrans("\<D-a>")[:-2]
+  let meta_prefix = strtrans("\<M-a>")[:-2]
+  let ameta_prefix = strtrans("\<A-a>")[:-2]
+  let control_prefix = strtrans("\<C-a>")[:-2]
+  let control_prefix_re = '^'.control_prefix
+
+  let meta_prefix_re = '^\%('
+        \ . meta_prefix . '\|'
+        \ . super_prefix . '\|'
+        \ . ameta_prefix . '\)'
+
+  let metas = [meta_prefix, ameta_prefix, super_prefix]
+  let shifts = []
+  let controls = [control_prefix]
+
+   let chars = [
+         \ "Nul",
+         \ "BS",
+         \ "Tab",
+         \ "NL",
+         \ "FF",
+         \ "CR",
+         \ "Return",
+         \ "Enter",
+         \ "Esc",
+         \ "Space",
+         \ "lt",
+         \ "Bslash",
+         \ "Bar",
+         \ "Del",
+         \ "CSI",
+         \ "xCSI",
+         \ 'Up',
+         \ 'Down',
+         \ 'Left',
+         \ 'Right',
+         \ 'Help',
+         \ 'Undo',
+         \ 'Insert',
+         \ 'Home',
+         \ 'End',
+         \ 'PageUp',
+         \ 'PageDown',
+         \ 'kUp',
+         \ 'kDown',
+         \ 'kLeft',
+         \ 'kRight',
+         \ 'kHome',
+         \ 'kEnd',
+         \ 'kOrigin',
+         \ 'kPageUp',
+         \ 'kPageDown',
+         \ 'kDel',
+         \ 'kPlus',
+         \ 'kMinus',
+         \ 'kMultiply',
+         \ 'kDivide',
+         \ 'kPoint',
+         \ 'kComma',
+         \ 'kEqual',
+         \ 'kEnter',
+         \ ]
+
+   for c in chars
+     call add(metas, strtrans(eval('"\<M-'.c.'>"')))
+     call add(metas, strtrans(eval('"\<A-'.c.'>"')))
+     call add(metas, strtrans(eval('"\<D-'.c.'>"')))
+     call add(shifts, strtrans(eval('"\<S-'.c.'>"')))
+     call add(controls, strtrans(eval('"\<C-'.c.'>"')))
+   endfor
+
+   for i in range(0,9)
+     call add(metas, strtrans(eval('"\<M-k'.i.'>"')))
+     call add(metas, strtrans(eval('"\<A-k'.i.'>"')))
+     call add(metas, strtrans(eval('"\<D-k'.i.'>"')))
+     call add(shifts, strtrans(eval('"\<S-k'.i.'>"')))
+     call add(controls, strtrans(eval('"\<C-k'.i.'>"')))
+   endfor
+
+   let fs = []
+   for i in range(1,12)
+     call add(fs, strtrans(eval('"\<F'.i.'>"')))
+     call add(metas, strtrans(eval('"\<M-F'.i.'>"')))
+     call add(metas, strtrans(eval('"\<A-F'.i.'>"')))
+     call add(metas, strtrans(eval('"\<D-F'.i.'>"')))
+     call add(shifts, strtrans(eval('"\<S-F'.i.'>"')))
+     call add(controls, strtrans(eval('"\<C-F'.i.'>"')))
+   endfor
+
+   if printable =~# meta_prefix_re || s:is_inside(metas, printable)
+     return 'meta'
+   elseif s:is_inside(shifts, printable)
+     return 'shift'
+   elseif printable =~# control_prefix_re || s:is_inside(controls, printable)
+     return 'control'
+   elseif s:is_inside(fs, printable)
+      return 'f'
+   endif
+
+  return ''
+endfu
+
 " TODO handle <expr> mappings
 fu! esearch#util#map_rhs(printable) abort
   let printable = a:printable
