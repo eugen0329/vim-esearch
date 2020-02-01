@@ -1,7 +1,7 @@
 " Rewrited nerdtree menu
 
-fu! esearch#ui#menu#new(menuItems, prompt)
-  return s:MenuController.new(a:menuItems, a:prompt)
+fu! esearch#ui#menu#new(menu_items, prompt)
+  return s:MenuController.new(a:menu_items, a:prompt)
 endfu
 
 fu! esearch#ui#menu#item(options)
@@ -10,15 +10,16 @@ endfu
 
 let s:MenuController = {}
 
-fu! s:MenuController.new(menuItems, prompt)
-  let newMenuController =  copy(self)
-  let newMenuController.prompt  =  a:prompt
-  if a:menuItems[0].is_separator()
-    let newMenuController.menuItems = a:menuItems[1:-1]
+fu! s:MenuController.new(menu_items, prompt)
+  let new_menu_controller =  copy(self)
+  let new_menu_controller.prompt  =  a:prompt
+  if a:menu_items[0].is_separator()
+    let new_menu_controller.menu_items = a:menu_items[1:-1]
   else
-    let newMenuController.menuItems = a:menuItems
+    let new_menu_controller.menu_items = a:menu_items
   endif
-  return newMenuController
+
+  return new_menu_controller
 endfu
 
 fu! s:MenuController.is_collapsed()
@@ -62,27 +63,27 @@ endfu
 fu! s:MenuController.render()
   if self.is_collapsed()
     throw 'not implemented yet'
-    " let selection = self.menuItems[self.selection].text
+    " let selection = self.menu_items[self.selection].text
     " let keyword = matchstr(selection, '[^ ]*([^ ]*')
 
-    " let shortcuts = map(copy(self.menuItems), "v:val['shortcut']")
+    " let shortcuts = map(copy(self.menu_items), "v:val['shortcut']")
     " let shortcuts[self.selection] = ' ' . keyword . ' '
 
     " echo 'Menu: [' . join(shortcuts, ',') . '] (' . navHelp . ' or shortcut): '
   else
     echo self.prompt
 
-    for i in range(0, len(self.menuItems)-1)
+    for i in range(0, len(self.menu_items)-1)
       if self.selection ==# i
-        echo '> ' . self.menuItems[i].text
+        echo '> ' . self.menu_items[i].text
       else
-        echo '  ' . self.menuItems[i].text
+        echo '  ' . self.menu_items[i].text
       endif
     endfor
   endif
 endfu
 fu! s:MenuController.current_item()
-  return self.menuItems[self.selection]
+  return self.menu_items[self.selection]
 endfu
 
 fu! s:MenuController.handle_keypress(key)
@@ -111,15 +112,15 @@ fu! s:MenuController.handle_keypress(key)
 endfu
 
 fu! s:MenuController.all_indexes_for(shortcut)
-  let toReturn = []
+  let to_return = []
 
-  for i in range(0, len(self.menuItems)-1)
-    if s:pressed(self.menuItems[i], a:shortcut)
-      call add(toReturn, i)
+  for i in range(0, len(self.menu_items)-1)
+    if s:pressed(self.menu_items[i], a:shortcut)
+      call add(to_return, i)
     endif
   endfor
 
-  return toReturn
+  return to_return
 endfu
 
 fu! s:pressed(item, shortcut) abort
@@ -137,14 +138,14 @@ fu! s:pressed(item, shortcut) abort
 endfu
 
 fu! s:MenuController.next_index_for(shortcut)
-  for i in range(self.selection+1, len(self.menuItems)-1)
-    if s:pressed(self.menuItems[i], a:shortcut)
+  for i in range(self.selection+1, len(self.menu_items)-1)
+    if s:pressed(self.menu_items[i], a:shortcut)
       return i
     endif
   endfor
 
   for i in range(0, self.selection)
-    if s:pressed(self.menuItems[i], a:shortcut)
+    if s:pressed(self.menu_items[i], a:shortcut)
       return i
     endif
   endfor
@@ -156,26 +157,26 @@ fu! s:MenuController.set_cmdline_height()
   if self.is_collapsed()
     let &cmdheight = 1
   else
-    let &cmdheight = len(self.menuItems) + 1
+    let &cmdheight = len(self.menu_items) + 1
   endif
 endfu
 
 fu! s:MenuController.save_options()
-  let self._oldLazyredraw = &lazyredraw
-  let self._oldCmdheight = &cmdheight
+  let self.old_lazy_redraw = &lazyredraw
+  let self.old_cmd_height = &cmdheight
   set nolazyredraw
   call self.set_cmdline_height()
 endfu
 
 fu! s:MenuController.restore_options()
-  let &cmdheight = self._oldCmdheight
-  let &lazyredraw = self._oldLazyredraw
+  let &cmdheight = self.old_cmd_height
+  let &lazyredraw = self.old_lazy_redraw
 endfu
 
 fu! s:MenuController.cursor_down()
   let done = 0
   while !done
-    if self.selection < len(self.menuItems)-1
+    if self.selection < len(self.menu_items)-1
       let self.selection += 1
     else
       let self.selection = 0
@@ -193,7 +194,7 @@ fu! s:MenuController.cursor_up()
     if self.selection > 0
       let self.selection -= 1
     else
-      let self.selection = len(self.menuItems)-1
+      let self.selection = len(self.menu_items)-1
     endif
 
     if !self.current_item().is_separator()
@@ -205,23 +206,23 @@ endfu
 let s:MenuItem = {}
 
 fu! s:MenuItem.create(options)
-  let newMenuItem = copy(self)
+  let new_menu_item = copy(self)
 
-  let newMenuItem.text = a:options['text']
-  let newMenuItem.shortcut = a:options['shortcut']
-  let newMenuItem.children = []
+  let new_menu_item.text = a:options['text']
+  let new_menu_item.shortcut = a:options['shortcut']
+  let new_menu_item.children = []
 
-  let newMenuItem.isActiveCallback = -1
-  if has_key(a:options, 'isActiveCallback')
-    let newMenuItem.isActiveCallback = a:options['isActiveCallback']
+  let new_menu_item.is_active_callback = -1
+  if has_key(a:options, 'is_active_callback')
+    let new_menu_item.is_active_callback = a:options['is_active_callback']
   endif
 
-  let newMenuItem.callback = -1
+  let new_menu_item.callback = -1
   if has_key(a:options, 'callback')
-    let newMenuItem.callback = a:options['callback']
+    let new_menu_item.callback = a:options['callback']
   endif
 
-  return newMenuItem
+  return new_menu_item
 endfu
 
 fu! s:MenuItem.create_separator(options)
@@ -241,8 +242,8 @@ fu! s:MenuItem.create_submenu(options)
 endfu
 
 fu! s:MenuItem.is_enabled()
-  if self.isActiveCallback != -1
-    return type(self.isActiveCallback) == type(function('tr')) ? self.isActiveCallback() : {self.isActiveCallback}()
+  if self.is_active_callback != -1
+    return type(self.is_active_callback) == type(function('tr')) ? self.is_active_callback() : {self.is_active_callback}()
   endif
   return 1
 endfu

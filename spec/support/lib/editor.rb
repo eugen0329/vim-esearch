@@ -174,14 +174,35 @@ class Editor
     end
   end
 
-  def press_with_user_mappings!(keyboard_keys)
+  def press_with_user_mappings!(*keyboard_keys)
     handle_state_change!
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
-        vim.feedkeys keyboard_keys
+        vim.feedkeys convert(*keyboard_keys)
       end
     end
+  end
+
+  alias send_keys press_with_user_mappings!
+
+  SYM2KEY = {
+    enter: '\\<Cr>',
+    left: '\\<Left>',
+    right: '\\<Right>',
+    delete: '\\<Del>',
+    leader: '\\\\',
+    backspace: '\\<Bs>'
+  }
+
+  def convert(*keyboard_keys)
+    keyboard_keys.map do |key|
+      if key.is_a? Symbol
+        SYM2KEY.fetch(key)
+      else
+        key
+      end
+    end.join
   end
 
   def raw_echo(arg)

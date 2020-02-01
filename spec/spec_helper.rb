@@ -69,6 +69,10 @@ else
   end
 end
 
+def editor
+  esearch.editor
+end
+
 RSpec.configure do |c|
   c.color_mode = true
   c.order      = :rand

@@ -35,7 +35,7 @@ class API::ESearch::Configuration
 
   def configure!(options)
     configure(options)
-    submit!
+    submit!(overwrite: true)
   end
 
   def adapter_bin=(path)
