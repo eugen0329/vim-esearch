@@ -1,13 +1,13 @@
 let g:esearch#cmdline#menu_feature_toggle = 1
 if g:esearch#cmdline#menu_feature_toggle == 1
   let s:mappings = {
-        \ '<C-o>':       '<Plug>(esearch-cmdline-optoins-menus)',
+        \ '<C-o>':       '<Plug>(esearch-cmdline-options-menus)',
         \ 'key':         function('esearch#util#key'),
         \ 'dict':        function('esearch#util#dict'),
         \ 'without_val':        function('esearch#util#without_val'),
         \}
   let s:comments = {
-        \ '<Plug>(esearch-cmdline-optoins-menus)': 'Toggle regex(r) or literal(>) match',
+        \ '<Plug>(esearch-cmdline-options-menus)': 'Toggle regex(r) or literal(>) match',
         \}
 else
   let s:mappings = {
@@ -51,8 +51,12 @@ if !exists('g:esearch#cmdline#select_cancelling_chars')
         \ "\<M-f>",
         \ "\<Left>",
         \ "\<Right>",
+        \ "\<S-Left>",
+        \ "\<S-Right>",
         \ "\<Up>",
         \ "\<Down>",
+        \ "\<S-Up>",
+        \ "\<S-Down>",
         \ ]
 endif
 
@@ -71,7 +75,7 @@ endif
 cnoremap <Plug>(esearch-toggle-regex)          <C-r>=<SID>run('s:invert', 'regex')<CR>
 cnoremap <Plug>(esearch-toggle-case)           <C-r>=<SID>run('s:invert', 'case')<CR>
 cnoremap <Plug>(esearch-toggle-word)           <C-r>=<SID>run('s:invert', 'word')<CR>
-cnoremap <Plug>(esearch-cmdline-optoins-menus) <C-r>=<SID>run('s:options_menu')<CR>
+cnoremap <Plug>(esearch-cmdline-options-menus) <C-r>=<SID>run('s:options_menu')<CR>
 
 if g:esearch#cmdline#menu_feature_toggle == 0
   cnoremap <Plug>(esearch-cmdline-help)          <C-r>=<SID>run('esearch#cmdline#help')<CR>
@@ -112,10 +116,11 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     endif
 
     if special_key_was_pressed
+      " throw string([s:cmdline, enter_was_pressed, special_key_was_pressed, action_key])
       " Reopen cmdline and set input using keypress emulations
       " Such a veird way is needed to handle special keys listed in
       " the g:esearch#cmdline#select_cancelling_chars
-      exe "norm :call esearch#init({'empty_cmdline': 1, 'cmdline_feedkeys': ".action_key."})\<CR>".s:cmdline
+      exe "norm :call esearch#init({'empty_cmdline': 1})\<CR>".s:cmdline
       return 0
     endif
   else
@@ -216,14 +221,18 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   " call esearch#log#debug(['before index', index(g:esearch#cmdline#select_cancelling_chars, char)], '/tmp/esearch_log.txt')
 
   let action_key = 0
-  if char ==# "\<C-o>" && g:esearch#cmdline#menu_feature_toggle
+  if !empty(mapcheck(char, 'c')) && g:esearch#cmdline#menu_feature_toggle
     let action_key = char
+    let special_key_was_pressed = 0
     " let cmdline =  virtual_cmdline . char
     return [virtual_cmdline, enter_was_pressed, special_key_was_pressed, action_key]
+  " elseif !empty(esearch#util#escape_kind(char)) || index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
   elseif index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
-    " Handle VERY special characters (<Enter>, <Esc> or <C-c>)
+    " Handle VERY special characters (at the moments it's <C-c>)
     " """"""""""""""""""""""""""""""""""""""""""""""""""""""
     if index(s:select_cancelling_special_chars, char) >= 0
+      " TODO test
+      " let enter_was_pressed = 0
       let enter_was_pressed = (char ==# "\<Enter>" ? 1 : 0)
       let special_key_was_pressed = 0
       return [a:cmdline, enter_was_pressed, special_key_was_pressed, action_key]
@@ -245,7 +254,7 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
     let cmdline =  preserve_cmdline ? a:cmdline . char : char
   endif
 
-  return [cmdline, enter_was_pressed, special_key_was_pressed, action_key]
+  return [cmdline, enter_was_pressed, 0, action_key]
 endfu
 
 fu! s:list_help() abort
@@ -336,10 +345,12 @@ endfu
 
 fu! s:init_mappings() abort
   let mapargs =  {}
+  let s:mapargs = []
   " TODO add support for g:esearch.default_mappings
   for map in keys(s:mappings.dict())
     let mapargs[map] = maparg(map, 'c', 0, 1)
     exe 'cmap ' . map . ' ' . s:mappings[map]
+    let  s:mapargs += [maparg(map)]
   endfor
 
   return mapargs

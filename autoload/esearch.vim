@@ -7,6 +7,8 @@ fu! esearch#init(...) abort
   " Prepare argv
   """""""""""""""
   let opts = a:0 ? a:1 : {}
+  let g:esearch.last_id += 1
+  let opts.id = g:esearch.last_id
   let source_params = {
         \ 'visualmode': get(opts, 'visualmode', 0),
         \}
@@ -70,7 +72,7 @@ fu! esearch#init(...) abort
   call opts.set_default('context_width', g:esearch.context_width)
   let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file',
         \'exp', 'out', 'batch_size', 'context_width', '_last_search',
-        \'regex', 'case', 'word'), {
+        \'regex', 'case', 'word', 'id'), {
         \ 'title': s:title(pattern),
         \ 'request': request,
         \})
@@ -122,6 +124,10 @@ fu! s:init_lazy_global_config() abort
   if type(global_esearch) != type({})
     echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
     return 1
+  endif
+
+  if !has_key(global_esearch, 'last_id')
+    let global_esearch.last_id = 1
   endif
 
   if !has_key(global_esearch, '__lazy_loaded')

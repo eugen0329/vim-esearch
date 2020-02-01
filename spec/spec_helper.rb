@@ -79,11 +79,14 @@ RSpec.configure do |c|
   c.formatter  = :documentation
   c.fail_fast  = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
-  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
   c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+
+  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:osx_only) unless Configuration.osx?
+  c.filter_run_excluding(:multibyte_commandline) # TODO
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include

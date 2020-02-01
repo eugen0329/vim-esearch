@@ -304,7 +304,7 @@ fu! s:is_inside(group, c)
   return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
 endfu
 
-fu! esearch#util#is_combination_with(char) abort
+fu! esearch#util#escape_kind(char) abort
   let printable = strtrans(a:char)
 
   let super_prefix = strtrans("\<D-a>")[:-2]

@@ -193,7 +193,10 @@ class Editor
     right:     '\\<Right>',
     delete:    '\\<Del>',
     leader:    '\\\\',
-    backspace: '\\<Bs>'
+    backspace: '\\<Bs>',
+    escape:    '\\<Esc>',
+    up:        '\\<Up>',
+    down:      '\\<Down>'
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

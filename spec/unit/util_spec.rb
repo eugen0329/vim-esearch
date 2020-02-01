@@ -3,9 +3,9 @@
 require 'spec_helper'
 
 describe 'Smoke of esearch#util' do
-  describe 'esearch#util#is_combination_with' do
+  describe 'esearch#util#escape_kind' do
     def invoke(arg)
-      vim.echo("esearch#util#is_combination_with(\"#{arg}\")")
+      vim.echo("esearch#util#escape_kind(\"#{arg}\")")
     end
 
     shared_examples 'works with all escape methods except Shift' do |char|
