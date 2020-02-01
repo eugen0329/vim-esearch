@@ -13,17 +13,21 @@ class API::ESearch::Configuration
     @staged_configuration = {}
   end
 
+  def global
+    editor.echo func('get', var('g:'), 'esearch', {})
+  end
+
   def configure(options)
     cache.write_multi(options)
     staged_configuration.merge!(options)
   end
 
   def submit!(overwrite: false)
+    dict = VimlValue.dump(staged_configuration)
+
     if overwrite
-      dict = VimlValue.dump(staged_configuration)
       editor.command!("let g:esearch = #{dict}")
     else
-      dict = VimlValue.dump(staged_configuration)
       editor.command!("if !exists('g:esearch') | "\
                       "let g:esearch = #{dict} | "\
                       'else | '\

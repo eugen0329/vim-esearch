@@ -424,7 +424,7 @@ if g:esearch#cmdline#menu_feature_toggle == 1
  " (press one of listed keymaps or choose with j/k/enter to actvate)\n"
     let prompt =
           \   "  Hotkey  Action (press a hotkey or select using j/k/enter)\n"
-          \ . "  ------  -------------------------------------------------"
+          \ . '  ------  -------------------------------------------------'
     call esearch#ui#menu#new(s:menu_items(), prompt).start()
   endfu
 

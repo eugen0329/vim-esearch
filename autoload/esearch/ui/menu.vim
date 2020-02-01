@@ -1,16 +1,16 @@
 " Rewrited nerdtree menu
 
-fu! esearch#ui#menu#new(menu_items, prompt)
+fu! esearch#ui#menu#new(menu_items, prompt) abort
   return s:MenuController.new(a:menu_items, a:prompt)
 endfu
 
-fu! esearch#ui#menu#item(options)
+fu! esearch#ui#menu#item(options) abort
   return s:MenuItem.create(a:options)
 endfu
 
 let s:MenuController = {}
 
-fu! s:MenuController.new(menu_items, prompt)
+fu! s:MenuController.new(menu_items, prompt) abort
   let new_menu_controller =  copy(self)
   let new_menu_controller.prompt  =  a:prompt
   if a:menu_items[0].is_separator()
@@ -22,12 +22,12 @@ fu! s:MenuController.new(menu_items, prompt)
   return new_menu_controller
 endfu
 
-fu! s:MenuController.is_collapsed()
+fu! s:MenuController.is_collapsed() abort
   " TODO
   return 0
 endfu
 
-fu! s:MenuController.start()
+fu! s:MenuController.start() abort
   call self.save_options()
 
   try
@@ -60,7 +60,7 @@ fu! s:MenuController.start()
   endif
 endfu
 
-fu! s:MenuController.render()
+fu! s:MenuController.render() abort
   if self.is_collapsed()
     throw 'not implemented yet'
     " let selection = self.menu_items[self.selection].text
@@ -82,14 +82,14 @@ fu! s:MenuController.render()
     endfor
   endif
 endfu
-fu! s:MenuController.current_item()
+fu! s:MenuController.current_item() abort
   return self.menu_items[self.selection]
 endfu
 
 fu! s:MenuController.handle_keypress(key)
-  if a:key ==# "\<C-j>" || a:key ==# "j"
+  if a:key ==# "\<C-j>" || a:key ==# 'j'
     call self.cursor_down()
-  elseif a:key ==# "\<C-k>" || a:key ==# "k"
+  elseif a:key ==# "\<C-k>" || a:key ==# 'k'
     call self.cursor_up()
   elseif a:key ==# nr2char(27) "escape
     let self.selection = -1
@@ -111,7 +111,7 @@ fu! s:MenuController.handle_keypress(key)
   return 0
 endfu
 
-fu! s:MenuController.all_indexes_for(shortcut)
+fu! s:MenuController.all_indexes_for(shortcut) abort
   let to_return = []
 
   for i in range(0, len(self.menu_items)-1)
@@ -137,7 +137,7 @@ fu! s:pressed(item, shortcut) abort
   return 0
 endfu
 
-fu! s:MenuController.next_index_for(shortcut)
+fu! s:MenuController.next_index_for(shortcut) abort
   for i in range(self.selection+1, len(self.menu_items)-1)
     if s:pressed(self.menu_items[i], a:shortcut)
       return i
@@ -153,7 +153,7 @@ fu! s:MenuController.next_index_for(shortcut)
   return -1
 endfu
 
-fu! s:MenuController.set_cmdline_height()
+fu! s:MenuController.set_cmdline_height() abort
   if self.is_collapsed()
     let &cmdheight = 1
   else
@@ -161,19 +161,19 @@ fu! s:MenuController.set_cmdline_height()
   endif
 endfu
 
-fu! s:MenuController.save_options()
+fu! s:MenuController.save_options() abort
   let self.old_lazy_redraw = &lazyredraw
   let self.old_cmd_height = &cmdheight
   set nolazyredraw
   call self.set_cmdline_height()
 endfu
 
-fu! s:MenuController.restore_options()
+fu! s:MenuController.restore_options() abort
   let &cmdheight = self.old_cmd_height
   let &lazyredraw = self.old_lazy_redraw
 endfu
 
-fu! s:MenuController.cursor_down()
+fu! s:MenuController.cursor_down() abort
   let done = 0
   while !done
     if self.selection < len(self.menu_items)-1
@@ -188,7 +188,7 @@ fu! s:MenuController.cursor_down()
   endwhile
 endfu
 
-fu! s:MenuController.cursor_up()
+fu! s:MenuController.cursor_up() abort
   let done = 0
   while !done
     if self.selection > 0
@@ -205,7 +205,7 @@ endfu
 
 let s:MenuItem = {}
 
-fu! s:MenuItem.create(options)
+fu! s:MenuItem.create(options) abort
   let new_menu_item = copy(self)
 
   let new_menu_item.text = a:options['text']
@@ -225,7 +225,7 @@ fu! s:MenuItem.create(options)
   return new_menu_item
 endfu
 
-fu! s:MenuItem.create_separator(options)
+fu! s:MenuItem.create_separator(options) abort
   let standard_options = { 'text': '--------------------',
         \ 'shortcut': -1,
         \ 'callback': -1 }
@@ -234,21 +234,21 @@ fu! s:MenuItem.create_separator(options)
   return s:MenuItem.create(options)
 endfu
 
-fu! s:MenuItem.create_submenu(options)
+fu! s:MenuItem.create_submenu(options) abort
   let standard_options = { 'callback': -1 }
   let options = extend(a:options, standard_options, 'force')
 
   return s:MenuItem.create(options)
 endfu
 
-fu! s:MenuItem.is_enabled()
+fu! s:MenuItem.is_enabled() abort
   if self.is_active_callback != -1
     return type(self.is_active_callback) == type(function('tr')) ? self.is_active_callback() : {self.is_active_callback}()
   endif
   return 1
 endfu
 
-fu! s:MenuItem.execute()
+fu! s:MenuItem.execute() abort
   if len(self.children)
     let mc = esearch#ui#menu#new(self.children, '')
     call mc.start()
@@ -263,10 +263,10 @@ fu! s:MenuItem.execute()
   endif
 endfu
 
-fu! s:MenuItem.is_separator()
+fu! s:MenuItem.is_separator() abort
   return self.callback == -1 && self.children == []
 endfu
 
-fu! s:MenuItem.is_submenu()
+fu! s:MenuItem.is_submenu() abort
   return self.callback == -1 && !empty(self.children)
 endfu

@@ -52,7 +52,7 @@ class Editor
   end
 
   def stubbed_output_args_history
-    echo var('g:stubbed_output_args_history')
+    echo func('get', var('g:'), 'stubbed_output_args_history', [])
   end
 
   def lines_count
@@ -112,14 +112,12 @@ class Editor
 
   def delete_all_buffers_and_clear_messages!
     command!('%bwipeout! | messages clear')
-    # command!('%close')
   end
 
   def cleanup!
     delete_all_buffers_and_clear_messages!
     handle_state_change!
   end
-  # alias cleanup! delete_all_buffers_and_clear_messages!
 
   def bufdelete!(ignore_unsaved_changes: false)
     return command!('bdelete!') if ignore_unsaved_changes
@@ -149,9 +147,7 @@ class Editor
   end
 
   def command(string_to_execute)
-    # instrument(:command, data: string_to_execute) do
     vim.command(string_to_execute)
-    # end
   end
 
   def command!(string_to_execute)
@@ -179,31 +175,11 @@ class Editor
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
-        vim.feedkeys convert(*keyboard_keys)
+        vim.feedkeys keyboard_keys_to_string(*keyboard_keys)
       end
     end
   end
-
   alias send_keys press_with_user_mappings!
-
-  SYM2KEY = {
-    enter: '\\<Cr>',
-    left: '\\<Left>',
-    right: '\\<Right>',
-    delete: '\\<Del>',
-    leader: '\\\\',
-    backspace: '\\<Bs>'
-  }
-
-  def convert(*keyboard_keys)
-    keyboard_keys.map do |key|
-      if key.is_a? Symbol
-        SYM2KEY.fetch(key)
-      else
-        key
-      end
-    end.join
-  end
 
   def raw_echo(arg)
     vim.echo(arg)
@@ -214,6 +190,25 @@ class Editor
   end
 
   private
+
+  SYMBOL_TO_KEYBOARD_KEY = {
+    enter:     '\\<Cr>',
+    left:      '\\<Left>',
+    right:     '\\<Right>',
+    delete:    '\\<Del>',
+    leader:    '\\\\',
+    backspace: '\\<Bs>'
+  }.freeze
+
+  def keyboard_keys_to_string(*keyboard_keys)
+    keyboard_keys.map do |key|
+      if key.is_a? Symbol
+        SYMBOL_TO_KEYBOARD_KEY.fetch(key)
+      else
+        key
+      end
+    end.join
+  end
 
   def lines_range(range)
     return [1, nil] if range.blank?
