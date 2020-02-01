@@ -42,6 +42,10 @@ class Editor::Read::Base
 
   private
 
+  def reset!
+    cache.clear
+  end
+
   def cache
     return null_cache if @with_ignore_cache || !cache_enabled
 
@@ -52,6 +56,7 @@ class Editor::Read::Base
     result = vim.echo(str)
     if VIM_EXCEPTION_REGEXP.match?(result) ||
        VIMRUNNER_EXCEPTION_REGEXP.match?(result)
+      reset!
       raise ReadError, result
     end
 

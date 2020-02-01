@@ -54,6 +54,10 @@ fu! esearch#init(...) abort
   let shell_cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd, EscapeFunc)
   let requires_pty = esearch#adapter#{opts.adapter}#requires_pty()
 
+  let opts.regex = g:esearch.regex
+  let opts.case = g:esearch.case
+  let opts.word = g:esearch.word
+
   let request = esearch#backend#{opts.backend}#init(shell_cmd, requires_pty)
   """""""""""""""
   " call esearch#log#debug('Prepare backend end', '/tmp/esearch_log.txt')
@@ -64,7 +68,9 @@ fu! esearch#init(...) abort
   call opts.set_default('batch_size', g:esearch.batch_size)
   call opts.set_default('out', g:esearch.out)
   call opts.set_default('context_width', g:esearch.context_width)
-  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file', 'exp', 'out', 'batch_size', 'context_width'), {
+  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file',
+        \'exp', 'out', 'batch_size', 'context_width', '_last_search',
+        \'regex', 'case', 'word'), {
         \ 'title': s:title(pattern),
         \ 'request': request,
         \})

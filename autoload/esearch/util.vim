@@ -208,7 +208,6 @@ fu! esearch#util#highlight(highlight, str, ...) abort
   endif
 endfu
 
-
 fu! esearch#util#hlecho(groups) abort
   for group in a:groups
     let str = len(group) == 1 ? '' : '| echon ' . string(group[1])

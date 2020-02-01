@@ -18,13 +18,18 @@ class API::ESearch::Configuration
     staged_configuration.merge!(options)
   end
 
-  def submit!
-    dict = VimlValue.dump(staged_configuration)
-    editor.command!("if !exists('g:esearch') | "\
-                     "let g:esearch = #{dict} | "\
-                     'else | '\
-                     "call extend(g:esearch, #{dict}) | "\
-                     'endif')
+  def submit!(overwrite: false)
+    if overwrite
+      dict = VimlValue.dump(staged_configuration)
+      editor.command!("let g:esearch = #{dict}")
+    else
+      dict = VimlValue.dump(staged_configuration)
+      editor.command!("if !exists('g:esearch') | "\
+                      "let g:esearch = #{dict} | "\
+                      'else | '\
+                      "call extend(g:esearch, #{dict}) | "\
+                      'endif')
+    end
     staged_configuration.clear
   end
 
