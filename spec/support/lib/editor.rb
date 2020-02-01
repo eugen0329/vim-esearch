@@ -51,10 +51,6 @@ class Editor
     echo func('getline', from, to)
   end
 
-  def stubbed_output_args_history
-    echo func('get', var('g:'), 'stubbed_output_args_history', [])
-  end
-
   def lines_count
     echo func('line', '$')
   end

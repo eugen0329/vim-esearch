@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 
 class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
+  include VimlValue::SerializationHelpers
 
   class MissingEntry < RuntimeError; end
 
@@ -33,8 +34,6 @@ class API::ESearch::Window
       break true if parser.header_finished? || parser.header_errors?
     end
   end
-
-  include VimlValue::SerializationHelpers
 
   def has_search_highlight?(relative_path, line, column)
     entry = find_entry(relative_path, line)

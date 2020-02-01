@@ -22,6 +22,7 @@ class API::ESearch::Configuration
     staged_configuration.merge!(options)
   end
 
+  # TODO: a hack that should be rewrited in future
   def submit!(overwrite: false)
     dict = VimlValue.dump(staged_configuration)
 

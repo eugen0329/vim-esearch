@@ -6,14 +6,14 @@ context 'esearch#cmdline' do
   describe 'menu' do
     let(:open_menu) { '\\<C-o>' }
     let(:start_search) { [:leader, 'ff'] }
-    let(:spy_calls) { editor.stubbed_output_args_history }
+    let(:spy_calls) { esearch.output.calls_history }
 
-    after { editor.command!('let g:stubbed_output_args_history = []') }
+    before { esearch.configure(out: 'stubbed', backend: 'system') }
+    after { esearch.output.reset_calls_history! }
 
     context 'changing' do
       shared_examples 'it sets options using menu' do |hotkey, options|
         it "sets #{options} using menu" do
-          esearch.configure!(out: 'stubbed', backend: 'system')
           expect {
             editor.send_keys(*start_search, open_menu)
             editor.send_keys(hotkey, 'search str', :enter)
@@ -25,7 +25,7 @@ context 'esearch#cmdline' do
       end
 
       context 'set options' do
-        before { esearch.configure('word': 0, 'case': 0, 'regex': 0, backend: 'system') }
+        before { esearch.configure!('word': 0, 'case': 0, 'regex': 0) }
 
         include_examples 'it sets options using menu', '\\<C-r>', 'regex' => 1
         include_examples 'it sets options using menu', '\\<C-s>', 'case'  => 1
@@ -36,7 +36,7 @@ context 'esearch#cmdline' do
       end
 
       context 'reset options' do
-        before { esearch.configure('word': 1, 'case': 1, 'regex': 1, backend: 'system') }
+        before { esearch.configure!('word': 1, 'case': 1, 'regex': 1) }
 
         include_examples 'it sets options using menu', '\\<C-r>', 'regex' => 0
         include_examples 'it sets options using menu', '\\<C-s>', 'case'  => 0
@@ -50,7 +50,7 @@ context 'esearch#cmdline' do
     context 'preserving position' do
       let(:mode_key) { 'r' }
       let(:regexp_name) { 'pcre' }
-      before { esearch.configure!(out: 'stubbed', backend: 'system') }
+      before { esearch.configuration.submit!(overwrite: true)  }
 
       context 'in the middle' do
         it 'even' do
@@ -88,7 +88,7 @@ context 'esearch#cmdline' do
     end
 
     context 'with prefilled' do
-      before { esearch.configure!(out: 'stubbed', backend: 'system') }
+      before { esearch.configuration.submit!(overwrite: true) }
 
       it do
         editor.send_keys(*start_search, '1', :enter)

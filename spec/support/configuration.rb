@@ -49,7 +49,11 @@ module Configuration
   end
 
   def vimrc_path
-    @vimrc_path ||= root.join('spec', 'support', 'vimrc.vim').to_s
+    @vimrc_path ||= viml_dir.join('vimrc.vim').to_s
+  end
+
+  def viml_dir
+    root.join('spec', 'support', 'viml')
   end
 
   def debug_specs_performance?

@@ -7,7 +7,7 @@ describe 'esearch window context syntax' do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
-  describe 'ruby' do
+  describe 'html' do
     let(:source_file_content) do
       <<~SOURCE
         <div attr="double-quoted"></div>

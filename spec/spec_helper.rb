@@ -93,7 +93,7 @@ Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_vim do
-    load_vim_plugins!(Client.new(Server.vim(
+    load_runtime!(Client.new(Server.vim(
       executable: Configuration.vim_path,
       vimrc:      Configuration.vimrc_path,
       timeout:    10
@@ -105,7 +105,7 @@ VimrunnerNeovim::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_nvim do
-    load_vim_plugins!(Client.new(Server.neovim(
+    load_runtime!(Client.new(Server.neovim(
       nvim:          Configuration.nvim_path,
       gui:           Configuration.nvim_gui?,
       vimrc:         Configuration.vimrc_path,
@@ -115,7 +115,8 @@ VimrunnerNeovim::RSpec.configure do |c|
   end
 end
 
-def load_vim_plugins!(vim)
+def load_runtime!(vim)
+  vim.append_runtimepath(Configuration.viml_dir)
   vim.add_plugin(Configuration.root,                            'plugin/esearch.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'), 'plugin/vimproc.vim')
   ## Will be used for testing contex syntax highlights
