@@ -398,6 +398,17 @@ if !exists('g:esearch#util#trunc_omission')
   endif
 endif
 
+let g:esearch#util#mockable = {}
+
+fu! s:echo(string) abort
+  echo a:string
+endfu
+let g:esearch#util#mockable.echo = function('<SID>echo')
+
+fu! esearch#util#echo(string) abort
+  call g:esearch#util#mockable.echo(a:string)
+endfu
+
 fu! esearch#util#parse_help_options(command) abort
   let options = {}
   let option = '-\{1,2}[0-9a-zA-Z][0-9a-zA-Z-]*'

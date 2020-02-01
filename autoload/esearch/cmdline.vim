@@ -68,9 +68,9 @@ if !exists('g:esearch#cmdline#select_initial')
   let g:esearch#cmdline#select_initial = 1
 endif
 
-cnoremap <Plug>(esearch-toggle-regex)          <C-r>=<SID>run('ESInvert', 'regex')<CR>
-cnoremap <Plug>(esearch-toggle-case)           <C-r>=<SID>run('ESInvert', 'case')<CR>
-cnoremap <Plug>(esearch-toggle-word)           <C-r>=<SID>run('ESInvert', 'word')<CR>
+cnoremap <Plug>(esearch-toggle-regex)          <C-r>=<SID>run('s:invert', 'regex')<CR>
+cnoremap <Plug>(esearch-toggle-case)           <C-r>=<SID>run('s:invert', 'case')<CR>
+cnoremap <Plug>(esearch-toggle-word)           <C-r>=<SID>run('s:invert', 'word')<CR>
 cnoremap <Plug>(esearch-cmdline-optoins-menus) <C-r>=<SID>run('s:options_menu')<CR>
 
 if g:esearch#cmdline#menu_feature_toggle == 0
@@ -108,7 +108,6 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
     " call esearch#log#debug(["redraw!", s:cmdline, enter_was_pressed, special_key_was_pressed], '/tmp/esearch_log.txt')
 
     if type(action_key) == type('')
-      let g:asd=1
       call feedkeys(action_key)
     endif
 
@@ -272,7 +271,7 @@ fu! s:run(func, ...) abort
   return ''
 endfu
 
-fu! ESInvert(option) abort
+fu! s:invert(option) abort
   if a:option ==# 'regex' && g:esearch.recover_regex
     call s:recover_regex()
   endif
@@ -435,15 +434,15 @@ if g:esearch#cmdline#menu_feature_toggle == 1
       call add(s:_menu_items, esearch#ui#menu#item({
             \'text': 'c       toggle (c)ase sensitive match',
             \ 'shortcut': ['c', "\<C-c>", 's', "\<C-s>"],
-            \ 'callback': function('ESInvert', ['case'])}))
+            \ 'callback': function('<SID>invert', ['case'])}))
       call add(s:_menu_items, esearch#ui#menu#item({
             \ 'text': 'r       toggle (r)egexp match',
             \ 'shortcut': ['r', "\<C-r>"],
-            \ 'callback': function('ESInvert', ['regex'])}))
+            \ 'callback': function('<SID>invert', ['regex'])}))
       call add(s:_menu_items, esearch#ui#menu#item({
             \ 'text': 'w       toggle (w)ord match',
             \ 'shortcut': ['w', "\<C-w>"],
-            \ 'callback': function('ESInvert', ['word'])}))
+            \ 'callback': function('<SID>invert', ['word'])}))
     endif
 
     return s:_menu_items

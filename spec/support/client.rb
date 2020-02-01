@@ -5,4 +5,9 @@ class Client < DecoratorBase
     arg = expressions.join(' ').gsub("'", "''")
     server.remote_expr("VimrunnerEvaluate('#{arg}')")
   end
+
+  def feedkeys(string)
+    string = string.gsub('"', '\"')
+    command(%Q{call feedkeys("#{string}")})
+  end
 end

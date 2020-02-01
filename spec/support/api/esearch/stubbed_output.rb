@@ -18,4 +18,8 @@ class API::ESearch::StubbedOutput
   def reset_calls_history!
     editor.command!('let g:esearch#out#stubbed#calls_history = []')
   end
+
+  def echo_calls_history
+    editor.echo var('g:esearch#util#echo_calls_history')
+  end
 end

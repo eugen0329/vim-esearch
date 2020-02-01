@@ -197,7 +197,7 @@ class Editor
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)
-    keyboard_keys.map do |key|
+    keyboard_keys.compact.map do |key|
       if key.is_a? Symbol
         SYMBOL_TO_KEYBOARD_KEY.fetch(key)
       else

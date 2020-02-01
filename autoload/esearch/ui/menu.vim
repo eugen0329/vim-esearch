@@ -71,13 +71,13 @@ fu! s:MenuController.render() abort
 
     " echo 'Menu: [' . join(shortcuts, ',') . '] (' . navHelp . ' or shortcut): '
   else
-    echo self.prompt
+    call esearch#util#echo(self.prompt)
 
     for i in range(0, len(self.menu_items)-1)
       if self.selection ==# i
-        echo '> ' . self.menu_items[i].text
+        call esearch#util#echo('> ' . self.menu_items[i].text)
       else
-        echo '  ' . self.menu_items[i].text
+        call esearch#util#echo('  ' . self.menu_items[i].text)
       endif
     endfor
   endif
