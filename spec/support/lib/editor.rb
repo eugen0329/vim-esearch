@@ -185,7 +185,6 @@ class Editor
     reader.echo arg
   end
 
-  private
 
   SYMBOL_TO_KEYBOARD_KEY = {
     enter:     '\\<Cr>',
@@ -199,15 +198,21 @@ class Editor
     down:      '\\<Down>'
   }.freeze
 
-  def keyboard_keys_to_string(*keyboard_keys)
+  def keyboard_keys_to_string(*keyboard_keys, escape: true)
     keyboard_keys.compact.map do |key|
       if key.is_a? Symbol
-        SYMBOL_TO_KEYBOARD_KEY.fetch(key)
+        if escape
+          SYMBOL_TO_KEYBOARD_KEY.fetch(key)
+        else
+          SYMBOL_TO_KEYBOARD_KEY.fetch(key)[1..]
+        end
       else
         key
       end
     end.join
   end
+
+  private
 
   def lines_range(range)
     return [1, nil] if range.blank?

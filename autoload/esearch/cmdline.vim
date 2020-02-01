@@ -1,6 +1,6 @@
 let g:esearch#cmdline#menu_feature_toggle = 1
 if g:esearch#cmdline#menu_feature_toggle == 1
-  let s:mappings = {
+  let g:cmdline_mappings = {
         \ '<C-o>':       '<Plug>(esearch-cmdline-options-menus)',
         \ 'key':         function('esearch#util#key'),
         \ 'dict':        function('esearch#util#dict'),
@@ -10,7 +10,7 @@ if g:esearch#cmdline#menu_feature_toggle == 1
         \ '<Plug>(esearch-cmdline-options-menus)': 'Toggle regex(r) or literal(>) match',
         \}
 else
-  let s:mappings = {
+  let g:cmdline_mappings = {
         \ '<C-o><C-r>':  '<Plug>(esearch-toggle-regex)',
         \ '<C-o><C-s>':  '<Plug>(esearch-toggle-case)',
         \ '<C-o><C-w>':  '<Plug>(esearch-toggle-word)',
@@ -219,9 +219,8 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   """""""""""""""""""""""""""
 
   " call esearch#log#debug(['before index', index(g:esearch#cmdline#select_cancelling_chars, char)], '/tmp/esearch_log.txt')
-
   let action_key = 0
-  if !empty(mapcheck(char, 'c')) && g:esearch#cmdline#menu_feature_toggle
+  if s:is_cmdline_mapping(char) && g:esearch#cmdline#menu_feature_toggle
     let action_key = char
     let special_key_was_pressed = 0
     " let cmdline =  virtual_cmdline . char
@@ -257,6 +256,12 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   return [cmdline, enter_was_pressed, 0, action_key]
 endfu
 
+fu! s:is_cmdline_mapping(char) abort
+  " NOTE mapcheck is not working
+  let ma = maparg(a:char, 'c', 0,1)
+  return !empty(ma)
+endfu
+
 fu! s:list_help() abort
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
@@ -268,7 +273,7 @@ fu! s:list_help() abort
 endfu
 
 fu! esearch#cmdline#help() abort
-  call esearch#help#cmdline(s:mappings, s:comments)
+  call esearch#help#cmdline(g:cmdline_mappings, s:comments)
   call getchar()
 endfu
 
@@ -312,7 +317,7 @@ fu! s:prompt(adapter_options) abort
   let w = a:adapter_options.stringify('word')
 
   if g:esearch#cmdline#help_prompt
-    let mapping = s:mappings.key('<Plug>(esearch-cmdline-help)')
+    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-help)')
     let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to list help)'
   else
     let help = ''
@@ -347,9 +352,9 @@ fu! s:init_mappings() abort
   let mapargs =  {}
   let s:mapargs = []
   " TODO add support for g:esearch.default_mappings
-  for map in keys(s:mappings.dict())
+  for map in keys(g:cmdline_mappings.dict())
     let mapargs[map] = maparg(map, 'c', 0, 1)
-    exe 'cmap ' . map . ' ' . s:mappings[map]
+    exe 'cmap ' . map . ' ' . g:cmdline_mappings[map]
     let  s:mapargs += [maparg(map)]
   endfor
 
@@ -370,7 +375,7 @@ fu! s:recover_mappings(mapargs) abort
 endfu
 
 fu! esearch#cmdline#map(lhs, rhs) abort
-  let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
+  let g:cmdline_mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
 
 " borrowed from oblique and incsearch
