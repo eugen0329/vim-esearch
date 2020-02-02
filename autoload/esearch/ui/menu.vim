@@ -54,10 +54,17 @@ fu! s:MenuController.start() abort
     endif
   endtry
 
+  call esearch#log#debug('after all'.g:escmdline, '/tmp/esearch_log.txt')
+
   if self.selection !=# -1
+    call esearch#log#debug('-1 '.g:escmdline, '/tmp/esearch_log.txt')
+    call esearch#log#debug('s4 '.g:escmdline, '/tmp/esearch_log.txt')
     let l:m = self.current_item()
+    call esearch#log#debug('s5 '.g:escmdline, '/tmp/esearch_log.txt')
     call l:m.execute()
+    call esearch#log#debug('s6 '.g:escmdline, '/tmp/esearch_log.txt')
   endif
+  call esearch#log#debug('after after all'.g:escmdline, '/tmp/esearch_log.txt')
 endfu
 
 fu! s:MenuController.render() abort
@@ -87,11 +94,14 @@ fu! s:MenuController.current_item() abort
 endfu
 
 fu! s:MenuController.handle_keypress(key)
+
+  call esearch#log#debug('menu controller handle_keypress '.a:key .' '.g:escmdline, '/tmp/esearch_log.txt')
   if a:key ==# "\<C-j>" || a:key ==# 'j'
     call self.cursor_down()
   elseif a:key ==# "\<C-k>" || a:key ==# 'k'
     call self.cursor_up()
-  elseif a:key ==# nr2char(27) "escape
+  elseif a:key ==# "\<Esc>" "escape
+    call esearch#log#debug('escape pressed', '/tmp/esearch_log.txt')
     let self.selection = -1
     return 1
   elseif a:key ==# "\r" "enter and ctrl-j
@@ -164,13 +174,16 @@ endfu
 fu! s:MenuController.save_options() abort
   let self.old_lazy_redraw = &lazyredraw
   let self.old_cmd_height = &cmdheight
+  let self.old_showtabline = &showtabline " to reduce blinks
   set nolazyredraw
+  set showtabline=0
   call self.set_cmdline_height()
 endfu
 
 fu! s:MenuController.restore_options() abort
   let &cmdheight = self.old_cmd_height
   let &lazyredraw = self.old_lazy_redraw
+  let &showtabline = self.old_showtabline
 endfu
 
 fu! s:MenuController.cursor_down() abort
@@ -250,15 +263,19 @@ endfu
 
 fu! s:MenuItem.execute() abort
   if len(self.children)
+    call esearch#log#debug('s7 '.g:escmdline, '/tmp/esearch_log.txt')
     let mc = esearch#ui#menu#new(self.children, '')
     call mc.start()
   else
+    call esearch#log#debug('s8 '.g:escmdline, '/tmp/esearch_log.txt')
     if self.callback != -1
+      call esearch#log#debug('s9 '.g:escmdline, '/tmp/esearch_log.txt')
       if type(self.callback) == type(function('tr'))
         call self.callback()
       else
         call {self.callback}()
       endif
+      call esearch#log#debug('s10 '.g:escmdline, '/tmp/esearch_log.txt')
     endif
   endif
 endfu

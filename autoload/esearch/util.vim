@@ -571,3 +571,31 @@ else
     return deepcopy(a:list_or_dict)
   endfu
 endif
+
+fu! esearch#util#getchar() abort
+  " if has('nvim')
+    " let char = s:char(getchar())
+    " return [char, -1]
+  " else
+    let chars = []
+
+    let char = getchar()
+    while 1
+      call add(chars, s:char(char))
+      let char = getchar(0)
+
+      if char ==# 0
+        break
+      endif
+    endwhile
+
+    return [join(chars, ''), len(chars)]
+  " endif
+endfu
+
+fu! s:char(getchar_output) abort
+  if type(a:getchar_output) ==# type('')
+    return a:getchar_output
+  endif
+  return nr2char(a:getchar_output)
+endfu

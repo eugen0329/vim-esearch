@@ -127,7 +127,7 @@ fu! s:init_lazy_global_config() abort
   endif
 
   if !has_key(global_esearch, 'last_id')
-    let global_esearch.last_id = 1
+    let global_esearch.last_id = 0
   endif
 
   if !has_key(global_esearch, '__lazy_loaded')

@@ -185,7 +185,6 @@ class Editor
     reader.echo arg
   end
 
-
   SYMBOL_TO_KEYBOARD_KEY = {
     enter:     '\\<Cr>',
     left:      '\\<Left>',
