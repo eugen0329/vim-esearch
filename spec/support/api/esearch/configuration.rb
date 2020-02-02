@@ -55,7 +55,7 @@ class API::ESearch::Configuration
 
   def output
     cache.fetch('out') do
-      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', 'g:esearch#defaults#out')
+      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', var('g:esearch#defaults#out'))
     end
   end
 end

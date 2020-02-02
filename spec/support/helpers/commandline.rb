@@ -1,8 +1,16 @@
 # frozen_string_literal: true
 
-module Helpers::CommandlineMenu
+module Helpers::Commandline
   extend RSpec::Matchers::DSL
   include API::Mixins::BecomeTruthyWithinTimeout
+
+  def open_menu
+    '\\<C-o>'
+  end
+
+  def open_input
+    [:leader, 'ff']
+  end
 
   def output_spy_calls
     esearch.output.calls_history

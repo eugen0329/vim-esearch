@@ -50,7 +50,6 @@ endif
 if !exists('g:esearch#cmdline#start_search_chars')
   let g:esearch#cmdline#start_search_chars = [
         \ "\<Enter>",
-        \ "\<C-r>",
         \ ]
 endif
 
