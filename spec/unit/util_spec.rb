@@ -69,14 +69,17 @@ describe 'Smoke of esearch#util' do
     end
 
     context 'prefixes' do
-      include_examples 'recognize as a regular char', '^'
+      context 'looking like a combination with Control' do
+        include_examples 'recognize as a regular char', '^'
+        include_examples 'recognize as a regular char', '^a'
+        include_examples 'recognize as a regular char', '^A'
+      end
 
       context 'looking like a combination with Alt' do
         include_examples 'recognize as a regular char', '^['
         include_examples 'recognize as a regular char', '^[1'
         include_examples 'recognize as a regular char', '^[f'
         include_examples 'recognize as a regular char', '<80><fc>^Hf'
-
       end
     end
 

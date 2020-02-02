@@ -175,7 +175,13 @@ class Editor
       end
     end
   end
+  # to resemble capybara interace
   alias send_keys press_with_user_mappings!
+
+  # is required as far as continious sequence may be handled incorrectly by vim
+  def send_keys_separately(*keyboard_keys)
+    keyboard_keys.map { |key| send_keys(key) }
+  end
 
   def raw_echo(arg)
     vim.echo(arg)

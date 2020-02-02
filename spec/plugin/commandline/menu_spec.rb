@@ -3,102 +3,102 @@
 require 'spec_helper'
 
 describe 'esearch#cmdline menu' do
+  include Helpers::CommandlineMenu
 
   shared_examples 'impl' do
     let(:open_menu) { '\\<C-o>' }
     let(:open_input) { [:leader, 'ff'] }
 
-    def output_spy_calls
-      esearch.output.calls_history
-    end
-
-    define_negated_matcher :not_to_change, :change
-
-
-    before do
-      esearch.configure(out: 'stubbed', backend: 'system', use: 'last')
-    end
-
+    before { esearch.configure(out: 'stubbed', backend: 'system', use: 'last') }
     after { esearch.output.reset_calls_history! }
 
+    # NOTE: #start_search internally use timeout (like other gems like capybara
+    # do), to using it with #not_to may cause extra delays avoiding of which can
+    # cause false positives
+
     context 'changing options by hotkeys' do
-      shared_examples 'it sets options using hotkey' do |hotkey, options|
-        it "sets #{options} using hotkey" do
+      context 'when no initial search string given' do
+        shared_examples 'it sets options using hotkey' do |hotkey, options|
+          it "sets #{options} using hotkey" do
+            expect {
+              editor.send_keys(*open_input, open_menu)
+              editor.send_keys(hotkey, 'search str', :enter)
+            }.to set_global_options(options)
+              .and start_search_with_options(options)
+              .and have_search_finished_for('search str')
+          end
+        end
+
+        context 'set options' do
+          before { esearch.configure!('word': 0, 'case': 0, 'regex': 0) }
+
+          include_examples 'it sets options using hotkey', '\\<C-c>', 'case'  => 1
+          include_examples 'it sets options using hotkey', 'c',       'case'  => 1
+
+          include_examples 'it sets options using hotkey', '\\<C-w>', 'word'  => 1
+          include_examples 'it sets options using hotkey', 'w',       'word'  => 1
+
+          include_examples 'it sets options using hotkey', 'r',       'regex' => 1
+          include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 1
+
+          context 'legacy hotkeys' do
+            include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 1
+            include_examples 'it sets options using hotkey', 's',       'case'  => 1
+          end
+        end
+
+        context 'reset options' do
+          before { esearch.configure!('word': 1, 'case': 1, 'regex': 1) }
+
+          include_examples 'it sets options using hotkey', '\\<C-c>', 'case'  => 0
+          include_examples 'it sets options using hotkey', 'c',       'case'  => 0
+
+          include_examples 'it sets options using hotkey', '\\<C-w>', 'word'  => 0
+          include_examples 'it sets options using hotkey', 'w',       'word'  => 0
+
+          include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 0
+          include_examples 'it sets options using hotkey', 'r',       'regex' => 0
+
+          context 'legacy hotkeys' do
+            include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 0
+            include_examples 'it sets options using hotkey', 's',       'case'  => 0
+          end
+        end
+      end
+
+      context 'when initial search string is given' do
+        before { esearch.configuration.submit!(overwrite: true) }
+
+        it "doesn't affect initial search string" do
+          editor.send_keys(*open_input, 'initial value', :enter)
+
           expect {
             editor.send_keys(*open_input, open_menu)
-            editor.send_keys(hotkey, 'search str', :enter)
-          }.to change { esearch.configuration.global }
-            .to include(*options)
+            editor.send_keys('r')
+          }.not_to start_search
 
-          expect(output_spy_calls.last).to include(options)
-        end
-      end
-
-      context 'set options' do
-        before { esearch.configure!('word': 0, 'case': 0, 'regex': 0) }
-
-        it_behaves_like 'it sets options using hotkey', '\\<C-c>', 'case'  => 1
-        it_behaves_like 'it sets options using hotkey', 'c',       'case'  => 1
-
-        it_behaves_like 'it sets options using hotkey', '\\<C-w>', 'word'  => 1
-        it_behaves_like 'it sets options using hotkey', 'w',       'word'  => 1
-
-        it_behaves_like 'it sets options using hotkey', 'r',       'regex' => 1
-        it_behaves_like 'it sets options using hotkey', '\\<C-r>', 'regex' => 1
-
-        context 'legacy hotkeys' do
-          it_behaves_like 'it sets options using hotkey', '\\<C-s>', 'case'  => 1
-          it_behaves_like 'it sets options using hotkey', 's',       'case'  => 1
-        end
-      end
-
-      context 'reset options' do
-        before { esearch.configure!('word': 1, 'case': 1, 'regex': 1) }
-
-        it_behaves_like 'it sets options using hotkey', '\\<C-c>', 'case'  => 0
-        it_behaves_like 'it sets options using hotkey', 'c',       'case'  => 0
-
-        it_behaves_like 'it sets options using hotkey', '\\<C-w>', 'word'  => 0
-        it_behaves_like 'it sets options using hotkey', 'w',       'word'  => 0
-
-        it_behaves_like 'it sets options using hotkey', '\\<C-r>', 'regex' => 0
-        it_behaves_like 'it sets options using hotkey', 'r',       'regex' => 0
-
-        context 'legacy hotkeys' do
-          it_behaves_like 'it sets options using hotkey', '\\<C-s>', 'case'  => 0
-          it_behaves_like 'it sets options using hotkey', 's',       'case'  => 0
+          expect { editor.send_keys(:enter) }
+            .to start_search
+            .and start_search_with_options('regex' => 1)
+            .and have_search_finished_for('initial value')
         end
       end
     end
 
-    context 'when initial value is given' do
-      before { esearch.configuration.submit!(overwrite: true) }
-
-      it do
-        editor.send_keys(*open_input, 'initial value', :enter)
-        editor.send_keys(*open_input, open_menu)
-        editor.send_keys('r')
-        editor.send_keys(:enter)
-
-        expect(output_spy_calls.last)
-          .to include('regex' => 1, 'exp' => include('pcre' => 'initial value'))
-      end
-    end
-
-    describe 'changing options by moving menu selection' do
-      before do
-        esearch.configuration.submit!(overwrite: true)
-        editor.command('call esearch#util_testing#spy_echo()')
-        editor.send_keys(*open_input, open_menu)
-      end
-      after { editor.command('call esearch#util_testing#unspy_echo()') }
-
-      def menu_items
-        esearch.output.echo_calls_history.last(3)
+    context 'changing options by moving menu selection' do
+      shared_context 'opened menu testing' do
+        before do
+          esearch.configuration.submit!(overwrite: true)
+          editor.command('call esearch#util_testing#spy_echo()')
+          editor.send_keys(*open_input, open_menu)
+        end
+        after { editor.command('call esearch#util_testing#unspy_echo()') }
       end
 
       shared_examples 'it selects regex option' do |keys:|
         context "it selects regex option by pressing #{keys}" do
+          include_context 'opened menu testing'
+
           it do
             expect {
               editor.send_keys(keys, :enter, 'search string', :enter)
@@ -113,15 +113,16 @@ describe 'esearch#cmdline menu' do
                                 /\A> r .+/,
                                 /\A  w .+/
                               ]))
-              .and change { esearch.configuration.global }
-              .to include(*{'regex' => 1})
-            expect(output_spy_calls.last).to include('regex' => 1)
+              .and set_global_options('regex' => 1)
+              .and start_search_with_options('regex' => 1)
           end
         end
       end
 
       shared_examples 'it selects word option' do |keys:|
         context "it selects word option by pressing #{keys}" do
+          include_context 'opened menu testing'
+
           it do
             expect {
               editor.send_keys(keys, :enter, 'search string', :enter)
@@ -136,167 +137,157 @@ describe 'esearch#cmdline menu' do
                                 /\A  r .+/,
                                 /\A> w .+/
                               ]))
-              .and change { esearch.configuration.global }
-              .to include(*{'word' => 1})
-            expect(output_spy_calls.last).to include('word' => 1)
+              .and set_global_options('word' => 1)
+              .and start_search_with_options('word' => 1)
           end
         end
       end
 
       shared_examples 'it selects case option' do |keys:|
         context "it selects case option by pressing #{keys}" do
+          include_context 'opened menu testing'
+
           it do
             expect {
               editor.send_keys(keys)
               editor.send_keys(:enter, 'search string', :enter)
-            }.to change { esearch.configuration.global }
-              .to include(*{'case' => 1})
-            expect(output_spy_calls.last).to include('case' => 1)
+            }.to set_global_options('case' => 1)
+              .and start_search_with_options('case' => 1)
+
           end
 
           it do
             expect {
               editor.send_keys(keys)
               editor.send_keys(:enter, 'search string', :enter)
-            }.not_to change { menu_items }
+            }.to start_search_with_options('case' => 1)
+              .and not_to_change { menu_items }
               .from(match_array([
                                   /\A> c .+/,
                                   /\A  r .+/,
                                   /\A  w .+/
                                 ]))
-            expect(output_spy_calls.last).to include('case' => 1)
           end
         end
       end
 
-      it_behaves_like 'it selects regex option', keys: 'j'
-      it_behaves_like 'it selects regex option', keys: '\\<C-j>'
+      include_examples 'it selects regex option', keys: 'j'
+      include_examples 'it selects regex option', keys: '\\<C-j>'
 
-      it_behaves_like 'it selects word option',   keys: 'k'
-      it_behaves_like 'it selects word option',   keys: 'jj'
-      it_behaves_like 'it selects word option',   keys: '\\<C-k>'
-      it_behaves_like 'it selects word option',   keys: '\\<C-j>\\<C-j>'
+      include_examples 'it selects word option',   keys: 'k'
+      include_examples 'it selects word option',   keys: 'jj'
+      include_examples 'it selects word option',   keys: '\\<C-k>'
+      include_examples 'it selects word option',   keys: '\\<C-j>\\<C-j>'
 
-      it_behaves_like 'it selects case option',   keys: nil
-      it_behaves_like 'it selects case option',   keys: 'jjj'
-      it_behaves_like 'it selects case option',   keys: 'kkk'
+      include_examples 'it selects case option',   keys: nil
+      include_examples 'it selects case option',   keys: 'jjj'
+      include_examples 'it selects case option',   keys: 'kkk'
     end
 
     context 'preserving cursor location' do
-      let(:mode_key) { 'r' }
-      let(:regexp_name) { 'pcre' }
+      let(:change_match_mode) { 'r' }
       before { esearch.configuration.submit!(overwrite: true) }
 
       context 'in the middle' do
-        it 'even' do
-          editor.send_keys(*open_input, 'abcd', :left, :left, open_menu)
-          editor.send_keys(mode_key, '\\<C-w>', :enter)
+        context 'even search string length' do
+          it 'preserves location after closing menu' do
+            editor.send_keys(*open_input, 'abcd', :left, :left, open_menu)
+            editor.send_keys(change_match_mode, '\\<C-w>', :enter)
 
-          expect(output_spy_calls.last['exp'][regexp_name]).to eq('cd')
+            expect(esearch).to have_search_finished_for('cd')
+          end
         end
 
-        it 'odd' do
-          editor.send_keys(*open_input, 'abc', :left, open_menu)
-          editor.send_keys(mode_key, '\\<C-w>', :enter)
+        context 'odd search string length' do
+          it 'preserves location after closing menu' do
+            editor.send_keys(*open_input, 'abc', :left, open_menu)
+            editor.send_keys(change_match_mode, '\\<C-w>', :enter)
 
-          expect(output_spy_calls.last['exp'][regexp_name]).to eq('c')
+            expect(esearch).to have_search_finished_for('c')
+          end
         end
       end
 
       context 'in the beginning' do
-        it do
-          editor.send_keys(*open_input, 'abc', :left, :left, :left, :delete, open_menu)
-          editor.send_keys(mode_key, :enter)
+        it 'preserves location after closing menu' do
+          editor.send_keys(*open_input, 'abc', :left, :left, :left, open_menu)
+          editor.send_keys(change_match_mode, :delete, :enter)
 
-          expect(output_spy_calls.last['exp'][regexp_name]).to eq('bc')
+          expect(esearch).to have_search_finished_for('bc')
         end
       end
 
       context 'in the end' do
-        it do
+        it 'preserves location after closing menu' do
           editor.send_keys(*open_input, 'abc', open_menu)
-          editor.send_keys(mode_key, :backspace, :enter)
+          editor.send_keys(change_match_mode, :backspace, :enter)
 
-          expect(output_spy_calls.last['exp'][regexp_name]).to eq('ab')
+          expect(esearch).to have_search_finished_for('ab')
         end
       end
     end
 
     context 'cancelling selection' do
-      let(:mode_key) { 'r' }
-      let(:regexp_name) { 'pcre' }
       before { esearch.configuration.submit!(overwrite: true) }
 
-      def start_search
-        change { output_spy_calls.last }
-      end
-
-      shared_examples 'it searches previous string' do |keys:|
+      shared_examples 'it searches previous input' do |keys:|
         let(:previous_search_string) { 'initial search string' }
-        let(:mapping_to_wait) do
+        let(:hotkey_with_the_same_prefix) do
           [editor.keyboard_keys_to_string(*keys, escape: false),
            'randomkeys'].join
         end
-        before { editor.command("cmap  #{mapping_to_wait} noop") }
-        after  { editor.command("cunmap #{mapping_to_wait}") }
 
-        it "it searches previous string when #{keys} are pressed" do
+        before { editor.command("cmap  #{hotkey_with_the_same_prefix} noop") }
+        after  { editor.command("cunmap #{hotkey_with_the_same_prefix}") }
+
+        it "it searches previous input when #{keys} are pressed" do
           editor.send_keys(*open_input, previous_search_string, :enter)
-          expect(output_spy_calls.last['exp']['literal'])
-            .to eq(previous_search_string)
+          expect(esearch).to have_search_finished_for(previous_search_string)
 
           expect { editor.send_keys(*open_input, *keys) }.not_to start_search
 
           expect { editor.send_keys(:enter) }
             .to start_search
-            .and not_to_change {
-              [output_spy_calls.last.dig('exp', 'pcre'),
-               output_spy_calls.last.dig('exp', 'literal')]
-            }.from([previous_search_string, previous_search_string])
+            .and start_search_with_previous_input(previous_search_string)
         end
       end
 
-      shared_examples 'it searches previous string when user mapping is defined' do |keys:, lhs:, rhs:|
+      shared_context 'define commandline hotkey mapping' do |lhs, rhs|
         before { editor.command("cmap  #{lhs} #{rhs}") }
         after  { editor.command("cunmap #{lhs}") }
-
-        include_examples 'it searches previous string', keys: keys
       end
 
       shared_examples 'it searches using' do |keys:, previous: 'initial vale', current: 'got value'|
-        it "it searches previous string when #{keys} are pressed" do
+        it "it searches previous input when #{keys} are pressed" do
           editor.send_keys(*open_input, previous, :enter)
-          expect(output_spy_calls.last['exp']['literal']).to eq(previous)
+          expect(esearch).to have_search_finished_for(previous)
 
           expect {
             editor.send_keys(*open_input)
-            keys.each { |key| editor.send_keys(key) }
+            editor.send_keys_separately(*keys)
           }.not_to start_search
 
           expect { editor.send_keys(:enter) }
             .to start_search
-            .and change { output_spy_calls.last.dig('exp', 'pcre') }
-            .to(current)
+            .and have_search_finished_for(current)
         end
       end
 
       context 'mapped keys pressing' do
         # TODO
-        # it_behaves_like 'it searches previous string',  keys: ["\\<C-o>", :escape]
+        it_behaves_like 'it searches previous input',  keys: ['\\<C-o>', :escape]
       end
 
       context 'cancelling without moving cursor' do
-        it_behaves_like 'it searches previous string',  keys: ['\\<C-c>']
-        it_behaves_like 'it searches previous string',  keys: %i[escape]
+        it_behaves_like 'it searches previous input',  keys: ['\\<C-c>']
+        it_behaves_like 'it searches previous input',  keys: %i[escape]
 
-        context do
-          before do
-            # prevent errors with testing Up and Down produce a single char for
-            # timeouten period
-            editor.command('set timeoutlen=0')
-          end
+        context 'up and down keys' do
+          # in vim8 a trailing char appears for a short period and cause extra
+          # character to be searched
+          before { editor.command('set timeoutlen=0') }
           after { editor.command('set timeoutlen=1000') }
-          it_behaves_like 'it searches previous string',  keys: %i[up down]
+          it_behaves_like 'it searches previous input', keys: %i[up down]
         end
       end
 
@@ -322,8 +313,8 @@ describe 'esearch#cmdline menu' do
           current:  'abc'
       end
 
-      it_behaves_like 'it searches previous string',  keys: ['\\<C-a>']
-      it_behaves_like 'it searches previous string',  keys: ['\\<C-e>']
+      it_behaves_like 'it searches previous input',  keys: ['\\<C-a>']
+      it_behaves_like 'it searches previous input',  keys: ['\\<C-e>']
 
       context 'pressing unknown keys after previous search string' do
         it_behaves_like 'it searches using',
@@ -333,14 +324,14 @@ describe 'esearch#cmdline menu' do
       end
 
       context 'compliance with meta mappings' do
-        it_behaves_like 'it searches previous string when user mapping is defined',
-          keys: ['\\<M-f>'],
-          lhs:  '<M-f>',
-          rhs:  '<S-Right>'
-        it_behaves_like 'it searches previous string when user mapping is defined',
-          keys: ['\\<M-b>'],
-          lhs:  '<M-b>',
-          rhs:  '<S-Left>'
+        context 'alt-f' do
+          include_context 'define commandline hotkey mapping', '<M-f>', '<S-Right>'
+          include_examples 'it searches previous input', keys: ['\\<M-f>']
+        end
+        context 'alt-b' do
+          include_context 'define commandline hotkey mapping', '<M-b>', '<S-Left>'
+          include_examples 'it searches previous input', keys: ['\\<M-b>']
+        end
       end
     end
   end
