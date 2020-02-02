@@ -30,8 +30,7 @@ RSpec.shared_examples 'a backend' do |backend|
         after { esearch.cleanup! }
 
         it 'provides correct path when searching outside the cwd' do
-          editor.press! ":call esearch#init({'cwd': '#{directory_path}'})<Enter>#{test_query}<Enter>"
-
+          esearch.search! test_query, cwd: directory_path
           # TODO: reduce duplication
           expect(esearch).to have_search_started
 

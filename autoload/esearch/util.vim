@@ -570,21 +570,20 @@ else
   endfu
 endif
 
-fu! esearch#util#getchar() abort
-  let chars = []
-
-  let char = getchar()
-  while 1
-    call add(chars, s:to_char(char))
-    let char = getchar(0)
-
-    if char ==# 0
-      break
+if has('nvim')
+  fu! esearch#util#getchar() abort
+    return s:to_char(getchar())
+  endfu
+else
+  fu! esearch#util#getchar() abort
+    let char = getchar()
+    if esearch#util#escape_kind(char) isnot 0
+      return char
+    else
+      return s:to_char(char)
     endif
-  endwhile
-
-  return join(chars, '')
-endfu
+  endfu
+endif
 
 fu! s:to_char(getchar_output) abort
   if type(a:getchar_output) ==# type('')

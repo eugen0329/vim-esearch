@@ -9,6 +9,8 @@ describe Editor, :editor do
   let(:cache_enabled) { false }
   let(:subject) { Editor::Read::Eager.new(method(:vim), cache_enabled) }
 
+  after(:context) { editor.cleanup! }
+
   describe '#echo' do
     # arbitrary expression which is easy to use for inspection of the method
     def abs(numeric)

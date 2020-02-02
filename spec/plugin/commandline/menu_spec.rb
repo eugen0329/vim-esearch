@@ -10,7 +10,10 @@ describe 'esearch#cmdline menu' do
     let(:open_input) { [:leader, 'ff'] }
 
     before { esearch.configure(out: 'stubbed', backend: 'system', use: 'last') }
-    after { esearch.output.reset_calls_history! }
+    after do
+      esearch.cleanup!
+      esearch.output.reset_calls_history!
+    end
 
     context 'changing options using hotkeys' do
       shared_examples 'it sets options using hotkey' do |hotkey, options|

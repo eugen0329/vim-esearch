@@ -66,7 +66,6 @@ cnoremap <Plug>(esearch-toggle-regex)          <C-r>=<SID>run('s:invert', 'regex
 cnoremap <Plug>(esearch-toggle-case)           <C-r>=<SID>run('s:invert', 'case')<CR>
 cnoremap <Plug>(esearch-toggle-word)           <C-r>=<SID>run('s:invert', 'word')<CR>
 cnoremap <Plug>(esearch-cmdline-options-menus) <C-r>=<SID>run('s:options_menu')<CR>
-" cnoremap <Plug>(esearch-cmdline-options-menus) <C-r>=<SID>options_menu()<CR>
 
 cnoremap <Plug>(esearch-cmdline-interrupt) <C-c>
 
@@ -85,18 +84,18 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   let s:pattern = a:cmdline_opts.exp
 
   if a:cmdline_opts.empty_cmdline
-    let g:escmdline = ''
+    let s:cmdline = ''
   else
-    let g:escmdline = g:esearch.regex ? a:cmdline_opts.exp.pcre : a:cmdline_opts.exp.literal
+    let s:cmdline = g:esearch.regex ? a:cmdline_opts.exp.pcre : a:cmdline_opts.exp.literal
   endif
   """""""""""""""""""""""""""
 
   " Initial selection handling
   """""""""""""""""""""""""""
   let finish_input = 0
-  if !empty(g:escmdline) && g:esearch#cmdline#select_initial
-    let [g:escmdline, finish_input, retype_keys] =
-          \ s:handle_initial_select(g:escmdline, a:cmdline_opts.cwd, a:adapter_options)
+  if !empty(s:cmdline) && g:esearch#cmdline#select_initial
+    let [s:cmdline, finish_input, retype_keys] =
+          \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
 
     if retype_keys isnot 0
@@ -108,7 +107,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   " Reading string from user
   """""""""""""""""""""""""""
   if finish_input
-    let str = g:escmdline
+    let str = s:cmdline
   else
     let str = s:main_loop(a:cmdline_opts, a:adapter_options)
   endif
@@ -137,7 +136,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
 endfu
 
 fu! s:main_loop(cmdline_opts, adapter_options) abort
-  let s:cmdpos = len(g:escmdline) + 1
+  let s:cmdpos = len(s:cmdline) + 1
   let s:list_help = 0
   let s:events = []
 
@@ -147,7 +146,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
   """""""""""
   while 1
     call s:render_directory_prompt(a:cmdline_opts.cwd)
-    let str = input(s:prompt(a:adapter_options), g:escmdline, 'customlist,esearch#cmdline#buff_compl')
+    let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
     if empty(s:events) | break | endif
 
     for handler in s:events
@@ -155,7 +154,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
     endfor
 
     let s:events = []
-    let g:escmdline .= s:restore_cursor_position()
+    let s:cmdline .= s:restore_cursor_position()
 
     redraw!
   endwhile
@@ -183,7 +182,7 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   elseif esearch#util#escape_kind(char) isnot 0 || index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
     let retype_keys = char
   else
-    let cmdline =  char
+    let cmdline = char
   endif
 
   return [cmdline, finish_input, retype_keys]
@@ -197,7 +196,7 @@ endfu
 
 fu! s:list_help() abort
   let s:cmdpos = getcmdpos()
-  let g:escmdline = getcmdline()
+  let s:cmdline = getcmdline()
 
   let s:list_help = 1
 
@@ -213,7 +212,7 @@ endfu
 fu! s:run(func, ...) abort
   call add(s:events, {'funcref': function(a:func), 'args': a:000})
   let s:cmdpos = getcmdpos()
-  let g:escmdline = getcmdline()
+  let s:cmdline = getcmdline()
   call feedkeys("\<Enter>", 'n')
   return ''
 endfu
@@ -224,8 +223,8 @@ fu! s:invert(option) abort
 endfu
 
 fu! s:synchronize_regexp() abort
-  let s:pattern.literal = g:escmdline
-  let s:pattern.pcre = g:escmdline
+  let s:pattern.literal = s:cmdline
+  let s:pattern.pcre = s:cmdline
 endfu
 
 fu! s:prompt(adapter_options) abort
@@ -255,8 +254,8 @@ fu! s:render_directory_prompt(dir) abort
 endfu
 
 fu! s:restore_cursor_position() abort
-  if len(g:escmdline) + 1 != s:cmdpos
-    return repeat("\<Left>", len(g:escmdline) + 1 - s:cmdpos )
+  if len(s:cmdline) + 1 != s:cmdpos
+    return repeat("\<Left>", len(s:cmdline) + 1 - s:cmdpos )
   endif
   return ''
 endfu
@@ -355,7 +354,7 @@ if g:esearch#cmdline#menu_feature_toggle == 1
     call esearch#ui#menu#new(s:menu_items(), prompt).start()
   endfu
 
-  fu s:menu_items() abort
+  fu! s:menu_items() abort
     if !exists('g:esearch#cmdline#menu_items')
       let g:esearch#cmdline#menu_items = []
 

@@ -88,7 +88,7 @@ class Editor
   end
 
   def edit!(filename)
-    command!("edit #{filename}")
+    command!("edit! #{filename}")
   end
 
   def pwd
@@ -108,7 +108,7 @@ class Editor
 
   # TODO: fix after modifier implementation
   def delete_all_buffers_and_clear_messages_and_reset_input!
-    command!('%bwipeout! | messages clear| call feedkeys("\\<Esc>", "n")')
+    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>", "n")')
   end
 
   def cleanup!
