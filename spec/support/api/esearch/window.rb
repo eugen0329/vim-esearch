@@ -37,6 +37,7 @@ class API::ESearch::Window
 
   def has_search_highlight?(relative_path, line, column)
     entry = find_entry(relative_path, line)
+    raise MissingEntry unless entry
     padding = entry.left_padding
 
     expected_match = [entry.line_in_window,

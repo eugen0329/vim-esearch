@@ -300,7 +300,7 @@ fu! esearch#util#map_name(char) abort
   return 0
 endfu
 
-fu! s:is_inside(group, c)
+fu! s:is_key_combination(group, c)
   return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
 endfu
 
@@ -310,8 +310,6 @@ fu! esearch#util#escape_kind(char) abort
   let super_prefix = strtrans("\<D-a>")[:-2]
   let meta_prefix = strtrans("\<M-a>")[:-2]
   let ameta_prefix = strtrans("\<A-a>")[:-2]
-  let control_prefix = strtrans("\<C-a>")[:-2]
-  let control_prefix_re = '^'.control_prefix
 
   let meta_prefix_re = '^\%('
         \ . meta_prefix . '\|'
@@ -320,7 +318,7 @@ fu! esearch#util#escape_kind(char) abort
 
   let metas = [meta_prefix, ameta_prefix, super_prefix]
   let shifts = []
-  let controls = [control_prefix]
+  let controls = []
 
    let chars = [
          \ "Nul",
@@ -396,13 +394,13 @@ fu! esearch#util#escape_kind(char) abort
      call add(controls, strtrans(eval('"\<C-F'.i.'>"')))
    endfor
 
-   if printable =~# meta_prefix_re || s:is_inside(metas, printable)
+   if printable =~# meta_prefix_re || s:is_key_combination(metas, printable)
      return 'meta'
-   elseif s:is_inside(shifts, printable)
+   elseif s:is_key_combination(shifts, printable)
      return 'shift'
-   elseif printable =~# control_prefix_re || s:is_inside(controls, printable)
+   elseif a:char =~# '^[[:cntrl:]]' || s:is_key_combination(controls, printable)
      return 'control'
-   elseif s:is_inside(fs, printable)
+   elseif s:is_key_combination(fs, printable)
       return 'f'
    endif
 
@@ -573,27 +571,22 @@ else
 endif
 
 fu! esearch#util#getchar() abort
-  " if has('nvim')
-    " let char = s:char(getchar())
-    " return [char, -1]
-  " else
-    let chars = []
+  let chars = []
 
-    let char = getchar()
-    while 1
-      call add(chars, s:char(char))
-      let char = getchar(0)
+  let char = getchar()
+  while 1
+    call add(chars, s:to_char(char))
+    let char = getchar(0)
 
-      if char ==# 0
-        break
-      endif
-    endwhile
+    if char ==# 0
+      break
+    endif
+  endwhile
 
-    return [join(chars, ''), len(chars)]
-  " endif
+  return [join(chars, ''), len(chars)]
 endfu
 
-fu! s:char(getchar_output) abort
+fu! s:to_char(getchar_output) abort
   if type(a:getchar_output) ==# type('')
     return a:getchar_output
   endif

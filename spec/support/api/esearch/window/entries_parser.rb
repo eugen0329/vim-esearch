@@ -6,23 +6,23 @@ class API::ESearch::Window::EntriesParser
   FILE_NAME_REGEXP = /\A[^ ]/.freeze
   FILE_ENTRY_REGEXP = /\A\s+\d+/.freeze
 
-  attr_reader :editor, :lines_iterator
+  attr_reader :editor, :lines_enum
 
   def initialize(editor)
     @editor = editor
-    @lines_iterator = editor.lines.with_index(1)
+    @lines_enum = editor.lines.with_index(1)
   end
 
   def parse
     return enum_for(:parse) unless block_given?
 
-    lines_iterator.rewind
-    lines_iterator.next # skip header
-    lines_iterator.next # skip blank line
+    lines_enum.rewind
+    lines_enum.next # skip header
+    lines_enum.next # skip blank line
 
     loop do
       relative_path = next_file_relative_path!
-      raise MissingEntryError, lines_iterator.peek[0] unless line_with_entry?
+      raise MissingEntryError, lines_enum.peek[0] unless line_with_entry?
 
       next_lines_with_entries! do |line_content, line_in_window|
         yield API::ESearch::Window::Entry
@@ -31,23 +31,23 @@ class API::ESearch::Window::EntriesParser
                line_content,
                line_in_window)
       end
-    rescue StopIteration
-      return nil
     end
+  rescue StopIteration
+    nil
   end
 
   private
 
   def line_with_entry?
-    lines_iterator.peek[0].match?(FILE_ENTRY_REGEXP)
+    lines_enum.peek[0].match?(FILE_ENTRY_REGEXP)
   end
 
   def next_file_relative_path!
-    relative_path = lines_iterator.next[0] while relative_path !~ FILE_NAME_REGEXP
+    relative_path = lines_enum.next[0] while relative_path !~ FILE_NAME_REGEXP
     relative_path
   end
 
   def next_lines_with_entries!
-    yield lines_iterator.next while line_with_entry?
+    yield lines_enum.next while line_with_entry?
   end
 end
