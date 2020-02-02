@@ -23,7 +23,7 @@ class API::ESearch::Configuration
   end
 
   # TODO: a hack that should be rewrited in future
-  def submit!(overwrite: false)
+  def submit!(overwrite: true)
     dict = VimlValue.dump(staged_configuration)
 
     if overwrite
