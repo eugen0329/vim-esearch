@@ -321,22 +321,22 @@ fu! esearch#util#escape_kind(char) abort
   let controls = []
 
    let chars = [
-         \ "Nul",
-         \ "BS",
-         \ "Tab",
-         \ "NL",
-         \ "FF",
-         \ "CR",
-         \ "Return",
-         \ "Enter",
-         \ "Esc",
-         \ "Space",
-         \ "lt",
-         \ "Bslash",
-         \ "Bar",
-         \ "Del",
-         \ "CSI",
-         \ "xCSI",
+         \ 'Nul',
+         \ 'BS',
+         \ 'Tab',
+         \ 'NL',
+         \ 'FF',
+         \ 'CR',
+         \ 'Return',
+         \ 'Enter',
+         \ 'Esc',
+         \ 'Space',
+         \ 'lt',
+         \ 'Bslash',
+         \ 'Bar',
+         \ 'Del',
+         \ 'CSI',
+         \ 'xCSI',
          \ 'Up',
          \ 'Down',
          \ 'Left',
@@ -404,7 +404,7 @@ fu! esearch#util#escape_kind(char) abort
       return 'f'
    endif
 
-  return ''
+  return 0
 endfu
 
 " TODO handle <expr> mappings
@@ -583,7 +583,7 @@ fu! esearch#util#getchar() abort
     endif
   endwhile
 
-  return [join(chars, ''), len(chars)]
+  return join(chars, '')
 endfu
 
 fu! s:to_char(getchar_output) abort

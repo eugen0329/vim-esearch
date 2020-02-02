@@ -40,29 +40,21 @@ endif
 
 if !exists('g:esearch#cmdline#select_cancelling_chars')
   let g:esearch#cmdline#select_cancelling_chars = [
-        \ "\<C-a>",
-        \ "\<C-e>",
-        \ "\<C-c>",
-        \ "\<C-o>",
-        \ "\<Esc>",
-        \ "\<Enter>",
-        \ "\<Tab>",
-        \ "\<M-b>",
-        \ "\<M-f>",
         \ "\<Left>",
         \ "\<Right>",
-        \ "\<S-Left>",
-        \ "\<S-Right>",
         \ "\<Up>",
         \ "\<Down>",
-        \ "\<S-Up>",
-        \ "\<S-Down>",
         \ ]
 endif
 
-" This chars can cause undefined behavior when used as part of a string sent as
-" input()'s {text} argument and need to be handled separately
-let s:select_cancelling_special_chars = [
+if !exists('g:esearch#cmdline#start_search_chars')
+  let g:esearch#cmdline#start_search_chars = [
+        \ "\<Enter>",
+        \ "\<C-r>",
+        \ ]
+endif
+
+let s:select_cancelling_char_which_cannot_be_retyped = [
       \ "\<Esc>",
       \ "\<C-c>",
       \ "\<Enter>",
@@ -103,45 +95,21 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
 
   " Initial selection handling
   """""""""""""""""""""""""""
-  let enter_was_pressed = 0
-
+  let finish_input = 0
   if !empty(g:escmdline) && g:esearch#cmdline#select_initial
-    call esearch#log#debug("!empty(g:escmdline) && g:esearch#cmdline#select_initial", '/tmp/esearch_log.txt')
-    let [g:escmdline, enter_was_pressed, special_key_was_pressed, action_key] =
+    let [g:escmdline, finish_input, retype_keys] =
           \ s:handle_initial_select(g:escmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
 
-    if type(action_key) == type('')
-      call esearch#log#debug('type(action_key) == type()'.g:escmdline, '/tmp/esearch_log.txt')
-      " throw g:escmdline
-      " throw action_key
-      call feedkeys(action_key)
-" g:cmdline_mappings[action_key]
-" .action_key
-      " exe "norm :call esearch#init({'empty_cmdline': 1})\<CR>".substitute(g:escmdline, "\n", ' ', 'g')
-      " return 0
+    if retype_keys isnot 0
+      call feedkeys(retype_keys)
     endif
-
-    if special_key_was_pressed
-      " call feedkeys(action_key)
-      call esearch#log#debug('if special_key_was_pressed rerun'.g:escmdline, '/tmp/esearch_log.txt')
-      " throw 3
-      " throw string([g:escmdline, enter_was_pressed, special_key_was_pressed, action_key])
-      " Reopen cmdline and set input using keypress emulations
-      " Such a veird way is needed to handle special keys listed in
-      " the g:esearch#cmdline#select_cancelling_chars
-      " exe "norm :call esearch#init({'empty_cmdline': 1})\<CR>".g:escmdline
-      " return 0
-    endif
-  else
-
   endif
   """""""""""
 
   " Reading string from user
   """""""""""""""""""""""""""
-  if enter_was_pressed
-    call esearch#log#debug("enter_was_pressed".g:escmdline, '/tmp/esearch_log.txt')
+  if finish_input
     let str = g:escmdline
   else
     let str = s:main_loop(a:cmdline_opts, a:adapter_options)
@@ -177,19 +145,15 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
 
   let str = ''
 
-  call esearch#log#debug('main loop start'.g:escmdline, '/tmp/esearch_log.txt')
   " Main loop
   """""""""""
   while 1
-    call esearch#log#debug('main loop iteration'.g:escmdline . str, '/tmp/esearch_log.txt')
     call s:render_directory_prompt(a:cmdline_opts.cwd)
     let str = input(s:prompt(a:adapter_options), g:escmdline, 'customlist,esearch#cmdline#buff_compl')
     if empty(s:events) | break | endif
 
     for handler in s:events
-      call esearch#log#debug('call funcref'.g:escmdline . str, '/tmp/esearch_log.txt')
       call call(handler.funcref, handler.args)
-      call esearch#log#debug('call funcref after'.g:escmdline . str, '/tmp/esearch_log.txt')
     endfor
 
     let s:events = []
@@ -202,64 +166,29 @@ endfu
 
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   let special_key_was_pressed = 0
-  let enter_was_pressed = 0
-  call esearch#log#debug('handle_initial_select.prompt', '/tmp/esearch_log.txt')
   call s:render_directory_prompt(a:dir)
-  call esearch#log#debug('handle_initial_select.prompt after', '/tmp/esearch_log.txt')
 
-  " Render virtual interface
-  """""""""""""""""""""""""""
   call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
-  " Replace \n with \s like *input()* function argumen {text} do
   let virtual_cmdline = substitute(a:cmdline, "\n", ' ', 'g')
   call esearch#util#highlight('Visual', virtual_cmdline, 0)
 
-  let [char, rest] = esearch#util#getchar()
+  let char = esearch#util#getchar()
 
-  let action_key = 0
-  if s:is_cmdline_mapping(char) && g:esearch#cmdline#menu_feature_toggle
-    call esearch#log#debug('s:is_cmdline_mapping == 1 and return', '/tmp/esearch_log.txt')
-    " let special_key_was_pressed = 1
-    let action_key = char
-    let special_key_was_pressed = 0
-    return [virtual_cmdline, enter_was_pressed, special_key_was_pressed, action_key]
+  let retype_keys = 0
+  let cmdline =  a:cmdline
+  let finish_input = 0
 
-  elseif !empty(esearch#util#escape_kind(char)) || index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
-  " elseif index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
-    " Handle VERY special characters (at the moments it's <C-c>)
-    " """"""""""""""""""""""""""""""""""""""""""""""""""""""
-    if index(s:select_cancelling_special_chars, char) >= 0
-      " TODO test
-      " let enter_was_pressed = 0
-      let enter_was_pressed = (char ==# "\<Enter>" ? 1 : 0)
-      let special_key_was_pressed = 0
-      call esearch#log#debug('select-cancelling_pressed '.index(s:select_cancelling_special_chars, char) .char , '/tmp/esearch_log.txt')
-
-      return [a:cmdline, enter_was_pressed, special_key_was_pressed, action_key]
-    endif
-    " """"""""""""""""""""""""""""""""""""""""""""""""""""""
-
-    let preserve_cmdline = 1
-
-    if !empty(esearch#util#map_name(char))
-      call esearch#log#debug('empty(esearch#util#map_name(char))', '/tmp/esearch_log.txt')
-      let special_key_was_pressed = 1
-      " let action_key = char
-    endif
+  if index(s:select_cancelling_char_which_cannot_be_retyped, char) >= 0
+    " no-op
+  elseif index(g:esearch#cmdline#start_search_chars, char) >= 0
+    let finish_input = 1
+  elseif esearch#util#escape_kind(char) isnot 0 || index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
+    let retype_keys = char
   else
-    let preserve_cmdline = 0
+    let cmdline =  char
   endif
 
-  call esearch#log#debug('if special_key_was_pressed'.special_key_was_pressed, '/tmp/esearch_log.txt')
-  if special_key_was_pressed
-    let action_key = char
-    let cmdline =  a:cmdline
-  else
-    let cmdline =  preserve_cmdline ? a:cmdline : ''
-    let action_key = char
-  endif
-
-  return [cmdline, enter_was_pressed, special_key_was_pressed, action_key]
+  return [cmdline, finish_input, retype_keys]
 endfu
 
 fu! s:is_cmdline_mapping(char) abort
@@ -274,7 +203,7 @@ fu! s:list_help() abort
 
   let s:list_help = 1
 
-  call feedkeys("\<Plug>(esearch-cmdline-interrupt)", 'm')
+  call feedkeys("\<Enter>", 'm')
   return ''
 endfu
 
@@ -287,11 +216,7 @@ fu! s:run(func, ...) abort
   call add(s:events, {'funcref': function(a:func), 'args': a:000})
   let s:cmdpos = getcmdpos()
   let g:escmdline = getcmdline()
-  call feedkeys("\<C-c>", 'n')
-  " call feedkeys("\<Enter>", 'n')
-  " exe "norm  " . "\<C-c>"
-  call esearch#log#debug('run event after', '/tmp/esearch_log.txt')
-  call esearch#log#debug(s:events, '/tmp/esearch_log.txt')
+  call feedkeys("\<Enter>", 'n')
   return ''
 endfu
 
@@ -325,14 +250,10 @@ fu! s:render_directory_prompt(dir) abort
     return 0
   endif
 
-  call esearch#log#debug('g:esearch#cmdline#dir_icon', '/tmp/esearch_log.txt')
   let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
-  call esearch#log#debug('g:esearch#cmdline#dir_icon after', '/tmp/esearch_log.txt')
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
-  call esearch#log#debug("call esearch#util#highlight('Directory', dir, 0) after", '/tmp/esearch_log.txt')
   echo ''
-  call esearch#log#debug("blank echo after", '/tmp/esearch_log.txt')
 endfu
 
 fu! s:restore_cursor_position() abort
@@ -433,9 +354,7 @@ if g:esearch#cmdline#menu_feature_toggle == 1
           \   "  Hotkey  Action (press a hotkey or select using j/k/enter)\n"
           \ . '  ------  -------------------------------------------------'
 
-    call esearch#log#debug("menu start".g:escmdline, '/tmp/esearch_log.txt')
     call esearch#ui#menu#new(s:menu_items(), prompt).start()
-    call esearch#log#debug("menu end".g:escmdline, '/tmp/esearch_log.txt')
   endfu
 
   fu s:menu_items() abort
@@ -459,8 +378,3 @@ if g:esearch#cmdline#menu_feature_toggle == 1
     return g:esearch#cmdline#menu_items
   endfu
 endif
-
-let list = [27, 102]
-let str = join(map(list, {_, val -> nr2char(val)}), '')
-
-

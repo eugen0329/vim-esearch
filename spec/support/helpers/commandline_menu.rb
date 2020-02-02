@@ -64,20 +64,20 @@ module Helpers::CommandlineMenu
     supports_block_expectations
 
     match do |block|
-      editor.with_ignore_cache do
-        @was = esearch.configuration.global
-        block.call
+      @was = esearch.configuration.global
+      block.call
 
+      editor.with_ignore_cache do
         @has_changed = became_truthy_within?(timeout) do
           @actual = esearch.configuration.global
           @was != @actual
         end
-
-        return false unless @has_changed
-
-        @expected = include(*options)
-        values_match?(@expected, @actual)
       end
+
+      return false unless @has_changed
+
+      @expected = include(*options)
+      values_match?(@expected, @actual)
     end
   end
 
@@ -107,9 +107,16 @@ module Helpers::CommandlineMenu
       @was = output_spy_calls.last
       block.call
 
-      became_truthy_within?(timeout) do
-        @was != output_spy_calls.last
+      editor.with_ignore_cache do
+        became_truthy_within?(timeout) do
+          @actual = output_spy_calls.last
+          @was != output_spy_calls.last
+        end
       end
+    end
+
+    failure_message_when_negated do
+      "expected not to start search, but was changed from \n#{@was.pretty_inspect} to \n#{@actual.pretty_inspect}"
     end
   end
 

@@ -156,6 +156,10 @@ class Editor
     end
   end
 
+  def commandline_cursor_location
+    echo func('getcmdpos')
+  end
+
   def press!(keyboard_keys)
     handle_state_change!
 
@@ -198,6 +202,7 @@ class Editor
     delete:    '\\<Del>',
     leader:    '\\\\',
     backspace: '\\<Bs>',
+    space:     '\\<Space>',
     escape:    '\\<Esc>',
     up:        '\\<Up>',
     down:      '\\<Down>'
