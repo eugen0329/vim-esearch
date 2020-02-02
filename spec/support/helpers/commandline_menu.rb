@@ -12,9 +12,21 @@ module Helpers::CommandlineMenu
     esearch.output.echo_calls_history.last(3)
   end
 
+  shared_context 'fix vim internal quirks with mapping timeout' do
+    # in vim8 when pressing keys like <Left> or <Right> a trailing char appears
+    # for a short period and cause extra character to be searched
+    before { editor.command('set timeoutlen=0') }
+    after { editor.command('set timeoutlen=1000') }
+  end
+
+  shared_context 'defined commandline hotkey' do |lhs, rhs|
+    before { editor.command("cmap  #{lhs} #{rhs}") }
+    after  { editor.command("cunmap #{lhs}") }
+  end
+
   define_negated_matcher :not_to_change, :change
 
-  matcher :have_search_finished_for do |string|
+  matcher :finish_search_for do |string|
     attr_reader :expected, :actual
 
     diffable
@@ -47,18 +59,26 @@ module Helpers::CommandlineMenu
     end
   end
 
-  matcher :set_global_options do |options|
+  matcher :set_global_options do |options, timeout: 1|
     attr_reader :expected, :actual
     supports_block_expectations
 
     match do |block|
-      @matcher = change { esearch.configuration.global }
-                 .to include(*options)
-      @matcher.matches?(block)
-    end
+      editor.with_ignore_cache do
+        @was = esearch.configuration.global
+        block.call
 
-    description { @matcher&.description }
-    failure_message { @matcher&.failure_message }
+        @has_changed = became_truthy_within?(timeout) do
+          @actual = esearch.configuration.global
+          @was != @actual
+        end
+
+        return false unless @has_changed
+
+        @expected = include(*options)
+        values_match?(@expected, @actual)
+      end
+    end
   end
 
   matcher :start_search_with_previous_input do |previous_search_string|
@@ -76,6 +96,10 @@ module Helpers::CommandlineMenu
     failure_message { @matcher&.failure_message }
   end
 
+  # NOTE: #start_search internally use timeout (like other gems like capybara
+  # do), so using it with #not_to will lead to extra delays avoiding of which
+  # can cause false positives
+
   matcher :start_search do |_previous_search_string, timeout: 1|
     supports_block_expectations
 
@@ -88,4 +112,6 @@ module Helpers::CommandlineMenu
       end
     end
   end
+
+  define_negated_matcher :not_to_start_search, :start_search
 end
