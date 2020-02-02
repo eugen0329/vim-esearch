@@ -56,7 +56,6 @@ endif
 let s:select_cancelling_char_which_cannot_be_retyped = [
       \ "\<Esc>",
       \ "\<C-c>",
-      \ "\<Enter>",
       \]
 
 if !exists('g:esearch#cmdline#select_initial')

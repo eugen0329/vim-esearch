@@ -300,7 +300,7 @@ fu! esearch#util#map_name(char) abort
   return 0
 endfu
 
-fu! s:is_key_combination(group, c)
+fu! s:is_key_combination(group, c) abort
   return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
 endfu
 

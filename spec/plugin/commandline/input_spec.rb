@@ -7,32 +7,36 @@ describe 'esearch#cmdline input' do
 
   shared_examples 'commandline input testing examples' do
     before { esearch.configure(out: 'stubbed', backend: 'system', use: 'last') }
-    after { esearch.output.reset_calls_history! }
+    after do
+      esearch.cleanup!
+      esearch.output.reset_calls_history!
+    end
 
     context 'when cancelling initial selection' do
       before { esearch.configuration.submit!(overwrite: true) } # TODO: will be removed
 
       shared_context 'run preparatory search to enable prefilling' do |search_string|
         before do
-          editor.send_keys(*open_input, search_string, :enter)
-          expect(esearch).to finish_search_for(search_string)
+          expect { editor.send_keys(*open_input, search_string, :enter) }
+            .to start_search & finish_search_for(search_string)
         end
       end
 
       shared_examples 'it starts search at location "|" after pressing' do |keys:, prefilled_input:, expected_input:|
-        context "when #{keys} are pressed" do
-          before { expect(keys.size).to be_present, "wrong usage: must be at least 1 char to submit search" }
+        context "when #{keys} keys are pressed" do
+          before { expect(keys.size).to be_present }
 
           include_context 'run preparatory search to enable prefilling', prefilled_input
 
           it 'it starts search at a specific location' do
-              expect {
-                editor.send_keys(*open_input)
-                next if keys.size < 2
+            expect {
+              editor.send_keys(*open_input)
+              next if keys.size < 2
 
-                editor.send_keys_separately(*keys[..-2])
-                expect(editor.commandline_cursor_location).to eq(expected_input.index('|')+1)
-              }.not_to start_search
+              editor.send_keys_separately(*keys[..-2])
+              expect(editor.commandline_cursor_location)
+                .to eq(expected_input.index('|') + 1)
+            }.not_to start_search
 
             expect { editor.send_keys(keys[-1]) }
               .to start_search
@@ -42,22 +46,19 @@ describe 'esearch#cmdline input' do
       end
 
       shared_examples "it doesn't start search after pressing" do |keys:, prefilled_input: 'any'|
-        context "when #{keys} are pressed" do
+        context "when #{keys} keys are pressed" do
           include_context 'run preparatory search to enable prefilling', prefilled_input
 
           it "it doesn't start search" do
-            editor.send_keys(*open_input, prefilled_input, :enter)
-            expect(esearch).to finish_search_for(prefilled_input)
-
-              expect {
-                editor.send_keys(*open_input)
-                editor.send_keys_separately(*keys)
-              }.not_to start_search
+            expect {
+              editor.send_keys(*open_input)
+              editor.send_keys_separately(*keys)
+            }.not_to start_search
           end
         end
       end
 
-      context 'cancelling prefilled input selection' do
+      context 'cancelling prefilled input selection (<Esc>, <Left>, ...)' do
         context 'with moving cursor' do
           include_examples 'it starts search at location "|" after pressing',
             keys:            ['\\<Left>', :enter],
@@ -94,7 +95,7 @@ describe 'esearch#cmdline input' do
               keys:            %i[up down enter],
               prefilled_input: 'str',
               expected_input:  'str|'
-            end
+          end
         end
 
         context 'without moving cursor' do
@@ -103,7 +104,7 @@ describe 'esearch#cmdline input' do
             prefilled_input: 'str',
             expected_input:  'str|'
           include_examples 'it starts search at location "|" after pressing',
-            keys:            [:escape, :enter],
+            keys:            %i[escape enter],
             prefilled_input: 'str',
             expected_input:  'str|'
         end
@@ -134,7 +135,7 @@ describe 'esearch#cmdline input' do
         end
       end
 
-      context 'starting search with prefilled text skipping input step' do
+      context 'starting search with prefilled text skipping input step (<Enter>, ...)' do
         context 'when default keys' do
           include_examples 'it starts search at location "|" after pressing',
             keys:            [:enter],
@@ -148,19 +149,19 @@ describe 'esearch#cmdline input' do
             after { editor.command('unlet g:esearch#cmdline#start_search_chars[-1]') }
 
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ["s"],
+              keys:            ['s'],
               prefilled_input: 'input was',
               expected_input:  'input was|'
           end
 
           context 'when not defined' do
             include_examples "it doesn't start search after pressing",
-              keys: ["s"]
+              keys: ['s']
           end
         end
       end
 
-      context 'overriding prefilled input selection' do
+      context 'overriding prefilled input selection (by pressing any regular char)' do
         include_examples 'it starts search at location "|" after pressing',
           keys:            [:delete, 'str', :enter],
           prefilled_input: 'input was',
@@ -183,6 +184,24 @@ describe 'esearch#cmdline input' do
             keys:            ['multiple chars', :enter],
             prefilled_input: 'input was',
             expected_input:  'multiple chars|'
+        end
+      end
+
+      context 'handling multiple chars mappings' do
+        context 'starting search' do
+          include_context 'defined commandline hotkey', '<C-r><C-r>', '<Enter>'
+
+          include_examples 'it starts search at location "|" after pressing',
+            keys:            ['\\<C-r>\\<C-r>'],
+            prefilled_input: 'input was',
+            expected_input:  'input was|'
+        end
+
+        context 'cancelling' do
+          include_context 'defined commandline hotkey', '<C-r><C-r>', '<C-c>'
+
+          include_examples "it doesn't start search after pressing",
+            keys: ['s']
         end
       end
     end

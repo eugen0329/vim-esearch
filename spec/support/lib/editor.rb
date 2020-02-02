@@ -106,12 +106,13 @@ class Editor
     command('ls')
   end
 
-  def delete_all_buffers_and_clear_messages!
-    command!('%bwipeout! | messages clear')
+  # TODO: fix after modifier implementation
+  def delete_all_buffers_and_clear_messages_and_reset_input!
+    command!('%bwipeout! | messages clear| call feedkeys("\\<Esc>", "n")')
   end
 
   def cleanup!
-    delete_all_buffers_and_clear_messages!
+    delete_all_buffers_and_clear_messages_and_reset_input!
     handle_state_change!
   end
 

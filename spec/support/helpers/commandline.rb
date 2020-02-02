@@ -40,14 +40,13 @@ module Helpers::Commandline
     diffable
     supports_block_expectations
 
-    match do |actual|
-      actual.call if actual.is_a? Proc
+    match do |block|
+      block.call
 
       @actual =
         [esearch.output.calls_history.last&.dig('exp', 'pcre'),
          esearch.output.calls_history.last&.dig('exp', 'literal')]
       @expected = [string, string]
-
       values_match?(@expected, @actual)
     end
   end

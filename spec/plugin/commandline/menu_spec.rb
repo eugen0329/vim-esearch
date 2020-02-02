@@ -157,17 +157,17 @@ describe 'esearch#cmdline menu' do
           let(:cursor_location_probe) { '|' }
 
           it 'preserves location after closing menu' do
-            editor.send_keys(*open_input, fill_with, *press_keys, open_menu)
-            editor.send_keys(:escape, cursor_location_probe, :enter)
-
-            is_expected.to finish_search_for(expected_location)
+            expect {
+              editor.send_keys(*open_input, fill_with, *press_keys, open_menu)
+              editor.send_keys(:escape, cursor_location_probe, :enter)
+            }.to start_search & finish_search_for(expected_location)
           end
 
           it 'preserves location after selection an option' do
-            editor.send_keys(*open_input, fill_with, *press_keys, open_menu)
-            editor.send_keys(:enter, cursor_location_probe, :enter)
-
-            is_expected.to finish_search_for(expected_location)
+            expect {
+              editor.send_keys(*open_input, fill_with, *press_keys, open_menu)
+              editor.send_keys(:enter, cursor_location_probe, :enter)
+            }.to start_search & finish_search_for(expected_location)
           end
         end
 
@@ -202,10 +202,10 @@ describe 'esearch#cmdline menu' do
             before { editor.send_keys(*open_input, previous_input, :enter) }
 
             it 'puts cursor at the end of the input' do
-              editor.send_keys(*open_input, open_menu)
-              editor.send_keys_separately(*keys, cursor_location_probe, :enter)
-
-              is_expected.to finish_search_for(input_with_cursor_location)
+              expect {
+                editor.send_keys(*open_input, open_menu)
+                editor.send_keys_separately(*keys, cursor_location_probe, :enter)
+              }.to start_search & finish_search_for(input_with_cursor_location)
             end
           end
         end

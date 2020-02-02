@@ -25,12 +25,12 @@ RSpec.shared_examples 'a backend' do |backend|
           esearch.configuration.adapter_bin = Configuration.pt_path if adapter == 'pt'
           esearch.configuration.adapter_bin = Configuration.rg_path if adapter == 'rg'
 
-          esearch.editor.cd! context_fixtures_path
+          editor.cd! context_fixtures_path
         end
         after { esearch.cleanup! }
 
         it 'provides correct path when searching outside the cwd' do
-          esearch.editor.press! ":call esearch#init({'cwd': '#{directory_path}'})<Enter>#{test_query}<Enter>"
+          editor.press! ":call esearch#init({'cwd': '#{directory_path}'})<Enter>#{test_query}<Enter>"
 
           # TODO: reduce duplication
           expect(esearch).to have_search_started
@@ -39,17 +39,17 @@ RSpec.shared_examples 'a backend' do |backend|
             .to  have_search_finished
             .and have_not_reported_errors
 
-          expect(esearch.editor.lines.to_a.join("\n"))
+          expect(editor.lines.to_a.join("\n"))
             .to include(expected_file_content)
             .and include(expected_filename)
             .and not_include('content_of_file_outside')
 
-          esearch.editor.press_with_user_mappings! '\<Enter>'
-          expect(esearch.editor.lines.first)
+          editor.press_with_user_mappings! '\<Enter>'
+          expect(editor.lines.first)
             .to include(expected_file_content)
             .and not_include('content_of_file_outside')
 
-          expect(esearch.editor.current_buffer_name)
+          expect(editor.current_buffer_name)
             .to end_with([directory, expected_filename].join('/'))
         end
       end
