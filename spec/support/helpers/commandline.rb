@@ -21,9 +21,9 @@ module Helpers::Commandline
     esearch.output.echo_calls_history.last(3)
   end
 
-  shared_context 'push' do |value:, to:|
+  shared_context 'add' do |value:, to:|
     before { editor.command("call add(#{to}, \"#{value.gsub('"', '\"')}\")") }
-    after { editor.pop(to) }
+    after { editor.command("unlet #{to}[-1]") }
   end
 
   shared_context 'fix vim internal quirks with mapping timeout' do
@@ -36,6 +36,21 @@ module Helpers::Commandline
   shared_context 'defined commandline hotkey' do |lhs, rhs|
     before { editor.command("cnoremap  #{lhs} #{rhs}") }
     after  { editor.command("cunmap #{lhs}") }
+  end
+
+  shared_context 'defined normal mode hotkey' do |lhs, rhs|
+    before { editor.command("nnoremap  #{lhs} #{rhs}") }
+    after  { editor.command("nunmap #{lhs}") }
+  end
+
+  shared_context 'defined commandline abbreviation' do |lhs, rhs|
+    before { editor.command("cabbrev  #{lhs} #{rhs}") }
+    after  { editor.command("cunabbrev #{lhs}") }
+  end
+
+  shared_context 'defined normal mode abbreviation' do |lhs, rhs|
+    before { editor.command("abbrev  #{lhs} #{rhs}") }
+    after  { editor.command("unabbrev #{lhs}") }
   end
 
   define_negated_matcher :not_to_change, :change

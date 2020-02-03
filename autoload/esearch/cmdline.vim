@@ -189,11 +189,17 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
     " no-op
   elseif esearch#util#escape_kind(char) isnot 0
     let retype_keys = char
+  elseif s:is_commandline_hotkey_prefix(char)
+    let retype_keys = char
   else
     let cmdline = char
   endif
 
   return [cmdline, finish_input, retype_keys]
+endfu
+
+fu! s:is_commandline_hotkey_prefix(char)
+  return mapcheck(a:char, 'c') !=# ''
 endfu
 
 fu! s:is_cmdline_mapping(char) abort

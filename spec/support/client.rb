@@ -8,6 +8,6 @@ class Client < DecoratorBase
 
   def feedkeys(string)
     string = string.gsub('"', '\"')
-    command(%{call feedkeys("#{string}")})
+    command(%{call feedkeys("#{string}", "i")})
   end
 end

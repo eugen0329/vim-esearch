@@ -135,15 +135,6 @@ class Editor
     echo var('&ft')
   end
 
-  def push(list, value)
-    # TODO
-    command("call #{VimlValue.dump(func('add', var(list), value))}")
-  end
-
-  def pop(list)
-    command("unlet #{list}[-1]")
-  end
-
   def quickfix_window_name
     echo func('get', var('w:'), 'quickfix_title', '')
   end
