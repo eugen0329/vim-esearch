@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Helpers::Commandline
   extend RSpec::Matchers::DSL
   include API::Mixins::BecomeTruthyWithinTimeout
@@ -191,3 +192,4 @@ module Helpers::Commandline
   end
   define_negated_matcher :not_to_start_search, :start_search
 end
+# rubocop:enable Metrics/ModuleLength
