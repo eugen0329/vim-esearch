@@ -3,6 +3,7 @@
 module Helpers::Commandline
   extend RSpec::Matchers::DSL
   include API::Mixins::BecomeTruthyWithinTimeout
+  include VimlValue::SerializationHelpers
 
   def open_menu
     '\\<C-o>'
@@ -20,6 +21,11 @@ module Helpers::Commandline
     esearch.output.echo_calls_history.last(3)
   end
 
+  shared_context 'push' do |value:, to:|
+    before { editor.command("call add(#{to}, \"#{value.gsub('"', '\"')}\")") }
+    after { editor.pop(to) }
+  end
+
   shared_context 'fix vim internal quirks with mapping timeout' do
     # in vim8 when pressing keys like <Left> or <Right> a trailing char appears
     # for a short period and cause extra character to be searched
@@ -28,11 +34,12 @@ module Helpers::Commandline
   end
 
   shared_context 'defined commandline hotkey' do |lhs, rhs|
-    before { editor.command("cmap  #{lhs} #{rhs}") }
+    before { editor.command("cnoremap  #{lhs} #{rhs}") }
     after  { editor.command("cunmap #{lhs}") }
   end
 
   define_negated_matcher :not_to_change, :change
+  define_negated_matcher :not_to_start_search, :start_search
 
   matcher :finish_search_for do |string|
     attr_reader :expected, :actual
@@ -126,6 +133,4 @@ module Helpers::Commandline
       "expected not to start search, but was changed from \n#{@was.pretty_inspect} to \n#{@actual.pretty_inspect}"
     end
   end
-
-  define_negated_matcher :not_to_start_search, :start_search
 end

@@ -12,7 +12,7 @@ describe 'esearch#cmdline input' do
       esearch.output.reset_calls_history!
     end
 
-    context 'when cancelling initial selection' do
+    describe 'initial selection' do
       before { esearch.configuration.submit!(overwrite: true) } # TODO: will be removed
 
       shared_context 'run preparatory search to enable prefilling' do |search_string|
@@ -58,58 +58,143 @@ describe 'esearch#cmdline input' do
         end
       end
 
-      context 'cancelling prefilled input selection (<Esc>, <Left>, ...)' do
-        context 'with moving cursor' do
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<Left>', :enter],
-            prefilled_input: 'str',
-            expected_input:  'st|r'
+      describe 'clearing prefilled' do
+        context 'defined in g:esearch#cmdline#clear_selection_chars' do
+          context 'defaults' do
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            [:delete, 'after', :enter],
+              prefilled_input: 'was',
+              expected_input:  'after|'
 
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<Right>', :enter],
-            prefilled_input: 'str',
-            expected_input:  'str|'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            [:backspace, 'after', :enter],
+              prefilled_input: 'was',
+              expected_input:  'after|'
 
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<S-Left>', :enter],
-            prefilled_input: 'str',
-            expected_input:  '|str'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['\\<C-w>', 'after', :enter],
+              prefilled_input: 'was',
+              expected_input:  'after|'
+          end
 
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<S-Right>', :enter],
-            prefilled_input: 'str',
-            expected_input:  'str|'
+          context 'defined by user' do
+            include_context 'push', value: '\\<C-n>', to: 'g:esearch#cmdline#clear_selection_chars'
 
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<C-a>', :enter],
-            prefilled_input: 'str',
-            expected_input:  'str|'
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<C-e>', :enter],
-            prefilled_input: 'str',
-            expected_input:  'str|'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['\\<C-n>', 'after', :enter],
+              prefilled_input: 'was',
+              expected_input:  'after|'
+          end
 
-          context 'up and down keys' do
+          context 'not defined' do
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['\\<C-n>', 'after', :enter],
+              prefilled_input: 'was',
+              expected_input:  'wasafter|'
+          end
+        end
+      end
+
+      describe 'start searching of prefilled (press <Enter> etc.)' do
+        context 'defined in esearch#cmdline#start_search_chars' do
+          context 'defaults' do
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            [:enter],
+              prefilled_input: 'was',
+              expected_input:  'was|'
+          end
+
+          context 'defined by user' do
+            include_context 'push', value: 's', to: 'g:esearch#cmdline#start_search_chars'
+
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['s'],
+              prefilled_input: 'was',
+              expected_input:  'was|'
+          end
+
+          context 'not defined' do
+            include_examples "it doesn't start search after pressing",
+              keys: ['s']
+          end
+        end
+      end
+
+      describe 'cancel selection and retype' do
+        context 'defined in g:esearch#cmdline#cancel_selection_and_retype_chars' do
+          context 'defaults' do
             include_context 'fix vim internal quirks with mapping timeout'
+
             include_examples 'it starts search at location "|" after pressing',
               keys:            %i[up down enter],
               prefilled_input: 'str',
               expected_input:  'str|'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            %i[down up enter],
+              prefilled_input: 'str',
+              expected_input:  'str|'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            %i[left enter],
+              prefilled_input: 'str',
+              expected_input:  'st|r'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            %i[right enter],
+              prefilled_input: 'str',
+              expected_input:  'str|'
+          end
+
+          context 'defined by user' do
+            include_context 'push', value: 'r', to: 'g:esearch#cmdline#cancel_selection_and_retype_chars'
+
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['r', :enter],
+              prefilled_input: 'was',
+              expected_input:  'wasr|'
+          end
+
+          context 'not defined' do
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['r', :enter],
+              prefilled_input: 'was',
+              expected_input:  "r|"
           end
         end
+      end
 
-        context 'without moving cursor' do
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<C-c>', :enter],
-            prefilled_input: 'str',
-            expected_input:  'str|'
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            %i[escape enter],
-            prefilled_input: 'str',
-            expected_input:  'str|'
+      describe 'cancel selection' do
+        context 'defined in g:esearch#cmdline#cancel_selection_chars' do
+          context 'defaults' do
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['\\<C-c>', :enter],
+              prefilled_input: 'str',
+              expected_input:  'str|'
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            %i[escape enter],
+              prefilled_input: 'str',
+              expected_input:  'str|'
+          end
+
+          context 'defined by user' do
+            include_context 'push', value: 'c', to: 'g:esearch#cmdline#cancel_selection_chars'
+
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['c', :enter],
+              prefilled_input: 'was',
+              expected_input:  'was|'
+
+          end
+
+          context 'not defined' do
+            include_examples 'it starts search at location "|" after pressing',
+              keys:            ['c', 'str after', :enter],
+              prefilled_input: 'was',
+              expected_input:  "cstr after|"
+          end
         end
+      end
 
-        context 'with pressing remapped hotkeys' do
+      describe 'retype if key is kind of escape' do
+        context 'defined in g:cmdline_mappings' do
           context 'defaults' do
             include_examples 'it starts search at location "|" after pressing',
               keys:            ['\\<C-o>', :escape, :enter],
@@ -117,93 +202,80 @@ describe 'esearch#cmdline input' do
               expected_input:  'str|'
           end
 
-          context 'alt-f' do
-            include_context 'defined commandline hotkey', '<M-f>', '<S-Right>'
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<M-f>', :enter],
-              prefilled_input: 'str',
-              expected_input:  'str|'
-          end
-
-          context 'alt-b' do
-            include_context 'defined commandline hotkey', '<M-b>', '<S-Left>'
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<M-b>', :enter],
-              prefilled_input: 'str',
-              expected_input:  '|str'
+          context 'defined by user' do
+            # TODO
           end
         end
-      end
 
-      context 'starting search with prefilled text skipping input step (<Enter>, ...)' do
-        context 'when default keys' do
+        context 'not mapped' do
           include_examples 'it starts search at location "|" after pressing',
-            keys:            [:enter],
-            prefilled_input: 'input was',
-            expected_input:  'input was|'
+            keys:            ['\\<S-Left>', :enter],
+            prefilled_input: 'str',
+            expected_input:  '|str'
+
+          include_examples 'it starts search at location "|" after pressing',
+            keys:            ['\\<C-e>', :enter],
+            prefilled_input: 'str',
+            expected_input:  'str|'
         end
 
-        context 'when custom keys' do
-          context 'when defined' do
-            before { editor.command('call add(g:esearch#cmdline#start_search_chars, "s")') }
-            after { editor.command('unlet g:esearch#cmdline#start_search_chars[-1]') }
+        context 'defined using "cmap"' do
+          context 'escaped' do
+            context 'alt-b' do
+              include_context 'defined commandline hotkey', '<M-b>', '<S-Left>'
+              include_examples 'it starts search at location "|" after pressing',
+                keys:            ['\\<M-b>', :enter],
+                prefilled_input: 'str',
+                expected_input:  '|str'
+            end
 
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            ['s'],
-              prefilled_input: 'input was',
-              expected_input:  'input was|'
+            context 'control-b' do
+              include_context 'defined commandline hotkey', '<C-b>', '<S-Left>'
+              include_examples 'it starts search at location "|" after pressing',
+                keys:            ['\\<C-b>', :enter],
+                prefilled_input: 'str',
+                expected_input:  '|str'
+            end
           end
 
-          context 'when not defined' do
-            include_examples "it doesn't start search after pressing",
-              keys: ['s']
+          # TODO add handling for user mappings
+          #
+          context 'multiple keys mappings' do
+            context 'the first is captured and pressed automatically, the second - by user' do
+              include_context 'defined commandline hotkey', '<C-f><C-f>', 'after'
+
+              include_examples 'it starts search at location "|" after pressing',
+                keys:            ['\\<C-f>\\<C-f>', :enter],
+                prefilled_input: 'was',
+                expected_input:  'wasafter|'
+            end
+
+            # context 'cancelling' do
+            #   include_context 'defined commandline hotkey', '<C-r><C-r>', '<C-c>'
+
+            #   include_examples "it doesn't start search after pressing",
+            #     keys: ['s']
+            # end
           end
         end
       end
 
       context 'overriding prefilled input selection (by pressing any regular char)' do
-        include_examples 'it starts search at location "|" after pressing',
-          keys:            [:delete, 'str', :enter],
-          prefilled_input: 'input was',
-          expected_input:  'str|'
-
-        include_examples 'it starts search at location "|" after pressing',
-          keys:            [:backspace, 'str', :enter],
-          prefilled_input: 'input was',
-          expected_input:  'str|'
-
         context 'single char' do
           include_examples 'it starts search at location "|" after pressing',
             keys:            ['1', :enter],
-            prefilled_input: 'input was',
+            prefilled_input: 'was',
             expected_input:  '1|'
         end
 
-        context 'multiple chars' do
+        context 'multiple chars (pasting)' do
           include_examples 'it starts search at location "|" after pressing',
-            keys:            ['multiple chars', :enter],
-            prefilled_input: 'input was',
-            expected_input:  'multiple chars|'
+            keys:            ['after', :enter],
+            prefilled_input: 'was',
+            expected_input:  'after|'
         end
       end
 
-      context 'handling multiple chars mappings' do
-        context 'starting search' do
-          include_context 'defined commandline hotkey', '<C-r><C-r>', '<Enter>'
-
-          include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<C-r>\\<C-r>'],
-            prefilled_input: 'input was',
-            expected_input:  'input was|'
-        end
-
-        context 'cancelling' do
-          include_context 'defined commandline hotkey', '<C-r><C-r>', '<C-c>'
-
-          include_examples "it doesn't start search after pressing",
-            keys: ['s']
-        end
-      end
     end
   end
 

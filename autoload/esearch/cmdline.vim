@@ -1,13 +1,13 @@
 let g:esearch#cmdline#menu_feature_toggle = 1
 if g:esearch#cmdline#menu_feature_toggle == 1
   let g:cmdline_mappings = {
-        \ '<C-o>':       '<Plug>(esearch-cmdline-options-menus)',
+        \ '<C-o>':       '<Plug>(esearch-cmdline-open-menu)',
         \ 'key':         function('esearch#util#key'),
         \ 'dict':        function('esearch#util#dict'),
         \ 'without_val':        function('esearch#util#without_val'),
         \}
   let s:comments = {
-        \ '<Plug>(esearch-cmdline-options-menus)': 'Toggle regex(r) or literal(>) match',
+        \ '<Plug>(esearch-cmdline-open-menu)': 'Toggle regex(r) or literal(>) match',
         \}
 else
   let g:cmdline_mappings = {
@@ -38,41 +38,47 @@ if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
 endif
 
-if !exists('g:esearch#cmdline#select_cancelling_chars')
-  let g:esearch#cmdline#select_cancelling_chars = [
+
+if !exists('g:esearch#cmdline#clear_selection_chars')
+  let g:esearch#cmdline#clear_selection_chars = [
+        \ "\<Del>",
+        \ "\<Bs>",
+        \ "\<C-w>",
+        \ ]
+endif
+if !exists('g:esearch#cmdline#start_search_chars')
+  let g:esearch#cmdline#start_search_chars = [
+        \ "\<Enter>",
+        \ ]
+endif
+if !exists('g:esearch#cmdline#cancel_selection_and_retype_chars')
+  let g:esearch#cmdline#cancel_selection_and_retype_chars = [
         \ "\<Left>",
         \ "\<Right>",
         \ "\<Up>",
         \ "\<Down>",
         \ ]
 endif
-
-if !exists('g:esearch#cmdline#start_search_chars')
-  let g:esearch#cmdline#start_search_chars = [
-        \ "\<Enter>",
+if !exists('g:esearch#cmdline#cancel_selection_chars')
+  let g:esearch#cmdline#cancel_selection_chars = [
+        \ "\<Esc>",
+        \ "\<C-c>",
         \ ]
 endif
-
-let s:select_cancelling_char_which_cannot_be_retyped = [
-      \ "\<Esc>",
-      \ "\<C-c>",
-      \]
 
 if !exists('g:esearch#cmdline#select_initial')
   let g:esearch#cmdline#select_initial = 1
 endif
 
-cnoremap <Plug>(esearch-toggle-regex)          <C-r>=<SID>run('s:invert', 'regex')<CR>
-cnoremap <Plug>(esearch-toggle-case)           <C-r>=<SID>run('s:invert', 'case')<CR>
-cnoremap <Plug>(esearch-toggle-word)           <C-r>=<SID>run('s:invert', 'word')<CR>
-cnoremap <Plug>(esearch-cmdline-options-menus) <C-r>=<SID>run('s:options_menu')<CR>
-
-cnoremap <Plug>(esearch-cmdline-interrupt) <C-c>
+cnoremap <Plug>(esearch-toggle-regex)      <C-r>=<SID>run('s:invert', 'regex')<CR>
+cnoremap <Plug>(esearch-toggle-case)       <C-r>=<SID>run('s:invert', 'case')<CR>
+cnoremap <Plug>(esearch-toggle-word)       <C-r>=<SID>run('s:invert', 'word')<CR>
+cnoremap <Plug>(esearch-cmdline-open-menu) <C-r>=<SID>run('s:open_menu')<CR>
 
 if g:esearch#cmdline#menu_feature_toggle == 0
-  cnoremap <Plug>(esearch-cmdline-help)          <C-r>=<SID>run('esearch#cmdline#help')<CR>
+  cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('esearch#cmdline#help')<CR>
 else
-  cnoremap <Plug>(esearch-cmdline-help)          <C-r>=<SID>run('s:options_menu')<CR>
+  cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('s:open_menu')<CR>
 endif
 
 " TODO MAJOR PRIO refactoring
@@ -162,24 +168,26 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
-  let special_key_was_pressed = 0
   call s:render_directory_prompt(a:dir)
-
   call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
-  let virtual_cmdline = substitute(a:cmdline, "\n", ' ', 'g')
-  call esearch#util#highlight('Visual', virtual_cmdline, 0)
-
-  let char = esearch#util#getchar()
+  call esearch#util#highlight('Visual',
+        \ substitute(a:cmdline, "\n", ' ', 'g'), 0)
 
   let retype_keys = 0
   let cmdline =  a:cmdline
   let finish_input = 0
 
-  if index(s:select_cancelling_char_which_cannot_be_retyped, char) >= 0
-    " no-op
+  let char = esearch#util#getchar()
+
+  if index(g:esearch#cmdline#clear_selection_chars, char) >= 0
+    let cmdline = ''
   elseif index(g:esearch#cmdline#start_search_chars, char) >= 0
     let finish_input = 1
-  elseif esearch#util#escape_kind(char) isnot 0 || index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
+  elseif index(g:esearch#cmdline#cancel_selection_and_retype_chars, char) >= 0
+    let retype_keys = char
+  elseif index(g:esearch#cmdline#cancel_selection_chars, char) >= 0
+    " no-op
+  elseif esearch#util#escape_kind(char) isnot 0
     let retype_keys = char
   else
     let cmdline = char
@@ -346,7 +354,7 @@ function! s:spell_suggests(word) abort
 endfunction
 
 if g:esearch#cmdline#menu_feature_toggle == 1
-  fu! s:options_menu() abort
+  fu! s:open_menu() abort
     let prompt =
           \   "  Hotkey  Action (press a hotkey or select using j/k/enter)\n"
           \ . '  ------  -------------------------------------------------'

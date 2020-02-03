@@ -2,19 +2,15 @@
 
 require 'spec_helper'
 
-describe 'Smoke of esearch#util' do
+describe 'esearch#util' do
   describe 'esearch#util#escape_kind' do
-    def invoke(arg)
-      vim.echo("esearch#util#escape_kind(\"#{arg}\")")
-    end
-
-    shared_examples 'it recognizes' do |char, as:, **meta|
-      it "recognizes #{char} as #{as.inspect}", **meta do
-        expect(invoke(char)).to eq("'#{as}'")
+    shared_examples 'it recognizes' do |arg, as:, **meta|
+      it "recognizes #{arg} as #{as.inspect}", **meta do
+        expect(vim.echo("esearch#util#escape_kind(\"#{arg}\")")).to eq(VimlValue.dump(as))
       end
     end
 
-    shared_examples 'it recognizes with all escapes except Shift' do |char|
+    shared_examples 'it recognizes with all escapes except Shift-*' do |char|
       include_examples 'it recognizes', "\\<C-#{char}>", as: 'control'
       include_examples 'it recognizes', "\\<M-#{char}>", as: 'meta'
       include_examples 'it recognizes', "\\<A-#{char}>", as: 'meta'
@@ -22,18 +18,18 @@ describe 'Smoke of esearch#util' do
     end
 
     shared_examples 'it recognizes with all escapes' do |char|
-      include_examples 'it recognizes with all escapes except Shift', char
+      include_examples 'it recognizes with all escapes except Shift-*', char
 
       include_examples 'it recognizes', "\\<S-#{char}>", as: 'shift'
     end
 
     shared_examples 'recognize as a regular char' do |char|
-      include_examples 'it recognizes', char, as: ''
+      include_examples 'it recognizes', char, as: 0
     end
 
     context 'ascii alphabet' do
       ('a'..'z').each do |char|
-        include_examples 'it recognizes with all escapes except Shift', char
+        include_examples 'it recognizes with all escapes except Shift-*', char
         include_examples 'recognize as a regular char', char
       end
     end
@@ -44,7 +40,7 @@ describe 'Smoke of esearch#util' do
         around { |e| use_nvim(&e) }
 
         ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).each do |char|
-          include_examples 'it recognizes with all escapes except Shift', char
+          include_examples 'it recognizes with all escapes except Shift-*', char
         end
       end
 
@@ -83,6 +79,7 @@ describe 'Smoke of esearch#util' do
       end
     end
 
+    # :h key-notation
     context 'key-notation' do
       %w[Tab Nul BS NL Space lt Bslash Bar Esc Del CSI Return CR Enter xCSI Up
          Down Left Right Help Undo Insert Home End PageUp PageDown kUp kDown kLeft

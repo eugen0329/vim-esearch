@@ -135,6 +135,15 @@ class Editor
     echo var('&ft')
   end
 
+  def push(list, value)
+    # TODO
+    command("call #{VimlValue.dump(func('add', var(list), value))}")
+  end
+
+  def pop(list)
+    command("unlet #{list}[-1]")
+  end
+
   def quickfix_window_name
     echo func('get', var('w:'), 'quickfix_title', '')
   end
@@ -196,6 +205,8 @@ class Editor
     reader.echo arg
   end
 
+  private
+
   SYMBOL_TO_KEYBOARD_KEY = {
     enter:     '\\<Cr>',
     left:      '\\<Left>',
@@ -209,21 +220,15 @@ class Editor
     down:      '\\<Down>'
   }.freeze
 
-  def keyboard_keys_to_string(*keyboard_keys, escape: true)
+  def keyboard_keys_to_string(*keyboard_keys)
     keyboard_keys.compact.map do |key|
       if key.is_a? Symbol
-        if escape
-          SYMBOL_TO_KEYBOARD_KEY.fetch(key)
-        else
-          SYMBOL_TO_KEYBOARD_KEY.fetch(key)[1..]
-        end
+        SYMBOL_TO_KEYBOARD_KEY.fetch(key)
       else
         key
       end
     end.join
   end
-
-  private
 
   def lines_range(range)
     return [1, nil] if range.blank?

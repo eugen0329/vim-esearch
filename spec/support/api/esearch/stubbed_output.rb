@@ -2,6 +2,7 @@
 
 require 'active_support/core_ext/numeric/time'
 
+#  TODO rewrite
 class API::ESearch::StubbedOutput
   include VimlValue::SerializationHelpers
 
