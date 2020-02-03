@@ -45,6 +45,23 @@ describe 'esearch#cmdline input' do
         end
       end
 
+      shared_examples "it changes commandline state to"  do |keys:, prefilled_input:, expected_input:|
+        context "when #{keys} keys are pressed while prefilled with #{prefilled_input.inspect}" do
+          include_context 'run preparatory search to enable prefilling', prefilled_input
+
+          it "it changes commandline state to #{expected_input}" do
+            expect {
+              editor.send_keys(*open_input)
+              next if keys.size < 2
+
+              editor.send_keys_separately(*keys[..-2])
+              expect(editor.commandline_cursor_location)
+                .to eq(expected_input.index('|') + 1)
+            }.not_to start_search
+          end
+        end
+      end
+
       shared_examples "it doesn't start search after pressing" do |keys:, prefilled_input: 'any'|
         context "when #{keys} keys are pressed while prefilled with #{prefilled_input.inspect}" do
           include_context 'run preparatory search to enable prefilling', prefilled_input
@@ -58,32 +75,32 @@ describe 'esearch#cmdline input' do
         end
       end
 
-      describe 'clearing prefilled' do
+      describe 'clear prefilled' do
         context 'defined in g:esearch#cmdline#clear_selection_chars' do
           context 'defaults' do
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            [:delete, 'after', :enter],
+            include_examples 'it changes commandline state to',
+              keys:            [:delete],
               prefilled_input: 'was',
-              expected_input:  'after|'
+              expected_input:  '|'
 
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            [:backspace, 'after', :enter],
+            include_examples 'it changes commandline state to',
+              keys:            [:backspace],
               prefilled_input: 'was',
-              expected_input:  'after|'
+              expected_input:  '|'
 
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-w>', 'after', :enter],
+            include_examples 'it changes commandline state to',
+              keys:            ['\\<C-w>'],
               prefilled_input: 'was',
-              expected_input:  'after|'
+              expected_input:  '|'
           end
 
           context 'defined by user' do
             include_context 'add', value: '\\<C-n>', to: 'g:esearch#cmdline#clear_selection_chars'
 
-            include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-n>', 'after', :enter],
+            include_examples 'it changes commandline state to',
+              keys:            ['\\<C-n>'],
               prefilled_input: 'was',
-              expected_input:  'after|'
+              expected_input:  '|'
           end
 
           context 'not defined' do
