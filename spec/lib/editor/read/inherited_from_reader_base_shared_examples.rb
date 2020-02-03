@@ -2,22 +2,33 @@
 
 RSpec.shared_context 'inherited from Editor::Read::Base' do
   shared_examples '#with_ignore_cache' do
-    around { |e| subject.with_ignore_cache(&e) }
+    context 'return value' do
+      let(:block_returned_value) { 42 }
 
-    context '#echo call' do
-      let(:calls_count) { 2 }
+      it do
+        expect(subject.with_ignore_cache { block_returned_value })
+          .to eq(block_returned_value)
+      end
+    end
 
-      before { expect(calls_count).to be > 1 } # verify the setup
+    context 'inside the block' do
+      around { |e| subject.with_ignore_cache(&e) }
 
-      it "doesn't cache echo calls" do
-        expect(vim)
-          .to receive(:echo)
-          .exactly(calls_count)
-          .with('[abs(-1)]')
-          .and_return('[1]')
+      context '#echo call' do
+        let(:calls_count) { 2 }
 
-        calls_count.times do
-          expect(subject.echo(func('abs', -1))).to eq(1)
+        before { expect(calls_count).to be > 1 } # verify the setup
+
+        it "doesn't cache echo calls" do
+          expect(vim)
+            .to receive(:echo)
+            .exactly(calls_count)
+            .with('[abs(-1)]')
+            .and_return('[1]')
+
+          calls_count.times do
+            expect(subject.echo(func('abs', -1))).to eq(1)
+          end
         end
       end
     end

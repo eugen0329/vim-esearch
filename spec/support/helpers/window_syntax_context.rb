@@ -30,7 +30,7 @@ module Helpers::WindowSyntaxContext
     diffable
 
     match do
-      highlight_names = esearch.editor.syntax_aliases_at(expected.keys)
+      highlight_names = editor.syntax_aliases_at(expected.keys)
       @actual = expected.keys.zip(highlight_names).to_h
       values_match?(expected, @actual)
     end

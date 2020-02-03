@@ -1,18 +1,31 @@
-let s:mappings = {
-      \ '<C-o><C-r>':  '<Plug>(esearch-toggle-regex)',
-      \ '<C-o><C-s>':  '<Plug>(esearch-toggle-case)',
-      \ '<C-o><C-w>':  '<Plug>(esearch-toggle-word)',
-      \ '<C-o><C-h>':  '<Plug>(esearch-cmdline-help)',
-      \ 'key':         function('esearch#util#key'),
-      \ 'dict':        function('esearch#util#dict'),
-      \ 'without_val':        function('esearch#util#without_val'),
-      \}
-let s:comments = {
-      \ '<Plug>(esearch-toggle-regex)': 'Toggle regex(r) or literal(>) match',
-      \ '<Plug>(esearch-toggle-case)':  'Toggle case sensitive(c) or insensitive(>) match',
-      \ '<Plug>(esearch-toggle-word)':  'Toggle only whole words matching(w)',
-      \ '<Plug>(esearch-cmdline-help)':  'Show this message',
-      \}
+let g:esearch#cmdline#menu_feature_toggle = 1
+if g:esearch#cmdline#menu_feature_toggle == 1
+  let g:cmdline_mappings = {
+        \ '<C-o>':       '<Plug>(esearch-cmdline-open-menu)',
+        \ 'key':         function('esearch#util#key'),
+        \ 'dict':        function('esearch#util#dict'),
+        \ 'without_val':        function('esearch#util#without_val'),
+        \}
+  let s:comments = {
+        \ '<Plug>(esearch-cmdline-open-menu)': 'Toggle regex(r) or literal(>) match',
+        \}
+else
+  let g:cmdline_mappings = {
+        \ '<C-o><C-r>':  '<Plug>(esearch-toggle-regex)',
+        \ '<C-o><C-s>':  '<Plug>(esearch-toggle-case)',
+        \ '<C-o><C-w>':  '<Plug>(esearch-toggle-word)',
+        \ '<C-o><C-h>':  '<Plug>(esearch-cmdline-help)',
+        \ 'key':         function('esearch#util#key'),
+        \ 'dict':        function('esearch#util#dict'),
+        \ 'without_val':        function('esearch#util#without_val'),
+        \}
+  let s:comments = {
+        \ '<Plug>(esearch-toggle-regex)': 'Toggle regex(r) or literal(>) match',
+        \ '<Plug>(esearch-toggle-case)':  'Toggle case sensitive(c) or insensitive(>) match',
+        \ '<Plug>(esearch-toggle-word)':  'Toggle only whole words matching(w)',
+        \ '<Plug>(esearch-cmdline-help)': 'Show this message',
+        \}
+endif
 
 if !exists('g:esearch#cmdline#dir_icon')
   if esearch#util#has_unicode()
@@ -25,41 +38,48 @@ if !exists('g:esearch#cmdline#help_prompt')
   let g:esearch#cmdline#help_prompt = 1
 endif
 
-if !exists('g:esearch#cmdline#select_cancelling_chars')
-  let g:esearch#cmdline#select_cancelling_chars = [
-        \ "\<C-a>",
-        \ "\<C-e>",
-        \ "\<C-c>",
-        \ "\<C-o>",
-        \ "\<Esc>",
+
+if !exists('g:esearch#cmdline#clear_selection_chars')
+  let g:esearch#cmdline#clear_selection_chars = [
+        \ "\<Del>",
+        \ "\<Bs>",
+        \ "\<C-w>",
+        \ ]
+endif
+if !exists('g:esearch#cmdline#start_search_chars')
+  let g:esearch#cmdline#start_search_chars = [
         \ "\<Enter>",
-        \ "\<Tab>",
-        \ "\<M-b>",
-        \ "\<M-f>",
+        \ ]
+endif
+if !exists('g:esearch#cmdline#cancel_selection_and_retype_chars')
+  let g:esearch#cmdline#cancel_selection_and_retype_chars = [
         \ "\<Left>",
         \ "\<Right>",
         \ "\<Up>",
         \ "\<Down>",
         \ ]
 endif
-
-" This chars can cause undefined behavior when used as part of a string sent as
-" input()'s {text} argument and need to be handled separately
-let s:select_cancelling_special_chars = [
-      \ "\<Esc>",
-      \ "\<C-c>",
-      \ "\<Enter>",
-      \]
+if !exists('g:esearch#cmdline#cancel_selection_chars')
+  let g:esearch#cmdline#cancel_selection_chars = [
+        \ "\<Esc>",
+        \ "\<C-c>",
+        \ ]
+endif
 
 if !exists('g:esearch#cmdline#select_initial')
   let g:esearch#cmdline#select_initial = 1
 endif
 
-cnoremap <Plug>(esearch-toggle-regex)        <C-r>=<SID>run('s:invert', 'regex')<CR>
-cnoremap <Plug>(esearch-toggle-case)         <C-r>=<SID>run('s:invert', 'case')<CR>
-cnoremap <Plug>(esearch-toggle-word)         <C-r>=<SID>run('s:invert', 'word')<CR>
-cnoremap <Plug>(esearch-cmdline-help)        <C-r>=<SID>run('s:help')<CR>
+cnoremap <Plug>(esearch-toggle-regex)      <C-r>=<SID>run('s:invert', 'regex')<CR>
+cnoremap <Plug>(esearch-toggle-case)       <C-r>=<SID>run('s:invert', 'case')<CR>
+cnoremap <Plug>(esearch-toggle-word)       <C-r>=<SID>run('s:invert', 'word')<CR>
+cnoremap <Plug>(esearch-cmdline-open-menu) <C-r>=<SID>run('s:open_menu')<CR>
 
+if g:esearch#cmdline#menu_feature_toggle == 0
+  cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('esearch#cmdline#help')<CR>
+else
+  cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('s:open_menu')<CR>
+endif
 
 " TODO MAJOR PRIO refactoring
 " a:adapter_options is used to display adapter config in the prompt (>>>)
@@ -78,35 +98,23 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
 
   " Initial selection handling
   """""""""""""""""""""""""""
-  let enter_was_pressed = 0
-
+  let finish_input = 0
   if !empty(s:cmdline) && g:esearch#cmdline#select_initial
-    " call esearch#log#debug("!empty(s:cmdline) && g:esearch#cmdline#select_initial", '/tmp/esearch_log.txt')
-    let [s:cmdline, enter_was_pressed, special_key_was_pressed] =
+    let [s:cmdline, finish_input, retype_keys] =
           \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
     redraw!
-    " call esearch#log#debug('asdasd', '/tmp/esearch_log.txt')
-    " call esearch#log#debug(["redraw!", s:cmdline, enter_was_pressed, special_key_was_pressed], '/tmp/esearch_log.txt')
 
-    if special_key_was_pressed
-      " Reopen cmdline and set input using keypress emulations
-      " Such a veird way is needed to handle special keys listed in
-      " the g:esearch#cmdline#select_cancelling_chars
-      exe "norm :call esearch#init({'empty_cmdline': 1})\<CR>".s:cmdline
-      return 0
+    if retype_keys isnot 0
+      call feedkeys(retype_keys)
     endif
-  else
-
   endif
   """""""""""
 
   " Reading string from user
   """""""""""""""""""""""""""
-  if enter_was_pressed
-    " call esearch#log#debug("enter_was_pressed", '/tmp/esearch_log.txt')
+  if finish_input
     let str = s:cmdline
   else
-    " call esearch#log#debug("Reading string from user", '/tmp/esearch_log.txt')
     let str = s:main_loop(a:cmdline_opts, a:adapter_options)
   endif
   """""""""""""""""""""""""""
@@ -120,10 +128,12 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   " Build search expression
   """""""""""""""""""""""""""
   if g:esearch.regex
+    let s:pattern.literal = str
     let s:pattern.pcre = str
     let s:pattern.vim = esearch#regex#pcre2vim(str)
   else
     let s:pattern.literal = str
+    let s:pattern.pcre = str
     let s:pattern.vim = '\M'.escape(str, '\$^')
   endif
   """""""""""""""""""""""""""
@@ -136,17 +146,14 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
   let s:list_help = 0
   let s:events = []
 
+  let str = ''
+
   " Main loop
   """""""""""
   while 1
-    " call esearch#log#debug('main_loop render prompt', '/tmp/esearch_log.txt')
     call s:render_directory_prompt(a:cmdline_opts.cwd)
-    " call esearch#log#debug('main_loop rendered prompt after', '/tmp/esearch_log.txt')
     let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
-
-    if empty(s:events)
-      break
-    endif
+    if empty(s:events) | break | endif
 
     for handler in s:events
       call call(handler.funcref, handler.args)
@@ -161,63 +168,44 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
-  let special_key_was_pressed = 0
-  let enter_was_pressed = 0
-  " call esearch#log#debug('handle_initial_select.prompt', '/tmp/esearch_log.txt')
   call s:render_directory_prompt(a:dir)
-  " call esearch#log#debug('handle_initial_select.prompt after', '/tmp/esearch_log.txt')
-
-  " Render virtual interface
-  """""""""""""""""""""""""""
   call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
-  " Replace \n with \s like *input()* function argumen {text} do
-  let virtual_cmdline = substitute(a:cmdline, "\n", ' ', 'g')
-  call esearch#util#highlight('Visual', virtual_cmdline, 0)
-  """""""""""""""""""""""""""
-  " call esearch#log#debug('hl', '/tmp/esearch_log.txt')
+  call esearch#util#highlight('Visual',
+        \ substitute(a:cmdline, "\n", ' ', 'g'), 0)
 
-  " Read char from user
-  """""""""""""""""""""""""""
-  let char = getchar()
-  " getchar() results example:
-  "   KeyPress | getchar()     | Type
-  "   <M-c>    | '<80><fc>^Hc' | String
-  "     a      |     97        | Integer
-  "     b      |     98        | Integer
-  " Convert everything to String
-  if type(char) !=# type('')
-    let char = nr2char(char)
-  endif
-  """""""""""""""""""""""""""
+  let retype_keys = 0
+  let cmdline =  a:cmdline
+  let finish_input = 0
 
-  " call esearch#log#debug(['before index', index(g:esearch#cmdline#select_cancelling_chars, char)], '/tmp/esearch_log.txt')
+  let char = esearch#util#getchar()
 
-  if index(g:esearch#cmdline#select_cancelling_chars, char) >= 0
-    " Handle VERY special characters (<Enter>, <Esc> or <C-c>)
-    " """"""""""""""""""""""""""""""""""""""""""""""""""""""
-    if index(s:select_cancelling_special_chars, char) >= 0
-      let enter_was_pressed = (char ==# "\<Enter>" ? 1 : 0)
-      let special_key_was_pressed = 0
-      return [a:cmdline, enter_was_pressed, special_key_was_pressed]
-    endif
-    " """"""""""""""""""""""""""""""""""""""""""""""""""""""
-
-    let preserve_cmdline = 1
-
-    if !empty(esearch#util#map_name(char))
-      let special_key_was_pressed = 1
-    endif
+  if index(g:esearch#cmdline#clear_selection_chars, char) >= 0
+    let cmdline = ''
+  elseif index(g:esearch#cmdline#start_search_chars, char) >= 0
+    let finish_input = 1
+  elseif index(g:esearch#cmdline#cancel_selection_and_retype_chars, char) >= 0
+    let retype_keys = char
+  elseif index(g:esearch#cmdline#cancel_selection_chars, char) >= 0
+    " no-op
+  elseif esearch#util#escape_kind(char) isnot 0
+    let retype_keys = char
+  elseif s:is_commandline_hotkey_prefix(char)
+    let retype_keys = char
   else
-    let preserve_cmdline = 0
+    let cmdline = char
   endif
 
-  if special_key_was_pressed
-    let cmdline =  virtual_cmdline . char
-  else
-    let cmdline =  preserve_cmdline ? a:cmdline . char : char
-  endif
+  return [cmdline, finish_input, retype_keys]
+endfu
 
-  return [cmdline, enter_was_pressed, special_key_was_pressed]
+fu! s:is_commandline_hotkey_prefix(char) abort
+  return mapcheck(a:char, 'c') !=# ''
+endfu
+
+fu! s:is_cmdline_mapping(char) abort
+  " NOTE mapcheck is not working
+  let ma = maparg(a:char, 'c', 0,1)
+  return !empty(ma)
 endfu
 
 fu! s:list_help() abort
@@ -226,12 +214,12 @@ fu! s:list_help() abort
 
   let s:list_help = 1
 
-  call feedkeys("\<C-c>", 'n')
+  call feedkeys("\<Enter>", 'm')
   return ''
 endfu
 
-fu! s:help() abort
-  call esearch#help#cmdline(s:mappings, s:comments)
+fu! esearch#cmdline#help() abort
+  call esearch#help#cmdline(g:cmdline_mappings, s:comments)
   call getchar()
 endfu
 
@@ -239,34 +227,18 @@ fu! s:run(func, ...) abort
   call add(s:events, {'funcref': function(a:func), 'args': a:000})
   let s:cmdpos = getcmdpos()
   let s:cmdline = getcmdline()
-  call feedkeys("\<C-c>", 'n')
+  call feedkeys("\<Enter>", 'n')
   return ''
 endfu
 
 fu! s:invert(option) abort
-  if a:option ==# 'regex' && g:esearch.recover_regex
-    call s:recover_regex()
-  endif
+  call s:synchronize_regexp()
   call g:esearch.invert(a:option)
 endfu
 
-fu! s:recover_regex() abort
-  if g:esearch.regex
-    if s:cmdline == s:pattern.pcre
-      let s:cmdline = s:pattern.literal
-    else
-      let s:pattern.pcre = s:cmdline
-      let s:cmdline = esearch#regex#pcre_sanitize(s:cmdline)
-      let s:pattern.literal = s:cmdline
-    endif
-  else
-    if s:cmdline == s:pattern.literal
-      let s:cmdline = s:pattern.pcre
-    else
-      let s:pattern.literal = s:cmdline
-      let s:pattern.pcre = s:cmdline
-    endif
-  endif
+fu! s:synchronize_regexp() abort
+  let s:pattern.literal = s:cmdline
+  let s:pattern.pcre = s:cmdline
 endfu
 
 fu! s:prompt(adapter_options) abort
@@ -275,7 +247,7 @@ fu! s:prompt(adapter_options) abort
   let w = a:adapter_options.stringify('word')
 
   if g:esearch#cmdline#help_prompt
-    let mapping = s:mappings.key('<Plug>(esearch-cmdline-help)')
+    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-help)')
     let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to list help)'
   else
     let help = ''
@@ -289,14 +261,10 @@ fu! s:render_directory_prompt(dir) abort
     return 0
   endif
 
-  " call esearch#log#debug('g:esearch#cmdline#dir_icon', '/tmp/esearch_log.txt')
   let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
-  " call esearch#log#debug('g:esearch#cmdline#dir_icon after', '/tmp/esearch_log.txt')
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
-  " call esearch#log#debug("call esearch#util#highlight('Directory', dir, 0) after", '/tmp/esearch_log.txt')
   echo ''
-  " call esearch#log#debug("blank echo after", '/tmp/esearch_log.txt')
 endfu
 
 fu! s:restore_cursor_position() abort
@@ -308,10 +276,12 @@ endfu
 
 fu! s:init_mappings() abort
   let mapargs =  {}
+  let s:mapargs = []
   " TODO add support for g:esearch.default_mappings
-  for map in keys(s:mappings.dict())
+  for map in keys(g:cmdline_mappings.dict())
     let mapargs[map] = maparg(map, 'c', 0, 1)
-    exe 'cmap ' . map . ' ' . s:mappings[map]
+    exe 'cmap ' . map . ' ' . g:cmdline_mappings[map]
+    let  s:mapargs += [maparg(map)]
   endfor
 
   return mapargs
@@ -331,15 +301,15 @@ fu! s:recover_mappings(mapargs) abort
 endfu
 
 fu! esearch#cmdline#map(lhs, rhs) abort
-  let s:mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
+  let g:cmdline_mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
 
 " borrowed from oblique and incsearch
 fu! esearch#cmdline#buff_compl(A, ...) abort
   let chars = map(split(a:A, '.\zs'), 'escape(v:val, "\\[]^$.*")')
   let fuzzy_pat = join(
-    \ extend(map(chars[0 : -2], "v:val . '[^' .v:val. ']\\{-}'"),
-    \ chars[-1:-1]), '')
+        \ extend(map(chars[0 : -2], "v:val . '[^' .v:val. ']\\{-}'"),
+        \ chars[-1:-1]), '')
 
   let spell_pat = a:A
   let spell_save = &spell
@@ -350,7 +320,7 @@ fu! esearch#cmdline#buff_compl(A, ...) abort
     let &spell = spell_save
   endtry
 
-  " exacat, part, spell suggest, fuzzy, begin with
+  " exact, part, spell suggest, fuzzy, begins with
   let e = []
   let p = []
   let s = []
@@ -388,3 +358,34 @@ endfu
 function! s:spell_suggests(word) abort
   return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfunction
+
+if g:esearch#cmdline#menu_feature_toggle == 1
+  fu! s:open_menu() abort
+    let prompt =
+          \   "  Hotkey  Action (press a hotkey or select using j/k/enter)\n"
+          \ . '  ------  -------------------------------------------------'
+
+    call esearch#ui#menu#new(s:menu_items(), prompt).start()
+  endfu
+
+  fu! s:menu_items() abort
+    if !exists('g:esearch#cmdline#menu_items')
+      let g:esearch#cmdline#menu_items = []
+
+      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
+            \'text': 'c       toggle (c)ase sensitive match',
+            \ 'shortcut': ['c', "\<C-c>", 's', "\<C-s>"],
+            \ 'callback': function('<SID>invert', ['case'])}))
+      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
+            \ 'text': 'r       toggle (r)egexp match',
+            \ 'shortcut': ['r', "\<C-r>"],
+            \ 'callback': function('<SID>invert', ['regex'])}))
+      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
+            \ 'text': 'w       toggle (w)ord match',
+            \ 'shortcut': ['w', "\<C-w>"],
+            \ 'callback': function('<SID>invert', ['word'])}))
+    endif
+
+    return g:esearch#cmdline#menu_items
+  endfu
+endif

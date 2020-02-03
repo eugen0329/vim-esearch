@@ -25,7 +25,6 @@ fu! esearch#opts#new(opts) abort
         \ 'word':             0,
         \ 'batch_size':       1000,
         \ 'context_width':    { 'l': 60, 'r': 60 },
-        \ 'recover_regex':    1,
         \ 'highlight_match':  1,
         \ 'escape_special':   1,
         \ 'default_mappings': g:esearch#defaults#default_mappings,

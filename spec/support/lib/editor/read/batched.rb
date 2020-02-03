@@ -27,6 +27,11 @@ class Editor::Read::Batched < Editor::Read::Base
 
   private
 
+  def reset!
+    batch.clear
+    super
+  end
+
   def eager!
     return false if batch.blank?
 

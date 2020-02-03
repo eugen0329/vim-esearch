@@ -69,17 +69,24 @@ else
   end
 end
 
+def editor
+  esearch.editor
+end
+
 RSpec.configure do |c|
   c.color_mode = true
   c.order      = :rand
   c.formatter  = :documentation
   c.fail_fast  = Configuration.ci? ? 3 : 1
   c.example_status_persistence_file_path = 'failed_specs.txt'
-  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
   c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
+
+  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:osx_only) unless Configuration.osx?
+  c.filter_run_excluding(:multibyte_commandline) # TODO
 end
 
 RSpec::Matchers.define_negated_matcher :not_include, :include
@@ -89,7 +96,7 @@ Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_vim do
-    load_vim_plugins!(Client.new(Server.vim(
+    load_runtime!(Client.new(Server.vim(
       executable: Configuration.vim_path,
       vimrc:      Configuration.vimrc_path,
       timeout:    10
@@ -101,7 +108,7 @@ VimrunnerNeovim::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_nvim do
-    load_vim_plugins!(Client.new(Server.neovim(
+    load_runtime!(Client.new(Server.neovim(
       nvim:          Configuration.nvim_path,
       gui:           Configuration.nvim_gui?,
       vimrc:         Configuration.vimrc_path,
@@ -111,7 +118,8 @@ VimrunnerNeovim::RSpec.configure do |c|
   end
 end
 
-def load_vim_plugins!(vim)
+def load_runtime!(vim)
+  vim.append_runtimepath(Configuration.viml_dir)
   vim.add_plugin(Configuration.root,                            'plugin/esearch.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'), 'plugin/vimproc.vim')
   ## Will be used for testing contex syntax highlights

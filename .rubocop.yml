@@ -31,7 +31,9 @@ Style/BlockDelimiters:
     - 'spec/**/*_spec.rb'
     - 'spec/spec_helper.rb'
     - 'spec/**/shared_examples/*.rb'
-  # EnforcedStyle: braces_for_chaining
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
 
 Lint/BooleanSymbol:
   Enabled: false

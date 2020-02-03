@@ -24,6 +24,15 @@ class Editor
     end
   end
 
+  MODES = {
+    'n' => :normal,
+    'c' => :commandline
+  }.freeze
+
+  def mode
+    MODES[echo(func('mode'))]
+  end
+
   def line(number)
     echo func('getline', number)
   end
@@ -88,7 +97,7 @@ class Editor
   end
 
   def edit!(filename)
-    command!("edit #{filename}")
+    command!("edit! #{filename}")
   end
 
   def pwd
@@ -106,16 +115,15 @@ class Editor
     command('ls')
   end
 
-  def delete_all_buffers_and_clear_messages!
-    command!('%bwipeout! | messages clear')
-    # command!('%close')
+  def delete_all_buffers_and_clear_messages_and_reset_input!
+    # TODO: fix after modifier implementation
+    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>\\<Esc>\\<C-\\>\\<C-n>", "n")')
   end
 
   def cleanup!
-    delete_all_buffers_and_clear_messages!
+    delete_all_buffers_and_clear_messages_and_reset_input!
     handle_state_change!
   end
-  # alias cleanup! delete_all_buffers_and_clear_messages!
 
   def bufdelete!(ignore_unsaved_changes: false)
     return command!('bdelete!') if ignore_unsaved_changes
@@ -145,9 +153,7 @@ class Editor
   end
 
   def command(string_to_execute)
-    # instrument(:command, data: string_to_execute) do
     vim.command(string_to_execute)
-    # end
   end
 
   def command!(string_to_execute)
@@ -160,6 +166,14 @@ class Editor
     end
   end
 
+  def commandline_cursor_location
+    echo func('getcmdpos')
+  end
+
+  def commandline_content
+    echo func('getcmdline')
+  end
+
   def press!(keyboard_keys)
     handle_state_change!
 
@@ -170,14 +184,21 @@ class Editor
     end
   end
 
-  def press_with_user_mappings!(keyboard_keys)
+  def press_with_user_mappings!(*keyboard_keys)
     handle_state_change!
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
-        vim.feedkeys keyboard_keys
+        vim.feedkeys keyboard_keys_to_string(*keyboard_keys)
       end
     end
+  end
+  # to resemble capybara interace
+  alias send_keys press_with_user_mappings!
+
+  # is required as far as continious sequence may be handled incorrectly by vim
+  def send_keys_separately(*keyboard_keys)
+    keyboard_keys.map { |key| send_keys(key) }
   end
 
   def raw_echo(arg)
@@ -189,6 +210,30 @@ class Editor
   end
 
   private
+
+  SYMBOL_TO_KEYBOARD_KEY = {
+    enter:     '\\<Cr>',
+    left:      '\\<Left>',
+    right:     '\\<Right>',
+    delete:    '\\<Del>',
+    leader:    '\\\\',
+    backspace: '\\<Bs>',
+    space:     '\\<Space>',
+    escape:    '\\<Esc>',
+    up:        '\\<Up>',
+    down:      '\\<Down>',
+    end:       '\\<End>'
+  }.freeze
+
+  def keyboard_keys_to_string(*keyboard_keys)
+    keyboard_keys.compact.map do |key|
+      if key.is_a? Symbol
+        SYMBOL_TO_KEYBOARD_KEY.fetch(key)
+      else
+        key
+      end
+    end.join
+  end
 
   def lines_range(range)
     return [1, nil] if range.blank?

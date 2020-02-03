@@ -12,7 +12,7 @@ describe Debug do
 
   subject(:debug) { described_class }
 
-  after(:context) { esearch.editor.command!('unlet! g:esearch b:esearch | au! User *') }
+  after(:context) { editor.command!('unlet! g:esearch b:esearch | au! User *') }
 
   describe '.plugin_log' do
     shared_examples 'it reads and outputs plugin log' do
@@ -170,13 +170,13 @@ describe Debug do
 
   describe '.buffer_configuration' do
     context 'when defined' do
-      before { esearch.editor.command!('let b:esearch = {"option": ["..."]}') }
+      before { editor.command!('let b:esearch = {"option": ["..."]}') }
 
       it { expect(debug.buffer_configuration).to eq('option' => ['...']) }
     end
 
     context 'when undefined' do
-      before(:context) { esearch.editor.command!('unlet! b:esearch') }
+      before(:context) { editor.command!('unlet! b:esearch') }
 
       it do
         expect(debug.buffer_configuration)
@@ -188,13 +188,13 @@ describe Debug do
 
   describe '.global_configuration' do
     context 'when defined' do
-      before { esearch.editor.command!('let g:esearch = "global_configuration"') }
+      before { editor.command!('let g:esearch = "global_configuration"') }
 
       it { expect(debug.global_configuration).to eq('global_configuration') }
     end
 
     context 'when undefined' do
-      before { esearch.editor.command!('unlet! g:esearch') }
+      before { editor.command!('unlet! g:esearch') }
 
       it do
         expect(debug.global_configuration)
@@ -205,7 +205,7 @@ describe Debug do
   end
 
   describe '.user_autocommands' do
-    before { esearch.editor.command!('au User TestAutocommand echo 42') }
+    before { editor.command!('au User TestAutocommand echo 42') }
 
     it { expect(debug.user_autocommands).to include match('TestAutocommand') }
     it { expect(debug.user_autocommands).to include match('echo 42') }

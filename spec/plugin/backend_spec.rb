@@ -137,7 +137,7 @@ describe 'esearch#backend', :backend do
     context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
       let(:backend) { backend }
 
-      before { esearch.configure(backend: backend) }
+      before { esearch.configure(backend: backend, last_id: 0) }
 
       describe '#out#win' do
         before { esearch.configure(out: 'win') }
@@ -159,8 +159,8 @@ describe 'esearch#backend', :backend do
 
   describe '#vimproc', :vimproc, backend: :vimproc do
     before(:all) do
-      esearch.editor.press! ':let g:esearch#backend#vimproc#updatetime = 30'
-      esearch.editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30'
+      editor.press! ':let g:esearch#backend#vimproc#updatetime = 30'
+      editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30'
     end
 
     include_context 'a backend', 'vimproc'
@@ -173,7 +173,7 @@ describe 'esearch#backend', :backend do
 
     # TODO
     before(:each) do
-      esearch.editor.press! ':let g:esearch#util#unicode_enabled = 0<Enter>'
+      editor.press! ':let g:esearch#util#unicode_enabled = 0<Enter>'
     end
 
     include_context 'a backend', 'nvim'
@@ -182,7 +182,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
-    before { esearch.editor.press! ':let g:esearch#backend#vim8#timer = 100<Enter>' }
+    before { editor.press! ':let g:esearch#backend#vim8#timer = 100<Enter>' }
 
     include_context 'a backend', 'vim8'
     include_context 'a backend 2', 'vim8'

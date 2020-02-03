@@ -13,24 +13,34 @@ class API::ESearch::Configuration
     @staged_configuration = {}
   end
 
+  def global
+    editor.echo func('get', var('g:'), 'esearch', {})
+  end
+
   def configure(options)
     cache.write_multi(options)
     staged_configuration.merge!(options)
   end
 
-  def submit!
+  # TODO: a hack that should be rewrited in future
+  def submit!(overwrite: true)
     dict = VimlValue.dump(staged_configuration)
-    editor.command!("if !exists('g:esearch') | "\
-                     "let g:esearch = #{dict} | "\
-                     'else | '\
-                     "call extend(g:esearch, #{dict}) | "\
-                     'endif')
+
+    if overwrite
+      editor.command!("let g:esearch = #{dict}")
+    else
+      editor.command!("if !exists('g:esearch') | "\
+                      "let g:esearch = #{dict} | "\
+                      'else | '\
+                      "call extend(g:esearch, #{dict}) | "\
+                      'endif')
+    end
     staged_configuration.clear
   end
 
   def configure!(options)
     configure(options)
-    submit!
+    submit!(overwrite: true)
   end
 
   def adapter_bin=(path)
@@ -45,7 +55,7 @@ class API::ESearch::Configuration
 
   def output
     cache.fetch('out') do
-      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', 'g:esearch#defaults#out')
+      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'out', var('g:esearch#defaults#out'))
     end
   end
 end

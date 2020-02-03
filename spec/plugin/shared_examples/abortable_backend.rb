@@ -40,7 +40,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
         .and have_running_processes_matching(command_pattern, ignore_pattern, count: 1)
         .and have_search_freezed
 
-      esearch.editor.bufdelete!
+      editor.bufdelete!
       expect(esearch).to have_no_process_matching(search_string)
     end
 

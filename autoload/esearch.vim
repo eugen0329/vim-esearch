@@ -3,10 +3,11 @@ fu! esearch#init(...) abort
     return 1
   endif
 
-  " call esearch#log#debug('prepare argv before', '/tmp/esearch_log.txt')
   " Prepare argv
   """""""""""""""
   let opts = a:0 ? a:1 : {}
+  let g:esearch.last_id += 1
+  let opts.id = g:esearch.last_id
   let source_params = {
         \ 'visualmode': get(opts, 'visualmode', 0),
         \}
@@ -17,9 +18,7 @@ fu! esearch#init(...) abort
         \ 'slice': function('esearch#util#slice')
         \})
   """""""""""""""
-  " call esearch#log#debug('prepare argv after', '/tmp/esearch_log.txt')
 
-  " call esearch#log#debug('read search string before', '/tmp/esearch_log.txt')
   " Read search string
   """""""""""""""
   call opts.set_default('cwd', getcwd())
@@ -27,9 +26,7 @@ fu! esearch#init(...) abort
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
-    " call esearch#log#debug("1 == !has_key(opts, 'exp')", '/tmp/esearch_log.txt')
     let adapter_opts = esearch#adapter#{opts.adapter}#_options()
-    " call esearch#log#debug("esearch#adapter#{opts.adapter}#_options after", '/tmp/esearch_log.txt')
     let cmdline_opts = {
           \ 'cwd': opts.cwd,
           \ 'exp': g:esearch._last_search,
@@ -42,10 +39,7 @@ fu! esearch#init(...) abort
     let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
   endif
   """""""""""""""
-  " call esearch#log#debug('read search string after', '/tmp/esearch_log.txt')
 
-
-  " call esearch#log#debug('Prepare backend before', '/tmp/esearch_log.txt')
   " Prepare backend (nvim, vimproc, ...) request object
   """""""""""""""
   call opts.set_default('backend', g:esearch.backend)
@@ -54,22 +48,25 @@ fu! esearch#init(...) abort
   let shell_cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd, EscapeFunc)
   let requires_pty = esearch#adapter#{opts.adapter}#requires_pty()
 
+  let opts.regex = g:esearch.regex
+  let opts.case = g:esearch.case
+  let opts.word = g:esearch.word
+
   let request = esearch#backend#{opts.backend}#init(shell_cmd, requires_pty)
   """""""""""""""
-  " call esearch#log#debug('Prepare backend end', '/tmp/esearch_log.txt')
 
-  " call esearch#log#debug('build output before', '/tmp/esearch_log.txt')
   " Build output (window, qflist, ...) params object
   """""""""""""""
   call opts.set_default('batch_size', g:esearch.batch_size)
   call opts.set_default('out', g:esearch.out)
   call opts.set_default('context_width', g:esearch.context_width)
-  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file', 'exp', 'out', 'batch_size', 'context_width'), {
+  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file',
+        \'exp', 'out', 'batch_size', 'context_width', '_last_search',
+        \'regex', 'case', 'word', 'id'), {
         \ 'title': s:title(pattern),
         \ 'request': request,
         \})
   """""""""""""""
-  " call esearch#log#debug('build output after', '/tmp/esearch_log.txt')
 
   call esearch#out#{opts.out}#init(out_params)
 endfu
@@ -116,6 +113,10 @@ fu! s:init_lazy_global_config() abort
   if type(global_esearch) != type({})
     echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
     return 1
+  endif
+
+  if !has_key(global_esearch, 'last_id')
+    let global_esearch.last_id = 0
   endif
 
   if !has_key(global_esearch, '__lazy_loaded')
