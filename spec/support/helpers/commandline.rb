@@ -23,11 +23,13 @@ module Helpers::Commandline
 
   def without_location_mark(location_string)
     raise ArgumentError unless location_string.include?('')
+
     location_string.tr('|', '')
   end
 
   def goto_location_keys(location_string)
     raise ArgumentError unless location_string.include?('')
+
     [:end].concat([:left] * (location_string.length - location_string.index('|') - 1))
   end
 
@@ -71,20 +73,27 @@ module Helpers::Commandline
   end
 
   define_negated_matcher :not_to_change, :change
-  define_negated_matcher :not_to_start_search, :start_search
 
-  matcher :have_location do |location_string|
+  matcher :be_in_commandline do |_location_string|
+    match { values_match?(editor.mode, :commandline) }
+  end
+  define_negated_matcher :not_to_be_in_commandline, :be_in_commandline
+
+  matcher :have_commandline_cursor_location do |location_string|
+    attr_reader :expected, :actual
+
+    diffable
+
     match do |editor|
-      values_match?(
-        {
-          commandline_cursor_location: editor.commandline_cursor_location,
-          commandline_content: editor.commandline_content
-        },
-        {
-          commandline_cursor_location: location_string.index('|') + 1,
-         commandline_content: location_string.tr('|', '')
-        }
-      )
+      @expected = {
+        commandline_cursor_location: editor.commandline_cursor_location,
+        commandline_content:         editor.commandline_content
+      }
+      @actual = {
+        commandline_cursor_location: location_string.index('|') + 1,
+        commandline_content:         location_string.tr('|', '')
+      }
+      values_match?(@expected, @actual)
     end
   end
 
@@ -180,4 +189,5 @@ module Helpers::Commandline
       "expected not to start search, but was changed from \n#{@was.pretty_inspect} to \n#{@actual.pretty_inspect}"
     end
   end
+  define_negated_matcher :not_to_start_search, :start_search
 end

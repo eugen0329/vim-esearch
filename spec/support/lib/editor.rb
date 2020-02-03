@@ -26,8 +26,8 @@ class Editor
 
   MODES = {
     'n' => :normal,
-    'c' => :commandline,
-  }
+    'c' => :commandline
+  }.freeze
 
   def mode
     MODES[echo(func('mode'))]
@@ -222,7 +222,7 @@ class Editor
     escape:    '\\<Esc>',
     up:        '\\<Up>',
     down:      '\\<Down>',
-    end:      '\\<End>',
+    end:       '\\<End>'
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

@@ -47,7 +47,6 @@ fu! s:MenuController.start() abort
     endwhile
   finally
     call self.restore_options()
-
     " Redraw when Ctrl-C or Esc is received.
     if !l:done || self.selection ==# -1
       redraw!
@@ -164,6 +163,7 @@ fu! s:MenuController.save_options() abort
   let self.old_lazy_redraw = &lazyredraw
   let self.old_cmd_height = &cmdheight
   let self.old_showtabline = &showtabline " to reduce blinks
+  let self.old_window_height = winheight(0)
   set nolazyredraw
   set showtabline=0
   call self.set_cmdline_height()
@@ -173,6 +173,7 @@ fu! s:MenuController.restore_options() abort
   let &cmdheight = self.old_cmd_height
   let &lazyredraw = self.old_lazy_redraw
   let &showtabline = self.old_showtabline
+  exe 'resize ' . self.old_window_height
 endfu
 
 fu! s:MenuController.cursor_down() abort

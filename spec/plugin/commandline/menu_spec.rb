@@ -141,7 +141,7 @@ describe 'esearch#cmdline menu' do
         end
       end
 
-      context'default hotkeys' do
+      context 'default hotkeys' do
         include_examples 'it locates "regex" menu items by pressing', keys: ['j']
         include_examples 'it locates "regex" menu items by pressing', keys: ['\\<C-j>']
 
@@ -176,7 +176,7 @@ describe 'esearch#cmdline menu' do
                                *open_menu_keys)
               editor.send_keys(*dismiss_with)
 
-              expect(editor).to have_location(expected_location)
+              expect(editor).to have_commandline_cursor_location(expected_location)
             end
           end
 
@@ -218,7 +218,7 @@ describe 'esearch#cmdline menu' do
                 editor.send_keys(*open_input_keys, *open_menu_keys)
                 editor.send_keys(*keys)
 
-                expect(editor).to have_location(expected_location)
+                expect(editor).to have_commandline_cursor_location(expected_location)
               end
             end
           end

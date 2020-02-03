@@ -24,14 +24,14 @@ describe 'esearch#cmdline input' do
           it "starts search of #{expected_input.inspect} with cursor at \"|\"" do
             expect {
               editor.send_keys(*open_input_keys)
-              next if keys.size < 2
-
               editor.send_keys_separately(*keys[..-2])
-              expect(editor.commandline_cursor_location)
-                .to eq(expected_input.index('|') + 1)
             }.not_to start_search
 
-            expect { editor.send_keys(keys[-1]) }
+            expect(editor)
+              .to have_commandline_cursor_location(expected_input)
+              .or not_to_be_in_commandline
+
+            expect { editor.send_keys(keys.last) }
               .to start_search
               .and finish_search_for(expected_input.tr('|', ''))
           end
@@ -45,12 +45,12 @@ describe 'esearch#cmdline input' do
           it "it changes commandline state to #{expected_input}" do
             expect {
               editor.send_keys(*open_input_keys)
-              next if keys.size < 2
-
-              editor.send_keys_separately(*keys[..-2])
-              expect(editor.commandline_cursor_location)
-                .to eq(expected_input.index('|') + 1)
+              editor.send_keys_separately(*keys)
             }.not_to start_search
+
+            expect(editor)
+              .to  be_in_commandline
+              .and have_commandline_cursor_location(expected_input)
           end
         end
       end
