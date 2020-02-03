@@ -24,6 +24,15 @@ class Editor
     end
   end
 
+  MODES = {
+    'n' => :normal,
+    'c' => :commandline,
+  }
+
+  def mode
+    MODES[echo(func('mode'))]
+  end
+
   def line(number)
     echo func('getline', number)
   end
@@ -161,6 +170,10 @@ class Editor
     echo func('getcmdpos')
   end
 
+  def commandline_content
+    echo func('getcmdline')
+  end
+
   def press!(keyboard_keys)
     handle_state_change!
 
@@ -208,7 +221,8 @@ class Editor
     space:     '\\<Space>',
     escape:    '\\<Esc>',
     up:        '\\<Up>',
-    down:      '\\<Down>'
+    down:      '\\<Down>',
+    end:      '\\<End>',
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

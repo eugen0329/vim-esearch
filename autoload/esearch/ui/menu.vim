@@ -72,13 +72,13 @@ fu! s:MenuController.render() abort
 
     " echo 'Menu: [' . join(shortcuts, ',') . '] (' . navHelp . ' or shortcut): '
   else
-    call esearch#util#echo(self.prompt)
+    call g:esearch#util#mockable.echo(self.prompt)
 
     for i in range(0, len(self.menu_items)-1)
       if self.selection ==# i
-        call esearch#util#echo('> ' . self.menu_items[i].text)
+        call g:esearch#util#mockable.echo('> ' . self.menu_items[i].text)
       else
-        call esearch#util#echo('  ' . self.menu_items[i].text)
+        call g:esearch#util#mockable.echo('  ' . self.menu_items[i].text)
       endif
     endfor
   endif
@@ -95,10 +95,8 @@ fu! s:MenuController.handle_keypress(key) abort
   elseif a:key ==# "\<Esc>"
     let self.selection = -1
     return 1
-  elseif a:key ==# "\r" "enter and ctrl-j
+  elseif a:key ==# "\<Enter>"
     return 1
-    " elseif a:key ==# "\r" || a:key ==# "\n" "enter and ctrl-j
-    "     return 1
   else
     let index = self.next_index_for(a:key)
     if index !=# -1

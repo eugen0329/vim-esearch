@@ -198,7 +198,7 @@ fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
   return [cmdline, finish_input, retype_keys]
 endfu
 
-fu! s:is_commandline_hotkey_prefix(char)
+fu! s:is_commandline_hotkey_prefix(char) abort
   return mapcheck(a:char, 'c') !=# ''
 endfu
 
@@ -320,7 +320,7 @@ fu! esearch#cmdline#buff_compl(A, ...) abort
     let &spell = spell_save
   endtry
 
-  " exacat, part, spell suggest, fuzzy, begin with
+  " exact, part, spell suggest, fuzzy, begins with
   let e = []
   let p = []
   let s = []

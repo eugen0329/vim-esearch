@@ -15,13 +15,6 @@ describe 'esearch#cmdline input' do
     describe 'initial selection' do
       before { esearch.configuration.submit!(overwrite: true) } # TODO: will be removed
 
-      shared_context 'run preparatory search to enable prefilling' do |search_string|
-        before do
-          expect { editor.send_keys(*open_input, search_string, :enter) }
-            .to start_search & finish_search_for(search_string)
-        end
-      end
-
       shared_examples 'it starts search at location "|" after pressing' do |keys:, prefilled_input:, expected_input:|
         context "when #{keys} pressed against input prefilled with #{prefilled_input.inspect}" do
           before { expect(keys.size).to be_present }
@@ -30,7 +23,7 @@ describe 'esearch#cmdline input' do
 
           it "starts search of #{expected_input.inspect} with cursor at \"|\"" do
             expect {
-              editor.send_keys(*open_input)
+              editor.send_keys(*open_input_keys)
               next if keys.size < 2
 
               editor.send_keys_separately(*keys[..-2])
@@ -45,13 +38,13 @@ describe 'esearch#cmdline input' do
         end
       end
 
-      shared_examples "it changes commandline state to"  do |keys:, prefilled_input:, expected_input:|
+      shared_examples 'it changes commandline state to' do |keys:, prefilled_input:, expected_input:|
         context "when #{keys} keys are pressed while prefilled with #{prefilled_input.inspect}" do
           include_context 'run preparatory search to enable prefilling', prefilled_input
 
           it "it changes commandline state to #{expected_input}" do
             expect {
-              editor.send_keys(*open_input)
+              editor.send_keys(*open_input_keys)
               next if keys.size < 2
 
               editor.send_keys_separately(*keys[..-2])
@@ -68,7 +61,7 @@ describe 'esearch#cmdline input' do
 
           it "it doesn't start search" do
             expect {
-              editor.send_keys(*open_input)
+              editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
             }.not_to start_search
           end
@@ -176,7 +169,7 @@ describe 'esearch#cmdline input' do
             include_examples 'it starts search at location "|" after pressing',
               keys:            ['r', :enter],
               prefilled_input: 'was',
-              expected_input:  "r|"
+              expected_input:  'r|'
           end
         end
       end
@@ -209,7 +202,7 @@ describe 'esearch#cmdline input' do
             include_examples 'it starts search at location "|" after pressing',
               keys:            ['c', :enter],
               prefilled_input: 'was',
-              expected_input:  "c|"
+              expected_input:  'c|'
           end
         end
       end

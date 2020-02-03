@@ -506,14 +506,8 @@ if !exists('g:esearch#util#trunc_omission')
 endif
 
 let g:esearch#util#mockable = {}
-
-fu! s:echo(string) abort
+fu! g:esearch#util#mockable.echo(string) abort
   echo a:string
-endfu
-let g:esearch#util#mockable.echo = function('<SID>echo')
-
-fu! esearch#util#echo(string) abort
-  call g:esearch#util#mockable.echo(a:string)
 endfu
 
 fu! esearch#util#parse_help_options(command) abort

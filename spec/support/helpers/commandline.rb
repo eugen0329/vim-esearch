@@ -5,11 +5,11 @@ module Helpers::Commandline
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
 
-  def open_menu
-    '\\<C-o>'
+  def open_menu_keys
+    ['\\<C-o>']
   end
 
-  def open_input
+  def open_input_keys
     [:leader, 'ff']
   end
 
@@ -19,6 +19,23 @@ module Helpers::Commandline
 
   def menu_items
     esearch.output.echo_calls_history.last(3)
+  end
+
+  def without_location_mark(location_string)
+    raise ArgumentError unless location_string.include?('')
+    location_string.tr('|', '')
+  end
+
+  def goto_location_keys(location_string)
+    raise ArgumentError unless location_string.include?('')
+    [:end].concat([:left] * (location_string.length - location_string.index('|') - 1))
+  end
+
+  shared_context 'run preparatory search to enable prefilling' do |search_string|
+    before do
+      expect { editor.send_keys(*open_input_keys, search_string, :enter) }
+        .to start_search & finish_search_for(search_string)
+    end
   end
 
   shared_context 'add' do |value:, to:|
@@ -55,6 +72,21 @@ module Helpers::Commandline
 
   define_negated_matcher :not_to_change, :change
   define_negated_matcher :not_to_start_search, :start_search
+
+  matcher :have_location do |location_string|
+    match do |editor|
+      values_match?(
+        {
+          commandline_cursor_location: editor.commandline_cursor_location,
+          commandline_content: editor.commandline_content
+        },
+        {
+          commandline_cursor_location: location_string.index('|') + 1,
+         commandline_content: location_string.tr('|', '')
+        }
+      )
+    end
+  end
 
   matcher :finish_search_for do |string|
     attr_reader :expected, :actual

@@ -6,20 +6,20 @@ describe 'esearch#cmdline menu' do
   include Helpers::Commandline
 
   shared_examples 'commandline menu testing examples' do
-    let(:open_menu) { '\\<C-o>' }
-    let(:open_input) { [:leader, 'ff'] }
-
     before { esearch.configure(out: 'stubbed', backend: 'system', use: 'last') }
     after do
       esearch.cleanup!
       esearch.output.reset_calls_history!
     end
 
-    context 'changing options using hotkeys' do
+    # NOTE editor#send_keys after #open_menu_keys must be called separately due to
+    # +clientserver implimentation particularities
+
+    describe 'change options using hotkeys' do
       shared_examples 'it sets options using hotkey' do |hotkey, options|
         it "sets #{options} using hotkey" do
           expect {
-            editor.send_keys(*open_input, open_menu)
+            editor.send_keys(*open_input_keys, *open_menu_keys)
             editor.send_keys(hotkey, 'search str', :enter)
           }.to set_global_options(options)
             .and start_search_with_options(options)
@@ -27,54 +27,56 @@ describe 'esearch#cmdline menu' do
         end
       end
 
-      context 'when enabling options' do
-        before { esearch.configure!('word': 0, 'case': 0, 'regex': 0) }
+      context 'default mappings' do
+        context 'when enabling options' do
+          before { esearch.configure!('word': 0, 'case': 0, 'regex': 0) }
 
-        include_examples 'it sets options using hotkey', '\\<C-c>', 'case'  => 1
-        include_examples 'it sets options using hotkey', 'c',       'case'  => 1
+          include_examples 'it sets options using hotkey', '\\<C-c>', 'case'  => 1
+          include_examples 'it sets options using hotkey', 'c',       'case'  => 1
 
-        include_examples 'it sets options using hotkey', '\\<C-w>', 'word'  => 1
-        include_examples 'it sets options using hotkey', 'w',       'word'  => 1
+          include_examples 'it sets options using hotkey', '\\<C-w>', 'word'  => 1
+          include_examples 'it sets options using hotkey', 'w',       'word'  => 1
 
-        include_examples 'it sets options using hotkey', 'r',       'regex' => 1
-        include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 1
+          include_examples 'it sets options using hotkey', 'r',       'regex' => 1
+          include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 1
 
-        context 'legacy hotkeys' do
-          include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 1
-          include_examples 'it sets options using hotkey', 's',       'case'  => 1
+          context 'legacy hotkeys' do
+            include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 1
+            include_examples 'it sets options using hotkey', 's',       'case'  => 1
+          end
         end
-      end
 
-      context 'when disabling options' do
-        before { esearch.configure!('word': 1, 'case': 1, 'regex': 1) }
+        context 'when disabling options' do
+          before { esearch.configure!('word': 1, 'case': 1, 'regex': 1) }
 
-        include_examples 'it sets options using hotkey', '\\<C-c>', 'case'  => 0
-        include_examples 'it sets options using hotkey', 'c',       'case'  => 0
+          include_examples 'it sets options using hotkey', '\\<C-c>', 'case'  => 0
+          include_examples 'it sets options using hotkey', 'c',       'case'  => 0
 
-        include_examples 'it sets options using hotkey', '\\<C-w>', 'word'  => 0
-        include_examples 'it sets options using hotkey', 'w',       'word'  => 0
+          include_examples 'it sets options using hotkey', '\\<C-w>', 'word'  => 0
+          include_examples 'it sets options using hotkey', 'w',       'word'  => 0
 
-        include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 0
-        include_examples 'it sets options using hotkey', 'r',       'regex' => 0
+          include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 0
+          include_examples 'it sets options using hotkey', 'r',       'regex' => 0
 
-        context 'legacy hotkeys' do
-          include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 0
-          include_examples 'it sets options using hotkey', 's',       'case'  => 0
+          context 'legacy hotkeys' do
+            include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 0
+            include_examples 'it sets options using hotkey', 's',       'case'  => 0
+          end
         end
       end
     end
 
-    context 'changing options by moving the menu selection' do
+    describe 'change options by moving the menu selection' do
       shared_context 'opened menu testing' do
         before do
           esearch.configuration.submit!(overwrite: true)
           editor.command('call esearch#util_testing#spy_echo()')
-          editor.send_keys(*open_input, open_menu)
+          editor.send_keys(*open_input_keys, *open_menu_keys)
         end
         after { editor.command('call esearch#util_testing#unspy_echo()') }
       end
 
-      shared_examples 'it locates "regex" menu item using' do |keys:|
+      shared_examples 'it locates "regex" menu items by pressing' do |keys:|
         context "when pressing #{keys}" do
           include_context 'opened menu testing'
 
@@ -97,7 +99,7 @@ describe 'esearch#cmdline menu' do
         end
       end
 
-      shared_examples 'it locates "word" menu item using' do |keys:|
+      shared_examples 'it locates "word" menu items by pressing' do |keys:|
         context "when pressing #{keys}" do
           include_context 'opened menu testing'
 
@@ -119,7 +121,7 @@ describe 'esearch#cmdline menu' do
         end
       end
 
-      shared_examples 'it locates "case" menu item using' do |keys:|
+      shared_examples 'it locates "case" menu items by pressing' do |keys:|
         context "when pressing #{keys}" do
           include_context 'opened menu testing'
 
@@ -139,82 +141,100 @@ describe 'esearch#cmdline menu' do
         end
       end
 
-      include_examples 'it locates "regex" menu item using', keys: ['j']
-      include_examples 'it locates "regex" menu item using', keys: ['\\<C-j>']
+      context'default hotkeys' do
+        include_examples 'it locates "regex" menu items by pressing', keys: ['j']
+        include_examples 'it locates "regex" menu items by pressing', keys: ['\\<C-j>']
 
-      include_examples 'it locates "word" menu item using',  keys: ['k']
-      include_examples 'it locates "word" menu item using',  keys: ['jj']
-      include_examples 'it locates "word" menu item using',  keys: ['\\<C-k>']
-      include_examples 'it locates "word" menu item using',  keys: ['\\<C-j>\\<C-j>']
+        include_examples 'it locates "word" menu items by pressing',  keys: ['k']
+        include_examples 'it locates "word" menu items by pressing',  keys: ['jj']
+        include_examples 'it locates "word" menu items by pressing',  keys: ['\\<C-k>']
+        include_examples 'it locates "word" menu items by pressing',  keys: ['\\<C-j>\\<C-j>']
 
-      include_examples 'it locates "case" menu item using',  keys: []
-      include_examples 'it locates "case" menu item using',  keys: ['jjj']
-      include_examples 'it locates "case" menu item using',  keys: ['kkk']
+        include_examples 'it locates "case" menu items by pressing',  keys: []
+        include_examples 'it locates "case" menu items by pressing',  keys: ['jjj']
+        include_examples 'it locates "case" menu items by pressing',  keys: ['kkk']
+      end
     end
 
-    context 'when dismissing menu' do
+    describe 'dismissing menu' do
       before { esearch.configuration.submit!(overwrite: true) } # TODO: will be removed
 
-      context 'no prefilled -> input text -> press keys -> open -> dismiss' do
-        shared_examples 'it preserves cursor location' do |fill_with:, expected_location:, press_keys:|
-          let(:cursor_location_probe) { '|' }
+      context 'default hotkeys' do
+        before { editor.send_keys(*open_input_keys, *open_menu_keys) }
 
-          it 'preserves location after closing menu' do
-            expect {
-              editor.send_keys(*open_input, fill_with, *press_keys, open_menu)
-              editor.send_keys(:escape, cursor_location_probe, :enter)
-            }.to start_search & finish_search_for(expected_location)
-          end
-
-          it 'preserves location after selection an option' do
-            expect {
-              editor.send_keys(*open_input, fill_with, *press_keys, open_menu)
-              editor.send_keys(:enter, cursor_location_probe, :enter)
-            }.to start_search & finish_search_for(expected_location)
-          end
-        end
-
-        include_examples 'it preserves cursor location',
-          fill_with:         'strn',
-          expected_location: 'st|rn',
-          press_keys:        %i[left left]
-
-        include_examples 'it preserves cursor location',
-          fill_with:         'str',
-          expected_location: 'st|r',
-          press_keys:        [:left]
-
-        include_examples 'it preserves cursor location',
-          fill_with:         'str',
-          expected_location: '|str',
-          press_keys:        %i[left left left]
-
-        include_examples 'it preserves cursor location',
-          fill_with:         'str',
-          expected_location: 'str|',
-          press_keys:        []
+        it { expect { editor.send_keys(:escape) }.to change { editor.mode }.to(:commandline) }
       end
 
-      context 'prefilled -> open -> dismiss' do
-        shared_examples 'it puts cursor at the after dismissing with' do |keys:|
-          context "when dismissing menu with #{keys}" do
-            let(:previous_input) { 'previous input' }
-            let(:cursor_location_probe) { '|' }
-            let(:input_with_cursor_location) { [previous_input, cursor_location_probe].join }
+      context 'cursor position' do
+        context 'within input provided by user' do
+          shared_examples 'it preserves cursor location after dismissing' do |expected_location:, dismiss_with:|
+            let(:test_string) { expected_location.tr('|', '') }
+            it "preserves location #{expected_location} after cancelling" do
+              editor.send_keys(*open_input_keys,
+                               test_string,
+                               *goto_location_keys(expected_location),
+                               *open_menu_keys)
+              editor.send_keys(*dismiss_with)
 
-            before { editor.send_keys(*open_input, previous_input, :enter) }
-
-            it 'puts cursor at the end of the input' do
-              expect {
-                editor.send_keys(*open_input, open_menu)
-                editor.send_keys_separately(*keys, cursor_location_probe, :enter)
-              }.to start_search & finish_search_for(input_with_cursor_location)
+              expect(editor).to have_location(expected_location)
             end
+          end
+
+          shared_examples 'it preserves cursor location after dismissing with' do |keys:|
+            include_examples 'it preserves cursor location after dismissing',
+              dismiss_with:      keys,
+              expected_location: 'st|rn'
+
+            include_examples 'it preserves cursor location after dismissing',
+              dismiss_with:      keys,
+              expected_location: 'str|n'
+
+            include_examples 'it preserves cursor location after dismissing',
+              dismiss_with:      keys,
+              expected_location: 'strn|'
+
+            include_examples 'it preserves cursor location after dismissing',
+              dismiss_with:      keys,
+              expected_location: '|strn'
+          end
+
+          context 'when dismissing with selection of an option' do
+            include_examples 'it preserves cursor location after dismissing with',
+              keys: [:enter]
+          end
+
+          context 'when dismissing with cancelling' do
+            include_examples 'it preserves cursor location after dismissing with',
+              keys: [:escape]
           end
         end
 
-        include_examples 'it puts cursor at the after dismissing with', keys: [:enter]
-        include_examples 'it puts cursor at the after dismissing with', keys: [:escape]
+        context 'within prefilled input' do
+          shared_examples 'it preserves cursor location after dismissing with' do |keys:, expected_location:|
+            context do
+              include_context 'run preparatory search to enable prefilling', expected_location.tr('|', '')
+
+              it "preserves location #{expected_location} after cancelling" do
+                editor.send_keys(*open_input_keys, *open_menu_keys)
+                editor.send_keys(*keys)
+
+                expect(editor).to have_location(expected_location)
+              end
+            end
+          end
+
+          context 'when dismissing with selection of an option' do
+            include_examples 'it preserves cursor location after dismissing with',
+              keys:              [:enter],
+              expected_location: 'str|'
+          end
+
+          context 'when dismissing with cancelling' do
+            include_examples 'it preserves cursor location after dismissing with',
+              keys:              [:escape],
+              expected_location: 'str|'
+          end
+        end
       end
     end
   end
