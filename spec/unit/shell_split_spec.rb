@@ -139,7 +139,7 @@ describe 'esearch#util' do
     end
 
     def split_and_escape(str)
-      data = editor.echo(func('esearch#shell#fnamesescape', func('esearch#shell#split', str))).tap(&:inspect)
+      data = editor.echo( func('esearch#shell#fnamesescape', func('esearch#shell#split', str)['words'])).tap(&:inspect)
     end
 
     it do

@@ -21,25 +21,19 @@ fu! esearch#adapter#ag#_options() abort
   return s:options
 endfu
 
-fu! esearch#adapter#ag#cmd(pattern, _, escape, opts, ...) abort
+fu! esearch#adapter#ag#cmd(pattern, _, escape, esearch, ...) abort
   let options = a:0 ? a:1 : esearch#adapter#ag#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
 
-  if empty(a:opts.paths)
-    let joined_paths = a:opts.cwd
+  if empty(a:esearch.parsed_paths)
+    let joined_paths = a:esearch.cwd
   else
     let re_escaped='\%(\\\)\@<!\%(\\\\\)*\zs\\'
-    let paths = deepcopy(a:opts.paths)
-    let parsed_paths = deepcopy(a:opts.parsed_paths)
+    let parsed_paths = deepcopy(a:esearch.parsed_paths)
 
-    " TODO unify to store paths in a single place
-    if has_key(a:opts, 'parsed_paths')
-      let joined_paths = join(esearch#shell#fnamesescape(deepcopy(parsed_paths)), ' ')
-    else
-      let joined_paths = join(map(deepcopy(a:opts.paths), 'fnameescape(v:val)'), ' ')
-    endif
+    let joined_paths = join(esearch#shell#fnamesescape(deepcopy(parsed_paths)), ' ')
   endif
 
   return g:esearch#adapter#ag#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
@@ -64,7 +58,7 @@ fu! esearch#adapter#ag#parse_results(esearch, raw, from, to, broken_results, ...
   let limit = a:to + 1
 
   while i < limit
-    if !a:esearch.single_file
+    if !a:esearch.is_single_file()
       let el = matchlist(a:raw[i], format)[1:4]
       if len(el) != 4
         if index(a:broken_results, a:raw[i]) < 0
@@ -80,7 +74,7 @@ fu! esearch#adapter#ag#parse_results(esearch, raw, from, to, broken_results, ...
           call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
         endif
       else
-        call add(results, {'filename': s:expand_escaped_glob(b:esearch.paths[0]), 'lnum': el[0], 'col': el[1], 'text': el[2]})
+        call add(results, {'filename': s:expand_escaped_glob(b:esearch.parsed_paths[0].word), 'lnum': el[0], 'col': el[1], 'text': el[2]})
       endif
 
     endif

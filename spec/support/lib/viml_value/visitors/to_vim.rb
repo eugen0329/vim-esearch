@@ -35,7 +35,11 @@ class VimlValue::Visitors::ToVim
   end
 
   def visit_identifier(object)
-    object.to_s
+    result = object.to_s
+    if object.property_access.present?
+      result += "[#{visit(object.property_access)}]"
+    end
+    result
   end
 
   def visit_string_like(object)
@@ -68,7 +72,12 @@ class VimlValue::Visitors::ToVim
   end
 
   def visit_function_call(object)
-    "#{object.name}(#{visit_values(object.arguments)})"
+    result = "#{object.name}(#{visit_values(object.arguments)})"
+
+    if object.property_access.present?
+      result += "[#{visit(object.property_access)}]"
+    end
+    result
   end
 
   # Name is choosen to correspond to the non-terminal in parser.y

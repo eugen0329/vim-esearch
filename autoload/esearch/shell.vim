@@ -133,9 +133,9 @@ fu! esearch#shell#isfile(path) abort
   return !isdirectory(a:path.word) && empty(a:path.asterisks)
 endfu
 
-fu! esearch#shell#fnamesescape(parsed) abort
+fu! esearch#shell#fnamesescape(words) abort
   let escaped = []
-  for w in a:parsed.words
+  for w in a:words
     let parts = []
 
     let block_start = 0
