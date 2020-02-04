@@ -22,17 +22,14 @@ fu! esearch#init(...) abort
   " Read search string
   """""""""""""""
   call opts.set_default('cwd', getcwd())
+  call opts.set_default('paths', [])
   call opts.set_default('single_file', isdirectory(opts.cwd))
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
     let adapter_opts = esearch#adapter#{opts.adapter}#_options()
-    let cmdline_opts = {
-          \ 'cwd': opts.cwd,
-          \ 'exp': g:esearch._last_search,
-          \ 'empty_cmdline': get(opts, 'empty_cmdline', 0),
-          \}
-    let opts.exp = esearch#cmdline#read(cmdline_opts, adapter_opts)
+    let opts.exp = g:esearch._last_search
+    let opts.exp = esearch#cmdline#read(opts, adapter_opts)
     if empty(opts.exp)
       return 1
     endif
@@ -45,7 +42,7 @@ fu! esearch#init(...) abort
   call opts.set_default('backend', g:esearch.backend)
   let EscapeFunc = function('esearch#backend#'.opts.backend.'#escape_cmd')
   let pattern = g:esearch.regex ? opts.exp.pcre : opts.exp.literal
-  let shell_cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd, EscapeFunc)
+  let shell_cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.paths, EscapeFunc, opts)
   let requires_pty = esearch#adapter#{opts.adapter}#requires_pty()
 
   let opts.regex = g:esearch.regex
@@ -117,6 +114,10 @@ fu! s:init_lazy_global_config() abort
 
   if !has_key(global_esearch, 'last_id')
     let global_esearch.last_id = 0
+  endif
+
+  if !has_key(global_esearch, 'paths')
+    let global_esearch.paths = []
   endif
 
   if !has_key(global_esearch, '__lazy_loaded')

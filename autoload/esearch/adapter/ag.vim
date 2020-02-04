@@ -21,14 +21,21 @@ fu! esearch#adapter#ag#_options() abort
   return s:options
 endfu
 
-fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
+fu! esearch#adapter#ag#cmd(pattern, _, escape, opts, ...) abort
   let options = a:0 ? a:1 : esearch#adapter#ag#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
+
+  if empty(a:opts.paths)
+    let paths = a:opts.cwd
+  else
+    let paths = join(map(a:opts.paths, 'fnameescape(v:val)'), ' ')
+  endif
+
   return g:esearch#adapter#ag#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
         \ g:esearch#adapter#ag#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
+        \ a:escape(a:pattern)  . ' ' . paths
 endfu
 
 fu! esearch#adapter#ag#is_broken_result(line) abort
@@ -64,7 +71,7 @@ fu! esearch#adapter#ag#parse_results(esearch, raw, from, to, broken_results, ...
           call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
         endif
       else
-        call add(results, {'filename': b:esearch.cwd, 'lnum': el[0], 'col': el[1], 'text': el[2]})
+        call add(results, {'filename': b:esearch.paths[0], 'lnum': el[0], 'col': el[1], 'text': el[2]})
       endif
 
     endif

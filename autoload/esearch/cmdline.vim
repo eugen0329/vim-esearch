@@ -83,17 +83,14 @@ endif
 
 " TODO MAJOR PRIO refactoring
 " a:adapter_options is used to display adapter config in the prompt (>>>)
-fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
+fu! esearch#cmdline#read(opts, adapter_options) abort
   " Preparing cmdline
   """""""""""""""""""""""""""
   let old_mapargs = s:init_mappings()
-  let s:pattern = a:cmdline_opts.exp
+  let s:pattern = a:opts.exp
+  let s:opts = a:opts
 
-  if a:cmdline_opts.empty_cmdline
-    let s:cmdline = ''
-  else
-    let s:cmdline = g:esearch.regex ? a:cmdline_opts.exp.pcre : a:cmdline_opts.exp.literal
-  endif
+  let s:cmdline = g:esearch.regex ? a:opts.exp.pcre : a:opts.exp.literal
   """""""""""""""""""""""""""
 
   " Initial selection handling
@@ -101,7 +98,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   let finish_input = 0
   if !empty(s:cmdline) && g:esearch#cmdline#select_initial
     let [s:cmdline, finish_input, retype_keys] =
-          \ s:handle_initial_select(s:cmdline, a:cmdline_opts.cwd, a:adapter_options)
+          \ s:handle_initial_select(s:cmdline, a:opts.cwd, a:adapter_options)
     redraw!
 
     if retype_keys isnot 0
@@ -115,7 +112,7 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
   if finish_input
     let str = s:cmdline
   else
-    let str = s:main_loop(a:cmdline_opts, a:adapter_options)
+    let str = s:main_loop(a:opts, a:adapter_options)
   endif
   """""""""""""""""""""""""""
 
@@ -142,11 +139,12 @@ fu! esearch#cmdline#read(cmdline_opts, adapter_options) abort
 endfu
 
 fu! s:main_loop(cmdline_opts, adapter_options) abort
-  let s:cmdpos = len(s:cmdline) + 1
+  let s:cmdpos = strchars(s:cmdline) + 1
   let s:list_help = 0
   let s:events = []
 
   let str = ''
+  let s:adapter_options = a:adapter_options
 
   " Main loop
   """""""""""
@@ -159,10 +157,12 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
       call call(handler.funcref, handler.args)
     endfor
 
-    let s:events = []
-    let s:cmdline .= s:restore_cursor_position()
+    if !empty(s:events)
+      redraw!
+      let s:events = []
+    endif
 
-    redraw!
+    let s:cmdline .= s:restore_cursor_position()
   endwhile
   return str
 endfu
@@ -257,19 +257,24 @@ fu! s:prompt(adapter_options) abort
 endfu
 
 fu! s:render_directory_prompt(dir) abort
-  if a:dir ==# $PWD
+  if a:dir ==# $PWD && empty(s:opts.paths)
     return 0
   endif
 
-  let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
+  if empty(s:opts.paths)
+    let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
+  else
+    let dir = g:esearch#cmdline#dir_icon 
+          \ . join(map(s:opts.paths, "substitute(v:val , '".$PWD."/', '', '')"), ' ')
+  endif
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
   echo ''
 endfu
 
 fu! s:restore_cursor_position() abort
-  if len(s:cmdline) + 1 != s:cmdpos
-    return repeat("\<Left>", len(s:cmdline) + 1 - s:cmdpos )
+  if strchars(s:cmdline) + 1 != s:cmdpos
+    return repeat("\<Left>", strchars(s:cmdline) + 1 - s:cmdpos )
   endif
   return ''
 endfu
@@ -359,13 +364,18 @@ function! s:spell_suggests(word) abort
   return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfunction
 
+fu! s:paths() abort
+  redraw!
+  let s:opts.paths = split(input('Directories:', join(s:opts.paths, ' '), 'file'), ' ')
+endfu
+
 if g:esearch#cmdline#menu_feature_toggle == 1
   fu! s:open_menu() abort
     let prompt =
           \   "  Hotkey  Action (press a hotkey or select using j/k/enter)\n"
           \ . '  ------  -------------------------------------------------'
 
-    call esearch#ui#menu#new(s:menu_items(), prompt).start()
+    call esearch#ui#menu#new(s:menu_items(), prompt, "\n".s:prompt(s:adapter_options) . s:cmdline).start()
   endfu
 
   fu! s:menu_items() abort
@@ -384,6 +394,10 @@ if g:esearch#cmdline#menu_feature_toggle == 1
             \ 'text': 'w       toggle (w)ord match',
             \ 'shortcut': ['w', "\<C-w>"],
             \ 'callback': function('<SID>invert', ['word'])}))
+      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
+            \ 'text': 'p       edit (p)ath',
+            \ 'shortcut': ["\<C-p>", "p"],
+            \ 'callback': function('<SID>paths', [])}))
     endif
 
     return g:esearch#cmdline#menu_items
