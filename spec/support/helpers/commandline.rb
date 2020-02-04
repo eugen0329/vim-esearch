@@ -19,7 +19,7 @@ module Helpers::Commandline
   end
 
   def menu_items
-    esearch.output.echo_calls_history.last(3)
+    esearch.output.echo_calls_history[..-2].last(3)
   end
 
   def without_location_mark(location_string)

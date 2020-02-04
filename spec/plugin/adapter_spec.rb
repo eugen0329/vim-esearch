@@ -11,13 +11,10 @@ describe 'esearch#backend', :backend do
   include Helpers::ReportEditorStateOnError
   include Helpers::Commandline
 
-  before { esearch.configure(out: 'win', backend: 'system', use: 'last') }
-  after do
-    esearch.cleanup!
-    esearch.output.reset_calls_history!
-  end
+  before { esearch.configure!(adapter: 'ag', out: 'win', backend: 'system', use: 'last') }
+  after { esearch.cleanup! }
 
-  context '' do
+  context '2 dirs' do
     let(:files) do
       [
         file('a', 'a/file1.txt'),
@@ -33,8 +30,37 @@ describe 'esearch#backend', :backend do
       editor.send_keys_separately('p', 'a b', :enter)
       editor.send_keys_separately('a', :enter)
 
+      expect(esearch).to have_search_started
+      expect(esearch)
+        .to  have_search_finished
+        .and have_not_reported_errors
       expect(esearch.output.entries.map(&:relative_path))
         .to match_array(['a/file1.txt', 'b/file2.txt'])
+    end
+  end
+
+  context '2 dirs' do
+    let(:files) do
+      [
+        file('a', 'f le1/a.txt'),
+        file('a', 'f\\le2"/b.txt'),
+        file('a', 'c/file3.txt'),
+      ]
+    end
+    let(:search_directory) { directory(files).persist! }
+
+    it do
+      editor.cd! search_directory
+      editor.send_keys(*open_input_keys, *open_menu_keys)
+      editor.send_keys_separately('p', 'f\\\\ le1/a.txt "f\\\\\\\\le2"\\\\"', :enter)
+      editor.send_keys_separately('a', :enter)
+
+      expect(esearch).to have_search_started
+      expect(esearch)
+        .to  have_search_finished
+        .and have_not_reported_errors
+      expect(esearch.output.entries.map(&:relative_path))
+        .to match_array(['f le1/a.txt', 'f\\le2"/b.txt'])
     end
   end
 end

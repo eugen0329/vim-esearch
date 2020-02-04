@@ -5,7 +5,7 @@ fu! esearch#init(...) abort
 
   " Prepare argv
   """""""""""""""
-  let opts = a:0 ? a:1 : {}
+  let opts = a:0 ? a:1 : deepcopy(g:esearch)
   let g:esearch.last_id += 1
   let opts.id = g:esearch.last_id
   let source_params = {
@@ -29,11 +29,12 @@ fu! esearch#init(...) abort
   if !has_key(opts, 'exp')
     let adapter_opts = esearch#adapter#{opts.adapter}#_options()
     let opts.exp = g:esearch._last_search
-    let opts.exp = esearch#cmdline#read(opts, adapter_opts)
+    let [opts.exp, opts.paths] = esearch#cmdline#read(opts, adapter_opts)
     if empty(opts.exp)
       return 1
     endif
     let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
+    let g:esearch.paths = opts.paths
   endif
   """""""""""""""
 

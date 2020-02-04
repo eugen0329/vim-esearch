@@ -119,7 +119,7 @@ fu! esearch#cmdline#read(opts, adapter_options) abort
   call s:recover_mappings(old_mapargs)
 
   if empty(str)
-    return {}
+    return [{}, []]
   endif
 
   " Build search expression
@@ -135,7 +135,7 @@ fu! esearch#cmdline#read(opts, adapter_options) abort
   endif
   """""""""""""""""""""""""""
 
-  return s:pattern
+  return [ s:pattern, s:opts.paths ]
 endfu
 
 fu! s:main_loop(cmdline_opts, adapter_options) abort
@@ -366,7 +366,8 @@ endfunction
 
 fu! s:paths() abort
   redraw!
-  let s:opts.paths = split(input('Directories:', join(s:opts.paths, ' '), 'file'), ' ')
+  let sh = esearch#shell#split(input('Directories:', join(s:opts.paths, ' '), 'file'))
+  let s:opts.paths = map(sh.words, 'v:val.word')
 endfu
 
 if g:esearch#cmdline#menu_feature_toggle == 1
