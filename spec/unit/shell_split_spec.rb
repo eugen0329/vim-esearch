@@ -131,7 +131,7 @@ describe 'esearch#util' do
     end
 
     def fnameescape(str)
-      data = editor.echo(func('esearch#shell#fnameescape', str)).tap(&:inspect)
+      data = editor.echo(func('esearch#shell#fnamesescape', str)).tap(&:inspect)
     end
 
     def fnameescape2(str)
@@ -139,7 +139,7 @@ describe 'esearch#util' do
     end
 
     def split_and_escape(str)
-      data = editor.echo(func('esearch#shell#fnameescape', func('esearch#shell#split', str))).tap(&:inspect)
+      data = editor.echo(func('esearch#shell#fnamesescape', func('esearch#shell#split', str))).tap(&:inspect)
     end
 
     it do
