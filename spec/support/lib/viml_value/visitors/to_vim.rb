@@ -36,9 +36,7 @@ class VimlValue::Visitors::ToVim
 
   def visit_identifier(object)
     result = object.to_s
-    if object.property_access.present?
-      result += "[#{visit(object.property_access)}]"
-    end
+    result += "[#{visit(object.property_access)}]" if object.property_access.present?
     result
   end
 
@@ -74,9 +72,7 @@ class VimlValue::Visitors::ToVim
   def visit_function_call(object)
     result = "#{object.name}(#{visit_values(object.arguments)})"
 
-    if object.property_access.present?
-      result += "[#{visit(object.property_access)}]"
-    end
+    result += "[#{visit(object.property_access)}]" if object.property_access.present?
     result
   end
 

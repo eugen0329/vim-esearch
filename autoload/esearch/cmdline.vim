@@ -268,7 +268,7 @@ fu! s:render_directory_prompt(dir) abort
     let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
   else
     let dir = g:esearch#cmdline#dir_icon 
-          \ . join(map(deepcopy(s:esearch.parsed_paths), "substitute(v:val.word, '".$PWD."/', '', '')"), ' ')
+          \ . join(map(deepcopy(s:esearch.parsed_paths), "substitute(v:val, '".$PWD."/', '', '')"), ' ')
   endif
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
@@ -373,11 +373,12 @@ fu! s:change_paths() abort
   let user_input_in_shell_format =
         \ input("Directories:\n", join(s:esearch.parsed_paths, ' '), 'file')
 
-  let split_result = esearch#shell#split(user_input_in_shell_format)
-  if split_result.error isnot 0
+  let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
+  if error isnot 0
     raise "ESearch: can't parse strings"
   endif
-  let s:esearch.parsed_paths = deepcopy(split_result.words)
+  let s:esearch.parsed_paths = paths
+  let s:esearch.metadata     = metadata
 endfu
 
 if g:esearch#cmdline#menu_feature_toggle == 1

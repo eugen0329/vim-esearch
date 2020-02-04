@@ -1,8 +1,3 @@
-" {
-"   paths: ['a', 'b'],
-"   glob: 0,
-" }
-
 fu! esearch#init(...) abort
   if s:init_lazy_global_config() != 0
     return 1
@@ -33,12 +28,14 @@ fu! esearch#init(...) abort
   """""""""""""""
   let EscapeFunc = function('esearch#backend#'.esearch.backend.'#escape_cmd')
   let pattern = g:esearch.regex ? esearch.exp.pcre : esearch.exp.literal
-  let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(pattern, 0, EscapeFunc, esearch)
+  let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, EscapeFunc)
   let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
   let esearch = extend(esearch, {
         \ 'title': s:title(esearch, pattern),
         \ 'request': esearch#backend#{esearch.backend}#init(shell_cmd, requires_pty),
         \}, 'force')
+
+  call esearch#adapter#{esearch.adapter}#set_results_parser(esearch)
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu
@@ -59,7 +56,12 @@ fu! s:new(configuration)
 endfu
 
 fu! s:is_single_file() abort dict
-  return (len(self.parsed_paths) == 1 && esearch#shell#isfile(self.parsed_paths[0]))
+  " Some adapters don't list filenames when a single file is specified for
+  " search, so this function will be used to match results using different
+  " format patterns
+  return len(self.parsed_paths) == 1 &&
+        \ empty(self.metadata[0].asterisks) &&
+        \ !isdirectory(self.parsed_paths[0])
 endfu
 
 fu! s:title(esearch, pattern) abort
@@ -109,10 +111,6 @@ fu! s:init_lazy_global_config() abort
   if !has_key(global_esearch, 'last_id')
     let global_esearch.last_id = 0
   endif
-
-  " if !has_key(global_esearch, 'paths')
-    " let global_esearch.paths = []
-  " endif
 
   if !has_key(global_esearch, '__lazy_loaded')
     let g:esearch = esearch#opts#new(global_esearch)

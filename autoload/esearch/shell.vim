@@ -1,6 +1,38 @@
-let s:V = vital#esearch#new()
-let s:L = s:V.import('Text.Lexer')
-let s:P = s:V.import('Text.Parser')
+let s:Vital        = vital#esearch#new()
+let s:LexerModule  = s:Vital.import('Text.Lexer')
+let s:ParserModule = s:Vital.import('Text.Parser')
+
+fu! esearch#shell#split(string) abort
+  let lexer = s:LexerModule.lexer(s:rules).exec(a:string)
+  let parser = s:ParserModule.parser().exec(lexer)
+  call extend(parser, (s:parser_methods))
+
+  let parsed = parser.parse()
+
+  let paths = []
+  let metadata = []
+  for word in parsed
+    call add(paths, copy(word.text))
+    unlet word.text
+    call add(metadata, word)
+  endfor
+
+  return [paths, metadata, parser.error]
+endfu
+
+fu! esearch#shell#fnameescape(path, metadata) abort
+  let parts = []
+  let asterisks = a:metadata.asterisks
+  let substring_start = 0
+
+  for a in asterisks
+    call add(parts, a:path[substring_start:a][:-2])
+    let substring_start = a + 1
+  endfor
+  call add(parts, a:path[substring_start:])
+
+  return join(map(parts, 'fnameescape(v:val)'), '*')
+endfu
 
 let s:rules = [
       \ [ 'DQ',                '"'    ],
@@ -104,48 +136,16 @@ fu! s:advance() abort dict
   return token
 endfu
 
-fu! s:word(word, start, end, asterisks) abort
-  return {'word': a:word, 'start': a:start, 'end': a:end, 'asterisks': a:asterisks}
+fu! s:word(text, start, end, asterisks) abort
+  return {'text': a:text, 'start': a:start, 'end': a:end, 'asterisks': a:asterisks}
 endfu
 
-let s:functions = {
-      \ 'parse':  function('s:parse'),
+let s:parser_methods = {
+      \ 'parse':          function('s:parse'),
       \ 'consume_squote': function('s:consume_squote'),
       \ 'consume_dquote': function('s:consume_dquote'),
       \ 'consume_word':   function('s:consume_word'),
       \ 'advance':        function('s:advance'),
-      \ 'error':  0,
-      \ 'p':      0,
+      \ 'error':          0,
+      \ 'p':              0,
       \ }
-
-fu! esearch#shell#split(string) abort
-  let lexer = s:L.lexer(s:rules).exec(a:string)
-  let parser = s:P.parser().exec(lexer)
-  call extend(parser, s:functions)
-
-  let words = parser.parse()
-  return { 'words': words, 'error': parser.error }
-endfu
-
-
-fu! esearch#shell#isfile(path) abort
-  let re_unescaped='\%(\\\)\@<!\%(\\\\\)*\zs'
-  return !isdirectory(a:path.word) && empty(a:path.asterisks)
-endfu
-
-fu! esearch#shell#fnamesescape(words) abort
-  let escaped = []
-  for w in a:words
-    let parts = []
-
-    let block_start = 0
-    for a in w.asterisks
-      call add(parts, w.word[block_start:a][:-2])
-      let block_start = a + 1
-    endfor
-    call add(parts, w.word[block_start:])
-
-    call add(escaped, join(map(parts, 'fnameescape(v:val)'), '*'))
-  endfor
-  return escaped
-endfu

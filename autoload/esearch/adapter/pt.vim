@@ -20,29 +20,24 @@ fu! esearch#adapter#pt#_options() abort
   return s:options
 endfu
 
-fu! esearch#adapter#pt#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#pt#_options()
+fu! esearch#adapter#pt#cmd(esearch, pattern, escape) abort
+  let options = esearch#adapter#pt#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
+
+  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+
   return g:esearch#adapter#pt#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
         \ g:esearch#adapter#pt#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
+        \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#pt#is_broken_result(...) abort
-  return call('esearch#adapter#ag#is_broken_result', a:000)
-endfu
-
-fu! esearch#adapter#pt#parse_results(...) abort
-  return call('esearch#adapter#ag#parse_results', a:000)
+fu! esearch#adapter#pt#set_results_parser(esearch) abort
+  let a:esearch.parse_results = function('esearch#adapter#ag_like#parse_results')
+  let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
 endfu
 
 fu! esearch#adapter#pt#requires_pty() abort
   return 1
 endfu
-
-function! esearch#adapter#pt#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

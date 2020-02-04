@@ -20,29 +20,50 @@ fu! esearch#adapter#ack#_options() abort
   return s:options
 endfu
 
-fu! esearch#adapter#ack#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#ack#_options()
+fu! esearch#adapter#ack#cmd(esearch, pattern, escape) abort
+  let options = esearch#adapter#ack#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
+
+  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+
   return g:esearch#adapter#ack#bin.' '.r.' '.c.' '.w.' -s --nogroup --nocolor --column ' .
         \ g:esearch#adapter#ack#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
+        \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#ack#is_broken_result(...) abort
-  return call('esearch#adapter#ag#is_broken_result', a:000)
+fu! esearch#adapter#ack#set_results_parser(esearch) abort
+  if a:esearch.is_single_file()
+    let a:esearch.parse_results = function('esearch#adapter#ack#parse_results_from_single_file')
+  else
+    let a:esearch.parse_results = function('esearch#adapter#ag_like#parse_results')
+    let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
+  endif
 endfu
 
-fu! esearch#adapter#ack#parse_results(...) abort
-  return call('esearch#adapter#ag#parse_results', a:000)
+fu! esearch#adapter#ack#parse_results_from_single_file(data, from, to) abort dict
+  if empty(a:data) | return [] | endif
+  let results = []
+
+  let i = a:from
+  let limit = a:to + 1
+
+  while i < limit
+    call add(results, {
+          \ 'filename': s:expand_escaped_glob(self.parsed_paths[0]),
+          \ 'lnum': 1, 'col': 1, 'text': a:data[i] })
+    let i += 1
+  endwhile
+
+  return results
 endfu
 
 fu! esearch#adapter#ack#requires_pty() abort
   return 1
 endfu
 
-function! esearch#adapter#ack#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>
+fu! s:expand_escaped_glob(str) abort
+  let re_escaped='\%(\\\)\@<!\%(\\\\\)*\zs\\'
+  return substitute(a:str, re_escaped . '\*', '*', 'g')
+endfu

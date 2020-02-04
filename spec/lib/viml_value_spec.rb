@@ -51,7 +51,7 @@ describe VimlValue do
     end
 
     context 'nested function call' do
-      let(:function1) { func('sort', [[1],2]) }
+      let(:function1) { func('sort', [[1], 2]) }
       let(:function2) { func('sort', function1[1])[0] }
 
       it { expect(dump_eval_load.call([function2])).to eq([1]) }

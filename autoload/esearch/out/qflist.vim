@@ -23,7 +23,7 @@ fu! esearch#out#qflist#init(opts) abort
   let g:esearch_qf = extend(a:opts, {
         \ 'ignore_batches':     0,
         \ 'title':    ':'.a:opts.title,
-        \ '__broken_results':    [],
+        \ 'broken_results':      [],
         \ 'errors':              [],
         \ 'data':                [],
         \ 'without':             function('esearch#util#without')
@@ -86,9 +86,7 @@ fu! esearch#out#qflist#update() abort
       let request.data_ptr += esearch.batch_size
     endif
 
-    let parsed = esearch#adapter#{esearch.adapter}#parse_results(esearch,
-          \ data, from, to, esearch.__broken_results, esearch.exp.vim)
-
+    let parsed = esearch.parse_results(data, from, to)
 
     for p in parsed
       let p.filename = fnamemodify(p.filename, ':~:.')

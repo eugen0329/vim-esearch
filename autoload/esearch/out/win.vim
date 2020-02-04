@@ -140,7 +140,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'ignore_batches':         0,
         \ '_columns':               {},
         \ '_match_highlight_id':    match_highlight_id,
-        \ '__broken_results':       [],
+        \ 'broken_results':         [],
         \ 'errors':                 [],
         \ 'data':                   [],
         \ 'context_syntax_regions': {},
@@ -231,8 +231,7 @@ fu! esearch#out#win#update(bufnr) abort
       let request.data_ptr += esearch.batch_size
     endif
 
-    let parsed = esearch#adapter#{esearch.adapter}#parse_results(esearch,
-          \ data, from, to, esearch.__broken_results, esearch.exp.vim)
+    let parsed = esearch.parse_results(data, from, to)
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
