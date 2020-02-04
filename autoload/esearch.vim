@@ -6,6 +6,9 @@ fu! esearch#init(...) abort
   " Prepare argv
   """""""""""""""
   let opts = a:0 ? a:1 : deepcopy(g:esearch)
+
+  " TODO testing of reloading
+
   let g:esearch.last_id += 1
   let opts.id = g:esearch.last_id
   let source_params = {
@@ -23,19 +26,23 @@ fu! esearch#init(...) abort
   """""""""""""""
   call opts.set_default('cwd', getcwd())
   call opts.set_default('paths', [])
-  call opts.set_default('single_file', isdirectory(opts.cwd))
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')
     let adapter_opts = esearch#adapter#{opts.adapter}#_options()
     let opts.exp = g:esearch._last_search
-    let [opts.exp, opts.paths] = esearch#cmdline#read(opts, adapter_opts)
+    let [opts.exp, opts.parsed_paths, opts.paths] = esearch#cmdline#read(opts, adapter_opts)
     if empty(opts.exp)
       return 1
     endif
     let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
     let g:esearch.paths = opts.paths
+    let g:esearch.parsed_paths = opts.parsed_paths
   endif
+
+  let g:was = deepcopy(opts)
+  call opts.set_default('single_file', IS_single_file(opts) )
+  let g:now = deepcopy(opts)
   """""""""""""""
 
   " Prepare backend (nvim, vimproc, ...) request object
@@ -58,15 +65,18 @@ fu! esearch#init(...) abort
   call opts.set_default('batch_size', g:esearch.batch_size)
   call opts.set_default('out', g:esearch.out)
   call opts.set_default('context_width', g:esearch.context_width)
-  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file',
-        \'exp', 'out', 'batch_size', 'context_width', '_last_search',
-        \'regex', 'case', 'word', 'id'), {
+  let out_params = extend(opts, {
         \ 'title': s:title(pattern),
         \ 'request': request,
         \})
   """""""""""""""
 
   call esearch#out#{opts.out}#init(out_params)
+endfu
+
+fu! IS_single_file(opts) abort
+  let g:fff = a:opts
+  return (len(a:opts.paths) == 1 && esearch#shell#isfile(a:opts.parsed_paths.words[0]))
 endfu
 
 fu! s:title(pattern) abort
@@ -134,3 +144,6 @@ function! esearch#sid() abort
   return maparg('<SID>', 'n')
 endfunction
 nnoremap <SID>  <SID>
+
+" read \*.ext
+" parsed as *.ext, asterisks: [0]

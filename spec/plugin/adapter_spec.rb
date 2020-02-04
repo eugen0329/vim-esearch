@@ -39,7 +39,7 @@ describe 'esearch#backend', :backend do
     end
   end
 
-  context '2 dirs' do
+  context 'weird names' do
     let(:files) do
       [
         file('a', 'f le1/a.txt'),
@@ -47,7 +47,7 @@ describe 'esearch#backend', :backend do
         file('a', 'c/file3.txt'),
       ]
     end
-    let(:search_directory) { directory(files).persist! }
+    let(:search_directory) { directory(files, 'weird_names/').persist! }
 
     it do
       editor.cd! search_directory
@@ -61,6 +61,66 @@ describe 'esearch#backend', :backend do
         .and have_not_reported_errors
       expect(esearch.output.entries.map(&:relative_path))
         .to match_array(['f le1/a.txt', 'f\\le2"/b.txt'])
+    end
+  end
+
+  context 'globbing' do
+    context 'unescaped *' do
+      let(:files) do
+        [
+          file('a', 'a.ext1'),
+          file('a', 'b.ext1'),
+          file('a', 'c.ext2'),
+        ]
+      end
+      let(:search_directory) { directory(files, 'globbing_unescaped/').persist! }
+
+      it do
+        editor.cd! search_directory
+        editor.send_keys(*open_input_keys, *open_menu_keys)
+        editor.send_keys_separately('p', '*.ext1', :enter)
+        editor.send_keys_separately('a', :enter)
+
+        expect(esearch).to have_search_started
+        expect(esearch)
+          .to  have_search_finished
+          .and have_not_reported_errors
+        expect(esearch.output.entries.map(&:relative_path))
+          .to match_array(['a.ext1', 'b.ext1'])
+      end
+    end
+
+    # + single file should be tested separately
+    context 'escaped *' do
+      let(:files) do
+        [
+          file('a', 'a.ext1'),
+          file('a', 'b.ext1'),
+          file('a', 'c.ext2'),
+          file('a', '*.ext1'),
+        ]
+      end
+      let(:search_directory) { directory(files, 'globbing_escaped/').persist! }
+
+      it do
+        editor.cd! search_directory
+        editor.send_keys(*open_input_keys, *open_menu_keys)
+        editor.send_keys_separately('p', '\\\\*.ext1', :enter)
+        editor.send_keys_separately('a', :enter)
+
+        expect(esearch).to have_search_started
+        expect(esearch)
+          .to  have_search_finished
+          .and have_not_reported_errors
+        expect(esearch.output.entries.map(&:relative_path))
+          .to match_array(['*.ext1'])
+
+        expect(esearch)
+          .to  have_reported_a_single_result
+          .and have_search_highlight('*.ext1', 1, 1..2)
+          .and have_outputted_result_from_file_in_line('*.ext1', 1)
+          .and have_outputted_result_with_right_position_inside_file('*.ext1', 1, 1)
+      end
     end
   end
 end

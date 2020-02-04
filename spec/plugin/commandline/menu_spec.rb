@@ -168,15 +168,17 @@ describe 'esearch#cmdline menu' do
       context 'cursor position' do
         context 'within input provided by user' do
           shared_examples 'it preserves cursor location after dismissing' do |expected_location:, dismiss_with:|
-            let(:test_string) { expected_location.tr('|', '') }
-            it "preserves location #{expected_location} after cancelling" do
-              editor.send_keys(*open_input_keys,
-                               test_string,
-                               *goto_location_keys(expected_location),
-                               *open_menu_keys)
-              editor.send_keys(*dismiss_with)
+            context "when dismissing with #{dismiss_with} keys" do
+              let(:test_string) { expected_location.tr('|', '') }
+              it "preserves location #{expected_location}at '|'" do
+                editor.send_keys(*open_input_keys,
+                                 test_string)
+                                 *goto_location_keys(expected_location),
+                                 *open_menu_keys)
+                editor.send_keys(*dismiss_with)
 
-              expect(editor).to have_commandline_cursor_location(expected_location)
+                expect(editor).to have_commandline_cursor_location(expected_location)
+              end
             end
           end
 
@@ -187,7 +189,7 @@ describe 'esearch#cmdline menu' do
 
             include_examples 'it preserves cursor location after dismissing',
               dismiss_with:      keys,
-              expected_location: 'str|n'
+              expected_location: 'st|n'
 
             include_examples 'it preserves cursor location after dismissing',
               dismiss_with:      keys,
@@ -206,6 +208,12 @@ describe 'esearch#cmdline menu' do
           context 'when dismissing with cancelling' do
             include_examples 'it preserves cursor location after dismissing with',
               keys: [:escape]
+          end
+
+          context 'when multibyte input' do
+            include_examples 'it preserves cursor location after dismissing',
+              dismiss_with:      [:enter],
+              expected_location: 'st|Σn'
           end
         end
 

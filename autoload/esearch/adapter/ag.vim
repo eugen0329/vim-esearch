@@ -28,14 +28,23 @@ fu! esearch#adapter#ag#cmd(pattern, _, escape, opts, ...) abort
   let w = options.parametrize('word')
 
   if empty(a:opts.paths)
-    let paths = a:opts.cwd
+    let joined_paths = a:opts.cwd
   else
-    let paths = join(map(a:opts.paths, 'fnameescape(v:val)'), ' ')
+    let re_escaped='\%(\\\)\@<!\%(\\\\\)*\zs\\'
+    let paths = deepcopy(a:opts.paths)
+    let parsed_paths = deepcopy(a:opts.parsed_paths)
+
+    " TODO unify to store paths in a single place
+    if has_key(a:opts, 'parsed_paths')
+      let joined_paths = join(esearch#shell#fnamesescape(deepcopy(parsed_paths)), ' ')
+    else
+      let joined_paths = join(map(deepcopy(a:opts.paths), 'fnameescape(v:val)'), ' ')
+    endif
   endif
 
   return g:esearch#adapter#ag#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
         \ g:esearch#adapter#ag#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . paths
+        \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
 fu! esearch#adapter#ag#is_broken_result(line) abort
@@ -55,7 +64,7 @@ fu! esearch#adapter#ag#parse_results(esearch, raw, from, to, broken_results, ...
   let limit = a:to + 1
 
   while i < limit
-    if a:esearch.single_file
+    if !a:esearch.single_file
       let el = matchlist(a:raw[i], format)[1:4]
       if len(el) != 4
         if index(a:broken_results, a:raw[i]) < 0
@@ -71,13 +80,18 @@ fu! esearch#adapter#ag#parse_results(esearch, raw, from, to, broken_results, ...
           call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
         endif
       else
-        call add(results, {'filename': b:esearch.paths[0], 'lnum': el[0], 'col': el[1], 'text': el[2]})
+        call add(results, {'filename': s:expand_escaped_glob(b:esearch.paths[0]), 'lnum': el[0], 'col': el[1], 'text': el[2]})
       endif
 
     endif
     let i += 1
   endwhile
   return results
+endfu
+
+fu! s:expand_escaped_glob(str) abort
+  let re_escaped='\%(\\\)\@<!\%(\\\\\)*\zs\\'
+  return substitute(a:str, re_escaped . '\*', '*', 'g')
 endfu
 
 " Used to build the query

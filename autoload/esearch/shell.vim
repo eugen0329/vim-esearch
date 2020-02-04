@@ -10,29 +10,28 @@ let s:rules = [
       \ [ 'TRAILING_ESCAPE',   '\\$'  ],
       \ [ 'WS',                '\s\+' ],
       \ [ 'ESCAPED_ANY',       '\\.'  ],
+      \ [ 'ASTERISK',          '\*'  ],
       \ [ 'ANy',               '.'    ],
       \ ]
 
-let g:asd = []
 fu! s:consume_squote() dict abort
   let parsed = ''
-  let start = self.p
   call self.advance()
 
   while ! self.end()
     if self.next_is(['SQ'])
       call self.advance()
-      return s:word(parsed, start, self.p)
+      return parsed
     elseif self.next_is(['ESCAPED_SQ'])
       call self.advance()
-      return s:word(parsed.'\', start, self.p)
+      return parsed.'\'
     else
       let parsed .= self.advance().matched_text
     endif
   endwhile
 
   let self.error = 'unterminated single quote'
-  return s:null_word
+  return ''
 endfu
 
 fu! s:consume_dquote() dict abort
@@ -45,27 +44,31 @@ fu! s:consume_dquote() dict abort
       let parsed .= self.advance().matched_text[1]
     elseif self.next_is(['DQ'])
       let tok = self.advance()
-      return s:word(parsed, start, self.p)
+      return parsed
     else
       let parsed .= self.advance().matched_text
     endif
   endwhile
 
   let self.error = 'unterminated double quote'
-  return s:null_word
+  return ''
 endfu
 
 fu! s:consume_word() abort dict
   let parsed = ''
   let start = self.p
+  let asterisks = []
 
   while ! self.end()
     if self.next_is(['ESCAPED_SQ', 'ESCAPED_DQ', 'ESCAPED_ANY'])
       let parsed .= self.advance().matched_text[1]
     elseif self.next_is(['DQ'])
-      let parsed .= self.consume_dquote().word
+      let parsed .= self.consume_dquote()
     elseif self.next_is(['SQ'])
-      let parsed .= self.consume_squote().word
+      let parsed .= self.consume_squote()
+    elseif self.next_is(['ASTERISK'])
+      call add(asterisks, self.p)
+      let parsed .= self.advance().matched_text
     elseif self.next_is(['WS'])
       break
       " let tok = self.advance()
@@ -77,7 +80,7 @@ fu! s:consume_word() abort dict
     endif
   endwhile
 
-  return s:word(parsed, start, self.p)
+  return s:word(parsed, start, self.p, asterisks)
 endfu
 
 function! s:parse() dict
@@ -101,10 +104,9 @@ fu! s:advance() abort dict
   return token
 endfu
 
-fu! s:word(word, start, end) abort
-  return {'word': a:word, 'start': a:start, 'end': a:end}
+fu! s:word(word, start, end, asterisks) abort
+  return {'word': a:word, 'start': a:start, 'end': a:end, 'asterisks': a:asterisks}
 endfu
-let s:null_word = s:word(0,0,0)
 
 let s:functions = {
       \ 'parse':  function('s:parse'),
@@ -123,4 +125,27 @@ fu! esearch#shell#split(string) abort
 
   let words = parser.parse()
   return { 'words': words, 'error': parser.error }
+endfu
+
+
+fu! esearch#shell#isfile(path) abort
+  let re_unescaped='\%(\\\)\@<!\%(\\\\\)*\zs'
+  return !isdirectory(a:path.word) && empty(a:path.asterisks)
+endfu
+
+fu! esearch#shell#fnamesescape(parsed) abort
+  let escaped = []
+  for w in a:parsed.words
+    let parts = []
+
+    let block_start = 0
+    for a in w.asterisks
+      call add(parts, w.word[block_start:a][:-2])
+      let block_start = a + 1
+    endfor
+    call add(parts, w.word[block_start:])
+
+    call add(escaped, join(map(parts, 'fnameescape(v:val)'), '*'))
+  endfor
+  return escaped
 endfu
