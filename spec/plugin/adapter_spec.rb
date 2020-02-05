@@ -140,7 +140,7 @@ describe 'esearch#backend', :backend do
     include_examples 'all adapters testing examples'
   end
 
-  describe '#vim8', :vim do
+  describe '#vim', :vim do
     include_examples 'all adapters testing examples'
   end
 end

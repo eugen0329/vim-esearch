@@ -29,7 +29,7 @@ describe 'esearch#backend', :backend do
       end
 
       append_after do
-        if false && (Configuration.debug_specs_performance? && backend == 'system')
+        if Configuration.debug_specs_performance? && backend == 'system'
           expect(VimrunnerSpy.echo_call_history.count).to be < 7
         end
         esearch.cleanup!
