@@ -83,14 +83,14 @@ endif
 
 " TODO MAJOR PRIO refactoring
 " a:adapter_options are used to display adapter config in the prompt (>>>)
-fu! esearch#cmdline#read(opts, adapter_options) abort
+fu! esearch#cmdline#read(esearch, adapter_options) abort
   let old_mapargs = {}
   try
     let old_mapargs = s:init_mappings()
-    let s:pattern = a:opts.exp
-    let s:esearch = a:opts
+    let s:pattern = a:esearch.exp
+    let s:esearch = a:esearch
 
-    let s:cmdline = g:esearch.regex ? a:opts.exp.pcre : a:opts.exp.literal
+    let s:cmdline = s:esearch.regex ? a:esearch.exp.pcre : a:esearch.exp.literal
     """""""""""""""""""""""""""
 
     " Initial selection handling
@@ -98,7 +98,7 @@ fu! esearch#cmdline#read(opts, adapter_options) abort
     let finish_input = 0
     if !empty(s:cmdline) && g:esearch#cmdline#select_initial
       let [s:cmdline, finish_input, retype_keys] =
-            \ s:handle_initial_select(s:cmdline, a:opts.cwd, a:adapter_options)
+            \ s:handle_initial_select(s:cmdline, a:esearch.cwd, a:adapter_options)
       redraw!
 
       if retype_keys isnot 0
@@ -112,7 +112,7 @@ fu! esearch#cmdline#read(opts, adapter_options) abort
     if finish_input
       let str = s:cmdline
     else
-      let str = s:main_loop(a:opts, a:adapter_options)
+      let str = s:main_loop(a:esearch, a:adapter_options)
     endif
     """""""""""""""""""""""""""
   finally
@@ -236,7 +236,7 @@ endfu
 
 fu! s:invert(option) abort
   call s:synchronize_regexp()
-  call g:esearch.invert(a:option)
+  call s:esearch.invert(a:option)
 endfu
 
 fu! s:synchronize_regexp() abort
@@ -260,15 +260,15 @@ fu! s:prompt(adapter_options) abort
 endfu
 
 fu! s:render_directory_prompt(dir) abort
-  if a:dir ==# $PWD && empty(get(s:esearch, 'parsed_paths', []))
+  if a:dir ==# $PWD && empty(get(s:esearch, 'paths', []))
     return 0
   endif
 
-  if empty(get(s:esearch, 'parsed_paths', []))
+  if empty(get(s:esearch, 'paths', []))
     let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
   else
     let dir = g:esearch#cmdline#dir_icon 
-          \ . join(map(deepcopy(s:esearch.parsed_paths), "substitute(v:val, '".$PWD."/', '', '')"), ' ')
+          \ . join(map(deepcopy(s:esearch.paths), "substitute(v:val, '".$PWD."/', '', '')"), ' ')
   endif
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
@@ -371,14 +371,14 @@ fu! s:change_paths() abort
   redraw!
 
   let user_input_in_shell_format =
-        \ input("Directories:\n", join(s:esearch.parsed_paths, ' '), 'file')
+        \ input("Directories:\n", join(s:esearch.paths, ' '), 'file')
 
   let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
   if error isnot 0
-    raise "ESearch: can't parse strings"
+    raise "ESearch: can't parse paths"
   endif
-  let s:esearch.parsed_paths = paths
-  let s:esearch.metadata     = metadata
+  let s:esearch.paths    = paths
+  let s:esearch.metadata = metadata
 endfu
 
 if g:esearch#cmdline#menu_feature_toggle == 1

@@ -4,6 +4,8 @@ require 'spec_helper'
 require 'plugin/shared_examples/backend'
 require 'plugin/shared_examples/abortable_backend'
 
+
+# TODO test directories with spaces in names
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
   include Helpers::Strings
@@ -11,8 +13,10 @@ describe 'esearch#backend', :backend do
   include Helpers::ReportEditorStateOnError
   include Helpers::Commandline
 
+  include_context 'report editor state on error'
+
   shared_examples 'adapter testing examples' do |adapter, adapter_bin|
-    describe "#{adapter} adapter", adapter.to_sym do
+    describe "#{adapter} adapter", :custom_paths, adapter.to_sym do
       before do
         esearch.configure!(adapter: adapter, out: 'win', backend: 'system', use: 'last')
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
@@ -27,10 +31,10 @@ describe 'esearch#backend', :backend do
             file('a', 'c/file3.txt')
           ]
         end
-        let(:search_directory) { directory(files, '2 dirs listed').persist! }
+        let(:test_directory) { directory(files, '2 dirs listed').persist! }
 
         it do
-          editor.cd! search_directory
+          editor.cd! test_directory
           editor.send_keys(*open_input_keys, *open_menu_keys)
           editor.send_keys_separately('p', 'a b', :enter)
           editor.send_keys_separately('a', :enter)
@@ -52,20 +56,26 @@ describe 'esearch#backend', :backend do
             file('a', 'c/file3.txt')
           ]
         end
-        let(:search_directory) { directory(files, 'weird_names/').persist! }
+        let(:test_directory) { directory(files, 'weird_names/').persist! }
 
         it do
-          editor.cd! search_directory
+          editor.cd! test_directory
           editor.send_keys(*open_input_keys, *open_menu_keys)
           editor.send_keys_separately('p', 'f\\\\ le1/a.txt "f\\\\\\\\le2"\\\\"', :enter)
           editor.send_keys_separately('a', :enter)
+
+          expected_files = ['f le1/a.txt', 'f\\le2"/b.txt']
+          expected_files = expected_files.map do |p|
+            next p unless  p.include?('"')
+            "\"#{Shellwords.escape(p)}\""
+          end if adapter =='git'
 
           expect(esearch).to have_search_started
           expect(esearch)
             .to  have_search_finished
             .and have_not_reported_errors
           expect(esearch.output.entries.map(&:relative_path))
-            .to match_array(['f le1/a.txt', 'f\\le2"/b.txt'])
+            .to match_array(expected_files)
         end
       end
 
@@ -78,10 +88,10 @@ describe 'esearch#backend', :backend do
               file('a', 'c.ext2')
             ]
           end
-          let(:search_directory) { directory(files, 'globbing_unescaped/').persist! }
+          let(:test_directory) { directory(files, 'globbing_unescaped/').persist! }
 
           it do
-            editor.cd! search_directory
+            editor.cd! test_directory
             editor.send_keys(*open_input_keys, *open_menu_keys)
             editor.send_keys_separately('p', '*.ext1', :enter)
             editor.send_keys_separately('a', :enter)
@@ -105,10 +115,10 @@ describe 'esearch#backend', :backend do
               file('a', '*.ext1')
             ]
           end
-          let(:search_directory) { directory(files, 'globbing_escaped/').persist! }
+          let(:test_directory) { directory(files, 'globbing_escaped/').persist! }
 
           it do
-            editor.cd! search_directory
+            editor.cd! test_directory
             editor.send_keys(*open_input_keys, *open_menu_keys)
             editor.send_keys_separately('p', '\\\\*.ext1', :enter)
             editor.send_keys_separately('a', :enter)
@@ -119,12 +129,6 @@ describe 'esearch#backend', :backend do
               .and have_not_reported_errors
             expect(esearch.output.entries.map(&:relative_path))
               .to match_array(['*.ext1'])
-
-            expect(esearch)
-              .to  have_reported_a_single_result
-              .and have_search_highlight('*.ext1', 1, 1..2)
-              .and have_outputted_result_from_file_in_line('*.ext1', 1)
-              .and have_outputted_result_with_right_position_inside_file('*.ext1', 1, 1)
           end
         end
       end
@@ -133,8 +137,8 @@ describe 'esearch#backend', :backend do
 
   include_examples 'adapter testing examples', 'ag'
   include_examples 'adapter testing examples', 'ack'
-  # include_examples 'adapter testing examples', 'git'
-  # include_examples 'adapter testing examples', 'grep'
+  include_examples 'adapter testing examples', 'git'
+  include_examples 'adapter testing examples', 'grep'
   include_examples 'adapter testing examples', 'pt', Configuration.pt_path
   include_examples 'adapter testing examples', 'rg', Configuration.rg_path
 end

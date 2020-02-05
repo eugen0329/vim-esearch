@@ -51,7 +51,7 @@ fu! esearch#adapter#ack#parse_results_from_single_file(data, from, to) abort dic
 
   while i < limit
     call add(results, {
-          \ 'filename': s:expand_escaped_glob(self.parsed_paths[0]),
+          \ 'filename': s:expand_escaped_glob(self.paths[0]),
           \ 'lnum': 1, 'col': 1, 'text': a:data[i] })
     let i += 1
   endwhile

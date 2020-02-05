@@ -19,17 +19,17 @@ describe 'esearch#backend', :backend do
       end
       let(:expected_file) { file(kwargs.fetch(:in), 'expected.txt') }
       let(:expected_path) { expected_file.relative_path }
-      let(:search_directory) { directory([expected_file, *other_files]).persist! }
+      let(:test_directory) { directory([expected_file, *other_files]).persist! }
       let(:line)   { kwargs.fetch(:line) }
       let(:column) { kwargs.fetch(:column) }
 
       before do
         esearch.configuration.submit!
-        esearch.cd! search_directory
+        esearch.cd! test_directory
       end
 
       append_after do
-        if Configuration.debug_specs_performance? && backend == 'system'
+        if false and (Configuration.debug_specs_performance? && backend == 'system')
           expect(VimrunnerSpy.echo_call_history.count).to be < 7
         end
         esearch.cleanup!
@@ -168,7 +168,7 @@ describe 'esearch#backend', :backend do
     it_behaves_like 'an abortable backend', 'vimproc'
   end
 
-  describe '#nvim', :nvim do
+  describe '#nvim', :neovim do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
     # TODO

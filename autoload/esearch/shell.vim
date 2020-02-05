@@ -2,10 +2,12 @@ let s:Vital        = vital#esearch#new()
 let s:LexerModule  = s:Vital.import('Text.Lexer')
 let s:ParserModule = s:Vital.import('Text.Parser')
 
-fu! esearch#shell#split(string) abort
+fu! esearch#shell#split(string, ...) abort
+  let options = empty(a:000) ? s:default_options : extend(deepcopy(a:1), s:default_options)
   let lexer = s:LexerModule.lexer(s:rules).exec(a:string)
   let parser = s:ParserModule.parser().exec(lexer)
-  call extend(parser, (s:parser_methods))
+  call extend(parser, s:parser_methods)
+  call extend(parser, options)
 
   let parsed = parser.parse()
 
@@ -22,28 +24,30 @@ endfu
 
 fu! esearch#shell#fnameescape(path, metadata) abort
   let parts = []
-  let asterisks = a:metadata.asterisks
+  let wildcards = a:metadata.wildcards
   let substring_start = 0
 
-  for a in asterisks
-    call add(parts, a:path[substring_start:a][:-2])
-    let substring_start = a + 1
+  for wildcard in wildcards
+    call add(parts, a:path[substring_start:wildcard][:-2])
+    let substring_start = wildcard + 1
   endfor
   call add(parts, a:path[substring_start:])
 
   return join(map(parts, 'fnameescape(v:val)'), '*')
 endfu
 
+let s:default_options = {'escaped_wildcards': 0}
 let s:rules = [
-      \ [ 'DQ',                '"'    ],
-      \ [ 'SQ',                "'"    ],
-      \ [ 'ESCAPED_DQ',        '\\"'  ],
-      \ [ 'ESCAPED_SQ',        '\\''' ],
-      \ [ 'TRAILING_ESCAPE',   '\\$'  ],
-      \ [ 'WS',                '\s\+' ],
-      \ [ 'ESCAPED_ANY',       '\\.'  ],
-      \ [ 'ASTERISK',          '\*'  ],
-      \ [ 'ANy',               '.'    ],
+      \ [ 'DQ',                '"'     ],
+      \ [ 'SQ',                "'"     ],
+      \ [ 'ESCAPED_DQ',        '\\"'   ],
+      \ [ 'ESCAPED_SQ',        '\\'''  ],
+      \ [ 'TRAILING_ESCAPE',   '\\$'   ],
+      \ [ 'WS',                '\s\+'  ],
+      \ [ 'ESCAPED_WILDCARD',  '\\\*'  ],
+      \ [ 'ESCAPED_ANY',       '\\.'   ],
+      \ [ 'WILDCARD',           '\*'   ],
+      \ [ 'ANy',               '.'     ],
       \ ]
 
 fu! s:consume_squote() dict abort
@@ -89,30 +93,33 @@ endfu
 fu! s:consume_word() abort dict
   let parsed = ''
   let start = self.p
-  let asterisks = []
+  let wildcards = []
 
   while ! self.end()
-    if self.next_is(['ESCAPED_SQ', 'ESCAPED_DQ', 'ESCAPED_ANY'])
+    if self.next_is(['ESCAPED_WILDCARD'])
+ " && self.escaped_wildcards
+      " throw 1
+      let parsed .= self.advance().matched_text[1]
+    elseif self.next_is(['ESCAPED_SQ', 'ESCAPED_DQ', 'ESCAPED_ANY'])
       let parsed .= self.advance().matched_text[1]
     elseif self.next_is(['DQ'])
       let parsed .= self.consume_dquote()
     elseif self.next_is(['SQ'])
       let parsed .= self.consume_squote()
-    elseif self.next_is(['ASTERISK'])
-      call add(asterisks, self.p)
+    elseif self.next_is(['WILDCARD'])
+      call add(wildcards, strchars(parsed))
       let parsed .= self.advance().matched_text
     elseif self.next_is(['WS'])
       break
-      " let tok = self.advance()
     elseif self.next_is(['TRAILING_ESCAPE'])
       call self.advance()
-      let self.error = 'no escaped character'
+      let self.error = 'trailing escape'
     else
       let parsed .= self.advance().matched_text
     endif
   endwhile
 
-  return s:word(parsed, start, self.p, asterisks)
+  return s:word(parsed, start, self.p, wildcards)
 endfu
 
 function! s:parse() dict
@@ -136,8 +143,8 @@ fu! s:advance() abort dict
   return token
 endfu
 
-fu! s:word(text, start, end, asterisks) abort
-  return {'text': a:text, 'start': a:start, 'end': a:end, 'asterisks': a:asterisks}
+fu! s:word(text, start, end, wildcards) abort
+  return {'text': a:text, 'start': a:start, 'end': a:end, 'wildcards': a:wildcards}
 endfu
 
 let s:parser_methods = {

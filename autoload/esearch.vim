@@ -24,10 +24,16 @@ fu! esearch#init(...) abort
     return 1
   endif
 
+  let g:esearch.case = esearch.case
+  let g:esearch.word = esearch.word
+  let g:esearch.regex = esearch.regex
+  let g:esearch.paths = esearch.paths
+  let g:esearch.metadata = esearch.metadata
+
   " Prepare backend (nvim, vimproc, ...) request object
   """""""""""""""
   let EscapeFunc = function('esearch#backend#'.esearch.backend.'#escape_cmd')
-  let pattern = g:esearch.regex ? esearch.exp.pcre : esearch.exp.literal
+  let pattern = esearch.regex ? esearch.exp.pcre : esearch.exp.literal
   let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, EscapeFunc)
   let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
   let esearch = extend(esearch, {
@@ -45,7 +51,8 @@ fu! s:new(configuration)
         \ deepcopy(g:esearch), 'keep')
   let configuration = extend(configuration, {
         \ 'cwd': getcwd(),
-        \ 'parsed_paths': [],
+        \ 'paths': [],
+        \ 'metadata': [],
         \ 'glob': 0,
         \ 'visualmode': 0,
         \ 'is_single_file': function('<SID>is_single_file'),
@@ -59,16 +66,16 @@ fu! s:is_single_file() abort dict
   " Some adapters don't list filenames when a single file is specified for
   " search, so this function will be used to match results using different
   " format patterns
-  return len(self.parsed_paths) == 1 &&
-        \ empty(self.metadata[0].asterisks) &&
-        \ !isdirectory(self.parsed_paths[0])
+  return len(self.paths) == 1 &&
+        \ empty(self.metadata[0].wildcards) &&
+        \ !isdirectory(self.paths[0])
 endfu
 
 fu! s:title(esearch, pattern) abort
   let format = s:title_format(a:esearch)
   let modifiers = ''
-  let modifiers .= g:esearch.case ? 'c' : ''
-  let modifiers .= g:esearch.word ? 'w' : ''
+  let modifiers .= a:esearch.case ? 'c' : ''
+  let modifiers .= a:esearch.word ? 'w' : ''
   return printf(format, a:pattern, modifiers)
 endfu
 

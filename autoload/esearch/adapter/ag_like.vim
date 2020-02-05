@@ -2,13 +2,13 @@ let esearch#adapter#ag_like#multiple_files_Search_format = '^\(.\{-}\)\:\(\d\{-}
 let esearch#adapter#ag_like#single_file_search_format = '^\(\d\+\)\:\(\d\+\)\:\(.*\)$'
 
 fu! esearch#adapter#ag_like#joined_paths(esearch) abort
-  if empty(a:esearch.parsed_paths)
+  if empty(a:esearch.paths)
     let joined_paths = a:esearch.cwd
   else
-    let parsed_paths = deepcopy(a:esearch.parsed_paths)
+    let paths = deepcopy(a:esearch.paths)
     let escaped = []
-    for i in range(0, len(parsed_paths)-1)
-      call add(escaped, esearch#shell#fnameescape(parsed_paths[i], a:esearch.metadata[i]))
+    for i in range(0, len(paths)-1)
+      call add(escaped, esearch#shell#fnameescape(paths[i], a:esearch.metadata[i]))
     endfor
 
     let joined_paths = join(escaped, ' ')
@@ -39,7 +39,7 @@ fu! esearch#adapter#ag_like#parse_results_from_single_file(data, from, to) abort
     let m = matchlist(a:data[i], format)[1:3]
     if len(m) == 3
       call add(results, {
-            \ 'filename': s:expand_escaped_glob(self.parsed_paths[0]),
+            \ 'filename': s:expand_escaped_glob(self.paths[0]),
             \ 'lnum': m[0], 'col': m[1], 'text': m[2] })
     else
       if index(self.broken_results, a:data[i]) < 0
@@ -52,7 +52,7 @@ fu! esearch#adapter#ag_like#parse_results_from_single_file(data, from, to) abort
   return results
 endfu
 
-fu! esearch#adapter#ag_like#parse_results(data, from, to, ...) abort dict
+fu! esearch#adapter#ag_like#parse_results(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let format = self.format
   let results = []
