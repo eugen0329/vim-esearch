@@ -22,6 +22,18 @@ fu! esearch#shell#split(string, ...) abort
   return [paths, metadata, parser.error]
 endfu
 
+fu! esearch#shell#fnamesescape_and_join(paths, metadata, ...) abort
+  let separator = a:0 == 0 ? ' ' : a:1
+  let paths = deepcopy(a:paths)
+  let escaped = []
+  for i in range(0, len(paths)-1)
+    call add(escaped, esearch#shell#fnameescape(paths[i], a:metadata[i]))
+  endfor
+
+  let joined_paths = join(escaped, separator)
+  return joined_paths
+endfu
+
 fu! esearch#shell#fnameescape(path, metadata) abort
   let parts = []
   let wildcards = a:metadata.wildcards
@@ -36,7 +48,7 @@ fu! esearch#shell#fnameescape(path, metadata) abort
   return join(map(parts, 'fnameescape(v:val)'), '*')
 endfu
 
-let s:default_options = {'escaped_wildcards': 0}
+let s:default_options = {}
 let s:rules = [
       \ [ 'DQ',                '"'     ],
       \ [ 'SQ',                "'"     ],
@@ -44,7 +56,6 @@ let s:rules = [
       \ [ 'ESCAPED_SQ',        '\\'''  ],
       \ [ 'TRAILING_ESCAPE',   '\\$'   ],
       \ [ 'WS',                '\s\+'  ],
-      \ [ 'ESCAPED_WILDCARD',  '\\\*'  ],
       \ [ 'ESCAPED_ANY',       '\\.'   ],
       \ [ 'WILDCARD',           '\*'   ],
       \ [ 'ANy',               '.'     ],
@@ -52,6 +63,7 @@ let s:rules = [
 
 fu! s:consume_squote() dict abort
   let parsed = ''
+  let start = self.p
   call self.advance()
 
   while ! self.end()
@@ -66,7 +78,7 @@ fu! s:consume_squote() dict abort
     endif
   endwhile
 
-  let self.error = 'unterminated single quote'
+  let self.error = 'unterminated single quote at column' . start
   return ''
 endfu
 
@@ -86,7 +98,7 @@ fu! s:consume_dquote() dict abort
     endif
   endwhile
 
-  let self.error = 'unterminated double quote'
+  let self.error = 'unterminated double quote at column' . start
   return ''
 endfu
 
@@ -96,11 +108,7 @@ fu! s:consume_word() abort dict
   let wildcards = []
 
   while ! self.end()
-    if self.next_is(['ESCAPED_WILDCARD'])
- " && self.escaped_wildcards
-      " throw 1
-      let parsed .= self.advance().matched_text[1]
-    elseif self.next_is(['ESCAPED_SQ', 'ESCAPED_DQ', 'ESCAPED_ANY'])
+    if self.next_is(['ESCAPED_SQ', 'ESCAPED_DQ', 'ESCAPED_ANY'])
       let parsed .= self.advance().matched_text[1]
     elseif self.next_is(['DQ'])
       let parsed .= self.consume_dquote()

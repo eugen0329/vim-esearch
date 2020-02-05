@@ -117,7 +117,7 @@ class Editor
 
   def delete_all_buffers_and_clear_messages_and_reset_input!
     # TODO: fix after modifier implementation
-    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>\\<Esc>\\<C-\\>\\<C-n>", "n")')
+    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>\\<Esc>\\<C-\\>\\<C-n>", "n") | set lines=22')
   end
 
   def cleanup!

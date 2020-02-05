@@ -16,12 +16,49 @@ describe 'esearch#backend', :backend do
   include_context 'report editor state on error'
 
   shared_examples 'adapter testing examples' do |adapter, adapter_bin|
-    describe "#{adapter} adapter", :custom_paths, adapter.to_sym do
+    describe "#{adapter} adapter", :custom_paths, adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure!(adapter: adapter, out: 'win', backend: 'system', use: 'last')
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       end
       after { esearch.cleanup! }
+
+      context 'prefilling' do
+        let(:files) do
+          [
+            file('a', '*.ext1'),
+            file('a', 'b c.ext2'),
+          ]
+        end
+        let(:test_directory) { directory(files, 'prefilling/').persist! }
+
+
+        it do
+          editor.cd! test_directory
+          editor.send_keys(*open_input_keys, *open_menu_keys)
+          editor.send_keys_separately('p', '\\\\*.ext1 b\\\\ c.ext2', :enter)
+          editor.send_keys_separately('a', :enter)
+
+          expect(esearch).to have_search_started
+          expect(esearch)
+            .to  have_search_finished
+            .and have_not_reported_errors
+
+          entries = esearch.output.entries.map(&:relative_path)
+          expect(entries).to match_array(files.map(&:relative_path))
+
+          editor.send_keys(*open_input_keys, *open_menu_keys)
+          editor.send_keys_separately('p', :enter, :enter)
+
+          expect(esearch).to have_search_started
+          expect(esearch)
+            .to  have_search_finished
+            .and have_not_reported_errors
+
+          entries = esearch.output.entries.map(&:relative_path)
+          expect(entries).to match_array(files.map(&:relative_path))
+        end
+      end
 
       context '2 dirs' do
         let(:files) do
@@ -127,8 +164,11 @@ describe 'esearch#backend', :backend do
             expect(esearch)
               .to  have_search_finished
               .and have_not_reported_errors
-            expect(esearch.output.entries.map(&:relative_path))
-              .to match_array(['*.ext1'])
+
+            KnownIssues.mark_example_pending_if_known_issue(self) do
+              entries = esearch.output.entries.map(&:relative_path)
+              expect(entries).to match_array(['*.ext1'])
+            end
           end
         end
       end

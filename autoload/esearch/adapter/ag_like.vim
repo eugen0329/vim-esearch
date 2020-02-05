@@ -5,13 +5,7 @@ fu! esearch#adapter#ag_like#joined_paths(esearch) abort
   if empty(a:esearch.paths)
     let joined_paths = a:esearch.cwd
   else
-    let paths = deepcopy(a:esearch.paths)
-    let escaped = []
-    for i in range(0, len(paths)-1)
-      call add(escaped, esearch#shell#fnameescape(paths[i], a:esearch.metadata[i]))
-    endfor
-
-    let joined_paths = join(escaped, ' ')
+    let joined_paths = esearch#shell#fnamesescape_and_join(a:esearch.paths, a:esearch.metadata)
   endif
 
   return joined_paths
@@ -25,6 +19,12 @@ fu! esearch#adapter#ag_like#set_results_parser(esearch) abort
     let a:esearch.parse_results = function('esearch#adapter#ag_like#parse_results')
     let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
   endif
+
+  let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
+endfu
+
+fu! esearch#adapter#ag_like#expand_filename(filename) abort dict
+  return a:filename
 endfu
 
 fu! esearch#adapter#ag_like#parse_results_from_single_file(data, from, to) abort dict

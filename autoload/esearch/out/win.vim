@@ -428,15 +428,7 @@ fu! esearch#out#win#filename() abort
   let filename = matchstr(getline(lnum), '^\zs[^ ].*')
   let filename = substitute(filename, '^\./', '', '')
 
-  if b:esearch.adapter == 'git' && filename[0] ==# '"' && filename[0] == filename[strchars(filename)-1]
-    let [paths, metadata, error] = esearch#shell#split(filename)
-    if len(paths) != 1 || len(metadata) != 1 || !empty(metadata[0].wildcards)
-      throw "ESearch: can't resolve filename " . filename
-    endif
-    let filename = paths[0]
-  endif
-
-  return filename
+  return b:esearch.expand_filename(filename)
 endfu
 
 fu! esearch#out#win#foldtext() abort

@@ -237,6 +237,7 @@ endfu
 fu! s:invert(option) abort
   call s:synchronize_regexp()
   call s:esearch.invert(a:option)
+  call g:esearch.invert(a:option) " TODO reduce dependency
 endfu
 
 fu! s:synchronize_regexp() abort
@@ -267,9 +268,10 @@ fu! s:render_directory_prompt(dir) abort
   if empty(get(s:esearch, 'paths', []))
     let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
   else
-    let dir = g:esearch#cmdline#dir_icon 
-          \ . join(map(deepcopy(s:esearch.paths), "substitute(v:val, '".$PWD."/', '', '')"), ' ')
+    let dir = g:esearch#cmdline#dir_icon .
+          \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata, ', ')
   endif
+
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
   echo ''
@@ -370,12 +372,14 @@ endfunction
 fu! s:change_paths() abort
   redraw!
 
+ let joined_paths = esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata)
+
   let user_input_in_shell_format =
-        \ input("Directories:\n", join(s:esearch.paths, ' '), 'file')
+        \ input("Directories:\n", joined_paths, 'file')
 
   let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
   if error isnot 0
-    raise "ESearch: can't parse paths"
+    throw "ESearch: can't parse paths: " . error
   endif
   let s:esearch.paths    = paths
   let s:esearch.metadata = metadata

@@ -40,6 +40,8 @@ fu! esearch#adapter#ack#set_results_parser(esearch) abort
     let a:esearch.parse_results = function('esearch#adapter#ag_like#parse_results')
     let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
   endif
+
+  let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
 endfu
 
 fu! esearch#adapter#ack#parse_results_from_single_file(data, from, to) abort dict

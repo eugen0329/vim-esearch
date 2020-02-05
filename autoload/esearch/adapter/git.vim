@@ -42,6 +42,20 @@ endfu
 fu! esearch#adapter#git#set_results_parser(esearch) abort
   let a:esearch.parse_results = function('esearch#adapter#grep_like#parse_results')
   let a:esearch.format = g:esearch#adapter#grep_like#multiple_files_Search_format
+  let a:esearch.expand_filename = function('<SID>expand_filename')
+endfu
+
+fu! s:expand_filename(filename) abort dict
+  let filename = a:filename
+  if filename[0] ==# '"' && filename[0] == filename[strchars(filename)-1]
+    let [paths, metadata, error] = esearch#shell#split(filename)
+    if len(paths) != 1 || len(metadata) != 1 || !empty(metadata[0].wildcards)
+      throw "ESearch: can't resolve filename " . filename
+    endif
+    let filename = paths[0]
+  endif
+
+  return filename
 endfu
 
 fu! esearch#adapter#git#requires_pty() abort

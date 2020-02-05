@@ -20,15 +20,17 @@ fu! esearch#init(...) abort
     let esearch.exp = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
-  if empty(esearch.exp)
-    return 1
-  endif
 
   let g:esearch.case = esearch.case
   let g:esearch.word = esearch.word
   let g:esearch.regex = esearch.regex
   let g:esearch.paths = esearch.paths
   let g:esearch.metadata = esearch.metadata
+
+  if empty(esearch.exp)
+    return 1
+  endif
+
 
   " Prepare backend (nvim, vimproc, ...) request object
   """""""""""""""
