@@ -152,7 +152,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
   """""""""""
   while 1
     call s:render_directory_prompt(a:cmdline_opts.cwd)
-    let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#cmdline#buff_compl')
+    let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#completion#buffer_words')
     if empty(s:events) | break | endif
 
     for handler in s:events
@@ -314,75 +314,35 @@ fu! esearch#cmdline#map(lhs, rhs) abort
   let g:cmdline_mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
 
-" borrowed from oblique and incsearch
-fu! esearch#cmdline#buff_compl(A, ...) abort
-  let chars = map(split(a:A, '.\zs'), 'escape(v:val, "\\[]^$.*")')
-  let fuzzy_pat = join(
-        \ extend(map(chars[0 : -2], "v:val . '[^' .v:val. ']\\{-}'"),
-        \ chars[-1:-1]), '')
-
-  let spell_pat = a:A
-  let spell_save = &spell
-  let &spell = 1
-  try
-    let spell_pat = substitute(spell_pat, '\k\+', '\=s:spell_suggests(submatch(0))', 'g')
-  finally
-    let &spell = spell_save
-  endtry
-
-  " exact, part, spell suggest, fuzzy, begins with
-  let e = []
-  let p = []
-  let s = []
-  let f = []
-  let b = []
-
-  let words = esearch#util#buff_words()
-  " because of less typos in small words
-  let word_len = strlen(a:A)
-  if word_len < 4
-    call filter(words, 'word_len <= strlen(v:val)')
-  endif
-
-  for w in words
-    if w == a:A
-      call add(e, w)
-    elseif w =~ '^'.a:A
-      call add(b, w)
-    elseif w =~ a:A
-      call add(p, w)
-    elseif word_len > 2 && w =~ spell_pat
-      call add(s, w)
-    elseif word_len > 2 && w =~ fuzzy_pat
-      call add(f, w)
-    endif
-  endfor
-
-  call sort(f, 'esearch#util#compare_len')
-  call sort(s, 'esearch#util#compare_len')
-  call sort(e, 'esearch#util#compare_len')
-  call sort(p, 'esearch#util#compare_len')
-  return e + b + p + s + f
-endfu
-
-function! s:spell_suggests(word) abort
-  return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
-endfunction
-
 fu! s:change_paths() abort
   redraw!
 
- let joined_paths = esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata)
 
   let user_input_in_shell_format =
-        \ input("Directories:\n", joined_paths, 'file')
+        \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata)
+  while 1
+    call esearch#util#highlight('Normal', 'Input search PATHS: ')
+    call esearch#util#highlight('Comment', "(example: dir/ *.json 'file with spaces.txt' etc.)", 0)
+    let user_input_in_shell_format = input('',
+          \ user_input_in_shell_format,
+          \'customlist,esearch#cmdline#complete_files')
 
-  let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
-  if error isnot 0
-    throw "ESearch: can't parse paths: " . error
-  endif
+    let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
+    if error isnot 0
+      call esearch#util#highlight('ErrorMsg', " can't parse paths: " . error, 0)
+      call getchar()
+      redraw!
+    else
+      break
+    endif
+  endwhile
+
   let s:esearch.paths    = paths
   let s:esearch.metadata = metadata
+endfu
+
+fu! esearch#cmdline#complete_files(A,L,P) abort
+  return esearch#completion#complete_files(s:esearch.cwd, a:A, a:L, a:P)
 endfu
 
 if g:esearch#cmdline#menu_feature_toggle == 1

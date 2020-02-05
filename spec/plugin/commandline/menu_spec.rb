@@ -87,12 +87,12 @@ describe 'esearch#cmdline menu' do
               .from(match_array([
                 start_with('> c '),
                 start_with('  r '),
-                start_with('  w ')
+                start_with('  w '),
                 start_with('  p ')
               ])).to(match_array([
                 start_with('  c '),
                 start_with('> r '),
-                start_with('  w ')
+                start_with('  w '),
                 start_with('  p ')
               ]))
               .and set_global_options('regex' => 1)
@@ -111,13 +111,13 @@ describe 'esearch#cmdline menu' do
               .from(match_array([
                 start_with('> c '),
                 start_with('  r '),
-                start_with('  w ')
+                start_with('  w '),
                 start_with('  p ')
               ])).to(match_array([
                 start_with('  c '),
                 start_with('  r '),
-                start_with('> w ')
-                start_with('> p ')
+                start_with('> w '),
+                start_with('  p ')
               ]))
               .and set_global_options('word' => 1)
               .and start_search_with_options('word' => 1)
@@ -139,7 +139,7 @@ describe 'esearch#cmdline menu' do
               .from(match_array([
                 start_with('> c '),
                 start_with('  r '),
-                start_with('  w ')
+                start_with('  w '),
                 start_with('  p ')
               ]))
           end
@@ -184,7 +184,7 @@ describe 'esearch#cmdline menu' do
               it "preserves location #{expected_location} at '|'" do
                 editor.send_keys(*open_input_keys,
                                  test_string,
-                                 *goto_location_keys(expected_location),
+                                 *locate_cursor_with_arrows(expected_location),
                                  *open_menu_keys)
                 editor.send_keys(*dismiss_with)
 

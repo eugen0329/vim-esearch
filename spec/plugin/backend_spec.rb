@@ -7,7 +7,7 @@ require 'plugin/shared_examples/abortable_backend'
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
   include Helpers::Strings
-  include Helpers::OutputErrors
+  include Helpers::Output
   include Helpers::ReportEditorStateOnError
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
@@ -29,7 +29,7 @@ describe 'esearch#backend', :backend do
       end
 
       append_after do
-        if false and (Configuration.debug_specs_performance? && backend == 'system')
+        if false && (Configuration.debug_specs_performance? && backend == 'system')
           expect(VimrunnerSpy.echo_call_history.count).to be < 7
         end
         esearch.cleanup!

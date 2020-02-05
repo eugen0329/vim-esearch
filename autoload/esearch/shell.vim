@@ -24,6 +24,10 @@ endfu
 
 fu! esearch#shell#fnamesescape_and_join(paths, metadata, ...) abort
   let separator = a:0 == 0 ? ' ' : a:1
+  if empty(a:metadata)
+    return join(map(copy(a:paths), 'fnameescape(v:val)'), separator)
+  endif
+
   let paths = deepcopy(a:paths)
   let escaped = []
   for i in range(0, len(paths)-1)
@@ -78,7 +82,7 @@ fu! s:consume_squote() dict abort
     endif
   endwhile
 
-  let self.error = 'unterminated single quote at column' . start
+  let self.error = 'unterminated single quote at column ' . start
   return ''
 endfu
 
@@ -98,7 +102,7 @@ fu! s:consume_dquote() dict abort
     endif
   endwhile
 
-  let self.error = 'unterminated double quote at column' . start
+  let self.error = 'unterminated double quote at column ' . start
   return ''
 endfu
 

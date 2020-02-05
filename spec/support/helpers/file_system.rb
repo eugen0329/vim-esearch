@@ -16,4 +16,14 @@ module Helpers::FileSystem
       Fixtures::LazyDirectory.new(...)
     end
   end
+
+  # TODO consider to do it with tempfiles mechanism
+  def temporary_persist_and_add_to_index(directory)
+    directory.persist!
+    raise "failed with #{$CHILD_STATUS}" unless system("git add #{directory.path}")
+    yield
+  ensure
+    raise "failed with #{$CHILD_STATUS}" unless system("git rm -r --cached #{directory.path}")
+    directory.rm_rf
+  end
 end

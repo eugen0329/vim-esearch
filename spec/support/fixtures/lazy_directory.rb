@@ -31,6 +31,14 @@ class Fixtures::LazyDirectory
     self
   end
 
+  def rm_rf
+    FileUtils.remove_dir(path)
+    @files.freeze
+    @given_name.freeze
+
+    self
+  end
+
   def to_s
     path.to_s
   end

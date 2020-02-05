@@ -16,7 +16,7 @@ describe 'esearch#util' do
   end
 
   def wildcards_at(str)
-    paths, metadata, error = editor.echo(func('esearch#shell#split', str))
+    _paths, metadata, error = editor.echo(func('esearch#shell#split', str))
     return :error if error != 0
 
     metadata.map { |word| word['wildcards'] }
@@ -31,8 +31,8 @@ describe 'esearch#util' do
     it { expect(wildcards_at('*ab')).to   eq([[0]])    }
     it { expect(wildcards_at('a*b')).to   eq([[1]])    }
     it { expect(wildcards_at('ab*')).to   eq([[2]])    }
-    it { expect(wildcards_at(' *ab')).to  eq([[1]])    }
-    it { expect(wildcards_at(' ab* ')).to eq([[3]])    }
+    it { expect(wildcards_at(' *ab')).to  eq([[0]])    }
+    it { expect(wildcards_at(' ab* ')).to eq([[2]])    }
   end
 
   context 'single word' do
@@ -122,6 +122,7 @@ describe 'esearch#util' do
     def split_and_escape(str)
       paths, metadata, error = editor.echo(func('esearch#shell#split', str))
       return :error if error != 0
+
       paths.zip(metadata).map do |path, meta|
         editor.echo(func('esearch#shell#fnameescape', path, meta))
       end
@@ -134,13 +135,13 @@ describe 'esearch#util' do
       it { expect(split_and_escape('*a')).to    eq(['*a'])   }
       it { expect(split_and_escape('a*')).to    eq(['a*'])   }
       it { expect(split_and_escape('a*bc')).to  eq(['a*bc']) }
-      it { expect(split_and_escape('a*bcd')).to eq(['a*bcd'])}
+      it { expect(split_and_escape('a*bcd')).to eq(['a*bcd']) }
       it { expect(split_and_escape('*abc')).to  eq(['*abc']) }
-      it { expect(split_and_escape('abcd*')).to eq(['abcd*'])}
+      it { expect(split_and_escape('abcd*')).to eq(['abcd*']) }
       it { expect(split_and_escape('*a*')).to   eq(['*a*'])  }
       it { expect(split_and_escape('b*a*')).to  eq(['b*a*']) }
       it { expect(split_and_escape('*b*a')).to  eq(['*b*a']) }
-      it { expect(split_and_escape('*b*a*')).to eq(['*b*a*'])}
+      it { expect(split_and_escape('*b*a*')).to eq(['*b*a*']) }
     end
 
     context 'escaped wildcards' do

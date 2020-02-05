@@ -69,7 +69,7 @@ fu! s:is_single_file() abort dict
   " search, so this function will be used to match results using different
   " format patterns
   return len(self.paths) == 1 &&
-        \ empty(self.metadata[0].wildcards) &&
+        \ (len(self.metadata) == 1 && !empty(self.metadata[0].wildcards)) &&
         \ !isdirectory(self.paths[0])
 endfu
 
@@ -129,8 +129,3 @@ fu! s:init_lazy_global_config() abort
 
   return 0
 endfu
-
-function! esearch#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>
