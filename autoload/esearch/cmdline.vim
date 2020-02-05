@@ -372,7 +372,7 @@ if g:esearch#cmdline#menu_feature_toggle == 1
             \ 'callback': function('<SID>invert', ['word'])}))
       call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
             \ 'text': 'p       edit (p)ath',
-            \ 'shortcut': ["\<C-p>", "p"],
+            \ 'shortcut': ["\<C-p>", 'p'],
             \ 'callback': function('<SID>change_paths', [])}))
     endif
 

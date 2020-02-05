@@ -23,11 +23,10 @@ describe 'esearch#util' do
   end
 
   context 'wildcards' do
-    it { expect(wildcards_at('*ab')).to   eq([[0]])    }
     it { expect(wildcards_at('ab')).to    eq([[]])     }
+    it { expect(wildcards_at('*ab')).to   eq([[0]])    }
     it { expect(wildcards_at('*ab*')).to  eq([[0, 3]]) }
     it { expect(wildcards_at('**ab')).to  eq([[0, 1]]) }
-    it { expect(wildcards_at('*ab')).to   eq([[0]])    }
     it { expect(wildcards_at('*ab')).to   eq([[0]])    }
     it { expect(wildcards_at('a*b')).to   eq([[1]])    }
     it { expect(wildcards_at('ab*')).to   eq([[2]])    }
@@ -107,7 +106,7 @@ describe 'esearch#util' do
     end
   end
 
-  describe 'esearch#shell#isfile' do
+  describe 'esearch#shell#fnameescape' do
     let(:files) do
       [
         file('a', 'a.ext1'),

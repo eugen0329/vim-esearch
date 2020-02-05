@@ -20,11 +20,10 @@ fu! esearch#init(...) abort
     let esearch.exp = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
-
-  let g:esearch.case = esearch.case
-  let g:esearch.word = esearch.word
-  let g:esearch.regex = esearch.regex
-  let g:esearch.paths = esearch.paths
+  let g:esearch.case     = esearch.case
+  let g:esearch.word     = esearch.word
+  let g:esearch.regex    = esearch.regex
+  let g:esearch.paths    = esearch.paths
   let g:esearch.metadata = esearch.metadata
 
   if empty(esearch.exp)
@@ -48,7 +47,7 @@ fu! esearch#init(...) abort
   call esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! s:new(configuration)
+fu! s:new(configuration) abort
   let configuration = extend(deepcopy(a:configuration),
         \ deepcopy(g:esearch), 'keep')
   let configuration = extend(configuration, {
@@ -69,7 +68,7 @@ fu! s:is_single_file() abort dict
   " search, so this function will be used to match results using different
   " format patterns
   return len(self.paths) == 1 &&
-        \ (len(self.metadata) == 1 && !empty(self.metadata[0].wildcards)) &&
+        \ (len(self.metadata) != 1 || empty(self.metadata[0].wildcards)) &&
         \ !isdirectory(self.paths[0])
 endfu
 

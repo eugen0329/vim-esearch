@@ -9,7 +9,7 @@ fu! esearch#shell#split(string, ...) abort
   call extend(parser, s:parser_methods)
   call extend(parser, options)
 
-  let parsed = parser.parse()
+  let parsed = parser.split()
 
   let paths = []
   let metadata = []
@@ -44,25 +44,25 @@ fu! esearch#shell#fnameescape(path, metadata) abort
   let substring_start = 0
 
   for wildcard in wildcards
-    call add(parts, a:path[substring_start:wildcard][:-2])
+    call add(parts, a:path[substring_start : wildcard][:-2])
     let substring_start = wildcard + 1
   endfor
-  call add(parts, a:path[substring_start:])
+  call add(parts, a:path[substring_start :])
 
   return join(map(parts, 'fnameescape(v:val)'), '*')
 endfu
 
 let s:default_options = {}
 let s:rules = [
-      \ [ 'DQ',                '"'     ],
-      \ [ 'SQ',                "'"     ],
-      \ [ 'ESCAPED_DQ',        '\\"'   ],
-      \ [ 'ESCAPED_SQ',        '\\'''  ],
-      \ [ 'TRAILING_ESCAPE',   '\\$'   ],
-      \ [ 'WS',                '\s\+'  ],
-      \ [ 'ESCAPED_ANY',       '\\.'   ],
-      \ [ 'WILDCARD',           '\*'   ],
-      \ [ 'ANy',               '.'     ],
+      \ [ 'DQ',                '"'   ],
+      \ [ 'SQ',                "'"   ],
+      \ [ 'ESCAPED_DQ',        '\\"' ],
+      \ [ 'ESCAPED_SQ',        '\\'''],
+      \ [ 'TRAILING_ESCAPE',   '\\$' ],
+      \ [ 'WS',                '\s\+'],
+      \ [ 'ESCAPED_ANY',       '\\.' ],
+      \ [ 'WILDCARD',           '\*' ],
+      \ [ 'ANy',               '.'   ],
       \ ]
 
 fu! s:consume_squote() dict abort
@@ -134,7 +134,7 @@ fu! s:consume_word() abort dict
   return s:word(parsed, start, self.p, wildcards)
 endfu
 
-function! s:parse() dict
+function! s:split() abort dict
   let words = []
 
   while ! self.end()
@@ -160,7 +160,7 @@ fu! s:word(text, start, end, wildcards) abort
 endfu
 
 let s:parser_methods = {
-      \ 'parse':          function('s:parse'),
+      \ 'split':          function('s:split'),
       \ 'consume_squote': function('s:consume_squote'),
       \ 'consume_dquote': function('s:consume_dquote'),
       \ 'consume_word':   function('s:consume_word'),

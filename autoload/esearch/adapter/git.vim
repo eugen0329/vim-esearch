@@ -24,7 +24,7 @@ fu! esearch#adapter#git#_options() abort
 endfu
 
 fu! esearch#adapter#git#cmd(esearch, pattern, escape) abort
-  let options = a:0 ? a:1 : esearch#adapter#git#_options()
+  let options = esearch#adapter#git#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')

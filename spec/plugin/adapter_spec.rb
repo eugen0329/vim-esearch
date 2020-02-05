@@ -46,7 +46,7 @@ describe 'esearch#backend', :backend do
         around { |e| temporary_persist_and_add_to_index(test_directory, &e) }
 
         it_behaves_like 'search specifying custom paths',
-          paths_string:  %q[
+          paths_string:   %q[
              with\\\\ ws/file.e
              with\\\\\\\\backslash/file.e
              with\\\\'squote/file.e
@@ -56,7 +56,7 @@ describe 'esearch#backend', :backend do
             'with ws/file.e',
             'with\\backslash/file.e',
             "with'squote/file.e",
-            'with"dquote/file.e',
+            'with"dquote/file.e'
           ],
           files:          [
             file('any content', 'with ws/file.e'),
@@ -66,11 +66,10 @@ describe 'esearch#backend', :backend do
             file('any content', 'with\\ws/file.e'),
             file('any content', 'withws/file.e'),
             file('any content', 'with backslash/file.e'),
-            file('any content', 'other/file.e'),
+            file('any content', 'other/file.e')
           ]
 
-
-        context 'when search for prefilled' do
+        context 'when searching using prefilled directories' do
           let(:files) do
             [file('any content', '*.txt'),
              file('any content', 'b c.json')]
@@ -92,6 +91,7 @@ describe 'esearch#backend', :backend do
             editor.send_keys(*open_paths_input_keys)
             expect(editor).to have_commandline_content(inputted_keys(paths_string))
             editor.send_keys(:enter, :enter)
+
             expect(esearch).to finish_search_in_files(names)
           end
         end
@@ -106,7 +106,7 @@ describe 'esearch#backend', :backend do
               file('any content', 'a.txt'),
               file('any content', 'b.txt'),
               file('any content', '*.txt'),
-              file('any content', 'c.json'),
+              file('any content', 'c.json')
             ]
         end
 
@@ -118,13 +118,12 @@ describe 'esearch#backend', :backend do
               file('any content', 'a.txt'),
               file('any content', 'b.txt'),
               file('any content', '*.txt'),
-              file('any content', 'c.json'),
+              file('any content', 'c.json')
             ]
         end
       end
     end
   end
-
 
   shared_examples 'all adapters testing examples' do
     include_examples 'adapter testing examples', 'ag'
