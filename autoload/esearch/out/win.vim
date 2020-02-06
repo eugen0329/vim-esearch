@@ -389,8 +389,10 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
   " nnoremap <silent><buffer> <Plug>(esearch-win-Nop)           <Nop>
-  nnoremap <silent><buffer> <S-p>     :<C-U>sil cal esearch#preview#start()<CR>
-  nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
+  if has('nvim')
+    nnoremap <silent><buffer> <S-p>     :<C-U>sil cal esearch#preview#start()<CR>
+    nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
+  endif
 
   for mapping in s:mappings
     if !g:esearch.default_mappings && mapping.default | continue | endif
@@ -404,14 +406,14 @@ fu! esearch#out#win#column_in_file() abort
 endfu
 
 fu! s:open(cmd, ...) abort
-  let fname = esearch#out#win#filename()
-  if !empty(fname)
+  let filename = esearch#out#win#filename()
+  if !empty(filename)
     let ln = esearch#out#win#line_in_file()
     let col = esearch#out#win#column_in_file()
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
-      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . filename)
     catch /E325:/
       " ignore warnings about swapfiles (let user and #substitute handle them)
     catch
