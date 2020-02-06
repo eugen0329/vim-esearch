@@ -8,19 +8,20 @@ fu! esearch#preview#start() abort
   let search_window = bufwinnr(bufnr('%'))
   let preview_buffer = s:initialize_buffer(filename)
 
+  let [width, height] = [120, 11]
+
   try
-    let s:preview_window = s:open_preview_window(preview_buffer.id)
+    let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
     if preview_buffer.newly_created
       call s:save_buffer_variables(preview_buffer)
     endif
 
     call s:goto_window(s:preview_window.number)
     call s:open_file(filename, preview_buffer)
-    call s:reshape_preview_window(line_in_file, column_in_file)
+    call s:reshape_preview_window(line_in_file, column_in_file, height)
     call s:setup_highlight()
     call s:setup_matching_line_sign(line_in_file)
     call s:setup_events()
-    exe 'au ' . s:events . ' * ++once call s:close_preview_window()'
   catch
     call s:close_preview_window()
     echoerr v:exception
@@ -40,6 +41,8 @@ fu! s:setup_events() abort
     au! BufWinEnter,BufEnter <buffer>
     noautocmd au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
   augroup END
+
+  exe 'au ' . s:events . ' * ++once call s:close_preview_window()'
 endfu
 
 fu! s:setup_matching_line_sign(line_in_file) abort
@@ -54,19 +57,19 @@ fu! s:setup_matching_line_sign(line_in_file) abort
         \ {'lnum': a:line_in_file})
 endfu
 
-fu! s:reshape_preview_window(line_in_file, column_in_file) abort
+fu! s:reshape_preview_window(line_in_file, column_in_file, height) abort
   let lines_size = line('$')
-  if lines_size < 11
+  if lines_size < a:height
     return cursor(a:line_in_file, a:column_in_file)
   endif
 
-  noautocmd keepjumps resize 11
+  exe 'noautocmd keepjumps resize '. a:height
 
   " literally what :help scrolloff does, but without dealing with options
-  if lines_size - a:line_in_file < 11
-    let topline = lines_size - 11
+  if lines_size - a:line_in_file < a:height
+    let topline = lines_size - a:height
   else
-    let topline = a:line_in_file - (11 / 2)
+    let topline = a:line_in_file - (a:height / 2)
   endif
   noautocmd keepjumps call winrestview({
         \ 'lnum': a:line_in_file,
@@ -81,11 +84,10 @@ fu! s:setup_highlight() abort
   keepjumps doau BufRead
 endfu
 
-fu! s:open_preview_window(preview_buffer) abort
-
+fu! s:open_preview_window(preview_buffer, width, height) abort
   let id = nvim_open_win(a:preview_buffer, 0, {
-        \ 'width':     120,
-        \ 'height':    11,
+        \ 'width':     a:width,
+        \ 'height':    a:height,
         \ 'focusable': v:false,
         \ 'row':       (getpos('.')[1] - line('w0') + 2),
         \ 'col':       max([5, wincol() - 1]),
