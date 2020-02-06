@@ -358,7 +358,7 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_in_file':   function('s:line_in_file'),
+        \ 'line_in_file':   function('esearch#out#win#line_in_file'),
         \ 'open':          function('s:open'),
         \ 'filename':      function('esearch#out#win#filename'),
         \ 'is_file_entry': function('s:is_file_entry')
@@ -388,6 +388,9 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-next)          :<C-U>sil exe <SID>jump(1, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
+  " nnoremap <silent><buffer> <Plug>(esearch-win-Nop)           <Nop>
+  nnoremap <silent><buffer> <S-p>     :<C-U>sil cal esearch#preview#start()<CR>
+  nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
 
   for mapping in s:mappings
     if !g:esearch.default_mappings && mapping.default | continue | endif
@@ -396,11 +399,15 @@ fu! s:init_mappings() abort
   endfor
 endfu
 
+fu! esearch#out#win#column_in_file() abort
+  return get(b:esearch._columns, s:result_line(), 1)
+endfu
+
 fu! s:open(cmd, ...) abort
   let fname = esearch#out#win#filename()
   if !empty(fname)
-    let ln = s:line_in_file()
-    let col = get(b:esearch._columns, s:result_line(), 1)
+    let ln = esearch#out#win#line_in_file()
+    let col = esearch#out#win#column_in_file()
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
@@ -466,7 +473,7 @@ fu! s:result_line() abort
   endif
 endfu
 
-fu! s:line_in_file() abort
+fu! esearch#out#win#line_in_file() abort
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 

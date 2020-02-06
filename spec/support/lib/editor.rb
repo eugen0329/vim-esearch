@@ -33,6 +33,15 @@ class Editor
     MODES[echo(func('mode'))]
   end
 
+  def help_autocommands
+    command! 'help au'
+    lines(prefetch_count: 100)
+      .select { |l| l.start_with?('|') }
+      .map { |l| l.scan(/^\|(\w+)\|/)[0] }
+      .compact
+      .map(&:first)
+  end
+
   def line(number)
     echo func('getline', number)
   end
