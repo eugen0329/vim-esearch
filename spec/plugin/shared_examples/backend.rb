@@ -2,7 +2,7 @@
 
 # TODO: completely rewrite
 RSpec.shared_examples 'a backend' do |backend|
-  include Helpers::OutputErrors
+  include Helpers::Output
 
   %w[ack ag git grep pt rg].each do |adapter|
     context "with #{adapter} adapter", :relative_paths do

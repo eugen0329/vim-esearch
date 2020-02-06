@@ -14,12 +14,21 @@ module Helpers::Commandline
     [:leader, 'ff']
   end
 
+  def open_paths_input_keys
+    ['p']
+  end
+
+  def inputted_keys(keys)
+    # TODO
+    keys.gsub('\\\\', '\\')
+  end
+
   def output_spy_calls
     esearch.output.calls_history
   end
 
   def menu_items
-    esearch.output.echo_calls_history.last(3)
+    esearch.output.echo_calls_history[..-2].last(4)
   end
 
   def without_location_mark(location_string)
@@ -28,7 +37,7 @@ module Helpers::Commandline
     location_string.tr('|', '')
   end
 
-  def goto_location_keys(location_string)
+  def locate_cursor_with_arrows(location_string)
     raise ArgumentError unless location_string.include?('')
 
     [:end].concat([:left] * (location_string.length - location_string.index('|') - 1))
@@ -79,6 +88,19 @@ module Helpers::Commandline
     match { values_match?(editor.mode, :commandline) }
   end
   define_negated_matcher :not_to_be_in_commandline, :be_in_commandline
+
+  # TODO: consider to run all matchers against facade
+  matcher :have_commandline_content do |expected|
+    attr_reader :expected, :actual
+
+    diffable
+
+    match do |editor|
+      @expected = expected
+      @actual = editor.commandline_content
+      values_match?(@expected, @actual)
+    end
+  end
 
   matcher :have_commandline_cursor_location do |location_string|
     attr_reader :expected, :actual

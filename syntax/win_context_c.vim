@@ -11,7 +11,8 @@ syn keyword es_cStorageClass static register auto volatile extern const
 syn region  es_cComment       start="//"  end="$"
 syn region  es_cComment       start="/\*" end="\*/\|$"
 syn region  es_cString       start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
-syn match   es_cDefine        '#\(define\|undef\)\>'
+" todo test
+syn match   es_cDefine        '#\(define\|undef\|if\|ifdef\|ifndef\)\>'
 syn match   es_cPreProc       '#\(pragma\|line\|warning\|warn\|error\)\>'
 
 hi def link es_cStatement    Statement

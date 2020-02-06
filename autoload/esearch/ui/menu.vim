@@ -1,7 +1,7 @@
 " Rewrited nerdtree menu
 
-fu! esearch#ui#menu#new(menu_items, prompt) abort
-  return s:MenuController.new(a:menu_items, a:prompt)
+fu! esearch#ui#menu#new(menu_items, prompt, footer) abort
+  return s:MenuController.new(a:menu_items, a:prompt, a:footer)
 endfu
 
 fu! esearch#ui#menu#item(options) abort
@@ -10,9 +10,10 @@ endfu
 
 let s:MenuController = {}
 
-fu! s:MenuController.new(menu_items, prompt) abort
+fu! s:MenuController.new(menu_items, prompt, footer) abort
   let new_menu_controller =  copy(self)
   let new_menu_controller.prompt  =  a:prompt
+  let new_menu_controller.footer  =  a:footer
   if a:menu_items[0].is_separator()
     let new_menu_controller.menu_items = a:menu_items[1:-1]
   else
@@ -35,11 +36,7 @@ fu! s:MenuController.start() abort
     let l:done = 0
 
     while !l:done
-      if has('nvim')
-        mode
-      else
-        redraw!
-      endif
+      redraw!
       call self.render()
 
       let l:key = nr2char(getchar())
@@ -80,6 +77,8 @@ fu! s:MenuController.render() abort
         call g:esearch#util#mockable.echo('  ' . self.menu_items[i].text)
       endif
     endfor
+
+    call g:esearch#util#mockable.echo(self.footer)
   endif
 endfu
 fu! s:MenuController.current_item() abort
@@ -164,6 +163,10 @@ fu! s:MenuController.save_options() abort
   let self.old_cmd_height = &cmdheight
   let self.old_showtabline = &showtabline " to reduce blinks
   let self.old_window_height = winheight(0)
+  if !has('nvim')
+    let self.old_t_ve = &t_ve
+    setlocal t_ve=
+  endif
   set nolazyredraw
   set showtabline=0
   call self.set_cmdline_height()
@@ -173,6 +176,9 @@ fu! s:MenuController.restore_options() abort
   let &cmdheight = self.old_cmd_height
   let &lazyredraw = self.old_lazy_redraw
   let &showtabline = self.old_showtabline
+  if !has('nvim')
+    let &t_ve = self.old_t_ve
+  endif
   exe 'resize ' . self.old_window_height
 endfu
 

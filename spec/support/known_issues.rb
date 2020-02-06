@@ -42,14 +42,14 @@ class KnownIssues
   def self.mark_example_pending_if_known_issue(example)
     yield
   rescue Exception => e # rubocop:disable Lint/RescueException
-    description = RSpec.current_example.description
+    description = RSpec.current_example.full_description
     metadata = RSpec.current_example.metadata
     issue = pending_issues.find do |i|
       i.meta <= metadata &&
         description.include?(i.description_substring) &&
         e.message.match?(i.exception_pattern)
     end
-    example.pending "known issue with #{issue.description_substring} #{issue.meta}" if issue
+    example.pending "known issue with #{issue.description_substring.inspect} #{issue.meta}" if issue
 
     raise
   end

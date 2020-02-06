@@ -9,6 +9,10 @@ fu! esearch#regex#new(...) abort
 endfu
 
 fu! esearch#regex#finalize(exp, opts) abort
+  if empty(a:exp)
+    return a:exp
+  endif
+
   let vexp = a:exp.vim
   " let vexp = escape(vexp, '$')
 

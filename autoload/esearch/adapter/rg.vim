@@ -24,29 +24,23 @@ fu! esearch#adapter#rg#_options() abort
   return s:options
 endfu
 
-fu! esearch#adapter#rg#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#rg#_options()
+fu! esearch#adapter#rg#cmd(esearch, pattern, escape) abort
+  let options = esearch#adapter#rg#_options()
   let r = options.parametrize('regex')
   let c = options.parametrize('case')
   let w = options.parametrize('word')
+
+  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+
   return g:esearch#adapter#rg#bin.' '.r.' '.c.' '.w.' --no-heading --color=never --line-number --column ' .
         \ g:esearch#adapter#rg#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
+        \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#rg#is_broken_result(...) abort
-  return call('esearch#adapter#ag#is_broken_result', a:000)
-endfu
-
-fu! esearch#adapter#rg#parse_results(...) abort
-  return call('esearch#adapter#ag#parse_results', a:000)
+fu! esearch#adapter#rg#set_results_parser(esearch) abort
+  call esearch#adapter#ag_like#set_results_parser(a:esearch)
 endfu
 
 fu! esearch#adapter#rg#requires_pty() abort
   return 1
 endfu
-
-function! esearch#adapter#rg#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

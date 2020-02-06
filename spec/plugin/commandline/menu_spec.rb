@@ -87,11 +87,13 @@ describe 'esearch#cmdline menu' do
               .from(match_array([
                 start_with('> c '),
                 start_with('  r '),
-                start_with('  w ')
+                start_with('  w '),
+                start_with('  p ')
               ])).to(match_array([
                 start_with('  c '),
                 start_with('> r '),
-                start_with('  w ')
+                start_with('  w '),
+                start_with('  p ')
               ]))
               .and set_global_options('regex' => 1)
               .and start_search_with_options('regex' => 1)
@@ -109,11 +111,13 @@ describe 'esearch#cmdline menu' do
               .from(match_array([
                 start_with('> c '),
                 start_with('  r '),
-                start_with('  w ')
+                start_with('  w '),
+                start_with('  p ')
               ])).to(match_array([
                 start_with('  c '),
                 start_with('  r '),
-                start_with('> w ')
+                start_with('> w '),
+                start_with('  p ')
               ]))
               .and set_global_options('word' => 1)
               .and start_search_with_options('word' => 1)
@@ -135,24 +139,31 @@ describe 'esearch#cmdline menu' do
               .from(match_array([
                 start_with('> c '),
                 start_with('  r '),
-                start_with('  w ')
+                start_with('  w '),
+                start_with('  p ')
               ]))
           end
         end
       end
 
       context 'default hotkeys' do
+        ## Menu outlook is:
+        # > c       toggle (c)ase sensitive match
+        #   r       toggle (r)egexp match
+        #   w       toggle (w)ord match
+        #   p       edit (p)ath
+
         include_examples 'it locates "regex" menu items by pressing', keys: ['j']
         include_examples 'it locates "regex" menu items by pressing', keys: ['\\<C-j>']
 
-        include_examples 'it locates "word" menu items by pressing',  keys: ['k']
+        include_examples 'it locates "word" menu items by pressing',  keys: ['kk']
         include_examples 'it locates "word" menu items by pressing',  keys: ['jj']
-        include_examples 'it locates "word" menu items by pressing',  keys: ['\\<C-k>']
+        include_examples 'it locates "word" menu items by pressing',  keys: ['\\<C-k>\\<C-k>']
         include_examples 'it locates "word" menu items by pressing',  keys: ['\\<C-j>\\<C-j>']
 
         include_examples 'it locates "case" menu items by pressing',  keys: []
-        include_examples 'it locates "case" menu items by pressing',  keys: ['jjj']
-        include_examples 'it locates "case" menu items by pressing',  keys: ['kkk']
+        include_examples 'it locates "case" menu items by pressing',  keys: ['jjjj']
+        include_examples 'it locates "case" menu items by pressing',  keys: ['kkkk']
       end
     end
 
@@ -168,15 +179,17 @@ describe 'esearch#cmdline menu' do
       context 'cursor position' do
         context 'within input provided by user' do
           shared_examples 'it preserves cursor location after dismissing' do |expected_location:, dismiss_with:|
-            let(:test_string) { expected_location.tr('|', '') }
-            it "preserves location #{expected_location} after cancelling" do
-              editor.send_keys(*open_input_keys,
-                               test_string,
-                               *goto_location_keys(expected_location),
-                               *open_menu_keys)
-              editor.send_keys(*dismiss_with)
+            context "when dismissing with #{dismiss_with} keys" do
+              let(:test_string) { expected_location.tr('|', '') }
+              it "preserves location #{expected_location} at '|'" do
+                editor.send_keys(*open_input_keys,
+                                 test_string,
+                                 *locate_cursor_with_arrows(expected_location),
+                                 *open_menu_keys)
+                editor.send_keys(*dismiss_with)
 
-              expect(editor).to have_commandline_cursor_location(expected_location)
+                expect(editor).to have_commandline_cursor_location(expected_location)
+              end
             end
           end
 
@@ -187,7 +200,7 @@ describe 'esearch#cmdline menu' do
 
             include_examples 'it preserves cursor location after dismissing',
               dismiss_with:      keys,
-              expected_location: 'str|n'
+              expected_location: 'st|n'
 
             include_examples 'it preserves cursor location after dismissing',
               dismiss_with:      keys,
@@ -206,6 +219,12 @@ describe 'esearch#cmdline menu' do
           context 'when dismissing with cancelling' do
             include_examples 'it preserves cursor location after dismissing with',
               keys: [:escape]
+          end
+
+          context 'when multibyte input' do
+            include_examples 'it preserves cursor location after dismissing',
+              dismiss_with:      [:enter],
+              expected_location: 'st|Σn'
           end
         end
 

@@ -3,79 +3,80 @@ fu! esearch#init(...) abort
     return 1
   endif
 
-  " Prepare argv
-  """""""""""""""
-  let opts = a:0 ? a:1 : {}
+  let esearch = s:new(a:0 ? a:1 : {})
+
+  " TODO testing of reloading
+
   let g:esearch.last_id += 1
-  let opts.id = g:esearch.last_id
-  let source_params = {
-        \ 'visualmode': get(opts, 'visualmode', 0),
-        \}
-  let initial = get(opts, 'use', g:esearch.use)
-  let g:esearch._last_search = esearch#source#pick_exp(initial, source_params)
-  call extend(opts, {
-        \ 'set_default': function('esearch#util#set_default'),
-        \ 'slice': function('esearch#util#slice')
-        \})
+  let esearch.id = g:esearch.last_id
+  let g:esearch._last_search = esearch#source#pick_exp(esearch.use, esearch)
   """""""""""""""
 
-  " Read search string
-  """""""""""""""
-  call opts.set_default('cwd', getcwd())
-  call opts.set_default('single_file', isdirectory(opts.cwd))
-  call opts.set_default('adapter', g:esearch.adapter)
+  if !has_key(esearch, 'exp')
+    let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
+    let esearch.exp = g:esearch._last_search
+    let esearch.exp = esearch#cmdline#read(esearch, adapter_opts)
 
-  if !has_key(opts, 'exp')
-    let adapter_opts = esearch#adapter#{opts.adapter}#_options()
-    let cmdline_opts = {
-          \ 'cwd': opts.cwd,
-          \ 'exp': g:esearch._last_search,
-          \ 'empty_cmdline': get(opts, 'empty_cmdline', 0),
-          \}
-    let opts.exp = esearch#cmdline#read(cmdline_opts, adapter_opts)
-    if empty(opts.exp)
-      return 1
-    endif
-    let opts.exp = esearch#regex#finalize(opts.exp, g:esearch)
+    let esearch.exp = esearch#regex#finalize(esearch.exp, esearch)
   endif
-  """""""""""""""
+
+  let g:esearch.case     = esearch.case
+  let g:esearch.word     = esearch.word
+  let g:esearch.regex    = esearch.regex
+  let g:esearch.paths    = esearch.paths
+  let g:esearch.metadata = esearch.metadata
+
+  if empty(esearch.exp)
+    return 1
+  endif
+
 
   " Prepare backend (nvim, vimproc, ...) request object
   """""""""""""""
-  call opts.set_default('backend', g:esearch.backend)
-  let EscapeFunc = function('esearch#backend#'.opts.backend.'#escape_cmd')
-  let pattern = g:esearch.regex ? opts.exp.pcre : opts.exp.literal
-  let shell_cmd = esearch#adapter#{opts.adapter}#cmd(pattern, opts.cwd, EscapeFunc)
-  let requires_pty = esearch#adapter#{opts.adapter}#requires_pty()
+  let EscapeFunc = function('esearch#backend#'.esearch.backend.'#escape_cmd')
+  let pattern = esearch.regex ? esearch.exp.pcre : esearch.exp.literal
+  let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, EscapeFunc)
+  let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
+  let esearch = extend(esearch, {
+        \ 'title': s:title(esearch, pattern),
+        \ 'request': esearch#backend#{esearch.backend}#init(shell_cmd, requires_pty),
+        \}, 'force')
 
-  let opts.regex = g:esearch.regex
-  let opts.case = g:esearch.case
-  let opts.word = g:esearch.word
+  call esearch#adapter#{esearch.adapter}#set_results_parser(esearch)
 
-  let request = esearch#backend#{opts.backend}#init(shell_cmd, requires_pty)
-  """""""""""""""
-
-  " Build output (window, qflist, ...) params object
-  """""""""""""""
-  call opts.set_default('batch_size', g:esearch.batch_size)
-  call opts.set_default('out', g:esearch.out)
-  call opts.set_default('context_width', g:esearch.context_width)
-  let out_params = extend(opts.slice('backend', 'adapter', 'cwd', 'single_file',
-        \'exp', 'out', 'batch_size', 'context_width', '_last_search',
-        \'regex', 'case', 'word', 'id'), {
-        \ 'title': s:title(pattern),
-        \ 'request': request,
-        \})
-  """""""""""""""
-
-  call esearch#out#{opts.out}#init(out_params)
+  call esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! s:title(pattern) abort
-  let format = s:title_format()
+fu! s:new(configuration) abort
+  let configuration = extend(deepcopy(a:configuration),
+        \ deepcopy(g:esearch), 'keep')
+  let configuration = extend(configuration, {
+        \ 'cwd': getcwd(),
+        \ 'paths': [],
+        \ 'metadata': [],
+        \ 'glob': 0,
+        \ 'visualmode': 0,
+        \ 'is_single_file': function('<SID>is_single_file'),
+        \ 'set_default': function('esearch#util#set_default'),
+        \ 'slice': function('esearch#util#slice')
+        \}, 'keep')
+  return configuration
+endfu
+
+fu! s:is_single_file() abort dict
+  " Some adapters don't list filenames when a single file is specified for
+  " search, so this function will be used to match results using different
+  " format patterns
+  return len(self.paths) == 1 &&
+        \ (len(self.metadata) != 1 || empty(self.metadata[0].wildcards)) &&
+        \ !isdirectory(self.paths[0])
+endfu
+
+fu! s:title(esearch, pattern) abort
+  let format = s:title_format(a:esearch)
   let modifiers = ''
-  let modifiers .= g:esearch.case ? 'c' : ''
-  let modifiers .= g:esearch.word ? 'w' : ''
+  let modifiers .= a:esearch.case ? 'c' : ''
+  let modifiers .= a:esearch.word ? 'w' : ''
   return printf(format, a:pattern, modifiers)
 endfu
 
@@ -94,8 +95,8 @@ fu! esearch#map(map, plug) abort
 endfu
 
 " Results bufname format builder
-fu! s:title_format() abort
-  if g:esearch.regex
+fu! s:title_format(esearch) abort
+  if a:esearch.regex
     if esearch#util#has_unicode()
       " Since we can't use '/' in filenames
       return "Search  \u2215%s\u2215%s"
@@ -127,8 +128,3 @@ fu! s:init_lazy_global_config() abort
 
   return 0
 endfu
-
-function! esearch#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

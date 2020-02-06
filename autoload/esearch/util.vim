@@ -204,7 +204,7 @@ endfu
 fu! esearch#util#highlight(highlight, str, ...) abort
   exe 'echohl ' . a:highlight . '| echon ' . strtrans(string(a:str))
   if a:0 && empty(a:1)
-    echohl 'Normal'
+    echohl NONE
   endif
 endfu
 

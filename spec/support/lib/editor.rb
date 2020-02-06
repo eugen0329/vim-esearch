@@ -115,13 +115,17 @@ class Editor
     command('ls')
   end
 
-  def delete_all_buffers_and_clear_messages_and_reset_input!
+  def delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     # TODO: fix after modifier implementation
-    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>\\<Esc>\\<C-\\>\\<C-n>", "n")')
+    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>\\<Esc>\\<C-\\>\\<C-n>", "n") | set lines=22')
+  end
+
+  def close_current_window!
+    command!('tabnew | %bwipeout!')
   end
 
   def cleanup!
-    delete_all_buffers_and_clear_messages_and_reset_input!
+    delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     handle_state_change!
   end
 

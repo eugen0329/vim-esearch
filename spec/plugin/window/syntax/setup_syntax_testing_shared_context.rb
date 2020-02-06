@@ -8,7 +8,7 @@ RSpec.shared_context 'setup syntax testing' do
 
   before do
     esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win')
-    esearch.search! '^', cwd: source_file.path.to_s
+    esearch.search! '^', paths: [source_file.path.to_s]
     expect(esearch).to have_search_finished
   end
 

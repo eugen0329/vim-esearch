@@ -139,8 +139,9 @@ fu! esearch#out#win#init(opts) abort
         \ 'max_lines_found':        0,
         \ 'ignore_batches':         0,
         \ '_columns':               {},
+        \ '_filenames':             {},
         \ '_match_highlight_id':    match_highlight_id,
-        \ '__broken_results':       [],
+        \ 'broken_results':         [],
         \ 'errors':                 [],
         \ 'data':                   [],
         \ 'context_syntax_regions': {},
@@ -231,8 +232,7 @@ fu! esearch#out#win#update(bufnr) abort
       let request.data_ptr += esearch.batch_size
     endif
 
-    let parsed = esearch#adapter#{esearch.adapter}#parse_results(esearch,
-          \ data, from, to, esearch.__broken_results, esearch.exp.vim)
+    let parsed = esearch.parse_results(data, from, to)
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
@@ -258,13 +258,14 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   endif
 
   while i < limit
-    let filename    = substitute(parsed[i].filename, sub_expression, '', '')
+    let filename = substitute(parsed[i].filename, sub_expression, '', '')
     let context  = s:context(parsed[i].text, a:esearch)
 
     if filename !=# a:esearch.last_filename
       let a:esearch.request.files_count += 1
       call s:init_context_syntax(a:esearch, line)
 
+      let a:esearch._filenames[line] = filename
       call esearch#util#setline(a:bufnr, line, '')
       let line += 1
       call esearch#util#setline(a:bufnr, line, filename)
@@ -359,7 +360,7 @@ fu! s:init_commands() abort
   let s:win = {
         \ 'line_in_file':   function('s:line_in_file'),
         \ 'open':          function('s:open'),
-        \ 'filename':      function('s:filename'),
+        \ 'filename':      function('esearch#out#win#filename'),
         \ 'is_file_entry': function('s:is_file_entry')
         \}
   command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ESubstitute
@@ -387,7 +388,6 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-next)          :<C-U>sil exe <SID>jump(1, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
-  " nnoremap <silent><buffer> <Plug>(esearch-win-Nop)           <Nop>
 
   for mapping in s:mappings
     if !g:esearch.default_mappings && mapping.default | continue | endif
@@ -397,7 +397,7 @@ fu! s:init_mappings() abort
 endfu
 
 fu! s:open(cmd, ...) abort
-  let fname = s:filename()
+  let fname = esearch#out#win#filename()
   if !empty(fname)
     let ln = s:line_in_file()
     let col = get(b:esearch._columns, s:result_line(), 1)
@@ -417,7 +417,7 @@ fu! s:open(cmd, ...) abort
   endif
 endfu
 
-fu! s:filename() abort
+fu! esearch#out#win#filename() abort
   let pattern = s:filename_pattern . '\%>2l'
   let lnum = search(pattern, 'bcWn')
   if lnum == 0
@@ -426,11 +426,9 @@ fu! s:filename() abort
   endif
 
   let filename = matchstr(getline(lnum), '^\zs[^ ].*')
-  if empty(filename)
-    return ''
-  else
-    return substitute(filename, '^\./', '', '')
-  endif
+  let filename = substitute(filename, '^\./', '', '')
+
+  return b:esearch.expand_filename(filename)
 endfu
 
 fu! esearch#out#win#foldtext() abort

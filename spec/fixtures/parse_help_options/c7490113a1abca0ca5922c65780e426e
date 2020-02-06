@@ -1,7 +1,0 @@
-Usage: grep [OPTION]... PATTERN [FILE]...
-Example: grep -i 'hello world' menu.h main.c
-
-  -E, --extended-regexp     PATTERN is an {..}
-
-{..} 'fgrep' means 'grep -F'. {..}
--r is given, - otherwise.  If fewer than two FILEs are given, assume -h.

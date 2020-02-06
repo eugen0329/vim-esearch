@@ -52,4 +52,9 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   # TODO: investigate
   random_failure! 'aborts on search restart', /.*/, :osx, backend: :vimproc
   random_failure! 'aborts on bufdelete',      /.*/, :osx, backend: :vimproc
+
+  # Git have different way to escape globs:
+  #   `ag *.txt`,       `ag \*.txt`       - a wildcard and a regular string
+  #   `git grep *.txt`, `git grep \*.txt` - both wildcards
+  pending! 'globbing escaped *', /expected to have results.*got.*\[.+\]/m, adapter: :git
 end

@@ -7,7 +7,7 @@ require 'plugin/shared_examples/abortable_backend'
 describe 'esearch#backend', :backend do
   include Helpers::FileSystem
   include Helpers::Strings
-  include Helpers::OutputErrors
+  include Helpers::Output
   include Helpers::ReportEditorStateOnError
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
@@ -19,13 +19,13 @@ describe 'esearch#backend', :backend do
       end
       let(:expected_file) { file(kwargs.fetch(:in), 'expected.txt') }
       let(:expected_path) { expected_file.relative_path }
-      let(:search_directory) { directory([expected_file, *other_files]).persist! }
+      let(:test_directory) { directory([expected_file, *other_files]).persist! }
       let(:line)   { kwargs.fetch(:line) }
       let(:column) { kwargs.fetch(:column) }
 
       before do
         esearch.configuration.submit!
-        esearch.cd! search_directory
+        esearch.cd! test_directory
       end
 
       append_after do
@@ -168,7 +168,7 @@ describe 'esearch#backend', :backend do
     it_behaves_like 'an abortable backend', 'vimproc'
   end
 
-  describe '#nvim', :nvim do
+  describe '#nvim', :neovim do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
     # TODO
