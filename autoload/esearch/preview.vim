@@ -1,27 +1,119 @@
+let s:sign_id = 1
+let s:sign_name = 'ESearchPreviewMatchedLine'
+let s:sign_group = 'ESearchPreviewSigns'
+let s:events = join([
+      \ 'CmdlineEnter',
+      \ 'QuitPre',
+      \ 'ExitPre',
+      \ 'CursorMoved',
+      \ 'BufEnter',
+      \ 'BufWinEnter',
+      \ 'WinLeave',
+      \ 'BufWinLeave',
+      \ 'BufLeave',
+      \ ], ',')
+let g:preview_buffers_registry = {}
+
 let g:debug = []
 
 fu! esearch#preview#start() abort
   let filename = esearch#out#win#filename()
+
+  if getfsize(filename) > 50 * 1024
+    return s:using_readlines_strategy(filename)
+  else
+    return s:using_edit_strategy(filename)
+  endif
+endfu
+
+fu! s:using_readlines_strategy(filename) abort
+  let filename = a:filename
+  let [width, height] = [120, 11]
+
+  let lines = readfile(filename)
+  let preview_buffer = s:create_buffer(filename, 1)
+
+  try
+    call s:setlines(preview_buffer, lines, height)
+    let g:preview_window = s:open_preview_window(preview_buffer.id, width, height)
+    call s:setup_pseudo_file_appearance(preview_buffer, g:preview_window)
+    " call s:goto_window(g:preview_window.number)
+    call s:setup_autoclose_events()
+  catch
+    call s:close_preview_window()
+    echoerr v:exception
+  finally
+    let preview_buffer.newly_created = 0
+  endtry
+endfu
+
+fu! s:setup_pseudo_file_appearance(preview_buffer, preview_window) abort
+  call nvim_win_set_option(a:preview_window.id, 'number', v:false)
+  call nvim_win_set_option(a:preview_window.id, 'list', v:false)  " TODO don't show trailing ws
+
+  call nvim_buf_set_var(a:preview_buffer.id,    '__esearch_preview_filetype__', 'c')
+  call nvim_buf_set_option(a:preview_buffer.id, 'filetype', 'esearch_preview')
+endfu
+
+fu! s:setlines(preview_buffer, lines, height) abort
+  let lines = a:lines
+  let line_in_file = esearch#out#win#line_in_file()
+  let column_in_file = esearch#out#win#column_in_file()
+
+  let lines_size = len(lines)
+  if lines_size - line_in_file < a:height
+    let from = lines_size - a:height
+    let to = lines_size
+  elseif line_in_file - a:height / 2 < 1
+    let from =  0
+    let to = a:height
+  else
+    let from =  line_in_file - a:height / 2
+    let to = line_in_file + a:height / 2
+  endif
+
+  let context = []
+
+  if &numberwidth < len(string(to)) + 2
+    let padding = 2+len(string(to))
+  else
+    let padding = max([&numberwidth, 3+len(string(to))])
+  endif
+
+  let lines_format = '%'.padding.'d %s'
+
+
+  for i in range(from, to-1)
+    call add(context, printf(lines_format, i+1, lines[i]))
+  endfor
+  " TODO handle 'signcolumn'
+  let context[(to - from)/2] = substitute(context[(to - from)/2], '..', '->', '')
+  call nvim_buf_set_lines(a:preview_buffer.id, 0, -1, 0, context)
+endfu
+
+fu! s:using_edit_strategy(filename) abort
+  let filename = a:filename
   let line_in_file = esearch#out#win#line_in_file()
   let column_in_file = esearch#out#win#column_in_file()
 
   let search_window = bufwinnr(bufnr('%'))
-  let preview_buffer = s:initialize_buffer(filename)
+  let preview_buffer = s:create_buffer(filename, 0)
 
   let [width, height] = [120, 11]
 
   try
-    let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
+    let g:preview_window = s:open_preview_window(preview_buffer.id, width, height)
     if preview_buffer.newly_created
       call s:save_buffer_variables(preview_buffer)
     endif
 
-    call s:goto_window(s:preview_window.number)
-    call s:open_file(filename, preview_buffer)
+    call s:goto_window(g:preview_window.number)
+    call s:edit_file(filename, preview_buffer)
     call s:reshape_preview_window(line_in_file, column_in_file, height)
-    call s:setup_highlight()
+    call s:setup_edited_file_highlight()
     call s:setup_matching_line_sign(line_in_file)
-    call s:setup_events()
+    call s:setup_on_open_events()
+    call s:setup_autoclose_events()
   catch
     call s:close_preview_window()
     echoerr v:exception
@@ -32,16 +124,18 @@ fu! esearch#preview#start() abort
 endfu
 
 fu! s:save_buffer_variables(preview_buffer) abort
-  let a:preview_buffer.guard.winhighlight = nvim_win_get_option(s:preview_window.id, 'winhighlight')
+  let a:preview_buffer.guard.winhighlight = nvim_win_get_option(g:preview_window.id, 'winhighlight')
   let a:preview_buffer.guard.swapfile = !!nvim_buf_get_option(a:preview_buffer.id, 'swapfile')
 endfu
 
-fu! s:setup_events() abort
+fu! s:setup_on_open_events() abort
   augroup Preview
     au! BufWinEnter,BufEnter <buffer>
     noautocmd au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
   augroup END
+endfu
 
+fu! s:setup_autoclose_events() abort
   exe 'au ' . s:events . ' * ++once call s:close_preview_window()'
 endfu
 
@@ -78,8 +172,8 @@ fu! s:reshape_preview_window(line_in_file, column_in_file, height) abort
         \ })
 endfu
 
-fu! s:setup_highlight() abort
-  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat
+fu! s:setup_edited_file_highlight() abort
+  " noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat
   keepjumps doau BufReadPre
   keepjumps doau BufRead
 endfu
@@ -97,7 +191,7 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
   return {'id': id, 'number': number}
 endfu
 
-fu! s:open_file(filename, preview_buffer) abort
+fu! s:edit_file(filename, preview_buffer) abort
   if expand('%') !=# a:filename
     noautocmd keepjumps noswapfile exe 'keepjumps noautocmd noswapfile edit! ' . a:filename
 
@@ -144,20 +238,17 @@ fu! s:make_preview_buffer_regular() abort
   call add(g:debug, ['made regular', preview_buffer])
 endfu
 
-fu! s:initialize_buffer(filename) abort
+fu! s:create_buffer(filename, disposable) abort
   if has_key(g:preview_buffers_registry, a:filename)
     return g:preview_buffers_registry[a:filename]
   endif
 
-  " let id =  bufnr(a:filename)
-  " if id == -1
+  if a:disposable
+    let id = nvim_create_buf(0, 1)
+  else
     let id = nvim_create_buf(1, 0)
-    let is_created = 1
-    " call add(g:debug, ['created', id])
-  " else
-    " call add(g:debug, ['found', id])
-    " let is_created = 0
-  " endif
+  endif
+
   let g:preview_buffers_registry[a:filename] = {
         \ 'id': id,
         \ 'filename': a:filename,
@@ -171,28 +262,8 @@ endfu
 fu! s:close_preview_window() abort
   call sign_unplace(s:sign_group, {'id': s:sign_id})
 
-  if exists('s:preview_window') && s:preview_window isnot -1
-    exe s:preview_window.number . 'close'
-    let s:preview_window = -1
+  if exists('g:preview_window') && g:preview_window isnot -1
+    exe g:preview_window.number . 'close'
+    let g:preview_window = -1
   endif
 endfu
-let s:sign_id = 1
-let s:sign_name = 'ESearchPreviewMatchedLine'
-let s:sign_group = 'ESearchPreviewSigns'
-let s:events = join([
-      \ 'CmdlineEnter',
-      \ 'QuitPre',
-      \ 'ExitPre',
-      \ 'CursorMoved',
-      \ 'BufEnter',
-      \ 'BufWinEnter',
-      \ 'WinLeave',
-      \ 'BufWinLeave',
-      \ 'BufLeave',
-      \ ], ',')
-let g:preview_buffers_registry = {}
-
-" let from = line_in_file-5 < 1 ? 1 : line_in_file-4
-" let to = line_in_file+5 > len(lines) ? len(lines) : line_in_file+4
-" call nvim_buf_set_lines(preview_buffer, 0, -1, 0, map(lines[from:to], '" ".v:val'))
-" call nvim_buf_set_lines(preview_buffer, 0, -1, 0, lines)
