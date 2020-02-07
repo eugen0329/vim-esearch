@@ -2,8 +2,11 @@ let s:Vital    = vital#esearch#new()
 let s:Message  = s:Vital.import('Vim.Message')
 let s:Filepath = s:Vital.import('System.Filepath')
 let s:List     = s:Vital.import('Data.List')
+let s:Promise  = s:Vital.import('Async.Promise')
 
 let s:pattern_to_filetype = {}
+let s:null = 0
+let s:prewarm = s:null
 let s:setf_commands = ['setfiletype', 'setf']
 
 " TODO consider to define either syntax file which highlights strings, comments
@@ -31,7 +34,7 @@ endif
 
 fu! esearch#ftdetect#slow(filename) abort
   let filetype = esearch#ftdetect#fast(a:filename)
-  if filetype isnot 0 | return filetype | endif
+  if filetype isnot# 0 | return filetype | endif
 
   for [pattern, filetype] in items(s:pattern_to_filetype)
     if a:filename =~# pattern
@@ -47,8 +50,8 @@ fu! esearch#ftdetect#fast(filename) abort
     return 0
   endif
 
-  if empty(s:pattern_to_filetype)
-    call s:make_cache()
+  if empty(s:pattern_to_filetype) && !s:make_cache()
+    return ''
   endif
 
   let basename = s:Filepath.basename(a:filename)
@@ -76,7 +79,16 @@ fu! esearch#ftdetect#fast(filename) abort
   return 0
 endfu
 
-fu! s:make_cache() abort
+fu! esearch#ftdetect#async_prewarm_cache() abort
+  if s:Promise.is_available()
+    let s:prewarm = s:Promise
+          \.new({resolve -> timer_start(0, resolve)})
+          \.then({-> s:blocking_make_cache()})
+          \.catch({reason -> execute('echoerr reason')})
+  endif
+endfu
+
+fu! s:blocking_make_cache() abort
   let lines = split(s:Message.capture('autocmd filetypedetect'), "\n")
 
   let definitions = []
@@ -107,4 +119,29 @@ fu! s:make_cache() abort
 
     let definitions = []
   endfor
+
+  return 1
+endfu
+
+fu! s:make_cache() abort
+  if s:Promise.is_available() && s:Promise.is_promise(s:prewarm)
+    let [result, error] = s:Promise.wait(p, { 'timeout': 1000 })
+
+    if s:failed_with(error, s:Promise.TimeoutError)
+      "
+      return 0
+    elseif error isnot# v:null
+      echoerr "Failed:" . string(error)
+    else
+      let s:prewarm = s:null
+    endif
+  else
+    call s:blocking_make_cache()
+  endif
+
+  return 1
+endfu
+
+fu! s:failed_with(reason, error) abort
+  return type(a:reason) == type(a:error) && a:reason ==# a:error
 endfu
