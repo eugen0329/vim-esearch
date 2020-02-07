@@ -7,7 +7,8 @@ syn match  esearchFName   '^\%>2l.*'
 syn match  esearchContext '^\%>2l\s\+.*'
 syn match  esearchLnum    '^\%>2l\s\+\d\+'
 
-syn region esearchRestult start='^\h\w*' end='^$' contains=esearchOmission,esearchContext,esearchLnum,esearchFName fold transparent keepend extend
+" TODO
+" syn region esearchRestult start='^\h\w*' end='^$' contains=esearchOmission,esearchContext,esearchLnum,esearchFName fold transparent keepend extend
 
 exe 'syn match esearchOmission "\%(^\%>3l\s\+\d\+\s\)\@<=\V'. g:esearch#util#trunc_omission.'"'
 exe 'syn match esearchOmission "\V'. g:esearch#util#trunc_omission.'\$"'

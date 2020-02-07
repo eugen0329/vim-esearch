@@ -48,15 +48,16 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
 endif
 
 let s:context_syntaxes = {
-      \ 'c':      'win_context_c',
-      \ 'sh':     'win_context_sh',
-      \ 'js':     'win_context_javascript',
-      \ 'go':     'win_context_go',
-      \ 'php':    'win_context_php',
-      \ 'html':   'win_context_html',
-      \ 'java':   'win_context_java',
-      \ 'ruby':   'win_context_ruby',
-      \ 'python': 'win_context_python',
+      \ 'c':               'win_context_c',
+      \ 'sh':              'win_context_sh',
+      \ 'javascript':      'win_context_javascript',
+      \ 'javascriptreact': 'win_context_javascript',
+      \ 'php':             'win_context_php',
+      \ 'go':              'win_context_go',
+      \ 'ruby':            'win_context_ruby',
+      \ 'html':            'win_context_html',
+      \ 'java':            'win_context_java',
+      \ 'python':          'win_context_python',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
@@ -299,7 +300,7 @@ fu! s:init_context_syntax(esearch, line) abort
   endif
 
   if a:esearch.last_filename !=# ''
-    let ft = esearch#ftdetect#slow(a:esearch.last_filename)
+    let ft = esearch#ftdetect#fast(a:esearch.last_filename)
     if !has_key(s:context_syntaxes, ft)
       return
     endif
