@@ -33,7 +33,7 @@ class Editor
     MODES[echo(func('mode'))]
   end
 
-  def help_autocommands
+  def autocommands_listed_in_manual
     command! 'help au'
     lines(prefetch_count: 100)
       .select { |l| l.start_with?('|') }

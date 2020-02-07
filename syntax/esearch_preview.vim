@@ -16,7 +16,7 @@ if exists('b:__esearch_preview_filetype__')
 
     syn region esearchPreviewMain start='.' end='$' contained oneline keepend excludenl contains=@main
   catch /Vim(syntax):E484/
-    " filetype exists, but syntax not
+    " filetype exists, but syntax don't
     syn region esearchPreviewMain start='.' end='$' contained oneline keepend excludenl
   finally
     unlet b:__esearch_preview_filetype__

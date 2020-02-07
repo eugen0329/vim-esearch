@@ -128,7 +128,6 @@ fu! s:make_cache() abort
     let [result, error] = s:Promise.wait(p, { 'timeout': 1000 })
 
     if s:failed_with(error, s:Promise.TimeoutError)
-      "
       return 0
     elseif error isnot# v:null
       echoerr "Failed:" . string(error)

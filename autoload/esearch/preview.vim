@@ -18,6 +18,7 @@ let s:preview_buffers_registry = {}
 "   - file with a name required to be escaped
 "   - new buffers bloat
 "   - bouncing
+"   - buffers with existing swaps
 fu! esearch#preview#start() abort
   let filename = esearch#out#win#filename()
 
@@ -147,7 +148,7 @@ fu! s:save_options(preview_buffer) abort
 endfu
 
 fu! s:setup_on_buffer_open_events() abort
-  augroup Preview
+  augroup ESearchPreview
     au! BufWinEnter,BufEnter <buffer>
     noautocmd au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
   augroup END
@@ -170,7 +171,7 @@ fu! s:setup_matching_line_sign(line_in_file) abort
         \ {'lnum': a:line_in_file})
 endfu
 
-" Internal winrestview has a lot of side effects so s:reshape_preview_window
+" Internal winrestview() has a lot of side effects so s:reshape_preview_window
 " should be invoken as later as possible
 fu! s:reshape_preview_window(line_in_file, column_in_file, height) abort
   let lines_size = line('$')
@@ -194,7 +195,7 @@ fu! s:reshape_preview_window(line_in_file, column_in_file, height) abort
 endfu
 
 fu! s:setup_edited_file_highlight() abort
-  " noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat
+  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat
   keepjumps doau BufReadPre
   keepjumps doau BufRead
 endfu
@@ -222,7 +223,7 @@ fu! s:edit_file(filename, preview_buffer) abort
   if expand('%') !=# a:filename
     noautocmd keepjumps noswapfile exe 'keepjumps noautocmd noswapfile edit! ' . fnameescape(a:filename)
 
-    " if buffer was already created vim switches to it leaving empty buffer we
+    " if buffer was already created,  vim switches to it leaving empty buffer we
     " have to cleanup
     let current_buffer_id = bufnr('%')
     if current_buffer_id != a:preview_buffer.id
@@ -241,14 +242,12 @@ fu! s:goto_window(window) abort
 endfu
 
 fu! s:make_preview_buffer_regular() abort
-  " execute once
-  au! Preview BufWinEnter,BufEnter <buffer>
+  " tell other events that we'll handle options reset
+  au! ESearchPreview BufWinEnter,BufEnter <buffer>
 
   let current_filename = expand('%')
   if !has_key(s:preview_buffers_registry, current_filename)
-    " another execute once guard
-    " shouldn't normally happen because of the command above, but it's
-    " acceptable to just suppress.
+    " execute once guard
     return
   endif
 

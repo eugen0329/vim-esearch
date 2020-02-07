@@ -12,9 +12,9 @@ describe '' do
   end
   let!(:test_directory) { directory(files).persist! }
 
-  let!(:events_list) do
+  let!(:available_events) do
     editor
-      .help_autocommands
+      .autocommands_listed_in_manual
       .reject { |c| c.end_with?('Cmd') || c == 'User' }
   end
 
@@ -32,7 +32,7 @@ describe '' do
       'au!',
       'augroup END'
     ].join('|')
-    events_list.each do |a|
+    available_events.each do |a|
       editor.command! "au AutocmdsTest #{a} * call add(g:_order, [expand('%'), '#{a}'])"
     end
   end
