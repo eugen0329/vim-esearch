@@ -47,16 +47,16 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
   let g:esearch#out#win#context_syntax_max_lines = 500
 endif
 
-let s:syntax_regexps = {
-      \ '.c':    'win_context_c',
-      \ '.sh':   'win_context_sh',
-      \ '.js':   'win_context_javascript',
-      \ '.go':   'win_context_go',
-      \ '.php':   'win_context_php',
-      \ '.html': 'win_context_html',
-      \ '.java': 'win_context_java',
-      \ '.rb':   'win_context_ruby',
-      \ '.py':   'win_context_python',
+let s:context_syntaxes = {
+      \ 'c':      'win_context_c',
+      \ 'sh':     'win_context_sh',
+      \ 'js':     'win_context_javascript',
+      \ 'go':     'win_context_go',
+      \ 'php':    'win_context_php',
+      \ 'html':   'win_context_html',
+      \ 'java':   'win_context_java',
+      \ 'ruby':   'win_context_ruby',
+      \ 'python': 'win_context_python',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
@@ -129,9 +129,8 @@ fu! esearch#out#win#init(opts) abort
   setlocal buftype=nofile
   setlocal bufhidden=hide
   setlocal foldlevel=2
-  setlocal foldexpr=esearch#out#win#foldexpr()
+  setlocal foldmethod=syntax
   setlocal foldtext=esearch#out#win#foldtext()
-  setlocal foldmethod=expr
 
   let b:esearch = extend(a:opts, {
         \ 'last_filename':          '',
@@ -300,12 +299,12 @@ fu! s:init_context_syntax(esearch, line) abort
   endif
 
   if a:esearch.last_filename !=# ''
-    let ext = matchstr(a:esearch.last_filename, '\..*$')
-    if !has_key(s:syntax_regexps, ext)
+    let ft = esearch#ftdetect#slow(a:esearch.last_filename)
+    if !has_key(s:context_syntaxes, ft)
       return
     endif
+    let name = s:context_syntaxes[ft]
 
-    let name = s:syntax_regexps[ext]
     if !has_key(a:esearch.context_syntax_regions, name)
       let a:esearch.context_syntax_regions[name] = {
             \ 'cluster': s:include_syntax_cluster(name),

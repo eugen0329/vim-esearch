@@ -2,16 +2,29 @@ if exists('b:current_syntax')
   finish
 endif
 
-exe 'syntax include @main syntax/' . b:__esearch_preview_filetype__ . '.vim'
-unlet b:__esearch_preview_filetype__
-if exists('b:current_syntax')
-  unlet b:current_syntax
+syn match esearchPreviewLineNr '^\s*\d\+\s'  nextgroup=esearchPreviewMain
+syn match esearchPreviewLineNr '^\s*->\s*\d\+\s' nextgroup=esearchPreviewMain contains=esearchPreviewSign
+syn match esearchPreviewSign '->' contained
+
+let b:__esearch_preview_filetype__ = 'c'
+if exists('b:__esearch_preview_filetype__')
+  try
+    exe 'syntax include @main syntax/' . b:__esearch_preview_filetype__ . '.vim'
+    if exists('b:current_syntax')
+      unlet b:current_syntax
+    endif
+
+    syn region esearchPreviewMain start='.' end='$' contained oneline keepend excludenl contains=@main
+  catch /Vim(syntax):E484/
+    " filetype exists, but syntax not
+    syn region esearchPreviewMain start='.' end='$' contained oneline keepend excludenl
+  finally
+    unlet b:__esearch_preview_filetype__
+  endtry
+else
+  syn region esearchPreviewMain start='.' end='$' contained oneline keepend excludenl
 endif
 
-syn match esearchPreviewLineNr '^\s*\d\+\s'  nextgroup=esearchPreviewContent
-syn match esearchPreviewLineNr '^\s*->\s*\d\+\s' nextgroup=esearchPreviewContent contains=esearchPreviewSign
-syn match esearchPreviewSign '->' contained
-syn region esearchPreviewContent start='.' end='$' contained oneline keepend excludenl contains=@main
 
 hi def link esearchPreviewLineNr LineNr
 hi def link esearchPreviewSign CursorLineNr
