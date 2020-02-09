@@ -47,16 +47,17 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
   let g:esearch#out#win#context_syntax_max_lines = 500
 endif
 
-let s:syntax_regexps = {
-      \ '.c':    'win_context_c',
-      \ '.sh':   'win_context_sh',
-      \ '.js':   'win_context_javascript',
-      \ '.go':   'win_context_go',
-      \ '.php':   'win_context_php',
-      \ '.html': 'win_context_html',
-      \ '.java': 'win_context_java',
-      \ '.rb':   'win_context_ruby',
-      \ '.py':   'win_context_python',
+let s:context_syntaxes = {
+      \ 'c':               'win_context_c',
+      \ 'sh':              'win_context_sh',
+      \ 'javascript':      'win_context_javascript',
+      \ 'javascriptreact': 'win_context_javascript',
+      \ 'php':             'win_context_php',
+      \ 'go':              'win_context_go',
+      \ 'ruby':            'win_context_ruby',
+      \ 'html':            'win_context_html',
+      \ 'java':            'win_context_java',
+      \ 'python':          'win_context_python',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
@@ -129,9 +130,8 @@ fu! esearch#out#win#init(opts) abort
   setlocal buftype=nofile
   setlocal bufhidden=hide
   setlocal foldlevel=2
-  setlocal foldexpr=esearch#out#win#foldexpr()
+  setlocal foldmethod=syntax
   setlocal foldtext=esearch#out#win#foldtext()
-  setlocal foldmethod=expr
 
   let b:esearch = extend(a:opts, {
         \ 'last_filename':          '',
@@ -300,12 +300,12 @@ fu! s:init_context_syntax(esearch, line) abort
   endif
 
   if a:esearch.last_filename !=# ''
-    let ext = matchstr(a:esearch.last_filename, '\..*$')
-    if !has_key(s:syntax_regexps, ext)
+    let ft = esearch#ftdetect#fast(a:esearch.last_filename)
+    if !has_key(s:context_syntaxes, ft)
       return
     endif
+    let name = s:context_syntaxes[ft]
 
-    let name = s:syntax_regexps[ext]
     if !has_key(a:esearch.context_syntax_regions, name)
       let a:esearch.context_syntax_regions[name] = {
             \ 'cluster': s:include_syntax_cluster(name),
@@ -358,7 +358,7 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_in_file':   function('s:line_in_file'),
+        \ 'line_in_file':   function('esearch#out#win#line_in_file'),
         \ 'open':          function('s:open'),
         \ 'filename':      function('esearch#out#win#filename'),
         \ 'is_file_entry': function('s:is_file_entry')
@@ -389,6 +389,11 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
 
+  if esearch#preview#is_available()
+    nnoremap <silent><buffer> <S-p> :<C-U>sil cal esearch#preview#start()<CR>
+    nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
+  endif
+
   for mapping in s:mappings
     if !g:esearch.default_mappings && mapping.default | continue | endif
 
@@ -396,15 +401,19 @@ fu! s:init_mappings() abort
   endfor
 endfu
 
+fu! esearch#out#win#column_in_file() abort
+  return get(b:esearch._columns, s:result_line(), 1)
+endfu
+
 fu! s:open(cmd, ...) abort
-  let fname = esearch#out#win#filename()
-  if !empty(fname)
-    let ln = s:line_in_file()
-    let col = get(b:esearch._columns, s:result_line(), 1)
+  let filename = esearch#out#win#filename()
+  if !empty(filename)
+    let ln = esearch#out#win#line_in_file()
+    let col = esearch#out#win#column_in_file()
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
-      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . fname)
+      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . filename)
     catch /E325:/
       " ignore warnings about swapfiles (let user and #substitute handle them)
     catch
@@ -466,7 +475,7 @@ fu! s:result_line() abort
   endif
 endfu
 
-fu! s:line_in_file() abort
+fu! esearch#out#win#line_in_file() abort
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 

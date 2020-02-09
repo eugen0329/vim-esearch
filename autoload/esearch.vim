@@ -12,6 +12,8 @@ fu! esearch#init(...) abort
   let g:esearch._last_search = esearch#source#pick_exp(esearch.use, esearch)
   """""""""""""""
 
+  call esearch#ftdetect#async_prewarm_cache()
+
   if !has_key(esearch, 'exp')
     let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
     let esearch.exp = g:esearch._last_search

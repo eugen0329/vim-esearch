@@ -30,13 +30,13 @@ module VimrunnerNeovim
     class_attribute :remote_expr_execution_timeout,
                     default: 0.5.seconds
 
-    attr_reader :nvr_executable, :vimrc, :nvim, :gui, :name,
-      :verbose_level, :verbose_log_file, :nvim_log_file
+    attr_reader :nvr_executable, :vimrc, :executable, :gui, :name,
+      :verbose_level, :verbose_log_file, :nvim_log_file, :pid
 
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
       @name           = options.fetch(:name) { "/tmp/VIMRUNNER_NEOVIM#{Time.now.to_i}" }
-      @nvim           = options.fetch(:nvim) { 'nvim' }
+      @executable     = options.fetch(:executable) { 'nvim' }
       @vimrc          = options.fetch(:vimrc) { VIMRC }
       @foreground     = options.fetch(:foreground, false)
       @gui            = options.fetch(:gui, false)
@@ -179,18 +179,18 @@ module VimrunnerNeovim
 
     # has problems with io
     def with_io_popen
-      pipe = IO.popen([env, nvim, *nvim_args])
+      pipe = IO.popen([env, executable, *nvim_args])
       [nil, nil, pipe.pid]
     end
 
     # hangs forever on linux machines
     def background_pty
-      PTY.spawn(env, nvim, '--headless', *nvim_args)
+      PTY.spawn(env, executable, '--headless', *nvim_args)
     end
 
     # doesn't work with pry, but may be ok for CI
     def headless_process_without_extra_output
-      pid = fork { exec(env, nvim, *nvim_args, '--embed', '--headless') }
+      pid = fork { exec(env, executable, *nvim_args, '--embed', '--headless') }
       [nil, nil, pid]
     end
 
@@ -198,12 +198,12 @@ module VimrunnerNeovim
     # ENTER or type command to continue". Can be convenient for debug headless
     # mode, but it pollutes output with this messages
     def headless_process_with_extra_output
-      pid = fork { exec(env, nvim, '--headless', *nvim_args) }
+      pid = fork { exec(env, executable, '--headless', *nvim_args) }
       [nil, nil, pid]
     end
 
     def fork_gui
-      exec_nvim_command = "#{nvim} #{nvim_args.join(' ')}"
+      exec_nvim_command = "#{executable} #{nvim_args.join(' ')}"
       # TODO: extract platform check
       pid = if osx?
               fork { exec(env, 'iterm', exec_nvim_command) }

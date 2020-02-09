@@ -48,6 +48,7 @@ class DumpEditorStateOnErrorFormatter
       plugin_log:           format_array(Debug.plugin_log),
       nvim_log:             format_array(Debug.nvim_log),
       verbose_log:          format_array(Debug.verbose_log),
+      running_processes:    format_array(Debug.running_processes),
       update_time:          prepend_indent(Debug.update_time),
       screenshot_path:      prepend_indent(Debug.screenshot!)
     }

@@ -108,7 +108,7 @@ jobs:
       script: bundle exec rake RSPEC_OPTS='--tag system'
       os: linux
     - name: 'Acceptance tests of #backend#nvim'
-      script: spec/support/docker/rake RSPEC_OPTS='--tag nvim'
+      script: spec/support/docker/rake RSPEC_OPTS='--tag neovim'
       env: NVIM_GUI=0 DOCKER_BUILD=1
       services: docker
       os: linux
@@ -136,7 +136,7 @@ jobs:
       env:
         LINT_FOR=viml
         SKIP_INSTALL_VIM_DEPENDENCIES=1
-        VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
+        VIML_DIRECTORIES='autoload/esearch/ autoload/esearch.vim nerdtree_plugin plugin syntax'
       before_script:
         - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
         - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser

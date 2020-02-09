@@ -13,7 +13,7 @@ syn keyword es_pythonOperator    and in is not or
 syn keyword es_pythonException   except finally raise try
 syn keyword es_pythonInclude     from import
 syn keyword es_pythonAsync       async await
-syn match   es_pythonComment "#.*$" contains=pythonTodo,@Spell
+syn match   es_pythonComment "#.*$"
 syn region  es_pythonString
       \ start=+[uU]\=[rR]\?\z(['"]\)+ end="\z1\|$" skip="\\\\\|\\\z1"
 syn region  es_pythonString

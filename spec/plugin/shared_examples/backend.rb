@@ -3,6 +3,7 @@
 # TODO: completely rewrite
 RSpec.shared_examples 'a backend' do |backend|
   include Helpers::Output
+  include Helpers::ReportEditorStateOnError
 
   %w[ack ag git grep pt rg].each do |adapter|
     context "with #{adapter} adapter", :relative_paths do
@@ -10,6 +11,8 @@ RSpec.shared_examples 'a backend' do |backend|
         esearch.configure!(backend: backend, adapter: adapter, out: 'win')
         example.run
       end
+
+      include_context 'report editor state on error'
 
       context 'with relative path' do
         let(:context_fixtures_path) { "#{Configuration.root}/spec/fixtures/relative_paths" }

@@ -2,6 +2,7 @@
 
 RSpec.shared_examples 'an abortable backend' do |backend|
   include Helpers::RunningProcesses
+  include Helpers::ReportEditorStateOnError
 
   let(:adapter) { 'ag' }
   let(:out) { 'win' }
@@ -30,6 +31,8 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     esearch.grep_and_kill_process_by!(search_string)
     expect(esearch).to have_no_process_matching(search_string)
   end
+
+  include_context 'report editor state on error'
 
   shared_examples 'abort on actions' do
     it 'aborts on bufdelete' do
@@ -65,13 +68,13 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     end
   end
 
-  context '#out#win' do
+  context '#out#win', :abortion do
     let(:out) { 'win' }
 
     include_examples 'abort on actions'
   end
 
-  context '#out#qflist' do
+  context '#out#qflist', :abortion do
     let(:out) { 'qflist' }
 
     include_examples 'abort on actions'
