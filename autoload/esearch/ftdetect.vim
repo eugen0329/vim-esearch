@@ -63,11 +63,6 @@ fu! esearch#ftdetect#fast(filename) abort
 
   endif
 
-  let opened_buffer_filetype = getbufvar(a:filename, '&filetype')
-  if !empty(opened_buffer_filetype)
-    return opened_buffer_filetype
-  endif
-
   let basename_pattern = '^' . basename . '$'
   if has_key(s:pattern_to_filetype, basename_pattern)
     return s:pattern_to_filetype[basename_pattern]
@@ -75,6 +70,12 @@ fu! esearch#ftdetect#fast(filename) abort
 
   if has_key(s:pattern_to_filetype, extension_pattern)
     return s:pattern_to_filetype[extension_pattern]
+  endif
+
+  " is checked last as it's slower then other
+  let opened_buffer_filetype = getbufvar(a:filename, '&filetype')
+  if !empty(opened_buffer_filetype)
+    return opened_buffer_filetype
   endif
 
   return 0

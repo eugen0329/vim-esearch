@@ -53,6 +53,9 @@ else
   let s:blank_line_fold = '<1'
 endif
 
+if !exists('g:esearch_win_context_syntax_async')
+  let g:esearch_win_context_syntax_async = 0
+endif
 
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -147,6 +150,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                 [],
         \ 'data':                   [],
         \ 'context_syntax_regions': {},
+        \ 'context_syntax_enabled': 1,
         \ 'without':                function('esearch#util#without')
         \})
 
@@ -186,6 +190,8 @@ fu! s:init_update_events(opts) abort
   endif
 endfu
 
+let g:debug = []
+
 fu! s:update_by_timer_callback(bufnr, timer) abort
   let esearch = esearch#out#win#update(a:bufnr)
 
@@ -194,6 +200,7 @@ fu! s:update_by_timer_callback(bufnr, timer) abort
   else
     return 0
   endif
+
 
   if request.finished && len(request.data) == request.data_ptr
     call esearch#out#win#forced_finish(a:bufnr)
@@ -268,10 +275,9 @@ fu! esearch#out#win#update(bufnr) abort
     let parsed = esearch.parse_results(data, from, to)
 
     call setbufvar(a:bufnr, '&ma', 1)
+
     call s:render_results(a:bufnr, parsed, esearch)
-
-
-    let spinner = s:spinner[esearch.tick / s:spinner_slowdown % (s:spinner_frames_size)]
+    let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
     if request.finished
       call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
             \ len(request.data),
@@ -286,6 +292,7 @@ fu! esearch#out#win#update(bufnr) abort
             \ spinner
             \ ))
     endif
+
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
@@ -322,19 +329,22 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   while i < limit
     let filename = substitute(parsed[i].filename, sub_expression, '', '')
-    let text     = s:clip_width(parsed[i].text, a:esearch)
+    let text     = esearch#util#ellipsize(parsed[i].text, parsed[i].col, a:esearch.context_width)
 
     if filename !=# a:esearch.contexts[-1].filename
       let a:esearch.contexts[-1].end = line
 
-      if g:esearch#out#win#context_syntax_highlight
-        if !a:esearch.highlight_viewport
-          if len(a:esearch.contexts) > 10
-            let a:esearch.highlight_viewport = 1
-            call s:restrict_highlights_to_viewport(a:esearch)
-          else
-            call s:load_syntax(a:esearch, a:esearch.contexts[-1])
-          endif
+      if a:esearch.context_syntax_enabled && g:esearch#out#win#context_syntax_highlight
+        if len(a:esearch.contexts) > 2000
+          let a:esearch.context_syntax_enabled = 0
+          call s:unload_syntaxes(a:esearch)
+        elseif 1 && len(a:esearch.contexts) > 10 && !a:esearch.highlight_viewport
+          let a:esearch.highlight_viewport = 1
+          call s:restrict_syntax_highlight_to_viewport(a:esearch)
+        " TODO check why it slows down and probably drop loading syntax
+        " synchronously
+        " else
+          " call s:load_syntax(a:esearch, a:esearch.contexts[-1])
         endif
       end
 
@@ -358,18 +368,11 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   endwhile
 endfu
 
-fu! s:restrict_highlights_to_viewport(esearch) abort
-    augroup ESearchWinViewportHighlight
-      au! * <buffer>
-      au CursorMoved <buffer> call s:highlight_viewport()
-    augroup END
-
-    " if s:Promise.is_available()
-    " let s:prewarm = s:Promise
-    "       \.new({resolve -> timer_start(0, resolve)})
-    "       \.then({-> s:blocking_make_cache()})
-    "       \.catch({reason -> execute('echoerr reason')})
-  " endif
+fu! s:restrict_syntax_highlight_to_viewport(esearch) abort
+  augroup ESearchWinViewportHighlight
+    au! * <buffer>
+    au CursorMoved <buffer> call s:highlight_viewport()
+  augroup END
 endfu
 
 fu! s:highlight_viewport() abort
@@ -397,7 +400,7 @@ fu! s:set_syntax_sync(esearch) abort
         \ ])
 endfu
 
-fu! s:load_syntax(esearch, context) abort
+fu! s:blocking_load_syntax(esearch, context) abort
   if !g:esearch#out#win#context_syntax_highlight
     " TODO setup for viewport
     return
@@ -428,10 +431,33 @@ fu! s:load_syntax(esearch, context) abort
         \ region['cluster'])
   let a:context.syntax_loaded = 1
 
-
   let a:esearch['max_lines_found'] = max([
         \ a:context.end - (a:context.start + 1),
         \ a:esearch['max_lines_found']])
+endfu
+
+fu! s:unload_syntaxes(esearch) abort
+  let highlighted_contexts = []
+
+  for name in map(values(a:esearch.context_syntax_regions), 'v:val.region_name')
+    exe 'syn clear ' . name
+  endfor
+  augroup ESearchWinViewportHighlight
+    au! * <buffer>
+  augroup END
+
+  let a:esearch.context_syntax_regions = {}
+endfu
+
+fu! s:load_syntax(esearch, context) abort
+  if s:Promise.is_available() && g:esearch_win_context_syntax_async == 1
+    return s:Promise
+          \.new({resolve -> timer_start(1, resolve)})
+          \.then({-> s:blocking_load_syntax(a:esearch, a:context)})
+          \.catch({reason -> execute('echoerr reason')})
+  endif
+
+  return s:blocking_load_syntax(a:esearch, a:context)
 endfu
 
 fu! s:include_syntax_cluster(ft) abort
@@ -450,13 +476,6 @@ fu! s:include_syntax_cluster(ft) abort
     unlet b:current_syntax
   endif
   return cluster_name
-endfu
-
-fu! s:clip_width(line, esearch) abort
-  return esearch#util#btrunc(a:line,
-                           \ match(a:line, a:esearch.exp.vim),
-                           \ a:esearch.context_width.l,
-                           \ a:esearch.context_width.r)
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
@@ -682,9 +701,9 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  if !esearch.contexts[-1].syntax_loaded
-    call s:load_syntax(esearch, esearch.contexts[-1])
-  endif
+  " if !esearch.contexts[-1].syntax_loaded
+  "   call s:load_syntax(esearch, esearch.contexts[-1])
+  " endif
   call s:set_syntax_sync(esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)

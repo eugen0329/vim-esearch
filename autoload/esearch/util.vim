@@ -115,28 +115,24 @@ fu! esearch#util#uniq(list) abort
   return a:list
 endfu
 
-fu! esearch#util#btrunc(str, center, lw, rw) abort
-  " om - omission, lw/rw - with from the left(right)
-  let om = g:esearch#util#trunc_omission
-
-  let l = (a:lw > a:center ? 0 : a:center - a:lw + len(om))
-  let r = (len(a:str) <= a:center + a:rw ? len(a:str)-1 : a:center+a:rw-len(om))
-
-  return (l == 0 ? '' : om) . a:str[l : r] . (r == len(a:str)-1 ? '' : om)
-endfu
-
-fu! esearch#util#trunc(str, size) abort
-  if len(a:str) > a:size
-    return a:str[:a:size] . '…'
+fu! esearch#util#ellipsize(text, col, context_width) abort
+  if len(a:text) < a:context_width.left + a:context_width.right
+    return a:text
   endif
 
-  return a:str
+  if a:col - 1 < a:context_width.left
+    let extended_right = a:context_width.right + a:context_width.left - 1
+    return a:text[: extended_right - (extended_right + 1 >= len(a:text) ? 0 : len('|'))] . (extended_right + 1 >= len(a:text) ? '' : '|')
+  elseif len(a:text) - a:col - 1 < a:context_width.right
+    let extended_left = len(a:text) - a:context_width.left - a:context_width.right
+    return (extended_left == 0 ? '' : '|') . a:text[(extended_left == 0 ? 0 : len('|')) + extended_left:]
+  else
+    return '|' . a:text[a:col - a:context_width.left + len('|') : a:col + a:context_width.right - 1 - len('|')] . '|'
+  endif
 endfu
 
 fu! esearch#util#shellescape(str) abort
   return escape(fnameescape(a:str), ';')
-  " return shellescape(a:str, g:esearch.escape_special)
-  " return fnameescape(shellescape(a:str, g:esearch.escape_special))
 endfu
 
 fu! esearch#util#timenow() abort
