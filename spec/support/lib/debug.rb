@@ -45,6 +45,10 @@ module Debug
     readlines(path)
   end
 
+  def running_processes
+    `ps -A -o pid,command`.split("\n")
+  end
+
   def verbose_log
     return readlines(server.verbose_log_file) if neovim?
 

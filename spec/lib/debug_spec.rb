@@ -63,6 +63,26 @@ describe Debug do
     end
   end
 
+  describe '.running_processes' do
+    shared_examples 'outputs running processes' do
+      it do
+        expect(debug.running_processes)
+          .to be_a(Array)
+          .and include match(/\s*#{vim.server.pid}.+#{vim.server.executable}/)
+      end
+    end
+
+    context 'when neovim server' do
+      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
+
+      include_examples 'outputs running processes'
+    end
+
+    context 'when vim server' do
+      include_examples 'outputs running processes'
+    end
+  end
+
   describe '.verbose_log_file' do
     let(:server) { Configuration.vim.server }
 
