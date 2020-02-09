@@ -29,6 +29,10 @@ fu! esearch#preview#start() abort
   endif
 endfu
 
+fu! esearch#preview#is_available() abort
+  return has('nvim') && exists('*nvim_open_win')
+endfu
+
 fu! s:using_readlines_strategy(filename) abort
   let filename = a:filename
   let [width, height] = [120, 11]
@@ -130,7 +134,7 @@ fu! s:using_edit_strategy(filename) abort
     call s:setup_edited_file_highlight()
     call s:setup_matching_line_sign(line_in_file)
     call s:reshape_preview_window(line_in_file, column_in_file, height)
-    call s:setup_on_buffer_open_events()
+    call s:setup_on_user_opens_buffer_events()
     call s:setup_autoclose_events()
   catch
     call s:close_preview_window()
@@ -147,7 +151,7 @@ fu! s:save_options(preview_buffer) abort
   let a:preview_buffer.guard.signcolumn = nvim_win_get_option(s:preview_window.id, 'signcolumn')
 endfu
 
-fu! s:setup_on_buffer_open_events() abort
+fu! s:setup_on_user_opens_buffer_events() abort
   augroup ESearchPreview
     au! BufWinEnter,BufEnter <buffer>
     noautocmd au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
@@ -223,7 +227,7 @@ fu! s:edit_file(filename, preview_buffer) abort
   if expand('%') !=# a:filename
     noautocmd keepjumps noswapfile exe 'keepjumps noautocmd noswapfile edit! ' . fnameescape(a:filename)
 
-    " if buffer was already created,  vim switches to it leaving empty buffer we
+    " if buffer is already created, vim switches to it leaving empty buffer we
     " have to cleanup
     let current_buffer_id = bufnr('%')
     if current_buffer_id != a:preview_buffer.id

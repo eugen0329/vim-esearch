@@ -42,7 +42,7 @@ describe '' do
     editor.cleanup!
   end
 
-  it do
+  it 'runs commands on edit' do
     editor.edit! files.last
 
     expect(order).to match_array([[files.first.to_s, 'BufNew'],
@@ -60,13 +60,13 @@ describe '' do
                                   [files.last.to_s,  'BufWinEnter']])
   end
 
-  it do
+  it "doesn't run autocommands when noautocmd edit is used" do
     editor.command "noautocmd edit #{files.last}"
 
     expect(order).to match_array([])
   end
 
-  it do
+  it 'hooks extra autocommands on BufReadPre BufRead' do
     editor.command "noautocmd edit #{files.last}"
     editor.command 'doau BufReadPre'
     editor.command 'doau BufRead'

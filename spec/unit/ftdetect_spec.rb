@@ -74,7 +74,7 @@ describe 'esearch#ftdetect' do
   end
 
   describe '#fast' do
-    subject(:ftdetect) do |fname|
+    subject(:ftdetect) do
       ->(filename) { editor.echo func('esearch#ftdetect#fast', filename) }
     end
 

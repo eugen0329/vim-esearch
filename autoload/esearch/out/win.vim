@@ -389,7 +389,7 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
 
-  if has('nvim')
+  if esearch#preview#is_available()
     nnoremap <silent><buffer> <S-p> :<C-U>sil cal esearch#preview#start()<CR>
     nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
   endif

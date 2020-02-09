@@ -7,10 +7,11 @@ let s:Promise  = s:Vital.import('Async.Promise')
 let s:pattern_to_filetype = {}
 let s:null = 0
 let s:prewarm = s:null
-let s:setf_commands = ['setfiletype', 'setf']
+let s:setfiletype = ['setfiletype', 'setf']
 
-" TODO consider to define either syntax file which highlights strings, comments
-" and keywords set from both languages (like matlab and objc for *.m)
+" TODO consider to define either syntax file which highlights for strings,
+" comments and keywords set for both languages with extension collisions (like
+" matlab and objc for *.m)
 if !exists('g:esearch_ftdetect_patterns')
   let g:esearch_ftdetect_patterns = {
         \ '\.sh$':   'sh',
@@ -102,12 +103,12 @@ fu! s:blocking_make_cache() abort
       let definitions += split(line, '\s\+')
     endif
 
-    if s:List.has(s:setf_commands, definitions[1])
+    if s:List.has(s:setfiletype, definitions[1])
       " Plain setfiletype
       let filetype = definitions[2]
-    elseif definitions[1] == 'call' && definitions[2] =~# '^s:\%(StarSetf\|setf\)('
+    elseif definitions[1] ==# 'call' && definitions[2] =~# '^s:\%(StarSetf\|setf\)('
       " Filetypes set with additional check for g:ft_ignore_pat. Can be safely
-      " grabbed
+      " grabbed as the required checks are already provided
       let filetype = matchstr(definitions[2], 's:\%(StarSetf\|setf\)([''"]\zs\w\+\ze[''"])'  )
     else
       " If-elses or method calls to run against files content. Skip
@@ -125,12 +126,12 @@ endfu
 
 fu! s:make_cache() abort
   if s:Promise.is_available() && s:Promise.is_promise(s:prewarm)
-    let [result, error] = s:Promise.wait(p, { 'timeout': 1000 })
+    let [result, error] = s:Promise.wait(s:prewarm, { 'timeout': 1000 })
 
     if s:failed_with(error, s:Promise.TimeoutError)
       return 0
     elseif error isnot# v:null
-      echoerr "Failed:" . string(error)
+      echoerr 'Failed: ' . string(error)
     else
       let s:prewarm = s:null
     endif

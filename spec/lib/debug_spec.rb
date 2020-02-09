@@ -143,7 +143,11 @@ describe Debug do
   end
 
   describe '.messages' do
-    it { expect(debug.messages).to include match('Messages maintainer:') }
+    it do
+      expect(debug.messages)
+        .to be_a(Array)
+        .and be_present
+    end
   end
 
   describe '.buffers' do
