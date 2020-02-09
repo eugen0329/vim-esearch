@@ -32,11 +32,20 @@ let s:mappings = [
 
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
-let s:header = 'Matches in %d lines, %d file(s)'
-let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 let s:lines_map_padding = 0 " to index with line numbers which start from 1
+if esearch#util#has_unicode()
+  let s:spinner = g:esearch#unicode#spinner
+else
+  let s:spinner = ['.', '..', '...']
+endif
+let s:spinner_frames_size = len(s:spinner)
+let s:spinner_slowdown = 2
+let s:spinner_max_frame_size = max(map(copy(s:spinner), 'strchars(v:val)'))
+let s:request_finished_header = 'Matches in %3d lines, %3d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'slines, %d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -109,7 +118,7 @@ fu! esearch#out#win#init(opts) abort
 
   setlocal modifiable
   exe '1,$d_'
-  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, 0))
+  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
   setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
@@ -129,6 +138,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'max_lines_found':        0,
         \ 'ignore_batches':         0,
         \ 'highlight_viewport':     0,
+        \ 'tick':                   0,
         \ 'columns_map':            {},
         \ 'contexts':               [],
         \ 'context_ids_map':        [],
@@ -259,18 +269,35 @@ fu! esearch#out#win#update(bufnr) abort
 
     call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
-    " TODO len(esearch.columns_map) is used to prevent %lines_count+1% bug in vim8
-    call esearch#util#setline(a:bufnr, 1, printf(s:header, len(esearch.columns_map), esearch.files_count))
+
+
+    let spinner = s:spinner[esearch.tick / s:spinner_slowdown % (s:spinner_frames_size)]
+    if request.finished
+      call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
+            \ len(request.data),
+            \ esearch.files_count,
+            \ spinner
+            \ ))
+    else
+      call esearch#util#setline(a:bufnr, 1, printf(s:header,
+            \ len(request.data),
+            \ spinner,
+            \ esearch.files_count,
+            \ spinner
+            \ ))
+    endif
     call setbufvar(a:bufnr, '&ma', 0)
     call setbufvar(a:bufnr, '&mod', 0)
   endif
 
+  let esearch.tick += 1
   return esearch
 endfu
 
 fu! s:new_context(id, filename, start) abort
   return {'id': a:id, 'start': a:start, 'end': 0, 'filename': a:filename, 'filetype': 0, 'syntax_loaded': 0}
 endfu
+
 fu! s:null_context() abort
   return s:new_context(-1, '', 0)
 endfu
