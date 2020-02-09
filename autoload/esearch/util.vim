@@ -115,19 +115,31 @@ fu! esearch#util#uniq(list) abort
   return a:list
 endfu
 
-fu! esearch#util#ellipsize(text, col, context_width) abort
-  if len(a:text) < a:context_width.left + a:context_width.right
+fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
+  if strchars(a:text) < a:left + a:right
     return a:text
   endif
 
-  if a:col - 1 < a:context_width.left
-    let extended_right = a:context_width.right + a:context_width.left - 1
-    return a:text[: extended_right - (extended_right + 1 >= len(a:text) ? 0 : len('|'))] . (extended_right + 1 >= len(a:text) ? '' : '|')
-  elseif len(a:text) - a:col - 1 < a:context_width.right
-    let extended_left = len(a:text) - a:context_width.left - a:context_width.right
-    return (extended_left == 0 ? '' : '|') . a:text[(extended_left == 0 ? 0 : len('|')) + extended_left:]
+  if a:col - 1 < a:left
+    " if too much unused room to the left - extending the right side
+    let extended_right_index = a:left + a:right - 1
+    if extended_right_index + 1 >= strchars(a:text)
+      return a:text[: extended_right_index]
+    else
+      return a:text[: extended_right_index - strchars(a:ellipsis)] . a:ellipsis
+    endif
+  elseif a:col + a:right >= strchars(a:text)
+    " if too much unused room to the right - extending the left side
+    let extended_left_index = strchars(a:text) - a:left - a:right
+    if extended_left_index == 0
+      return a:text[strchars(a:ellipsis) + extended_left_index:]
+    else
+      return a:ellipsis . a:text[strchars(a:ellipsis) + extended_left_index:]
+    endif
   else
-    return '|' . a:text[a:col - a:context_width.left + len('|') : a:col + a:context_width.right - 1 - len('|')] . '|'
+    return    a:ellipsis
+          \ . a:text[a:col - a:left + strchars(a:ellipsis) : a:col + a:right - 1 - strchars(a:ellipsis)]
+          \ . a:ellipsis
   endif
 endfu
 
@@ -493,11 +505,11 @@ fu! esearch#util#vim8_calls_close_cb_last() abort
   return has('patch-7.4.1787')
 endfu
 
-if !exists('g:esearch#util#trunc_omission')
+if !exists('g:esearch#util#ellipsis')
   if esearch#util#has_unicode()
-    let g:esearch#util#trunc_omission = g:esearch#unicode#trunc_omission
+    let g:esearch#util#ellipsis = g:esearch#unicode#ellipsis
   else
-    let g:esearch#util#trunc_omission = '|'
+    let g:esearch#util#ellipsis = '|'
   endif
 endif
 

@@ -5,25 +5,29 @@ require 'spec_helper'
 describe 'esearch#util' do
   include VimlValue::SerializationHelpers
 
-  describe '#esearch#util#ellipsize' do
-    def invoke(text, col, l,r )
-      editor.echo func('esearch#util#ellipsize', text, col, { 'left': l, 'right': r })
+  describe '#ellipsize' do
+    subject(:ellipsize) do
+      ->(text, col, left,right, ellipsize) do
+        editor.echo func('esearch#util#ellipsize', text, col, left, right, ellipsize)
+      end
     end
 
-    context 'when enough room to not insert omission' do
-      it { expect(invoke('aaaBBBccc', 5, 5, 5)).to eq('aaaBBBccc')   }
+    context 'when enough room' do
+      it "doesn't add ellipsis" do
+        expect(ellipsize.call('aaaBBBccc', 5, 5, 5, '|')).to eq('aaaBBBccc')
+      end
     end
 
-    context 'extending left and right side if hitting 0 or -1 index' do
-      it { expect(invoke('aaaBBBccc', 0, 2, 2)).to eq('aaa|')   }
-      it { expect(invoke('aaaBBBccc', 1, 2, 2)).to eq('aaa|')   }
-      it { expect(invoke('aaaBBBccc', 2, 2, 2)).to eq('aaa|')   }
-      it { expect(invoke('aaaBBBccc', 3, 2, 2)).to eq('|aB|')   }
-      it { expect(invoke('aaaBBBccc', 4, 2, 2)).to eq('|BB|') }
-      it { expect(invoke('aaaBBBccc', 5, 2, 2)).to eq('|BB|') }
-      it { expect(invoke('aaaBBBccc', 6, 2, 2)).to eq('|Bc|') }
-      it { expect(invoke('aaaBBBccc', 7, 2, 2)).to eq('|ccc') }
-      it { expect(invoke('aaaBBBccc', 8, 2, 2)).to eq('|ccc') }
+    context 'when string is bigger then allowed' do
+      it { expect(ellipsize.call('aaaBBBccc', 0, 2, 2, '|')).to eq('aaa|')   }
+      it { expect(ellipsize.call('aaaBBBccc', 1, 2, 2, '|')).to eq('aaa|')   }
+      it { expect(ellipsize.call('aaaBBBccc', 2, 2, 2, '|')).to eq('aaa|')   }
+      it { expect(ellipsize.call('aaaBBBccc', 3, 2, 2, '|')).to eq('|aB|')   }
+      it { expect(ellipsize.call('aaaBBBccc', 4, 2, 2, '|')).to eq('|BB|') }
+      it { expect(ellipsize.call('aaaBBBccc', 5, 2, 2, '|')).to eq('|BB|') }
+      it { expect(ellipsize.call('aaaBBBccc', 6, 2, 2, '|')).to eq('|Bc|') }
+      it { expect(ellipsize.call('aaaBBBccc', 7, 2, 2, '|')).to eq('|ccc') }
+      it { expect(ellipsize.call('aaaBBBccc', 8, 2, 2, '|')).to eq('|ccc') }
     end
   end
 

@@ -24,7 +24,7 @@ fu! esearch#opts#new(opts) abort
         \ 'case':             0,
         \ 'word':             0,
         \ 'batch_size':       300,
-        \ 'context_width':    { 'left': 10, 'right': 10 },
+        \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'highlight_match':  1,
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,

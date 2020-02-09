@@ -43,9 +43,9 @@ endif
 let s:spinner_frames_size = len(s:spinner)
 let s:spinner_slowdown = 2
 let s:spinner_max_frame_size = max(map(copy(s:spinner), 'strchars(v:val)'))
-let s:request_finished_header = 'Matches in %3d lines, %3d%-'.s:spinner_max_frame_size.'s file(s)'
-let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'slines, %d%-'.s:spinner_max_frame_size.'s file(s)'
-let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
+let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -95,6 +95,9 @@ fu! esearch#out#win#init(opts) abort
   " Stop previous search process first
   if has_key(b:, 'esearch')
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
+    if has_key(b:esearch, 'timer_id')
+      call timer_stop(b:esearch.timer_id)
+    endif
   end
 
   " Refresh match highlight
@@ -121,7 +124,7 @@ fu! esearch#out#win#init(opts) abort
 
   setlocal modifiable
   exe '1,$d_'
-  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
+  " call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
   setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
@@ -175,7 +178,7 @@ endfu
 
 fu! s:init_update_events(opts) abort
   if g:esearch_win_update_using_timer && exists('*timer_start')
-    call timer_start(100, function('s:update_by_timer_callback', [bufnr('%')]), {'repeat': -1})
+    let a:opts.timer_id = timer_start(100, function('s:update_by_timer_callback', [bufnr('%')]), {'repeat': -1})
     let a:opts.update_with_timer_start = 1
   else
     augroup ESearchWinAutocmds
@@ -200,7 +203,6 @@ fu! s:update_by_timer_callback(bufnr, timer) abort
   else
     return 0
   endif
-
 
   if request.finished && len(request.data) == request.data_ptr
     call esearch#out#win#forced_finish(a:bufnr)
@@ -263,6 +265,8 @@ fu! esearch#out#win#update(bufnr) abort
 
   let data = esearch.request.data
   let data_size = len(data)
+
+  call setbufvar(a:bufnr, '&ma', 1)
   if data_size > request.data_ptr
     if ignore_batches || data_size - request.data_ptr - 1 <= esearch.batch_size
       let [from, to] = [request.data_ptr, data_size - 1]
@@ -273,29 +277,27 @@ fu! esearch#out#win#update(bufnr) abort
     endif
 
     let parsed = esearch.parse_results(data, from, to)
-
-    call setbufvar(a:bufnr, '&ma', 1)
-
     call s:render_results(a:bufnr, parsed, esearch)
-    let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
-    if request.finished
-      call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
-            \ len(request.data),
-            \ esearch.files_count,
-            \ spinner
-            \ ))
-    else
-      call esearch#util#setline(a:bufnr, 1, printf(s:header,
-            \ len(request.data),
-            \ spinner,
-            \ esearch.files_count,
-            \ spinner
-            \ ))
-    endif
-
-    call setbufvar(a:bufnr, '&ma', 0)
-    call setbufvar(a:bufnr, '&mod', 0)
   endif
+
+  let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
+  if request.finished
+    call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
+          \ len(request.data),
+          \ esearch.files_count,
+          \ spinner
+          \ ))
+  else
+    call esearch#util#setline(a:bufnr, 1, printf(s:header,
+          \ len(request.data),
+          \ spinner,
+          \ esearch.files_count,
+          \ spinner
+          \ ))
+  endif
+
+  call setbufvar(a:bufnr, '&ma', 0)
+  call setbufvar(a:bufnr, '&mod', 0)
 
   let esearch.tick += 1
   return esearch
@@ -329,7 +331,12 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   while i < limit
     let filename = substitute(parsed[i].filename, sub_expression, '', '')
-    let text     = esearch#util#ellipsize(parsed[i].text, parsed[i].col, a:esearch.context_width)
+    let text     = esearch#util#ellipsize(
+          \ parsed[i].text,
+          \ parsed[i].col,
+          \ a:esearch.context_width.left,
+          \ a:esearch.context_width.right,
+          \ g:esearch#util#ellipsis)
 
     if filename !=# a:esearch.contexts[-1].filename
       let a:esearch.contexts[-1].end = line
@@ -718,7 +725,12 @@ fu! esearch#out#win#finish(bufnr) abort
     endfor
     " norm! gggqG
   else
-    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header, len(esearch.columns_map), esearch.files_count))
+    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
+          \ len(esearch.columns_map),
+          \ esearch#inflector#pluralize('line', len(esearch.columns_map)),
+          \ esearch.files_count,
+          \ esearch#inflector#pluralize('file', len(esearch.columns_map)),
+          \))
   endif
 
   call setbufvar(a:bufnr, '&ma', 0)

@@ -10,18 +10,11 @@ syn match  esearchLnum    '^\%>2l\s\+\d\+'
 " TODO
 " syn region esearchRestult start='^\h\w*' end='^$' contains=esearchOmission,esearchContext,esearchLnum,esearchFName fold transparent keepend extend
 
-exe 'syn match esearchOmission "\%(^\%>3l\s\+\d\+\s\)\@<=\V'. g:esearch#util#trunc_omission.'"'
-exe 'syn match esearchOmission "\V'. g:esearch#util#trunc_omission.'\$"'
-
 " NOTE If there are already highlight settings for the {from-group}, the link is
 " not made, unless the '!' is given
 hi link esearchTitle Title
 hi link esearchContext Normal
 hi link esearchLnum LineNr
-
-if !hlexists('esearchOmission')
-  hi esearchOmission ctermfg=yellow
-endif
 
 if !hlexists('esearchFName')
   exe 'hi esearchFName cterm=bold gui=bold ' .
@@ -31,6 +24,7 @@ if !hlexists('esearchFName')
         \ 'guifg=' . esearch#util#highlight_attr('Directory', 'fg', 'gui',   '#FFFFFF').' '
 endif
 
+let g:asd = [synIDattr(synIDtrans(hlID('MoreMsg')), 'fg', 'cterm'), hlexists('ESearchMatch')]
 if !hlexists('ESearchMatch')
   exe 'hi ESearchMatch cterm=bold gui=bold ' .
         \ 'ctermbg='.esearch#util#highlight_attr('MoreMsg', 'bg', 'cterm', 239 ).' '.
