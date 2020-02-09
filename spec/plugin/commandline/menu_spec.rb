@@ -181,7 +181,7 @@ describe 'esearch#cmdline menu' do
           shared_examples 'it preserves cursor location after dismissing' do |expected_location:, dismiss_with:|
             context "when dismissing with #{dismiss_with} keys" do
               let(:test_string) { expected_location.tr('|', '') }
-              it "preserves location #{expected_location} at '|'" do
+              it "preserves location in #{expected_location} at '|'" do
                 editor.send_keys(*open_input_keys,
                                  test_string,
                                  *locate_cursor_with_arrows(expected_location),
