@@ -23,7 +23,7 @@ fu! esearch#opts#new(opts) abort
         \ 'regex':            0,
         \ 'case':             0,
         \ 'word':             0,
-        \ 'batch_size':       1000,
+        \ 'batch_size':       300,
         \ 'context_width':    { 'l': 60, 'r': 60 },
         \ 'highlight_match':  1,
         \ 'escape_special':   1,
