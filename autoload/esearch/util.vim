@@ -225,7 +225,7 @@ fu! esearch#util#set_highlight(name, attributes, options) abort
   call s:Highlight.set(new_highlight, a:options)
 endfu
 
-fu! esearch#util#highlight_attritbutes(hightlight_name) abort
+fu! esearch#util#get_highlight(hightlight_name) abort
   return s:Highlight.get(a:hightlight_name).attrs
 endfu
 

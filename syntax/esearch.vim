@@ -2,18 +2,18 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn region esearchHeader   start='\%1l'       end='$' oneline
-syn region esearchFilename start='\%>2l^[^ ]' end='$' oneline
+syn region esearchHeader   start='\%^'        end='\%1l$' oneline
+syn region esearchFilename start='\%>2l^[^ ]' end='$'     oneline
 syn match  esearchLineNr   '^\s\+\d\+'
 
 hi def link esearchHeader   Title
 hi def link esearchFilename Directory
 hi def link esearchLineNr   LineNr
 
-let s:cursorline    = esearch#util#highlight_attritbutes('CursorLine')
-let s:esearch_match = extend(esearch#util#highlight_attritbutes('MoreMsg'), {
-      \   'ctermbg': s:cursorline.ctermbg,
-      \   'guibg':   s:cursorline.guibg,
+let s:cursorline    = esearch#util#get_highlight('CursorLine')
+let s:esearch_match = extend(esearch#util#get_highlight('MoreMsg'), {
+      \   'ctermbg': get(s:cursorline, 'ctermbg', 239),
+      \   'guibg':   get(s:cursorline, 'guibg',   '#005FFF'),
       \   'cterm':  'bold',
       \   'gui':    'bold',
       \ })

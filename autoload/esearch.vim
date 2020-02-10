@@ -4,37 +4,29 @@ fu! esearch#init(...) abort
   endif
 
   let esearch = s:new(a:0 ? a:1 : {})
-
-  " TODO testing of reloading
-
   let g:esearch.last_id += 1
   let esearch.id = g:esearch.last_id
-  let g:esearch._last_search = esearch#source#pick_exp(esearch.use, esearch)
-  """""""""""""""
 
   call esearch#ftdetect#async_prewarm_cache()
 
   if !has_key(esearch, 'exp')
+    let esearch.exp  = esearch#source#pick_exp(esearch.use, esearch)
     let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
-    let esearch.exp = g:esearch._last_search
-    let esearch.exp = esearch#cmdline#read(esearch, adapter_opts)
-
-    let esearch.exp = esearch#regex#finalize(esearch.exp, esearch)
+    let esearch.exp  = esearch#cmdline#read(esearch, adapter_opts)
+    let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
-  let g:esearch.case     = esearch.case
-  let g:esearch.word     = esearch.word
-  let g:esearch.regex    = esearch.regex
-  let g:esearch.paths    = esearch.paths
-  let g:esearch.metadata = esearch.metadata
+  let g:esearch.last_search = esearch.exp
+  let g:esearch.case        = esearch.case
+  let g:esearch.word        = esearch.word
+  let g:esearch.regex       = esearch.regex
+  let g:esearch.paths       = esearch.paths
+  let g:esearch.metadata    = esearch.metadata
 
   if empty(esearch.exp)
     return 1
   endif
 
-
-  " Prepare backend (nvim, vimproc, ...) request object
-  """""""""""""""
   let EscapeFunc = function('esearch#backend#'.esearch.backend.'#escape_cmd')
   let pattern = esearch.regex ? esearch.exp.pcre : esearch.exp.literal
   let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, EscapeFunc)

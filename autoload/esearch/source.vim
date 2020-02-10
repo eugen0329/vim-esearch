@@ -3,8 +3,7 @@ fu! esearch#source#pick_exp(use, opts) abort
 
   for name in use
     let exp = esearch#source#{name}(a:opts)
-    if !empty(exp) | return exp | endif
-    unlet exp
+    if !empty(exp) | return deepcopy(exp) | endif
   endfor
 
   return esearch#regex#new()
@@ -34,7 +33,7 @@ endfu
 
 fu! esearch#source#last(...) abort
   if exists('g:esearch')
-    return get(g:esearch, '_last_search', 0)
+    return get(g:esearch, 'last_search', 0)
   else
     return 0
   endif
