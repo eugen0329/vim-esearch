@@ -158,10 +158,12 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vimproc', :vimproc, backend: :vimproc do
-    before(:all) do
-      editor.press! ':let g:esearch#backend#vimproc#updatetime = 30'
-      editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30'
+    before(:context) do
+      editor.press! ':let g:esearch#backend#vimproc#updatetime = 30<Enter>'
+      editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30<Enter>'
+      editor.press! ':let g:esearch_win_update_using_timer = 0<Enter>'
     end
+    after(:context) { editor.press! ':let g:esearch_win_update_using_timer = 1<Enter>' }
 
     include_context 'a backend', 'vimproc'
     include_context 'a backend 2', 'vimproc'

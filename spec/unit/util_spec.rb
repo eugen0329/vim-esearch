@@ -7,7 +7,7 @@ describe 'esearch#util' do
 
   describe '#ellipsize' do
     subject(:ellipsize) do
-      ->(text, col, left,right, ellipsize) do
+      lambda do |text, col, left, right, ellipsize|
         editor.echo func('esearch#util#ellipsize', text, col, left, right, ellipsize)
       end
     end

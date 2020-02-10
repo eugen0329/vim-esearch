@@ -1,4 +1,4 @@
-fu! esearch#inflector#pluralize(word, count)
+fu! esearch#inflector#pluralize(word, count) abort
   if a:count % 10 == 1
     return a:word
   endif
@@ -7,7 +7,7 @@ fu! esearch#inflector#pluralize(word, count)
 endfu
 
 " tim pope
-fu! s:plurlize(word)
+fu! s:plurlize(word) abort
   let word = a:word
 
   if empty(word)
@@ -22,6 +22,6 @@ fu! s:plurlize(word)
   return word
 endfu
 
-fu! s:sub(str,pat,rep)
+fu! s:sub(str,pat,rep) abort
   return substitute(a:str,'\v\C'.a:pat,a:rep,'')
 endfu

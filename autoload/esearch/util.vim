@@ -132,9 +132,9 @@ fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
     " if too much unused room to the right - extending the left side
     let extended_left_index = strchars(a:text) - a:left - a:right
     if extended_left_index == 0
-      return a:text[strchars(a:ellipsis) + extended_left_index:]
+      return a:text[strchars(a:ellipsis) + extended_left_index :]
     else
-      return a:ellipsis . a:text[strchars(a:ellipsis) + extended_left_index:]
+      return a:ellipsis . a:text[strchars(a:ellipsis) + extended_left_index :]
     endif
   else
     return    a:ellipsis

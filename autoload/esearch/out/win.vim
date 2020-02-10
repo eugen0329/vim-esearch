@@ -60,7 +60,9 @@ endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
 endif
-
+if !exists('g:esearch_win_update_timer_wait_time')
+  let g:esearch_win_update_timer_wait_time = 100
+endif
 if !exists('g:esearch#out#win#context_syntax_highlight')
   let g:esearch#out#win#context_syntax_highlight = 1
 endif
@@ -124,7 +126,7 @@ fu! esearch#out#win#init(opts) abort
 
   setlocal modifiable
   exe '1,$d_'
-  " call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
+  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
   setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
@@ -178,8 +180,17 @@ endfu
 
 fu! s:init_update_events(opts) abort
   if g:esearch_win_update_using_timer && exists('*timer_start')
-    let a:opts.timer_id = timer_start(100, function('s:update_by_timer_callback', [bufnr('%')]), {'repeat': -1})
+    let a:opts.timer_id = timer_start(
+          \ g:esearch_win_update_timer_wait_time,
+          \ function('s:update_by_timer_callback',
+          \ [bufnr('%')]),
+          \ {'repeat': -1})
     let a:opts.update_with_timer_start = 1
+
+    augroup ESearchWinAutocmds
+      au! * <buffer>
+      call esearch#backend#{a:opts.backend}#init_events()
+    augroup END
   else
     augroup ESearchWinAutocmds
       au! * <buffer>
@@ -331,7 +342,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   while i < limit
     let filename = substitute(parsed[i].filename, sub_expression, '', '')
-    let text     = esearch#util#ellipsize(
+    let text = esearch#util#ellipsize(
           \ parsed[i].text,
           \ parsed[i].col,
           \ a:esearch.context_width.left,
@@ -708,9 +719,6 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  " if !esearch.contexts[-1].syntax_loaded
-  "   call s:load_syntax(esearch, esearch.contexts[-1])
-  " endif
   call s:set_syntax_sync(esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)
@@ -723,13 +731,12 @@ fu! esearch#out#win#finish(bufnr) abort
       call esearch#util#setline(a:bufnr, line, "\t".err)
       let line += 1
     endfor
-    " norm! gggqG
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
           \ len(esearch.columns_map),
           \ esearch#inflector#pluralize('line', len(esearch.columns_map)),
           \ esearch.files_count,
-          \ esearch#inflector#pluralize('file', len(esearch.columns_map)),
+          \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \))
   endif
 
