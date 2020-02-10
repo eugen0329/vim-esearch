@@ -260,21 +260,53 @@ fu! s:prompt(adapter_options) abort
   return 'pattern'.help.' '.r.c.w.' '
 endfu
 
-fu! s:render_directory_prompt(dir) abort
-  if a:dir ==# $PWD && empty(get(s:esearch, 'paths', []))
+fu! s:render_directory_prompt(cwd) abort
+  " TODO weid legacy code, should be rewritten
+  if a:cwd ==# getcwd() && empty(get(s:esearch, 'paths', []))
     return 0
   endif
 
-  if empty(get(s:esearch, 'paths', []))
-    let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
-  else
-    let dir = g:esearch#cmdline#dir_icon .
-          \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata, ', ')
-  endif
+  let [prefix, dir] = s:paths_comment(a:cwd, s:esearch.paths, s:esearch.metadata)
 
-  call esearch#util#highlight('Normal', 'In ')
+  call esearch#util#highlight('Normal', prefix)
   call esearch#util#highlight('Directory', dir, 0)
   echo ''
+endfu
+
+" TODO extract out of there
+fu! s:paths_comment(cwd, paths, metadata) abort
+  let kinds = []
+  let viwable = []
+
+  let empty_metadata = { 'wildcards': [] } " TODO
+  for i in range(0, len(a:paths) - 1)
+    let metadata = get(a:metadata, i, empty_metadata)
+    let escaped = esearch#shell#fnameescape(a:paths[i], metadata)
+
+    if isdirectory(a:paths[i])
+      let kinds += ['directory']
+      let escaped = g:esearch#cmdline#dir_icon . escaped
+    elseif !empty(metadata.wildcards) || !filereadable(a:paths[i])
+      let kinds += ['path']
+    else
+      let kinds += ['file']
+    endif
+
+    let viwable += [escaped]
+  endfor
+
+  if empty(kinds)
+    return ['In directory ',
+          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', '')]
+  elseif len(uniq(copy(kinds))) > 1
+    return ['In ', join(viwable, ', ')]
+  else
+    return ['In ' . esearch#inflector#pluralize(kinds[0], len(a:paths)) . ' ', join(viwable, ', ')]
+  endif
+endfu
+
+fu! s:path_kinds() abort
+
 endfu
 
 fu! s:restore_cursor_position() abort
