@@ -212,28 +212,21 @@ fu! esearch#util#stringify(key, ...) dict abort
   return self[a:key]['s'][option_index]
 endfu
 
-fu! esearch#util#copy_highlight(from, to, ...) abort
-  let original = s:Highlight.get(a:to)
+fu! esearch#util#copy_highlight(from, to, options) abort
+  let new_highlight = {'name': a:from, 'attrs': s:Highlight.get(a:to).attrs}
 
-  if a:0 == 1
-    if has_key(a:1, 'overrides')
-      let keep = filter(get(a:1.overrides, 'keep', {}), '!empty(v:val)')
-      let force = filter(get(a:1.overrides, 'force', {}), '!empty(v:val)')
-      call extend(original.attrs, keep, 'keep')
-      call extend(original.attrs, force, 'force')
-    endif
-
-    let options = get(a:1, 'options', {})
-  else
-    let options = {}
-  endif
-
-  call s:Highlight.set({'name': a:from, 'attrs': original.attrs}, options)
+  call s:Highlight.set(new_highlight, a:options)
 endfu
 
+fu! esearch#util#set_highlight(name, attributes, options) abort
+  let attributes = filter(a:attributes, '!empty(v:val)')
+  let new_highlight = {'name': a:name, 'attrs': attributes}
 
-fu! esearch#util#highlight_attr(name, attr) abort
-  return get(s:Highlight.get(a:name).attrs, a:attr, '')
+  call s:Highlight.set(new_highlight, a:options)
+endfu
+
+fu! esearch#util#highlight_attritbutes(hightlight_name) abort
+  return s:Highlight.get(a:hightlight_name).attrs
 endfu
 
 fu! esearch#util#stringify_mapping(map) abort

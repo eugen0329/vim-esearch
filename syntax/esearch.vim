@@ -10,17 +10,15 @@ hi def link esearchHeader   Title
 hi def link esearchFilename Directory
 hi def link esearchLineNr   LineNr
 
-call esearch#util#copy_highlight('esearchMatch', 'MoreMsg', {
-      \ 'overrides': {
-      \   'force': {
-      \     'ctermbg': esearch#util#highlight_attr('CursorLine', 'ctermbg'),
-      \     'guibg':   esearch#util#highlight_attr('CursorLine', 'guibg'),
-      \     'cterm':  'bold',
-      \     'gui':    'bold',
-      \   },
-      \ },
-      \ 'options': { 'default': 1 }
+let s:cursorline    = esearch#util#highlight_attritbutes('CursorLine')
+let s:esearch_match = extend(esearch#util#highlight_attritbutes('MoreMsg'), {
+      \   'ctermbg': s:cursorline.ctermbg,
+      \   'guibg':   s:cursorline.guibg,
+      \   'cterm':  'bold',
+      \   'gui':    'bold',
       \ })
+call esearch#util#set_highlight('esearchMatch', s:esearch_match, {'default': 1})
+unlet s:esearch_match s:cursorline
 
 if exists('b:esearch_ellipsis')
   hi def link esearchEllipsis WarningMsg
@@ -28,15 +26,15 @@ if exists('b:esearch_ellipsis')
   exe 'syn match esearchEllipsis "\V'. b:esearch_ellipsis . '\$"'
 endif
 
-" legacy
+" legacy names support
 if hlexists('esearchLnum')
-  call esearch#util#copy_highlight('esearchLineNr', 'esearchLnum', {'command_options': { 'force': 1 }})
+  call esearch#util#copy_highlight('esearchLineNr', 'esearchLnum', {'force': 1})
 endif
 if hlexists('esearchFName')
-  call esearch#util#copy_highlight('esearchFilename', 'esearchFName', {'command_options': { 'force': 1 }})
+  call esearch#util#copy_highlight('esearchFilename', 'esearchFName', {'force': 1})
 endif
 if hlexists('ESearchMatch')
-  call esearch#util#copy_highlight('ESearchMatch', 'esearchMatch', {'command_options': { 'force': 1 }})
+  call esearch#util#copy_highlight('ESearchMatch', 'esearchMatch', {'force': 1})
 endif
 
 let b:current_syntax = 'esearch'

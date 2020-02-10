@@ -42,7 +42,7 @@ module Helpers::WindowSyntaxContext
     description { 'have highlight aliases' }
   end
 
-  # TODO rewrite
+  # TODO: rewrite
   matcher :have_line_numbers_highlight do |expected|
     attr_reader :actual, :expected
 
