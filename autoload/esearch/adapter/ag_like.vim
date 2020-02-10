@@ -1,5 +1,5 @@
 let esearch#adapter#ag_like#multiple_files_Search_format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
-let esearch#adapter#ag_like#single_file_search_format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\$'
+let esearch#adapter#ag_like#single_file_search_format = '^\(\d\+\)\:\(\d\+\)\:\(.*\)$'
 
 fu! esearch#adapter#ag_like#joined_paths(esearch) abort
   if empty(a:esearch.paths)

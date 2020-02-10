@@ -45,7 +45,7 @@ class API::ESearch::Window
                       padding + column.begin,
                       padding + column.end]
 
-    editor.matches_for('ESearchMatch') == [expected_match]
+    editor.matches_for('esearchMatch') == [expected_match]
   end
 
   def errors

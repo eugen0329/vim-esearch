@@ -22,7 +22,7 @@ describe 'esearch window context syntax' do
         "string"
         "str with escaped slash\"
         "str with escape\\n"
-        "long string#{'.' * 100}"
+        "ellipsized string#{'.' * 500}"
         `raw string`
 
         defer
@@ -41,7 +41,7 @@ describe 'esearch window context syntax' do
 
         // comment line
         /* comment block */
-        /* long comment #{'.' * 100}*/
+        /* ellipsized comment #{'.' * 500}*/
 
         for {}
         range()
@@ -72,7 +72,7 @@ describe 'esearch window context syntax' do
         region('"string"')                   => %w[es_goString String],
         region('"str with escaped slash\\"') => %w[es_goString String],
         region('"str with escape\\\\n"')     => %w[es_goString String],
-        region('"long string[^"]\\+$')       => %w[es_goString String],
+        region('"ellipsized string[^"]\\+$') => %w[es_goString String],
         region('`raw string`$')              => %w[es_goRawString String],
 
         word('defer')                        => %w[es_goStatement Statement],
@@ -91,7 +91,7 @@ describe 'esearch window context syntax' do
 
         region('// comment line')            => %w[es_goComment Comment],
         region('/\* comment block')          => %w[es_goComment Comment],
-        region('/\* long comment')           => %w[es_goComment Comment],
+        region('/\* ellipsized comment')     => %w[es_goComment Comment],
 
         word('for')                          => %w[es_goRepeat Repeat],
         word('range')                        => %w[es_goRepeat Repeat]

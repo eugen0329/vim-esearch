@@ -34,14 +34,14 @@ describe 'esearch window context syntax' do
 
         "string"
         "str with escape\\n"
-        "long string#{'.' * 100}"
+        "ellipsized string#{'.' * 500}"
         "unterminated string
 
         $identifier
 
         'string'
         'str with escape\\n'
-        'long string#{'.' * 100}'
+        'ellipsized string#{'.' * 500}'
         'unterminated string
 
         return
@@ -53,7 +53,7 @@ describe 'esearch window context syntax' do
 
         // comment line
         /* comment block */
-        /* long comment #{'.' * 100}*/
+        /* ellipsized comment #{'.' * 500}*/
         // terminated with ?>
 
         var
@@ -61,7 +61,7 @@ describe 'esearch window context syntax' do
 
         # comment
         #comment
-        # long comment #{'.' * 100}*/
+        # ellipsized comment #{'.' * 500}*/
         # terminated with ?>
 
         namespace
@@ -117,14 +117,14 @@ describe 'esearch window context syntax' do
 
         region('"string"')                        => %w[es_phpStringDouble String],
         region('"str with escape\\\\n"')          => %w[es_phpStringDouble String],
-        region('"long string[^"]\\+$')            => %w[es_phpStringDouble String],
+        region('"ellipsized string[^"]\\+$')      => %w[es_phpStringDouble String],
         region('"unterminated string')            => %w[es_phpStringDouble String],
 
         region('$identifier')                     => %w[es_phpIdentifier Identifier],
 
         region("'string'")                        => %w[es_phpStringSingle String],
         region("'str with escape\\\\n'")          => %w[es_phpStringSingle String],
-        region("'long string[^']\\+$")            => %w[es_phpStringSingle String],
+        region("'ellipsized string[^']\\+$")      => %w[es_phpStringSingle String],
         region("'unterminated string")            => %w[es_phpStringSingle String],
 
         word('return')                            => %w[es_phpStatement Statement],
@@ -136,7 +136,7 @@ describe 'esearch window context syntax' do
 
         region('// comment line')                 => %w[es_phpComment Comment],
         region('/\* comment block')               => %w[es_phpComment Comment],
-        region('/\* long comment')                => %w[es_phpComment Comment],
+        region('/\* ellipsized comment')          => %w[es_phpComment Comment],
         region('// terminated with ?>', at: ..-3) => %w[es_phpComment Comment],
 
         word('var')                               => %w[es_phpKeyword Statement],
@@ -144,7 +144,7 @@ describe 'esearch window context syntax' do
 
         region('# comment')                       => %w[es_phpComment Comment],
         region('#comment')                        => %w[es_phpComment Comment],
-        region('# long comment')                  => %w[es_phpComment Comment],
+        region('# ellipsized comment')            => %w[es_phpComment Comment],
         region('# terminated with ?>', at: ..-3)  => %w[es_phpComment Comment],
 
         word('namespace')                         => %w[es_phpStructure Structure],

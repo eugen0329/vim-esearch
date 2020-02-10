@@ -98,7 +98,21 @@ fu! SyntaxAt(ln, column) abort
   return [name, links_to]
 endfu
 
+fu! PreloadSyntax() abort
+  norm! gg
+  while 1
+    norm! 10j
+    redraw!
+
+    if line('.') == line('$')
+      break
+    endif
+  endwhile
+endfu
+
 fu! CollectSyntaxAliases(places) abort
+  call PreloadSyntax()
+
   let inspected = []
   for p in a:places
     norm! gg

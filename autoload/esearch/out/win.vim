@@ -143,6 +143,7 @@ fu! esearch#out#win#init(opts) abort
   setlocal foldlevel=2
   setlocal foldmethod=syntax
   setlocal foldtext=esearch#out#win#foldtext()
+  syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
         \ 'files_count':            0,
@@ -472,7 +473,7 @@ endfu
 
 fu! s:load_syntax(esearch, context) abort
   if s:Promise.is_available() && g:esearch_win_context_syntax_async == 1
-    return s:Promise
+    let promise = s:Promise
           \.new({resolve -> timer_start(1, resolve)})
           \.then({-> s:blocking_load_syntax(a:esearch, a:context)})
           \.catch({reason -> execute('echoerr reason')})

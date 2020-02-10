@@ -2,6 +2,8 @@
 
 module Helpers::WindowSyntaxContext
   extend RSpec::Matchers::DSL
+  include API::Mixins::BecomeTruthyWithinTimeout
+
   VIM_REGEXP_START_MATCH = '\\zs'
   VIM_REGEXP_END_MATCH = '\\ze'
   VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES = '\\%>3l'
@@ -26,13 +28,15 @@ module Helpers::WindowSyntaxContext
     [VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES, vim_regexp].join
   end
 
-  matcher :have_highligh_aliases do |expected|
+  matcher :have_highligh_aliases do |expected, timeout: 2|
     diffable
 
     match do
-      highlight_names = editor.syntax_aliases_at(expected.keys)
-      @actual = expected.keys.zip(highlight_names).to_h
-      values_match?(expected, @actual)
+      became_truthy_within?(timeout) do
+        highlight_names = editor.syntax_aliases_at(expected.keys)
+        @actual = expected.keys.zip(highlight_names).to_h
+        values_match?(expected, @actual)
+      end
     end
 
     description { 'have highlight aliases' }

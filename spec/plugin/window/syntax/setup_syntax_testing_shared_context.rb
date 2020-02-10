@@ -12,7 +12,13 @@ RSpec.shared_context 'setup syntax testing' do
     expect(esearch).to have_search_finished
   end
 
-  it 'keeps lines highligh untouched' do
-    expect(source_file.content).to have_line_numbers_highlight(%w[esearchLnum LineNr])
+  it 'keeps line numbers highligh untouched' do
+    expect(source_file.content).to have_line_numbers_highlight(%w[esearchLineNr LineNr])
+  end
+
+  it 'keeps header highligh untouched' do
+    is_expected.to have_highligh_aliases(
+      '\%1l.*' => %w[esearchHeader Title]
+    )
   end
 end
