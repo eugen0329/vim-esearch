@@ -452,10 +452,6 @@ fu! s:blocking_load_syntax(esearch, context) abort
         \ a:context.end,
         \ region['cluster'])
   let a:context.syntax_loaded = 1
-
-  let a:esearch['max_lines_found'] = max([
-        \ a:context.end - (a:context.start + 1),
-        \ a:esearch['max_lines_found']])
 endfu
 
 fu! s:unload_syntaxes(esearch) abort

@@ -32,10 +32,12 @@ module Helpers::WindowSyntaxContext
     diffable
 
     match do
-      became_truthy_within?(timeout) do
-        highlight_names = editor.syntax_aliases_at(expected.keys)
-        @actual = expected.keys.zip(highlight_names).to_h
-        values_match?(expected, @actual)
+      editor.with_ignore_cache do
+        became_truthy_within?(timeout) do
+          highlight_names = editor.syntax_aliases_at(expected.keys)
+          @actual = expected.keys.zip(highlight_names).to_h
+          values_match?(expected, @actual)
+        end
       end
     end
 

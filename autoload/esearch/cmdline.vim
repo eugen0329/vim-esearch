@@ -305,10 +305,6 @@ fu! s:paths_comment(cwd, paths, metadata) abort
   endif
 endfu
 
-fu! s:path_kinds() abort
-
-endfu
-
 fu! s:restore_cursor_position() abort
   if strchars(s:cmdline) + 1 != s:cmdpos
     return repeat("\<Left>", strchars(s:cmdline) + 1 - s:cmdpos )
