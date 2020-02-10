@@ -2,35 +2,41 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn match  esearchTitle   '^\%1l.*'
-syn match  esearchFName   '^\%>2l.*'
-syn match  esearchContext '^\%>2l\s\+.*'
-syn match  esearchLnum    '^\%>2l\s\+\d\+'
+syn region esearchHeader   start='\%1l'       end='$' oneline
+syn region esearchFilename start='\%>2l^[^ ]' end='$' oneline
+syn match  esearchLineNr   '^\s\+\d\+'
 
-" TODO
-" syn region esearchRestult start='^\h\w*' end='^$' contains=esearchOmission,esearchContext,esearchLnum,esearchFName fold transparent keepend extend
+hi def link esearchHeader   Title
+hi def link esearchFilename Directory
+hi def link esearchLineNr   LineNr
 
-" NOTE If there are already highlight settings for the {from-group}, the link is
-" not made, unless the '!' is given
-hi link esearchTitle Title
-hi link esearchContext Normal
-hi link esearchLnum LineNr
+call esearch#util#copy_highlight('esearchMatch', 'MoreMsg', {
+      \ 'overrides': {
+      \   'force': {
+      \     'ctermbg': esearch#util#highlight_attr('CursorLine', 'ctermbg'),
+      \     'guibg':   esearch#util#highlight_attr('CursorLine', 'guibg'),
+      \     'cterm':  'bold',
+      \     'gui':    'bold',
+      \   },
+      \ },
+      \ 'options': { 'default': 1 }
+      \ })
 
-if !hlexists('esearchFName')
-  exe 'hi esearchFName cterm=bold gui=bold ' .
-        \ 'ctermbg='.esearch#util#highlight_attr('Directory', 'bg', 'cterm', 0).' '.
-        \ 'ctermfg='.esearch#util#highlight_attr('Directory', 'fg', 'cterm', 12).' '.
-        \ 'guibg=' . esearch#util#highlight_attr('Directory', 'bg', 'gui',   '#005FFF').' '.
-        \ 'guifg=' . esearch#util#highlight_attr('Directory', 'fg', 'gui',   '#FFFFFF').' '
+if exists('b:esearch_ellipsis')
+  hi def link esearchEllipsis WarningMsg
+  exe 'syn match esearchEllipsis "\%(^\%>3l\s\+\d\+\s\)\@<=\V' . b:esearch_ellipsis . '"'
+  exe 'syn match esearchEllipsis "\V'. b:esearch_ellipsis . '\$"'
 endif
 
-let g:asd = [synIDattr(synIDtrans(hlID('MoreMsg')), 'fg', 'cterm'), hlexists('ESearchMatch')]
-if !hlexists('ESearchMatch')
-  exe 'hi ESearchMatch cterm=bold gui=bold ' .
-        \ 'ctermbg='.esearch#util#highlight_attr('MoreMsg', 'bg', 'cterm', 239 ).' '.
-        \ 'ctermfg='.esearch#util#highlight_attr('MoreMsg', 'fg', 'cterm', 15 ).' '.
-        \ 'guibg=' . esearch#util#highlight_attr('MoreMsg', 'bg', 'gui',   '#005FFF').' '.
-        \ 'guifg=' . esearch#util#highlight_attr('MoreMsg', 'fg', 'gui',   '#FFFFFF').' '
+" legacy
+if hlexists('esearchLnum')
+  call esearch#util#copy_highlight('esearchLineNr', 'esearchLnum', {'command_options': { 'force': 1 }})
+endif
+if hlexists('esearchFName')
+  call esearch#util#copy_highlight('esearchFilename', 'esearchFName', {'command_options': { 'force': 1 }})
+endif
+if hlexists('ESearchMatch')
+  call esearch#util#copy_highlight('ESearchMatch', 'esearchMatch', {'command_options': { 'force': 1 }})
 endif
 
 let b:current_syntax = 'esearch'

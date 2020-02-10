@@ -12,7 +12,3 @@ for s:mapping in esearch#_mappings()
   if !s:default_mappings && s:mapping.default | continue | endif
   exe 'map ' . s:mapping.lhs . ' ' . s:mapping.rhs
 endfor
-
-if !hlexists('ESearchSubstitute')
-  hi link ESearchSubstitute DiffChange
-endif

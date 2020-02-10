@@ -10,3 +10,4 @@ Vim.ViewTracer
 Vim.Message
 Data.String
 System.Filepath
+Vim.Highlight

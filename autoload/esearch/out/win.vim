@@ -112,7 +112,7 @@ fu! esearch#out#win#init(opts) abort
       endtry
       unlet b:esearch
     endif
-    let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
+    let match_highlight_id = matchadd('esearchMatch', a:opts.exp.vim_match, -1)
   else
     let match_highlight_id = -1
   endif
@@ -132,6 +132,9 @@ fu! esearch#out#win#init(opts) abort
   setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
+  setlocal norelativenumber
+  setlocal nospell
+  setlocal nolist " prevent listing traling spaces on blank lines
   setlocal nomodeline
   let &buflisted = g:esearch#out#win#buflisted
   setlocal foldcolumn=0
@@ -356,7 +359,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
         if len(a:esearch.contexts) > 2000
           let a:esearch.context_syntax_enabled = 0
           call s:unload_syntaxes(a:esearch)
-        elseif 1 && len(a:esearch.contexts) > 10 && !a:esearch.highlight_viewport
+        elseif 1 || len(a:esearch.contexts) > 10 && !a:esearch.highlight_viewport
           let a:esearch.highlight_viewport = 1
           call s:restrict_syntax_highlight_to_viewport(a:esearch)
         " TODO check why it slows down and probably drop loading syntax
@@ -442,7 +445,7 @@ fu! s:blocking_load_syntax(esearch, context) abort
   endif
 
   let region = a:esearch.context_syntax_regions[syntax_name]
-  exe printf('syntax region %s start="^\%%%dl" end="\%%%dl$" transparent contains=%s,esearchLnum',
+  exe printf('syntax region %s start="\%%%dl" end="\%%%dl" transparent contains=%s,esearchLineNr',
         \ region.region_name,
         \ a:context.start + 1,
         \ a:context.end,

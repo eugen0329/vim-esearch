@@ -67,7 +67,7 @@ let g:esearch = {
   \ 'adapter':          'ag',
   \ 'backend':          'vimproc',
   \ 'out':              'win',
-  \ 'batch_size':       1000,
+  \ 'batch_size':       300,
   \ 'use':              ['visual', 'hlsearch', 'last'],
   \ 'default_mappings': 1,
   \}
@@ -147,7 +147,7 @@ mapping are listed as an example here):
 To redefine results match highlight use:
 
 ```vim
-hi ESearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
+hi esearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
 ```
 
 ### Known issues

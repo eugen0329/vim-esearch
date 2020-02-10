@@ -1,37 +1,13 @@
-" if !exists('g:esearch#util#use_setbufline')
-"   let g:esearch#util#use_setbufline = 0
-" endif
-"" Disagreeably inefficient. Consider to implement #setbuflines instead to reduce redundant buffer switches
-"""""""""""""""""""""""""""""""""""""""""""""""""""
-" if g:esearch#util#use_setbufline
-"   fu! esearch#util#setline(expr, lnum, text) abort
-"     let oldnr = winnr()
-"     let winnr = bufwinnr(a:expr)
+let s:Vital     = vital#esearch#new()
+let s:Highlight = s:Vital.import('Vim.Highlight')
 
-"     if oldnr != winnr
-"       if winnr ==# -1
-"         noau silent exec 'sp '.escape(bufname(bufnr(a:expr)), ' \`')
-"         noau silent call setline(a:lnum, a:text)
-"         noau silent hide
-"       else
-"         noau exec   winnr.'wincmd w'
-"         noau silent call setline(a:lnum, a:text)
-"       endif
-"     else
-"       noau silent! call setline(a:lnum, a:text)
-"     endif
-"     noau exec oldnr.'wincmd w'
-"   endfu
-" else
-  fu! esearch#util#setline(_, lnum, text) abort
-    return setline(a:lnum, a:text)
-  endfu
-" endif
+fu! esearch#util#setline(_, lnum, text) abort
+  return setline(a:lnum, a:text)
+endfu
 
 if !exists('g:esearch#util#unicode_enabled')
   let g:esearch#util#unicode_enabled = 1
 endif
-
 
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
@@ -121,7 +97,7 @@ fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
   endif
 
   if a:col - 1 < a:left
-    " if too much unused room to the left - extending the right side
+    " if unused room to the left - extending the right side
     let extended_right_index = a:left + a:right - 1
     if extended_right_index + 1 >= strchars(a:text)
       return a:text[: extended_right_index]
@@ -129,7 +105,7 @@ fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
       return a:text[: extended_right_index - strchars(a:ellipsis)] . a:ellipsis
     endif
   elseif a:col + a:right >= strchars(a:text)
-    " if too much unused room to the right - extending the left side
+    " if unused room to the right - extending the left side
     let extended_left_index = strchars(a:text) - a:left - a:right
     if extended_left_index == 0
       return a:text[strchars(a:ellipsis) + extended_left_index :]
@@ -236,12 +212,28 @@ fu! esearch#util#stringify(key, ...) dict abort
   return self[a:key]['s'][option_index]
 endfu
 
-fu! esearch#util#highlight_attr(group, mode, what, default) abort
-  let attr = synIDattr(synIDtrans(hlID(a:group)), a:what, a:mode)
-  if attr ==# -1 || attr ==# ''
-    return a:default
+fu! esearch#util#copy_highlight(from, to, ...) abort
+  let original = s:Highlight.get(a:to)
+
+  if a:0 == 1
+    if has_key(a:1, 'overrides')
+      let keep = filter(get(a:1.overrides, 'keep', {}), '!empty(v:val)')
+      let force = filter(get(a:1.overrides, 'force', {}), '!empty(v:val)')
+      call extend(original.attrs, keep, 'keep')
+      call extend(original.attrs, force, 'force')
+    endif
+
+    let options = get(a:1, 'options', {})
+  else
+    let options = {}
   endif
-  return attr
+
+  call s:Highlight.set({'name': a:from, 'attrs': original.attrs}, options)
+endfu
+
+
+fu! esearch#util#highlight_attr(name, attr) abort
+  return get(s:Highlight.get(a:name).attrs, a:attr, '')
 endfu
 
 fu! esearch#util#stringify_mapping(map) abort
