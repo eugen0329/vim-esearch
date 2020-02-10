@@ -398,7 +398,8 @@ fu! s:restrict_syntax_highlight_to_viewport(esearch) abort
 endfu
 
 fu! s:highlight_viewport() abort
-  let [start, end ] = [line('w0'), line('w$')]
+  let start = line('w0')
+  let end   = line('w$')
 
   for context in b:esearch.contexts[b:esearch.context_ids_map[start] :]
     if !context.syntax_loaded
@@ -424,7 +425,6 @@ endfu
 
 fu! s:blocking_load_syntax(esearch, context) abort
   if !g:esearch#out#win#context_syntax_highlight
-    " TODO setup for viewport
     return
   endif
 
@@ -467,6 +467,8 @@ fu! s:unload_syntaxes(esearch) abort
   augroup ESearchWinViewportHighlight
     au! * <buffer>
   augroup END
+  syntax sync clear
+  syntax sync maxlines=1
 
   let a:esearch.context_syntax_regions = {}
 endfu

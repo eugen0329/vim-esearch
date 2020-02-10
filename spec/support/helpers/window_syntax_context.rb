@@ -28,7 +28,7 @@ module Helpers::WindowSyntaxContext
     [VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES, vim_regexp].join
   end
 
-  matcher :have_highligh_aliases do |expected, timeout: 2|
+  matcher :have_highligh_aliases do |expected, timeout: 5|
     diffable
 
     match do

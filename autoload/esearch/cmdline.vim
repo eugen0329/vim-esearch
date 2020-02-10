@@ -251,8 +251,8 @@ fu! s:prompt(adapter_options) abort
   let w = a:adapter_options.stringify('word')
 
   if g:esearch#cmdline#help_prompt
-    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-help)')
-    let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to list help)'
+    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-open-menu)')
+    let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to configure)'
   else
     let help = ''
   endif
@@ -349,7 +349,6 @@ endfu
 fu! s:change_paths() abort
   redraw!
 
-
   let user_input_in_shell_format =
         \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata)
   while 1
@@ -403,9 +402,9 @@ if g:esearch#cmdline#menu_feature_toggle == 1
             \ 'shortcut': ['w', "\<C-w>"],
             \ 'callback': function('<SID>invert', ['word'])}))
       call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
-            \ 'text': 'p       edit (p)ath',
+            \ 'text': 'p       edit (p)aths',
             \ 'shortcut': ["\<C-p>", 'p'],
-            \ 'callback': function('<SID>change_paths', [])}))
+            \ 'callback': function('<SID>change_paths')}))
     endif
 
     return g:esearch#cmdline#menu_items
