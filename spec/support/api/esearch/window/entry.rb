@@ -31,7 +31,7 @@ class API::ESearch::Window::Entry
     line_content.scan(/\s+\d+\s/).first.length
   end
 
-  def open(timeout: 5)
+  def open(timeout: 20)
     old_buffer_name = editor.current_buffer_name
 
     unless block_given?
@@ -44,12 +44,12 @@ class API::ESearch::Window::Entry
       editor.press_with_user_mappings! '\<Enter>'
 
       opened_correctly = editor.with_ignore_cache do
-        became_truthy_within?(20) do
+        became_truthy_within?(timeout) do
           old_buffer_name != editor.current_buffer_name
         end
       end
 
-      raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if !opened_correctly
+      raise OpenEntryError, "Entry was opened incorrectly #{inspect}" unless opened_correctly
 
       yield
     end

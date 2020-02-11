@@ -7,8 +7,8 @@ describe 'esearch#util' do
 
   describe '#clip' do
     subject(:clip) do
-      lambda do |value, from ,to|
-        editor.echo func('esearch#util#clip', value, from ,to)
+      lambda do |value, from, to|
+        editor.echo func('esearch#util#clip', value, from, to)
       end
     end
 

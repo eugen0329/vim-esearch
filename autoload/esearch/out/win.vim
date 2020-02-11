@@ -206,7 +206,7 @@ fu! s:init_update_events(esearch) abort
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
 
-      " preload the first batch asap
+      " Preload the first batch as soon as possible
       exe printf('au User ++once <buffer> %s '
             \ . 'if reltimefloat(reltime(b:esearch.last_update_at)) < g:esearch_win_update_timer_wait_time |'
             \ . '  call esearch#out#win#update(%s) |'
@@ -233,8 +233,8 @@ fu! s:init_update_events(esearch) abort
 endfu
 
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
-  " Timer counts time only from start, not from the return, so we have to ensure
-  " it manually
+  " Timer counts time only from the start, not from the return, so we have to
+  " ensure it manually
   " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
   if elapsed < g:esearch_win_update_timer_wait_time
