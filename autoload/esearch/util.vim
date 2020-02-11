@@ -123,6 +123,17 @@ fu! esearch#util#shellescape(str) abort
   return escape(fnameescape(a:str), ';')
 endfu
 
+fu! esearch#util#clip(value, from, to) abort
+  " is made inclusive to be compliant with vim internal functions
+  if a:value >= a:to
+    return a:to
+  elseif a:value <= a:from
+    return a:from
+  else
+    return a:value
+  endif
+endfu
+
 fu! esearch#util#timenow() abort
   let now = reltime()
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))

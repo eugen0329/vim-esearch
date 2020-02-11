@@ -53,8 +53,14 @@ else
   let s:blank_line_fold = '<1'
 endif
 
+if !exists('g:esearch_win_highlight_debounce_wait')
+  let g:esearch_win_highlight_debounce_wait = 400
+endif
 if !exists('g:esearch_win_context_syntax_async')
   let g:esearch_win_context_syntax_async = 1
+endif
+if !exists('g:esearch_win_viewport_highlight_extend_by')
+  let g:esearch_win_viewport_highlight_extend_by = 100
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
   let g:esearch_win_disable_context_highlights_on_files_count = 100
@@ -99,8 +105,8 @@ fu! esearch#out#win#init(opts) abort
   " Stop previous search process first
   if has_key(b:, 'esearch')
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
-    if has_key(b:esearch, 'timer_id')
-      call timer_stop(b:esearch.timer_id)
+    if has_key(b:esearch, 'update_timer')
+      call timer_stop(b:esearch.update_timer)
     endif
   end
 
@@ -142,23 +148,24 @@ fu! esearch#out#win#init(opts) abort
   syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
-        \ 'bufnr':                  bufnr('%'),
-        \ 'last_update_at':         reltime(),
-        \ 'files_count':            0,
-        \ 'max_lines_found':        0,
-        \ 'ignore_batches':         0,
-        \ 'highlight_viewport':     0,
-        \ 'tick':                   0,
-        \ 'columns_map':            {},
-        \ 'contexts':               [],
-        \ 'context_ids_map':        [],
-        \ '_match_highlight_id':    match_highlight_id,
-        \ 'broken_results':         [],
-        \ 'errors':                 [],
-        \ 'data':                   [],
-        \ 'context_syntax_regions': {},
-        \ 'context_syntax_enabled': g:esearch#out#win#context_syntax_highlight,
-        \ 'without':                function('esearch#util#without')
+        \ 'bufnr':                       bufnr('%'),
+        \ 'last_update_at':              reltime(),
+        \ 'files_count':                 0,
+        \ 'viewport_highlight_timer': -1,
+        \ 'max_lines_found':             0,
+        \ 'ignore_batches':              0,
+        \ 'highlight_viewport':          0,
+        \ 'tick':                        0,
+        \ 'columns_map':                 {},
+        \ 'contexts':                    [],
+        \ 'context_ids_map':             [],
+        \ '_match_highlight_id':         match_highlight_id,
+        \ 'broken_results':              [],
+        \ 'errors':                      [],
+        \ 'data':                        [],
+        \ 'context_syntax_regions':      {},
+        \ 'context_syntax_enabled':      g:esearch#out#win#context_syntax_highlight,
+        \ 'without':                     function('esearch#util#without')
         \})
 
   if b:esearch.request.async
@@ -207,7 +214,7 @@ fu! s:init_update_events(esearch) abort
             \ a:esearch.request.events.update,
             \ string(bufnr('%')))
 
-      let a:esearch.timer_id = timer_start(
+      let a:esearch.update_timer = timer_start(
             \ g:esearch_win_update_timer_wait_time,
             \ function('s:update_by_timer_callback', [a:esearch, bufnr('%')]),
             \ {'repeat': -1})
@@ -228,6 +235,7 @@ endfu
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
   " Timer counts time only from start, not from the return, so we have to ensure
   " it manually
+  " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
   if elapsed < g:esearch_win_update_timer_wait_time
     return 0
@@ -410,18 +418,39 @@ fu! s:restrict_syntax_highlight_to_viewport(esearch) abort
 endfu
 
 fu! s:highlight_viewport() abort
-  if b:esearch.context_syntax_enabled == 0
+  if g:esearch_win_context_syntax_async && g:esearch#has#debounce
+    let b:esearch.viewport_highlight_timer = esearch#debounce#trailing(
+          \ function('s:highlight_viewport_callback', [b:esearch]),
+          \ g:esearch_win_highlight_debounce_wait,
+          \ b:esearch.viewport_highlight_timer)
+  else
+    call s:blocking_highlight_viewport(b:esearch)
+  endif
+endfu
+
+fu s:highlight_viewport_callback(esearch, timer) abort
+  let a:esearch.viewport_highlight_timer = -1
+
+  if !exists('b:esearch') || b:esearch.id != a:esearch.id
     return
   endif
 
-  let start = line('w0')
-  let end   = line('w$')
+  call s:blocking_highlight_viewport(a:esearch)
+endfu
 
-  for context in b:esearch.contexts[b:esearch.context_ids_map[start] :]
+" TODO is heavily required to be tested
+fu! s:blocking_highlight_viewport(esearch) abort
+  if !a:esearch.context_syntax_enabled
+    return
+  endif
+
+  let last_line = line('$')
+  let start = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
+  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
+
+  for context in a:esearch.contexts[a:esearch.context_ids_map[start] : a:esearch.context_ids_map[end]]
     if !context.syntax_loaded
-      call s:load_syntax(b:esearch, context)
-    elseif context.start > end
-      break
+      call s:load_syntax(a:esearch, context)
     endif
   endfor
 endfu
@@ -439,11 +468,35 @@ fu! s:set_syntax_sync(esearch) abort
         \ ])
 endfu
 
-fu! s:blocking_load_syntax(esearch, context) abort
-  if !a:esearch.context_syntax_enabled
-    return
+fu! s:unload_syntaxes(esearch) abort
+  if s:Promise.is_available()
+    return s:Promise
+          \.new({resolve -> timer_start(0, resolve)})
+          \.then({-> s:blocking_unload_syntaxes(a:esearch)})
+          \.catch({reason -> execute('echoerr reason')})
   endif
 
+  return s:blocking_unload_syntaxes(a:esearch)
+endfu
+
+fu! s:blocking_unload_syntaxes(esearch) abort
+  if a:esearch.viewport_highlight_timer >= 0
+    call timer_stop(a:esearch.viewport_highlight_timer)
+  endif
+
+  for name in map(values(a:esearch.context_syntax_regions), 'v:val.region_name')
+    exe 'syn clear ' . name
+  endfor
+  augroup ESearchWinViewportHighlight
+    au! * <buffer>
+  augroup END
+  syntax sync clear
+  syntax sync maxlines=1
+
+  let a:esearch.context_syntax_regions = {}
+endfu
+
+fu! s:load_syntax(esearch, context) abort
   if a:context.filetype is# 0
     let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
   endif
@@ -470,41 +523,6 @@ fu! s:blocking_load_syntax(esearch, context) abort
   let a:context.syntax_loaded = 1
 endfu
 
-fu! s:unload_syntaxes(esearch) abort
-  if s:Promise.is_available()
-    return s:Promise
-          \.new({resolve -> timer_start(0, resolve)})
-          \.then({-> s:blocking_unload_syntaxes(a:esearch)})
-          \.catch({reason -> execute('echoerr reason')})
-  endif
-
-  return s:blocking_unload_syntaxes(a:esearch)
-endfu
-
-fu! s:blocking_unload_syntaxes(esearch) abort
-  for name in map(values(a:esearch.context_syntax_regions), 'v:val.region_name')
-    exe 'syn clear ' . name
-  endfor
-  augroup ESearchWinViewportHighlight
-    au! * <buffer>
-  augroup END
-  syntax sync clear
-  syntax sync maxlines=1
-
-  let a:esearch.context_syntax_regions = {}
-endfu
-
-fu! s:load_syntax(esearch, context) abort
-  if s:Promise.is_available() && g:esearch_win_context_syntax_async == 1
-    return s:Promise
-          \.new({resolve -> timer_start(1, resolve)})
-          \.then({-> s:blocking_load_syntax(a:esearch, a:context)})
-          \.catch({reason -> execute('echoerr reason')})
-  endif
-
-  return s:blocking_load_syntax(a:esearch, a:context)
-endfu
-
 fu! s:include_syntax_cluster(ft) abort
   let cluster_name = '@' . toupper(a:ft)
 
@@ -529,7 +547,7 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_in_file':   function('esearch#out#win#line_in_file'),
+        \ 'line_in_file':  function('esearch#out#win#line_in_file'),
         \ 'open':          function('s:open'),
         \ 'filename':      function('esearch#out#win#filename'),
         \ 'is_file_entry': function('s:is_file_entry')
@@ -577,6 +595,10 @@ fu! esearch#out#win#column_in_file() abort
 endfu
 
 fu! s:open(cmd, ...) abort
+  if b:esearch.request.status !=# 0
+    return
+  endif
+
   let filename = esearch#out#win#filename()
   if !empty(filename)
     let ln = esearch#out#win#line_in_file()
@@ -751,6 +773,11 @@ fu! esearch#out#win#finish(bufnr) abort
   call setbufvar(a:bufnr, '&ma', 1)
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
+    if has_key(esearch, 'update_timer')
+      call timer_stop(esearch.update_timer)
+    endif
+    call s:blocking_unload_syntaxes(esearch)
+
     let errors = esearch.request.data + esearch.request.errors
     call esearch#util#setline(a:bufnr, 1, 'ERRORS from '.esearch.adapter.' ('.len(errors).')')
     let line = 2
