@@ -21,7 +21,7 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
   " TODO add 'stoponexit'
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
-        \ 'old_data_ptr': '',
+        \ 'old_cursor': '',
         \ 'jobstart_args': {
         \   'cmd': split(&shell) + split(&shellcmdflag) + [a:cmd],
         \   'opts': {
@@ -91,11 +91,11 @@ endfunc
 
 func! s:watch_for_buffered_data_render_complete(job, timer) abort
   " dirty check
-  if a:job.request.data_ptr == a:job.request.old_data_ptr
+  if a:job.request.cursor == a:job.request.old_cursor
     exe 'do User '.a:job.request.events.forced_finish
     call timer_start(0, function('s:timer_stop_workaround', [a:job]))
   else
-    let a:job.request.old_data_ptr = a:job.request.data_ptr
+    let a:job.request.old_cursor = a:job.request.cursor
   endif
 endfunc
 
