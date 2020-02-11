@@ -54,9 +54,11 @@ else
 endif
 
 if !exists('g:esearch_win_context_syntax_async')
-  let g:esearch_win_context_syntax_async = 0
+  let g:esearch_win_context_syntax_async = 1
 endif
-
+if !exists('g:esearch_win_disable_context_highlights_on_files_count')
+  let g:esearch_win_disable_context_highlights_on_files_count = 50
+endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
 endif
@@ -357,7 +359,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       let a:esearch.contexts[-1].end = line
 
       if a:esearch.context_syntax_enabled && g:esearch#out#win#context_syntax_highlight
-        if len(a:esearch.contexts) > 2000
+        if len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
           let a:esearch.context_syntax_enabled = 0
           call s:unload_syntaxes(a:esearch)
         elseif 1 || len(a:esearch.contexts) > 10 && !a:esearch.highlight_viewport
