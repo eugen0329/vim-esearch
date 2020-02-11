@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class API::ESearch::Window::HeaderParser
-  HEADER_REGEXP = /Matches in (?<lines_count>\d+) lines, (?<files_count>\d+) file/.freeze
+  HEADER_REGEXP = /Matches in (?<lines_count>\d+) lines?, (?<files_count>\d+) files?/.freeze
 
   attr_reader :editor
 

@@ -23,7 +23,7 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'old_data_ptr': '',
         \ 'jobstart_args': {
-        \   'cmd': [&shell, &shellcmdflag, a:cmd],
+        \   'cmd': split(&shell) + split(&shellcmdflag) + [a:cmd],
         \   'opts': {
         \     'out_cb': function('s:stdout', [s:incrementable_internal_id]),
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),

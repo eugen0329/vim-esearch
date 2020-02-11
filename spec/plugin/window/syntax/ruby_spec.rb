@@ -57,7 +57,7 @@ describe 'esearch window context syntax' do
 
         # comment
         #comment
-        # long comment #{'.' * 100}*/
+        # ellipsized comment #{'.' * 500}*/
 
         super
         yield
@@ -136,7 +136,7 @@ describe 'esearch window context syntax' do
 
         region('# comment')            => %w[es_rubyComment Comment],
         region('#comment')             => %w[es_rubyComment Comment],
-        region('# long comment')       => %w[es_rubyComment Comment],
+        region('# ellipsized comment') => %w[es_rubyComment Comment],
 
         word('super')                  => %w[es_rubyKeyword Keyword],
         word('yield')                  => %w[es_rubyKeyword Keyword],

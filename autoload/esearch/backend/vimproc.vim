@@ -15,6 +15,8 @@ endif
 let s:requests = {}
 let s:incrementable_internal_id = 0
 
+" TODO decouple consuming of data from pipe and output updation processes
+
 fu! esearch#backend#vimproc#init(cmd, pty) abort
   let request = {
         \ 'internal_id': s:incrementable_internal_id,
@@ -81,6 +83,10 @@ fu! s:_on_cursor_moved(request_id) abort
   exe 'do User '.request.events.update
   let request._last_update_time = esearch#util#timenow()
 
+  if request.pipe.stdout.eof
+    let request.finished = 1
+  endif
+
   if s:completed(request)
     call s:finish(request, a:request_id)
   endif
@@ -111,6 +117,10 @@ fu! s:_on_cursor_hold(request_id) abort
   exe 'do User '.events.update
   let request._last_update_time = esearch#util#timenow()
 
+  if request.pipe.stdout.eof
+    let request.finished = 1
+  endif
+
   if s:completed(request)
     call s:finish(request, a:request_id)
   else
@@ -125,12 +135,8 @@ fu! s:read_data(request) abort
 endfu
 
 fu! s:completed(request) abort
-  if !has_key(g:, 'test')
-    let g:test = []
-  endif
-
-  return a:request.pipe.stdout.eof &&
-        \ (!has_key(a:request, 'out_finish') || a:request.out_finish())
+  return a:request.pipe.stdout.eof
+        \ && (!has_key(a:request, 'out_finish') || a:request.out_finish())
 endfu
 
 fu! esearch#backend#vimproc#abort(bufnr) abort

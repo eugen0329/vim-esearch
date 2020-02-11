@@ -1,10 +1,9 @@
 /spec/support/vim_plugins
 /spec/support/bin
 !/spec/support/bin/.keep
-
 /failed_specs.txt
-
 /.pry_history
+/*.log
 
 # screenshots
 /*.png

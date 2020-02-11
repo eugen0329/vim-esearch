@@ -66,7 +66,7 @@ describe '' do
     expect(order).to match_array([])
   end
 
-  it 'hooks extra autocommands on BufReadPre BufRead' do
+  it 'hooks extra autocommands on BufReadPre and BufRead' do
     editor.command "noautocmd edit #{files.last}"
     editor.command 'doau BufReadPre'
     editor.command 'doau BufRead'

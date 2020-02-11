@@ -251,8 +251,8 @@ fu! s:prompt(adapter_options) abort
   let w = a:adapter_options.stringify('word')
 
   if g:esearch#cmdline#help_prompt
-    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-help)')
-    let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to list help)'
+    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-open-menu)')
+    let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to configure)'
   else
     let help = ''
   endif
@@ -260,21 +260,49 @@ fu! s:prompt(adapter_options) abort
   return 'pattern'.help.' '.r.c.w.' '
 endfu
 
-fu! s:render_directory_prompt(dir) abort
-  if a:dir ==# $PWD && empty(get(s:esearch, 'paths', []))
+fu! s:render_directory_prompt(cwd) abort
+  " TODO weid legacy code, should be rewritten
+  if a:cwd ==# getcwd() && empty(get(s:esearch, 'paths', []))
     return 0
   endif
 
-  if empty(get(s:esearch, 'paths', []))
-    let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
-  else
-    let dir = g:esearch#cmdline#dir_icon .
-          \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata, ', ')
-  endif
+  let [prefix, dir] = s:paths_comment(a:cwd, s:esearch.paths, s:esearch.metadata)
 
-  call esearch#util#highlight('Normal', 'In ')
+  call esearch#util#highlight('Normal', prefix)
   call esearch#util#highlight('Directory', dir, 0)
   echo ''
+endfu
+
+" TODO extract out of there
+fu! s:paths_comment(cwd, paths, metadata) abort
+  let kinds = []
+  let viwable = []
+
+  let empty_metadata = { 'wildcards': [] } " TODO
+  for i in range(0, len(a:paths) - 1)
+    let metadata = get(a:metadata, i, empty_metadata)
+    let escaped = esearch#shell#fnameescape(a:paths[i], metadata)
+
+    if isdirectory(a:paths[i])
+      let kinds += ['directory']
+      let escaped = g:esearch#cmdline#dir_icon . escaped
+    elseif !empty(metadata.wildcards) || !filereadable(a:paths[i])
+      let kinds += ['path']
+    else
+      let kinds += ['file']
+    endif
+
+    let viwable += [escaped]
+  endfor
+
+  if empty(kinds)
+    return ['In directory ',
+          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', '')]
+  elseif len(uniq(copy(kinds))) > 1
+    return ['In ', join(viwable, ', ')]
+  else
+    return ['In ' . esearch#inflector#pluralize(kinds[0], len(a:paths)) . ' ', join(viwable, ', ')]
+  endif
 endfu
 
 fu! s:restore_cursor_position() abort
@@ -316,7 +344,6 @@ endfu
 
 fu! s:change_paths() abort
   redraw!
-
 
   let user_input_in_shell_format =
         \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata)
@@ -371,9 +398,9 @@ if g:esearch#cmdline#menu_feature_toggle == 1
             \ 'shortcut': ['w', "\<C-w>"],
             \ 'callback': function('<SID>invert', ['word'])}))
       call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
-            \ 'text': 'p       edit (p)ath',
+            \ 'text': 'p       edit (p)aths',
             \ 'shortcut': ["\<C-p>", 'p'],
-            \ 'callback': function('<SID>change_paths', [])}))
+            \ 'callback': function('<SID>change_paths')}))
     endif
 
     return g:esearch#cmdline#menu_items

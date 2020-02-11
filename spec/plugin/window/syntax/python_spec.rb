@@ -66,7 +66,7 @@ describe 'esearch window context syntax' do
 
         # comment
         #comment
-        # long comment #{'.' * 100}*/
+        # ellipsized comment #{'.' * 500}*/
 
         and
         in
@@ -159,7 +159,7 @@ describe 'esearch window context syntax' do
 
         region('# comment')            => %w[es_pythonComment Comment],
         region('#comment')             => %w[es_pythonComment Comment],
-        region('# long comment')       => %w[es_pythonComment Comment],
+        region('# ellipsized comment') => %w[es_pythonComment Comment],
 
         word('and')                    => %w[es_pythonOperator Operator],
         word('in')                     => %w[es_pythonOperator Operator],

@@ -11,6 +11,9 @@
 "
 " Have no idea why it's so (and time to deal) ...
 
+let s:Vital    = vital#esearch#new()
+let s:Promise  = s:Vital.import('Async.Promise')
+
 let s:mappings = [
       \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
       \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
@@ -29,10 +32,20 @@ let s:mappings = [
 
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
-let s:header = 'Matches in %d lines, %d file(s)'
-let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
+let s:lines_map_padding = 0 " to index with line numbers which start from 1
+if esearch#util#has_unicode()
+  let s:spinner = g:esearch#unicode#spinner
+else
+  let s:spinner = ['.', '..', '...']
+endif
+let s:spinner_frames_size = len(s:spinner)
+let s:spinner_slowdown = 2
+let s:spinner_max_frame_size = max(map(copy(s:spinner), 'strchars(v:val)'))
+let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -40,6 +53,16 @@ else
   let s:blank_line_fold = '<1'
 endif
 
+if !exists('g:esearch_win_context_syntax_async')
+  let g:esearch_win_context_syntax_async = 0
+endif
+
+if !exists('g:esearch_win_update_using_timer')
+  let g:esearch_win_update_using_timer = 1
+endif
+if !exists('g:esearch_win_update_timer_wait_time')
+  let g:esearch_win_update_timer_wait_time = 100
+endif
 if !exists('g:esearch#out#win#context_syntax_highlight')
   let g:esearch#out#win#context_syntax_highlight = 1
 endif
@@ -69,16 +92,16 @@ endif
 
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
-  " call esearch#log#debug('find_or_create_buf before', '/tmp/esearch_log.txt')
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
-  " call esearch#log#debug('find_or_create_buf after', '/tmp/esearch_log.txt')
 
   " Stop previous search process first
   if has_key(b:, 'esearch')
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
+    if has_key(b:esearch, 'timer_id')
+      call timer_stop(b:esearch.timer_id)
+    endif
   end
 
-  " call esearch#log#debug('hl before', '/tmp/esearch_log.txt')
   " Refresh match highlight
   setlocal ft=esearch
   if g:esearch.highlight_match
@@ -89,41 +112,29 @@ fu! esearch#out#win#init(opts) abort
       endtry
       unlet b:esearch
     endif
-    let match_highlight_id = matchadd('ESearchMatch', a:opts.exp.vim_match, -1)
+    let match_highlight_id = matchadd('esearchMatch', a:opts.exp.vim_match, -1)
   else
     let match_highlight_id = -1
   endif
 
-  " call esearch#log#debug('hl after', '/tmp/esearch_log.txt')
-
-  " call esearch#log#debug('initialize events before', '/tmp/esearch_log.txt')
   if a:opts.request.async
-    augroup ESearchWinAutocmds
-      au! * <buffer>
-      " Events can be: update, finish etc.
-      for [func_name, event] in items(a:opts.request.events)
-        exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
-      endfor
-      call esearch#backend#{a:opts.backend}#init_events()
-    augroup END
+    call s:init_update_events(a:opts)
   endif
-  " call esearch#log#debug('initialize events after', '/tmp/esearch_log.txt')
 
-  " call esearch#log#debug('initialize mappings before', '/tmp/esearch_log.txt')
   call s:init_mappings()
-  " call esearch#log#debug('initialize mappings after', '/tmp/esearch_log.txt')
   call s:init_commands()
-  " call esearch#log#debug('initialize commands after', '/tmp/esearch_log.txt')
 
-  " call esearch#log#debug('initialize options before', '/tmp/esearch_log.txt')
   setlocal modifiable
   exe '1,$d_'
-  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, 0))
+  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
   setlocal undolevels=-1 " Disable undo
   setlocal nomodifiable
   setlocal nobackup
   setlocal noswapfile
   setlocal nonumber
+  setlocal norelativenumber
+  setlocal nospell
+  setlocal nolist " prevent listing traling spaces on blank lines
   setlocal nomodeline
   let &buflisted = g:esearch#out#win#buflisted
   setlocal foldcolumn=0
@@ -132,38 +143,85 @@ fu! esearch#out#win#init(opts) abort
   setlocal foldlevel=2
   setlocal foldmethod=syntax
   setlocal foldtext=esearch#out#win#foldtext()
+  syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
-        \ 'last_filename':          '',
-        \ 'context_beginning_line': 0,
+        \ 'files_count':            0,
         \ 'max_lines_found':        0,
         \ 'ignore_batches':         0,
-        \ '_columns':               {},
-        \ '_filenames':             {},
+        \ 'highlight_viewport':     0,
+        \ 'tick':                   0,
+        \ 'columns_map':            {},
+        \ 'contexts':               [],
+        \ 'context_ids_map':        [],
         \ '_match_highlight_id':    match_highlight_id,
         \ 'broken_results':         [],
         \ 'errors':                 [],
         \ 'data':                   [],
         \ 'context_syntax_regions': {},
+        \ 'context_syntax_enabled': 1,
         \ 'without':                function('esearch#util#without')
         \})
-  " call esearch#log#debug('extend b:esearch after', '/tmp/esearch_log.txt')
+
+  " setup null context for header
+  call s:add_context(b:esearch.contexts, '', 1)
+  let null_context = b:esearch.contexts[-1]
+  let b:esearch.context_ids_map += [null_context.id, null_context.id]
 
   call extend(b:esearch.request, {
-        \ 'files_count': 0,
-        \ 'bufnr':     bufnr('%'),
-        \ 'data_ptr':     0,
-        \ 'out_finish':   function('esearch#out#win#_is_render_finished')
+        \ 'bufnr':       bufnr('%'),
+        \ 'data_ptr':    0,
+        \ 'out_finish':  function('esearch#out#win#_is_render_finished')
         \})
 
-  " call esearch#log#debug('extend b:esearch.request after', '/tmp/esearch_log.txt')
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
-  " call esearch#log#debug('backend run after', '/tmp/esearch_log.txt')
 
-  " call esearch#log#debug('b:esearch=='.string(b:esearch), '/tmp/esearch_log.txt')
 
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))
+  endif
+endfu
+
+fu! s:init_update_events(opts) abort
+  if g:esearch_win_update_using_timer && exists('*timer_start')
+    let a:opts.timer_id = timer_start(
+          \ g:esearch_win_update_timer_wait_time,
+          \ function('s:update_by_timer_callback',
+          \ [bufnr('%')]),
+          \ {'repeat': -1})
+    let a:opts.update_with_timer_start = 1
+
+    augroup ESearchWinAutocmds
+      au! * <buffer>
+      call esearch#backend#{a:opts.backend}#init_events()
+    augroup END
+  else
+    augroup ESearchWinAutocmds
+      au! * <buffer>
+      " Events can be: update, finish etc.
+      for [func_name, event] in items(a:opts.request.events)
+        exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
+      endfor
+      call esearch#backend#{a:opts.backend}#init_events()
+    augroup END
+    let a:opts.update_with_timer_start = 0
+  endif
+endfu
+
+let g:debug = []
+
+fu! s:update_by_timer_callback(bufnr, timer) abort
+  let esearch = esearch#out#win#update(a:bufnr)
+
+  if esearch isnot# 0
+    let request = esearch.request
+  else
+    return 0
+  endif
+
+  if request.finished && len(request.data) == request.data_ptr
+    call esearch#out#win#forced_finish(a:bufnr)
+    call timer_stop(a:timer)
   endif
 endfu
 
@@ -212,10 +270,9 @@ fu! esearch#out#win#trigger_key_press(...) abort
 endfu
 
 fu! esearch#out#win#update(bufnr) abort
-  " call esearch#log#debug('#win#update before', '/tmp/esearch_log.txt')
   " prevent updates when outside of the window
   if a:bufnr != bufnr('%')
-    return 1
+    return 0
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = esearch.ignore_batches
@@ -223,6 +280,8 @@ fu! esearch#out#win#update(bufnr) abort
 
   let data = esearch.request.data
   let data_size = len(data)
+
+  call setbufvar(a:bufnr, '&ma', 1)
   if data_size > request.data_ptr
     if ignore_batches || data_size - request.data_ptr - 1 <= esearch.batch_size
       let [from, to] = [request.data_ptr, data_size - 1]
@@ -233,15 +292,43 @@ fu! esearch#out#win#update(bufnr) abort
     endif
 
     let parsed = esearch.parse_results(data, from, to)
-
-    call setbufvar(a:bufnr, '&ma', 1)
     call s:render_results(a:bufnr, parsed, esearch)
-    " TODO len(esearch._columns) is used to prevent %lines_count+1% bug in vim8
-    call esearch#util#setline(a:bufnr, 1, printf(s:header, len(esearch._columns), request.files_count))
-    call setbufvar(a:bufnr, '&ma', 0)
-    call setbufvar(a:bufnr, '&mod', 0)
   endif
-  " call esearch#log#debug('#win#update after', '/tmp/esearch_log.txt')
+
+  let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
+  if request.finished
+    call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
+          \ len(request.data),
+          \ esearch.files_count,
+          \ spinner
+          \ ))
+  else
+    call esearch#util#setline(a:bufnr, 1, printf(s:header,
+          \ len(request.data),
+          \ spinner,
+          \ esearch.files_count,
+          \ spinner
+          \ ))
+  endif
+
+  call setbufvar(a:bufnr, '&ma', 0)
+  call setbufvar(a:bufnr, '&mod', 0)
+
+  let esearch.tick += 1
+  return esearch
+endfu
+
+fu! s:new_context(id, filename, start) abort
+  return {'id': a:id, 'start': a:start, 'end': 0, 'filename': a:filename, 'filetype': 0, 'syntax_loaded': 0}
+endfu
+
+fu! s:null_context() abort
+  return s:new_context(-1, '', 0)
+endfu
+
+fu! s:add_context(contexts, filename, start) abort
+  let id = len(a:contexts)
+  call add(a:contexts, s:new_context(id, a:filename, a:start))
 endfu
 
 fu! s:render_results(bufnr, parsed, esearch) abort
@@ -259,26 +346,68 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   while i < limit
     let filename = substitute(parsed[i].filename, sub_expression, '', '')
-    let context  = s:context(parsed[i].text, a:esearch)
+    let text = esearch#util#ellipsize(
+          \ parsed[i].text,
+          \ parsed[i].col,
+          \ a:esearch.context_width.left,
+          \ a:esearch.context_width.right,
+          \ g:esearch#util#ellipsis)
 
-    if filename !=# a:esearch.last_filename
-      let a:esearch.request.files_count += 1
-      call s:init_context_syntax(a:esearch, line)
+    if filename !=# a:esearch.contexts[-1].filename
+      let a:esearch.contexts[-1].end = line
 
-      let a:esearch._filenames[line] = filename
+      if a:esearch.context_syntax_enabled && g:esearch#out#win#context_syntax_highlight
+        if len(a:esearch.contexts) > 2000
+          let a:esearch.context_syntax_enabled = 0
+          call s:unload_syntaxes(a:esearch)
+        elseif 1 || len(a:esearch.contexts) > 10 && !a:esearch.highlight_viewport
+          let a:esearch.highlight_viewport = 1
+          call s:restrict_syntax_highlight_to_viewport(a:esearch)
+        " TODO check why it slows down and probably drop loading syntax
+        " synchronously
+        " else
+          " call s:load_syntax(a:esearch, a:esearch.contexts[-1])
+        endif
+      end
+
       call esearch#util#setline(a:bufnr, line, '')
+      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
       let line += 1
+
       call esearch#util#setline(a:bufnr, line, filename)
+      call s:add_context(a:esearch.contexts, filename, line)
+      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+      let a:esearch.files_count += 1
       let line += 1
-      let a:esearch.context_beginning_line = line
     endif
 
-    call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, context))
-    let a:esearch._columns[line] = parsed[i].col
-    let a:esearch.last_filename = filename
+    call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, text))
+    let a:esearch.columns_map[line] = parsed[i].col
+    let a:esearch.contexts[-1].filename = filename
+    call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
     let line += 1
     let i    += 1
   endwhile
+endfu
+
+fu! s:restrict_syntax_highlight_to_viewport(esearch) abort
+  augroup ESearchWinViewportHighlight
+    au! * <buffer>
+    au CursorMoved <buffer> call s:highlight_viewport()
+  augroup END
+endfu
+
+fu! s:highlight_viewport() abort
+  let start = line('w0')
+  let end   = line('w$')
+
+  for context in b:esearch.contexts[b:esearch.context_ids_map[start] :]
+    if !context.syntax_loaded
+      call s:load_syntax(b:esearch, context)
+    elseif context.start > end
+      break
+    endif
+  endfor
 endfu
 
 fu! s:set_syntax_sync(esearch) abort
@@ -294,37 +423,61 @@ fu! s:set_syntax_sync(esearch) abort
         \ ])
 endfu
 
-fu! s:init_context_syntax(esearch, line) abort
+fu! s:blocking_load_syntax(esearch, context) abort
   if !g:esearch#out#win#context_syntax_highlight
     return
   endif
 
-  if a:esearch.last_filename !=# ''
-    let ft = esearch#ftdetect#fast(a:esearch.last_filename)
-    if !has_key(s:context_syntaxes, ft)
-      return
-    endif
-    let name = s:context_syntaxes[ft]
-
-    if !has_key(a:esearch.context_syntax_regions, name)
-      let a:esearch.context_syntax_regions[name] = {
-            \ 'cluster': s:include_syntax_cluster(name),
-            \ 'region_name': name,
-            \ }
-    endif
-
-    let a:esearch['max_lines_found'] = max([
-          \ a:line - a:esearch.context_beginning_line,
-          \ a:esearch['max_lines_found']])
-
-    let region = a:esearch.context_syntax_regions[name]
-    exe printf('syntax region %s start="^\%%%dl" end="\%%%dl$" transparent contains=%s,esearchLnum',
-          \ region.region_name,
-          \ a:esearch.context_beginning_line,
-          \ a:line,
-          \ region['cluster'])
+  if a:context.filetype is# 0
+    let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
   endif
 
+  if !has_key(s:context_syntaxes, a:context.filetype)
+    let a:context.syntax_loaded = -1
+    return
+  endif
+  let syntax_name = s:context_syntaxes[a:context.filetype]
+
+  if !has_key(a:esearch.context_syntax_regions, syntax_name)
+    let a:esearch.context_syntax_regions[syntax_name] = {
+          \ 'cluster': s:include_syntax_cluster(syntax_name),
+          \ 'region_name': syntax_name,
+          \ }
+  endif
+
+  let region = a:esearch.context_syntax_regions[syntax_name]
+  exe printf('syntax region %s start="\%%%dl" end="\%%%dl" transparent contains=%s,esearchLineNr',
+        \ region.region_name,
+        \ a:context.start + 1,
+        \ a:context.end,
+        \ region['cluster'])
+  let a:context.syntax_loaded = 1
+endfu
+
+fu! s:unload_syntaxes(esearch) abort
+  let highlighted_contexts = []
+
+  for name in map(values(a:esearch.context_syntax_regions), 'v:val.region_name')
+    exe 'syn clear ' . name
+  endfor
+  augroup ESearchWinViewportHighlight
+    au! * <buffer>
+  augroup END
+  syntax sync clear
+  syntax sync maxlines=1
+
+  let a:esearch.context_syntax_regions = {}
+endfu
+
+fu! s:load_syntax(esearch, context) abort
+  if s:Promise.is_available() && g:esearch_win_context_syntax_async == 1
+    let promise = s:Promise
+          \.new({resolve -> timer_start(1, resolve)})
+          \.then({-> s:blocking_load_syntax(a:esearch, a:context)})
+          \.catch({reason -> execute('echoerr reason')})
+  endif
+
+  return s:blocking_load_syntax(a:esearch, a:context)
 endfu
 
 fu! s:include_syntax_cluster(ft) abort
@@ -343,13 +496,6 @@ fu! s:include_syntax_cluster(ft) abort
     unlet b:current_syntax
   endif
   return cluster_name
-endfu
-
-fu! s:context(line, esearch) abort
-  return esearch#util#btrunc(a:line,
-                           \ match(a:line, a:esearch.exp.vim),
-                           \ a:esearch.context_width.l,
-                           \ a:esearch.context_width.r)
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
@@ -402,7 +548,7 @@ fu! s:init_mappings() abort
 endfu
 
 fu! esearch#out#win#column_in_file() abort
-  return get(b:esearch._columns, s:result_line(), 1)
+  return get(b:esearch.columns_map, s:result_line(), 1)
 endfu
 
 fu! s:open(cmd, ...) abort
@@ -426,6 +572,13 @@ fu! s:open(cmd, ...) abort
   endif
 endfu
 
+fu! s:escape_filename(esearch, filename) abort
+  let filename = matchstr(a:filename, '^\zs[^ ].*')
+  let filename = substitute(filename, '^\./', '', '')
+
+  return a:esearch.expand_filename(filename)
+endfu
+
 fu! esearch#out#win#filename() abort
   let pattern = s:filename_pattern . '\%>2l'
   let lnum = search(pattern, 'bcWn')
@@ -434,10 +587,7 @@ fu! esearch#out#win#filename() abort
     if lnum == 0 | return '' | endif
   endif
 
-  let filename = matchstr(getline(lnum), '^\zs[^ ].*')
-  let filename = substitute(filename, '^\./', '', '')
-
-  return b:esearch.expand_filename(filename)
+  return s:escape_filename(b:esearch, getline(lnum))
 endfu
 
 fu! esearch#out#win#foldtext() abort
@@ -560,7 +710,7 @@ fu! esearch#out#win#finish(bufnr) abort
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  if esearch.request.async
+  if esearch.request.async && !esearch.update_with_timer_start
     exe printf('au! ESearchWinAutocmds * <buffer=%s>', string(a:bufnr))
     for event in values(esearch.request.events)
       exe printf('au! ESearchWinAutocmds User %s ', event)
@@ -571,7 +721,6 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.ignore_batches = 1
   call esearch#out#win#update(a:bufnr)
 
-  call s:init_context_syntax(esearch, line('$'))
   call s:set_syntax_sync(esearch)
 
   call setbufvar(a:bufnr, '&ma', 1)
@@ -584,9 +733,13 @@ fu! esearch#out#win#finish(bufnr) abort
       call esearch#util#setline(a:bufnr, line, "\t".err)
       let line += 1
     endfor
-    " norm! gggqG
   else
-    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header, len(esearch._columns), esearch.request.files_count))
+    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
+          \ len(esearch.columns_map),
+          \ esearch#inflector#pluralize('line', len(esearch.columns_map)),
+          \ esearch.files_count,
+          \ esearch#inflector#pluralize('file', b:esearch.files_count),
+          \))
   endif
 
   call setbufvar(a:bufnr, '&ma', 0)

@@ -5,6 +5,8 @@ endif
 " :%s/exe/sleep 400m | redraw! |/
 
 fu! esearch#substitute#do(args, from, to, out) abort
+  hi def link ESearchSubstitute DiffChange
+
   let current_search_win_line = a:from
   let limit = a:from > a:to ? a:from + 1 : a:to + 1
 

@@ -1,37 +1,13 @@
-" if !exists('g:esearch#util#use_setbufline')
-"   let g:esearch#util#use_setbufline = 0
-" endif
-"" Disagreeably inefficient. Consider to implement #setbuflines instead to reduce redundant buffer switches
-"""""""""""""""""""""""""""""""""""""""""""""""""""
-" if g:esearch#util#use_setbufline
-"   fu! esearch#util#setline(expr, lnum, text) abort
-"     let oldnr = winnr()
-"     let winnr = bufwinnr(a:expr)
+let s:Vital     = vital#esearch#new()
+let s:Highlight = s:Vital.import('Vim.Highlight')
 
-"     if oldnr != winnr
-"       if winnr ==# -1
-"         noau silent exec 'sp '.escape(bufname(bufnr(a:expr)), ' \`')
-"         noau silent call setline(a:lnum, a:text)
-"         noau silent hide
-"       else
-"         noau exec   winnr.'wincmd w'
-"         noau silent call setline(a:lnum, a:text)
-"       endif
-"     else
-"       noau silent! call setline(a:lnum, a:text)
-"     endif
-"     noau exec oldnr.'wincmd w'
-"   endfu
-" else
-  fu! esearch#util#setline(_, lnum, text) abort
-    return setline(a:lnum, a:text)
-  endfu
-" endif
+fu! esearch#util#setline(_, lnum, text) abort
+  return setline(a:lnum, a:text)
+endfu
 
 if !exists('g:esearch#util#unicode_enabled')
   let g:esearch#util#unicode_enabled = 1
 endif
-
 
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
@@ -115,28 +91,36 @@ fu! esearch#util#uniq(list) abort
   return a:list
 endfu
 
-fu! esearch#util#btrunc(str, center, lw, rw) abort
-  " om - omission, lw/rw - with from the left(right)
-  let om = g:esearch#util#trunc_omission
-
-  let l = (a:lw > a:center ? 0 : a:center - a:lw + len(om))
-  let r = (len(a:str) <= a:center + a:rw ? len(a:str)-1 : a:center+a:rw-len(om))
-
-  return (l == 0 ? '' : om) . a:str[l : r] . (r == len(a:str)-1 ? '' : om)
-endfu
-
-fu! esearch#util#trunc(str, size) abort
-  if len(a:str) > a:size
-    return a:str[:a:size] . '…'
+fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
+  if strchars(a:text) < a:left + a:right
+    return a:text
   endif
 
-  return a:str
+  if a:col - 1 < a:left
+    " if unused room to the left - extending the right side
+    let extended_right_index = a:left + a:right - 1
+    if extended_right_index + 1 >= strchars(a:text)
+      return a:text[: extended_right_index]
+    else
+      return a:text[: extended_right_index - strchars(a:ellipsis)] . a:ellipsis
+    endif
+  elseif a:col + a:right >= strchars(a:text)
+    " if unused room to the right - extending the left side
+    let extended_left_index = strchars(a:text) - a:left - a:right
+    if extended_left_index == 0
+      return a:text[strchars(a:ellipsis) + extended_left_index :]
+    else
+      return a:ellipsis . a:text[strchars(a:ellipsis) + extended_left_index :]
+    endif
+  else
+    return    a:ellipsis
+          \ . a:text[a:col - a:left + strchars(a:ellipsis) : a:col + a:right - 1 - strchars(a:ellipsis)]
+          \ . a:ellipsis
+  endif
 endfu
 
 fu! esearch#util#shellescape(str) abort
   return escape(fnameescape(a:str), ';')
-  " return shellescape(a:str, g:esearch.escape_special)
-  " return fnameescape(shellescape(a:str, g:esearch.escape_special))
 endfu
 
 fu! esearch#util#timenow() abort
@@ -228,12 +212,21 @@ fu! esearch#util#stringify(key, ...) dict abort
   return self[a:key]['s'][option_index]
 endfu
 
-fu! esearch#util#highlight_attr(group, mode, what, default) abort
-  let attr = synIDattr(synIDtrans(hlID(a:group)), a:what, a:mode)
-  if attr ==# -1 || attr ==# ''
-    return a:default
-  endif
-  return attr
+fu! esearch#util#copy_highlight(from, to, options) abort
+  let new_highlight = {'name': a:from, 'attrs': s:Highlight.get(a:to).attrs}
+
+  call s:Highlight.set(new_highlight, a:options)
+endfu
+
+fu! esearch#util#set_highlight(name, attributes, options) abort
+  let attributes = filter(a:attributes, '!empty(v:val)')
+  let new_highlight = {'name': a:name, 'attrs': attributes}
+
+  call s:Highlight.set(new_highlight, a:options)
+endfu
+
+fu! esearch#util#get_highlight(hightlight_name) abort
+  return s:Highlight.get(a:hightlight_name).attrs
 endfu
 
 fu! esearch#util#stringify_mapping(map) abort
@@ -497,11 +490,11 @@ fu! esearch#util#vim8_calls_close_cb_last() abort
   return has('patch-7.4.1787')
 endfu
 
-if !exists('g:esearch#util#trunc_omission')
+if !exists('g:esearch#util#ellipsis')
   if esearch#util#has_unicode()
-    let g:esearch#util#trunc_omission = g:esearch#unicode#trunc_omission
+    let g:esearch#util#ellipsis = g:esearch#unicode#ellipsis
   else
-    let g:esearch#util#trunc_omission = '|'
+    let g:esearch#util#ellipsis = '|'
   endif
 endif
 
