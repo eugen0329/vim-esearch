@@ -57,7 +57,7 @@ if !exists('g:esearch_win_context_syntax_async')
   let g:esearch_win_context_syntax_async = 1
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
-  let g:esearch_win_disable_context_highlights_on_files_count = 50
+  let g:esearch_win_disable_context_highlights_on_files_count = 100
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -119,12 +119,6 @@ fu! esearch#out#win#init(opts) abort
     let match_highlight_id = -1
   endif
 
-  if a:opts.request.async
-    call s:init_update_events(a:opts)
-  endif
-
-  call s:init_mappings()
-  call s:init_commands()
 
   setlocal modifiable
   exe '1,$d_'
@@ -148,6 +142,8 @@ fu! esearch#out#win#init(opts) abort
   syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
+        \ 'bufnr':                  bufnr('%'),
+        \ 'last_update_at':         reltime(),
         \ 'files_count':            0,
         \ 'max_lines_found':        0,
         \ 'ignore_batches':         0,
@@ -161,9 +157,19 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                 [],
         \ 'data':                   [],
         \ 'context_syntax_regions': {},
-        \ 'context_syntax_enabled': 1,
+        \ 'context_syntax_enabled': g:esearch#out#win#context_syntax_highlight,
         \ 'without':                function('esearch#util#without')
         \})
+
+  if b:esearch.request.async
+    call s:init_update_events(b:esearch)
+  endif
+  call s:init_mappings()
+  call s:init_commands()
+  if g:esearch#out#win#context_syntax_highlight
+    let b:esearch.highlight_viewport = 1
+    call s:restrict_syntax_highlight_to_viewport(b:esearch)
+  endif
 
   " setup null context for header
   call s:add_context(b:esearch.contexts, '', 1)
@@ -172,7 +178,7 @@ fu! esearch#out#win#init(opts) abort
 
   call extend(b:esearch.request, {
         \ 'bufnr':       bufnr('%'),
-        \ 'data_ptr':    0,
+        \ 'cursor':      0,
         \ 'out_finish':  function('esearch#out#win#_is_render_finished')
         \})
 
@@ -184,45 +190,59 @@ fu! esearch#out#win#init(opts) abort
   endif
 endfu
 
-fu! s:init_update_events(opts) abort
+" TODO refactoring
+fu! s:init_update_events(esearch) abort
   if g:esearch_win_update_using_timer && exists('*timer_start')
-    let a:opts.timer_id = timer_start(
-          \ g:esearch_win_update_timer_wait_time,
-          \ function('s:update_by_timer_callback',
-          \ [bufnr('%')]),
-          \ {'repeat': -1})
-    let a:opts.update_with_timer_start = 1
+    let a:esearch.update_with_timer_start = 1
 
     augroup ESearchWinAutocmds
       au! * <buffer>
-      call esearch#backend#{a:opts.backend}#init_events()
+      call esearch#backend#{a:esearch.backend}#init_events()
+
+      " preload the first batch asap
+      exe printf('au User ++once <buffer> %s '
+            \ . 'if reltimefloat(reltime(b:esearch.last_update_at)) < g:esearch_win_update_timer_wait_time |'
+            \ . '  call esearch#out#win#update(%s) |'
+            \ . 'endif',
+            \ a:esearch.request.events.update,
+            \ string(bufnr('%')))
+
+      let a:esearch.timer_id = timer_start(
+            \ g:esearch_win_update_timer_wait_time,
+            \ function('s:update_by_timer_callback', [a:esearch, bufnr('%')]),
+            \ {'repeat': -1})
     augroup END
   else
     augroup ESearchWinAutocmds
       au! * <buffer>
       " Events can be: update, finish etc.
-      for [func_name, event] in items(a:opts.request.events)
+      for [func_name, event] in items(a:esearch.request.events)
         exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
       endfor
-      call esearch#backend#{a:opts.backend}#init_events()
+      call esearch#backend#{a:esearch.backend}#init_events()
     augroup END
-    let a:opts.update_with_timer_start = 0
+    let a:esearch.update_with_timer_start = 0
   endif
 endfu
 
-let g:debug = []
+fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
+  " Timer counts time only from start, not from the return, so we have to ensure
+  " it manually
+  let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
+  if elapsed < g:esearch_win_update_timer_wait_time
+    return 0
+  endif
 
-fu! s:update_by_timer_callback(bufnr, timer) abort
-  let esearch = esearch#out#win#update(a:bufnr)
+  call esearch#out#win#update(a:esearch.bufnr)
 
-  if esearch isnot# 0
-    let request = esearch.request
+  if a:esearch isnot# 0
+    let request = a:esearch.request
   else
     return 0
   endif
 
-  if request.finished && len(request.data) == request.data_ptr
-    call esearch#out#win#forced_finish(a:bufnr)
+  if request.finished && len(request.data) == request.cursor
+    call esearch#out#win#forced_finish(a:esearch.bufnr)
     call timer_stop(a:timer)
   endif
 endfu
@@ -241,11 +261,9 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   endif
 
   let bufnr = bufnr('^'.escaped_for_bufnr.'$')
-  " if current buffer
-  if bufnr == bufnr('%')
+  if bufnr == bufnr('%') " if current buffer
     return 0
-  " if buffer exists
-  elseif bufnr > 0
+  elseif bufnr > 0 " if buffer exists
     let buf_loc = esearch#util#bufloc(bufnr)
     if empty(buf_loc)
       silent exe 'bw ' . bufnr
@@ -254,8 +272,7 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
       silent exe 'tabn ' . buf_loc[0]
       exe buf_loc[1].'winc w'
     endif
-  " if buffer doesn't exists
-  else
+  else " if buffer doesn't exist
     silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
   endif
 endfu
@@ -284,13 +301,13 @@ fu! esearch#out#win#update(bufnr) abort
   let data_size = len(data)
 
   call setbufvar(a:bufnr, '&ma', 1)
-  if data_size > request.data_ptr
-    if ignore_batches || data_size - request.data_ptr - 1 <= esearch.batch_size
-      let [from, to] = [request.data_ptr, data_size - 1]
-      let request.data_ptr = data_size
+  if data_size > request.cursor
+    if ignore_batches || data_size - request.cursor - 1 <= esearch.batch_size
+      let [from, to] = [request.cursor, data_size - 1]
+      let request.cursor = data_size
     else
-      let [from, to] = [request.data_ptr, request.data_ptr + esearch.batch_size - 1]
-      let request.data_ptr += esearch.batch_size
+      let [from, to] = [request.cursor, request.cursor + esearch.batch_size - 1]
+      let request.cursor += esearch.batch_size
     endif
 
     let parsed = esearch.parse_results(data, from, to)
@@ -316,6 +333,7 @@ fu! esearch#out#win#update(bufnr) abort
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod', 0)
 
+  let esearch.last_update_at = reltime()
   let esearch.tick += 1
   return esearch
 endfu
@@ -358,18 +376,10 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     if filename !=# a:esearch.contexts[-1].filename
       let a:esearch.contexts[-1].end = line
 
-      if a:esearch.context_syntax_enabled && g:esearch#out#win#context_syntax_highlight
-        if len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
-          let a:esearch.context_syntax_enabled = 0
-          call s:unload_syntaxes(a:esearch)
-        elseif 1 || len(a:esearch.contexts) > 10 && !a:esearch.highlight_viewport
-          let a:esearch.highlight_viewport = 1
-          call s:restrict_syntax_highlight_to_viewport(a:esearch)
-        " TODO check why it slows down and probably drop loading syntax
-        " synchronously
-        " else
-          " call s:load_syntax(a:esearch, a:esearch.contexts[-1])
-        endif
+      if a:esearch.context_syntax_enabled &&
+            \ len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
+        let a:esearch.context_syntax_enabled = 0
+        call s:unload_syntaxes(a:esearch)
       end
 
       call esearch#util#setline(a:bufnr, line, '')
@@ -381,11 +391,11 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
       let a:esearch.files_count += 1
       let line += 1
+      let a:esearch.contexts[-1].filename = filename
     endif
 
     call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, text))
     let a:esearch.columns_map[line] = parsed[i].col
-    let a:esearch.contexts[-1].filename = filename
     call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
     let line += 1
     let i    += 1
@@ -400,6 +410,10 @@ fu! s:restrict_syntax_highlight_to_viewport(esearch) abort
 endfu
 
 fu! s:highlight_viewport() abort
+  if b:esearch.context_syntax_enabled == 0
+    return
+  endif
+
   let start = line('w0')
   let end   = line('w$')
 
@@ -413,7 +427,7 @@ fu! s:highlight_viewport() abort
 endfu
 
 fu! s:set_syntax_sync(esearch) abort
-  if !g:esearch#out#win#context_syntax_highlight
+  if !a:esearch.context_syntax_enabled
         \ || a:esearch['max_lines_found'] < 1
     return
   endif
@@ -426,7 +440,7 @@ fu! s:set_syntax_sync(esearch) abort
 endfu
 
 fu! s:blocking_load_syntax(esearch, context) abort
-  if !g:esearch#out#win#context_syntax_highlight
+  if !a:esearch.context_syntax_enabled
     return
   endif
 
@@ -457,8 +471,17 @@ fu! s:blocking_load_syntax(esearch, context) abort
 endfu
 
 fu! s:unload_syntaxes(esearch) abort
-  let highlighted_contexts = []
+  if s:Promise.is_available()
+    return s:Promise
+          \.new({resolve -> timer_start(0, resolve)})
+          \.then({-> s:blocking_unload_syntaxes(a:esearch)})
+          \.catch({reason -> execute('echoerr reason')})
+  endif
 
+  return s:blocking_unload_syntaxes(a:esearch)
+endfu
+
+fu! s:blocking_unload_syntaxes(esearch) abort
   for name in map(values(a:esearch.context_syntax_regions), 'v:val.region_name')
     exe 'syn clear ' . name
   endfor
@@ -473,7 +496,7 @@ endfu
 
 fu! s:load_syntax(esearch, context) abort
   if s:Promise.is_available() && g:esearch_win_context_syntax_async == 1
-    let promise = s:Promise
+    return s:Promise
           \.new({resolve -> timer_start(1, resolve)})
           \.then({-> s:blocking_load_syntax(a:esearch, a:context)})
           \.catch({reason -> execute('echoerr reason')})
@@ -750,5 +773,5 @@ endfu
 
 " For some reasons s:_is_render_finished fails in Travis
 fu! esearch#out#win#_is_render_finished() dict abort
-  return self.data_ptr == len(self.data)
+  return self.cursor == len(self.data)
 endfu

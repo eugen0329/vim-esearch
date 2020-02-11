@@ -31,7 +31,7 @@ fu! esearch#out#qflist#init(opts) abort
 
 
   call extend(g:esearch_qf.request, {
-        \ 'data_ptr':     0,
+        \ 'cursor':     0,
         \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
         \})
 
@@ -77,13 +77,13 @@ fu! esearch#out#qflist#update() abort
   let request = esearch.request
   let data = esearch.request.data
   let data_size = len(data)
-  if data_size > request.data_ptr
-    if ignore_batches || data_size - request.data_ptr - 1 <= esearch.batch_size
-      let [from,to] = [request.data_ptr, data_size - 1]
-      let request.data_ptr = data_size
+  if data_size > request.cursor
+    if ignore_batches || data_size - request.cursor - 1 <= esearch.batch_size
+      let [from,to] = [request.cursor, data_size - 1]
+      let request.cursor = data_size
     else
-      let [from, to] = [request.data_ptr, request.data_ptr + esearch.batch_size - 1]
-      let request.data_ptr += esearch.batch_size
+      let [from, to] = [request.cursor, request.cursor + esearch.batch_size - 1]
+      let request.cursor += esearch.batch_size
     endif
 
     let parsed = esearch.parse_results(data, from, to)
@@ -146,7 +146,7 @@ endfu
 
 " For some reasons s:_is_render_finished fails in Travis
 fu! esearch#out#qflist#_is_render_finished() dict abort
-  return self.data_ptr == len(self.data)
+  return self.cursor == len(self.data)
 endfu
 
 fu! s:init_commands() abort

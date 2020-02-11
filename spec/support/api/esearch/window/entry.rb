@@ -4,6 +4,7 @@ require 'active_support/core_ext/object/instance_variables'
 
 class API::ESearch::Window::Entry
   include API::Mixins::RollbackState
+  include API::Mixins::BecomeTruthyWithinTimeout
 
   class OpenEntryError < RuntimeError; end
 
@@ -30,7 +31,7 @@ class API::ESearch::Window::Entry
     line_content.scan(/\s+\d+\s/).first.length
   end
 
-  def open
+  def open(timeout: 5)
     old_buffer_name = editor.current_buffer_name
 
     unless block_given?
@@ -42,16 +43,15 @@ class API::ESearch::Window::Entry
       editor.locate_line! line_in_window
       editor.press_with_user_mappings! '\<Enter>'
 
-      opened_buffer_name = editor.current_buffer_name
-      result = yield
+      opened_correctly = editor.with_ignore_cache do
+        became_truthy_within?(20) do
+          old_buffer_name != editor.current_buffer_name
+        end
+      end
 
-      # Checking after the block execution to let opened_buffer_name become
-      # preloaded in batch with other data during block execution to prevent N+1.
-      # If eager strategy is used then current buffer name verification is just
-      # postponed to be executed after yielding
-      raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if old_buffer_name == opened_buffer_name
+      raise OpenEntryError, "Entry was opened incorrectly #{inspect}" if !opened_correctly
 
-      result
+      yield
     end
   end
 

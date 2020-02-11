@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# TODO: completely rewrite
 RSpec.shared_examples 'a backend' do |backend|
   include Helpers::Output
   include Helpers::ReportEditorStateOnError
@@ -32,7 +31,8 @@ RSpec.shared_examples 'a backend' do |backend|
         end
         after { esearch.cleanup! }
 
-        it 'provides correct path when searching outside the cwd' do
+        # TODO: completely rewrite
+        xit 'provides correct path when searching outside the cwd' do
           esearch.search! test_query, cwd: directory_path
           # TODO: reduce duplication
           expect(esearch).to have_search_started
