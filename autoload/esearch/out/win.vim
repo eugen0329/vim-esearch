@@ -151,7 +151,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'bufnr':                       bufnr('%'),
         \ 'last_update_at':              reltime(),
         \ 'files_count':                 0,
-        \ 'viewport_highlight_timer': -1,
+        \ 'viewport_highlight_timer':   -1,
         \ 'max_lines_found':             0,
         \ 'ignore_batches':              0,
         \ 'highlight_viewport':          0,
@@ -164,7 +164,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                      [],
         \ 'data':                        [],
         \ 'context_syntax_regions':      {},
-        \ 'context_syntax_enabled':      g:esearch#out#win#context_syntax_highlight,
+        \ 'highlights_enabled':          g:esearch#out#win#context_syntax_highlight,
         \ 'without':                     function('esearch#util#without')
         \})
 
@@ -384,10 +384,10 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     if filename !=# a:esearch.contexts[-1].filename
       let a:esearch.contexts[-1].end = line
 
-      if a:esearch.context_syntax_enabled &&
+      if a:esearch.highlights_enabled &&
             \ len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
-        let a:esearch.context_syntax_enabled = 0
-        call s:unload_syntaxes(a:esearch)
+        let a:esearch.highlights_enabled = 0
+        call s:unload_highlights(a:esearch)
       end
 
       call esearch#util#setline(a:bufnr, line, '')
@@ -428,7 +428,7 @@ fu! s:highlight_viewport() abort
   endif
 endfu
 
-fu s:highlight_viewport_callback(esearch, timer) abort
+fu! s:highlight_viewport_callback(esearch, timer) abort
   let a:esearch.viewport_highlight_timer = -1
 
   if !exists('b:esearch') || b:esearch.id != a:esearch.id
@@ -440,7 +440,7 @@ endfu
 
 " TODO is heavily required to be tested
 fu! s:blocking_highlight_viewport(esearch) abort
-  if !a:esearch.context_syntax_enabled
+  if !a:esearch.highlights_enabled
     return
   endif
 
@@ -456,7 +456,7 @@ fu! s:blocking_highlight_viewport(esearch) abort
 endfu
 
 fu! s:set_syntax_sync(esearch) abort
-  if !a:esearch.context_syntax_enabled
+  if !a:esearch.highlights_enabled
         \ || a:esearch['max_lines_found'] < 1
     return
   endif
@@ -468,7 +468,9 @@ fu! s:set_syntax_sync(esearch) abort
         \ ])
 endfu
 
-fu! s:unload_syntaxes(esearch) abort
+fu! s:unload_highlights(esearch) abort
+  let b:parenmatch = 0 " disable highlights of matching braces (3d party plugin)
+
   if s:Promise.is_available()
     return s:Promise
           \.new({resolve -> timer_start(0, resolve)})
