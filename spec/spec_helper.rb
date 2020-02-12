@@ -76,8 +76,9 @@ end
 RSpec.configure do |c|
   c.color_mode = true
   c.order      = :rand
+  Kernel.srand(c.seed)
   c.formatter  = :documentation
-  c.fail_fast  = Configuration.ci? ? 3 : 1
+  c.fail_fast  = Configuration.ci? ? 3 : 2
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
   c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?

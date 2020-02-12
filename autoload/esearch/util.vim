@@ -589,3 +589,15 @@ fu! s:to_char(getchar_output) abort
   endif
   return nr2char(a:getchar_output)
 endfu
+
+fu! esearch#util#insert(list, items, index) abort
+  let i = len(a:items) - 1
+  let list = a:list
+
+  while i >= 0
+    let list = insert(list, a:items[i], a:index)
+    let i -= 1
+  endwhile
+
+  return list
+endfu

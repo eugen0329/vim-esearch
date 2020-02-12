@@ -62,7 +62,7 @@ module Debug
   end
 
   def messages
-    reader.echo_command('messages').split("\n")
+    reader.echo(func('execute', 'messages')).split("\n")
   end
 
   def update_time

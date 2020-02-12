@@ -19,16 +19,38 @@ class API::ESearch::Window::Entry
     @line_in_window = line_in_window
   end
 
+  def inspect
+    "#{relative_path}:#{line_in_file.inspect}: #{result_text} (line #{line_in_window})".inspect
+  end
+
+  def ==(other)
+    self.class == other.class &&
+      line_content == other.line_content &&
+      relative_path == relative_path
+  end
+
   def line_in_file
     line_content.to_i # takes leading int
+  end
+
+  def line_number_text
+    line_content.scan(/\s+\d+\s/)[0]
   end
 
   def context
     @context ||= line_content.scan(/\s+\d+\s(.*)/)[0][0]
   end
 
+  def result_text
+    @result_text ||= line_content.scan(/\s+\d+\s(.*)/)[0][0]
+  end
+
   def left_padding
     line_content.scan(/\s+\d+\s/).first.length
+  end
+
+  def locate!
+    editor.locate_line!(line_in_window)
   end
 
   def open(timeout: 20)
@@ -57,9 +79,9 @@ class API::ESearch::Window::Entry
 
   private
 
-  def inspect
-    "<Entry:#{object_id} #{instance_values.except('editor').map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
-  end
+  # def inspect
+  #   "<Entry:#{object_id} #{instance_values.except('editor').map { |k, v| "#{k}=#{v.inspect}" }.join(', ')}>"
+  # end
 
   def rollback_open(&block)
     if rollback_inside_buffer_on_open?

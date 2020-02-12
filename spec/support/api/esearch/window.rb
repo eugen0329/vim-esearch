@@ -68,8 +68,8 @@ class API::ESearch::Window
     parser.header_errors?
   end
 
-  def has_outputted_result_from_file_in_line?(relative_path, line)
-    find_entry(relative_path, line).present?
+  def has_outputted_result_from_file_in_line?(relative_path, line_in_file)
+    find_entry(relative_path, line_in_file).present?
   end
 
   def has_search_freezed?(timeout: search_freeze_timeout)
@@ -78,22 +78,41 @@ class API::ESearch::Window
     end
   end
 
-  def has_outputted_result_with_right_position_inside_file?(relative_path, line, column)
-    location_in_file(relative_path, line) == [line, column]
+  def locate_entry(relative_path, line_in_file)
+    editor.locate_line!(entry_location(relative_path, line_in_file))
+  end
+
+  def reload(entry)
+    return nil if entry.nil?
+
+    find_entry(entry.relative_path, entry.line_in_file)
+  rescue MissingEntry
+    nil
+  end
+
+  def entry_location(relative_path, line_in_file)
+    entry = find_entry(relative_path, line_in_file)
+    raise MissingEntry, entry unless entry
+
+    entry.line_in_window
+  end
+
+  def has_outputted_result_with_right_position_inside_file?(relative_path, line_in_file, column)
+    location_in_file(relative_path, line_in_file) == [line_in_file, column]
   rescue MissingEntry
     false
   end
 
-  def location_in_file(relative_path, line)
-    entry = find_entry(relative_path, line)
+  def location_in_file(relative_path, line_in_file)
+    entry = find_entry(relative_path, line_in_file)
     raise MissingEntry unless entry
 
     entry.open { [editor.current_line_number, editor.current_column_number] }
   end
 
-  def find_entry(relative_path, line)
+  def find_entry(relative_path, line_in_file)
     parser.entries.find do |entry|
-      entry.relative_path == relative_path && entry.line_in_file == line
+      entry.relative_path == relative_path && entry.line_in_file == line_in_file
     end
   end
 

@@ -11,8 +11,11 @@
 "
 " Have no idea why it's so (and time to deal) ...
 
-let s:Vital    = vital#esearch#new()
-let s:Promise  = s:Vital.import('Async.Promise')
+let s:Vital   = vital#esearch#new()
+let s:Promise = s:Vital.import('Async.Promise')
+let s:List    = s:Vital.import('Data.List')
+let s:String  = s:Vital.import('Data.String')
+let s:header_context_id = 0
 
 let s:mappings = [
       \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
@@ -26,15 +29,16 @@ let s:mappings = [
       \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
       \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
       \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
-      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
+" TODO
+      " " \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      " \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
 
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
-let s:lines_map_padding = 0 " to index with line numbers which start from 1
+let s:lines_map_padding = 0 " to index with line numbers which begin from 1
 if esearch#util#has_unicode()
   let s:spinner = g:esearch#unicode#spinner
 else
@@ -68,8 +72,12 @@ endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
 endif
-if !exists('g:esearch_win_update_timer_wait_time')
-  let g:esearch_win_update_timer_wait_time = 100
+if !exists('g:esearch_win_ellipsize_results')
+  " TODO editing is not working with ellipsized results
+  let g:esearch_win_ellipsize_results = 0
+endif
+if !exists('g:esearch_win_updates_timer_wait_time')
+  let g:esearch_win_updates_timer_wait_time = 100
 endif
 if !exists('g:esearch#out#win#context_syntax_highlight')
   let g:esearch#out#win#context_syntax_highlight = 1
@@ -102,12 +110,8 @@ endif
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
 
-  " Stop previous search process first
   if has_key(b:, 'esearch')
-    call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
-    if has_key(b:esearch, 'update_timer')
-      call timer_stop(b:esearch.update_timer)
-    endif
+    call s:cleanup()
   end
 
   " Refresh match highlight
@@ -124,7 +128,6 @@ fu! esearch#out#win#init(opts) abort
   else
     let match_highlight_id = -1
   endif
-
 
   setlocal modifiable
   exe '1,$d_'
@@ -148,24 +151,29 @@ fu! esearch#out#win#init(opts) abort
   syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
-        \ 'bufnr':                       bufnr('%'),
-        \ 'last_update_at':              reltime(),
-        \ 'files_count':                 0,
-        \ 'viewport_highlight_timer':   -1,
-        \ 'max_lines_found':             0,
-        \ 'ignore_batches':              0,
-        \ 'highlight_viewport':          0,
-        \ 'tick':                        0,
-        \ 'columns_map':                 {},
-        \ 'contexts':                    [],
-        \ 'context_ids_map':             [],
-        \ '_match_highlight_id':         match_highlight_id,
-        \ 'broken_results':              [],
-        \ 'errors':                      [],
-        \ 'data':                        [],
-        \ 'context_syntax_regions':      {},
-        \ 'highlights_enabled':          g:esearch#out#win#context_syntax_highlight,
-        \ 'without':                     function('esearch#util#without')
+        \ 'bufnr':                    bufnr('%'),
+        \ 'last_update_at':           reltime(),
+        \ 'files_count':              0,
+        \ 'lines_count':              0,
+        \ 'viewport_highlight_timer': -1,
+        \ 'updates_timer':             -1,
+        \ 'update_with_timer_start':  0,
+        \ 'max_lines_found':          0,
+        \ 'ignore_batches':           0,
+        \ 'highlight_viewport':       0,
+        \ 'tick':                     0,
+        \ 'columns_map':              [],
+        \ 'line_numbers_map':         [],
+        \ 'contexts':                 [],
+        \ 'context_by_name':          {},
+        \ 'context_ids_map':          [],
+        \ '_match_highlight_id':      match_highlight_id,
+        \ 'broken_results':           [],
+        \ 'errors':                   [],
+        \ 'data':                     [],
+        \ 'context_syntax_regions':   {},
+        \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
+        \ 'without':                  function('esearch#util#without')
         \})
 
   if b:esearch.request.async
@@ -178,10 +186,13 @@ fu! esearch#out#win#init(opts) abort
     call s:restrict_syntax_highlight_to_viewport(b:esearch)
   endif
 
-  " setup null context for header
+  " setup blank context for header
   call s:add_context(b:esearch.contexts, '', 1)
-  let null_context = b:esearch.contexts[-1]
-  let b:esearch.context_ids_map += [null_context.id, null_context.id]
+  let header_context = b:esearch.contexts[0]
+  let header_context.end = 2
+  let b:esearch.context_ids_map += [header_context.id, header_context.id]
+  let b:esearch.columns_map += [0, 0]
+  let b:esearch.line_numbers_map += [0, 0]
 
   call extend(b:esearch.request, {
         \ 'bufnr':       bufnr('%'),
@@ -191,10 +202,23 @@ fu! esearch#out#win#init(opts) abort
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
-
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))
   endif
+endfu
+
+fu! s:cleanup() abort
+  call esearch#changes#unlisten_for_current_buffer()
+  call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
+  if has_key(b:esearch, 'updates_timer')
+    call timer_stop(b:esearch.updates_timer)
+  endif
+  if has_key(b:esearch, 'viewport_highlight_timer')
+    call timer_stop(b:esearch.viewport_highlight_timer)
+  endif
+  augroup ESearchModifiable
+    au! * <buffer>
+  augroup END
 endfu
 
 " TODO refactoring
@@ -208,18 +232,20 @@ fu! s:init_update_events(esearch) abort
 
       " Preload the first batch as soon as possible
       exe printf('au User ++once <buffer> %s '
-            \ . 'if reltimefloat(reltime(b:esearch.last_update_at)) < g:esearch_win_update_timer_wait_time |'
+            \ . 'if reltimefloat(reltime(b:esearch.last_update_at)) < g:esearch_win_updates_timer_wait_time |'
             \ . '  call esearch#out#win#update(%s) |'
             \ . 'endif',
             \ a:esearch.request.events.update,
             \ string(bufnr('%')))
 
-      let a:esearch.update_timer = timer_start(
-            \ g:esearch_win_update_timer_wait_time,
+      let a:esearch.updates_timer = timer_start(
+            \ g:esearch_win_updates_timer_wait_time,
             \ function('s:update_by_timer_callback', [a:esearch, bufnr('%')]),
             \ {'repeat': -1})
     augroup END
   else
+    let a:esearch.update_with_timer_start = 0
+
     augroup ESearchWinAutocmds
       au! * <buffer>
       " Events can be: update, finish etc.
@@ -228,16 +254,15 @@ fu! s:init_update_events(esearch) abort
       endfor
       call esearch#backend#{a:esearch.backend}#init_events()
     augroup END
-    let a:esearch.update_with_timer_start = 0
   endif
 endfu
 
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
-  " Timer counts time only from the start, not from the return, so we have to
+  " Timer counts time only from the begin, not from the return, so we have to
   " ensure it manually
   " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
-  if elapsed < g:esearch_win_update_timer_wait_time
+  if elapsed < g:esearch_win_updates_timer_wait_time
     return 0
   endif
 
@@ -250,6 +275,7 @@ fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
   endif
 
   if request.finished && len(request.data) == request.cursor
+    let a:esearch.updates_timer = -1
     call esearch#out#win#forced_finish(a:esearch.bufnr)
     call timer_stop(a:timer)
   endif
@@ -346,17 +372,21 @@ fu! esearch#out#win#update(bufnr) abort
   return esearch
 endfu
 
-fu! s:new_context(id, filename, start) abort
-  return {'id': a:id, 'start': a:start, 'end': 0, 'filename': a:filename, 'filetype': 0, 'syntax_loaded': 0}
+fu! s:new_context(id, filename, begin) abort
+  return {
+        \ 'id': a:id,
+        \ 'begin': a:begin,
+        \ 'end': 0,
+        \ 'filename': a:filename,
+        \ 'filetype': 0,
+        \ 'syntax_loaded': 0,
+        \ 'lines': {},
+        \ }
 endfu
 
-fu! s:null_context() abort
-  return s:new_context(-1, '', 0)
-endfu
-
-fu! s:add_context(contexts, filename, start) abort
+fu! s:add_context(contexts, filename, begin) abort
   let id = len(a:contexts)
-  call add(a:contexts, s:new_context(id, a:filename, a:start))
+  call add(a:contexts, s:new_context(id, a:filename, a:begin))
 endfu
 
 fu! s:render_results(bufnr, parsed, esearch) abort
@@ -374,12 +404,17 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   while i < limit
     let filename = substitute(parsed[i].filename, sub_expression, '', '')
-    let text = esearch#util#ellipsize(
-          \ parsed[i].text,
-          \ parsed[i].col,
-          \ a:esearch.context_width.left,
-          \ a:esearch.context_width.right,
-          \ g:esearch#util#ellipsis)
+    if g:esearch_win_ellipsize_results
+      let text = esearch#util#ellipsize(
+            \ parsed[i].text,
+            \ parsed[i].col,
+            \ a:esearch.context_width.left,
+            \ a:esearch.context_width.right,
+            \ g:esearch#util#ellipsis)
+    else
+
+      let text = parsed[i].text
+    endif
 
     if filename !=# a:esearch.contexts[-1].filename
       let a:esearch.contexts[-1].end = line
@@ -392,19 +427,27 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
       call esearch#util#setline(a:bufnr, line, '')
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+      call add(a:esearch.columns_map, 0)
+      call add(a:esearch.line_numbers_map, 0)
       let line += 1
 
       call esearch#util#setline(a:bufnr, line, filename)
       call s:add_context(a:esearch.contexts, filename, line)
+      let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+      call add(a:esearch.columns_map, 0)
+      call add(a:esearch.line_numbers_map, 0)
       let a:esearch.files_count += 1
       let line += 1
       let a:esearch.contexts[-1].filename = filename
     endif
 
     call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, text))
-    let a:esearch.columns_map[line] = parsed[i].col
+    call add(a:esearch.columns_map, parsed[i].col)
+    call add(a:esearch.line_numbers_map, parsed[i].lnum)
     call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+    let a:esearch.lines_count += 1
+    let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text
     let line += 1
     let i    += 1
   endwhile
@@ -445,10 +488,10 @@ fu! s:blocking_highlight_viewport(esearch) abort
   endif
 
   let last_line = line('$')
-  let start = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
+  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
   let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
 
-  for context in a:esearch.contexts[a:esearch.context_ids_map[start] : a:esearch.context_ids_map[end]]
+  for context in a:esearch.contexts[a:esearch.context_ids_map[begin] : a:esearch.context_ids_map[end]]
     if !context.syntax_loaded
       call s:load_syntax(a:esearch, context)
     endif
@@ -486,8 +529,9 @@ fu! s:blocking_unload_syntaxes(esearch) abort
     call timer_stop(a:esearch.viewport_highlight_timer)
   endif
 
-  for name in map(values(a:esearch.context_syntax_regions), 'v:val.region_name')
+  for name in map(values(a:esearch.context_syntax_regions), 'v:val.name')
     exe 'syn clear ' . name
+    exe 'syn clear esearchContext_' . name
   endfor
   augroup ESearchWinViewportHighlight
     au! * <buffer>
@@ -510,18 +554,23 @@ fu! s:load_syntax(esearch, context) abort
   let syntax_name = s:context_syntaxes[a:context.filetype]
 
   if !has_key(a:esearch.context_syntax_regions, syntax_name)
-    let a:esearch.context_syntax_regions[syntax_name] = {
+    let region = {
           \ 'cluster': s:include_syntax_cluster(syntax_name),
-          \ 'region_name': syntax_name,
+          \ 'name':    syntax_name,
           \ }
+    let a:esearch.context_syntax_regions[syntax_name] = region
+    exe printf('syntax region %s start="^ " end="^$" contained contains=esearchLineNr,%s',
+          \ region.name,
+          \ region.cluster)
+  else
+    let region = a:esearch.context_syntax_regions[syntax_name]
   endif
 
-  let region = a:esearch.context_syntax_regions[syntax_name]
-  exe printf('syntax region %s start="\%%%dl" end="\%%%dl" transparent contains=%s,esearchLineNr',
-        \ region.region_name,
-        \ a:context.start + 1,
-        \ a:context.end,
-        \ region['cluster'])
+  exe printf('syntax region esearchContext_%s start="\M^%s$" end="^$" contains=esearchFilename,%s',
+        \ region.name,
+        \ s:String.escape_pattern(a:context.filename),
+        \ region.name,
+        \ )
   let a:context.syntax_loaded = 1
 endfu
 
@@ -590,6 +639,8 @@ fu! s:init_mappings() abort
 
     exe 'nmap <buffer> ' . mapping.lhs . ' ' . mapping.rhs
   endfor
+  " TODO handle start via mappings
+  " exe 'nmap <buffer> m :<C-U>sil cal esearch#out#win#edit()<CR>'
 endfu
 
 fu! esearch#out#win#column_in_file() abort
@@ -628,15 +679,17 @@ fu! s:escape_filename(esearch, filename) abort
   return a:esearch.expand_filename(filename)
 endfu
 
+fu! esearch#out#win#line_in_file() abort
+  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
+endfu
+
 fu! esearch#out#win#filename() abort
-  let pattern = s:filename_pattern . '\%>2l'
-  let lnum = search(pattern, 'bcWn')
-  if lnum == 0
-    let lnum = search(pattern, 'cWn')
-    if lnum == 0 | return '' | endif
+  let context = b:esearch.contexts[b:esearch.context_ids_map[line('.')]]
+  if context.id == 0
+    return get(b:esearch.contexts, 1, context).filename
   endif
 
-  return s:escape_filename(b:esearch, getline(lnum))
+  return context.filename
 endfu
 
 fu! esearch#out#win#foldtext() abort
@@ -674,10 +727,6 @@ fu! s:result_line() abort
   endif
 endfu
 
-fu! esearch#out#win#line_in_file() abort
-  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
-endfu
-
 fu! s:file_jump(downwards, count) abort
   let pattern = s:filename_pattern . '\%>2l'
   let times = a:count
@@ -703,7 +752,7 @@ fu! s:jump(downwards, count) abort
 
   while times > 0
     if a:downwards
-      " If one result - move cursor on it, else - move the next
+      " If one result - move cursor on it, else - move to the next
       " bypassing the first entry line
       let pattern .= last_line <= 4 ? '\%>3l' : '\%>4l'
       call search(pattern, 'W')
@@ -723,7 +772,7 @@ fu! s:jump(downwards, count) abort
   if last_line == 1
     return ''
   else
-    " search the start of the line
+    " search the begin of the line
     return 'norm! ww'
   endif
 endfu
@@ -771,12 +820,11 @@ fu! esearch#out#win#finish(bufnr) abort
   call esearch#out#win#update(a:bufnr)
 
   call s:set_syntax_sync(esearch)
-
-  call setbufvar(a:bufnr, '&ma', 1)
+  call setbufvar(a:bufnr, '&modifiable', 1)
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
-    if has_key(esearch, 'update_timer')
-      call timer_stop(esearch.update_timer)
+    if has_key(esearch, 'updates_timer')
+      call timer_stop(esearch.updates_timer)
     endif
     call s:blocking_unload_syntaxes(esearch)
 
@@ -789,8 +837,8 @@ fu! esearch#out#win#finish(bufnr) abort
     endfor
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
-          \ len(esearch.columns_map),
-          \ esearch#inflector#pluralize('line', len(esearch.columns_map)),
+          \ esearch.lines_count,
+          \ esearch#inflector#pluralize('line', esearch.lines_count),
           \ esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \))
@@ -798,9 +846,503 @@ fu! esearch#out#win#finish(bufnr) abort
 
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod',   0)
+
+  " TODO fix timers handling to avoid such conditions
+  if !esearch.update_with_timer_start || get(esearch, 'updates_timer', -1) == -1
+    call esearch#out#win#edit()
+  endif
 endfu
 
 " For some reasons s:_is_render_finished fails in Travis
 fu! esearch#out#win#_is_render_finished() dict abort
   return self.cursor == len(self.data)
+endfu
+
+fu! esearch#out#win#edit() abort
+  let v:errors = []
+  setl modifiable
+  setl undolevels=1000
+  setl noautoindent nosmartindent " problems with insert
+  setl formatoptions=
+
+  set buftype=acwrite
+  augroup ESearchModifiable
+    au! * <buffer>
+    au BufWriteCmd <buffer> ++nested call s:write()
+  augroup END
+
+  try
+    sil exe 'nunmap <buffer> t'
+    sil exe 'nunmap <buffer> T'
+    sil exe 'nunmap <buffer> i'
+    sil exe 'nunmap <buffer> I'
+    sil exe 'nunmap <buffer> s'
+    sil exe 'nunmap <buffer> S'
+    sil exe 'nunmap <buffer> o'
+  catch /E31: No such mapping/
+  endtry
+
+  let b:esearch.undolist = esearch#undolist#new({
+        \ 'context_ids_map': b:esearch.context_ids_map,
+        \ 'contexts': b:esearch.contexts,
+        \ 'line_numbers_map': b:esearch.line_numbers_map,
+        \ })
+  call esearch#changes#listen_for_current_buffer()
+  call esearch#changes#add_observer(function('esearch#out#win#handle_changes'))
+endfu
+
+fu! s:write() abort
+  let parsed = esearch#out#win#parse#entire()
+  if has_key(parsed, 'error')
+    throw parsed.error
+  endif
+
+  let diff = esearch#out#win#diff#do(parsed.contexts, b:esearch.context_by_name)
+
+  if diff.statistics.files == 0
+    echo 'Nothing to save'
+    return
+  endi
+
+  let lines_stats = []
+  let changes_count = 0
+  if diff.statistics.modified > 0
+    let changes_count += diff.statistics.modified
+    let lines_stats += [diff.statistics.modified . ' modified']
+  endif
+  if diff.statistics.deleted > 0
+    let changes_count += diff.statistics.deleted
+    let lines_stats += [diff.statistics.deleted . " deleted"]
+  endif
+  let files_stats_text = printf(" %s %s %d %s",
+        \ (len(lines_stats) > 1 ? 'lines' : esearch#inflector#pluralize('line', changes_count)),
+        \ (diff.statistics.files > 1 ? 'across' : 'inside'),
+        \ diff.statistics.files,
+        \ esearch#inflector#pluralize('file', diff.statistics.files),
+        \ )
+  let message = 'Write changes? (' . join(lines_stats, ', ') . files_stats_text . ')'
+
+  if esearch#ui#confirm#show(message, ["Yes", "No"]) == 1
+    call esearch#writer#buffer#write(diff, b:esearch.bufnr)
+  endif
+endfu
+
+fu! esearch#out#win#handle_changes(event) abort
+
+  if a:event.id =~# '^n-motion' || a:event.id =~# '^V-line-delete-'
+    let debug = s:handle_linewise__delete(a:event)
+  elseif a:event.id =~# 'undo'
+    let debug = s:handle_undo(a:event)
+  elseif a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
+    let debug = s:handle_normal__inline(a:event)
+  elseif  a:event.id =~# 'i-inline'
+    let debug = s:handle_insert__inline(a:event)
+  elseif  a:event.id =~# 'i-delete-newline'
+    let debug = s:handle_insert__delete_newlines(a:event)
+  elseif  a:event.id =~# 'join'
+    call s:handle_unsupported(a:event)
+  endif
+
+  if g:esearch#debug
+    echo a:event
+  endif
+endfu
+
+fu! s:handle_unsupported(event) abort
+  " TODO fix for easymotion
+  silent undo
+
+  if g:esearch#debug
+    echo 'Unknown action ' . string(get(a:event, 'id', -1))
+  endif
+
+  call esearch#changes#undo_state()
+  call b:esearch.undolist.commit()
+endfu
+
+fu! s:handle_insert__delete_newlines(event) abort
+  let [line1, line2, col1, col2] = [a:event.line1, a:event.line2, a:event.col1, a:event.col2]
+
+  if a:event.id ==# 'i-delete-newline-right'
+    let text = getline(line1)
+
+    if col1 < 2 " current line was blank
+      call setline(line1, '')
+      call append(line1, text)
+    else
+      call setline(line1, text[0: max([0, col1 - 2])])
+      call append(line1, text[ col1 - 1 :])
+    endif
+
+    call esearch#changes#rewrite_last_state({
+          \ 'current_line': text[ : max([0, col1 - 2]) ],
+          \ 'line':         line1,
+          \ 'size':         line('$'),
+          \ })
+  else
+    let text = getline(line1)
+    if col1 < 2 " previous line was blank
+      call setline(line1, '')
+    else
+      call setline(line1, text[0: col1 - 2])
+    endif
+    call append(line1, text[ col1 - 1 :])
+    call cursor(line2, 1)
+    call esearch#changes#rewrite_last_state({
+          \ 'current_line': text[ col1 - 1 :],
+          \ 'line':         line2,
+          \ 'size':         line('$'),
+          \ 'col':          1,
+          \ })
+  endif
+
+  call b:esearch.undolist.commit()
+endfu
+
+fu! s:handle_insert__inline(event) abort
+  let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
+  let state   = b:esearch.undolist.head().state
+  let context = s:find_context(state, line1)
+  let text    = getline(line1)
+  let linenr  = printf(' %3d ', state.line_numbers_map[line1])
+  let cursorpos = []
+
+  if line1 == 1
+    call setline(line1, printf(s:finished_header,
+          \ b:esearch.lines_count,
+          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ b:esearch.files_count,
+          \ esearch#inflector#pluralize('file', b:esearch.files_count),
+          \ ))
+  elseif line1 == 2 || line1 == context.end && context.end != line('$')
+    call setline(line1, '')
+    call feedkeys("\<Esc>")
+  elseif line1 == context.begin
+    call setline(line1, context.filename)
+
+  elseif line1 > 2 && col1 < strlen(linenr) + 1
+    " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
+
+    if a:event.id ==# 'i-inline-add'
+      " Recovered text:
+      "   - take   linenr
+      "   - concat with extracted chars inserted within a pseudointerface
+      "   - concat with text wth removed leftovers from pseudointerface and inserted chars
+      let text = linenr
+            \ . text[col1 - 1 : col2 - 1]
+            \ . text[strlen(linenr) + (col2 - col1 + 1) :]
+      let cursorpos = [line1, strlen(linenr) + strlen(text[col1 - 1 : col2 - 1]) + 1]
+    elseif a:event.id =~# 'i-inline-delete'
+      " Recovered text:
+      "   - take   linenr
+      "   - concat with original text except linenr and deleted part on the beginning
+      let text = linenr . a:event.original_text[ max([col2, strlen(linenr)]) : ]
+      let cursorpos = [line1, strlen(linenr) + 1]
+    else
+      throw 'Unexpected' . string(a:event)
+    endif
+
+    call setline(line1, text)
+  endif
+
+  if !empty(cursorpos)
+    call esearch#changes#rewrite_last_state({
+          \ 'line': cursorpos[0],
+          \ 'col':  cursorpos[1],
+          \ })
+    call cursor(cursorpos)
+  endif
+  call esearch#changes#rewrite_last_state({ 'current_line': text })
+  call b:esearch.undolist.commit()
+endfu
+
+fu! s:handle_normal__inline(event) abort
+  " TODO will be refactored
+  let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
+  let state = b:esearch.undolist.head().state
+  let context = s:find_context(state, line1)
+
+  let text = getline(line1)
+  let linenr = printf(' %3d ', state.line_numbers_map[line1])
+  let recover_cursor = ''
+
+  if line1 == 1
+    call setline(line1, printf(s:finished_header,
+          \ b:esearch.lines_count,
+          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ b:esearch.files_count,
+          \ esearch#inflector#pluralize('file', b:esearch.files_count),
+          \ ))
+
+    if mode() == 'i'
+      let recover_cursor = "\<Esc>"
+    endif
+  elseif line1 == 2
+    " TODO undef mode
+    if mode() == 'i'
+      let recover_cursor = "\<Esc>"
+    endif
+  elseif line1 == context.begin
+    " it's a filename, restoring
+    call setline(line1, context.filename)
+
+    if mode() == 'i'
+      let recover_cursor = "\<Down>\<End>"
+    endif
+
+  elseif line1 > 2 && col1 < strlen(linenr) + 1
+    " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
+
+    if col2 < strlen(linenr) + 1 " deletion happened within linenr, the text is untouched
+      " recover linenr and remove leading previous linenr leftover
+      let text = linenr . text[strlen(linenr) - (col2 - col1 + 1) :]
+    else " deletion starts within linenr, ends within the text
+      " recover linenr and remove leading previous linenr leftover
+      let text = linenr . text[ col1 - 1 :]
+    endif
+    " let text = linenr . text[ [col1, col2, strlen(linenr)] :]
+    call setline(line1, text)
+
+    if mode() == 'i'
+      let recover_cursor = "\<End>"
+    endif
+  endif
+
+  call b:esearch.undolist.commit()
+  if !empty(recover_cursor)
+    call feedkeys(recover_cursor)
+  endif
+endfu
+
+fu! s:handle_undo(event) abort
+  call b:esearch.undolist.revert()
+endfu
+
+fu! Len(contexts) abort
+  if a:contexts[0].id == 0
+    return len(a:contexts) - 1
+  endif
+  return len(a:contexts)
+endfu
+
+fu! s:select_range_from_history(event, line1, line2) abort
+  let undo = b:esearch.undolist.head().state
+  let [id1, id2] = [undo.context_ids_map[a:line1], undo.context_ids_map[a:line2]]
+  let contexts = undo.contexts[id1:id2]
+
+  return [contexts, undo.context_ids_map, undo]
+endfu
+
+fu! s:handle_motion__header(recover) abort
+  if a:recover.line1 == 1
+    let a:recover.add_lines += [printf(s:finished_header,
+          \ b:esearch.lines_count,
+          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ b:esearch.files_count,
+          \ esearch#inflector#pluralize('file', b:esearch.files_count),
+          \ )]
+
+    let a:recover.add_context_ids += [0]
+  endif
+
+  if a:recover.line1 <= 2 && a:recover.line2 >= 2
+    let a:recover.add_lines += ['']
+    let a:recover.add_context_ids += [0]
+  endif
+endfu
+
+fu! s:find_context(state, line) abort
+  if len(a:state.context_ids_map) <= a:line
+    return 0
+  endif
+  let context = a:state.contexts[a:state.context_ids_map[a:line]]
+
+  " read-through cache synchronization
+  let context.begin = s:context_begin(a:state.context_ids_map, context, a:line)
+  let context.end   = s:context_end(a:state.context_ids_map, context, a:line)
+
+  return context
+endfu
+
+fu! s:next_context(context, state, limit) abort
+  if a:context.end + 1 <= a:limit
+    return s:find_context(a:state, a:context.end + 1)
+  endif
+
+  return 0
+endfu
+
+fu! s:handle_linewise__delete(event) abort
+  let [line1, line2] = [a:event.line1, a:event.line2]
+  let state = deepcopy(b:esearch.undolist.head().state)
+  let recover = {
+        \ 'line1':           line1,
+        \ 'line2':           line2,
+        \ 'delete_lines':    [],
+        \ 'add_lines':       [],
+        \ 'add_context_ids': [],
+        \ }
+  let leading_context = s:find_context(state, line1)
+
+  if leading_context.id == s:header_context_id
+    call s:handle_motion__header(recover)
+    let leading_context = s:next_context(leading_context, state, line2)
+  endif
+
+  if !empty(leading_context)
+    let traling_context = s:find_context(state, line2)
+    call s:handle_motion__leading_context(leading_context, state, recover, traling_context)
+    call s:handle_motion__trailing_context(traling_context, state, recover)
+  endif
+
+  try
+    undojoin
+  catch /E790: undojoin is not allowed after undo/
+    " TODO
+  endtry
+  call s:apply_recovery__linewise_removal(state, recover)
+  call b:esearch.undolist.commit(state)
+  call assert_equal(line('$') + 1, len(b:esearch.undolist.head().state.context_ids_map))
+  call assert_equal(line('$') + 1, len(b:esearch.undolist.head().state.line_numbers_map))
+endfu
+
+let s:context_separator_lines_length = 1
+let s:context_name_lines_length = 1
+
+fu! s:is_context_removed(context, recover, state) abort
+  if a:recover.line1 > a:context.begin + s:context_name_lines_length
+    return 0
+  endif
+
+  " TEST
+  if s:is_last_context(a:context, a:state)
+    return a:recover.line2 >= a:context.end
+  else
+    return a:recover.line2 >= a:context.end - s:context_separator_lines_length
+  endif
+endfu
+
+fu! s:is_orphaned_filename_before(context, recover)
+  return a:recover.line1 == a:context.begin + s:context_name_lines_length
+endfu
+
+fu! s:is_last_context(context, state) abort
+  return a:context.id == a:state.contexts[a:state.context_ids_map[-1]].id
+endfu
+
+fu! s:is_first_context(context, state) abort
+  if len(a:state.contexts) < 2 || len(a:state.context_ids_map) < 3
+    return 0
+  endif
+
+  return a:context.id == a:state.contexts[a:state.context_ids_map[3]].id
+endfu
+
+fu! s:handle_motion__leading_context(context, state, recover, trailing_context) abort
+  if s:is_context_removed(a:context, a:recover, a:state)
+
+    if s:is_orphaned_filename_before(a:context, a:recover)
+      let a:recover.delete_lines += [a:recover.line1-1]
+      let a:recover.line1 -= 1
+    endif
+
+    if !s:is_first_context(a:context, a:state)
+          \ && s:is_last_context(a:trailing_context, a:state)
+          \ && s:is_context_removed(a:trailing_context, a:recover, a:state)
+      " Remove trailing blank line if:
+      "   leading context is not the first (otherwise, we'll remove blank line
+      "   before the header)
+      "   AND trailing context was the last in a buffer
+      "   AND trailing context is removed
+      let a:recover.delete_lines += [a:recover.line1-1]
+      let a:recover.line1 -= 1
+    endif
+  elseif a:recover.line2 >= a:context.end &&
+        \ !s:is_last_context(a:context, a:state) &&
+        \ !(s:is_last_context(a:trailing_context, a:state) &&
+        \    s:is_context_removed(a:trailing_context, a:recover, a:state))
+    " recover removed blank line if:
+    "   it belonged to leading and now it's removed
+    "   && it's not a deletion until the end of a buffer
+    " Why the condition is so complicated? Can it be refactored smh?
+    let a:recover.add_lines += ['']
+    let a:recover.add_context_ids += [a:context.id]
+  endif
+endfu
+
+fu! s:is_orphaned_blank_line_after(context, recover, state) abort
+  return a:context.end != len(a:state.context_ids_map) - 1 && a:recover.line2 == a:context.end - 1
+endfu
+
+fu! s:handle_motion__trailing_context(context, state, recover) abort
+  if s:is_context_removed(a:context, a:recover, a:state)
+    if s:is_orphaned_blank_line_after(a:context, a:recover, a:state)
+      let a:recover.line2 += 1
+      let a:recover.delete_lines += [a:recover.line1]
+    endif
+  elseif a:context.begin >= a:recover.line1
+    " recover removed filename
+    let a:recover.add_lines += [a:context.filename]
+    let a:recover.add_context_ids += [a:context.id]
+  endif
+endfu
+
+fu! s:apply_recovery__linewise_removal(state, recover) abort
+  if a:recover.line1 < 1
+    let a:recover.line1 = 1
+  endif
+
+  if !empty(a:recover.delete_lines)
+    call reverse(sort(a:recover.delete_lines, 'n'))
+
+    for line in a:recover.delete_lines
+      call deletebufline(b:esearch.bufnr, line)
+    endfor
+  endif
+
+  if !empty(a:recover.add_lines)
+    if line('$') == 1 && empty(getline(1)) " emtpy buffer
+      call setline(a:recover.line1, a:recover.add_lines[0])
+      call append(a:recover.line1,  a:recover.add_lines[1:])
+    else
+      call append(a:recover.line1 - 1, a:recover.add_lines)
+    endif
+  endif
+
+  call remove(a:state.line_numbers_map, a:recover.line1, a:recover.line2)
+  call esearch#util#insert(a:state.line_numbers_map, repeat([0], len(a:recover.add_lines)), a:recover.line1)
+
+  call remove(a:state.context_ids_map, a:recover.line1, a:recover.line2)
+  call esearch#util#insert(a:state.context_ids_map, a:recover.add_context_ids, a:recover.line1)
+endfu
+
+fu! s:context_begin(context_ids_map, context, line) abort
+  let line = a:line
+  let context_ids_map = a:context_ids_map
+
+  while line > 0
+    if context_ids_map[line - 1] !=# a:context.id
+      return line
+    endif
+
+    let line -= 1
+  endwhile
+
+  return 1
+endfu
+
+fu! s:context_end(context_ids_map, context, line) abort
+  let line = a:line
+  let context_ids_map = a:context_ids_map
+
+  while line < len(context_ids_map) - 1
+    if context_ids_map[line + 1] !=# a:context.id
+      return line
+    endif
+
+    let line += 1
+  endwhile
+
+  return len(context_ids_map) - 1
+  throw "Can't find context begin: " . string([a:context, a:line])
 endfu

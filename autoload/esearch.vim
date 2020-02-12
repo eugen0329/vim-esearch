@@ -1,3 +1,7 @@
+if !exists('g:esearch#debug')
+  let g:esearch#debug = 0
+endif
+
 fu! esearch#init(...) abort
   if s:init_lazy_global_config() != 0
     return 1
