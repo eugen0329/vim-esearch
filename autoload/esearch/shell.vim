@@ -1,6 +1,7 @@
 let s:Vital        = vital#esearch#new()
 let s:LexerModule  = s:Vital.import('Text.Lexer')
 let s:ParserModule = s:Vital.import('Text.Parser')
+let s:escape = '^]@()}'
 
 fu! esearch#shell#split(string, ...) abort
   let options = empty(a:000) ? s:default_options : extend(deepcopy(a:1), s:default_options)
@@ -39,31 +40,43 @@ fu! esearch#shell#fnamesescape_and_join(paths, metadata, ...) abort
 endfu
 
 fu! esearch#shell#fnameescape(path, metadata) abort
-  let parts = []
   let wildcards = a:metadata.wildcards
-  let substring_start = 0
+  return join(esearch#shell#fnameescape_splitted(a:path, wildcards), '')
 
-  for wildcard in wildcards
-    call add(parts, a:path[substring_start : wildcard][:-2])
-    let substring_start = wildcard + 1
+  return result
+endfu
+
+fu! esearch#shell#fnameescape_splitted(path, metadata) abort
+  let wildcards = a:metadata
+  let substr_begin = 0
+
+  let parts = []
+  for special_index in wildcards
+    let parts += [
+          \ escape(fnameescape(a:path[substr_begin : special_index][:-2]), s:escape),
+          \ a:path[special_index]]
+    let substr_begin = special_index + 1
   endfor
-  call add(parts, a:path[substring_start :])
+  let parts += [escape(fnameescape(a:path[substr_begin :]), s:escape)]
 
-  return join(map(parts, 'fnameescape(v:val)'), '*')
+  return parts
 endfu
 
 let s:default_options = {}
 let s:rules = [
-      \ [ 'DQ',                '"'   ],
-      \ [ 'SQ',                "'"   ],
-      \ [ 'ESCAPED_DQ',        '\\"' ],
-      \ [ 'ESCAPED_SQ',        '\\'''],
-      \ [ 'TRAILING_ESCAPE',   '\\$' ],
-      \ [ 'WS',                '\s\+'],
-      \ [ 'ESCAPED_ANY',       '\\.' ],
-      \ [ 'WILDCARD',           '\*' ],
-      \ [ 'ANy',               '.'   ],
+      \ [ 'DQ',                '"'                 ],
+      \ [ 'SQ',                "'"                 ],
+      \ [ 'ESCAPED_DQ',        '\\"'               ],
+      \ [ 'ESCAPED_SQ',        '\\'''              ],
+      \ [ 'TRAILING_ESCAPE',   '\\$'               ],
+      \ [ 'WS',                '\s\+'              ],
+      \ [ 'ESCAPED_ANY',       '\\.'               ],
+      \ [ 'SPECIAL',           '[?*+@!()|{}\[\^\]]'],
+      \ [ 'ANy',               '.'                 ],
       \ ]
+
+" let specials = '?*+@!()|{}[]^'
+" let specials_list = split('?*+@!()|{}[]^', '\zs')
 
 fu! s:consume_squote() dict abort
   let parsed = ''
@@ -118,7 +131,7 @@ fu! s:consume_word() abort dict
       let parsed .= self.consume_dquote()
     elseif self.next_is(['SQ'])
       let parsed .= self.consume_squote()
-    elseif self.next_is(['WILDCARD'])
+    elseif self.next_is(['SPECIAL'])
       call add(wildcards, strchars(parsed))
       let parsed .= self.advance().matched_text
     elseif self.next_is(['WS'])

@@ -22,16 +22,32 @@ describe 'esearch#util' do
     metadata.map { |word| word['wildcards'] }
   end
 
-  context 'wildcards' do
-    it { expect(wildcards_at('ab')).to    eq([[]])     }
-    it { expect(wildcards_at('*ab')).to   eq([[0]])    }
-    it { expect(wildcards_at('*ab*')).to  eq([[0, 3]]) }
-    it { expect(wildcards_at('**ab')).to  eq([[0, 1]]) }
-    it { expect(wildcards_at('*ab')).to   eq([[0]])    }
-    it { expect(wildcards_at('a*b')).to   eq([[1]])    }
-    it { expect(wildcards_at('ab*')).to   eq([[2]])    }
-    it { expect(wildcards_at(' *ab')).to  eq([[0]])    }
-    it { expect(wildcards_at(' ab* ')).to eq([[2]])    }
+  context 'special' do
+    shared_examples 'it detects wildcars location' do |c|
+      it { expect(wildcards_at("ab")).to         eq([[]])     }
+      it { expect(wildcards_at("#{c}ab")).to     eq([[0]])    }
+      it { expect(wildcards_at("#{c}ab#{c}")).to eq([[0, 3]]) }
+      it { expect(wildcards_at("#{c}#{c}ab")).to eq([[0, 1]]) }
+      it { expect(wildcards_at("#{c}ab")).to     eq([[0]])    }
+      it { expect(wildcards_at("a#{c}b")).to     eq([[1]])    }
+      it { expect(wildcards_at("ab#{c}")).to     eq([[2]])    }
+      it { expect(wildcards_at(" #{c}ab")).to    eq([[0]])    }
+      it { expect(wildcards_at(" ab#{c} ")).to   eq([[2]])    }
+    end
+
+    include_examples 'it detects wildcars location', '?'
+    include_examples 'it detects wildcars location', '*'
+    include_examples 'it detects wildcars location', '+'
+    include_examples 'it detects wildcars location', '@'
+    include_examples 'it detects wildcars location', '!'
+    include_examples 'it detects wildcars location', '('
+    include_examples 'it detects wildcars location', ')'
+    include_examples 'it detects wildcars location', '|'
+    include_examples 'it detects wildcars location', '{'
+    include_examples 'it detects wildcars location', '}'
+    include_examples 'it detects wildcars location', '['
+    include_examples 'it detects wildcars location', ']'
+    include_examples 'it detects wildcars location', '^'
   end
 
   context 'single word' do
@@ -107,17 +123,6 @@ describe 'esearch#util' do
   end
 
   describe 'esearch#shell#fnameescape' do
-    let(:files) do
-      [
-        file('a', 'a.ext1'),
-        file('a', 'b.ext1'),
-        file('a', 'c.ext2'),
-        file('a', '*.ext1'),
-        file('a', '\\*.ext2')
-      ]
-    end
-    let(:search_directory) { directory(files, 'globbing_escaped/').persist! }
-
     def split_and_escape(str)
       paths, metadata, error = editor.echo(func('esearch#shell#split', str))
       return :error if error != 0
@@ -127,42 +132,83 @@ describe 'esearch#util' do
       end
     end
 
-    context 'not escaped wildcards' do
-      it { expect(split_and_escape('*b')).to    eq(['*b'])   }
-      it { expect(split_and_escape('b*c')).to   eq(['b*c'])  }
-      it { expect(split_and_escape('*')).to     eq(['*'])    }
-      it { expect(split_and_escape('*a')).to    eq(['*a'])   }
-      it { expect(split_and_escape('a*')).to    eq(['a*'])   }
-      it { expect(split_and_escape('a*bc')).to  eq(['a*bc']) }
-      it { expect(split_and_escape('a*bcd')).to eq(['a*bcd']) }
-      it { expect(split_and_escape('*abc')).to  eq(['*abc']) }
-      it { expect(split_and_escape('abcd*')).to eq(['abcd*']) }
-      it { expect(split_and_escape('*a*')).to   eq(['*a*'])  }
-      it { expect(split_and_escape('b*a*')).to  eq(['b*a*']) }
-      it { expect(split_and_escape('*b*a')).to  eq(['*b*a']) }
-      it { expect(split_and_escape('*b*a*')).to eq(['*b*a*']) }
+    shared_examples 'prevents special from escaping' do |c|
+      it { expect(split_and_escape("#{c}b")).to          eq(["#{c}b"])          }
+      it { expect(split_and_escape("#{c}")).to           eq(["#{c}"])           }
+      it { expect(split_and_escape("#{c}a")).to          eq(["#{c}a"])          }
+      it { expect(split_and_escape("#{c}abc")).to        eq(["#{c}abc"])        }
+      it { expect(split_and_escape("#{c}a#{c}")).to      eq(["#{c}a#{c}"])      }
+      it { expect(split_and_escape("#{c}b#{c}a")).to     eq(["#{c}b#{c}a"])     }
+      it { expect(split_and_escape("#{c}b#{c}a#{c}")).to eq(["#{c}b#{c}a#{c}"]) }
+
+      it { expect(split_and_escape("b#{c}c")).to         eq(["b#{c}c"])         }
+      it { expect(split_and_escape("a#{c}")).to          eq(["a#{c}"])          }
+      it { expect(split_and_escape("a#{c}bc")).to        eq(["a#{c}bc"])        }
+      it { expect(split_and_escape("a#{c}bcd")).to       eq(["a#{c}bcd"])       }
+      it { expect(split_and_escape("abcd#{c}")).to       eq(["abcd#{c}"])       }
+      it { expect(split_and_escape("b#{c}a#{c}")).to     eq(["b#{c}a#{c}"])     }
     end
 
-    context 'escaped wildcards' do
-      it { expect(split_and_escape('\\*')).to         eq(['\\*'])         }
-      it { expect(split_and_escape('\\*a')).to        eq(['\\*a'])        }
-      it { expect(split_and_escape('a\\*')).to        eq(['a\\*'])        }
-      it { expect(split_and_escape('a\\*bc')).to      eq(['a\\*bc'])      }
-      it { expect(split_and_escape('a\\*bcd')).to     eq(['a\\*bcd'])     }
-      it { expect(split_and_escape('\\*abc')).to      eq(['\\*abc'])      }
-      it { expect(split_and_escape('abc\\*')).to      eq(['abc\\*'])      }
-      it { expect(split_and_escape('\\*a\\*')).to     eq(['\\*a\\*'])     }
-      it { expect(split_and_escape('b\\*a\\*')).to    eq(['b\\*a\\*'])    }
-      it { expect(split_and_escape('\\*b\\*a')).to    eq(['\\*b\\*a'])    }
-      it { expect(split_and_escape('\\*b\\*a\\*')).to eq(['\\*b\\*a\\*']) }
-
-      it { expect(split_and_escape('""a\\*')).to      eq(['a\\*'])        }
-      it { expect(split_and_escape('""a*a')).to       eq(['a*a'])         }
-      it { expect(split_and_escape('""a\\*')).to      eq(['a\\*'])        }
-      it { expect(split_and_escape('""a*a')).to       eq(['a*a'])         }
-
-      it { expect(split_and_escape('""a*a\\')).to     eq(:error)          }
-      it { expect(split_and_escape('""a*a"')).to      eq(:error)          }
+    shared_examples 'prevents only leading special from double escaping' do |c|
+      # TODO
+      it { expect(split_and_escape("\\#{c}")).to        eq(["\\#{c}"])          }
+      it { expect(split_and_escape("\\#{c}a")).to       eq(["\\#{c}a"])         }
+      it { expect(split_and_escape("\\#{c}a\\#{c}")).to eq(["\\#{c}a\\#{c}"]) }
     end
+
+    shared_examples 'prevents special from double escaping' do |c|
+      it { expect(split_and_escape("\\#{c}")).to               eq(["\\#{c}"])               }
+      it { expect(split_and_escape("\\#{c}a")).to              eq(["\\#{c}a"])              }
+      it { expect(split_and_escape("\\#{c}abc")).to            eq(["\\#{c}abc"])            }
+      it { expect(split_and_escape("\\#{c}a\\#{c}")).to        eq(["\\#{c}a\\#{c}"])        }
+      it { expect(split_and_escape("\\#{c}b\\#{c}a")).to       eq(["\\#{c}b\\#{c}a"])       }
+      it { expect(split_and_escape("\\#{c}b\\#{c}a\\#{c}")).to eq(["\\#{c}b\\#{c}a\\#{c}"]) }
+
+      it { expect(split_and_escape("a\\#{c}")).to              eq(["a\\#{c}"])              }
+      it { expect(split_and_escape("a\\#{c}bc")).to            eq(["a\\#{c}bc"])            }
+      it { expect(split_and_escape("a\\#{c}bcd")).to           eq(["a\\#{c}bcd"])           }
+      it { expect(split_and_escape("abc\\#{c}")).to            eq(["abc\\#{c}"])            }
+      it { expect(split_and_escape("b\\#{c}a\\#{c}")).to       eq(["b\\#{c}a\\#{c}"])       }
+
+      it { expect(split_and_escape("''a\\#{c}")).to            eq(["a\\#{c}"])              }
+      it { expect(split_and_escape("''a#{c}a")).to             eq(["a#{c}a"])               }
+      it { expect(split_and_escape("''a\\#{c}")).to            eq(["a\\#{c}"])              }
+      it { expect(split_and_escape("''a#{c}a")).to             eq(["a#{c}a"])               }
+
+      it { expect(split_and_escape("''a#{c}a\\")).to           eq(:error)                   }
+      it { expect(split_and_escape("''a#{c}a'")).to            eq(:error)                   }
+    end
+
+    shared_examples 'handles escaping of shell special' do |c|
+      include_examples 'prevents special from escaping',  c
+      include_examples 'prevents special from double escaping', c
+    end
+
+    context 'builtin fnameescape function quirks' do
+      let(:argument) { '+[]?*+@!()|{}' }
+      let(:returned) { '\+\[]\?\*+@\!()\|\{}' }
+
+      it do
+        expect(editor.echo(func('fnameescape', argument))).to eq(returned)
+      end
+    end
+
+    include_examples 'handles escaping of shell special', '?'
+    include_examples 'handles escaping of shell special', '*'
+    include_examples 'handles escaping of shell special', '!'
+    include_examples 'handles escaping of shell special', '|'
+    include_examples 'handles escaping of shell special', '{'
+    include_examples 'handles escaping of shell special', '['
+
+    include_examples 'handles escaping of shell special', '^'
+    include_examples 'handles escaping of shell special', ']'
+    include_examples 'handles escaping of shell special', '@'
+    include_examples 'handles escaping of shell special', '('
+    include_examples 'handles escaping of shell special', ')'
+    include_examples 'handles escaping of shell special', '}'
+
+    # TODO investigate + behaviour
+    include_examples 'prevents special from escaping',  '+'
+    # include_examples 'prevents special from double escaping', '+'
   end
 end
