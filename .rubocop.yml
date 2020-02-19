@@ -32,6 +32,13 @@ Style/BlockDelimiters:
     - 'spec/spec_helper.rb'
     - 'spec/**/shared_examples/*.rb'
 
+# Allow .to change {} dsl
+Lint/AmbiguousBlockAssociation:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+    - 'spec/spec_helper.rb'
+    - 'spec/**/shared_examples/*.rb'
+
 Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
 

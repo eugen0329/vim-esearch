@@ -9,14 +9,14 @@ describe 'Modifiable window mode motions' do
 
   include_context 'setup modifiable testing'
 
-  shared_context 'delete everything up until' do |line:, context_index:|
+  shared_context 'delete everything up until' do |line_above:, context_index:|
     let(:i) { context_index }
 
     context 'entries 0..1' do
       shared_examples 'removes entries' do |motion|
         it 'removes entries 0..1' do
           contexts[i].entries[1].locate!
-          motion.call(line)
+          motion.call(line_above)
 
           expect(esearch.output)
             .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
@@ -34,7 +34,7 @@ describe 'Modifiable window mode motions' do
       shared_examples 'removes entries' do |motion|
         it 'removes entries 0..2' do
           contexts[i].entries[2].locate!
-          motion.call(line)
+          motion.call(line_above)
 
           expect(esearch.output)
             .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
@@ -52,7 +52,7 @@ describe 'Modifiable window mode motions' do
       shared_examples 'removes entries' do |motion|
         it 'removes entries 0..-1' do
           contexts[i].entries[-1].locate!
-          motion.call(line)
+          motion.call(line_above)
 
           expect(esearch.output)
             .to  have_missing_entries(contexts[..i].map(&:entries).flatten)
@@ -407,21 +407,21 @@ describe 'Modifiable window mode motions' do
   describe 'delete across multiple contexts' do
     context 'delete from context 0' do
       context 'up until header' do
-        include_examples 'delete everything up until', line: 1, context_index: 0
+        include_examples 'delete everything up until', line_above: 1, context_index: 0
       end
 
       context 'up until blank line before header' do
-        include_examples 'delete everything up until', line: 2, context_index: 0
+        include_examples 'delete everything up until', line_above: 2, context_index: 0
       end
     end
 
     context 'delete context between two contexts' do
       context 'up until header' do
-        include_examples 'delete everything up until', line: 1, context_index: 1
+        include_examples 'delete everything up until', line_above: 1, context_index: 1
       end
 
       context 'up until blank line before header' do
-        include_examples 'delete everything up until', line: 2, context_index: 1
+        include_examples 'delete everything up until', line_above: 2, context_index: 1
       end
 
       context 'from the header' do
@@ -752,11 +752,11 @@ describe 'Modifiable window mode motions' do
 
       context 'delete from context -1' do
         context 'up until header' do
-          include_examples 'delete everything up until', line: 1, context_index: -1
+          include_examples 'delete everything up until', line_above: 1, context_index: -1
         end
 
         context 'up until blank line before header' do
-          include_examples 'delete everything up until', line: 2, context_index: -1
+          include_examples 'delete everything up until', line_above: 2, context_index: -1
         end
       end
     end

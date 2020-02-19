@@ -9,7 +9,7 @@ describe 'Writing in modifiable mode' do
 
   include_context 'setup modifiable testing'
 
-  # TODO add more tests
+  # TODO: add more tests
   it do
     contexts[0].entries[-1].locate!
     editor.send_keys 'Azzz', :escape

@@ -70,7 +70,7 @@ class API::ESearch::Window::Entry
   def ==(other)
     self.class == other.class &&
       line_content == other.line_content &&
-      relative_path == relative_path
+      relative_path == other.relative_path
   end
 
   private

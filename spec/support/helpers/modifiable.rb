@@ -12,6 +12,7 @@ module Helpers::Modifiable
       line_numbers.map do |line_number|
         esearch.output.find_entry(name, line_number)
       rescue API::ESearch::Window::MissingEntry
+        nil
       end
     end
   end

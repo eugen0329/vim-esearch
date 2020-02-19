@@ -108,7 +108,7 @@ describe 'INSERT mode' do
         # TODO
       end
 
-      context "current is nonempty" do
+      context 'current is nonempty' do
         it do
           editor.locate_cursor! 1, 1
           editor.send_keys_separately 'A', :delete

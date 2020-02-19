@@ -23,6 +23,7 @@ RSpec.shared_context 'setup syntax testing' do
       let g:esearch_win_context_syntax_async = 1
       let g:esearch_win_ellipsize_results = 0
     TEARDOWN
+    editor.cleanup!
   end
 
   it 'keeps line numbers highligh untouched' do

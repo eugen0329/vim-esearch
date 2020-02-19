@@ -143,14 +143,12 @@ class Editor
       echo(func('esearch#util#bufloc', func('bufnr', '^' + name)))
     end
 
-    if location.blank?
-      raise MissingBufferError
-    else
-      editor.command! <<~VIML
-        tabn #{location[0]}
-        #{location[1]} winc w
-      VIML
-    end
+    raise MissingBufferError if location.blank?
+
+    editor.command! <<~VIML
+      tabn #{location[0]}
+      #{location[1]} winc w
+    VIML
   end
 
   # TODO: better name
@@ -162,7 +160,13 @@ class Editor
 
   def delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     # TODO: fix after modifier implementation
-    command!("tabnew | %bwipeout! | messages clear| call feedkeys(\"\\<Esc>\\<Esc>\\<C-\\>\\<C-n>\", \"n\")  | let @#{CLIPBOARD_REGISTER} = ''  | set lines=22")
+    command! <<~CLEANUP_COMMANDS
+      %bwipeout!
+      messages clear
+      call feedkeys(\"\\<Esc>\\<Esc>\\<C-\\>\\<C-n>\", \"n\")
+      let @#{CLIPBOARD_REGISTER} = ''
+      set lines=22
+    CLEANUP_COMMANDS
   end
 
   def close_current_window!
