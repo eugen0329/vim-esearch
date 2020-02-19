@@ -79,7 +79,7 @@ describe 'Insert mode' do
     context 'when only result text is affected' do
       context 'when adding chars' do
         context 'before result text' do
-          it "doesn't do recovery after adding chars" do
+          it "doesn't recover after adding chars" do
             entry.locate!
             editor.locate_column! entry.line_number_text.length + 1
             editor.send_keys 'i'
@@ -92,7 +92,7 @@ describe 'Insert mode' do
         end
 
         context 'after result text' do
-          it "doesn't do recovery after adding chars" do
+          it "doesn't recover after adding chars" do
             entry.locate!
             editor.send_keys 'A'
 
@@ -106,7 +106,7 @@ describe 'Insert mode' do
 
       context 'when deleting chars' do
         context 'before result text' do
-          it "doesn't do recovery after adding chars" do
+          it "doesn't recover after adding chars" do
             entry.locate!
             editor.locate_column! entry.line_number_text.length + 1
             editor.send_keys 'i'
@@ -119,7 +119,7 @@ describe 'Insert mode' do
         end
 
         context 'after result text' do
-          it "doesn't do recovery after adding chars" do
+          it "doesn't recover after adding chars" do
             entry.locate!
             editor.send_keys 'A'
 
@@ -132,7 +132,7 @@ describe 'Insert mode' do
       end
     end
 
-    context 'when pseudointerface and result text are affected' do
+    context 'when pseudointerface and result text are both affected' do
       context 'when pseudointerface is deleted partially' do
         context 'when 1st char from result text is deleted' do
           it 'recovers after pressing BS' do
@@ -253,7 +253,7 @@ describe 'Insert mode' do
         end
       end
 
-      context 'after whole line clearing' do
+      context 'after clearing the entire line' do
         it 'recovers filename after clearing line with cc' do
           entry.locate!
           editor.send_keys 'k'
@@ -308,7 +308,7 @@ describe 'Insert mode' do
         end
       end
 
-      context 'after whole line clearing' do
+      context 'after clearing the entire line' do
         it 'recovers after clearing line with cc' do
           editor.locate_cursor! 1, 5
 
@@ -355,7 +355,7 @@ describe 'Insert mode' do
         end
       end
 
-      context 'after whole line clearing' do
+      context 'after clearing the entire line' do
         it 'recovers after clearing line with cc' do
           editor.locate_line! 2
 

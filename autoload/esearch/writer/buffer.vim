@@ -6,13 +6,13 @@ endfu
 
 fu! s:new(diff, search_buffer) abort
   return {
-        \ 'diff':                      a:diff,
-        \ 'search_buffer':             a:search_buffer,
-        \ 'modified_line':             s:null,
-        \ 'write':                     function('<SID>write'),
-        \ 'replace_lines':             function('<SID>replace_lines'),
-        \ 'delete_lines':              function('<SID>delete_lines'),
-        \ 'try_jump_to_modified_line': function('<SID>try_jump_to_modified_line'),
+        \ 'diff':                  a:diff,
+        \ 'search_buffer':         a:search_buffer,
+        \ 'modified_line':         s:null,
+        \ 'write':                 function('<SID>write'),
+        \ 'replace_lines':         function('<SID>replace_lines'),
+        \ 'delete_lines':          function('<SID>delete_lines'),
+        \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
         \ }
 endfu
 
@@ -25,19 +25,19 @@ fu! s:write() abort dict
     if !empty(get(changes, 'modified', {}))
       call self.replace_lines(changes.modified)
     endif
-    call self.try_jump_to_modified_line()
+    call self.try_jump_to_diff_line()
 
     if !empty(get(changes, 'deleted', []))
       call self.delete_lines(changes.deleted)
     endif
-    call self.try_jump_to_modified_line()
+    call self.try_jump_to_diff_line()
 
     let self.modified_line = s:null
   endfor
   redraw!
 endfu
 
-fu! s:try_jump_to_modified_line() abort dict
+fu! s:try_jump_to_diff_line() abort dict
   if self.modified_line isnot# s:null && line('.') != self.modified_line
     call cursor(self.modified_line, 1)
   endif
@@ -51,7 +51,7 @@ fu! s:replace_lines(modified) abort dict
   endfor
 
   if self.modified_line is# s:null
-    let [first_replaced_line, _] = lines_with_text_to_replace[0]
+    let [first_replaced_line, _text] = lines_with_text_to_replace[0]
     let self.modified_line = first_replaced_line
   endif
 endfu

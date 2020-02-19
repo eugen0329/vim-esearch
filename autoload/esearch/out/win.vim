@@ -683,6 +683,7 @@ fu! esearch#out#win#line_in_file() abort
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 
+" TODO lookup data stored inside esearch.undolist instead
 fu! esearch#out#win#filename() abort
   let context = b:esearch.contexts[b:esearch.context_ids_map[line('.')]]
   if context.id == 0
@@ -1027,7 +1028,8 @@ fu! s:handle_insert__inline(event) abort
       " Recovered text:
       "   - take   linenr
       "   - concat with extracted chars inserted within a pseudointerface
-      "   - concat with text wth removed leftovers from pseudointerface and inserted chars
+      "   - concat with the rest of the text with removed leftovers from
+      "   pseudointerface and inserted chars
       let text = linenr
             \ . text[col1 - 1 : col2 - 1]
             \ . text[strlen(linenr) + (col2 - col1 + 1) :]

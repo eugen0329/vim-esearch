@@ -42,7 +42,7 @@ describe 'Normal mode' do
         end
       end
 
-      context 'when only result text is affected'
+      context 'when only result text is affected' # TODO
 
       context 'when pseudointerface and result text is affected' do
         context 'when pseudointerface is deleted partially' do

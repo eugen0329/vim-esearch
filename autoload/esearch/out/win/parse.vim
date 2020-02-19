@@ -12,7 +12,6 @@ fu! esearch#out#win#parse#entire() abort
   let blank_line = getline(2)
 
   if !s:String.starts_with(header, 'Matches in')  || !empty(blank_line)
-    PP
     return {'error': 'The header is broken'}
   endif
 

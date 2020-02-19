@@ -7,6 +7,8 @@ require 'active_support/notifications'
 class Editor
   include API::Mixins::Throttling
 
+  class MissingBufferError < RuntimeError; end
+
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
   CLIPBOARD_REGISTER = '"'
 
@@ -69,10 +71,6 @@ class Editor
 
   def current_line
     echo func('line', '.')
-  end
-
-  def current_line_content
-    lines.first
   end
 
   def lines_array(range = nil)
@@ -146,7 +144,7 @@ class Editor
     end
 
     if location.blank?
-      raise ''
+      raise MissingBufferError
     else
       editor.command! <<~VIML
         tabn #{location[0]}

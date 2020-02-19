@@ -17,10 +17,10 @@ class Fixtures::LazyDirectory
   def persist!
     directory_path = path
 
-    # if persisted?
-      # files.each { |f| f.working_directory = directory_path }
-      # return self
-    # end
+    if persisted?
+      files.each { |f| f.working_directory = directory_path }
+      return self
+    end
 
     FileUtils.mkdir_p(directory_path)
     files.each do |f|

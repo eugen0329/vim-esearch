@@ -1,6 +1,8 @@
 let s:Vital    = vital#esearch#new()
 let s:Dict     = s:Vital.import('Data.Dict')
 
+" it doesn't map undotree directly and probably won't, so git glossary is used
+" here (probably will be changed in future)
 fu! esearch#undolist#new(state) abort
   let initial_entry = {
         \ 'changenr': changenr(),

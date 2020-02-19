@@ -83,7 +83,7 @@ endfu
 
 fu! esearch#ftdetect#async_prewarm_cache() abort
   if s:Promise.is_available()
-    " TODO split captured command lines by chuncks ad load during multiple calls
+    " TODO split captured command lines by chunks and process during multiple calls
     " of blocking_make_cache, otherwise this call doesn't make sense
     let s:prewarm = s:Promise
           \.new({resolve -> timer_start(0, resolve)})

@@ -1,7 +1,7 @@
 let s:Vital    = vital#esearch#new()
 let s:Message  = s:Vital.import('Vim.Message')
 
-" Builtin confirm is not working on tests
+" Builtin confirm() is not working during tests
 fu! esearch#ui#confirm#show(message, options) abort
   call s:Message.echo('MoreMsg', a:message)
   call s:Message.echo('MoreMsg', s:wrap_shortcuts(a:options) . ':')
@@ -9,15 +9,12 @@ fu! esearch#ui#confirm#show(message, options) abort
   try
     call inputsave()
     while 1
-
       let choice = esearch#util#getchar()
-
       if index(g:esearch#cmdline#cancel_selection_chars, choice) >= 0
         return 0
       endif
 
       for i in range(1, len(a:options))
-
         if choice =~# '\c' . a:options[i-1][0]
           redraw | echo ''
           return i

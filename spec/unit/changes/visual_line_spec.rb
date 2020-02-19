@@ -34,30 +34,30 @@ describe 'VISUAL LINE mode' do
           editor.press! 'Vx'
           expect(editor.lines.to_a).to eq(%w[11 33 44])
           expect(event)
-            .to have_payload('n-motion-down2', 2.., 2..)
-            .or have_payload('n-motion-up4', 2.., 2..)
+            .to include_payload('n-motion-down2', 2.., 2..)
+            .or include_payload('n-motion-up4', 2.., 2..)
         end
 
         # as required as far as we don't have VisualEnter hook
-        it 'reports 1 line after movements (to record visual mode state)' do
+        it 'reports 1 line after movements withing line (to record visual mode state)' do
           editor.locate_line! 2
           editor.press! 'Vjkx'
           expect(editor.lines.to_a).to eq(%w[11 33 44])
-          expect(event).to have_payload('V-line-delete-up1', 2.., 2..)
+          expect(event).to include_payload('V-line-delete-up1', 2.., 2..)
         end
 
         it 'reports 2 lines' do
           editor.locate_line! 2
           editor.press! 'Vjx'
           expect(editor.lines.to_a).to eq(%w[11 44])
-          expect(event).to have_payload('V-line-delete-down', 2.., 3..)
+          expect(event).to include_payload('V-line-delete-down', 2.., 3..)
         end
 
         it 'reports 3 lines' do
           editor.locate_line! 2
           editor.press! 'Vjjx'
           expect(editor.lines.to_a).to eq(%w[11])
-          expect(event).to have_payload('V-line-delete-up2', 2.., 4..)
+          expect(event).to include_payload('V-line-delete-up2', 2.., 4..)
         end
       end
 
@@ -66,7 +66,7 @@ describe 'VISUAL LINE mode' do
           editor.locate_line! 1
           editor.press! 'VGx'
           expect(editor.lines.to_a).to eq([''])
-          expect(event).to have_payload('V-line-delete-up2', 1.., 4..)
+          expect(event).to include_payload('V-line-delete-up2', 1.., 4..)
         end
       end
     end
@@ -77,15 +77,15 @@ describe 'VISUAL LINE mode' do
           editor.locate_line! 1
           editor.press! 'Vx'
           expect(editor.lines.to_a).to eq(%w[22 33 44])
-          expect(event).to have_payload('n-motion-down2', 1.., 1..)
+          expect(event).to include_payload('n-motion-down2', 1.., 1..)
         end
 
         # as required as far as we don't have VisualEnter hook
-        it 'reports 1 line after movements (to record visual mode state)' do
+        it 'reports 1 line after movements withing line (to record visual mode state)' do
           editor.locate_line! 1
           editor.press! 'Vjkx'
           expect(editor.lines.to_a).to eq(%w[22 33 44])
-          expect(event).to have_payload('V-line-delete-up1', 1.., 1..)
+          expect(event).to include_payload('V-line-delete-up1', 1.., 1..)
         end
       end
 
@@ -94,21 +94,21 @@ describe 'VISUAL LINE mode' do
           editor.locate_line! 4
           editor.press! 'Vkkx'
           expect(editor.lines.to_a).to eq(%w[11])
-          expect(event).to have_payload('V-line-delete-up2', 2.., 4..)
+          expect(event).to include_payload('V-line-delete-up2', 2.., 4..)
         end
 
         it 'reports 2 lines' do
           editor.locate_line! 4
           editor.send_keys('Vkx')
           expect(editor.lines.to_a).to eq(%w[11 22])
-          expect(event).to have_payload('V-line-delete-down', 3.., 4..)
+          expect(event).to include_payload('V-line-delete-down', 3.., 4..)
         end
 
         it 'rports lines 1..-1' do
           editor.locate_line! 4
           editor.press! 'Vggx'
           expect(editor.lines.to_a).to eq([''])
-          expect(event).to have_payload('V-line-delete-up1', 1.., 4..)
+          expect(event).to include_payload('V-line-delete-up1', 1.., 4..)
         end
       end
 
@@ -117,7 +117,7 @@ describe 'VISUAL LINE mode' do
           editor.locate_line! 3
           editor.press! 'Vkx'
           expect(editor.lines.to_a).to eq(%w[11 44])
-          expect(event).to have_payload('V-line-delete-up1', 2.., 3..)
+          expect(event).to include_payload('V-line-delete-up1', 2.., 3..)
         end
       end
     end
@@ -131,7 +131,7 @@ describe 'VISUAL LINE mode' do
           editor.locate_line! 1
           editor.send_keys_separately 'V', 'jp'
           expect(editor.lines.to_a).to eq(%w[c 33 44])
-          expect(event).to have_payload('V-line-reducing-paste-down', 1.., 2..)
+          expect(event).to include_payload('V-line-reducing-paste-down', 1.., 2..)
         end
       end
 
@@ -142,7 +142,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 3
             editor.press! 'Vkp'
             expect(editor.lines.to_a).to eq(%w[11 c 44])
-            expect(event).to have_payload('V-line-reducing-paste-up1', 2.., 3..)
+            expect(event).to include_payload('V-line-reducing-paste-up1', 2.., 3..)
           end
         end
 
@@ -152,7 +152,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 4
             editor.press! 'Vkkp'
             expect(editor.lines.to_a).to eq(%w[11 c])
-            expect(event).to have_payload('V-line-reducing-paste-up1', 2.., 4..)
+            expect(event).to include_payload('V-line-reducing-paste-up1', 2.., 4..)
           end
         end
       end
@@ -166,7 +166,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 2
             editor.press! 'Vp'
             expect(editor.lines.to_a).to eq(%w[11 c 33 44])
-            expect(event).to have_payload('n-inline6', 2.., 2..)
+            expect(event).to include_payload('n-inline6', 2.., 2..)
           end
 
           it 'reports 1 line' do
@@ -174,7 +174,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 2
             editor.press! 'Vkjp'
             expect(editor.lines.to_a).to eq(%w[11 c 33 44])
-            expect(event).to have_payload('V-line-paste-up', 2.., unknown..)
+            expect(event).to include_payload('V-line-paste-up', 2.., unknown..)
           end
 
           it 'reports 2 lines' do
@@ -182,7 +182,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 2
             editor.press! 'Vjp'
             expect(editor.lines.to_a).to eq(%w[11 c d 44])
-            expect(event).to have_payload('V-line-paste-down', 2.., 3..)
+            expect(event).to include_payload('V-line-paste-down', 2.., 3..)
           end
         end
       end
@@ -195,7 +195,7 @@ describe 'VISUAL LINE mode' do
             editor.send_keys_separately 'V', 'kp'
 
             expect(editor.lines.to_a).to eq(%w[11 c d 44])
-            expect(event).to have_payload('V-line-paste-up', 2.., 3..)
+            expect(event).to include_payload('V-line-paste-up', 2.., 3..)
           end
         end
       end
@@ -209,7 +209,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 2
             editor.press! 'Vjp'
             expect(editor.lines.to_a).to eq(%w[11 c d e 44])
-            expect(event).to have_payload('V-line-extending-paste-down', 2.., 3..)
+            expect(event).to include_payload('V-line-extending-paste-down', 2.., 3..)
           end
 
           it 'reports 1 line' do
@@ -217,16 +217,16 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 2
             editor.press! 'Vp'
             expect(editor.lines.to_a).to eq(%w[11 c d 33 44])
-            expect(event).to have_payload('n-paste-back', 2.., 2..)
+            expect(event).to include_payload('n-paste-back', 2.., 2..)
           end
 
           # as required as far as we don't have VisualEnter hook
-          it 'reports 1 line after movements (to record visual mode state)' do
+          it 'reports 1 line after movements withing line (to record visual mode state)' do
             editor.clipboard = 'c\nd\n'
             editor.locate_line! 2
             editor.press! 'Vkjp'
             expect(editor.lines.to_a).to eq(%w[11 c d 33 44])
-            expect(event).to have_payload('V-line-extending-paste-up', 2.., 2..)
+            expect(event).to include_payload('V-line-extending-paste-up', 2.., 2..)
           end
         end
       end
@@ -238,7 +238,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 3
             editor.press! 'Vkp'
             expect(editor.lines.to_a).to eq(%w[11 c d e 44])
-            expect(event).to have_payload('V-line-extending-paste-up', 2.., 3..)
+            expect(event).to include_payload('V-line-extending-paste-up', 2.., 3..)
           end
         end
       end

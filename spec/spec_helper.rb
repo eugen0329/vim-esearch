@@ -76,7 +76,6 @@ end
 RSpec.configure do |c|
   c.color_mode = true
   c.order      = :rand
-  Kernel.srand(c.seed)
   c.formatter  = :documentation
   c.fail_fast  = Configuration.ci? ? 3 : 2
   c.example_status_persistence_file_path = 'failed_specs.txt'
@@ -90,6 +89,7 @@ RSpec.configure do |c|
   c.filter_run_excluding(:multibyte_commandline) # TODO
 end
 
+Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n
 RSpec::Matchers.define_negated_matcher :not_include, :include
 Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 

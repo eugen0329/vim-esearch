@@ -31,7 +31,7 @@ describe 'INSERT mode' do
         editor.locate_cursor! 2, 4
         editor.send_keys_separately 'i', 'g'
         expect(editor.lines.to_a).to eq(['1', 'aa gbc dd'])
-        expect(event).to have_payload('i-inline-add', 2..4, 2..4)
+        expect(event).to include_payload('i-inline-add', 2..4, 2..4)
       end
     end
 
@@ -40,14 +40,14 @@ describe 'INSERT mode' do
         editor.locate_cursor! 2, 4
         editor.send_keys_separately 'i', '\\<Del>'
         expect(editor.lines.to_a).to eq(['1', 'aa c dd'])
-        expect(event).to have_payload('i-inline-delete1', 2..4, 2..4)
+        expect(event).to include_payload('i-inline-delete1', 2..4, 2..4)
       end
 
       it 'reports char delete left' do
         editor.locate_cursor! 2, 4
         editor.send_keys_separately 'i', '\\<BS>'
         expect(editor.lines.to_a).to eq(['1', 'aabc dd'])
-        expect(event).to have_payload('i-inline-delete1', 2..3, 2..3)
+        expect(event).to include_payload('i-inline-delete1', 2..3, 2..3)
       end
     end
   end
@@ -59,14 +59,14 @@ describe 'INSERT mode' do
         editor.clipboard = 'gg'
         editor.send_keys_separately 'i', :paste
         expect(editor.lines.to_a).to eq(['1', 'aa ggbc dd'])
-        expect(event).to have_payload('i-inline-add', 2..4, 2..5)
+        expect(event).to include_payload('i-inline-add', 2..4, 2..5)
       end
 
       it 'reports adding a multiple char by a script' do
         editor.locate_cursor! 2, 4
         editor.send_keys_separately 'i', 'gg'
         expect(editor.lines.to_a).to eq(['1', 'aa ggbc dd'])
-        expect(event).to have_payload('i-inline-add', 2..4, 2..5)
+        expect(event).to include_payload('i-inline-add', 2..4, 2..5)
       end
     end
 
@@ -75,7 +75,7 @@ describe 'INSERT mode' do
         editor.locate_cursor! 2, 6
         editor.send_keys_separately 'i', '\\<C-w>'
         expect(editor.lines.to_a).to eq(['1', 'aa  dd'])
-        expect(event).to have_payload('i-inline-delete1', 2..4, 2..5)
+        expect(event).to include_payload('i-inline-delete1', 2..4, 2..5)
       end
     end
   end
@@ -85,7 +85,7 @@ describe 'INSERT mode' do
       editor.locate_cursor! 2, 5
       editor.send_keys_separately 'i', :enter
       expect(editor.lines.to_a).to eq(['1', 'aa b', 'c dd'])
-      expect(event).to have_payload('i-add-newline', 2..5, 3..1)
+      expect(event).to include_payload('i-add-newline', 2..5, 3..1)
     end
 
     context 'delete new line left' do
@@ -98,7 +98,7 @@ describe 'INSERT mode' do
           editor.locate_cursor! 2, 1
           editor.send_keys_separately 'i', :backspace
           expect(editor.lines.to_a).to eq(['1aa bc dd'])
-          expect(event).to have_payload('i-delete-newline', 1..2, 2..1)
+          expect(event).to include_payload('i-delete-newline', 1..2, 2..1)
         end
       end
     end
@@ -113,7 +113,7 @@ describe 'INSERT mode' do
           editor.locate_cursor! 1, 1
           editor.send_keys_separately 'A', :delete
           expect(editor.lines.to_a).to eq(['1aa bc dd'])
-          expect(event).to have_payload('i-delete-newline-right', 1..2, 1..2)
+          expect(event).to include_payload('i-delete-newline-right', 1..2, 1..2)
         end
       end
     end
