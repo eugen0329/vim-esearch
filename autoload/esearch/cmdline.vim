@@ -323,11 +323,12 @@ fu! s:print_paths(paths, metadata) abort
       call esearch#util#highlight(highlight, '')
     endif
 
-    if empty(metadata)
-      let escaped = fnameescape(paths[i])
+    " TODO rewrite metadata storage approach
+    if empty(metadata) || empty(metadata[i].wildcards)
+      let escaped = esearch#shell#fnameescape(paths[i])
       call esearch#util#highlight(highlight, escaped)
     else
-      call s:print_with_highlighted_special_characters(highlight, path, metadata[i].wildcards)
+      call s:print_with_highlighted_special_characters(highlight, path, metadata[i])
     endif
 
     if i != last
@@ -336,18 +337,13 @@ fu! s:print_paths(paths, metadata) abort
   endfor
 endfu
 
-fu! s:print_with_highlighted_special_characters(highlight, path, special_locations) abort
-  let substr_begin = 0
-  let parts = esearch#shell#fnameescape_splitted(a:path, a:special_locations)
+fu! s:print_with_highlighted_special_characters(highlight, path, metadata) abort
+  let parts = esearch#shell#fnameescape_splitted(a:path, a:metadata)
 
-  if len(parts) < 3
-    return esearch#util#highlight(a:highlight, a:path)
-  endif
-
-  let range = range(0, len(parts)-3, 2)
-  for p in range
-      call esearch#util#highlight(a:highlight, parts[p])
-      call esearch#util#highlight('Identifier', parts[p+1])
+  for regular_index in range(0, len(parts)-3, 2)
+    let special_index = regular_index + 1
+    call esearch#util#highlight(a:highlight, parts[regular_index])
+    call esearch#util#highlight('Identifier', parts[special_index])
   endfor
   call esearch#util#highlight(a:highlight, parts[-1])
 endfu

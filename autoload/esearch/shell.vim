@@ -6,7 +6,7 @@ if !exists('g:esearch_shell_force_escaping_for')
   let g:esearch_shell_force_escaping_for = '^]@()}'
 endif
 
-" Returns splitted shell words from a string typed in shell syntax.
+" Returns splitted shell words from a string typed in the shell syntax.
 " Does:
 "   - dequotation
 "   - validation of missed closing quotes and trailing slashes
@@ -57,30 +57,39 @@ fu! esearch#shell#fnamesescape_and_join(paths, metadata, ...) abort
   return joined_paths
 endfu
 
-fu! esearch#shell#fnameescape(path, metadata) abort
-  let wildcards = a:metadata.wildcards
-  return join(esearch#shell#fnameescape_splitted(a:path, wildcards), '')
-
-  return result
+" TODO rewrite matadata storage approach
+fu! esearch#shell#fnameescape(path, ...) abort
+  if a:0 == 1
+    return join(esearch#shell#fnameescape_splitted(a:path, a:1), '')
+  else
+    return s:escape(a:path, g:esearch_shell_force_escaping_for)
+  endif
 endfu
 
+" Returns escaped string parts, splitted by special characters as delimiters
+" (with keeping them)
 fu! esearch#shell#fnameescape_splitted(path, metadata) abort
-  let wildcards = a:metadata
-  let substr_begin = 0
-  " these characters are missed by fnameescape and are required to ensure
-  " consistency in escaping special characters
-  let special = g:esearch_shell_force_escaping_for
+  " These characters are not ecsaped by fnameescape. Escaping of them is required
+  " to ensure consistency. It's done only within parts of a:path not marked by
+  " the parser as special.
+  let nonspecial_anymore = g:esearch_shell_force_escaping_for
 
   let parts = []
-  for special_index in wildcards
+  let substr_begin = 0
+  for special_index in a:metadata.wildcards
     let parts += [
-          \ escape(fnameescape(a:path[substr_begin : special_index][:-2]), special),
-          \ a:path[special_index]]
+          \ s:escape(a:path[substr_begin : special_index][:-2], nonspecial_anymore),
+          \ a:path[special_index]
+          \ ]
     let substr_begin = special_index + 1
   endfor
-  let parts += [escape(fnameescape(a:path[substr_begin :]), special)]
+  let parts += [s:escape(a:path[substr_begin :], nonspecial_anymore)]
 
   return parts
+endfu
+
+fu! s:escape(string, chars) abort
+  return escape(fnameescape(a:string), a:chars)
 endfu
 
 let s:default_options = {}
