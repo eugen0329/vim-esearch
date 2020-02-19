@@ -2,6 +2,26 @@ let s:Vital        = vital#esearch#new()
 let s:LexerModule  = s:Vital.import('Text.Lexer')
 let s:ParserModule = s:Vital.import('Text.Parser')
 
+if !exists('g:esearch_shell_force_escaping_for')
+  let g:esearch_shell_force_escaping_for = '^]@()}'
+endif
+
+" Returns splitted "shell words" from a string typed using shell syntax.
+" Does:
+"   - dequotation
+"   - validation of missed closing quotes and trailing slashes
+"   - finding unescaped special locations (for highlight and preserving from fnameescape)
+"
+" Validation of wildcards (closing braces etc.) is not performed to not mess
+" with shell-specific syntaxes and configured options. User will be notified
+" with a shell errors further anyway.
+"
+" Finding locations is required to tell the user (with a corresponding
+" highlight) which characters will be used for globbing and to prevent escaping
+" them with fnameescape. Escaping prevention is required to let builtin function
+" do most of the job (internals of which depend on a platform and some other
+" configurable options we don't want to deal with) while being able to specify paths
+" which can be expanded by the shell.
 fu! esearch#shell#split(string, ...) abort
   let options = empty(a:000) ? s:default_options : extend(deepcopy(a:1), s:default_options)
   let lexer = s:LexerModule.lexer(s:rules).exec(a:string)
@@ -38,31 +58,52 @@ fu! esearch#shell#fnamesescape_and_join(paths, metadata, ...) abort
   return joined_paths
 endfu
 
-fu! esearch#shell#fnameescape(path, metadata) abort
+" TODO rewrite matadata storage approach
+fu! esearch#shell#fnameescape(path, ...) abort
+  if a:0 == 1
+    return join(esearch#shell#fnameescape_splitted(a:path, a:1), '')
+  else
+    return s:escape(a:path, g:esearch_shell_force_escaping_for)
+  endif
+endfu
+
+" Returns escaped string parts, splitted by special characters as delimiters
+" (with keeping them)
+fu! esearch#shell#fnameescape_splitted(path, metadata) abort
+  " These characters are not ecsaped by fnameescape. Escaping of them is required
+  " to ensure consistency. It's done only within parts of a:path not marked by
+  " the parser as special.
+  let nonspecial_anymore = g:esearch_shell_force_escaping_for
+
   let parts = []
-  let wildcards = a:metadata.wildcards
-  let substring_start = 0
-
-  for wildcard in wildcards
-    call add(parts, a:path[substring_start : wildcard][:-2])
-    let substring_start = wildcard + 1
+  let substr_begin = 0
+  for special_index in a:metadata.wildcards
+    let parts += [
+          \ s:escape(a:path[substr_begin : special_index][:-2], nonspecial_anymore),
+          \ a:path[special_index]
+          \ ]
+    let substr_begin = special_index + 1
   endfor
-  call add(parts, a:path[substring_start :])
+  let parts += [s:escape(a:path[substr_begin :], nonspecial_anymore)]
 
-  return join(map(parts, 'fnameescape(v:val)'), '*')
+  return parts
+endfu
+
+fu! s:escape(string, chars) abort
+  return escape(fnameescape(a:string), a:chars)
 endfu
 
 let s:default_options = {}
 let s:rules = [
-      \ [ 'DQ',                '"'   ],
-      \ [ 'SQ',                "'"   ],
-      \ [ 'ESCAPED_DQ',        '\\"' ],
-      \ [ 'ESCAPED_SQ',        '\\'''],
-      \ [ 'TRAILING_ESCAPE',   '\\$' ],
-      \ [ 'WS',                '\s\+'],
-      \ [ 'ESCAPED_ANY',       '\\.' ],
-      \ [ 'WILDCARD',           '\*' ],
-      \ [ 'ANy',               '.'   ],
+      \ [ 'DQ',                '"'                 ],
+      \ [ 'SQ',                "'"                 ],
+      \ [ 'ESCAPED_DQ',        '\\"'               ],
+      \ [ 'ESCAPED_SQ',        '\\'''              ],
+      \ [ 'TRAILING_ESCAPE',   '\\$'               ],
+      \ [ 'WS',                '\s\+'              ],
+      \ [ 'ESCAPED_ANY',       '\\.'               ],
+      \ [ 'SPECIAL',           '[?*+@!()|{}\[\]\^]'],
+      \ [ 'ANy',               '.'                 ],
       \ ]
 
 fu! s:consume_squote() dict abort
@@ -118,7 +159,7 @@ fu! s:consume_word() abort dict
       let parsed .= self.consume_dquote()
     elseif self.next_is(['SQ'])
       let parsed .= self.consume_squote()
-    elseif self.next_is(['WILDCARD'])
+    elseif self.next_is(['SPECIAL'])
       call add(wildcards, strchars(parsed))
       let parsed .= self.advance().matched_text
     elseif self.next_is(['WS'])

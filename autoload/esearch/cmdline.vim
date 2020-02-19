@@ -151,7 +151,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
   " Main loop
   """""""""""
   while 1
-    call s:render_directory_prompt(a:cmdline_opts.cwd)
+    call s:print_directory_prompt(a:cmdline_opts.cwd)
     let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#completion#buffer_words')
     if empty(s:events) | break | endif
 
@@ -171,7 +171,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
-  call s:render_directory_prompt(a:dir)
+  call s:print_directory_prompt(a:dir)
   call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
   call esearch#util#highlight('Visual',
         \ substitute(a:cmdline, "\n", ' ', 'g'), 0)
@@ -260,49 +260,92 @@ fu! s:prompt(adapter_options) abort
   return 'pattern'.help.' '.r.c.w.' '
 endfu
 
-fu! s:render_directory_prompt(cwd) abort
-  " TODO weid legacy code, should be rewritten
+" TODO extract out of there and refactor
+fu! s:print_directory_prompt(cwd) abort
   if a:cwd ==# getcwd() && empty(get(s:esearch, 'paths', []))
+    " TODO weid legacy code, should be rewritten
     return 0
   endif
+  let [cwd, paths, metadata] = [a:cwd, s:esearch.paths, s:esearch.metadata]
 
-  let [prefix, dir] = s:paths_comment(a:cwd, s:esearch.paths, s:esearch.metadata)
+  if empty(paths)
+    call esearch#util#highlight('Normal', 'In directory ')
+    call esearch#util#highlight('Directory',
+          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', ''), 0)
+    return
+  endif
 
-  call esearch#util#highlight('Normal', prefix)
-  call esearch#util#highlight('Directory', dir, 0)
-  echo ''
+  try
+    call s:print_paths_kinds_hint(paths, metadata)
+    call s:print_paths(paths, metadata)
+  finally
+    " reset colors
+    echohl NONE
+    " print newline
+    echo ''
+  endtry
 endfu
 
-" TODO extract out of there
-fu! s:paths_comment(cwd, paths, metadata) abort
-  let kinds = []
-  let viwable = []
-
-  let empty_metadata = { 'wildcards': [] } " TODO
+fu! s:print_paths_kinds_hint(paths, metadata) abort
+  let path_kinds = {}
   for i in range(0, len(a:paths) - 1)
-    let metadata = get(a:metadata, i, empty_metadata)
-    let escaped = esearch#shell#fnameescape(a:paths[i], metadata)
-
     if isdirectory(a:paths[i])
-      let kinds += ['directory']
-      let escaped = g:esearch#cmdline#dir_icon . escaped
-    elseif !empty(metadata.wildcards) || !filereadable(a:paths[i])
-      let kinds += ['path']
+      let path_kinds['directory'] = 1
+    elseif !empty(a:metadata) || !filereadable(a:paths[i])
+      let path_kinds['path'] = 1
     else
-      let kinds += ['file']
+      let path_kinds['file'] = 1
     endif
 
-    let viwable += [escaped]
+    if len(path_kinds) > 1
+      call esearch#util#highlight('Normal', 'In ')
+      return
+    endif
   endfor
 
-  if empty(kinds)
-    return ['In directory ',
-          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', '')]
-  elseif len(uniq(copy(kinds))) > 1
-    return ['In ', join(viwable, ', ')]
-  else
-    return ['In ' . esearch#inflector#pluralize(kinds[0], len(a:paths)) . ' ', join(viwable, ', ')]
-  endif
+  let where = 'In ' . esearch#inflector#pluralize(keys(path_kinds)[0], len(a:paths)) . ' '
+  call esearch#util#highlight('Normal', where)
+endfu
+
+fu! s:print_paths(paths, metadata) abort
+  let metadata = a:metadata
+  let paths = a:paths
+  let last = len(paths) - 1
+
+  for i in range(0, last)
+    let path = paths[i]
+
+    if isdirectory(paths[i])
+      let highlight = 'Directory'
+      call esearch#util#highlight(highlight, g:esearch#cmdline#dir_icon)
+    else
+      let highlight = 'Normal'
+      call esearch#util#highlight(highlight, '')
+    endif
+
+    " TODO rewrite metadata storage approach
+    if empty(metadata) || empty(metadata[i].wildcards)
+      let escaped = esearch#shell#fnameescape(paths[i])
+      call esearch#util#highlight(highlight, escaped)
+    else
+      call s:print_with_highlighted_special_characters(highlight, path, metadata[i])
+    endif
+
+    if i != last
+      call esearch#util#highlight('Normal', ', ')
+    endif
+  endfor
+endfu
+
+fu! s:print_with_highlighted_special_characters(highlight, path, metadata) abort
+  let parts = esearch#shell#fnameescape_splitted(a:path, a:metadata)
+
+  for regular_index in range(0, len(parts)-3, 2)
+    let special_index = regular_index + 1
+    call esearch#util#highlight(a:highlight, parts[regular_index])
+    call esearch#util#highlight('Identifier', parts[special_index])
+  endfor
+  call esearch#util#highlight(a:highlight, parts[-1])
 endfu
 
 fu! s:restore_cursor_position() abort
