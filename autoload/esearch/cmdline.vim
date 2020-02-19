@@ -260,49 +260,97 @@ fu! s:prompt(adapter_options) abort
   return 'pattern'.help.' '.r.c.w.' '
 endfu
 
+" TODO extract out of there and refactor
 fu! s:render_directory_prompt(cwd) abort
-  " TODO weid legacy code, should be rewritten
   if a:cwd ==# getcwd() && empty(get(s:esearch, 'paths', []))
+    " TODO weid legacy code, should be rewritten
     return 0
   endif
+  let [cwd, paths, metadata] = [a:cwd, s:esearch.paths, s:esearch.metadata]
+  let empty_metadata = { 'wildcards': [] } " TODO
 
-  let [prefix, dir] = s:paths_comment(a:cwd, s:esearch.paths, s:esearch.metadata)
+  if empty(paths)
+    call esearch#util#highlight('Normal', 'In directory ')
+    call esearch#util#highlight('Directory',
+          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', ''), 0)
+    return
+  endif
 
-  call esearch#util#highlight('Normal', prefix)
-  call esearch#util#highlight('Directory', dir, 0)
-  echo ''
+  try
+    call s:render_paths_kinds_hint(paths, metadata)
+    call s:render_paths(paths, metadata)
+  finally
+    " reset colors
+    echohl NONE
+    " print newline
+    echo ''
+  endtry
 endfu
 
-" TODO extract out of there
-fu! s:paths_comment(cwd, paths, metadata) abort
-  let kinds = []
-  let viwable = []
-
-  let empty_metadata = { 'wildcards': [] } " TODO
+fu! s:render_paths_kinds_hint(paths, metadata) abort
+  let path_kinds = []
   for i in range(0, len(a:paths) - 1)
-    let metadata = get(a:metadata, i, empty_metadata)
-    let escaped = esearch#shell#fnameescape(a:paths[i], metadata)
-
     if isdirectory(a:paths[i])
-      let kinds += ['directory']
-      let escaped = g:esearch#cmdline#dir_icon . escaped
-    elseif !empty(metadata.wildcards) || !filereadable(a:paths[i])
-      let kinds += ['path']
+      let path_kinds += ['directory']
+    elseif !empty(a:metadata) || !filereadable(a:paths[i])
+      let path_kinds += ['path']
     else
-      let kinds += ['file']
+      let path_kinds += ['file']
     endif
-
-    let viwable += [escaped]
   endfor
 
-  if empty(kinds)
-    return ['In directory ',
-          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', '')]
-  elseif len(uniq(copy(kinds))) > 1
-    return ['In ', join(viwable, ', ')]
+  if len(uniq(path_kinds)) > 1
+    let where = 'In '
   else
-    return ['In ' . esearch#inflector#pluralize(kinds[0], len(a:paths)) . ' ', join(viwable, ', ')]
+    let where = 'In ' . esearch#inflector#pluralize(path_kinds[0], len(a:paths)) . ' '
   endif
+  call esearch#util#highlight('Normal', where)
+endfu
+
+fu! s:render_paths(paths, metadata) abort
+  let metadata = a:metadata
+  let paths = a:paths
+  let empty_metadata = { 'wildcards': [] } " TODO
+  let last = len(paths) - 1
+
+  for i in range(0, last)
+    let path = paths[i]
+
+    if isdirectory(paths[i])
+      let color = 'Directory'
+      call esearch#util#highlight(color, g:esearch#cmdline#dir_icon)
+    else
+      let color = 'Normal'
+      call esearch#util#highlight(color, '')
+    endif
+
+    if empty(metadata)
+      let escaped = fnameescape(paths[i])
+      call esearch#util#highlight(color, escaped)
+    else
+      call s:render_with_highlighted_special_characters(color, path, metadata[i].wildcards)
+    endif
+
+    if i != last
+      call esearch#util#highlight('Normal', ', ')
+    endif
+  endfor
+endfu
+
+fu! s:render_with_highlighted_special_characters(color, path, special_indexes) abort
+  let substr_begin = 0
+  let parts = esearch#shell#fnameescape_splitted(a:path, a:special_indexes)
+
+  if len(parts) < 3
+    return esearch#util#highlight(a:color, a:path)
+  endif
+
+  let range = range(0, len(parts)-3, 2)
+  for p in range
+      call esearch#util#highlight(a:color, parts[p])
+      call esearch#util#highlight('Identifier', parts[p+1])
+  endfor
+  call esearch#util#highlight(a:color, parts[-1])
 endfu
 
 fu! s:restore_cursor_position() abort
