@@ -151,7 +151,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
   " Main loop
   """""""""""
   while 1
-    call s:render_directory_prompt(a:cmdline_opts.cwd)
+    call s:print_directory_prompt(a:cmdline_opts.cwd)
     let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#completion#buffer_words')
     if empty(s:events) | break | endif
 
@@ -171,7 +171,7 @@ fu! s:main_loop(cmdline_opts, adapter_options) abort
 endfu
 
 fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
-  call s:render_directory_prompt(a:dir)
+  call s:print_directory_prompt(a:dir)
   call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
   call esearch#util#highlight('Visual',
         \ substitute(a:cmdline, "\n", ' ', 'g'), 0)
@@ -261,13 +261,12 @@ fu! s:prompt(adapter_options) abort
 endfu
 
 " TODO extract out of there and refactor
-fu! s:render_directory_prompt(cwd) abort
+fu! s:print_directory_prompt(cwd) abort
   if a:cwd ==# getcwd() && empty(get(s:esearch, 'paths', []))
     " TODO weid legacy code, should be rewritten
     return 0
   endif
   let [cwd, paths, metadata] = [a:cwd, s:esearch.paths, s:esearch.metadata]
-  let empty_metadata = { 'wildcards': [] } " TODO
 
   if empty(paths)
     call esearch#util#highlight('Normal', 'In directory ')
@@ -277,8 +276,8 @@ fu! s:render_directory_prompt(cwd) abort
   endif
 
   try
-    call s:render_paths_kinds_hint(paths, metadata)
-    call s:render_paths(paths, metadata)
+    call s:print_paths_kinds_hint(paths, metadata)
+    call s:print_paths(paths, metadata)
   finally
     " reset colors
     echohl NONE
@@ -287,48 +286,48 @@ fu! s:render_directory_prompt(cwd) abort
   endtry
 endfu
 
-fu! s:render_paths_kinds_hint(paths, metadata) abort
-  let path_kinds = []
+fu! s:print_paths_kinds_hint(paths, metadata) abort
+  let path_kinds = {}
   for i in range(0, len(a:paths) - 1)
     if isdirectory(a:paths[i])
-      let path_kinds += ['directory']
+      let path_kinds['directory'] = 1
     elseif !empty(a:metadata) || !filereadable(a:paths[i])
-      let path_kinds += ['path']
+      let path_kinds['path'] = 1
     else
-      let path_kinds += ['file']
+      let path_kinds['file'] = 1
+    endif
+
+    if len(path_kinds) > 1
+      call esearch#util#highlight('Normal', 'In ')
+      return
     endif
   endfor
 
-  if len(uniq(path_kinds)) > 1
-    let where = 'In '
-  else
-    let where = 'In ' . esearch#inflector#pluralize(path_kinds[0], len(a:paths)) . ' '
-  endif
+  let where = 'In ' . esearch#inflector#pluralize(keys(path_kinds)[0], len(a:paths)) . ' '
   call esearch#util#highlight('Normal', where)
 endfu
 
-fu! s:render_paths(paths, metadata) abort
+fu! s:print_paths(paths, metadata) abort
   let metadata = a:metadata
   let paths = a:paths
-  let empty_metadata = { 'wildcards': [] } " TODO
   let last = len(paths) - 1
 
   for i in range(0, last)
     let path = paths[i]
 
     if isdirectory(paths[i])
-      let color = 'Directory'
-      call esearch#util#highlight(color, g:esearch#cmdline#dir_icon)
+      let highlight = 'Directory'
+      call esearch#util#highlight(highlight, g:esearch#cmdline#dir_icon)
     else
-      let color = 'Normal'
-      call esearch#util#highlight(color, '')
+      let highlight = 'Normal'
+      call esearch#util#highlight(highlight, '')
     endif
 
     if empty(metadata)
       let escaped = fnameescape(paths[i])
-      call esearch#util#highlight(color, escaped)
+      call esearch#util#highlight(highlight, escaped)
     else
-      call s:render_with_highlighted_special_characters(color, path, metadata[i].wildcards)
+      call s:print_with_highlighted_special_characters(highlight, path, metadata[i].wildcards)
     endif
 
     if i != last
@@ -337,20 +336,20 @@ fu! s:render_paths(paths, metadata) abort
   endfor
 endfu
 
-fu! s:render_with_highlighted_special_characters(color, path, special_indexes) abort
+fu! s:print_with_highlighted_special_characters(highlight, path, special_locations) abort
   let substr_begin = 0
-  let parts = esearch#shell#fnameescape_splitted(a:path, a:special_indexes)
+  let parts = esearch#shell#fnameescape_splitted(a:path, a:special_locations)
 
   if len(parts) < 3
-    return esearch#util#highlight(a:color, a:path)
+    return esearch#util#highlight(a:highlight, a:path)
   endif
 
   let range = range(0, len(parts)-3, 2)
   for p in range
-      call esearch#util#highlight(a:color, parts[p])
+      call esearch#util#highlight(a:highlight, parts[p])
       call esearch#util#highlight('Identifier', parts[p+1])
   endfor
-  call esearch#util#highlight(a:color, parts[-1])
+  call esearch#util#highlight(a:highlight, parts[-1])
 endfu
 
 fu! s:restore_cursor_position() abort

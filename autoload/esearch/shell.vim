@@ -1,8 +1,26 @@
 let s:Vital        = vital#esearch#new()
 let s:LexerModule  = s:Vital.import('Text.Lexer')
 let s:ParserModule = s:Vital.import('Text.Parser')
-let s:escape = '^]@()}'
 
+if !exists('g:esearch_shell_force_escaping_for')
+  let g:esearch_shell_force_escaping_for = '^]@()}'
+endif
+
+" Returns splitted shell words from a string typed in shell syntax.
+" Does:
+"   - dequotation
+"   - validation of missed closing quotes and trailing slashes
+"   - finding unescaped special locations (for highlight and preserving from fnameescape)
+"
+" Validation of wildcards (closing braces etc.) is not performed to not mess
+" with shell-specific syntaxes and configured options. User will be notified
+" with a shell errors further anyway.
+"
+" Finding locations is required to hint user with colors on what characters will be
+" used for globbing and to prevent escaping them with fnameescape. It's required
+" to let builtin function do all the job (results of which depend on a platform and some
+" other configurable options) and just to hint on which have a special meaning for user's
+" shell and should not be escaped.
 fu! esearch#shell#split(string, ...) abort
   let options = empty(a:000) ? s:default_options : extend(deepcopy(a:1), s:default_options)
   let lexer = s:LexerModule.lexer(s:rules).exec(a:string)
@@ -49,15 +67,18 @@ endfu
 fu! esearch#shell#fnameescape_splitted(path, metadata) abort
   let wildcards = a:metadata
   let substr_begin = 0
+  " these characters are missed by fnameescape and are required to ensure
+  " consistency in escaping special characters
+  let special = g:esearch_shell_force_escaping_for
 
   let parts = []
   for special_index in wildcards
     let parts += [
-          \ escape(fnameescape(a:path[substr_begin : special_index][:-2]), s:escape),
+          \ escape(fnameescape(a:path[substr_begin : special_index][:-2]), special),
           \ a:path[special_index]]
     let substr_begin = special_index + 1
   endfor
-  let parts += [escape(fnameescape(a:path[substr_begin :]), s:escape)]
+  let parts += [escape(fnameescape(a:path[substr_begin :]), special)]
 
   return parts
 endfu
@@ -71,12 +92,9 @@ let s:rules = [
       \ [ 'TRAILING_ESCAPE',   '\\$'               ],
       \ [ 'WS',                '\s\+'              ],
       \ [ 'ESCAPED_ANY',       '\\.'               ],
-      \ [ 'SPECIAL',           '[?*+@!()|{}\[\^\]]'],
+      \ [ 'SPECIAL',           '[?*+@!()|{}\[\]\^]'],
       \ [ 'ANy',               '.'                 ],
       \ ]
-
-" let specials = '?*+@!()|{}[]^'
-" let specials_list = split('?*+@!()|{}[]^', '\zs')
 
 fu! s:consume_squote() dict abort
   let parsed = ''
