@@ -6,7 +6,7 @@ if !exists('g:esearch_shell_force_escaping_for')
   let g:esearch_shell_force_escaping_for = '^]@()}'
 endif
 
-" Returns splitted shell words from a string typed in the shell syntax.
+" Returns splitted "shell words" from a string typed using shell syntax.
 " Does:
 "   - dequotation
 "   - validation of missed closing quotes and trailing slashes
@@ -16,11 +16,12 @@ endif
 " with shell-specific syntaxes and configured options. User will be notified
 " with a shell errors further anyway.
 "
-" Finding locations is required to hint user with colors on what characters will be
-" used for globbing and to prevent escaping them with fnameescape. It's required
-" to let builtin function do all the job (results of which depend on a platform and some
-" other configurable options) and just to hint on which have a special meaning for user's
-" shell and should not be escaped.
+" Finding locations is required to tell the user (with a corresponding
+" highlight) which characters will be used for globbing and to prevent escaping
+" them with fnameescape. Escaping prevention is required to let builtin function
+" do most of the job (internals of which depend on a platform and some other
+" configurable options we don't want to deal with) while being able to specify paths
+" which can be expanded by the shell.
 fu! esearch#shell#split(string, ...) abort
   let options = empty(a:000) ? s:default_options : extend(deepcopy(a:1), s:default_options)
   let lexer = s:LexerModule.lexer(s:rules).exec(a:string)
