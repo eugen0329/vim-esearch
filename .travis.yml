@@ -141,7 +141,7 @@ jobs:
 
     # Unit tests
     - name: 'Unit tests'
-      script: spec/support/docker/rake RSPEC_OPTS='--tag unit'
+      script: bundle exec rake RSPEC_OPTS='--tag unit'
       os: linux
 
     # Linters TODO merge into a single build

@@ -1,5 +1,6 @@
 let s:Vital     = vital#esearch#new()
 let s:Highlight = s:Vital.import('Vim.Highlight')
+let s:Message   = s:Vital.import('Vim.Message')
 
 fu! esearch#util#setline(_, lnum, text) abort
   return setline(a:lnum, a:text)
@@ -11,10 +12,7 @@ endif
 
 " borrowed from the airline
 fu! esearch#util#qftype(bufnr) abort
-  let buffers = ''
-  redir => buffers
-  silent ls
-  redir END
+  let buffers = s:Message.capture('silent ls')
 
   let nr = a:bufnr
   for buf in split(buffers, '\n')
