@@ -26,7 +26,7 @@ Configuration.tap do |c|
   c.process_check_timeout = 10.second
 end
 
-ActiveSupport::Dependencies.autoload_paths = ['spec/support', 'spec/support/lib']
+ActiveSupport::Dependencies.autoload_paths += ['spec/support', 'spec/support/lib']
 require 'support/client'
 require 'support/server'
 
