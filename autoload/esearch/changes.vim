@@ -61,7 +61,7 @@ endfu
 fu! s:handle_cursor_moved(mode) abort
   let payload =  s:payload()
 
-  if a:mode == 'i'
+  if a:mode ==# 'i'
     let payload.mode = a:mode
   endif
 
@@ -558,7 +558,7 @@ fu! s:identify_visual() abort
   return s:emit({'id': 'undefined-visual-block', 'debug': [from, to]})
 endfu
 
-fu! s:identify_insert()
+fu! s:identify_insert() abort
   let [from, to] = b:__states[-2:-1]
   " TODO handle cj operator (at the moments it's recognized as i-inline-delete2)
 
@@ -656,8 +656,8 @@ fu! s:identify_normal_inline(from,to) abort
       "   - delete to the end
       "   - motion to the left
 
-      if to.col == len2 + (&virtualedit == 'onemore' ? 1 : 0)
-        let col1 = to.col + (&virtualedit == 'onemore' ? 0 : 1)
+      if to.col == len2 + (&virtualedit ==# 'onemore' ? 1 : 0)
+        let col1 = to.col + (&virtualedit ==# 'onemore' ? 0 : 1)
         let col2 = len1
         return s:emit({
               \ 'id': 'n-inline3',

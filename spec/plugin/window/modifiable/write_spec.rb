@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Writing in modifiable mode' do
+describe 'Writing in modifiable mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable

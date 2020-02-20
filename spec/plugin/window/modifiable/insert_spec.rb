@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Insert mode' do
+describe 'Insert mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable

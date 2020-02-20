@@ -3,7 +3,7 @@
 require 'spec_helper'
 require_relative 'setup_syntax_testing_shared_context'
 
-describe 'esearch window context syntax' do
+describe 'esearch window context syntax', :window do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 

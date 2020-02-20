@@ -87,6 +87,16 @@ RSpec.configure do |c|
   c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.filter_run_excluding(:osx_only) unless Configuration.osx?
   c.filter_run_excluding(:multibyte_commandline) # TODO
+
+  c.define_derived_metadata(file_path: %r{/spec/plugin/window/}) do |metadata|
+    metadata[:window] = true
+  end
+  c.define_derived_metadata(file_path: %r{/spec/unit/}) do |metadata|
+    metadata[:unit] = true
+  end
+  c.define_derived_metadata(file_path: %r{/spec/lib/}) do |metadata|
+    metadata[:unit] = true # consider to test separately
+  end
 end
 
 Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n

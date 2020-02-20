@@ -9,7 +9,7 @@ require 'plugin/shared_examples/abortable_backend'
 # - abosolute path
 # - outside cwd
 # - single file should be tested separately
-describe 'esearch#backend', :backend do
+describe 'esearch#adapter', :adapter do
   include Helpers::FileSystem
   include Helpers::Strings
   include Helpers::Output
@@ -19,7 +19,7 @@ describe 'esearch#backend', :backend do
   include_context 'report editor state on error'
 
   shared_examples 'adapter testing examples' do |adapter, adapter_bin|
-    describe "#{adapter} adapter", :custom_paths, adapter.to_sym, adapter: adapter.to_sym do
+    describe "##{adapter}" do
       before do
         esearch.configure!(adapter: adapter, out: 'win', backend: 'system', regex: 1, use: [])
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
@@ -134,7 +134,7 @@ describe 'esearch#backend', :backend do
     include_examples 'adapter testing examples', 'rg', Configuration.rg_path
   end
 
-  describe '#nvim', :neovim do
+  describe '#nvim' do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
     include_examples 'all adapters testing examples'

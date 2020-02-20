@@ -59,7 +59,7 @@ describe 'esearch#backend', :backend do
   end
 
   shared_examples 'works with adapter' do |adapter, adapter_bin|
-    context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
+    context "works with adapter: #{adapter}" do
       let(:adapter) { adapter }
 
       before do
@@ -135,7 +135,7 @@ describe 'esearch#backend', :backend do
   end
 
   shared_examples 'a backend 2' do |backend|
-    context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
+    context "works with backend: #{backend}" do
       let(:backend) { backend }
 
       before { esearch.configure(backend: backend, last_id: 0) }

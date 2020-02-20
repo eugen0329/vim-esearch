@@ -913,9 +913,9 @@ fu! s:write() abort
   endif
   if diff.statistics.deleted > 0
     let changes_count += diff.statistics.deleted
-    let lines_stats += [diff.statistics.deleted . " deleted"]
+    let lines_stats += [diff.statistics.deleted . ' deleted']
   endif
-  let files_stats_text = printf(" %s %s %d %s",
+  let files_stats_text = printf(' %s %s %d %s',
         \ (len(lines_stats) > 1 ? 'lines' : esearch#inflector#pluralize('line', changes_count)),
         \ (diff.statistics.files > 1 ? 'across' : 'inside'),
         \ diff.statistics.files,
@@ -923,7 +923,7 @@ fu! s:write() abort
         \ )
   let message = 'Write changes? (' . join(lines_stats, ', ') . files_stats_text . ')'
 
-  if esearch#ui#confirm#show(message, ["Yes", "No"]) == 1
+  if esearch#ui#confirm#show(message, ['Yes', 'No']) == 1
     call esearch#writer#buffer#write(diff, b:esearch.bufnr)
   endif
 endfu
@@ -1076,19 +1076,19 @@ fu! s:handle_normal__inline(event) abort
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
 
-    if mode() == 'i'
+    if mode() ==# 'i'
       let recover_cursor = "\<Esc>"
     endif
   elseif line1 == 2
     " TODO undef mode
-    if mode() == 'i'
+    if mode() ==# 'i'
       let recover_cursor = "\<Esc>"
     endif
   elseif line1 == context.begin
     " it's a filename, restoring
     call setline(line1, context.filename)
 
-    if mode() == 'i'
+    if mode() ==# 'i'
       let recover_cursor = "\<Down>\<End>"
     endif
 
@@ -1105,7 +1105,7 @@ fu! s:handle_normal__inline(event) abort
     " let text = linenr . text[ [col1, col2, strlen(linenr)] :]
     call setline(line1, text)
 
-    if mode() == 'i'
+    if mode() ==# 'i'
       let recover_cursor = "\<End>"
     endif
   endif
@@ -1125,14 +1125,6 @@ fu! Len(contexts) abort
     return len(a:contexts) - 1
   endif
   return len(a:contexts)
-endfu
-
-fu! s:select_range_from_history(event, line1, line2) abort
-  let undo = b:esearch.undolist.head().state
-  let [id1, id2] = [undo.context_ids_map[a:line1], undo.context_ids_map[a:line2]]
-  let contexts = undo.contexts[id1:id2]
-
-  return [contexts, undo.context_ids_map, undo]
 endfu
 
 fu! s:handle_motion__header(recover) abort
@@ -1225,11 +1217,11 @@ fu! s:is_context_removed(context, recover, state) abort
 endfu
 
 fu! s:is_orphaned_filename_before(context, recover)
-  return a:recover.line1 == a:context.begin + s:context_name_lines_length
+  return a:recover.line1 ==# a:context.begin + s:context_name_lines_length
 endfu
 
 fu! s:is_last_context(context, state) abort
-  return a:context.id == a:state.contexts[a:state.context_ids_map[-1]].id
+  return a:context.id ==# a:state.contexts[a:state.context_ids_map[-1]].id
 endfu
 
 fu! s:is_first_context(context, state) abort
@@ -1237,7 +1229,7 @@ fu! s:is_first_context(context, state) abort
     return 0
   endif
 
-  return a:context.id == a:state.contexts[a:state.context_ids_map[3]].id
+  return a:context.id ==# a:state.contexts[a:state.context_ids_map[3]].id
 endfu
 
 fu! s:handle_motion__leading_context(context, state, recover, trailing_context) abort
@@ -1273,7 +1265,7 @@ fu! s:handle_motion__leading_context(context, state, recover, trailing_context) 
 endfu
 
 fu! s:is_orphaned_blank_line_after(context, recover, state) abort
-  return a:context.end != len(a:state.context_ids_map) - 1 && a:recover.line2 == a:context.end - 1
+  return a:context.end != len(a:state.context_ids_map) - 1 && a:recover.line2 ==# a:context.end - 1
 endfu
 
 fu! s:handle_motion__trailing_context(context, state, recover) abort
@@ -1303,7 +1295,7 @@ fu! s:apply_recovery__linewise_removal(state, recover) abort
   endif
 
   if !empty(a:recover.add_lines)
-    if line('$') == 1 && empty(getline(1)) " emtpy buffer
+    if line('$') ==# 1 && empty(getline(1)) " emtpy buffer
       call setline(a:recover.line1, a:recover.add_lines[0])
       call append(a:recover.line1,  a:recover.add_lines[1:])
     else

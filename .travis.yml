@@ -103,6 +103,10 @@ jobs:
       script: bundle exec rake RSPEC_OPTS='--tag vimproc'
       os: osx
 
+    - name: 'Acceptance tests of window output'
+      script: bundle exec rake RSPEC_OPTS='--tag window'
+      os: linux
+
     # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rake RSPEC_OPTS='--tag system'
@@ -118,14 +122,21 @@ jobs:
     - name: 'Acceptance tests of #backend#vimproc'
       script: bundle exec rake RSPEC_OPTS='--tag vimproc'
       os: linux
+    - name: 'Acceptance tests of adapter'
+      script: bundle exec rake RSPEC_OPTS='--tag adapter'
+      os: linux
+
+    - name: 'Acceptance tests of commandline'
+      script: bundle exec rake RSPEC_OPTS='--tag commandline'
+      os: linux
 
     # Unit tests
     - name: 'Unit tests'
-      script: spec/support/docker/rake RSPEC_OPTS='--tag ~backend'
+      script: spec/support/docker/rake RSPEC_OPTS='--tag unit'
       env: NVIM_GUI=0 DOCKER_BUILD=1
       os: linux
 
-    # Linters
+    # Linters TODO merge into a single build
     - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
       env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
       script:

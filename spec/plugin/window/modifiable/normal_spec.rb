@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Normal mode' do
+describe 'Normal mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable

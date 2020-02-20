@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Modifiable window mode motions' do
+describe 'Modifiable window mode motions', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable

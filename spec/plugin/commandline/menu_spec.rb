@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'esearch#cmdline menu' do
+describe 'esearch#cmdline menu', :commandline do
   include Helpers::Commandline
 
   shared_examples 'commandline menu testing examples' do
@@ -258,7 +258,7 @@ describe 'esearch#cmdline menu' do
     end
   end
 
-  context 'neovim', :neovim do
+  context 'neovim' do
     around(:context) { |e| use_nvim(&e) }
 
     include_examples 'commandline menu testing examples'

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'esearch#cmdline input' do
+describe 'esearch#cmdline input', :commandline do
   include Helpers::Commandline
 
   shared_examples 'commandline input testing examples' do
@@ -328,7 +328,7 @@ describe 'esearch#cmdline input' do
     end
   end
 
-  context 'neovim', :neovim do
+  context 'neovim' do
     around(:context) { |e| use_nvim(&e) }
 
     include_examples 'commandline input testing examples'
