@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Helpers::Modifiable
   extend RSpec::Matchers::DSL
 
@@ -158,3 +159,4 @@ module Helpers::Modifiable
     end
   end
 end
+# rubocop:enable Metrics/ModuleLength
