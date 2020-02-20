@@ -68,6 +68,8 @@ install:
       sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
     fi
 
+    bundle exec rake generate_lexer generate_parser
+
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
     # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi
@@ -104,8 +106,11 @@ jobs:
       os: osx
 
     - name: 'Acceptance tests of window output'
-      script: bundle exec rake generate_lexer generate_parser 'parallel:spec[4,spec/plugin/window]'
+      script: bundle exec parallel_test spec/plugin/window -n 2 --only-group $TEST_GROUP --group-by filesize --type rspec
       os: linux
+      env:
+        - "TEST_GROUP=1,2"
+        - "TEST_GROUP=3,4"
 
     # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
