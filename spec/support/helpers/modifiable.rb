@@ -86,8 +86,6 @@ module Helpers::Modifiable
     end
   end
 
-
-
   shared_context 'setup modifiable testing' do
     let(:contexts) do
       [Context.new('context1.txt', 1.upto(5).map { |i| "aa#{i}" }),
