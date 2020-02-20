@@ -9,7 +9,7 @@ require 'plugin/shared_examples/abortable_backend'
 # - abosolute path
 # - outside cwd
 # - single file should be tested separately
-describe 'esearch#adapter', :adapter do
+describe 'esearch#adapter', :adapters do
   include Helpers::FileSystem
   include Helpers::Strings
   include Helpers::Output

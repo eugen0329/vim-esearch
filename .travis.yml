@@ -132,16 +132,17 @@ jobs:
       os: linux
 
     - name: 'Acceptance tests of adapter'
-      script: bundle exec rake RSPEC_OPTS='--tag adapter'
+      script: bundle exec rake RSPEC_PATTERN='--tag adapters'
       os: linux
 
     - name: 'Acceptance tests of commandline'
       script: bundle exec rake RSPEC_OPTS='--tag commandline'
       os: linux
 
-    # Unit tests
+      # Although travis has less cores than 4, it's better for splitting as
+      # groups with even execution time cannot be precisely determined using files size
     - name: 'Unit tests'
-      script: bundle exec rake RSPEC_OPTS='--tag unit'
+      script: bundle exec parallel_test spec/unit -n 4 --group-by filesize --type rspec
       os: linux
 
     # Linters TODO merge into a single build
