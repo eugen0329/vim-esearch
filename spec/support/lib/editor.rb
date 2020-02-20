@@ -160,7 +160,7 @@ class Editor
 
   def delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     # TODO: fix after modifier implementation
-    command! <<~CLEANUP_COMMANDS
+    command <<~CLEANUP_COMMANDS
       %bwipeout!
       messages clear
       call feedkeys(\"\\<Esc>\\<Esc>\\<C-\\>\\<C-n>\", \"n\")

@@ -80,7 +80,7 @@ RSpec.configure do |c|
   c.fail_fast  = Configuration.ci? ? 3 : 2
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
-  c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
+  c.after(:each) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 

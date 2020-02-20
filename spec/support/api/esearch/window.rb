@@ -90,6 +90,11 @@ class API::ESearch::Window
     nil
   end
 
+  def reloaded_entries!(entries)
+    editor.handle_state_change!
+    entries.map { |entry| reload(entry) }
+  end
+
   def entry_location(relative_path, line_in_file)
     entry = find_entry(relative_path, line_in_file)
     raise MissingEntry, entry unless entry

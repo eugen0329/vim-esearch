@@ -116,7 +116,8 @@ fu! esearch#out#win#init(opts) abort
 
   " Refresh match highlight
   setlocal ft=esearch
-  if g:esearch.highlight_match
+  " TODO
+  if g:esearch.highlight_match && has_key(a:opts.exp, 'vim_match')
     if exists('b:esearch') && b:esearch._match_highlight_id > 0
       try
         call matchdelete(b:esearch._match_highlight_id)

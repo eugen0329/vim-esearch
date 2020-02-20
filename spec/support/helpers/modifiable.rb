@@ -41,28 +41,30 @@ module Helpers::Modifiable
         let g:esearch#adapter#ag#bin = '#{Configuration.root}/spec/support/scripts/sort_search_results.sh ag'
         let g:esearch_win_disable_context_highlights_on_files_count = 0
         set backspace=indent,eol,start
+        cd #{test_directory}
+        call esearch#init({'exp': {'pcre': '^'}})
+        call esearch#out#win#edit()
+        call feedkeys("\\<C-\\>\\<C-n>")
       SETUP
-
-      editor.cd! test_directory
-      esearch.search! '^'
-      expect(esearch).to have_search_started & have_search_finished
-      editor.command! 'call esearch#out#win#edit()'
-      vim.normal
     end
 
     after do
-      editor.command! <<~TEARDOWN
+      editor.command <<~TEARDOWN
         let g:esearch_win_disable_context_highlights_on_files_count = 100
       TEARDOWN
 
-      expect(Debug.messages.join).not_to include('Error')
-      expect(editor.echo(var('v:errors'))).to be_empty
+      messages =  Debug.messages.join
+      errors = editor.echo(var('v:errors'))
+      lines = editor.lines
+
+      expect(messages).not_to include('Error')
+      expect(errors).to be_empty
 
       # TODO: extract this logic to the parser
       if esearch.output.inside_search_window?
-        expect(editor.lines.first).to match(API::ESearch::Window::HeaderParser::HEADER_REGEXP)
-        expect(editor.lines.to_a[1]).to be_blank
-        expect(editor.lines.to_a.last).not_to be_blank if editor.lines.to_a.count > 2
+        expect(lines.first).to match(API::ESearch::Window::HeaderParser::HEADER_REGEXP)
+        expect(lines.to_a[1]).to be_blank
+        expect(lines.to_a.last).not_to be_blank if lines.to_a.count > 2
       end
       editor.cleanup!
     end
@@ -70,10 +72,8 @@ module Helpers::Modifiable
 
   matcher :have_valid_entries do |entries|
     match do |output|
-      editor.with_ignore_cache do
-        @actual = entries.map { |e| output.reload(e) }
-        @actual.all?(&:present?)
-      end
+      @actual = output.reloaded_entries!(entries)
+      @actual.all?(&:present?)
     end
 
     failure_message do
@@ -85,10 +85,8 @@ module Helpers::Modifiable
     attr_reader :expected
 
     match do |output|
-      editor.with_ignore_cache do
-        @actual = entries.map { |e| output.reload(e) }
-        @actual.all?(&:blank?)
-      end
+      @actual = output.reloaded_entries!(entries)
+      @actual.all?(&:blank?)
     end
 
     failure_message do

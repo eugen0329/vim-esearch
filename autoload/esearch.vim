@@ -13,7 +13,9 @@ fu! esearch#init(...) abort
 
   call esearch#ftdetect#async_prewarm_cache()
 
-  if !has_key(esearch, 'exp')
+  if has_key(esearch, 'exp')
+    let esearch.exp = esearch#regex#new(esearch.exp)
+  else
     let esearch.exp  = esearch#source#pick_exp(esearch.use, esearch)
     let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
     let esearch.exp  = esearch#cmdline#read(esearch, adapter_opts)
