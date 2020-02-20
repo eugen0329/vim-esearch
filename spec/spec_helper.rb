@@ -99,19 +99,18 @@ RSpec.configure do |c|
     metadata[:unit] = true # consider to test separately
   end
 
-  c.around :each, :neovim do |ex|
-    ex.run_with_retry retry: 5
-  end
-
-  c.retry_callback = proc do |ex|
-    if ex.metadata[:neovim]
-      if VimrunnerNeovim::Testing.nvim_instance.present? &&
-         !VimrunnerNeovim::Testing.nvim_instance.server&.running?
-        puts 'Cleanup dead nvim_instance'
-        VimrunnerNeovim::Testing.nvim_instance = nil # cleanup process if it's failed
-      end
-    end
-  end
+  # c.around :each, :neovim do |ex|
+  #   ex.run_with_retry retry: 5
+  # end
+  # c.retry_callback = proc do |ex|
+  #   if ex.metadata[:neovim]
+  #     if VimrunnerNeovim::Testing.nvim_instance.present? &&
+  #        !VimrunnerNeovim::Testing.nvim_instance.server&.running?
+  #       puts 'Cleanup dead nvim_instance'
+  #       VimrunnerNeovim::Testing.nvim_instance = nil # cleanup process if it's failed
+  #     end
+  #   end
+  # end
 end
 
 Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n
