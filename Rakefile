@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rspec/core/rake_task'
+require 'parallel_tests/tasks'
 
 task default: %i[generate_lexer generate_parser rspec]
 

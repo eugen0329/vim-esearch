@@ -4,47 +4,7 @@ require 'spec_helper'
 
 describe 'esearch#util' do
   include VimlValue::SerializationHelpers
-
-  describe '#clip' do
-    subject(:clip) do
-      lambda do |value, from, to|
-        editor.echo func('esearch#util#clip', value, from, to)
-      end
-    end
-
-    it { expect(clip.call(0, 1, 4)).to eq(1)   }
-    it { expect(clip.call(1, 1, 4)).to eq(1)   }
-    it { expect(clip.call(2, 1, 4)).to eq(2)   }
-    it { expect(clip.call(3, 1, 4)).to eq(3)   }
-    it { expect(clip.call(4, 1, 4)).to eq(4)   }
-    it { expect(clip.call(5, 1, 4)).to eq(4)   }
-  end
-
-  describe '#ellipsize' do
-    subject(:ellipsize) do
-      lambda do |text, col, left, right, ellipsize|
-        editor.echo func('esearch#util#ellipsize', text, col, left, right, ellipsize)
-      end
-    end
-
-    context 'when enough room' do
-      it "doesn't add ellipsis" do
-        expect(ellipsize.call('aaaBBBccc', 5, 5, 5, '|')).to eq('aaaBBBccc')
-      end
-    end
-
-    context 'when string is bigger then allowed' do
-      it { expect(ellipsize.call('aaaBBBccc', 0, 2, 2, '|')).to eq('aaa|')   }
-      it { expect(ellipsize.call('aaaBBBccc', 1, 2, 2, '|')).to eq('aaa|')   }
-      it { expect(ellipsize.call('aaaBBBccc', 2, 2, 2, '|')).to eq('aaa|')   }
-      it { expect(ellipsize.call('aaaBBBccc', 3, 2, 2, '|')).to eq('|aB|')   }
-      it { expect(ellipsize.call('aaaBBBccc', 4, 2, 2, '|')).to eq('|BB|') }
-      it { expect(ellipsize.call('aaaBBBccc', 5, 2, 2, '|')).to eq('|BB|') }
-      it { expect(ellipsize.call('aaaBBBccc', 6, 2, 2, '|')).to eq('|Bc|') }
-      it { expect(ellipsize.call('aaaBBBccc', 7, 2, 2, '|')).to eq('|ccc') }
-      it { expect(ellipsize.call('aaaBBBccc', 8, 2, 2, '|')).to eq('|ccc') }
-    end
-  end
+  include Helpers::FileSystem
 
   describe '#escape_kind' do
     shared_examples 'it recognizes' do |arg, as:, **meta|
@@ -79,7 +39,7 @@ describe 'esearch#util' do
 
     context 'multibyte alphabet' do
 
-      context 'with escaping', :multibyte_commandline do
+      context 'with escaping', :neovim, :multibyte do
         around { |e| use_nvim(&e) }
 
         ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).each do |char|

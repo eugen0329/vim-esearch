@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'esearch#cmdline menu' do
+describe 'esearch#cmdline menu', :commandline do
   include Helpers::Commandline
 
   shared_examples 'commandline menu testing examples' do

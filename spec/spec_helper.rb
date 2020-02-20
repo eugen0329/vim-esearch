@@ -26,7 +26,10 @@ Configuration.tap do |c|
   c.process_check_timeout = 10.second
 end
 
-ActiveSupport::Dependencies.autoload_paths = ['spec/support', 'spec/support/lib']
+ActiveSupport::Dependencies.autoload_paths += [
+  Configuration.root.join('spec/support'),
+  Configuration.root.join('spec/support/lib')
+]
 require 'support/client'
 require 'support/server'
 
@@ -77,18 +80,30 @@ RSpec.configure do |c|
   c.color_mode = true
   c.order      = :rand
   c.formatter  = :documentation
-  c.fail_fast  = Configuration.ci? ? 3 : 1
+  c.fail_fast  = Configuration.ci? ? 3 : 2
   c.example_status_persistence_file_path = 'failed_specs.txt'
   c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
-  c.after(:each, :backend) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
+  c.after(:each) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 
   c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:neovim)
   c.filter_run_excluding(:osx_only) unless Configuration.osx?
   c.filter_run_excluding(:multibyte_commandline) # TODO
+
+  c.define_derived_metadata(file_path: %r{/spec/plugin/window/}) do |metadata|
+    metadata[:window] = true
+  end
+  c.define_derived_metadata(file_path: %r{/spec/unit/}) do |metadata|
+    metadata[:unit] = true
+  end
+  c.define_derived_metadata(file_path: %r{/spec/lib/}) do |metadata|
+    metadata[:unit] = true # consider to test separately
+  end
 end
 
+Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n
 RSpec::Matchers.define_negated_matcher :not_include, :include
 Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
@@ -97,6 +112,7 @@ Vimrunner::RSpec.configure do |c|
 
   c.start_vim do
     load_runtime!(Client.new(Server.vim(
+      name:       "VIMRUNER#{Time.now.to_f}#{ENV['TEST_ENV_NUMBER']}",
       executable: Configuration.vim_path,
       vimrc:      Configuration.vimrc_path,
       timeout:    10
@@ -109,6 +125,7 @@ VimrunnerNeovim::RSpec.configure do |c|
 
   c.start_nvim do
     load_runtime!(Client.new(Server.neovim(
+      name:          "NVIMRUNER#{Time.now.to_f}#{ENV['TEST_ENV_NUMBER']}",
       nvim:          Configuration.nvim_path,
       gui:           Configuration.nvim_gui?,
       vimrc:         Configuration.vimrc_path,

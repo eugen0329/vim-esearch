@@ -21,6 +21,22 @@ set runtimepath-=~/.vim/after
 " therefore fixes vim bug.
 set showtabline=2
 
+fu! Statusline() abort
+  return string(['pos', [line('.'), col('.')], b:changedtick, changenr()])
+endfu
+set statusline=%{Statusline()}
+set laststatus=2
+set ruler
+set noshowmode
+
+if !exists(':PP')
+  " don't fail on debugger entry in tests
+  command PP call tr('', '', '')
+endif
+
+" disable messages
+let g:esearch#debug = 0
+
 fu! Matches(group) abort
   let found = {}
 

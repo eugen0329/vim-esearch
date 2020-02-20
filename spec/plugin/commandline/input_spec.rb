@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'esearch#cmdline input' do
+describe 'esearch#cmdline input', :commandline do
   include Helpers::Commandline
 
   shared_examples 'commandline input testing examples' do

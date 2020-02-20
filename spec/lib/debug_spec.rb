@@ -29,7 +29,7 @@ describe Debug do
       it_behaves_like 'it reads and outputs plugin log'
     end
 
-    context 'when neovim server' do
+    context 'when neovim server', :neovim do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
       it_behaves_like 'it reads and outputs plugin log'
@@ -44,7 +44,7 @@ describe Debug do
       it { expect(debug.nvim_log).to be_nil }
     end
 
-    context 'when neovim server' do
+    context 'when neovim server', :neovim do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
       context 'when present' do
@@ -72,7 +72,7 @@ describe Debug do
       end
     end
 
-    context 'when neovim server' do
+    context 'when neovim server', :neovim do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
       include_examples 'outputs running processes'
@@ -91,7 +91,7 @@ describe Debug do
       it { expect(debug.verbose_log).to be_nil }
     end
 
-    context 'when neovim server' do
+    context 'when neovim server', :neovim do
       around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
       context 'when present' do

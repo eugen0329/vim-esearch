@@ -2,9 +2,9 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn region esearchHeader   start='\%^'        end='\%1l$' oneline
-syn region esearchFilename start='\%>2l^[^ ]' end='$'     oneline
-syn match  esearchLineNr   '^\s\+\d\+'
+syn match esearchHeader   '\%1l.*'
+syn match esearchFilename '^[^ ]\+$'
+syn match esearchLineNr   '^\s\+\d\+'
 
 hi def link esearchHeader   Title
 hi def link esearchFilename Directory

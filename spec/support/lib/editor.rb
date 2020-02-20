@@ -7,7 +7,10 @@ require 'active_support/notifications'
 class Editor
   include API::Mixins::Throttling
 
+  class MissingBufferError < RuntimeError; end
+
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
+  CLIPBOARD_REGISTER = '"'
 
   class_attribute :cache_enabled, default: true
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
@@ -46,7 +49,7 @@ class Editor
     echo func('getline', number)
   end
 
-  def lines(range = nil, prefetch_count: 4)
+  def lines(range = nil, prefetch_count: 15)
     raise ArgumentError unless prefetch_count.positive?
     return enum_for(:lines, range, prefetch_count: prefetch_count) { lines_count } unless block_given?
 
@@ -60,6 +63,14 @@ class Editor
       lines_array(prefetch_from..prefetch_to)
         .each { |line_content| yield(line_content) }
     end
+  end
+
+  def errors
+    echo var('v:errors')
+  end
+
+  def current_line
+    echo func('line', '.')
   end
 
   def lines_array(range = nil)
@@ -101,10 +112,6 @@ class Editor
     echo func('col', '.')
   end
 
-  def locate_cursor!(line_number, column_number)
-    command!("call cursor(#{line_number},#{column_number})").to_i == 0
-  end
-
   def edit!(filename)
     command!("edit! #{filename}")
   end
@@ -117,6 +124,33 @@ class Editor
     command!('close!')
   end
 
+  def tabs
+    command('tabs')
+      .split("\n")
+      .select { |l| l =~ /^Tab page/ }
+      .map { |l| l.scan(/^Tab page (\d)/)[0][0] }
+  end
+
+  def buffers
+    editor
+      .ls
+      .split("\n")
+      .map { |l| l.scan(/\s+([\w\d%#\s]*?)\s+\+?\s*"(.*)"/)[0][1] }
+  end
+
+  def locate_buffer!(name)
+    location = with_ignore_cache do
+      echo(func('esearch#util#bufloc', func('bufnr', '^' + name)))
+    end
+
+    raise MissingBufferError if location.blank?
+
+    editor.command! <<~VIML
+      tabn #{location[0]}
+      #{location[1]} winc w
+    VIML
+  end
+
   # TODO: better name
   def ls(include_unlisted: true)
     return command('ls!') if include_unlisted
@@ -126,7 +160,13 @@ class Editor
 
   def delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     # TODO: fix after modifier implementation
-    command!('tabnew | %bwipeout! | messages clear| call feedkeys("\\<Esc>\\<Esc>\\<C-\\>\\<C-n>", "n") | set lines=22')
+    command <<~CLEANUP_COMMANDS
+      %bwipeout!
+      messages clear
+      call feedkeys(\"\\<Esc>\\<Esc>\\<C-\\>\\<C-n>\", \"n\")
+      let @#{CLIPBOARD_REGISTER} = ''
+      set lines=22
+    CLEANUP_COMMANDS
   end
 
   def close_current_window!
@@ -153,6 +193,14 @@ class Editor
     locate_cursor! KEEP_VERTICAL_POSITION, column_number
   end
 
+  def locate_cursor!(line_number, column_number)
+    command!("call cursor(#{line_number},#{column_number}) | doau CursorMoved").to_i == 0
+  end
+
+  def modified?
+    echo(var('&modified')) == 1
+  end
+
   def filetype
     echo var('&ft')
   end
@@ -166,6 +214,7 @@ class Editor
   end
 
   def command(string_to_execute)
+    # vim.command("doau CmdlineEnter | #{string_to_execute} | doau CmdlineLeave")
     vim.command(string_to_execute)
   end
 
@@ -197,21 +246,26 @@ class Editor
     end
   end
 
-  def press_with_user_mappings!(*keyboard_keys)
+  def press_with_user_mappings!(*keyboard_keys, split_undo_entry: true)
     handle_state_change!
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
+        # from :h undojoin
+        # Setting the value of 'undolevels' also breaks undo entry.  Even when the new value
+        # is equal to the old value.
+        editor.command('let &undolevels=&undolevels') if split_undo_entry
         vim.feedkeys keyboard_keys_to_string(*keyboard_keys)
       end
     end
   end
-  # to resemble capybara interace
-  alias send_keys press_with_user_mappings!
+
+  alias send_keys press_with_user_mappings! # to resemble capybara interace
 
   # is required as far as continious sequence may be handled incorrectly by vim
   def send_keys_separately(*keyboard_keys)
-    keyboard_keys.map { |key| send_keys(key) }
+    editor.command('let &undolevels=&undolevels')
+    keyboard_keys.map { |key| send_keys(key, split_undo_entry: false) }
   end
 
   def raw_echo(arg)
@@ -220,6 +274,10 @@ class Editor
 
   def echo(arg)
     reader.echo arg
+  end
+
+  def clipboard=(content)
+    editor.command "let @#{CLIPBOARD_REGISTER} = \"#{content}\""
   end
 
   private
@@ -235,7 +293,8 @@ class Editor
     escape:    '\\<Esc>',
     up:        '\\<Up>',
     down:      '\\<Down>',
-    end:       '\\<End>'
+    end:       '\\<End>',
+    paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}"
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

@@ -2,7 +2,8 @@
 
 require 'spec_helper'
 
-describe 'Smoke of esearch#util' do
+describe 'esearch#util' do
+  include VimlValue::SerializationHelpers
   include Helpers::FileSystem
 
   context '#parse_help_options' do
