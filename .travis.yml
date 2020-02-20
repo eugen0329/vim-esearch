@@ -126,18 +126,15 @@ jobs:
 
     - name: 'Acceptance tests of adapter'
       script: bundle exec rake RSPEC_OPTS='--tag adapter'
-      env: NVIM_GUI=0 DOCKER_BUILD=1
       os: linux
 
     - name: 'Acceptance tests of commandline'
       script: bundle exec rake RSPEC_OPTS='--tag commandline'
-      env: NVIM_GUI=0 DOCKER_BUILD=1
       os: linux
 
     # Unit tests
     - name: 'Unit tests'
       script: spec/support/docker/rake RSPEC_OPTS='--tag unit'
-      env: NVIM_GUI=0 DOCKER_BUILD=1
       os: linux
 
     # Linters TODO merge into a single build
