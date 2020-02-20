@@ -7,6 +7,7 @@ require 'active_support/dependencies'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/notifications'
 require 'active_support/tagged_logging'
+require 'rspec/retry'
 begin
   require 'pry'
   Pry.config.history.file = '.pry_history'
@@ -96,6 +97,20 @@ RSpec.configure do |c|
   end
   c.define_derived_metadata(file_path: %r{/spec/lib/}) do |metadata|
     metadata[:unit] = true # consider to test separately
+  end
+
+  c.around :each, :neovim do |ex|
+    ex.run_with_retry retry: 5
+  end
+
+  c.retry_callback = proc do |ex|
+    if ex.metadata[:neovim]
+      if VimrunnerNeovim::Testing.nvim_instance.present? &&
+         !VimrunnerNeovim::Testing.nvim_instance.server&.running?
+        puts 'Cleanup dead nvim_instance'
+        VimrunnerNeovim::Testing.nvim_instance = nil # cleanup process if it's failed
+      end
+    end
   end
 end
 
