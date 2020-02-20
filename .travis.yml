@@ -104,7 +104,7 @@ jobs:
       os: osx
 
     - name: 'Acceptance tests of window output'
-      script: bundle exec rake RSPEC_OPTS='--tag window'
+      script: bundle exec parallel_rspec -n 3  spec -- --tag window -- spec
       os: linux
 
     # Linux acceptance

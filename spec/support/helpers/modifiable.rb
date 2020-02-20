@@ -53,7 +53,7 @@ module Helpers::Modifiable
         let g:esearch_win_disable_context_highlights_on_files_count = 100
       TEARDOWN
 
-      messages =  Debug.messages.join
+      messages = Debug.messages.join
       errors = editor.echo(var('v:errors'))
       lines = editor.lines
 

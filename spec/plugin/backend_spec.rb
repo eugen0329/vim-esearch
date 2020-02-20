@@ -135,7 +135,7 @@ describe 'esearch#backend', :backend do
   end
 
   shared_examples 'a backend 2' do |backend|
-    context "works with backend: #{backend}" do
+    context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
       let(:backend) { backend }
 
       before { esearch.configure(backend: backend, last_id: 0) }
