@@ -105,12 +105,13 @@ jobs:
       script: bundle exec rake RSPEC_OPTS='--tag vimproc'
       os: osx
 
-    - name: 'Acceptance tests of window output'
-      script: bundle exec parallel_test spec/plugin/window -n 2 --only-group $TEST_GROUP --group-by filesize --type rspec
+    - name: 'Acceptance tests of window output 1'
+      script: bundle exec parallel_test spec/plugin/window -n 4 --only-group 1,2 --group-by filesize --type rspec
       os: linux
-      env:
-        - "TEST_GROUP=1,2"
-        - "TEST_GROUP=3,4"
+
+    - name: 'Acceptance tests of window output 2'
+      script: bundle exec parallel_test spec/plugin/window -n 4 --only-group 3,4 --group-by filesize --type rspec
+      os: linux
 
     # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
