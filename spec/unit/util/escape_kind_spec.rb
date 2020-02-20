@@ -93,4 +93,3 @@ describe 'esearch#util' do
     end
   end
 end
-
