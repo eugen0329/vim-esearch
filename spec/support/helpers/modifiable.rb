@@ -22,6 +22,72 @@ module Helpers::Modifiable
       editor.lines(line + 1..).to_a
   end
 
+  shared_context 'delete everything up until' do |line_above:, context_index:|
+    let(:i) { context_index }
+
+    context 'entries 0..1' do
+      shared_examples 'removes entries' do |motion|
+        it 'removes entries 0..1' do
+          contexts[i].entries[1].locate!
+          motion.call(line_above)
+
+          expect(esearch.output)
+            .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
+            .and have_missing_entries(contexts[i].entries[..1])
+            .and have_valid_entries(contexts[i].entries[2..])
+            .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
+        end
+      end
+
+      include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
+      include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
+    end
+
+    context 'entries 0..2' do
+      shared_examples 'removes entries' do |motion|
+        it 'removes entries 0..2' do
+          contexts[i].entries[2].locate!
+          motion.call(line_above)
+
+          expect(esearch.output)
+            .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
+            .and have_missing_entries(contexts[i].entries[..2])
+            .and have_valid_entries(contexts[i].entries[3..])
+            .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
+        end
+      end
+
+      include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
+      include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
+    end
+
+    context 'entries 0..-1' do
+      shared_examples 'removes entries' do |motion|
+        it 'removes entries 0..-1' do
+          contexts[i].entries[-1].locate!
+          motion.call(line_above)
+
+          expect(esearch.output)
+            .to  have_missing_entries(contexts[..i].map(&:entries).flatten)
+            .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
+        end
+      end
+
+      include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
+      include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
+    end
+  end
+
+  shared_examples "doesn't have effect after motion" do |motion|
+    it 'removes entries 0..-1' do
+      entry.locate!
+      expect { instance_exec(&motion) }
+        .not_to change { editor.lines.to_a }
+    end
+  end
+
+
+
   shared_context 'setup modifiable testing' do
     let(:contexts) do
       [Context.new('context1.txt', 1.upto(5).map { |i| "aa#{i}" }),
