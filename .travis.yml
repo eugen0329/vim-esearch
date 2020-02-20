@@ -105,12 +105,13 @@ jobs:
       script: bundle exec rake RSPEC_OPTS='--tag vimproc'
       os: osx
 
+      # Although travis has less cores than 4, it's better for splitting as
+      # groups with even execution time cannot be precisely determined using files size
     - name: 'Acceptance tests of window output 1'
-      script: bundle exec parallel_test spec/plugin/window -n 4 --only-group 1,2 --group-by filesize --type rspec
+      script: bundle exec parallel_test spec/plugin/window -n 8 --only-group 1,2,3,4 --group-by filesize --type rspec
       os: linux
-
     - name: 'Acceptance tests of window output 2'
-      script: bundle exec parallel_test spec/plugin/window -n 4 --only-group 3,4 --group-by filesize --type rspec
+      script: bundle exec parallel_test spec/plugin/window -n 8 --only-group 5,6,7,8 --group-by filesize --type rspec
       os: linux
 
     # Linux acceptance
