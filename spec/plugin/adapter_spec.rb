@@ -19,7 +19,7 @@ describe 'esearch#adapter', :adapters do
   include_context 'report editor state on error'
 
   shared_examples 'adapter testing examples' do |adapter, adapter_bin|
-    describe "##{adapter}" do
+    describe "##{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure!(adapter: adapter, out: 'win', backend: 'system', regex: 1, use: [])
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
