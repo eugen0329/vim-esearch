@@ -134,13 +134,13 @@ describe 'esearch#adapter', :adapter do
     include_examples 'adapter testing examples', 'rg', Configuration.rg_path
   end
 
-  describe '#nvim' do
+  describe '#nvim', :neovim do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
     include_examples 'all adapters testing examples'
   end
 
-  describe '#vim', :vim do
+  describe '#vim' do
     include_examples 'all adapters testing examples'
   end
 end

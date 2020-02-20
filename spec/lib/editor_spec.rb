@@ -131,7 +131,7 @@ describe Editor, :editor do
     end
   end
 
-  context 'neovim' do
+  context 'neovim', :neovim do
     around  { |e| use_nvim(&e) }
 
     context 'when reader == Editor::Read::Eager' do

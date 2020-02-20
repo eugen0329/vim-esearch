@@ -86,6 +86,7 @@ RSpec.configure do |c|
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 
   c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:neovim)
   c.filter_run_excluding(:osx_only) unless Configuration.osx?
   c.filter_run_excluding(:multibyte_commandline) # TODO
 
@@ -98,19 +99,6 @@ RSpec.configure do |c|
   c.define_derived_metadata(file_path: %r{/spec/lib/}) do |metadata|
     metadata[:unit] = true # consider to test separately
   end
-
-  # c.around :each, :neovim do |ex|
-  #   ex.run_with_retry retry: 5
-  # end
-  # c.retry_callback = proc do |ex|
-  #   if ex.metadata[:neovim]
-  #     if VimrunnerNeovim::Testing.nvim_instance.present? &&
-  #        !VimrunnerNeovim::Testing.nvim_instance.server&.running?
-  #       puts 'Cleanup dead nvim_instance'
-  #       VimrunnerNeovim::Testing.nvim_instance = nil # cleanup process if it's failed
-  #     end
-  #   end
-  # end
 end
 
 Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n

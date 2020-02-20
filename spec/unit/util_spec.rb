@@ -103,7 +103,7 @@ describe 'esearch#util' do
 
     context 'multibyte alphabet' do
 
-      context 'with escaping', :multibyte_commandline do
+      context 'with escaping', :neovim, :multibyte do
         around { |e| use_nvim(&e) }
 
         ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).each do |char|

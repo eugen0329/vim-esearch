@@ -37,8 +37,6 @@ GEM
     rspec-mocks (3.9.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
-    rspec-retry (0.6.2)
-      rspec-core (> 3.3)
     rspec-support (3.9.0)
     rubocop (0.79.0)
       jaro_winkler (~> 1.5.1)
@@ -64,7 +62,6 @@ DEPENDENCIES
   racc
   rake
   rspec
-  rspec-retry
   rubocop
   vimrunner
 

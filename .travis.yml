@@ -111,11 +111,12 @@ jobs:
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rake RSPEC_OPTS='--tag system'
       os: linux
-    - name: 'Acceptance tests of #backend#nvim'
-      script: spec/support/docker/rake RSPEC_OPTS='--tag neovim'
-      env: NVIM_GUI=0 DOCKER_BUILD=1
-      services: docker
-      os: linux
+    #  TODO
+    # - name: 'Acceptance tests of #backend#nvim'
+    #   script: spec/support/docker/rake RSPEC_OPTS='--tag neovim'
+    #   env: NVIM_GUI=0 DOCKER_BUILD=1
+    #   services: docker
+    #   os: linux
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec rake RSPEC_OPTS='--tag vim8'
       os: linux

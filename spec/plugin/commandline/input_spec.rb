@@ -328,7 +328,7 @@ describe 'esearch#cmdline input', :commandline do
     end
   end
 
-  context 'neovim' do
+  context 'neovim', :neovim do
     around(:context) { |e| use_nvim(&e) }
 
     include_examples 'commandline input testing examples'
