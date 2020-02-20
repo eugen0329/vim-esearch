@@ -132,7 +132,7 @@ jobs:
       os: linux
 
     - name: 'Acceptance tests of adapter'
-      script: bundle exec rake RSPEC_PATTERN='--tag adapters'
+      script: bundle exec rake RSPEC_OPTS='--tag adapters'
       os: linux
 
     - name: 'Acceptance tests of commandline'
