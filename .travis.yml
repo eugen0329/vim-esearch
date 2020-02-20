@@ -104,7 +104,7 @@ jobs:
       os: osx
 
     - name: 'Acceptance tests of window output'
-      script: bundle exec parallel_rspec -n 3  -- --tag window -- spec
+      script: bundle exec parallel_rspec -n 3  spec/plugin/window
       os: linux
 
     # Linux acceptance
