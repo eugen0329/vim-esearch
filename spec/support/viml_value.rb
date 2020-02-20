@@ -4,7 +4,6 @@ module VimlValue
   class ParseError < RuntimeError; end
 
   def self.load(string, allow_toplevel_literals: false)
-    puts [ActiveSupport::Dependencies.autoload_paths, Dir.pwd]
     tree = Parser
            .new(Lexer.new(string), allow_toplevel_literals: allow_toplevel_literals)
            .parse
