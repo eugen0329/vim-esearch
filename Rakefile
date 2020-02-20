@@ -5,8 +5,8 @@ require 'parallel_tests/tasks'
 
 task default: %i[generate_lexer generate_parser rspec]
 
-task generate_lexer:  'spec/support/lib/viml_value/lexer.rb'
-task generate_parser: 'spec/support/lib/viml_value/parser.rb'
+task generate_lexer:  'spec/support/viml_value/lexer.rb'
+task generate_parser: 'spec/support/viml_value/parser.rb'
 
 RSpec::Core::RakeTask.new(:rspec) do |t|
   t.rspec_opts = ENV['RSPEC_OPTS']

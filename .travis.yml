@@ -104,7 +104,7 @@ jobs:
       os: osx
 
     - name: 'Acceptance tests of window output'
-      script: bundle exec rake 'parallel:spec[2,spec/plugin/window]'
+      script: bundle exec rake generate_lexer generate_parser 'parallel:spec[2,spec/plugin/window]'
       os: linux
 
     # Linux acceptance
