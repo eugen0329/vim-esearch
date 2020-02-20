@@ -1216,7 +1216,7 @@ fu! s:is_context_removed(context, recover, state) abort
   endif
 endfu
 
-fu! s:is_orphaned_filename_before(context, recover)
+fu! s:is_orphaned_filename_before(context, recover) abort
   return a:recover.line1 ==# a:context.begin + s:context_name_lines_length
 endfu
 
