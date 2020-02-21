@@ -34,6 +34,8 @@ if !exists(':PP')
   command PP call tr('', '', '')
 endif
 
+" enable development env
+let g:esearch#developemnt = 0
 " disable messages
 let g:esearch#debug = 0
 

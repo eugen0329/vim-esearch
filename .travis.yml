@@ -11,6 +11,7 @@ env:
   VIM_GUI=1
   NVIM_GUI=0
   DOCKER_BUILD=0
+  PARALLEL_SPLIT_TEST_PROCESSES=2
 
 rvm: 2.7.0     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
@@ -92,17 +93,17 @@ jobs:
     #   - underlying backends (mostly vimproc) rely platform specific calls
     # OSX acceptance
     - name: 'Acceptance tests of #backend#system'
-      script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
       os: osx
     # - name: 'Acceptance tests of #backend#nvim'
-    #   script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag nvim' --seed 6880
+    #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag nvim' --seed 6880
     #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
     #   os: osx
     - name: 'Acceptance tests of #backend#vim8'
-      script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8
       os: osx
     - name: 'Acceptance tests of #backend#vimproc'
-      script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
       os: osx
 
       # Although travis has less cores than 4, it's better for splitting as
@@ -116,7 +117,7 @@ jobs:
 
     # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
-      script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
       os: linux
     #  TODO
     # - name: 'Acceptance tests of #backend#nvim'
@@ -125,10 +126,10 @@ jobs:
     #   services: docker
     #   os: linux
     - name: 'Acceptance tests of #backend#vim8'
-      script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8
       os: linux
     - name: 'Acceptance tests of #backend#vimproc'
-      script: PARALLEL_SPLIT_TEST_PROCESSES=2 bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
       os: linux
 
     - name: 'Acceptance tests of adapter'

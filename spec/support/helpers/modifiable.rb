@@ -26,13 +26,15 @@ module Helpers::Modifiable
   shared_context 'delete everything up until' do |line_above:, context_index:|
     let(:i) { context_index }
 
+    include_context 'setup modifiable testing'
+
     context 'entries 0..1' do
       shared_examples 'removes entries' do |motion|
         it 'removes entries 0..1' do
           contexts[i].entries[1].locate!
           motion.call(line_above)
 
-          expect(esearch.output)
+          expect(output)
             .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
             .and have_missing_entries(contexts[i].entries[..1])
             .and have_valid_entries(contexts[i].entries[2..])
@@ -50,7 +52,7 @@ module Helpers::Modifiable
           contexts[i].entries[2].locate!
           motion.call(line_above)
 
-          expect(esearch.output)
+          expect(output)
             .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
             .and have_missing_entries(contexts[i].entries[..2])
             .and have_valid_entries(contexts[i].entries[3..])
@@ -68,7 +70,7 @@ module Helpers::Modifiable
           contexts[i].entries[-1].locate!
           motion.call(line_above)
 
-          expect(esearch.output)
+          expect(output)
             .to  have_missing_entries(contexts[..i].map(&:entries).flatten)
             .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
         end
@@ -95,10 +97,12 @@ module Helpers::Modifiable
     end
     let(:sample_context) { contexts.sample }
     let(:sample_line_number) { sample_context.line_numbers.sample }
-    let(:entry) { esearch.output.find_entry(sample_context.name, sample_line_number) }
+    let(:entry) { output.find_entry(sample_context.name, sample_line_number) }
     let(:line_number_text) { entry.line_number_text }
     let(:files) { contexts.map { |c| file(c.content, c.name) } }
     let!(:test_directory) { directory(files).persist! }
+    let(:entries) { contexts.map(&:entries).flatten }
+    let(:output) { esearch.output }
 
     before do
       esearch.configure!(adapter: 'ag', out: 'win', backend: 'system', regex: 1, use: [])
@@ -136,8 +140,8 @@ module Helpers::Modifiable
   end
 
   matcher :have_valid_entries do |entries|
-    match do |output|
-      @actual = output.reloaded_entries!(entries)
+    match do
+      @actual = esearch.output.reloaded_entries!(entries)
       @actual.all?(&:present?)
     end
 
@@ -149,8 +153,8 @@ module Helpers::Modifiable
   matcher :have_missing_entries do |entries|
     attr_reader :expected
 
-    match do |output|
-      @actual = output.reloaded_entries!(entries)
+    match do
+      @actual = esearch.output.reloaded_entries!(entries)
       @actual.all?(&:blank?)
     end
 

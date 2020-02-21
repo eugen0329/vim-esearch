@@ -155,6 +155,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'bufnr':                    bufnr('%'),
         \ 'last_update_at':           reltime(),
         \ 'files_count':              0,
+        \ 'mode':                     'normal',
         \ 'viewport_highlight_timer': -1,
         \ 'updates_timer':            -1,
         \ 'update_with_timer_start':  0,
@@ -704,14 +705,20 @@ fu! esearch#out#win#line_in_file() abort
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 
-" TODO lookup data stored inside esearch.undolist instead
+" TODO lookup data stored inside esearch.undotree instead
 fu! esearch#out#win#filename() abort
-  let context = b:esearch.contexts[b:esearch.context_ids_map[line('.')]]
+  if b:esearch.mode ==# 'normal'
+    let state = b:esearch
+  else
+    let state = b:esearch.undotree.head.state
+  endif
+  let context = b:esearch.contexts[state.context_ids_map[line('.')]]
   if context.id == 0
     return get(b:esearch.contexts, 1, context).filename
   endif
 
-  return context.filename
+return context.filename
+
 endfu
 
 fu! esearch#out#win#foldtext() abort
@@ -874,6 +881,7 @@ fu! esearch#out#win#_is_render_finished() dict abort
 endfu
 
 fu! esearch#out#win#edit() abort
+  let b:esearch.mode = 'edit'
   let v:errors = []
   setl modifiable
   setl undolevels=1000
@@ -897,7 +905,7 @@ fu! esearch#out#win#edit() abort
   catch /E31: No such mapping/
   endtry
 
-  let b:esearch.undolist = esearch#undolist#new({
+  let b:esearch.undotree = esearch#undotree#new({
         \ 'context_ids_map': b:esearch.context_ids_map,
         \ 'contexts': b:esearch.contexts,
         \ 'line_numbers_map': b:esearch.line_numbers_map,
@@ -947,7 +955,7 @@ fu! esearch#out#win#handle_changes(event) abort
   if a:event.id =~# '^n-motion' || a:event.id =~# '^V-line-delete-'
     let debug = s:handle_linewise__delete(a:event)
   elseif a:event.id =~# 'undo'
-    let debug = s:handle_undo(a:event)
+    let debug = s:handle_undo_traversal(a:event)
   elseif a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
     let debug = s:handle_normal__inline(a:event)
   elseif  a:event.id =~# 'i-inline'
@@ -956,23 +964,32 @@ fu! esearch#out#win#handle_changes(event) abort
     let debug = s:handle_insert__delete_newlines(a:event)
   elseif  a:event.id =~# 'join'
     call s:handle_unsupported(a:event)
+  "" the feature is toggled until commandline and visual-block handling is ready
+  " else
+    " call s:handle_unsupported(a:event)
   endif
 
-  if g:esearch#debug
-    echo a:event
+
+  if g:esearch#development
+    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
+    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
+    if g:esearch#debug | echo [a:event, len(v:errors) ] | endif
   endif
 endfu
 
 fu! s:handle_unsupported(event) abort
   " TODO fix for easymotion
   silent undo
+  call b:esearch.undotree.checkout(changenr())
+  call esearch#changes#undo_state()
 
   if g:esearch#debug
     echo 'Unknown action ' . string(get(a:event, 'id', -1))
   endif
+endfu
 
-  call esearch#changes#undo_state()
-  call b:esearch.undolist.commit()
+fu! s:handle_undo_traversal(event) abort
+  call b:esearch.undotree.checkout(a:event.changenr)
 endfu
 
 fu! s:handle_insert__delete_newlines(event) abort
@@ -1011,12 +1028,12 @@ fu! s:handle_insert__delete_newlines(event) abort
           \ })
   endif
 
-  call b:esearch.undolist.commit()
+  call b:esearch.undotree.commit()
 endfu
 
 fu! s:handle_insert__inline(event) abort
   let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
-  let state   = b:esearch.undolist.head().state
+  let state   = b:esearch.undotree.head.state
   let context = s:find_context(state, line1)
   let text    = getline(line1)
   let linenr  = printf(' %3d ', state.line_numbers_map[line1])
@@ -1069,13 +1086,13 @@ fu! s:handle_insert__inline(event) abort
     call cursor(cursorpos)
   endif
   call esearch#changes#rewrite_last_state({ 'current_line': text })
-  call b:esearch.undolist.commit()
+  call b:esearch.undotree.commit()
 endfu
 
 fu! s:handle_normal__inline(event) abort
   " TODO will be refactored
   let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
-  let state = b:esearch.undolist.head().state
+  let state = b:esearch.undotree.head.state
   let context = s:find_context(state, line1)
 
   let text = getline(line1)
@@ -1124,14 +1141,10 @@ fu! s:handle_normal__inline(event) abort
     endif
   endif
 
-  call b:esearch.undolist.commit()
+  call b:esearch.undotree.commit()
   if !empty(recover_cursor)
     call feedkeys(recover_cursor)
   endif
-endfu
-
-fu! s:handle_undo(event) abort
-  call b:esearch.undolist.revert()
 endfu
 
 fu! Len(contexts) abort
@@ -1182,7 +1195,7 @@ endfu
 
 fu! s:handle_linewise__delete(event) abort
   let [line1, line2] = [a:event.line1, a:event.line2]
-  let state = deepcopy(b:esearch.undolist.head().state)
+  let state = deepcopy(b:esearch.undotree.head.state)
   let recover = {
         \ 'line1':           line1,
         \ 'line2':           line2,
@@ -1209,9 +1222,7 @@ fu! s:handle_linewise__delete(event) abort
     " TODO
   endtry
   call s:apply_recovery__linewise_removal(state, recover)
-  call b:esearch.undolist.commit(state)
-  call assert_equal(line('$') + 1, len(b:esearch.undolist.head().state.context_ids_map))
-  call assert_equal(line('$') + 1, len(b:esearch.undolist.head().state.line_numbers_map))
+  call b:esearch.undotree.commit(state)
 endfu
 
 let s:context_separator_lines_length = 1

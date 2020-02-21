@@ -1,7 +1,3 @@
-if !exists('g:esearch#debug')
-  let g:esearch#debug = 0
-endif
-
 fu! esearch#init(...) abort
   if s:init_lazy_global_config() != 0
     return 1
@@ -136,3 +132,11 @@ fu! s:init_lazy_global_config() abort
 
   return 0
 endfu
+
+if !exists('g:esearch#development')
+  let g:esearch#development = 1
+
+  if !exists('g:esearch#debug')
+    let g:esearch#debug = 1
+  endif
+endif
