@@ -86,7 +86,7 @@ fu! esearch#out#qflist#update() abort
       let request.cursor += esearch.batch_size
     endif
 
-    let parsed = esearch.parse_results(data, from, to)
+    let parsed = esearch.parse(data, from, to)
 
     for p in parsed
       let p.filename = fnamemodify(p.filename, ':~:.')
@@ -102,7 +102,7 @@ fu! esearch#out#qflist#update() abort
   endif
 endfu
 
-fu! esearch#out#qflist#forced_finish() abort
+fu! esearch#out#qflist#schedule_finish() abort
   call esearch#out#qflist#finish()
 endfu
 

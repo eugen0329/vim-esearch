@@ -35,16 +35,16 @@ endfu
 
 fu! esearch#adapter#ack#set_results_parser(esearch) abort
   if a:esearch.is_single_file()
-    let a:esearch.parse_results = function('esearch#adapter#ack#parse_results_from_single_file')
+    let a:esearch.parse = function('esearch#adapter#ack#parse_from_1_file')
   else
-    let a:esearch.parse_results = function('esearch#adapter#ag_like#parse_results')
+    let a:esearch.parse = function('esearch#adapter#ag_like#parse')
     let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
   endif
 
   let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
 endfu
 
-fu! esearch#adapter#ack#parse_results_from_single_file(data, from, to) abort dict
+fu! esearch#adapter#ack#parse_from_1_file(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let results = []
 

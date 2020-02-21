@@ -31,7 +31,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
-        \   'forced_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
+        \   'schedule_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
         \   'update': 'ESearchNVimUpdate'.s:incrementable_internal_id
         \ }
         \}
@@ -99,7 +99,7 @@ fu! s:exit(job_id, status, event) abort
   let job.request.finished = 1
   let job.request.status = a:status
   if !job.request.aborted
-    exe 'do User '.job.request.events.forced_finish
+    exe 'do User '.job.request.events.schedule_finish
   endif
 endfu
 

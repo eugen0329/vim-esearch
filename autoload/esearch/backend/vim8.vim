@@ -43,7 +43,7 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
-        \   'forced_finish': 'ESearchvim8Finish'.s:incrementable_internal_id,
+        \   'schedule_finish': 'ESearchvim8Finish'.s:incrementable_internal_id,
         \   'update': 'ESearchvim8Update'.s:incrementable_internal_id
         \ }
         \}
@@ -92,7 +92,7 @@ endfunc
 func! s:watch_for_buffered_data_render_complete(job, timer) abort
   " dirty check
   if a:job.request.cursor == a:job.request.old_cursor
-    exe 'do User '.a:job.request.events.forced_finish
+    exe 'do User '.a:job.request.events.schedule_finish
     call timer_start(0, function('s:timer_stop_workaround', [a:job]))
   else
     let a:job.request.old_cursor = a:job.request.cursor
@@ -105,7 +105,7 @@ fu! s:closed(job_id, channel) abort
 
   " TODO should be properly tested first
   if esearch#util#vim8_calls_close_cb_last()
-    exe 'do User '.job.request.events.forced_finish
+    exe 'do User '.job.request.events.schedule_finish
   else
     let job.request.timer_id = timer_start(g:esearch#backend#vim8#timer,
           \ function('s:watch_for_buffered_data_render_complete', [job]),
