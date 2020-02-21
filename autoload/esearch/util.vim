@@ -3,8 +3,22 @@ let s:Highlight = s:Vital.import('Vim.Highlight')
 let s:Message   = s:Vital.import('Vim.Message')
 
 fu! esearch#util#setline(_, lnum, text) abort
-  return setline(a:lnum, a:text)
+  " call nvim_buf_set_lines(a:_, a:lnum - 1, a:lnum, 0, [a:text])
+  call setline(a:lnum, a:text)
 endfu
+
+
+if has('nvim')
+  fu! esearch#util#append_lines(lines) abort
+    call nvim_buf_set_lines(bufnr('%'), -1, -1, 0, a:lines)
+  endfu
+else
+  fu! esearch#util#append_lines(lines) abort
+    for l in a:lines
+      call append(line('$'), l)
+    endfor
+  endfu
+endif
 
 if !exists('g:esearch#util#unicode_enabled')
   let g:esearch#util#unicode_enabled = 1

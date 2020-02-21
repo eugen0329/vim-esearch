@@ -40,7 +40,7 @@ fu! esearch#adapter#git#cmd(esearch, pattern, escape) abort
 endfu
 
 fu! esearch#adapter#git#set_results_parser(esearch) abort
-  let a:esearch.parse_results = function('esearch#adapter#grep_like#parse_results')
+  let a:esearch.parse = function('esearch#adapter#grep_like#parse')
   let a:esearch.format = g:esearch#adapter#grep_like#multiple_files_Search_format
   let a:esearch.expand_filename = function('<SID>expand_filename')
 endfu

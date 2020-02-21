@@ -86,11 +86,7 @@ fu! esearch#out#qflist#update() abort
       let request.cursor += esearch.batch_size
     endif
 
-    let parsed = esearch.parse_results(data, from, to)
-
-    for p in parsed
-      let p.filename = fnamemodify(p.filename, ':~:.')
-    endfor
+    let parsed = esearch.parse(data, from, to)
 
     if esearch#util#qftype(bufnr('%')) ==# 'qf'
       let curpos = getcurpos()[1:]
@@ -102,7 +98,7 @@ fu! esearch#out#qflist#update() abort
   endif
 endfu
 
-fu! esearch#out#qflist#forced_finish() abort
+fu! esearch#out#qflist#schedule_finish() abort
   call esearch#out#qflist#finish()
 endfu
 
@@ -152,9 +148,9 @@ endfu
 fu! s:init_commands() abort
   let s:win = {
         \ 'line_in_file':   function('s:line_in_file'),
-        \ 'open':          function('s:open'),
-        \ 'filename':      function('s:filename'),
-        \ 'is_file_entry': function('s:is_file_entry')
+        \ 'open':           function('s:open'),
+        \ 'filename':       function('s:filename'),
+        \ 'is_file_entry':  function('s:is_file_entry')
         \}
   command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ESubstitute
         \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)

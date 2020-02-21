@@ -155,9 +155,8 @@ fu! esearch#out#win#init(opts) abort
         \ 'bufnr':                    bufnr('%'),
         \ 'last_update_at':           reltime(),
         \ 'files_count':              0,
-        \ 'lines_count':              0,
         \ 'viewport_highlight_timer': -1,
-        \ 'updates_timer':             -1,
+        \ 'updates_timer':            -1,
         \ 'update_with_timer_start':  0,
         \ 'max_lines_found':          0,
         \ 'ignore_batches':           0,
@@ -227,17 +226,17 @@ fu! s:init_update_events(esearch) abort
   if g:esearch_win_update_using_timer && exists('*timer_start')
     let a:esearch.update_with_timer_start = 1
 
-    augroup ESearchWinAutocmds
+    augroup ESearchWinUpdates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
 
-      " Preload the first batch as soon as possible
-      exe printf('au User ++once <buffer> %s '
-            \ . 'if reltimefloat(reltime(b:esearch.last_update_at)) < g:esearch_win_updates_timer_wait_time |'
-            \ . '  call esearch#out#win#update(%s) |'
-            \ . 'endif',
-            \ a:esearch.request.events.update,
-            \ string(bufnr('%')))
+      if a:esearch.backend !=# 'vimproc'
+        " TODO
+        for [func_name, event] in items(a:esearch.request.events)
+          exe printf('au User %s call s:update_by_backend_callbacks_until_1st_batch_is_rendered(%d)',
+                \ event, a:esearch.bufnr)
+        endfor
+      endif
 
       let a:esearch.updates_timer = timer_start(
             \ g:esearch_win_updates_timer_wait_time,
@@ -247,15 +246,39 @@ fu! s:init_update_events(esearch) abort
   else
     let a:esearch.update_with_timer_start = 0
 
-    augroup ESearchWinAutocmds
+    augroup ESearchWinUpdates
       au! * <buffer>
-      " Events can be: update, finish etc.
+      call esearch#backend#{a:esearch.backend}#init_events()
       for [func_name, event] in items(a:esearch.request.events)
         exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
       endfor
-      call esearch#backend#{a:esearch.backend}#init_events()
     augroup END
   endif
+endfu
+
+" will render <= 2 * batch_size (usually much less than 2x)
+fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
+  if a:bufnr != bufnr('%')
+    return 1
+  endif
+  let esearch = getbufvar(a:bufnr, 'esearch')
+
+  if esearch.request.cursor < esearch.batch_size
+    call esearch#out#win#update(a:bufnr)
+
+    if esearch.request.finished && len(esearch.request.data) == esearch.request.cursor
+      call esearch#out#win#schedule_finish(a:bufnr)
+    endif
+  else
+    call s:unload_update_events(esearch)
+  endif
+endfu
+
+fu! s:unload_update_events(esearch) abort
+  exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:esearch.bufnr))
+  for event in values(a:esearch.request.events)
+    exe printf('au! ESearchWinUpdates User %s ', event)
+  endfor
 endfu
 
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
@@ -269,15 +292,10 @@ fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
 
   call esearch#out#win#update(a:esearch.bufnr)
 
-  if a:esearch isnot# 0
-    let request = a:esearch.request
-  else
-    return 0
-  endif
-
+  let request = a:esearch.request
   if request.finished && len(request.data) == request.cursor
     let a:esearch.updates_timer = -1
-    call esearch#out#win#forced_finish(a:esearch.bufnr)
+    call esearch#out#win#schedule_finish(a:esearch.bufnr)
     call timer_stop(a:timer)
   endif
 endfu
@@ -337,7 +355,10 @@ fu! esearch#out#win#update(bufnr) abort
 
   call setbufvar(a:bufnr, '&ma', 1)
   if data_size > request.cursor
-    if ignore_batches || data_size - request.cursor - 1 <= esearch.batch_size
+    " TODO consider to discard ignore_batches as it doesn't make a lot of sense
+    if ignore_batches
+          \ || data_size - request.cursor - 1 <= esearch.batch_size
+          \ || (request.finished && data_size - request.cursor - 1 <= esearch.last_batch_size)
       let [from, to] = [request.cursor, data_size - 1]
       let request.cursor = data_size
     else
@@ -345,20 +366,20 @@ fu! esearch#out#win#update(bufnr) abort
       let request.cursor += esearch.batch_size
     endif
 
-    let parsed = esearch.parse_results(data, from, to)
+    let parsed = esearch.parse(data, from, to)
     call s:render_results(a:bufnr, parsed, esearch)
   endif
 
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
   if request.finished
     call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
-          \ len(request.data),
+          \ len(esearch.request.data),
           \ esearch.files_count,
           \ spinner
           \ ))
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:header,
-          \ len(request.data),
+          \ len(esearch.request.data),
           \ spinner,
           \ esearch.files_count,
           \ spinner
@@ -367,10 +388,8 @@ fu! esearch#out#win#update(bufnr) abort
 
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod', 0)
-
   let esearch.last_update_at = reltime()
   let esearch.tick += 1
-  return esearch
 endfu
 
 fu! s:new_context(id, filename, begin) abort
@@ -396,15 +415,15 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   let i = 0
   let limit = len(parsed)
-
-  if has('win32')
-    let sub_expression = substitute(a:esearch.cwd, '\\', '\\\\', 'g').'\\'
-  else
-    let sub_expression = a:esearch.cwd.'/'
-  endif
+  let lines = []
 
   while i < limit
-    let filename = substitute(parsed[i].filename, sub_expression, '', '')
+    if has_key(parsed[i], 'bufnr')
+      let filename = bufname(parsed[i].bufnr)
+    else
+      let filename = substitute(parsed[i].filename, a:esearch.cwd_prefix, '', '')
+    endif
+
     if g:esearch_win_ellipsize_results
       let text = esearch#util#ellipsize(
             \ parsed[i].text,
@@ -426,13 +445,13 @@ fu! s:render_results(bufnr, parsed, esearch) abort
         call s:unload_highlights(a:esearch)
       end
 
-      call esearch#util#setline(a:bufnr, line, '')
+      call add(lines, '')
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
       call add(a:esearch.columns_map, 0)
       call add(a:esearch.line_numbers_map, 0)
       let line += 1
 
-      call esearch#util#setline(a:bufnr, line, filename)
+      call add(lines, filename)
       call s:add_context(a:esearch.contexts, filename, line)
       let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
@@ -443,15 +462,16 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       let a:esearch.contexts[-1].filename = filename
     endif
 
-    call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, text))
+    call add(lines, printf(' %3d %s', parsed[i].lnum, text))
     call add(a:esearch.columns_map, parsed[i].col)
     call add(a:esearch.line_numbers_map, parsed[i].lnum)
     call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-    let a:esearch.lines_count += 1
     let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text
     let line += 1
     let i    += 1
   endwhile
+
+  call esearch#util#append_lines(lines)
 endfu
 
 fu! s:restrict_syntax_highlight_to_viewport(esearch) abort
@@ -697,10 +717,10 @@ endfu
 fu! esearch#out#win#foldtext() abort
   let filename = getline(v:foldstart)
   let last_line = getline(v:foldend)
-  let lines_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
+  let entries_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
 
   let winwidth = winwidth(0) - &foldcolumn - (&number ? strwidth(string(line('$'))) + 1 : 0)
-  let lines_count_str = lines_count . ' line(s)'
+  let lines_count_str = entries_count . ' line(s)'
 
   let expansion = repeat('-', winwidth - strwidth(filename.lines_count_str))
 
@@ -787,15 +807,11 @@ fu! s:is_filename() abort
   return getline(line('.')) =~# s:filename_pattern
 endfu
 
-" Use this function for #backend#nvim. It has no truly async handlers, so data
-" needs to be updated entirely (instantly or with BufEnter autocmd, if results
-" buffer isn't current buffer)
-fu! esearch#out#win#forced_finish(bufnr) abort
+fu! esearch#out#win#schedule_finish(bufnr) abort
   if a:bufnr != bufnr('%')
-    " Bind event to finish the search as soon as the buffer is enter
-    exe 'aug ESearchWinAutocmds'
-      let nr = string(a:bufnr)
-      exe printf('au BufEnter <buffer=%s> call esearch#out#win#finish(%s)', nr, nr)
+    " Bind event to finish the search as soon as the buffer is entered
+    aug ESearchWinUpdates
+      exe printf('au BufEnter <buffer=%d> ++once call esearch#out#win#finish(%d)', a:bufnr, a:bufnr)
     aug END
     return 1
   else
@@ -804,30 +820,30 @@ fu! esearch#out#win#forced_finish(bufnr) abort
 endfu
 
 fu! esearch#out#win#finish(bufnr) abort
-  " prevent updates when outside of the window
+  " prevent updates when outside of the buffer
   if a:bufnr != bufnr('%')
     return 1
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  if esearch.request.async && !esearch.update_with_timer_start
-    exe printf('au! ESearchWinAutocmds * <buffer=%s>', string(a:bufnr))
+  let esearch.ignore_batches = 1
+  call esearch#out#win#update(a:bufnr)
+
+  if esearch.request.async
+    exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:bufnr))
     for event in values(esearch.request.events)
-      exe printf('au! ESearchWinAutocmds User %s ', event)
+      exe printf('au! ESearchWinUpdates User %s ', event)
     endfor
   endif
 
-  " Update using all remaining request.data
-  let esearch.ignore_batches = 1
-  call esearch#out#win#update(a:bufnr)
+  if has_key(esearch, 'updates_timer')
+    call timer_stop(esearch.updates_timer)
+  endif
 
   call s:set_syntax_sync(esearch)
   call setbufvar(a:bufnr, '&modifiable', 1)
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
-    if has_key(esearch, 'updates_timer')
-      call timer_stop(esearch.updates_timer)
-    endif
     call s:blocking_unload_syntaxes(esearch)
 
     let errors = esearch.request.data + esearch.request.errors
@@ -839,8 +855,8 @@ fu! esearch#out#win#finish(bufnr) abort
     endfor
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
-          \ esearch.lines_count,
-          \ esearch#inflector#pluralize('line', esearch.lines_count),
+          \ len(esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(esearch.request.data)),
           \ esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \))
@@ -849,10 +865,7 @@ fu! esearch#out#win#finish(bufnr) abort
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod',   0)
 
-  " TODO fix timers handling to avoid such conditions
-  if !esearch.update_with_timer_start || get(esearch, 'updates_timer', -1) == -1
-    call esearch#out#win#edit()
-  endif
+  call esearch#out#win#edit()
 endfu
 
 " For some reasons s:_is_render_finished fails in Travis
@@ -1011,8 +1024,8 @@ fu! s:handle_insert__inline(event) abort
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
-          \ b:esearch.lines_count,
-          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ len(b:esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
@@ -1071,8 +1084,8 @@ fu! s:handle_normal__inline(event) abort
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
-          \ b:esearch.lines_count,
-          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ len(b:esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
@@ -1131,8 +1144,8 @@ endfu
 fu! s:handle_motion__header(recover) abort
   if a:recover.line1 == 1
     let a:recover.add_lines += [printf(s:finished_header,
-          \ b:esearch.lines_count,
-          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ len(b:esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ )]

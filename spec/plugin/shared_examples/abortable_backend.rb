@@ -9,7 +9,9 @@ RSpec.shared_examples 'an abortable backend' do |backend|
   let(:empty_cwd_for_infinite_search) { '' }
   # We will identify our command using UUID search_string (generated as a static
   # string intetionally)
-  let(:search_string) { '550e8400-e29b-41d4-a716-446655440000' }
+  let(:search_string) do
+    "550e8400-e29b-41d4-a716-446655440000#{Configuration.test_env_number}"
+  end
   let(:command_pattern) { search_string }
   # sh script spawns a main search process, so we have to ignore it to avoid
   # working with two process (parent and child)
