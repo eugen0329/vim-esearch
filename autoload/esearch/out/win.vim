@@ -513,7 +513,14 @@ fu! s:blocking_highlight_viewport(esearch) abort
   let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
   let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
 
-  for context in a:esearch.contexts[a:esearch.context_ids_map[begin] : a:esearch.context_ids_map[end]]
+
+  if a:esearch.mode ==# 'normal'
+    let state = b:esearch
+  else
+    let state = b:esearch.undotree.head.state
+  endif
+
+  for context in state.contexts[state.context_ids_map[begin] : state.context_ids_map[end]]
     if !context.syntax_loaded
       call s:load_syntax(a:esearch, context)
     endif
@@ -952,10 +959,12 @@ endfu
 
 fu! esearch#out#win#handle_changes(event) abort
 
-  if a:event.id =~# '^n-motion' || a:event.id =~# '^V-line-delete-'
+  if a:event.id =~# 'undo'
+    call b:esearch.undotree.checkout(a:event.changenr)
+  elseif a:event.id =~# '^n-motion' || a:event.id =~# '^V-line-delete-'
     let debug = s:handle_linewise__delete(a:event)
-  elseif a:event.id =~# 'undo'
-    let debug = s:handle_undo_traversal(a:event)
+  " elseif a:event.id =~# 'undo'
+  "   let debug = s:handle_undo_traversal(a:event)
   elseif a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
     let debug = s:handle_normal__inline(a:event)
   elseif  a:event.id =~# 'i-inline'
@@ -964,19 +973,21 @@ fu! esearch#out#win#handle_changes(event) abort
     let debug = s:handle_insert__delete_newlines(a:event)
   elseif  a:event.id =~# 'join'
     call s:handle_unsupported(a:event)
-  "" the feature is toggled until commandline and visual-block handling is ready
-  " else
+  else
+    call b:esearch.undotree.synchronize()
+    "" the feature is toggled until commandline and visual-block handling is ready
     " call s:handle_unsupported(a:event)
   endif
 
   if g:esearch#env isnot 0
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
-    call esearch#log#debug(a:event, len(v:errors))
+    call esearch#log#debug(a:event,  len(v:errors))
   endif
 endfu
 
 fu! s:handle_unsupported(event) abort
+  call b:esearch.undotree.mark_block_as_corrupted()
   " TODO fix for easymotion
   silent undo
   call b:esearch.undotree.checkout(changenr())
@@ -1022,13 +1033,12 @@ fu! s:handle_insert__delete_newlines(event) abort
           \ 'col':          1,
           \ })
   endif
-
-  call b:esearch.undotree.commit()
+  call b:esearch.undotree.synchronize()
 endfu
 
 fu! s:handle_insert__inline(event) abort
   let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
-  let state   = b:esearch.undotree.head.state
+  let state   = deepcopy(b:esearch.undotree.head.state)
   let context = s:find_context(state, line1)
   let text    = getline(line1)
   let linenr  = printf(' %3d ', state.line_numbers_map[line1])
@@ -1081,13 +1091,13 @@ fu! s:handle_insert__inline(event) abort
     call cursor(cursorpos)
   endif
   call esearch#changes#rewrite_last_state({ 'current_line': text })
-  call b:esearch.undotree.commit()
+  call b:esearch.undotree.synchronize()
 endfu
 
 fu! s:handle_normal__inline(event) abort
   " TODO will be refactored
   let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
-  let state = b:esearch.undotree.head.state
+  let state = deepcopy(b:esearch.undotree.head.state)
   let context = s:find_context(state, line1)
 
   let text = getline(line1)
@@ -1136,7 +1146,7 @@ fu! s:handle_normal__inline(event) abort
     endif
   endif
 
-  call b:esearch.undotree.commit()
+  call b:esearch.undotree.synchronize()
   if !empty(recover_cursor)
     call feedkeys(recover_cursor)
   endif
@@ -1217,7 +1227,7 @@ fu! s:handle_linewise__delete(event) abort
     " TODO
   endtry
   call s:apply_recovery__linewise_removal(state, recover)
-  call b:esearch.undotree.commit(state)
+  call b:esearch.undotree.synchronize(state)
 endfu
 
 let s:context_separator_lines_length = 1

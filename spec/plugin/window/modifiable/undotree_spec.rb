@@ -6,14 +6,25 @@ describe 'Undoing in modifiable mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable
+  include Helpers::Undotree
 
   include_context 'setup modifiable testing'
 
+  # NOTES
   # - undo is represented as a tree structure
   # - each undo block can be checkouted (seq_last - last change block
   #   number, seq_cur - currently checkouted block)
 
-  describe 'undo' do
+  # undotree().items doesn't contain the first block
+  let!(:root_node) { editor.echo(func('changenr')) }
+  # this entry isn't listed as well, but seq_cur and changenr() are showing it
+  let(:root_node_alias) { 0 }
+  after do
+    expect(undotree_nodes + [root_node, root_node_alias])
+      .to match_array(esearch_undotree_nodes)
+  end
+
+  describe 'plain undo' do
     context '1 block back' do
       it 'handles undo of a deleted line' do
         entries.each do |entry|
@@ -66,7 +77,7 @@ describe 'Undoing in modifiable mode', :window do
     end
   end
 
-  describe 'redo' do
+  describe 'plain redo' do
     context '1 block forward' do
       it do
         entries.each do |entry|
@@ -75,7 +86,7 @@ describe 'Undoing in modifiable mode', :window do
           editor.send_keys_separately 'u'
           expect(editor).to have_valid_entries(entries) # fail fast
 
-          expect { editor.send_keys_separately "\\<C-r>" }
+          expect { editor.send_keys_separately '\\<C-r>' }
             .to change { output.entries.to_a }
             .to(have_missing_entries([entry]))
 
@@ -94,11 +105,11 @@ describe 'Undoing in modifiable mode', :window do
           editor.send_keys_separately 'uu'
           expect(editor).to have_valid_entries(entries) # fail fast
 
-          expect { editor.send_keys_separately "\\<C-r>" }
+          expect { editor.send_keys_separately '\\<C-r>' }
             .to change { output.entries.to_a }
             .to(have_missing_entries([entry1]) & have_valid_entries(entries - [entry1]))
 
-          expect { editor.send_keys_separately "\\<C-r>" }
+          expect { editor.send_keys_separately '\\<C-r>' }
             .to change { output.entries.to_a }
             .to(have_missing_entries([entry1, entry2]))
 
@@ -114,7 +125,7 @@ describe 'Undoing in modifiable mode', :window do
         editor.send_keys_separately 'u'
         expect(editor).to have_valid_entries(entries) # fail fast
 
-        editor.send_keys_separately "\\<C-r>" * 100
+        editor.send_keys_separately '\\<C-r>' * 100
         expect(output).to have_missing_entries([entry])
       end
     end
@@ -156,7 +167,7 @@ describe 'Undoing in modifiable mode', :window do
       # Undefined actions are handled via :undo which cause changenr() to remain
       # the same, while last undo block number is incremented.
       # Here is the setup verification to have feedback when it will become outdated
-      expect { editor.send_keys_separately "J" }
+      expect { editor.send_keys_separately 'J' }
         .to change { editor.echo(func('changenr')) }
         .to(be <= changenr_was)
         .and change { editor.echo(var('undotree().seq_last')) }
@@ -203,6 +214,20 @@ describe 'Undoing in modifiable mode', :window do
           expect { editor.send_keys_separately 'dd' }
             .not_to change { editor.lines.to_a }
         end
+      end
+    end
+  end
+
+  describe 'INSERT mode' do
+    context 'breaking undo blocks' do
+      it 'works after unknown action recovery' do
+        entry.locate!
+        editor.send_keys_separately 'i', 'xxx', '\\<C-g>u', 'zzz', :escape
+
+        expect { editor.send_keys_separately 'u' }
+          .to change { output.reload(entry).result_text }
+          .from(start_with('xxxzzz'))
+          .to(start_with('xxx'))
       end
     end
   end

@@ -35,6 +35,7 @@ if !exists(':PP')
 endif
 
 let g:esearch#env = 'test'
+let g:esearch#log#output = '/tmp/esearch.log'
 
 fu! Matches(group) abort
   let found = {}

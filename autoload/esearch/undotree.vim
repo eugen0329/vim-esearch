@@ -3,14 +3,16 @@ let s:Dict     = s:Vital.import('Data.Dict')
 
 fu! esearch#undotree#new(state) abort
   let initial = s:node(a:state)
-  let node_by_changenr = {}
-  let node_by_changenr[0] = initial
-  let node_by_changenr[changenr()] = initial
+  let nodes = {}
+  let nodes[0] = initial
+  let nodes[changenr()] = initial
+  let head = s:node(deepcopy(a:state))
   return {
-        \ 'commit':           function('<SID>commit'),
-        \ 'checkout':         function('<SID>checkout'),
-        \ 'head':             initial,
-        \ 'node_by_changenr': node_by_changenr,
+        \ 'synchronize':             function('<SID>synchronize'),
+        \ 'mark_block_as_corrupted': function('<SID>mark_block_as_corrupted'),
+        \ 'checkout':                function('<SID>checkout'),
+        \ 'head':                    initial,
+        \ 'nodes':                   nodes,
         \ }
 endfu
 
@@ -18,11 +20,11 @@ fu! s:node(state) abort
   return {
         \ 'changenr': changenr(),
         \ 'state':    a:state,
-        \ 'children': [],
         \ }
 endfu
 
-fu! s:commit(...) abort dict
+" Synchronizes with builtin undotree
+fu! s:synchronize(...) abort dict
   if a:0 == 1
     let state = a:1
   else
@@ -30,13 +32,20 @@ fu! s:commit(...) abort dict
   endif
 
   let node = s:node(state)
-  let self.node_by_changenr[node.changenr] = node
-  call add(self.head.children, node)
+  let self.nodes[node.changenr] = node
   let self.head = node
 endfu
 
+fu! s:mark_block_as_corrupted(...) abort dict
+  " If the block contains state recovered using :undo (instead of setlines()).
+  " In future can be used to notify users on a try to checkout to this entry
+  " that it contains invalid buffer state and should not be restored
+  call self.synchronize()
+  let self.head.corrupted = 1
+endfu
+
 fu! s:checkout(changenr) abort dict
-  let self.head = self.node_by_changenr[a:changenr]
+  let self.head = self.nodes[a:changenr]
 endfu
 
 if g:esearch#env isnot 0
@@ -44,14 +53,9 @@ if g:esearch#env isnot 0
   fu! s:debug() abort
     let tree = deepcopy(b:esearch.undotree)
 
-    for node in values(tree.node_by_changenr)
-      if has_key(node, 'state')
-        unlet node.state
-      endif
-    endfor
-
-    unlet tree.node_by_changenr
     let tree.active = tree.head.changenr
+    let tree.nodes = map(keys(tree.nodes), 'str2nr(v:val)')
+    unlet tree.head
 
     for key in keys(tree)
       if type(tree[key]) == type(function('tr'))
