@@ -24,6 +24,13 @@ module Configuration
     env_fetch('RG_PATH') { bin_dir.join('rg') }
   end
 
+  def test_env_number
+    # For parallel_tests and parallel_split_test
+    # Imitation of --first-is-1 of parallel_tests for parallel_split_test as it
+    # doesn't have this option
+    env_fetch('TEST_ENV_NUMBER') { '1' }
+  end
+
   def log_level
     env_fetch('LOG_LEVEL') { 'info' }
   end

@@ -125,7 +125,7 @@ VimrunnerNeovim::RSpec.configure do |c|
 
   c.start_nvim do
     load_runtime!(Client.new(Server.neovim(
-      name:          "NVIMRUNER#{Time.now.to_f}#{ENV['TEST_ENV_NUMBER']}",
+      name:          "NVIMRUNER#{Time.now.to_f}#{Configuration.test_env_number}",
       nvim:          Configuration.nvim_path,
       gui:           Configuration.nvim_gui?,
       vimrc:         Configuration.vimrc_path,
