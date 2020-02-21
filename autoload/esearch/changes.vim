@@ -743,7 +743,7 @@ fu! s:is_joining(from, to, line1, line2) abort
   return 1
 endfu
 
-if g:esearch#debug
+if g:esearch#env isnot 0
   command! -buffer ST call s:debug_states()
   command! -buffer CT call s:debug_changes()
   command! -buffer S  echo "\n".join(b:__states,  "\n")

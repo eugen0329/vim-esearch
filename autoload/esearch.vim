@@ -133,10 +133,6 @@ fu! s:init_lazy_global_config() abort
   return 0
 endfu
 
-if !exists('g:esearch#development')
-  let g:esearch#development = 1
-
-  if !exists('g:esearch#debug')
-    let g:esearch#debug = 1
-  endif
+if !exists('g:esearch#env')
+  let g:esearch#env = 0 " prod
 endif

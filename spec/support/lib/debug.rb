@@ -41,7 +41,7 @@ module Debug
     reader.echo(var('&runtimepath')).split(',')
   end
 
-  def plugin_log(path: '/tmp/esearch_log.txt')
+  def plugin_log(path: '/tmp/esearch.log')
     readlines(path)
   end
 

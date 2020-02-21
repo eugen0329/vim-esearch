@@ -969,11 +969,10 @@ fu! esearch#out#win#handle_changes(event) abort
     " call s:handle_unsupported(a:event)
   endif
 
-
-  if g:esearch#development
+  if g:esearch#env isnot 0
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
-    if g:esearch#debug | echo [a:event, len(v:errors) ] | endif
+    call esearch#log#debug(a:event, len(v:errors))
   endif
 endfu
 
@@ -982,10 +981,6 @@ fu! s:handle_unsupported(event) abort
   silent undo
   call b:esearch.undotree.checkout(changenr())
   call esearch#changes#undo_state()
-
-  if g:esearch#debug
-    echo 'Unknown action ' . string(get(a:event, 'id', -1))
-  endif
 endfu
 
 fu! s:handle_undo_traversal(event) abort

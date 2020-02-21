@@ -39,7 +39,7 @@ fu! s:checkout(changenr) abort dict
   let self.head = self.node_by_changenr[a:changenr]
 endfu
 
-if esearch#debug
+if g:esearch#env isnot 0
   command! T call s:debug()
   fu! s:debug() abort
     let tree = deepcopy(b:esearch.undotree)
