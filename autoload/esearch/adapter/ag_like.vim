@@ -16,10 +16,19 @@ fu! esearch#adapter#ag_like#set_results_parser(esearch) abort
     let a:esearch.parse = function('esearch#adapter#ag_like#parse_from_1_file')
     let a:esearch.format = g:esearch#adapter#ag_like#single_file_search_format
   else
-    let a:esearch.parse = function('esearch#adapter#ag_like#parse')
-    let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
+    if g:esearch#has#getqflist_lines
+      let a:esearch.parse =
+            \ function('esearch#adapter#ag_like#parse_with_getqflist_lines')
+    elseif g:esearch#has#getqflist_text
+      let a:esearch.parse =
+            \ function('esearch#adapter#ag_like#parse_with_getqflist_text')
+    else
+      let a:esearch.parse = function('esearch#adapter#ag_like#parse')
+      let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
+    endif
   endif
 
+  let a:esearch.data1 = []
   let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
 endfu
 
@@ -52,8 +61,39 @@ fu! esearch#adapter#ag_like#parse_from_1_file(data, from, to) abort dict
   return results
 endfu
 
-fu! esearch#adapter#ag_like#parse(data, from, to) abort dict
+fu! esearch#adapter#ag_like#parse_with_getqflist_lines(data, from, to) abort dict
   if empty(a:data) | return [] | endif
+  try
+    let save_cwd = getcwd()
+    if !empty(self.cwd)
+      exe 'lcd' self.cwd
+    endif
+
+    return getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
+  finally
+    if !empty(save_cwd)
+      exe 'lcd' save_cwd
+    endif
+  endtry
+endfu
+
+fu! esearch#adapter#ag_like#parse_with_getqflist_text(data, from, to) abort dict
+  if empty(a:data) | return [] | endif
+  try
+    let save_cwd = getcwd()
+    if !empty(self.cwd)
+      exe 'lcd' self.cwd
+    endif
+
+    return getqflist({'text': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
+  finally
+    if !empty(save_cwd)
+      exe 'lcd' save_cwd
+    endif
+  endtry
+endfu
+
+fu! esearch#adapter#ag_like#parse(data, from, to) abort dict
   let format = self.format
   let results = []
 

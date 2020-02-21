@@ -412,17 +412,15 @@ fu! s:render_results(bufnr, parsed, esearch) abort
 
   let i = 0
   let limit = len(parsed)
-
-  if has('win32')
-    let sub_expression = substitute(a:esearch.cwd, '\\', '\\\\', 'g').'\\'
-  else
-    let sub_expression = a:esearch.cwd.'/'
-  endif
-
   let lines = []
 
   while i < limit
-    let filename = substitute(parsed[i].filename, sub_expression, '', '')
+    if has_key(parsed[i], 'bufnr')
+      let filename = bufname(parsed[i].bufnr)
+    else
+      let filename = substitute(parsed[i].filename, a:esearch.cwd_prefix_regex, '', '')
+    endif
+
     if g:esearch_win_ellipsize_results
       let text = esearch#util#ellipsize(
             \ parsed[i].text,
@@ -445,14 +443,12 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       end
 
       call add(lines, '')
-      " call esearch#util#setline(a:bufnr, line, '')
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
       call add(a:esearch.columns_map, 0)
       call add(a:esearch.line_numbers_map, 0)
       let line += 1
 
       call add(lines, filename)
-      " call esearch#util#setline(a:bufnr, line, filename)
       call s:add_context(a:esearch.contexts, filename, line)
       let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
       call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
@@ -464,7 +460,6 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     endif
 
     call add(lines, printf(' %3d %s', parsed[i].lnum, text))
-    " call esearch#util#setline(a:bufnr, line, printf(' %3d %s', parsed[i].lnum, text))
     call add(a:esearch.columns_map, parsed[i].col)
     call add(a:esearch.line_numbers_map, parsed[i].lnum)
     call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)

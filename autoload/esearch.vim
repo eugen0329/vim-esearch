@@ -52,6 +52,7 @@ fu! s:new(configuration) abort
         \ deepcopy(g:esearch), 'keep')
   let configuration = extend(configuration, {
         \ 'cwd': getcwd(),
+        \ 'escaped_cwd': fnameescape(getcwd()),
         \ 'paths': [],
         \ 'metadata': [],
         \ 'glob': 0,
@@ -60,6 +61,13 @@ fu! s:new(configuration) abort
         \ 'set_default': function('esearch#util#set_default'),
         \ 'slice': function('esearch#util#slice')
         \}, 'keep')
+
+  if has('win32')
+    let configuration.cwd_prefix_regex = substitute(configuration.cwd, '\\', '\\\\', 'g').'\\'
+  else
+    let configuration.cwd_prefix_regex = configuration.cwd . '/'
+  endif
+
   return configuration
 endfu
 
