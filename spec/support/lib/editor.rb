@@ -49,7 +49,7 @@ class Editor
     echo func('getline', number)
   end
 
-  def lines(range = nil, prefetch_count: 15)
+  def lines(range = nil, prefetch_count: 30)
     raise ArgumentError unless prefetch_count.positive?
     return enum_for(:lines, range, prefetch_count: prefetch_count) { lines_count } unless block_given?
 
@@ -194,7 +194,9 @@ class Editor
   end
 
   def locate_cursor!(line_number, column_number)
-    command!("call cursor(#{line_number},#{column_number}) | doau CursorMoved").to_i == 0
+    # NOTE that $ works for line_number by default but doesn't work for col
+    column_number = func('col', '$') if column_number == '$'
+    command!("call #{VimlValue.dump(func('cursor',line_number, column_number))} | doau CursorMoved").to_i == 0
   end
 
   def modified?

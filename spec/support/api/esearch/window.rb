@@ -6,7 +6,13 @@ class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
 
-  class MissingEntry < RuntimeError; end
+  class MissingEntryError < RuntimeError; end
+
+  MissingEntry = Struct.new(:relative_path, :line_in_file) do
+    def empty?
+      true
+    end
+  end
 
   class_attribute :search_event_timeout, default: Configuration.search_event_timeout
   class_attribute :search_freeze_timeout, default: Configuration.search_freeze_timeout
@@ -37,7 +43,7 @@ class API::ESearch::Window
 
   def has_search_highlight?(relative_path, line, column)
     entry = find_entry(relative_path, line)
-    raise MissingEntry unless entry
+    raise MissingEntryError if entry.empty?
 
     padding = entry.left_padding
 
@@ -83,11 +89,7 @@ class API::ESearch::Window
   end
 
   def reload(entry)
-    return nil if entry.nil?
-
     find_entry(entry.relative_path, entry.line_in_file)
-  rescue MissingEntry
-    nil
   end
 
   def reloaded_entries!(entries)
@@ -97,28 +99,30 @@ class API::ESearch::Window
 
   def entry_location(relative_path, line_in_file)
     entry = find_entry(relative_path, line_in_file)
-    raise MissingEntry, entry unless entry
+    raise MissingEntryError, entry if entry.empty?
 
     entry.line_in_window
   end
 
   def has_outputted_result_with_right_position_inside_file?(relative_path, line_in_file, column)
     location_in_file(relative_path, line_in_file) == [line_in_file, column]
-  rescue MissingEntry
+  rescue MissingEntryError
     false
   end
 
   def location_in_file(relative_path, line_in_file)
     entry = find_entry(relative_path, line_in_file)
-    raise MissingEntry unless entry
+    raise MissingEntryError if entry.empty?
 
     entry.open { [editor.current_line_number, editor.current_column_number] }
   end
 
   def find_entry(relative_path, line_in_file)
-    parser.entries.find do |entry|
+    found = parser.entries.find do |entry|
       entry.relative_path == relative_path && entry.line_in_file == line_in_file
     end
+
+    found || MissingEntry.new(relative_path, line_in_file)
   end
 
   def entries

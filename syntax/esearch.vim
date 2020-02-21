@@ -4,11 +4,12 @@ endif
 
 syn match esearchHeader   '\%1l.*'
 syn match esearchFilename '^[^ ]\+$'
-syn match esearchLineNr   '^\s\+\d\+'
+syn match esearchLineNr   '^\s\+\d\+\s'
 
-hi def link esearchHeader   Title
-hi def link esearchFilename Directory
-hi def link esearchLineNr   LineNr
+hi def link esearchHeader       Title
+hi def link esearchFilename     Directory
+hi def link esearchLineNr       LineNr
+hi def link esearchCursorLineNr CursorLineNr
 
 let s:cursorline    = esearch#util#get_highlight('CursorLine')
 let s:esearch_match = extend(esearch#util#get_highlight('MoreMsg'), {

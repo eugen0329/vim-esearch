@@ -35,7 +35,7 @@ describe 'VISUAL LINE mode' do
           expect(editor.lines.to_a).to eq(%w[11 33 44])
           expect(event)
             .to include_payload('n-motion-down2', 2.., 2..)
-            .or include_payload('n-motion-up4', 2.., 2..)
+            .or include_payload('n-motion-down4', 2.., 2..)
         end
 
         # as required as far as we don't have VisualEnter hook
@@ -77,7 +77,7 @@ describe 'VISUAL LINE mode' do
           editor.locate_line! 1
           editor.press! 'Vx'
           expect(editor.lines.to_a).to eq(%w[22 33 44])
-          expect(event).to include_payload('n-motion-down2', 1.., 1..)
+          expect(event).to include_payload('n-motion-down4', 1.., 1..)
         end
 
         # as required as far as we don't have VisualEnter hook

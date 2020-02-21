@@ -36,7 +36,7 @@ class API::ESearch::Window::Entry
   end
 
   def locate!
-    editor.locate_line!(line_in_window)
+    editor.locate_cursor!(line_in_window, left_padding + 1)
   end
 
   def open(timeout: 20)
