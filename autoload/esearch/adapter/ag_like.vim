@@ -69,7 +69,7 @@ fu! esearch#adapter#ag_like#parse_with_getqflist_lines(data, from, to) abort dic
       exe 'lcd' self.cwd
     endif
 
-    return getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
+    return filter(getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items, 'v:val.valid')
   finally
     if !empty(save_cwd)
       exe 'lcd' save_cwd

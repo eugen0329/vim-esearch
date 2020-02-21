@@ -234,7 +234,7 @@ fu! s:init_update_events(esearch) abort
       if a:esearch.backend !=# 'vimproc'
         " TODO
         for [func_name, event] in items(a:esearch.request.events)
-          exe printf('au User %s call s:update_by_backend_callback_until_1st_batch_is_rendered(%d)',
+          exe printf('au User %s call s:update_by_backend_callbacks_until_1st_batch_is_rendered(%d)',
                 \ event, a:esearch.bufnr)
         endfor
       endif
@@ -257,7 +257,8 @@ fu! s:init_update_events(esearch) abort
   endif
 endfu
 
-fu! s:update_by_backend_callback_until_1st_batch_is_rendered(bufnr) abort
+" will render <= 2 * batch_size (usually much less than 2x)
+fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
   if a:bufnr != bufnr('%')
     return 1
   endif
@@ -370,13 +371,13 @@ fu! esearch#out#win#update(bufnr) abort
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
   if request.finished
     call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
-          \ len(request.data),
+          \ esearch.lines_count,
           \ esearch.files_count,
           \ spinner
           \ ))
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:header,
-          \ len(request.data),
+          \ esearch.lines_count,
           \ spinner,
           \ esearch.files_count,
           \ spinner
@@ -418,7 +419,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     if has_key(parsed[i], 'bufnr')
       let filename = bufname(parsed[i].bufnr)
     else
-      let filename = substitute(parsed[i].filename, a:esearch.cwd_prefix_regex, '', '')
+      let filename = substitute(parsed[i].filename, a:esearch.cwd_prefix, '', '')
     endif
 
     if g:esearch_win_ellipsize_results
@@ -463,12 +464,12 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     call add(a:esearch.columns_map, parsed[i].col)
     call add(a:esearch.line_numbers_map, parsed[i].lnum)
     call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-    let a:esearch.lines_count += 1
     let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text
     let line += 1
     let i    += 1
   endwhile
 
+  let a:esearch.lines_count += len(lines)
   call esearch#util#append_lines(lines)
 endfu
 

@@ -63,9 +63,9 @@ fu! s:new(configuration) abort
         \}, 'keep')
 
   if has('win32')
-    let configuration.cwd_prefix_regex = substitute(configuration.cwd, '\\', '\\\\', 'g').'\\'
+    let configuration.cwd_prefix = substitute(configuration.cwd, '\\', '\\\\', 'g').'\\'
   else
-    let configuration.cwd_prefix_regex = configuration.cwd . '/'
+    let configuration.cwd_prefix = configuration.cwd . '/'
   endif
 
   return configuration
