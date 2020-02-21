@@ -155,9 +155,8 @@ fu! esearch#out#win#init(opts) abort
         \ 'bufnr':                    bufnr('%'),
         \ 'last_update_at':           reltime(),
         \ 'files_count':              0,
-        \ 'lines_count':              0,
         \ 'viewport_highlight_timer': -1,
-        \ 'updates_timer':             -1,
+        \ 'updates_timer':            -1,
         \ 'update_with_timer_start':  0,
         \ 'max_lines_found':          0,
         \ 'ignore_batches':           0,
@@ -374,13 +373,13 @@ fu! esearch#out#win#update(bufnr) abort
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
   if request.finished
     call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
-          \ esearch.lines_count,
+          \ len(esearch.request.data),
           \ esearch.files_count,
           \ spinner
           \ ))
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:header,
-          \ esearch.lines_count,
+          \ len(esearch.request.data),
           \ spinner,
           \ esearch.files_count,
           \ spinner
@@ -472,7 +471,6 @@ fu! s:render_results(bufnr, parsed, esearch) abort
     let i    += 1
   endwhile
 
-  let a:esearch.lines_count += len(lines)
   call esearch#util#append_lines(lines)
 endfu
 
@@ -719,10 +717,10 @@ endfu
 fu! esearch#out#win#foldtext() abort
   let filename = getline(v:foldstart)
   let last_line = getline(v:foldend)
-  let lines_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
+  let entries_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
 
   let winwidth = winwidth(0) - &foldcolumn - (&number ? strwidth(string(line('$'))) + 1 : 0)
-  let lines_count_str = lines_count . ' line(s)'
+  let lines_count_str = entries_count . ' line(s)'
 
   let expansion = repeat('-', winwidth - strwidth(filename.lines_count_str))
 
@@ -857,8 +855,8 @@ fu! esearch#out#win#finish(bufnr) abort
     endfor
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
-          \ esearch.lines_count,
-          \ esearch#inflector#pluralize('line', esearch.lines_count),
+          \ len(esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(esearch.request.data)),
           \ esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \))
@@ -1026,8 +1024,8 @@ fu! s:handle_insert__inline(event) abort
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
-          \ b:esearch.lines_count,
-          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ len(b:esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
@@ -1086,8 +1084,8 @@ fu! s:handle_normal__inline(event) abort
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
-          \ b:esearch.lines_count,
-          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ len(b:esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
@@ -1146,8 +1144,8 @@ endfu
 fu! s:handle_motion__header(recover) abort
   if a:recover.line1 == 1
     let a:recover.add_lines += [printf(s:finished_header,
-          \ b:esearch.lines_count,
-          \ esearch#inflector#pluralize('line', b:esearch.lines_count),
+          \ len(b:esearch.request.data),
+          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ )]
