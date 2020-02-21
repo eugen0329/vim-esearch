@@ -356,7 +356,10 @@ fu! esearch#out#win#update(bufnr) abort
 
   call setbufvar(a:bufnr, '&ma', 1)
   if data_size > request.cursor
-    if ignore_batches || data_size - request.cursor - 1 <= esearch.batch_size
+    " TODO consider to discard ignore_batches as it doesn't make a lot of sense
+    if ignore_batches
+          \ || data_size - request.cursor - 1 <= esearch.batch_size
+          \ || (request.finished && data_size - request.cursor - 1 <= esearch.last_batch_size)
       let [from, to] = [request.cursor, data_size - 1]
       let request.cursor = data_size
     else

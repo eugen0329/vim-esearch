@@ -24,6 +24,7 @@ fu! esearch#opts#new(opts) abort
         \ 'case':             0,
         \ 'word':             0,
         \ 'batch_size':       800,
+        \ 'last_batch_size':  4*800,
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'highlight_match':  1,
         \ 'default_mappings': g:esearch#defaults#default_mappings,
