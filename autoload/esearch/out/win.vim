@@ -513,14 +513,8 @@ fu! s:blocking_highlight_viewport(esearch) abort
   let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
   let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
 
-
-  if a:esearch.mode ==# 'normal'
-    let state = b:esearch
-  else
-    let state = b:esearch.undotree.head.state
-  endif
-
-  for context in state.contexts[state.context_ids_map[begin] : state.context_ids_map[end]]
+  let state = s:state()
+  for context in b:esearch.contexts[state.context_ids_map[begin] : state.context_ids_map[end]]
     if !context.syntax_loaded
       call s:load_syntax(a:esearch, context)
     endif
@@ -712,20 +706,26 @@ fu! esearch#out#win#line_in_file() abort
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 
-" TODO lookup data stored inside esearch.undotree instead
 fu! esearch#out#win#filename() abort
-  if b:esearch.mode ==# 'normal'
-    let state = b:esearch
-  else
-    let state = b:esearch.undotree.head.state
-  endif
+  let state = s:state()
   let context = b:esearch.contexts[state.context_ids_map[line('.')]]
   if context.id == 0
     return get(b:esearch.contexts, 1, context).filename
   endif
 
-return context.filename
+  return context.filename
+endfu
 
+fu! s:state() abort
+  if b:esearch.mode ==# 'normal'
+    " Probably a better idea would be to return only paris, stored in states.
+    " Storing in normal mode within undotree with a single node is not the best
+    " option as it seems to create extra overhead during #update call
+    " (especially on searches with thousands results; according to profiling).
+    return b:esearch
+  else
+    return b:esearch.undotree.head.state
+  endif
 endfu
 
 fu! esearch#out#win#foldtext() abort
@@ -914,7 +914,6 @@ fu! esearch#out#win#edit() abort
 
   let b:esearch.undotree = esearch#undotree#new({
         \ 'context_ids_map': b:esearch.context_ids_map,
-        \ 'contexts': b:esearch.contexts,
         \ 'line_numbers_map': b:esearch.line_numbers_map,
         \ })
   call esearch#changes#listen_for_current_buffer()
@@ -1152,13 +1151,6 @@ fu! s:handle_normal__inline(event) abort
   endif
 endfu
 
-fu! Len(contexts) abort
-  if a:contexts[0].id == 0
-    return len(a:contexts) - 1
-  endif
-  return len(a:contexts)
-endfu
-
 fu! s:handle_motion__header(recover) abort
   if a:recover.line1 == 1
     let a:recover.add_lines += [printf(s:finished_header,
@@ -1181,7 +1173,7 @@ fu! s:find_context(state, line) abort
   if len(a:state.context_ids_map) <= a:line
     return 0
   endif
-  let context = a:state.contexts[a:state.context_ids_map[a:line]]
+  let context = b:esearch.contexts[a:state.context_ids_map[a:line]]
 
   " read-through cache synchronization
   let context.begin = s:context_begin(a:state.context_ids_map, context, a:line)
@@ -1251,15 +1243,15 @@ fu! s:is_orphaned_filename_before(context, recover) abort
 endfu
 
 fu! s:is_last_context(context, state) abort
-  return a:context.id ==# a:state.contexts[a:state.context_ids_map[-1]].id
+  return a:context.id ==# b:esearch.contexts[a:state.context_ids_map[-1]].id
 endfu
 
 fu! s:is_first_context(context, state) abort
-  if len(a:state.contexts) < 2 || len(a:state.context_ids_map) < 3
+  if len(b:esearch.contexts) < 2 || len(a:state.context_ids_map) < 3
     return 0
   endif
 
-  return a:context.id ==# a:state.contexts[a:state.context_ids_map[3]].id
+  return a:context.id ==# b:esearch.contexts[a:state.context_ids_map[3]].id
 endfu
 
 fu! s:handle_motion__leading_context(context, state, recover, trailing_context) abort
