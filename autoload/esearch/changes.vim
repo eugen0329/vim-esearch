@@ -78,8 +78,10 @@ fu! s:handle_text_changed() abort
     call s:handle_cursor_moved('n')
   endif
 
-  if from.changenr > changenr()
-    return s:identify_undo()
+  let undotree = undotree()
+
+  if undotree.seq_last > undotree.seq_cur
+    return s:emit_undotree_traversal()
   elseif from.mode ==# 'i'
     return s:identify_insert()
   elseif from.mode ==# 'V' || to.mode ==# 'V'
@@ -103,8 +105,8 @@ fu! s:emit(event) abort
   call add(b:__changes, a:event)
 endfu
 
-fu! s:identify_undo() abort
-  return s:emit({'id': 'undo'})
+fu! s:emit_undotree_traversal() abort
+  return s:emit({'id': 'undo-traversal', 'changenr': b:__states[-1].changenr})
 endfu
 
 fu! s:identify_visual_line() abort
@@ -741,7 +743,7 @@ fu! s:is_joining(from, to, line1, line2) abort
   return 1
 endfu
 
-if g:esearch#debug
+if g:esearch#env isnot 0
   command! -buffer ST call s:debug_states()
   command! -buffer CT call s:debug_changes()
   command! -buffer S  echo "\n".join(b:__states,  "\n")

@@ -34,8 +34,8 @@ if !exists(':PP')
   command PP call tr('', '', '')
 endif
 
-" disable messages
-let g:esearch#debug = 0
+let g:esearch#env = 'test'
+let g:esearch#log#output = '/tmp/esearch.log'
 
 fu! Matches(group) abort
   let found = {}
