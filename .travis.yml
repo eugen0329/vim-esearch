@@ -102,9 +102,9 @@ jobs:
     - name: 'Acceptance tests of #backend#vim8'
       script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8
       os: osx
-    - name: 'Acceptance tests of #backend#vimproc'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
-      os: osx
+    # - name: 'Acceptance tests of #backend#vimproc'
+    #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
+    #   os: osx
 
       # Although travis has less cores than 4, it's better for splitting as
       # groups with even execution time cannot be precisely determined using files size
