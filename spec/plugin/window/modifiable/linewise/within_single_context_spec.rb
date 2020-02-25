@@ -22,11 +22,11 @@ describe 'Modifiable window mode motions', :window do
         end
       end
 
-      include_examples 'recover header', -> { editor.send_keys 'Vd' }
-      include_examples 'recover header', -> { editor.send_keys 'Vddd' }
-      include_examples 'recover header', -> { editor.send_keys 'Vlhd' }
-      include_examples 'recover header', -> { editor.send_keys 'dd' }
-      include_examples 'recover header', -> { editor.send_keys 'ddVd' }
+      include_examples 'recover header', -> { editor.send_keys_separately 'Vd' }
+      include_examples 'recover header', -> { editor.send_keys_separately 'Vddd' }
+      include_examples 'recover header', -> { editor.send_keys_separately 'Vlhd' }
+      include_examples 'recover header', -> { editor.send_keys_separately 'dd' }
+      include_examples 'recover header', -> { editor.send_keys_separately 'ddVd' }
     end
 
     context 'file context' do
@@ -49,22 +49,22 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            context 'inside non-blank lines' do
-              include_examples 'removes entries', -> { editor.send_keys 'Vipd' }
-              include_examples 'removes entries', -> { editor.send_keys 'Vapd' }
-              include_examples 'removes entries', -> { editor.send_keys 'dip' }
-              include_examples 'removes entries', -> { editor.send_keys 'dap' }
+            context 'when cursor on non-blank line' do
+              include_examples 'removes entries', -> { editor.send_keys_separately 'Vipd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'Vapd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'dip' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'dap' }
             end
 
-            context 'on a blank line' do
+            context 'when cursor on a blank line' do
               let(:entry) { contexts[i].entries.first }
 
-              include_examples 'removes entries', -> { editor.send_keys 'kkVapd' }
-              include_examples 'removes entries', -> { editor.send_keys 'kkdap' }
-              include_examples 'removes entries', -> { editor.send_keys 'kk', 'Vipd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'kkVapd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'kkdap' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'kk', 'Vipd' }
               # Strangely enough, but normal mode textobject doesn't capture
               # paragraph below, while visual line mode does
-              include_examples "doesn't have effect after motion", -> { editor.send_keys 'kkdip' }
+              include_examples "doesn't have effect after motion", -> { editor.send_keys_separately 'kkdip' }
             end
           end
 
@@ -87,10 +87,10 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            include_examples 'recover context name after motion down', -> { editor.send_keys 'Vjd' }
-            include_examples 'recover context name after motion down', -> { editor.send_keys 'dj' }
-            include_examples 'recover context name after motion up',   -> { editor.send_keys 'Vkd' }
-            include_examples 'recover context name after motion up',   -> { editor.send_keys 'dk' }
+            include_examples 'recover context name after motion down', -> { editor.send_keys_separately 'Vjd' }
+            include_examples 'recover context name after motion down', -> { editor.send_keys_separately 'dj' }
+            include_examples 'recover context name after motion up',   -> { editor.send_keys_separately 'Vkd' }
+            include_examples 'recover context name after motion up',   -> { editor.send_keys_separately 'dk' }
           end
 
           context 'delete down' do
@@ -107,8 +107,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', -> { editor.send_keys 'Vjd' }
-              include_examples 'removes entries', -> { editor.send_keys 'dj' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'Vjd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'dj' }
             end
 
             context 'entries 0..2' do
@@ -124,8 +124,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', -> { editor.send_keys 'V2jd' }
-              include_examples 'removes entries', -> { editor.send_keys 'd2j' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'V2jd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'd2j' }
             end
 
             context 'entries -2..-1' do
@@ -141,8 +141,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', -> { editor.send_keys 'Vjd' }
-              include_examples 'removes entries', -> { editor.send_keys 'dj' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'Vjd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'dj' }
             end
           end
 
@@ -160,8 +160,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', -> { editor.send_keys 'Vkd' }
-              include_examples 'removes entries', -> { editor.send_keys 'dk' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'Vkd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'dk' }
             end
 
             context 'entries 0..2' do
@@ -177,8 +177,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', -> { editor.send_keys 'V2kd' }
-              include_examples 'removes entries', -> { editor.send_keys 'd2k' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'V2kd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'd2k' }
             end
 
             context 'entries -2..-1' do
@@ -194,8 +194,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', -> { editor.send_keys 'Vkd' }
-              include_examples 'removes entries', -> { editor.send_keys 'dk' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'Vkd' }
+              include_examples 'removes entries', -> { editor.send_keys_separately 'dk' }
             end
 
             context 'entries 0..-1 up to context name' do
@@ -210,8 +210,8 @@ describe 'Modifiable window mode motions', :window do
                 end
               end
 
-              include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
-              include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
+              include_examples 'removes entries', ->(line) { editor.send_keys_separately "V#{line}ggd" }
+              include_examples 'removes entries', ->(line) { editor.send_keys_separately "d#{line}gg" }
             end
           end
         end
@@ -248,9 +248,9 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            include_examples 'removes entries', -> { editor.send_keys 'Vd' }
-            include_examples 'removes entries', -> { editor.send_keys 'Vlhd' }
-            include_examples 'removes entries', -> { editor.send_keys 'dd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'Vd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'Vlhd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'dd' }
           end
 
           context 'entry -1' do
@@ -266,9 +266,9 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            include_examples 'removes entries', -> { editor.send_keys 'Vd' }
-            include_examples 'removes entries', -> { editor.send_keys 'Vlhd' }
-            include_examples 'removes entries', -> { editor.send_keys 'dd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'Vd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'Vlhd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'dd' }
           end
 
           context 'entry from range 1..-2' do
@@ -285,9 +285,9 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            include_examples 'removes entries', -> { editor.send_keys 'Vd' }
-            include_examples 'removes entries', -> { editor.send_keys 'Vlhd' }
-            include_examples 'removes entries', -> { editor.send_keys 'dd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'Vd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'Vlhd' }
+            include_examples 'removes entries', -> { editor.send_keys_separately 'dd' }
           end
 
           context 'filename ' do
@@ -302,8 +302,8 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            include_examples 'recover context name', -> { editor.send_keys 'Vd' }
-            include_examples 'recover context name', -> { editor.send_keys 'dd' }
+            include_examples 'recover context name', -> { editor.send_keys_separately 'Vd' }
+            include_examples 'recover context name', -> { editor.send_keys_separately 'dd' }
           end
 
           context 'blank line before context' do
@@ -318,8 +318,8 @@ describe 'Modifiable window mode motions', :window do
               end
             end
 
-            include_examples 'recover blank line before context', -> { editor.send_keys 'Vd' }
-            include_examples 'recover blank line before context', -> { editor.send_keys 'dd' }
+            include_examples 'recover blank line before context', -> { editor.send_keys_separately 'Vd' }
+            include_examples 'recover blank line before context', -> { editor.send_keys_separately 'dd' }
           end
         end
 

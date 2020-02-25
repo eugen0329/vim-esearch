@@ -54,11 +54,11 @@ module Helpers::WindowSyntaxContext
       line_numbers = code
                      .split("\n")
                      .each.with_index(1)
-                     .reject { |line, _i| line.empty? }
-                     .map { |_, line_number| line_number }
+                     .reject { |line, _| line.empty? }
+                     .map { |_, line_in_file| line_in_file }
 
       location_regexps = line_numbers
-                         .map { |line_number| "^\\s\\+#{line_number}\\ze\\s" }
+                         .map { |line_in_file| "^\\s\\+#{line_in_file}\\s" }
 
       highlight_names = esearch
                         .editor

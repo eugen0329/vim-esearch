@@ -188,7 +188,7 @@ describe 'Undoing in modifiable mode', :window do
       end
     end
 
-    context 'when pseudointerface is affected' do
+    context 'when virtual interface is affected' do
       after do
         # one undotree() block with no changes stored inside is left and we
         # have nothing to do with it

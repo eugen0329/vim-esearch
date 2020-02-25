@@ -11,8 +11,8 @@ describe 'Normal mode', :window do
 
   describe 'inline' do
     context 'restoring line numbers' do
-      context 'when only pseudointerface is affected' do
-        it 'recovers pseudointerface after deleting 1 char' do
+      context 'when only virtual interface is affected' do
+        it 'recovers virtual interface after deleting 1 char' do
           1.upto(line_number_text.length) do |column|
             entry.locate!
             editor.locate_column! column
@@ -21,7 +21,7 @@ describe 'Normal mode', :window do
           end
         end
 
-        it 'recovers pseudointerface after motion left' do
+        it 'recovers virtual interface after motion left' do
           1.upto(line_number_text.length) do |column|
             entry.locate!
             editor.locate_column! column
@@ -31,7 +31,7 @@ describe 'Normal mode', :window do
           end
         end
 
-        it 'recovers pseudointerface after motion right' do
+        it 'recovers virtual interface after motion right' do
           1.upto(line_number_text.length - 1) do |column|
             entry.locate!
             editor.locate_column! column
@@ -44,8 +44,8 @@ describe 'Normal mode', :window do
 
       context 'when only result text is affected' # TODO
 
-      context 'when pseudointerface and result text is affected' do
-        context 'when pseudointerface is deleted partially' do
+      context 'when virtual interface and result text is affected' do
+        context 'when virtual interface is deleted partially' do
           it 'recovers after deleting until the end' do
             entry.locate!
             editor.locate_column! 2
@@ -65,7 +65,7 @@ describe 'Normal mode', :window do
           end
         end
 
-        context 'when pseudointerface is deleted entirely' do
+        context 'when virtual interface is deleted entirely' do
           it 'recovers after clearing the line from the start' do
             entry.locate!
             expect { editor.send_keys '0D' }

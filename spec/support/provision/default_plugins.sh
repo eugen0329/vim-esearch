@@ -11,6 +11,11 @@ install_vim_plugin                            \
   '89065f62883edb10a99aa1b1640d6d411907316b'  \
   "make"
 
+install_vim_plugin                            \
+  'https://github.com/rhysd/clever-f.vim.git' \
+  "$plugins_dir/clever-f.vim"                 \
+  '48706f4124d77d814de0ad5fa264fd73ab35df38'
+
 ## Will be used for testing contex syntax highlights
 # install_vim_plugin                                          \
 #   'https://github.com/altercation/vim-colors-solarized.git' \

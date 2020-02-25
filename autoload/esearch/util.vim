@@ -613,3 +613,11 @@ fu! esearch#util#insert(list, items, index) abort
 
   return list
 endfu
+
+fu! esearch#util#safe_undojoin() abort
+  try
+    undojoin
+  catch /E790: undojoin is not allowed below undo/
+    " TODO
+  endtry
+endfu

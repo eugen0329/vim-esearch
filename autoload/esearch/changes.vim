@@ -1,11 +1,19 @@
+let s:Vital   = vital#esearch#new()
+let s:String  = s:Vital.import('Data.String')
 let s:unknown = -1
 
-fu! esearch#changes#listen_for_current_buffer() abort
+fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__states = []
   let b:__changes = []
   let b:__lines = []
   let b:__incrementable_state_id = 0
   let b:__observer = function('<SID>noop')
+
+  if a:0 > 0
+    let b:__undotree = a:1
+  else
+    let b:__undotree = esearch#undotree#new({})
+  endif
 
   call s:handle_cursor_moved('n')
   call s:handle_cursor_moved('n')
@@ -49,6 +57,7 @@ fu! s:payload() abort
         \ 'mode':         mode(),
         \ 'line':         line('.'),
         \ 'col':          col('.'),
+        \ 'lastcol':      col('$'),
         \ 'size':         line('$'),
         \ 'selection1':   getpos("'<")[1:2],
         \ 'selection2':   getpos("'>")[1:2],
@@ -60,14 +69,12 @@ endfu
 
 fu! s:handle_cursor_moved(mode) abort
   let payload =  s:payload()
-
   if a:mode ==# 'i'
     let payload.mode = a:mode
   endif
 
   call add(b:__states, payload)
   call add(b:__lines, getline(1, '$'))
-  return b:__states[-1]
 endfu
 
 fu! s:handle_text_changed() abort
@@ -79,8 +86,10 @@ fu! s:handle_text_changed() abort
   endif
 
   let undotree = undotree()
-
   if undotree.seq_last > undotree.seq_cur
+        \ || (to.mode !=# 'i'
+        \     && has_key(b:__undotree.nodes, changenr())
+        \     && from.changenr < to.changenr)
     return s:emit_undotree_traversal()
   elseif from.mode ==# 'i'
     return s:identify_insert()
@@ -106,7 +115,10 @@ fu! s:emit(event) abort
 endfu
 
 fu! s:emit_undotree_traversal() abort
-  return s:emit({'id': 'undo-traversal', 'changenr': b:__states[-1].changenr})
+  return s:emit({
+        \ 'id': 'undo-traversal',
+        \ 'changenr': b:__states[-1].changenr,
+        \ })
 endfu
 
 fu! s:identify_visual_line() abort
@@ -336,8 +348,44 @@ fu! s:identify_normal() abort
       endif
 
       if s:is_joining(from, to, line1, line2)
-        " when joining empty lines it's equivalent to motion down
+        " NOTE when joining empty lines it's equivalent to motion down
         return s:emit({ 'id': 'n-join', 'line1': line1, 'line2': line2})
+      elseif from.col == 1 || from.col >= 2 && from.current_line[: from.col - 2 ] == to.current_line[: from.col - 2 ]
+        " LINE PREFIXES ARE EQUAL:
+        "   - columnwise motion right
+
+        let col2 = s:columnwise_delete_end_column(from, to, line2 + 1) - 1
+
+        if from.col == 1 && col2 < 1
+            return s:emit({
+                  \ 'id': 'n-motion-down4',
+                  \ 'line1': line1,
+                  \ 'line2': line2,
+                  \ })
+
+          elseif (&virtualedit ==# 'onemore' && strchars(to.current_line) == to.col - 1)
+              \ || (strchars(to.current_line) == to.col && to.col == from.col - 1)
+          " IF:
+          "   - on the last virtual column
+          "   - OR the last column and cursor shifted one column left
+          " then the end of deleted region is linewise
+
+            return s:emit({
+                  \ 'id': 'n-motion-down-columnwise-right1',
+                  \ 'col1':  from.col,
+                  \ 'line1': line1,
+                  \ 'line2': line2 + 1,
+                  \ })
+        else
+          "   - both side of the region are linewise (clever-f or other motions)
+          return s:emit({
+                \ 'id': 'n-motion-down-columnwise-right2',
+                \ 'col1':  from.col,
+                \ 'line1': line1,
+                \ 'line2': line2 + 1,
+                \ 'col2': col2,
+                \ })
+        endif
       else
         return s:emit({ 'id': 'n-motion-down2', 'line1': line1, 'line2': line2})
       endif
@@ -370,22 +418,52 @@ fu! s:identify_normal() abort
     elseif to.size == to.line
       " START AT THE LAST LINE:
 
-      if to.size == 1 && empty(to.current_line)
-        " delete all lines
-        let line1 = 1
-      else
-        let line1 = to.line + 1
-      endif
 
-      return s:emit({'id': 'n-motion-up', 'line1': line1, 'line2': from.size})
+      if from.current_line[from.col - 1  : ] == to.current_line[to.col - 1 : ]
+        " to.col == 1 ||  from.col >= 2 && 
+        " POSTFIXES PREFIXES ARE EQUAL:
+        return s:emit({
+              \ 'id':    'n-motion-up-columnwise-left2',
+              \ 'line1': to.line,
+              \ 'line2': from.line,
+              \ 'col1':  to.col,
+              \ 'col2':  from.col,
+              \ })
+      else
+        if to.size == 1 && empty(to.current_line)
+          " delete all lines
+          let line1 = 1
+        else
+          let line1 = to.line + 1
+        endif
+
+        return s:emit({'id': 'n-motion-up', 'line1': line1, 'line2': from.size})
+      endif
     else
-      " - textobject
-      " - easymotion jump up TODO
-      return s:emit({
-            \ 'id': 'n-motion-down3',
-            \ 'line1': to.line,
-            \ 'line2': to.line + from.size - to.size - 1
-            \ })
+      if from.current_line[from.col - 1  : ] == to.current_line[to.col - 1 : ]
+        " to.col == 1 ||  from.col >= 2 && 
+        " POSTFIXES ARE EQUAL:
+        " - textobject
+        " - easymotion jump up TODO
+        " - columnwise delete left
+
+        " TODO is not recognized whe deleting from the last line
+        " TODO fix hack with lastcol
+        return s:emit({
+              \ 'id':    'n-motion-up-columnwise-left1',
+              \ 'line1': to.line,
+              \ 'line2': from.line,
+              \ 'col1':  to.col,
+              \ 'col2':  from.col,
+              \ 'lastcol': from.lastcol,
+              \ })
+      else
+        return s:emit({
+              \ 'id': 'n-motion-down3',
+              \ 'line1': to.line,
+              \ 'line2': to.line + from.size - to.size - 1
+              \ })
+      endif
     endif
   else " from.line < to.line
     " CURSOR JUMPS DOWN:
@@ -439,7 +517,11 @@ fu! s:identify_visual() abort
       if abs(line1 - line2) == abs(from.size - to.size)
         " delete or oneline pasting
 
-        if  to.selection2[1] > to.selection1[1]
+        if to.selection2[1] == to.selection1[1]
+          " the selection has collapsed (deletion was from the first column)
+          " TODO unit test
+          let col2 = 1
+        elseif to.selection2[1] > to.selection1[1]
           let col2 = to.selection2[1] - to.selection1[1] + 1
         else
           let col2 = to.selection2[1] + 1
@@ -448,8 +530,8 @@ fu! s:identify_visual() abort
         return s:emit({
               \ 'id':    'v-delete-up',
               \ 'line1': line1,
-              \ 'col1':  to.selection1[1],
               \ 'line2': line2,
+              \ 'col1':  to.selection1[1],
               \ 'col2':  col2
               \ })
       else
@@ -723,18 +805,40 @@ fu! s:identify_normal_inline(from,to) abort
   endif
 endfu
 
+fu! s:columnwise_delete_end_column(from, to, line2) abort
+  try
+    silent noau undo
+
+    let end_line = getline(a:line2)
+    if s:String.ends_with(end_line, a:to.current_line[a:from.col :])
+      let tail_size = strchars(a:to.current_line[a:from.col :])
+      return strchars(end_line[: strchars(end_line) - tail_size - 1 ])
+    else
+      throw 'cannot find the last column'
+    endif
+  finally
+    exe 'silent noau undo '.a:to.changenr
+  endtry
+endfu
+
 fu! s:is_joining(from, to, line1, line2) abort
   try
     silent noau undo
 
-    for text in getline(a:line1, a:line2)
+    let start = 0
+    let lines = getline(a:line1, a:line2)
+    for text in lines
       if empty(text)
         continue
       endif
 
-      if stridx(a:to.current_line, substitute(text, '^\s\+', ' ', '')) == -1
+      let text_without_leading_whitespaces = substitute(text, '^\s\+', ' ', '')
+      let index = stridx(a:to.current_line, text_without_leading_whitespaces, start)
+      if index == -1
         return 0
       endif
+
+      let start = index + strchars(text_without_leading_whitespaces) - 1
     endfor
   finally
     exe 'silent noau undo '.a:to.changenr
@@ -744,19 +848,28 @@ fu! s:is_joining(from, to, line1, line2) abort
 endfu
 
 if g:esearch#env isnot 0
-  command! -buffer ST call s:debug_states()
-  command! -buffer CT call s:debug_changes()
-  command! -buffer S  echo "\n".join(b:__states,  "\n")
-  command! -buffer C  echo "\n".join(b:__changes, "\n")
-  command! -buffer U  call esearch#changes#unlisten_for_current_buffer()
+  fu! s:debug_observer(event) abort
+    PP a:event
+  endfu
 
-  fu! s:debug_changes() abort
-    let tail = copy(b:__changes[max([ -8, - len(b:__changes)  ]) :-1])
+  command! -nargs=* ST call s:debug_states(<f-args>)
+  command! -nargs=* CT call s:debug_changes(<f-args>)
+  command! S  echo "\n".join(b:__states,  "\n")
+  command! C  echo "\n".join(b:__changes, "\n")
+  command! U  call esearch#changes#unlisten_for_current_buffer()
+  command! SetupChanges  call esearch#changes#listen_for_current_buffer()
+        \ | call esearch#changes#add_observer(function('s:debug_observer'))
+
+
+  fu! s:debug_changes(...) abort
+    let n = get(a:000, 1, 8)
+    let tail = copy(b:__changes[max([ - n, - len(b:__changes)  ]) :-1])
     PP tail
   endfu
 
-  fu! s:debug_states() abort
-    let tail = copy(b:__states[max([ -8, - len(b:__states)  ]) :-1])
+  fu! s:debug_states(...) abort
+    let n = get(a:000, 1, 8)
+    let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :-1])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
           \ .'"mode": v:val.mode,'
           \ . '"selections": v:val.selection1 + v:val.selection2}')

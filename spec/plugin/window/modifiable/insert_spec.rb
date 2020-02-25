@@ -10,12 +10,12 @@ describe 'Insert mode', :window do
 
   include_context 'setup modifiable testing'
 
-  describe 'recovering line numbers pseudointerface' do
-    context 'when only pseudointerface is affected' do
+  describe 'recovering line numbers virtual interface' do
+    context 'when only virtual interface is affected' do
       context 'when adding chars' do
         it 'cuts and pastes 1 char after a line number' do
           1.upto(entry.line_number_text.length) do |column|
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.locate_column! column
             expect { editor.send_keys_separately 'i', 'z', :escape }
               .to change { esearch.output.reload(entry).line_content }
@@ -27,7 +27,7 @@ describe 'Insert mode', :window do
 
         it 'cuts and pastes n > 1 chars after a line number' do
           1.upto(entry.line_number_text.length) do |column|
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.locate_column! column
             expect { editor.send_keys_separately 'i', 'zz', :escape }
               .to change { esearch.output.reload(entry).line_content }
@@ -42,9 +42,9 @@ describe 'Insert mode', :window do
         context 'inside line number column' do
           # ...length + 1 is required because removing left doesn't affect current
           # character
-          it 'recovers pseudointerface after pressing BS' do
+          it 'recovers virtual interface after pressing BS' do
             1.upto(entry.line_number_text.length + 1) do |column|
-              entry.locate!
+              editor.locate_cursor! entry.line_in_window, 1
               editor.locate_column! column
 
               expect { editor.send_keys_separately 'i', :backspace, :escape }
@@ -52,10 +52,10 @@ describe 'Insert mode', :window do
             end
           end
 
-          it 'recovers pseudointerface after pressing CONTROL-w' do
+          it 'recovers virtual interface after pressing CONTROL-w' do
             # starts from 2 to prevent removing newline
             2.upto(line_number_text.length + 1) do |column|
-              entry.locate!
+              editor.locate_cursor! entry.line_in_window, 1
               editor.locate_column! column
 
               expect { editor.send_keys 'i', '\\<C-w>', :escape }
@@ -63,9 +63,9 @@ describe 'Insert mode', :window do
             end
           end
 
-          it 'recovers pseudointerface after pressing DEL' do
+          it 'recovers virtual interface after pressing DEL' do
             1.upto(line_number_text.length) do |column|
-              entry.locate!
+              editor.locate_cursor! entry.line_in_window, 1
               editor.locate_column! column
 
               expect { editor.send_keys 'i', :delete, :escape }
@@ -80,7 +80,7 @@ describe 'Insert mode', :window do
       context 'when adding chars' do
         context 'before result text' do
           it "doesn't recover after adding chars" do
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.locate_column! entry.line_number_text.length + 1
             editor.send_keys 'i'
 
@@ -93,7 +93,7 @@ describe 'Insert mode', :window do
 
         context 'after result text' do
           it "doesn't recover after adding chars" do
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.send_keys 'A'
 
             expect {
@@ -107,7 +107,7 @@ describe 'Insert mode', :window do
       context 'when deleting chars' do
         context 'before result text' do
           it "doesn't recover after adding chars" do
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.locate_column! entry.line_number_text.length + 1
             editor.send_keys 'i'
 
@@ -120,7 +120,7 @@ describe 'Insert mode', :window do
 
         context 'after result text' do
           it "doesn't recover after adding chars" do
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.send_keys 'A'
 
             expect {
@@ -132,11 +132,11 @@ describe 'Insert mode', :window do
       end
     end
 
-    context 'when pseudointerface and result text are both affected' do
-      context 'when pseudointerface is deleted partially' do
+    context 'when virtual interface and result text are both affected' do
+      context 'when virtual interface is deleted partially' do
         context 'when 1st char from result text is deleted' do
           it 'recovers after pressing BS' do
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.locate_column! entry.line_number_text.length + 2 # first char of the text
             editor.send_keys 'i'
 
@@ -151,7 +151,7 @@ describe 'Insert mode', :window do
           let(:contexts) { [Context.new('context1.txt', [' line with a whitespace'])] }
 
           it 'recovers after pressing CTRL-W' do
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.locate_column! entry.line_number_text.length + 2 # first char of the text
             editor.send_keys 'i'
 
@@ -163,9 +163,9 @@ describe 'Insert mode', :window do
         end
       end
 
-      context 'when pseudointerface is deleted entirely' do
+      context 'when virtual interface is deleted entirely' do
         it 'recovers after clearing line with cc' do
-          entry.locate!
+          editor.locate_cursor! entry.line_in_window, 1
 
           expect { editor.send_keys 'cc', :escape }
             .to change { esearch.output.reload(entry).line_content }
@@ -173,7 +173,7 @@ describe 'Insert mode', :window do
         end
 
         it 'recovers after clearing line with S' do
-          entry.locate!
+          editor.locate_cursor! entry.line_in_window, 1
 
           expect { editor.send_keys  'S', :escape }
             .to change { esearch.output.reload(entry).line_content }
@@ -188,7 +188,7 @@ describe 'Insert mode', :window do
 
     context 'when deleting' do
       it 'recovers blank line after deleting left BS' do
-        entry.locate!
+        editor.locate_cursor! entry.line_in_window, 1
         editor.send_keys_separately 'j', 'i'
 
         expect {
@@ -197,7 +197,7 @@ describe 'Insert mode', :window do
       end
 
       it 'recovers blank line after deleting right DEL' do
-        entry.locate!
+        editor.locate_cursor! entry.line_in_window, 1
         editor.send_keys_separately 'j', 'i'
 
         5.times  do
@@ -209,7 +209,7 @@ describe 'Insert mode', :window do
 
     context 'when adding' do
       it 'recovers blank line after adding chars' do
-        entry.locate!
+        editor.locate_cursor! entry.line_in_window, 1
         editor.send_keys 'j'
 
         expect { editor.send_keys_separately 'i', 'zzz' }
@@ -224,7 +224,7 @@ describe 'Insert mode', :window do
     context 'after delete' do
       context 'left' do
         it 'recovers after BS' do
-          entry.locate!
+          editor.locate_cursor! entry.line_in_window, 1
           editor.send_keys 'i'
 
           expect {
@@ -236,10 +236,9 @@ describe 'Insert mode', :window do
       context 'right' do
         it 'recovers after DEL' do
           5.times {
-            entry.locate!
+            editor.locate_cursor! entry.line_in_window, 1
             editor.send_keys 'i'
-            expect { editor.send_keys_separately :delete, :escape }
-              .not_to change { editor.lines.to_a }
+            expect { editor.send_keys_separately :delete, :escape } .not_to change { editor.lines.to_a }
           }
         end
 
@@ -255,7 +254,7 @@ describe 'Insert mode', :window do
 
       context 'after clearing the entire line' do
         it 'recovers filename after clearing line with cc' do
-          entry.locate!
+          editor.locate_cursor! entry.line_in_window, 1
           editor.send_keys 'k'
 
           expect { editor.send_keys 'cc' }
@@ -266,7 +265,7 @@ describe 'Insert mode', :window do
 
     context 'after add' do
       it 'recovers filename after adding characters' do
-        entry.locate!
+        editor.locate_cursor! entry.line_in_window, 1
         editor.send_keys 'k'
 
         expect { editor.send_keys_separately 'i', 'zzz' }
@@ -291,11 +290,11 @@ describe 'Insert mode', :window do
       context 'right' do
         it 'recovers after DEL' do
           editor.locate_cursor! 1, 5
-          editor.send_keys 'i'
+          editor.send_keys_separately 'i'
 
           expect {
             5.times { editor.send_keys_separately :delete }
-          }.not_to change { editor.lines.to_a }
+          } .not_to change { editor.lines.to_a }
         end
 
         it 'recovers after DEL at the last column (line deletion)' do

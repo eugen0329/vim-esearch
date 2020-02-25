@@ -7,6 +7,14 @@ module Helpers::Changes
     -1
   end
 
+  shared_context 'setup clever-f testing' do
+    after do
+      editor.command <<~TEXT
+        call clever_f#reset()
+      TEXT
+    end
+  end
+
   matcher :include_payload do |id, from, to|
     diffable
 

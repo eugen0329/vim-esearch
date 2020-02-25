@@ -5,7 +5,7 @@ class API::ESearch::Window::EntriesParser
   class MissingBlankLineError < RuntimeError; end
 
   FILE_NAME_REGEXP = /\A[^ ]/.freeze
-  FILE_ENTRY_REGEXP = /\A\s+\d+/.freeze
+  FILE_ENTRY_REGEXP = /\A\s{1,3}\d+/.freeze
 
   attr_reader :editor, :lines_enum
 
