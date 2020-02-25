@@ -1,6 +1,13 @@
 let s:null = 0
+let s:separator = ''
+let s:linenr_format = ' %3d '
 
-" Handles deletion between line1:col1 and line2:col2
+" Handles deletion between line1:col1 and line2:col2.
+" Does recovery of virtual interface elements:
+"   - header with files and matched lines count
+"   - line numbers column (location in a file). Builtin name is LineNr column
+"   - file names
+"   - context separators
 fu! esearch#out#win#delete_multiline#handle(event) abort
   let state = deepcopy(b:esearch.undotree.head.state)
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
@@ -21,12 +28,12 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
   if top_ctx isnot# s:null
     let bottom_ctx = contexts.by_line(line2)
 
-    call s:handle_ctx_before_top(top_ctx, bottom_ctx, rebuilder, state)
+    call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
 
     if !s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder)
       call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
       call s:handle_bottom_ctx(top_ctx, state, rebuilder)
-      call s:handle_within_1_ctx_columnwise(top_ctx, state, rebuilder)
+      call s:handle_columnwise_within_1_context(top_ctx, state, rebuilder)
     else
       call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
       call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
@@ -39,7 +46,7 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
   call b:esearch.undotree.synchronize(state)
 endfu
 
-fu! s:handle_ctx_before_top(top_ctx, bottom_ctx, rebuilder, state) abort
+fu! s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state) abort
   " Handling a context above top_ctx. It's not included in the range,
   " but in some cases we need to cleanup a separator from it to prevent trailing
   " blank lines
@@ -62,7 +69,7 @@ fu! s:handle_top_ctx(ctx, state, rebuilder, bottom_ctx) abort
   else
     if s:is_separator_removed(a:ctx, a:rebuilder, a:state)
           \ && !s:is_until_the_end(a:bottom_ctx, a:rebuilder, a:state)
-      call a:rebuilder.recover(a:ctx, s:null, '')
+      call a:rebuilder.recover(a:ctx, s:null, s:separator)
     endif
   endif
 endfu
@@ -87,15 +94,15 @@ fu! s:handle_top_ctx_columnwise(ctx, state, rebuilder) abort
         \ && !s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
 
     let text = getline(a:rebuilder.line1)
-    let line = a:state.line_numbers_map[a:rebuilder.line1]
-    let linenr1  = printf(' %3d ', line)
+    let line_in_file = a:state.line_numbers_map[a:rebuilder.line1]
+    let linenr1  = printf(s:linenr_format, line_in_file)
     let recovered = linenr1
 
     if a:rebuilder.col1 >= 2
       let recovered .= text[strlen(linenr1) : a:rebuilder.col1 - 2]
     endif
 
-    call a:rebuilder.recover(a:ctx, line, recovered)
+    call a:rebuilder.recover(a:ctx, line_in_file, recovered)
   endif
 endfu
 
@@ -111,8 +118,8 @@ fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
     " text before col1 goes to top_ctx, after col1 - to bottom_ctx. Keeping them
     " merged doesn't make sense as these lines are from different files with
     " possibly different filetypes
-    let line   = a:state.line_numbers_map[a:rebuilder.line2]
-    let linenr2 = printf(' %3d ', line)
+    let line_in_file   = a:state.line_numbers_map[a:rebuilder.line2]
+    let linenr2 = printf(s:linenr_format, line_in_file)
     let text   = getline(a:rebuilder.line1)
 
     let is_col2_within_linenr = a:rebuilder.col2 < strlen(linenr2) + 1
@@ -133,11 +140,11 @@ fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
     else " Otherwise if no remaining chars from linenr2 - grab all the remaining text
       let part2 = text[start_idx :]
     endif
-    call a:rebuilder.recover(a:ctx, line, linenr2 . part2)
+    call a:rebuilder.recover(a:ctx, line_in_file, linenr2 . part2)
   endif
 endfu
 
-fu! s:handle_within_1_ctx_columnwise(ctx, state, rebuilder) abort
+fu! s:handle_columnwise_within_1_context(ctx, state, rebuilder) abort
   if a:rebuilder.line2 <= 3
     return
   endif
@@ -150,9 +157,9 @@ fu! s:handle_within_1_ctx_columnwise(ctx, state, rebuilder) abort
       " two entries texts are merged within a context and it's required to obtain
       " two parts: remained 1st line text without linenr and remained 2nd line
       " text without possible linenr
-      let line = a:state.line_numbers_map[a:rebuilder.line1]
-      let linenr = printf(' %3d ', line)
-      let linenr2 = printf(' %3d ', a:state.line_numbers_map[a:rebuilder.line2])
+      let line_in_file = a:state.line_numbers_map[a:rebuilder.line1]
+      let linenr = printf(s:linenr_format, line_in_file)
+      let linenr2 = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line2])
 
       if a:rebuilder.col1 < strlen(linenr) + 1
         " if deletion starts from linenr virtual interface - everything from the
@@ -173,26 +180,26 @@ fu! s:handle_within_1_ctx_columnwise(ctx, state, rebuilder) abort
     elseif a:rebuilder.line1 <= 2 " if nothing to merge with (the header is above):
       " TODO consider to combine smh with handling across multiple contexts as
       " the result for the bottom ctx is literally the same
-      let line = a:state.line_numbers_map[a:rebuilder.line2]
-      let linenr = printf(' %3d ', line)
+      let line_in_file = a:state.line_numbers_map[a:rebuilder.line2]
+      let linenr = printf(s:linenr_format, line_in_file)
       let recovered = linenr[: max([0, a:rebuilder.col2 - 2])] . text[a:rebuilder.col1 - 1 :]
     else " deletion from filename to an entry.
       " Recovering the last affected entry text and line number virtual
       " interface. Filename leftover will be removed replaced during linewise
       " checks
-      let line = a:state.line_numbers_map[a:rebuilder.line2]
-      let linenr = printf(' %3d ', line)
+      let line_in_file = a:state.line_numbers_map[a:rebuilder.line2]
+      let linenr = printf(s:linenr_format, line_in_file)
       let recovered = linenr . text[a:rebuilder.col1 - 1 :]
     endif
 
-    call a:rebuilder.recover(a:ctx, line, recovered)
+    call a:rebuilder.recover(a:ctx, line_in_file, recovered)
   elseif s:is_columnwise_begin(a:rebuilder) && !s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
 
-    let line  = a:state.line_numbers_map[a:rebuilder.line1]
-    let linenr  = printf(' %3d ', line)
+    let line_in_file  = a:state.line_numbers_map[a:rebuilder.line1]
+    let linenr  = printf(s:linenr_format, line_in_file)
     if a:rebuilder.col1 > strlen(linenr) + 1
       let text = getline(a:rebuilder.line1)
-      call a:rebuilder.recover(a:ctx, line, text[: a:rebuilder.col1 - 2])
+      call a:rebuilder.recover(a:ctx, line_in_file, text[: a:rebuilder.col1 - 2])
     endif
   endif
 endfu
@@ -229,9 +236,9 @@ fu! s:Rebuilder(event) abort
   return new
 endfu
 
-fu! s:recover(ctx, line_number, text) abort dict
+fu! s:recover(ctx, line_in_file, text) abort dict
   let self.add_context_ids += [a:ctx.id]
-  let self.add_line_numbers += [a:line_number]
+  let self.add_line_numbers += [a:line_in_file]
   let self.add_lines += [a:text]
 endfu
 
@@ -255,7 +262,7 @@ fu! s:handle_header(header, rebuilder) abort
   endif
 
   if a:rebuilder.line1 <= 2 && 2 <= a:rebuilder.line2
-    call a:rebuilder.recover(a:header, s:null, '')
+    call a:rebuilder.recover(a:header, s:null, s:separator)
   endif
 endfu
 
@@ -346,7 +353,7 @@ fu! s:is_all_entries_removed(ctx, rebuilder, state) abort
 
     " If deletion region is strictly above the first entry
     " or it is on the first entry and col1 is within line numbers virtual interface
-    let linenr  = printf(' %3d ', a:state.line_numbers_map[a:rebuilder.line1])
+    let linenr  = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line1])
     let until_begin = a:rebuilder.line1 <= a:ctx.begin
           \ || a:rebuilder.line1 == a:ctx.begin + 1 && a:rebuilder.col1 <= strlen(linenr) + 1
     if !until_begin || a:rebuilder.col2 <= 0
