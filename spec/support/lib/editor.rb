@@ -196,7 +196,7 @@ class Editor
   def locate_cursor!(line_number, column_number)
     # NOTE that $ works for line_number by default but doesn't work for col
     column_number = func('col', '$') if column_number == '$'
-    command!("call #{VimlValue.dump(func('cursor',line_number, column_number))} | doau CursorMoved").to_i == 0
+    command!("call #{VimlValue.dump(func('cursor', line_number, column_number))} | doau CursorMoved").to_i == 0
   end
 
   def modified?

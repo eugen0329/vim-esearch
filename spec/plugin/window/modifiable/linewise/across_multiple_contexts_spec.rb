@@ -171,7 +171,7 @@ describe 'Modifiable window mode motions', :window do
               # linewise. Not critical.
               expect(output)
                 .to have_entries(entries)
-                .except(contexts[0].entries      + contexts[1].entries)
+                .except(contexts[0].entries + contexts[1].entries)
                 .or have_entries(entries)
                 .except(contexts[0].entries[1..] + contexts[1].entries)
             end

@@ -1,5 +1,6 @@
 let s:null = 0
 
+" Handles deletion between line1:col1 and line2:col2
 fu! esearch#out#win#delete_multiline#handle(event) abort
   let state = deepcopy(b:esearch.undotree.head.state)
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
@@ -24,13 +25,13 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
 
     if !s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder)
       call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
-      call s:handle_bottom_ctx(top_ctx, state, rebuilder, top_ctx)
+      call s:handle_bottom_ctx(top_ctx, state, rebuilder)
       call s:handle_within_1_ctx_columnwise(top_ctx, state, rebuilder)
     else
-      call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder, bottom_ctx)
+      call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
       call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
-      call s:handle_bottom_ctx(bottom_ctx, state, rebuilder, top_ctx)
-      call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder, top_ctx)
+      call s:handle_bottom_ctx(bottom_ctx, state, rebuilder)
+      call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder)
     endif
   endif
 
@@ -66,7 +67,7 @@ fu! s:handle_top_ctx(ctx, state, rebuilder, bottom_ctx) abort
   endif
 endfu
 
-fu! s:handle_bottom_ctx(ctx, state, rebuilder, top_ctx) abort
+fu! s:handle_bottom_ctx(ctx, state, rebuilder) abort
   if s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
     if s:is_orphaned_blank_line_below(a:ctx, a:rebuilder, a:state)
       call a:rebuilder.consume_line_below()
@@ -78,7 +79,7 @@ fu! s:handle_bottom_ctx(ctx, state, rebuilder, top_ctx) abort
   endif
 endfu
 
-fu! s:handle_top_ctx_columnwise(ctx, state, rebuilder, bottom_ctx) abort
+fu! s:handle_top_ctx_columnwise(ctx, state, rebuilder) abort
   " Lines are joined, recovering the first part
   if s:is_columnwise_begin(a:rebuilder)
         \ && a:rebuilder.line1 != a:ctx.begin
@@ -98,7 +99,7 @@ fu! s:handle_top_ctx_columnwise(ctx, state, rebuilder, bottom_ctx) abort
   endif
 endfu
 
-fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder, top_ctx) abort
+fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
   if s:is_columnwise_end(a:rebuilder)
         \ && a:ctx.begin + 1 <= a:rebuilder.line2
         \ && !s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
@@ -200,7 +201,10 @@ fu! s:is_filename_removed(ctx, rebuilder) abort
   return a:rebuilder.line1 <= a:ctx.begin
 endfu
 
-fu s:Rebuilder(event) abort
+" A data structure with information to rebuild the interface around deleted
+" region. Is made to reduce coupling with the order in which lines and columns
+" information is inspected.
+fu! s:Rebuilder(event) abort
   let new = {
         \ 'event':                a:event,
         \ 'line1':                a:event.line1,
@@ -231,16 +235,16 @@ fu! s:recover(ctx, line_number, text) abort dict
   let self.add_lines += [a:text]
 endfu
 
-fu s:consume_current_line() abort dict
+fu! s:consume_current_line() abort dict
   let self.delete_lines += [self.extended_line1]
 endfu
 
-fu s:consume_line_above() abort dict
+fu! s:consume_line_above() abort dict
   let self.extended_line1 -= 1
   let self.delete_lines += [self.extended_line1]
 endfu
 
-fu s:consume_line_below() abort dict
+fu! s:consume_line_below() abort dict
   let self.extended_line2 += 1
   let self.delete_lines += [self.extended_line1]
 endfu
@@ -298,7 +302,7 @@ fu! s:apply_recovery(state) abort dict
     let self.extended_line1 = 1
   endif
 
-  call esearch#util#undojoin()
+  call esearch#util#safe_undojoin()
 
   if !empty(self.delete_lines)
     for line in reverse(sort(self.delete_lines, 'n'))
@@ -321,7 +325,7 @@ fu! s:apply_recovery(state) abort dict
   call esearch#util#insert(a:state.context_ids_map, self.add_context_ids, self.extended_line1)
 endfu
 
-fu s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder) abort
+fu! s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder) abort
   return a:top_ctx != a:bottom_ctx
         \ && a:rebuilder.line1 <= a:top_ctx.end
         \ && a:bottom_ctx.begin <= a:rebuilder.line2

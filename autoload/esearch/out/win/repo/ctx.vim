@@ -3,7 +3,6 @@ fu! esearch#out#win#repo#ctx#new(esearch, state) abort
         \ 'esearch':      a:esearch,
         \ 'state':        a:state,
         \ 'by_line':      function('<SID>by_line'),
-        \ 'next_context': function('<SID>next_context'),
         \ }
 endfu
 
@@ -50,12 +49,4 @@ fu! s:line_end(context_ids_map, context, line) abort
 
   return len(context_ids_map) - 1
   throw "Can't find context begin: " . string([a:context, a:line])
-endfu
-
-fu! s:next_context(context, limit) abort dict
-  if a:context.end + 1 <= a:limit
-    return self.by_line(a:context.end + 1)
-  endif
-
-  return 0
 endfu

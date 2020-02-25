@@ -141,16 +141,27 @@ module Helpers::Modifiable
     end
   end
 
-  # define_negated_matcher :not_to_have_entries, :have_entries
-
+  # Isn't good from SRP perspective, but good enough in terms of natural way of
+  # thinking abount verification of present and missing elements. So instead of
+  # checking:
+  # all_entries == (entries - other_entries) &&
+  #   (entries - other_entries).all?(:present?) &&
+  #   other_entries.all?(&:emtpy?)
+  # we have a single matcher have_entries(entries).except(other_entries)
+  # Could be splitted into 3 matchers if it'd be possible to combine other
+  # matchers within a custom one without hacks.
   matcher :have_entries do |entries|
     match do
       @except ||= []
-      @actual = esearch.output.reloaded_entries!(entries - @except)
+      @expected = esearch.output.reloaded_entries!(entries - @except)
+      @actual = esearch.output.entries.to_a
       @except = esearch.output.reloaded_entries!(@except)
 
-      @actual_present = @actual.all?(&:present?)
-      return false unless @actual_present && esearch.output.entries.to_a == @actual
+      @expected_present = @expected.all?(&:present?)
+      return false unless @expected_present
+
+      @actual_matches_expected = @actual == @expected
+      return false unless @actual_matches_expected
 
       @except_missing = @except.all?(&:blank?)
       return false unless @except_missing
@@ -163,10 +174,12 @@ module Helpers::Modifiable
     end
 
     failure_message do
-      if @except_missing
-        "expected not to have #{@except.inspect}"
+      if !@except_missing
+        "expected #{@except.inspect} to be missing"
+      elsif !@actual_matches_expected
+        "expected to have entries #{@expected.inspect}, got #{@actual.inspect}"
       else
-        "expected to have #{@actual.inspect}"
+        "expected #{@expected.inspect} to be present"
       end
     end
   end

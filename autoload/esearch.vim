@@ -1,5 +1,5 @@
 fu! esearch#init(...) abort
-  if g:esearch#env == 'dev'
+  if g:esearch#env ==# 'dev'
     for path in split(glob(s:autoload . '/esearch/**/*.vim'), '\n')
       exe 'source' . path
     endfor
@@ -142,6 +142,6 @@ endfu
 if !exists('g:esearch#env')
   let g:esearch#env = 0 " prod
 endif
-if g:esearch#env == 'dev'
+if g:esearch#env ==# 'dev'
   let s:autoload = vital#esearch#new().import('System.Filepath').dirname(expand('<sfile>'))
 endif

@@ -8,12 +8,6 @@ class API::ESearch::Window
 
   class MissingEntryError < RuntimeError; end
 
-  MissingEntry = Struct.new(:relative_path, :line_in_file) do
-    def empty?
-      true
-    end
-  end
-
   class_attribute :search_event_timeout, default: Configuration.search_event_timeout
   class_attribute :search_freeze_timeout, default: Configuration.search_freeze_timeout
   attr_reader :editor

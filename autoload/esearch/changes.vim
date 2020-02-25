@@ -354,7 +354,7 @@ fu! s:identify_normal() abort
         " LINE PREFIXES ARE EQUAL:
         "   - columnwise motion right
 
-        let col2 = s:last_col(from, to, line2 + 1) - 1
+        let col2 = s:columnwise_delete_end_column(from, to, line2 + 1) - 1
 
         if from.col == 1 && col2 < 1
             return s:emit({
@@ -385,7 +385,6 @@ fu! s:identify_normal() abort
                 \ 'line2': line2 + 1,
                 \ 'col2': col2,
                 \ })
-                " \ 'debug': [from,to],
         endif
       else
         return s:emit({ 'id': 'n-motion-down2', 'line1': line1, 'line2': line2})
@@ -432,7 +431,6 @@ fu! s:identify_normal() abort
               \ })
       else
         if to.size == 1 && empty(to.current_line)
-
           " delete all lines
           let line1 = 1
         else
@@ -807,7 +805,7 @@ fu! s:identify_normal_inline(from,to) abort
   endif
 endfu
 
-fu! s:last_col(from, to, line2) abort
+fu! s:columnwise_delete_end_column(from, to, line2) abort
   try
     silent noau undo
 
@@ -818,8 +816,6 @@ fu! s:last_col(from, to, line2) abort
     else
       throw 'cannot find the last column'
     endif
-
-
   finally
     exe 'silent noau undo '.a:to.changenr
   endtry

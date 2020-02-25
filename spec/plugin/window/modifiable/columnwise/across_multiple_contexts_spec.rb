@@ -6,7 +6,7 @@ describe 'Modifiable across multiple contexts', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable
-  include Helpers::Changes
+  include Helpers::Vim
   Context ||= Helpers::Modifiable::Context
 
   include_context 'setup modifiable testing'
@@ -45,7 +45,7 @@ describe 'Modifiable across multiple contexts', :window do
                 end
               end
 
-              context "from entry n > 0" do
+              context 'from entry n > 0' do
                 let(:entry1) { contexts[1].entries[-2] }
 
                 it 'removes entries n > 0' do
@@ -100,7 +100,7 @@ describe 'Modifiable across multiple contexts', :window do
             end
 
             context 'col1 within results text' do
-              let(:entry1)  { contexts[1].entries[0] }
+              let(:entry1) { contexts[1].entries[0] }
               let(:expected_text1) do
                 entry1.line_number_text +
                   anchor1 +
@@ -130,7 +130,7 @@ describe 'Modifiable across multiple contexts', :window do
               context 'from entry -1' do
                 include_context 'set options', virtualedit: 'onemore'
 
-                let(:entry1)  { contexts[-1].entries[-1] }
+                let(:entry1) { contexts[-1].entries[-1] }
 
                 it 'removes context 0 and part of the entry' do
                   editor.locate_cursor! entry1.line_in_window, '$'
@@ -163,7 +163,7 @@ describe 'Modifiable across multiple contexts', :window do
                 end
               end
 
-              context "from entry n > 0" do
+              context 'from entry n > 0' do
                 let(:entry1) { contexts[0].entries[-2] }
 
                 it 'removes entries n > 0' do
@@ -208,7 +208,7 @@ describe 'Modifiable across multiple contexts', :window do
                   entry1.locate!
 
                   # TODO: inconsistency with deletion within a single context
-                  expect { editor.send_keys_separately 'd2}'                  }
+                  expect { editor.send_keys_separately 'd2}' }
                     .to change { output.reload(entry1).line_content }
                     .to(entry1.line_number_text)
                   expect(output)
@@ -219,7 +219,7 @@ describe 'Modifiable across multiple contexts', :window do
             end
 
             context 'col1 within result text' do
-              context "from entry 0" do
+              context 'from entry 0' do
                 let(:entry1) { contexts[0].entries[0] }
                 let(:entry2) { contexts[1].entries[0] }
                 let(:anchor1) { anchors[0] }
@@ -236,7 +236,7 @@ describe 'Modifiable across multiple contexts', :window do
                 end
               end
 
-              context "from entry n > 0" do
+              context 'from entry n > 0' do
                 let(:entry1) { contexts[0].entries[-2] }
                 let(:entry2) { contexts[1].entries[0] }
                 let(:anchor1) { anchors[-2] }
@@ -275,10 +275,10 @@ describe 'Modifiable across multiple contexts', :window do
                   it 'recovers 1st ctx linenr and 2nd ctx linenr with remained text' do
                     columns_testing_matrix.each do |column1, column2|
                       editor.locate_cursor! entry1.line_in_window, column1
-                      editor.send_keys_separately "v"
+                      editor.send_keys_separately 'v'
                       editor.locate_cursor! entry2.line_in_window, column2
 
-                      expect { editor.send_keys "x" }
+                      expect { editor.send_keys 'x' }
                         .to change { output.reload(entry1).line_content }
                         .to(entry1.line_number_text)
                         .and not_to_change { output.reload(entry2).line_content }
@@ -290,28 +290,28 @@ describe 'Modifiable across multiple contexts', :window do
                   end
                 end
 
-                context "from within line number virtual interface" do
-                  context "while moving down" do
+                context 'from within line number virtual interface' do
+                  context 'while moving down' do
                     include_examples 'recovering with splitting text from different contexts' do
                       let(:columns_testing_matrix) do
                         1.upto(entry1.line_number_text.length - 1) .to_a
-                          .product(1.upto(entry2.line_number_text.length - 1).to_a)
+                         .product(1.upto(entry2.line_number_text.length - 1).to_a)
                       end
                     end
                   end
 
-                  context "while moving up" do
+                  context 'while moving up' do
                     include_examples 'recovering with splitting text from different contexts' do
                       let(:columns_testing_matrix) do
                         1.upto(entry2.line_number_text.length - 1).to_a
-                          .product(1.upto(entry1.line_number_text.length - 1).to_a)
+                         .product(1.upto(entry1.line_number_text.length - 1).to_a)
                       end
                     end
                   end
                 end
 
-                context "from within results text start" do
-                  context "while moving down" do
+                context 'from within results text start' do
+                  context 'while moving down' do
                     include_examples 'recovering with splitting text from different contexts' do
                       let(:columns_testing_matrix) do
                         [entry1.line_number_text.length, entry2.line_number_text.length]
@@ -319,7 +319,7 @@ describe 'Modifiable across multiple contexts', :window do
                     end
                   end
 
-                  context "while moving up" do
+                  context 'while moving up' do
                     include_examples 'recovering with splitting text from different contexts' do
                       let(:columns_testing_matrix) do
                         [entry2.line_number_text.length, entry1.line_number_text.length]
@@ -437,7 +437,7 @@ describe 'Modifiable across multiple contexts', :window do
 
           context 'col1 at the start of editable area' do
             context 'to context 1' do
-              context "to an entry" do
+              context 'to an entry' do
                 let(:entry1) { contexts[0].entries[-2] }
                 let(:entry2) { contexts[1].entries[0] }
                 let(:anchor1) { anchors[-2] }
@@ -519,9 +519,9 @@ describe 'Modifiable across multiple contexts', :window do
             end
           end
 
-          context "col1 within result text" do
+          context 'col1 within result text' do
             context 'to context 1' do
-              context "to an entry" do
+              context 'to an entry' do
                 let(:entry1) { contexts[0].entries[-2] }
                 let(:entry2) { contexts[1].entries[0] }
                 let(:anchor1) { anchors[-2] }

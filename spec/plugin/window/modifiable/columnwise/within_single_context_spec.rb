@@ -6,7 +6,7 @@ describe 'within single context', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable
-  include Helpers::Changes # TODO: only is set options required, extract
+  include Helpers::Vim
   Context ||= Helpers::Modifiable::Context
 
   include_context 'setup modifiable testing'
@@ -201,17 +201,17 @@ describe 'within single context', :window do
             let(:entry1) { contexts[i].entries[-2] }
             let(:entry2) { contexts[i].entries[-1] }
 
-            context "using visual selection" do
+            context 'using visual selection' do
               shared_examples 'replacing 1st entry text with 2nd entry' do
                 let(:expected_text) { entry1.line_number_text + entry2.result_text }
 
                 it do
                   columns_testing_matrix.each do |column1, column2|
                     editor.locate_cursor! entry1.line_in_window, column1
-                    editor.send_keys_separately "v"
+                    editor.send_keys_separately 'v'
                     editor.locate_cursor! entry2.line_in_window, column2
 
-                    expect { editor.send_keys "x" }
+                    expect { editor.send_keys 'x' }
                       .to change { output.reload(entry1).line_content }
                       .to(expected_text)
                     expect(esearch.output)
@@ -222,28 +222,28 @@ describe 'within single context', :window do
                 end
               end
 
-              context "from within line number virtual interface" do
-                context "while moving down" do
+              context 'from within line number virtual interface' do
+                context 'while moving down' do
                   include_examples 'replacing 1st entry text with 2nd entry' do
                     let(:columns_testing_matrix) do
                       1.upto(entry1.line_number_text.length - 1) .to_a
-                        .product(1.upto(entry2.line_number_text.length - 1).to_a)
+                       .product(1.upto(entry2.line_number_text.length - 1).to_a)
                     end
                   end
                 end
 
-                context "while moving up" do
+                context 'while moving up' do
                   include_examples 'replacing 1st entry text with 2nd entry' do
                     let(:columns_testing_matrix) do
                       1.upto(entry2.line_number_text.length - 1).to_a
-                        .product(1.upto(entry1.line_number_text.length - 1).to_a)
+                       .product(1.upto(entry1.line_number_text.length - 1).to_a)
                     end
                   end
                 end
               end
 
-              context "from within results text start" do
-                context "while moving down" do
+              context 'from within results text start' do
+                context 'while moving down' do
                   include_examples 'replacing 1st entry text with 2nd entry' do
                     let(:columns_testing_matrix) do
                       [entry1.line_number_text.length, entry2.line_number_text.length]
@@ -251,7 +251,7 @@ describe 'within single context', :window do
                   end
                 end
 
-                context "while moving up" do
+                context 'while moving up' do
                   include_examples 'replacing 1st entry text with 2nd entry' do
                     let(:columns_testing_matrix) do
                       [entry2.line_number_text.length, entry1.line_number_text.length]
@@ -261,11 +261,11 @@ describe 'within single context', :window do
               end
             end
 
-            context "using f{char}" do
+            context 'using f{char}' do
               let(:anchor1) { anchors[-2] }
               let(:anchor2) { anchors[-1] }
 
-              context "from within line number virtual interface" do
+              context 'from within line number virtual interface' do
                 let(:expected_text) do
                   entry1.line_number_text +
                     entry2.line_content.partition(anchor2).last
@@ -286,7 +286,7 @@ describe 'within single context', :window do
                 end
               end
 
-              context "col1 on result text first column" do
+              context 'col1 on result text first column' do
                 let(:expected_text) do
                   entry1.line_number_text +
                     entry2.line_content.partition(anchor2).last
@@ -304,7 +304,7 @@ describe 'within single context', :window do
                 end
               end
 
-              context "col1 is within the result text" do
+              context 'col1 is within the result text' do
                 let(:expected_text) do
                   entry1.line_content.partition(anchor1).first +
                     entry2.line_content.partition(anchor2).last
@@ -325,7 +325,7 @@ describe 'within single context', :window do
           end
 
           context 'from header' do
-            context "using f{char}" do
+            context 'using f{char}' do
               context 'to entry' do
                 let(:entry) { contexts[0].entries[0] }
                 let(:anchor) { anchors[0] }
@@ -360,7 +360,7 @@ describe 'within single context', :window do
           end
 
           context 'from filename' do
-            context "using f{char}" do
+            context 'using f{char}' do
               context 'to entry 0' do
                 let(:entry) { contexts[i].entries[0] }
                 let(:anchor) { anchors[0] }
@@ -395,7 +395,7 @@ describe 'within single context', :window do
           end
 
           context 'from separator before a context' do # move to multicontext tests?
-            context "f{char}" do
+            context 'f{char}' do
               context 'to entry 3' do
                 let(:entry) { contexts[i].entries[2] }
                 let(:anchor) { anchors[2] }

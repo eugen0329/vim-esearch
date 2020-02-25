@@ -3,6 +3,7 @@
 require 'spec_helper'
 
 describe 'changes reporting in NORMAL mode' do
+  include Helpers::Vim
   include VimlValue::SerializationHelpers
   include Helpers::ReportEditorStateOnError
   include Helpers::Changes
