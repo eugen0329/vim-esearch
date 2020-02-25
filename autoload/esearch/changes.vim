@@ -14,6 +14,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   else
     let b:__undotree = esearch#undotree#new({})
   endif
+  call setline(1, getline(1)) " initialize undo
 
   call s:handle_cursor_moved('n')
   call s:handle_cursor_moved('n')
@@ -64,6 +65,7 @@ fu! s:payload() abort
         \ 'current_line': getline(line('.')),
         \ 'next_line':    getline(line('.')+1),
         \ 'changenr':     changenr(),
+        \ 'cmdhistnr':    histnr(':'),
         \ }
 endfu
 
@@ -87,21 +89,51 @@ fu! s:handle_text_changed() abort
 
   let undotree = undotree()
   if undotree.seq_last > undotree.seq_cur
-        \ || (to.mode !=# 'i'
-        \     && has_key(b:__undotree.nodes, changenr())
-        \     && from.changenr < to.changenr)
-    return s:emit_undotree_traversal()
+    " Undo
+    call s:emit_undotree_traversal()
+  elseif to.mode !=# 'i' && has_key(b:__undotree.nodes, changenr())
+    " Redo or a hack with saving undo
+    if from.changenr < to.changenr
+      call s:emit_undotree_traversal()
+    else
+      " noop, undo was reverted (Easymotion and probably other plugins do this)
+    endif
+  elseif from.cmdhistnr !=# to.cmdhistnr
+    call s:identify_cmdline()
   elseif from.mode ==# 'i'
-    return s:identify_insert()
+    call s:identify_insert()
   elseif from.mode ==# 'V' || to.mode ==# 'V'
-    return s:identify_visual_line()
+    call s:identify_visual_line()
   elseif from.mode ==# 'v'
-    return s:identify_visual()
+    call s:identify_visual()
   elseif from.mode ==# 'n'
-    return s:identify_normal()
+    call s:identify_normal()
+  else
+    call s:emit({'id': 'undefined-mode', 'debug': [from,to], 'mode': [from.mode, to.mode]})
   endif
+endfu
 
-  return s:emit({'id': 'undefined-mode', 'mode': [from.mode, to.mode]})
+fu! s:identify_cmdline() abort
+  let [from, to] = b:__states[-2:-1]
+  let line1 = line("'[")
+
+  let ds = from.size - to.size
+
+  if from.size > to.size
+    return s:emit({
+          \ 'id':     'cmdline1',
+          \ 'cmdline': histget(':', -1),
+          \ 'line1':   line1,
+          \ 'line2':   line1  + to.size - from.size,
+          \ })
+  else
+    return s:emit({
+          \ 'id':     'cmdline2',
+          \ 'cmdline': histget(':', -1),
+          \ 'line1':   line1,
+          \ 'line2':   line("']"),
+          \ })
+  endif
 endfu
 
 fu! esearch#changes#add_observer(funcref) abort
@@ -377,7 +409,7 @@ fu! s:identify_normal() abort
                   \ 'line2': line2 + 1,
                   \ })
         else
-          "   - both side of the region are linewise (clever-f or other motions)
+          "   - both sides of the region are linewise (clever-f or other motions)
           return s:emit({
                 \ 'id': 'n-motion-down-columnwise-right2',
                 \ 'col1':  from.col,
