@@ -63,6 +63,10 @@ class API::ESearch::Window::Entry
     end
   end
 
+  def empty?
+    false
+  end
+
   def inspect
     "#{relative_path}:#{line_in_file.inspect}: #{result_text} (line #{line_in_window})".inspect
   end

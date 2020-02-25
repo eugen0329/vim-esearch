@@ -14,7 +14,7 @@ install_vim_plugin                            \
 install_vim_plugin                            \
   'https://github.com/rhysd/clever-f.vim.git' \
   "$plugins_dir/clever-f.vim"                 \
-  '48706f4124d77d814de0ad5fa264fd73ab35df38'  \
+  '48706f4124d77d814de0ad5fa264fd73ab35df38'
 
 ## Will be used for testing contex syntax highlights
 # install_vim_plugin                                          \
