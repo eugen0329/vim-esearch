@@ -66,6 +66,7 @@ fu! s:payload() abort
         \ 'next_line':    getline(line('.')+1),
         \ 'changenr':     changenr(),
         \ 'cmdhistnr':    histnr(':'),
+        \ 'changedtick':  b:changedtick,
         \ }
 endfu
 
@@ -91,8 +92,10 @@ fu! s:handle_text_changed() abort
   if undotree.seq_last > undotree.seq_cur
     " Undo
     call s:emit_undotree_traversal()
-  elseif to.mode !=# 'i' && has_key(b:__undotree.nodes, changenr())
-    " Redo or a hack with saving undo
+  elseif to.mode !=# 'i'
+        \  && has_key(b:__undotree.nodes, changenr())
+        \  && from.changedtick != to.changedtick
+    " Redo or a hack with locking undo
     if from.changenr < to.changenr
       call s:emit_undotree_traversal()
     else
@@ -121,10 +124,13 @@ fu! s:identify_cmdline() abort
 
   if from.size > to.size
     return s:emit({
-          \ 'id':     'cmdline1',
-          \ 'cmdline': histget(':', -1),
-          \ 'line1':   line1,
-          \ 'line2':   line1  + to.size - from.size,
+          \ 'id':            'cmdline1',
+          \ 'cmdline':       histget(':', -1),
+          \ 'line1':         line1,
+          \ 'line2':         line1  + to.size - from.size,
+          \ 'original_size': from.size,
+          \ 'changenr1':     from.changenr,
+          \ 'changenr2':     to.changenr,
           \ })
   else
     return s:emit({
@@ -132,6 +138,9 @@ fu! s:identify_cmdline() abort
           \ 'cmdline': histget(':', -1),
           \ 'line1':   line1,
           \ 'line2':   line("']"),
+          \ 'original_size': from.size,
+          \ 'changenr1': from.changenr,
+          \ 'changenr2': to.changenr,
           \ })
   endif
 endfu
@@ -894,13 +903,13 @@ if g:esearch#env isnot 0
 
 
   fu! s:debug_changes(...) abort
-    let n = get(a:000, 1, 8)
+    let n = str2nr(get(a:000, 1, 8))
     let tail = copy(b:__changes[max([ - n, - len(b:__changes)  ]) :-1])
     PP tail
   endfu
 
   fu! s:debug_states(...) abort
-    let n = get(a:000, 1, 8)
+    let n = str2nr(get(a:000, 1, 8))
     let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :-1])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
           \ .'"mode": v:val.mode,'

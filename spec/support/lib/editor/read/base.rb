@@ -34,10 +34,11 @@ class Editor::Read::Base
   end
 
   def with_ignore_cache
-    @with_ignore_cache = true
+    @with_ignore_cache ||= []
+    @with_ignore_cache << true
     yield
   ensure
-    @with_ignore_cache = false
+    @with_ignore_cache.pop
   end
 
   private
@@ -47,7 +48,7 @@ class Editor::Read::Base
   end
 
   def cache
-    return null_cache if @with_ignore_cache || !cache_enabled
+    return null_cache if @with_ignore_cache&.last || !cache_enabled
 
     @cache
   end
