@@ -95,11 +95,11 @@ fu! s:handle_text_changed() abort
   elseif to.mode !=# 'i'
         \  && has_key(b:__undotree.nodes, changenr())
         \  && from.changedtick != to.changedtick
-    " Redo or a hack with locking undo
+    " Redo or a third party plugin trick with locking undo
     if from.changenr < to.changenr
       call s:emit_undotree_traversal()
     else
-      " noop, undo was reverted (Easymotion and probably other plugins do this)
+      " noop, undo was reverted (EasyMotion, Overcommandline etc. do this)
     endif
   elseif from.cmdhistnr !=# to.cmdhistnr
     call s:identify_cmdline()

@@ -3,7 +3,7 @@
 module Helpers::Modifiable::Commandline
   extend RSpec::Matchers::DSL
 
-  matcher :change_entries_content do |*entries, timeout: 1|
+  matcher :change_entries_text do |*entries, timeout: 1|
     include API::Mixins::BecomeTruthyWithinTimeout
 
     supports_block_expectations
@@ -44,5 +44,5 @@ module Helpers::Modifiable::Commandline
     end
   end
 
-  define_negated_matcher :not_to_change_entries_content, :change_entries_content
+  define_negated_matcher :not_to_change_entries_text, :change_entries_text
 end

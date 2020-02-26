@@ -1009,7 +1009,7 @@ fu! esearch#out#win#handle_changes(event) abort
   if g:esearch#env isnot 0
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
-    " call esearch#log#debug(a:event,  len(v:errors))
+    call esearch#log#debug(a:event,  len(v:errors))
   endif
 endfu
 

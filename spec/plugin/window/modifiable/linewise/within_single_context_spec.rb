@@ -23,10 +23,8 @@ describe 'Modifiable window mode motions', :window do
       end
 
       include_examples 'recover header', -> { editor.send_keys_separately 'Vd' }
-      include_examples 'recover header', -> { editor.send_keys_separately 'Vddd' }
       include_examples 'recover header', -> { editor.send_keys_separately 'Vlhd' }
       include_examples 'recover header', -> { editor.send_keys_separately 'dd' }
-      include_examples 'recover header', -> { editor.send_keys_separately 'ddVd' }
     end
 
     context 'file context' do

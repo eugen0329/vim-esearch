@@ -1,7 +1,9 @@
 let s:Vital   = vital#esearch#new()
 let s:String  = s:Vital.import('Data.String')
+let s:List  = s:Vital.import('Data.List')
 let s:Message  = s:Vital.import('Vim.Message')
 let s:linenr_format = ' %3d '
+let s:null = 0
 
 fu! esearch#out#win#cmdline#handle(event) abort
   let substitute = s:parse_substitute(a:event.cmdline)
@@ -27,57 +29,125 @@ fu! s:safely_replay_substitute(event, command) abort
     return
   endif
   let a:command.pattern = safe_pattern
+  " Overwrite global search register like builtin :s does.
+  " Is executed earlier to prevent blinks
+  let @/ = a:command.pattern
 
   try
+    " clear previous command output as soon as apossible as we expect the correct
+    " statistics output from :substitute, replayed with the safe pattern.
+    echo ''
+
     if stridx(a:command.flags, 'c') >= 0
       call s:replay_confirmable(a:event, a:command, original_pattern)
     else
       call s:replay(a:event, a:command, original_pattern)
     endif
   finally
-    let @/ = a:command.pattern
     call b:esearch.undotree.synchronize()
   endtry
 endfu
 
 fu! s:replay(event, command, original_pattern) abort
-  silent undo
+  noau keepjumps silent undo
   call b:esearch.undotree.mark_block_as_corrupted()
-  let found = s:execute(a:command.to_string(), a:original_pattern)
+  call s:execute(a:command.to_str(), a:original_pattern)
 endfu
 
 fu! s:replay_confirmable(event, command, original_pattern) abort
-  let a:command.flags = substitute(a:command.flags, 'c', '', '')
-  call s:undo_corrupted_blocks_until(a:event.changenr1)
-  noau exe 'silent undo ' . a:event.changenr1
-  call s:execute(a:command.to_string(), a:original_pattern)
+  let command_with_confirmation = a:command
+  let command = copy(a:command)
+  let command.flags = substitute(command.flags, 'c', '', '')
+  let [confirmed_lines, remaining_range]
+        \ = s:lookup_confirmations_from_undo(a:event.changenr1, a:event.changenr2)
+  execute 'noau keepjumps silent undo ' . a:event.changenr1
+
+  let ask_again_on_lines = []
+  let state = b:esearch.undotree.head.state
+  let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
+  for [modified_text, line] in confirmed_lines
+    let context = contexts.by_line(line)
+    if context.begin == line || (context.end == line && context.end != line('$'))
+      " don't replay changes on top of contexts boundaries (as they contain only
+      " the virtual interface)
+    else
+      let linenr = printf(s:linenr_format, state.line_numbers_map[line])
+
+      if s:String.starts_with(modified_text, linenr)
+        call setline(line, modified_text) " LineNr isn't corrupted, can be safely replayed
+      elseif stridx(command.flags, 'g') < 0
+        " if it was the only match in the line and it corrupts the virtual interface
+        " - don't replay
+      else
+        call add(ask_again_on_lines, line)
+      endif
+    endif
+  endfor
+
+  if !empty(remaining_range)
+    call s:execute_silently(command.to_str({'range': join(remaining_range, ',')}))
+  endif
+
+  for line in ask_again_on_lines
+    call s:execute_silently(command_with_confirmation.to_str({'range': line}))
+  endfor
+endfu
+
+fu! s:execute_silently(command_string) abort
+  try
+    silent execute a:command_string
+  catch /E486:/
+    " suppress errors on missing
+  endtry
 endfu
 
 fu! s:execute(command_string, original_pattern) abort
   redraw " clear previous substitute output
   try
     " NOTE capture use 'silent' under the hood which swaps backwards ranges, so
-    " it's not equivalent to calling builtin execute() instead
+    " it's not equivalent to calling builtin execute() instead.
+    " Swapping feature of silent isn't a hack and documented in :h E493
     echo trim(s:Message.capture(a:command_string), "\n")
   catch /E486:/
     call s:Message.echo('ErrorMsg', 'E486: Pattern not found: ' . a:original_pattern)
   endtry
 endfu
 
-fu! s:undo_corrupted_blocks_until(block_number) abort
-  let visited = 0
+" According to :help, undo block is formed on each change no matter the size.
+" When [c]onfirmation flag is used, :substitute produce undo block on each
+" confirmed line, so all the confirmed lines can be pretty reliably (to a
+" certain extent) fetched from undo history.
+fu! s:lookup_confirmations_from_undo(from_block, until_block) abort
+  execute 'noau keepjumps silent undo ' . a:from_block
 
-  while visited < &undolevels
-    let block_number = changenr()
-    if block_number <= block_number
-          \  || has_key(b:esearch.undotree.nodes, block_number)
+  let visited_blocks = 0
+  let remaining_range = []
+  let confirmed_lines = []
+  while visited_blocks < &undolevels
+    if changenr() >= a:until_block
       break
+    endif
+    noautocmd silent redo
+
+    let [line1, line2] = [line("'["), line("']")]
+    " if 'a' is pressed - substitute is executed until the end of a given range,
+    " otherwise - changes are recorded line by line
+    if line1 < line2
+      call assert_true(empty(remaining_range))
+      " we should handle line1 more thoroughly as if 'a' is pressed
+      " within line1 after at least one 'n', replacing all the remaining_range from
+      " line1 may cause overriding of 'n' presses
+      let remaining_range = [line1 + 1, line2]
+      call add(confirmed_lines, [getline(line1), line1])
+    else
+      call add(confirmed_lines, [getline(line1), line1])
     endif
 
     call b:esearch.undotree.mark_block_as_corrupted()
-    noautocmd silent undo
-    let visited += 1
+    let visited_blocks += 1
   endwhile
+
+  return [confirmed_lines, remaining_range]
 endfu
 
 fu! s:safe_pattern(pattern) abort
@@ -90,7 +160,7 @@ fu! s:safe_pattern(pattern) abort
   return pattern
 endfu
 
-fu! s:parse_substitute(word)
+fu! s:parse_substitute(word) abort
   " partially taken from vim over
   let very_magic  = '\v'
   let range       = '(.{-})'
@@ -127,22 +197,23 @@ fu! s:parse_substitute(word)
         \ 'slash':            parts[2],
         \ 'pattern':          parts[3],
         \ 'string':           parts[4],
-        \ 'flags':          parts[5],
+        \ 'flags':            parts[5],
         \ 'count':            parts[6],
         \ 'previous_pattern': @/,
-        \ 'to_string':        function('<SID>to_string'),
+        \ 'to_str':           function('<SID>to_str'),
         \ 'get_pattern':      function('<SID>get_pattern'),
         \ }
 endfu
 
-fu! s:to_string() abort dict
-  return self.range
-        \ . self.command
-        \ . self.slash
-        \ . self.pattern
-        \ . self.string
-        \ . self.flags
-        \ . self.count
+fu! s:to_str(...) abort dict
+  let parts = extend(copy(self), get(a:000, 0, {}), 'force')
+  return parts.range
+        \ . parts.command
+        \ . parts.slash
+        \ . parts.pattern
+        \ . parts.string
+        \ . parts.flags
+        \ . parts.count
 endfu
 
 fu! s:get_pattern() abort dict

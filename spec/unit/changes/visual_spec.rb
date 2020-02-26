@@ -41,7 +41,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 < col2' do
           context 'delete until a char in the middle' do
             it 'reports deleted region' do
-              editor.press! '2gg3|v3gg4|x'
+              editor.send_keys_separately '2gg3|v3gg4|x'
               expect(editor.lines.to_a).to eq(['aa bb', 'ccf'])
 
               expect(event).to include_payload('v-delete-up', 2..3, 3..4)
@@ -50,7 +50,7 @@ describe 'esearch#ftdetect' do
 
           context 'when delete until the end of the buffer' do
             it 'reports deleted region' do
-              editor.press! '2gg4|vG$x'
+              editor.send_keys_separately '2gg4|vG$x'
               expect(editor.lines.to_a).to eq(['aa bb', 'cc '])
 
               expect(event).to include_payload('v-delete-up', 2..4, 3..6)
@@ -60,7 +60,7 @@ describe 'esearch#ftdetect' do
 
         context 'when col1 == col2' do
           it 'reports deleted region' do
-            editor.press! '2gg4|v3gg4|x'
+            editor.send_keys_separately '2gg4|v3gg4|x'
             expect(editor.lines.to_a).to eq(['aa bb', 'cc f'])
 
             expect(event).to include_payload('v-delete-up', 2..4, 3..4)
@@ -69,7 +69,7 @@ describe 'esearch#ftdetect' do
 
         context 'when deleting entire buffer' do
           it 'reports deleted region' do
-            editor.press! '1gg1|vG$x'
+            editor.send_keys_separately '1gg1|vG$x'
             expect(editor.lines.to_a).to eq([''])
 
             expect(event).to include_payload('v-delete-up', 1..1, 3..6)
@@ -80,7 +80,7 @@ describe 'esearch#ftdetect' do
       context 'moving up' do
         context 'when col1 < col2' do
           it 'reports deleted region' do
-            editor.press! '3gg3|v1gg2|x'
+            editor.send_keys_separately '3gg3|v1gg2|x'
             expect(editor.lines.to_a).to eq(['aff'])
 
             expect(event).to include_payload('v-delete-up', 1..2, 3..3)
@@ -89,7 +89,7 @@ describe 'esearch#ftdetect' do
 
         context 'when entire buffer is deleted' do
           it 'reports deleted region' do
-            editor.press! 'G$vggx'
+            editor.send_keys_separately 'G$vggx'
             expect(editor.lines.to_a).to eq([''])
             expect(event).to include_payload('v-delete-up', 1..1, 3..5)
           end
@@ -99,7 +99,7 @@ describe 'esearch#ftdetect' do
       context 'within a inline' do
         context 'moving forward' do
           it 'reports deleted region' do
-            editor.press! '2gg2|'
+            editor.send_keys_separately '2gg2|'
             editor.send_keys_separately 'v', '3|x'
             expect(editor.lines.to_a).to eq(['aa bb', 'cdd', 'ee ff'])
 
@@ -110,7 +110,7 @@ describe 'esearch#ftdetect' do
         context 'when backward' do
           context 'from col1 == -2' do
             it 'reports deleted region' do
-              editor.press! '2gg4|v2|x'
+              editor.send_keys_separately '2gg4|v2|x'
               expect(editor.lines.to_a).to eq(['aa bb', 'cd', 'ee ff'])
 
               expect(event).to include_payload('v-inline', 2..2, 2..4)
@@ -119,7 +119,7 @@ describe 'esearch#ftdetect' do
 
           context 'from col1 == -1' do
             it 'reports deleted region' do
-              editor.press! '2gg$v3|x'
+              editor.send_keys_separately '2gg$v3|x'
               expect(editor.lines.to_a).to eq(['aa bb', 'cc', 'ee ff'])
               expect(event).to include_payload('v-inline', 2..3, 2..5)
             end
@@ -133,7 +133,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 < col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '3gg2|v2gg1|p'
+            editor.send_keys_separately '3gg2|v2gg1|p'
             expect(editor.lines.to_a).to eq(['aa bb', '11 22', '3 ff'])
             expect(event).to include_payload('v-paste-up', 2..1, 3..unknown)
           end
@@ -142,7 +142,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 > col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '3gg2|v2gg5|p'
+            editor.send_keys_separately '3gg2|v2gg5|p'
             expect(editor.lines.to_a).to eq(['aa bb', 'cc d11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-up', 2..5, 3..unknown)
@@ -152,7 +152,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 == col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '3gg2|v2gg2|p'
+            editor.send_keys_separately '3gg2|v2gg2|p'
             expect(editor.lines.to_a).to eq(['aa bb', 'c11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-up', 2..2, 3..unknown)
@@ -165,7 +165,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 > col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '2gg4|v3gg2|p'
+            editor.send_keys_separately '2gg4|v3gg2|p'
             expect(editor.lines.to_a).to eq(['aa bb', 'cc 11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-forward', 2..4, 3..2)
@@ -175,7 +175,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 < col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '2gg4|v3gg5|p'
+            editor.send_keys_separately '2gg4|v3gg5|p'
             expect(editor.lines.to_a).to eq(['aa bb', 'cc 11 22', '3'])
 
             expect(event).to include_payload('v-paste-forward', 2..4, 3..5)
@@ -185,7 +185,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 == col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '2gg4|v3gg4|p'
+            editor.send_keys_separately '2gg4|v3gg4|p'
             expect(editor.lines.to_a).to eq(['aa bb', 'cc 11 22', '3f'])
 
             expect(event).to include_payload('v-paste-forward', 2..4, 3..4)
@@ -199,7 +199,7 @@ describe 'esearch#ftdetect' do
         context 'when  col1 < col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '3gg2|v1gg1|p'
+            editor.send_keys_separately '3gg2|v1gg1|p'
             expect(editor.lines.to_a).to eq(['11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-back-size-changing', 1..1, 3..unknown)
@@ -209,7 +209,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 > col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '3gg2|v1gg5|p'
+            editor.send_keys_separately '3gg2|v1gg5|p'
             expect(editor.lines.to_a).to eq(['aa b11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-back-size-changing', 1..5, 3..unknown)
@@ -219,7 +219,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 == col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '3gg2|v1gg2|p'
+            editor.send_keys_separately '3gg2|v1gg2|p'
             expect(editor.lines.to_a).to eq(['a11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-back-size-changing', 1..2, 3..unknown)
@@ -231,7 +231,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 > col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '1gg4|v3gg2|p'
+            editor.send_keys_separately '1gg4|v3gg2|p'
             expect(editor.lines.to_a).to eq(['aa 11 22', '3 ff'])
 
             expect(event).to include_payload('v-paste-forward-size-changing', 1..4, 3..2)
@@ -241,7 +241,7 @@ describe 'esearch#ftdetect' do
         context 'when col1 < col2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '1gg4|v3gg5|p'
+            editor.send_keys_separately '1gg4|v3gg5|p'
             expect(editor.lines.to_a).to eq(['aa 11 22', '3'])
 
             expect(event).to include_payload('v-paste-forward-size-changing', 1..4, 3..5)
@@ -251,7 +251,7 @@ describe 'esearch#ftdetect' do
         context 'COL1 = COL2' do
           it 'reports replaced region' do
             editor.clipboard = '11 22\n3'
-            editor.press! '1gg4|v3gg4|p'
+            editor.send_keys_separately '1gg4|v3gg4|p'
             expect(editor.lines.to_a).to eq(['aa 11 22', '3f'])
 
             expect(event).to include_payload('v-paste-forward-size-changing', 1..4, 3..4)
