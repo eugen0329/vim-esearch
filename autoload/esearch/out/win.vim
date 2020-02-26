@@ -49,6 +49,7 @@ let s:spinner_max_frame_size = max(map(copy(s:spinner), 'strchars(v:val)'))
 let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_frame_size.'s file(s)'
 let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
+let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -559,7 +560,9 @@ fu! s:set_syntax_sync(esearch) abort
 endfu
 
 fu! s:unload_highlights(esearch) abort
-  let b:parenmatch = 0 " disable highlights of matching braces (3d party plugin)
+  " disable highlights of matching braces (3d party plugin)
+  " au! parenmatch *
+  let b:parenmatch = 0 " another way if parenmatch group name will become outdate
 
   if s:Promise.is_available()
     return s:Promise
@@ -923,7 +926,7 @@ fu! esearch#out#win#edit() abort
     au! * <buffer>
     au BufWriteCmd <buffer> ++nested call s:write()
     " TODO
-    au BufHidden,BufLeave <buffer>  ++nested          set nomodified
+    au BufHidden,BufLeave <buffer>  ++nested  set nomodified
   augroup END
 
   try
@@ -943,6 +946,7 @@ fu! esearch#out#win#edit() abort
         \ })
   call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
   call esearch#changes#add_observer(function('esearch#out#win#handle_changes'))
+  set nomodified
 endfu
 
 fu! s:write() abort
@@ -988,16 +992,18 @@ fu! esearch#out#win#handle_changes(event) abort
     call s:handle_undo_traversal(a:event)
   elseif a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
     let debug = s:handle_normal__inline(a:event)
-  elseif  a:event.id =~# 'i-inline'
+  elseif a:event.id =~# 'i-inline'
     let debug = s:handle_insert__inline(a:event)
   elseif  a:event.id =~# 'i-delete-newline'
     let debug = s:handle_insert__delete_newlines(a:event)
-  elseif  a:event.id =~# 'join'
-    call s:handle_unsupported(a:event)
+  elseif a:event.id =~# 'join'
+    call esearch#out#win#unsupported#handle(a:event)
+  elseif a:event.id =~# 'cmdline'
+    call esearch#out#win#cmdline#handle(a:event)
   else
     call b:esearch.undotree.synchronize()
     "" the feature is toggled until commandline and visual-block handling is ready
-    " call s:handle_unsupported(a:event)
+    " call esearch#out#win#unsupported#handle(a:event)
   endif
 
   if g:esearch#env isnot 0
@@ -1005,16 +1011,6 @@ fu! esearch#out#win#handle_changes(event) abort
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
     call esearch#log#debug(a:event,  len(v:errors))
   endif
-endfu
-
-fu! s:handle_unsupported(event) abort
-  call b:esearch.undotree.mark_block_as_corrupted()
-  " TODO fix for easymotion
-  silent undo
-
-  " TODO cannot undo a:event.id =~# 'i-add-newline'
-  call b:esearch.undotree.checkout(changenr())
-  call esearch#changes#undo_state()
 endfu
 
 fu! s:handle_undo_traversal(event) abort

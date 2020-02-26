@@ -71,6 +71,10 @@ class API::ESearch::Window::Entry
     "#{relative_path}:#{line_in_file.inspect}: #{result_text} (line #{line_in_window})".inspect
   end
 
+  def eql?(other)
+    self == other
+  end
+
   def ==(other)
     self.class == other.class &&
       line_content == other.line_content &&

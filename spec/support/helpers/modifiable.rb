@@ -2,6 +2,9 @@
 
 # rubocop:disable Metrics/ModuleLength
 module Helpers::Modifiable
+  extend ActiveSupport::Concern
+  include Helpers::FileSystem
+  include VimlValue::SerializationHelpers
   extend RSpec::Matchers::DSL
 
   Context = Struct.new(:name, :content) do

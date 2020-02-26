@@ -26,7 +26,7 @@ describe 'within single context', :window do
     context 'within header' do
       it do
         editor.locate_cursor! 1, 5
-        expect { editor.press! 'd}' }.not_to change { editor.lines.to_a }
+        expect { editor.send_keys_separately 'd}' }.not_to change { editor.lines.to_a }
       end
     end
 
@@ -42,9 +42,9 @@ describe 'within single context', :window do
 
             it 'removes entry -1 and clears text after col1' do
               entry.locate!
-              editor.press! "f#{anchor}"
+              editor.send_keys_separately "f#{anchor}"
 
-              expect { editor.press! 'd}' }
+              expect { editor.send_keys_separately 'd}' }
                 .to change { output.reload(entry).line_content }
                 .to(expected_text)
               expect(esearch.output)
@@ -59,20 +59,20 @@ describe 'within single context', :window do
 
             it do
               editor.locate_cursor! entry.line_in_window - 1, 5
-              editor.press! 'd}'
+              editor.send_keys_separately 'd}'
               expect(output)
                 .to have_entries(entries).except(contexts[i].entries)
             end
 
             it do
               editor.locate_cursor! entry.line_in_window - 1, 5
-              editor.press! 'd{'
+              editor.send_keys_separately 'd{'
               expect(output).to have_entries(entries)
             end
 
             it do
               editor.locate_cursor! entry.line_in_window - 1, 1
-              editor.press! 'd{'
+              editor.send_keys_separately 'd{'
               expect(output).to have_entries(entries)
             end
           end
@@ -88,7 +88,7 @@ describe 'within single context', :window do
 
             it 'recovers blank line before context' do
               editor.locate_cursor! entry.line_in_window - 2, 5
-              editor.press! 'd}'
+              editor.send_keys_separately 'd}'
 
               expect(output)
                 .to have_entries(entries).except(contexts[i].entries)
@@ -105,7 +105,7 @@ describe 'within single context', :window do
 
             it 'recovers blank line before context' do
               editor.locate_cursor! contexts[i].entries[-1].line_in_window + 1, 1
-              editor.press! 'd{'
+              editor.send_keys_separately 'd{'
 
               expect(output).to have_entries(entries).except(contexts[i].entries)
             end
@@ -142,7 +142,7 @@ describe 'within single context', :window do
 
               it do
                 entry1.locate!
-                editor.press! "f#{anchor1}"
+                editor.send_keys_separately "f#{anchor1}"
 
                 expect { editor.send_keys 'd{' }
                   .to change { output.reload(entry1).line_content }
@@ -312,7 +312,7 @@ describe 'within single context', :window do
 
                 it do
                   entry1.locate!
-                  editor.press! "f#{anchor1}"
+                  editor.send_keys_separately "f#{anchor1}"
 
                   expect { editor.send_keys "df#{anchor2}" }
                     .to change { output.reload(entry1).line_content }

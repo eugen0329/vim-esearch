@@ -6,6 +6,7 @@ require 'active_support/notifications'
 # rubocop:disable Layout/ClassLength
 class Editor
   include API::Mixins::Throttling
+  include API::Mixins::BecomeTruthyWithinTimeout
 
   class MissingBufferError < RuntimeError; end
 
@@ -268,6 +269,23 @@ class Editor
   def send_keys_separately(*keyboard_keys)
     editor.command('let &undolevels=&undolevels')
     keyboard_keys.map { |key| send_keys(key, split_undo_entry: false) }
+  end
+
+  # imitation of command inputter by a user
+  def send_command(string_to_execute)
+    command! <<~VIML
+      call histadd(":", #{VimlValue.dump(string_to_execute)})
+    VIML
+
+    history_updated = with_ignore_cache do
+      became_truthy_within?(5.seconds) do
+        editor.echo(func('histget', ':', -1)) == string_to_execute
+      end
+    end
+    raise unless history_updated
+
+    editor.command('let &undolevels=&undolevels')
+    press! ":#{string_to_execute}<Enter>"
   end
 
   def raw_echo(arg)

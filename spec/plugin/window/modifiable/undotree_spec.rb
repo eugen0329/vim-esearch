@@ -15,12 +15,12 @@ describe 'Undoing in modifiable mode', :window do
   # - each undo block can be checkouted (seq_last - last change block
   #   number, seq_cur - currently checkouted block)
 
-  # undotree().items doesn't contain the first block
+  # as undotree().items doesn't contain the first block
   let!(:root_node) { editor.echo(func('changenr')) }
   # this entry isn't listed as well, but seq_cur and changenr() are showing it
   let(:root_node_alias) { 0 }
   after do
-    expect(undotree_nodes + [root_node, root_node_alias])
+    expect(undotree_nodes | [root_node, root_node_alias])
       .to match_array(esearch_undotree_nodes)
   end
 
@@ -161,17 +161,16 @@ describe 'Undoing in modifiable mode', :window do
   end
 
   describe 'undefined actions' do
-    let(:changenr_was) { editor.echo(func('changenr')) }
+    let!(:changenr_was) { editor.echo(func('changenr')) }
 
     before do
       # Undefined actions are handled via :undo which cause changenr() to remain
       # the same, while last undo block number is incremented.
       # Here is the setup verification to have feedback when it will become outdated
       expect { editor.send_keys_separately 'J' }
-        .to change { editor.echo(func('changenr')) }
-        .to(be <= changenr_was)
-        .and change { editor.echo(var('undotree().seq_last')) }
+        .to change { editor.echo(var('undotree().seq_last')) }
         .to(be > changenr_was)
+        .and not_to_change { editor.echo(func('changenr')) }
     end
 
     context 'when an entry is affected' do

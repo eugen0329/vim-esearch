@@ -14,6 +14,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   else
     let b:__undotree = esearch#undotree#new({})
   endif
+  call setline(1, getline(1)) " initialize undo
 
   call s:handle_cursor_moved('n')
   call s:handle_cursor_moved('n')
@@ -64,6 +65,8 @@ fu! s:payload() abort
         \ 'current_line': getline(line('.')),
         \ 'next_line':    getline(line('.')+1),
         \ 'changenr':     changenr(),
+        \ 'cmdhistnr':    histnr(':'),
+        \ 'changedtick':  b:changedtick,
         \ }
 endfu
 
@@ -87,21 +90,59 @@ fu! s:handle_text_changed() abort
 
   let undotree = undotree()
   if undotree.seq_last > undotree.seq_cur
-        \ || (to.mode !=# 'i'
-        \     && has_key(b:__undotree.nodes, changenr())
-        \     && from.changenr < to.changenr)
-    return s:emit_undotree_traversal()
+    " Undo
+    call s:emit_undotree_traversal()
+  elseif to.mode !=# 'i'
+        \  && has_key(b:__undotree.nodes, changenr())
+        \  && from.changedtick != to.changedtick
+    " Redo or a third party plugin trick with locking undo
+    if from.changenr < to.changenr
+      call s:emit_undotree_traversal()
+    else
+      " noop, undo was reverted (EasyMotion, Overcommandline etc. do this)
+    endif
+  elseif from.cmdhistnr !=# to.cmdhistnr
+    call s:identify_cmdline()
   elseif from.mode ==# 'i'
-    return s:identify_insert()
+    call s:identify_insert()
   elseif from.mode ==# 'V' || to.mode ==# 'V'
-    return s:identify_visual_line()
+    call s:identify_visual_line()
   elseif from.mode ==# 'v'
-    return s:identify_visual()
+    call s:identify_visual()
   elseif from.mode ==# 'n'
-    return s:identify_normal()
+    call s:identify_normal()
+  else
+    call s:emit({'id': 'undefined-mode', 'debug': [from,to], 'mode': [from.mode, to.mode]})
   endif
+endfu
 
-  return s:emit({'id': 'undefined-mode', 'mode': [from.mode, to.mode]})
+fu! s:identify_cmdline() abort
+  let [from, to] = b:__states[-2:-1]
+  let line1 = line("'[")
+
+  let ds = from.size - to.size
+
+  if from.size > to.size
+    return s:emit({
+          \ 'id':            'cmdline1',
+          \ 'cmdline':       histget(':', -1),
+          \ 'line1':         line1,
+          \ 'line2':         line1  + to.size - from.size,
+          \ 'original_size': from.size,
+          \ 'changenr1':     from.changenr,
+          \ 'changenr2':     to.changenr,
+          \ })
+  else
+    return s:emit({
+          \ 'id':     'cmdline2',
+          \ 'cmdline': histget(':', -1),
+          \ 'line1':   line1,
+          \ 'line2':   line("']"),
+          \ 'original_size': from.size,
+          \ 'changenr1': from.changenr,
+          \ 'changenr2': to.changenr,
+          \ })
+  endif
 endfu
 
 fu! esearch#changes#add_observer(funcref) abort
@@ -377,7 +418,7 @@ fu! s:identify_normal() abort
                   \ 'line2': line2 + 1,
                   \ })
         else
-          "   - both side of the region are linewise (clever-f or other motions)
+          "   - both sides of the region are linewise (clever-f or other motions)
           return s:emit({
                 \ 'id': 'n-motion-down-columnwise-right2',
                 \ 'col1':  from.col,
@@ -862,13 +903,13 @@ if g:esearch#env isnot 0
 
 
   fu! s:debug_changes(...) abort
-    let n = get(a:000, 1, 8)
+    let n = str2nr(get(a:000, 1, 8))
     let tail = copy(b:__changes[max([ - n, - len(b:__changes)  ]) :-1])
     PP tail
   endfu
 
   fu! s:debug_states(...) abort
-    let n = get(a:000, 1, 8)
+    let n = str2nr(get(a:000, 1, 8))
     let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :-1])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
           \ .'"mode": v:val.mode,'

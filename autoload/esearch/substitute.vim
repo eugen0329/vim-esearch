@@ -137,7 +137,6 @@ fu! s:make_swap_choise(fname, esearch_buf) abort
   if index(esearch.unresolved_swapfiles, a:fname) < 0
     call add(esearch.unresolved_swapfiles, a:fname)
   endif
-  " PP
   " 'o'   Open read-only
   " 'e'   Edit anyway
   " 'r'   Recover
