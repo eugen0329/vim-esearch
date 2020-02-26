@@ -19,7 +19,7 @@ fu! s:safely_replay_substitute(event, command) abort
     return
   endif
   if s:is_size_changed(a:event)
-    call s:Message.echo('ErrorMsg', 'Multiline command is not allowed')
+    call s:Message.echo('ErrorMsg', 'Multiline :substitute is not allowed')
     return esearch#out#win#unsupported#handle(a:event)
   endif
 

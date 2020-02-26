@@ -271,13 +271,14 @@ class Editor
     keyboard_keys.map { |key| send_keys(key, split_undo_entry: false) }
   end
 
+  # imitation of command inputter by a user
   def send_command(string_to_execute)
     command! <<~VIML
       call histadd(":", #{VimlValue.dump(string_to_execute)})
     VIML
 
     history_updated = with_ignore_cache do
-      became_truthy_within?(5) do
+      became_truthy_within?(5.seconds) do
         editor.echo(func('histget', ':', -1)) == string_to_execute
       end
     end

@@ -162,7 +162,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
             end
           end
 
-          context "when 'a' is pressed after substituting with 'y' the 1st match" do
+          context "when 'a' is pressed after substituting with the 1st match 'y'" do
             it 'substitutes all matches' do
               expect {
                 editor.send_command("%s/#{pattern}/changed/#{flags}")
@@ -173,7 +173,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
             end
           end
 
-          context "when 'a' is pressed after skipping with 'n' the 1st match" do
+          context "when 'a' is pressed after skipping with the 1st match 'n'" do
             let(:modified_entries) { sample_context.entries[1..] }
 
             context 'when matches on different lines' do

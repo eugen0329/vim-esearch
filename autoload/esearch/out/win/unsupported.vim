@@ -6,4 +6,3 @@ fu! esearch#out#win#unsupported#handle(event) abort
   call b:esearch.undotree.checkout(changenr())
   call esearch#changes#undo_state()
 endfu
-

@@ -926,7 +926,7 @@ fu! esearch#out#win#edit() abort
     au! * <buffer>
     au BufWriteCmd <buffer> ++nested call s:write()
     " TODO
-    au BufHidden,BufLeave <buffer>  ++nested          set nomodified
+    au BufHidden,BufLeave <buffer>  ++nested  set nomodified
   augroup END
 
   try
@@ -946,6 +946,7 @@ fu! esearch#out#win#edit() abort
         \ })
   call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
   call esearch#changes#add_observer(function('esearch#out#win#handle_changes'))
+  set nomodified
 endfu
 
 fu! s:write() abort
@@ -985,7 +986,6 @@ fu! s:write() abort
 endfu
 
 fu! esearch#out#win#handle_changes(event) abort
-  " return
   if a:event.id =~# '^n-motion' || a:event.id =~# '^v-' || a:event.id =~# '^V-line-delete-'
     call esearch#out#win#delete_multiline#handle(a:event)
   elseif a:event.id =~# 'undo'
