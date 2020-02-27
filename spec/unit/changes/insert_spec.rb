@@ -15,7 +15,7 @@ describe 'INSERT mode' do
     editor.cleanup!
   end
 
-  let(:event) { editor.echo(var('b:__changes[-1]')) }
+  let(:event) { editor.echo(var('b:__events[-1]')) }
   let(:files) { [file("1\naa bc dd", 'insert_fixture.txt')] }
   let!(:search_directory) { directory(files).persist! }
 
