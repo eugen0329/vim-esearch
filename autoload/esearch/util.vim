@@ -531,7 +531,7 @@ fu! esearch#util#parse_help_options(command) abort
   let option = '-\{1,2}[0-9a-zA-Z][0-9a-zA-Z-]*'
   let option_regexp = '\('.option.'\)'
   let the_rest_regexp = '\(.*\)'
-  let optoin_and_the_rest_regexp = option_regexp . the_rest_regexp
+  let option_and_the_rest_regexp = option_regexp . the_rest_regexp
   " TODO do we need to allow options outputted without left padding?
   let options_area_regexp = '^[ \t]\+\%(' . option . '[\[\]=\w]*\|[, ]\+\)\+'
 
@@ -546,7 +546,7 @@ fu! esearch#util#parse_help_options(command) abort
     let options_area  = matchstr(line, options_area_regexp)
 
     while len(options_area) > 0
-      let matches = matchlist(options_area, optoin_and_the_rest_regexp)
+      let matches = matchlist(options_area, option_and_the_rest_regexp)
 
       " [full_line, matched_option, the_rest_of_a_line, ...] = matches
       if len(matches) > 1 && !empty(matches[1])

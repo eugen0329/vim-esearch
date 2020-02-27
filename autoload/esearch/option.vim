@@ -84,10 +84,10 @@ fu! s:set(option_name, value) abort
   if !has_key(s:saved_global_options, a:option_name)
     let s:saved_global_options[a:option_name] = eval('&' . a:option_name)
   endif
-  execute printf("let &g:%s = %s", a:option_name, string(a:value))
+  execute printf('let &g:%s = %s', a:option_name, string(a:value))
 endfu
 
 fu! s:restore(option_name) abort
-  execute printf("let &g:%s = s:saved_global_options[%s]",
+  execute printf('let &g:%s = s:saved_global_options[%s]',
         \ a:option_name, string(a:option_name))
 endfu

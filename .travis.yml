@@ -92,6 +92,9 @@ jobs:
     #   - tests rely on platform specific calls and should be crossplatform
     #   - underlying backends (mostly vimproc) rely platform specific calls
     # OSX acceptance
+
+    # parallel_split_test of #system cause deadlocks on mac, so testing
+    # synchronously
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec spec/plugin/backend_spec.rb --tag system
       os: osx

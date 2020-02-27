@@ -1011,7 +1011,7 @@ fu! esearch#out#win#handle_changes(event) abort
   if g:esearch#env isnot 0
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
-    " call esearch#log#debug(a:event,  len(v:errors))
+    call esearch#log#debug(a:event,  len(v:errors))
   endif
 endfu
 
@@ -1137,7 +1137,6 @@ fu! s:handle_normal__inline(event) abort
 
   let text = getline(line1)
   let linenr = printf(' %3d ', state.line_numbers_map[line1])
-  let recover_cursor = ''
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
@@ -1146,23 +1145,9 @@ fu! s:handle_normal__inline(event) abort
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
-
-    if mode() ==# 'i'
-      let recover_cursor = "\<Esc>"
-    endif
-  elseif line1 == 2
-    " TODO undef mode
-    if mode() ==# 'i'
-      let recover_cursor = "\<Esc>"
-    endif
   elseif line1 == context.begin
     " it's a filename, restoring
     call setline(line1, context.filename)
-
-    if mode() ==# 'i'
-      let recover_cursor = "\<Down>\<End>"
-    endif
-
   elseif line1 > 2 && col1 < strlen(linenr) + 1
     " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
 
@@ -1175,14 +1160,7 @@ fu! s:handle_normal__inline(event) abort
     endif
     " let text = linenr . text[ [col1, col2, strlen(linenr)] :]
     call setline(line1, text)
-
-    if mode() ==# 'i'
-      let recover_cursor = "\<End>"
-    endif
   endif
 
   call b:esearch.undotree.synchronize()
-  if !empty(recover_cursor)
-    " call feedkeys(recover_cursor)
-  endif
 endfu

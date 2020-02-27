@@ -20,7 +20,7 @@ module Helpers::Vim
     end
   end
 
-  # TODO fix reusability
+  # TODO: fix reusability
   matcher :change_option do |option, timeout: 1|
     include API::Mixins::BecomeTruthyWithinTimeout
 

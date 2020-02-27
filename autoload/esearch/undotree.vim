@@ -12,7 +12,7 @@ fu! esearch#undotree#new(state) abort
         \ 'synchronize':             function('<SID>synchronize'),
         \ 'mark_block_as_corrupted': function('<SID>mark_block_as_corrupted'),
         \ 'checkout':                function('<SID>checkout'),
-        \ 'locate_synchronized':                  function('<SID>locate_synchronized'),
+        \ 'locate_synchronized':     function('<SID>locate_synchronized'),
         \ 'head':                    initial,
         \ 'nodes':                   nodes,
         \ }
@@ -71,11 +71,12 @@ fu! s:checkout(changenr, ...) abort dict
   call s:Message.echo('ErrorMsg', message)
 endfu
 
-" traverse undotree using :undo or :redo specified using a:command
+" traverse undotree using :undo or :redo using command specified in a:command
 fu! s:locate_synchronized(command) abort dict
   let found_changenr = -1
+
   while changenr() != found_changenr
-    exe 'silent ' . a:command
+    execute 'silent ' . a:command
     let found_changenr = changenr()
 
     if has_key(self.nodes, found_changenr)

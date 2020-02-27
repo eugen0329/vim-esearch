@@ -378,9 +378,10 @@ describe 'Insert mode', :window do
   end
 
   describe 'recover after inserting newlines' do
+    before { editor.locate_line! rand(1..editor.lines_count) }
+
     context 'when inserting a single newline' do
       it 'recovers current line' do
-        editor.locate_line! 2
         editor.send_keys 'i'
 
         expect { editor.send_keys_separately "\n" }
@@ -389,13 +390,12 @@ describe 'Insert mode', :window do
     end
 
     context 'when pasting large text with newlines' do
-      let(:input) { (["a" * 100] * 100).join("\n") }
+      let(:pasted_text) { (['a' * 100] * 100).join("\n") }
 
       it 'recovers current line' do
-        editor.locate_line! 2
         editor.send_keys 'i'
 
-        expect { editor.send_keys_separately input }
+        expect { editor.send_keys_separately pasted_text }
           .not_to change { editor.lines.to_a }
       end
     end
