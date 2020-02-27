@@ -4,7 +4,6 @@ if g:esearch#cmdline#menu_feature_toggle == 1
         \ '<C-o>':       '<Plug>(esearch-cmdline-open-menu)',
         \ 'key':         function('esearch#util#key'),
         \ 'dict':        function('esearch#util#dict'),
-        \ 'without_val':        function('esearch#util#without_val'),
         \}
   let s:comments = {
         \ '<Plug>(esearch-cmdline-open-menu)': 'Toggle regex(r) or literal(>) match',
@@ -17,7 +16,6 @@ else
         \ '<C-o><C-h>':  '<Plug>(esearch-cmdline-help)',
         \ 'key':         function('esearch#util#key'),
         \ 'dict':        function('esearch#util#dict'),
-        \ 'without_val':        function('esearch#util#without_val'),
         \}
   let s:comments = {
         \ '<Plug>(esearch-toggle-regex)': 'Toggle regex(r) or literal(>) match',

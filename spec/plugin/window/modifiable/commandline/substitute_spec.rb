@@ -248,15 +248,17 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
   describe '[pattern]' do
     context 'when is empty' do
       let(:pattern) { entry.result_text }
+      let(:original_text) { entry.result_text }
 
       before do
         editor.send_command("%s/#{pattern}/changed/")
-        editor.command! 'undo 0'
+        expect { editor.send_command 'undo 0' }
+          .to change_entries_text([entry])
       end
 
       it 'reuses previous pattern' do
         expect { editor.send_command('%s//changed_after_undo/') }
-          .to change_entries_text([entry])
+          .to change_entries_text(entry)
           .to(['changed_after_undo'])
           .and not_to_change_entries_text(entries - [entry])
       end

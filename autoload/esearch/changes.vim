@@ -4,10 +4,14 @@ let s:unknown = -1
 
 fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__states = []
-  let b:__changes = []
-  let b:__lines = []
+  if g:esearch#env isnot# 0
+    let b:__events = []
+  endif
   let b:__incrementable_state_id = 0
   let b:__observer = function('<SID>noop')
+  let b:__locked = 0
+  " TODO reimplement to work using :au User 
+  let b:__multicursor = 0
 
   if a:0 > 0
     let b:__undotree = a:1
@@ -16,15 +20,18 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   endif
   call setline(1, getline(1)) " initialize undo
 
-  call s:handle_cursor_moved('n')
-  call s:handle_cursor_moved('n')
+  call s:record_state_change('n')
+  call s:record_state_change('n')
 
   augroup ESearchChanges
     au! * <buffer>
-    au InsertEnter                           <buffer> call s:handle_cursor_moved('i')
-    au CursorMoved                           <buffer> call s:handle_cursor_moved('n')
-    au CursorMovedI                          <buffer> call s:handle_cursor_moved('i')
-    au TextChanged,TextChangedI,TextChangedP <buffer> call s:handle_text_changed()
+    au InsertEnter                           <buffer> call s:record_state_change('i')
+    au CursorMoved                           <buffer> call s:record_state_change('n')
+    au CursorMovedI                          <buffer> call s:record_state_change('i')
+    au TextChanged,TextChangedI,TextChangedP <buffer> call s:identify_text_change()
+    " TODO reimplement to work using :au User 
+    au User MultipleCursorsPre let b:__multicursor = 1
+    au User MultipleCursorsPost let b:__multicursor = 0
   augroup END
 endfu
 
@@ -46,9 +53,15 @@ fu! esearch#changes#rewrite_last_state(attributes) abort
 endfu
 
 fu! esearch#changes#undo_state() abort
-  if !empty(b:__states) && !empty(b:__changes) && b:__states[-1].id != b:__changes[-1].sid
-    call remove(b:__states, -1)
-  endif
+  call remove(b:__states, -1)
+  return b:__states[-1].changenr
+endfu
+
+fu! esearch#changes#lock() abort
+  let b:__locked = 1
+endfu
+fu! esearch#changes#unlock() abort
+  let b:__locked = 0
 endfu
 
 fu! s:payload() abort
@@ -70,36 +83,51 @@ fu! s:payload() abort
         \ }
 endfu
 
-fu! s:handle_cursor_moved(mode) abort
+fu! s:record_state_change(mode) abort
+  if b:__locked
+    return
+  endif
+
   let payload =  s:payload()
   if a:mode ==# 'i'
     let payload.mode = a:mode
   endif
 
   call add(b:__states, payload)
-  call add(b:__lines, getline(1, '$'))
+  if len(b:__states) > 5000
+    let b:__states = b:__states[-100:]
+  endif
 endfu
 
-fu! s:handle_text_changed() abort
+fu! s:identify_text_change() abort
+  if b:__locked
+    return
+  endif
+
   let [from, to] = b:__states[-2:-1]
 
   if mode() !=# to.mode || to.line != line('.') || to.col != col('.')
     " Missed event
-    call s:handle_cursor_moved('n')
+    call s:record_state_change('n')
   endif
 
   let undotree = undotree()
   if undotree.seq_last > undotree.seq_cur
-    " Undo
-    call s:emit_undotree_traversal()
+    " Last undo block number is lower the current - 100% undo
+    call s:identify_undo_traversal()
+    return
   elseif to.mode !=# 'i'
         \  && has_key(b:__undotree.nodes, changenr())
         \  && from.changedtick != to.changedtick
-    " Redo or a third party plugin trick with locking undo
+        \  && !b:__multicursor
+
     if from.changenr < to.changenr
-      call s:emit_undotree_traversal()
+      " Redo or a third party plugin trick with locking undo
+      call s:identify_undo_traversal()
+      return
     else
       " noop, undo was reverted (EasyMotion, Overcommandline etc. do this)
+      return
     endif
   elseif from.cmdhistnr !=# to.cmdhistnr
     call s:identify_cmdline()
@@ -112,7 +140,7 @@ fu! s:handle_text_changed() abort
   elseif from.mode ==# 'n'
     call s:identify_normal()
   else
-    call s:emit({'id': 'undefined-mode', 'debug': [from,to], 'mode': [from.mode, to.mode]})
+    call s:emit({'id': 'undefined-mode', 'mode': [from.mode, to.mode]})
   endif
 endfu
 
@@ -149,16 +177,29 @@ fu! esearch#changes#add_observer(funcref) abort
   let b:__observer = a:funcref
 endfu
 
-fu! s:emit(event) abort
-  let a:event.sid = b:__states[-1].id
-  call b:__observer(a:event)
-  call add(b:__changes, a:event)
-endfu
+if g:esearch#env is# 0
+  " If production - don't store events
+  fu! s:emit(event) abort
+    let a:event.sid = b:__states[-1].id
+    call b:__observer(a:event)
+  endfu
+else
+  fu! s:emit(event) abort
+    let a:event.sid = b:__states[-1].id
+    call add(b:__events, a:event)
+    call b:__observer(a:event)
+  endfu
+endif
 
-fu! s:emit_undotree_traversal() abort
+fu! s:identify_undo_traversal() abort
+  let [from, to] = b:__states[-2:-1]
+  " TODO implement more sophisticated check for undo kind detecting to take
+  " different tree branches into account. If belongs to different branches -
+  " it's only undo
   return s:emit({
         \ 'id': 'undo-traversal',
         \ 'changenr': b:__states[-1].changenr,
+        \ 'kind': (from.changenr < to.changenr ? 'redo' : 'undo'),
         \ })
 endfu
 
@@ -192,7 +233,7 @@ fu! s:identify_visual_line() abort
         endif
 
         " LINES DIRTY CHECK
-        if (empty(to.current_line) && to.size == 1) || b:__lines[-2][line2] == to.current_line
+        if (empty(to.current_line) && to.size == 1) || s:is_delete_up(from, to, line2)
           return s:emit({
                 \ 'id':     'V-line-delete-up1',
                 \ 'line1':  line1,
@@ -498,6 +539,14 @@ fu! s:identify_normal() abort
               \ 'col2':  from.col,
               \ 'lastcol': from.lastcol,
               \ })
+      elseif from.size == to.size
+        " so far only appears while using multicursor
+        return s:emit({
+              \ 'id': 'n-inline7',
+              \ 'line1': to.line,
+              \ 'col1': col("'["),
+              \ 'col2': col("']"),
+              \ })
       else
         return s:emit({
               \ 'id': 'n-motion-down3',
@@ -714,7 +763,7 @@ fu! s:identify_insert() abort
               \ 'line1': from.line,
               \ 'line2': from.line,
               \ 'col1':  min([from.col, to.col]),
-              \ 'col2':  max([from.col, to.col]) - 1,
+              \ 'col2':  max([1, max([from.col, to.col]) - 1]),
               \ })
       else " len1 == len2
         " ???????? TODO replace mode?
@@ -723,7 +772,7 @@ fu! s:identify_insert() abort
               \ 'line1':         from.line,
               \ 'line2':         from.line,
               \ 'col1':          min([from.col, to.col]),
-              \ 'col2':          max([from.col, to.col]) - 1,
+              \ 'col2':  max([1, max([from.col, to.col]) - 1]),
               \ 'original_text': from.current_line,
               \ })
       endif
@@ -753,6 +802,7 @@ fu! s:identify_insert() abort
           \ 'line2': to.line,
           \ 'col1':  from.col,
           \ 'col2':  to.col,
+          \ 'original_text':  from.current_line,
           \ })
   endif
 
@@ -888,29 +938,39 @@ fu! s:is_joining(from, to, line1, line2) abort
   return 1
 endfu
 
+fu! s:is_delete_up(from, to, line2) abort
+  " TODO find more graceful way
+  try
+    silent noau undo
+    return getline(a:line2 + 1) == a:to.current_line
+  finally
+    exe 'silent noau undo '.a:to.changenr
+  endtry
+endfu
+
 if g:esearch#env isnot 0
   fu! s:debug_observer(event) abort
     PP a:event
   endfu
 
   command! -nargs=* ST call s:debug_states(<f-args>)
-  command! -nargs=* CT call s:debug_changes(<f-args>)
+  command! -nargs=* ET call s:debug_changes(<f-args>)
   command! S  echo "\n".join(b:__states,  "\n")
-  command! C  echo "\n".join(b:__changes, "\n")
+  command! E  echo "\n".join(b:__events, "\n")
   command! U  call esearch#changes#unlisten_for_current_buffer()
   command! SetupChanges  call esearch#changes#listen_for_current_buffer()
         \ | call esearch#changes#add_observer(function('s:debug_observer'))
 
 
   fu! s:debug_changes(...) abort
-    let n = str2nr(get(a:000, 1, 8))
-    let tail = copy(b:__changes[max([ - n, - len(b:__changes)  ]) :-1])
+    let n = str2nr(get(a:000, 0, 8))
+    let tail = copy(b:__events[max([ - n, - len(b:__events)  ]) :])
     PP tail
   endfu
 
   fu! s:debug_states(...) abort
-    let n = str2nr(get(a:000, 1, 8))
-    let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :-1])
+    let n = str2nr(get(a:000, 0, 8))
+    let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
           \ .'"mode": v:val.mode,'
           \ . '"selections": v:val.selection1 + v:val.selection2}')
