@@ -21,7 +21,7 @@ describe '' do
   let(:order) do
     editor
       .echo(var('g:_order'))
-      .reject { |e| %w[SafeState SafeStateAgain CursorMoved CursorHold].include?(e.last) }
+      .reject { |e| %w[SafeState SafeStateAgain CursorMoved CursorHold FocusGained].include?(e.last) }
   end
 
   before do
