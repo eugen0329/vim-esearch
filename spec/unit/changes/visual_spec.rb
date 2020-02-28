@@ -14,7 +14,7 @@ describe 'esearch#ftdetect' do
     editor.command! 'undo 1 | undo'
   end
 
-  let(:event) { editor.echo(var('b:__changes[-1]')) }
+  let(:event) { editor.echo(var('b:__events[-1]')) }
 
   context 'visual block' do
     before do

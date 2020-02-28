@@ -38,8 +38,8 @@ module Helpers::Modifiable::Commandline
     end
 
     failure_message do
-      msg = "expected to change #{@before}"
-      msg += " to #{@to}, got #{@after}" if @to
+      msg = "expected to change #{@before.inspect}"
+      msg += " to #{@to.inspect}, got #{@after.inspect}" if @to
       msg
     end
   end

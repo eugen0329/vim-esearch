@@ -16,15 +16,20 @@ describe 'Undoing in modifiable mode', :window do
   #   number, seq_cur - currently checkouted block)
 
   # as undotree().items doesn't contain the first block
-  let!(:root_node) { editor.echo(func('changenr')) }
+  let!(:root_node) { editor.changenr }
   # this entry isn't listed as well, but seq_cur and changenr() are showing it
   let(:root_node_alias) { 0 }
-  after do
-    expect(undotree_nodes | [root_node, root_node_alias])
-      .to match_array(esearch_undotree_nodes)
+
+  shared_context 'undotree is completely synchronized' do
+    after do
+      expect(undotree_nodes | [root_node, root_node_alias])
+        .to match_array(esearch_undotree_nodes)
+    end
   end
 
   describe 'plain undo' do
+    include_context 'undotree is completely synchronized'
+
     context '1 block back' do
       it 'handles undo of a deleted line' do
         entries.each do |entry|
@@ -78,6 +83,8 @@ describe 'Undoing in modifiable mode', :window do
   end
 
   describe 'plain redo' do
+    include_context 'undotree is completely synchronized'
+
     context '1 block forward' do
       it do
         entries.each do |entry|
@@ -132,16 +139,18 @@ describe 'Undoing in modifiable mode', :window do
   end
 
   describe 'branching' do
+    include_context 'undotree is completely synchronized'
+
     let(:entry0)  { entries[0] }
     let(:entry1)  { entries[1] }
     let(:entry2)  { entries[2] }
 
     # Undo branches will look like (actions 1-5 are listed in braces):
-    # *   dd over entry 3 (5)
-    # | * dd over entry 2 (3)
-    # | * dd over entry 1 (2)
+    # *   5. dd over entry 3
+    # | * 3. dd over entry 2
+    # | * 2. dd over entry 1
     # |/
-    # *   (1) entry1.locate! (4) uu
+    # *   1. entry1.locate!; 4. descend back to this block with uu
     before do
       entry1.locate!
       editor.send_keys_separately 'dd'
@@ -160,8 +169,50 @@ describe 'Undoing in modifiable mode', :window do
     end
   end
 
+  describe 'rewinding' do
+    let!(:original_changenr) { editor.changenr }
+
+    before do
+      expect { editor.send_command("%s/#{entry.result_text}//") }
+        .to change { editor.changenr }
+        .from(original_changenr)
+      expect((undotree_nodes | [root_node, root_node_alias]).size)
+        .to eq(esearch_undotree_nodes.size + 1)
+      expect(editor.changenr - 1).not_to eq(original_changenr)
+    end
+
+    context 'when :undo to not synchronized' do
+      # *   3. replaying substitute here
+      # | * 2. silent undo back; 4. undo #{editor.changenr-1} to this block
+      # |/
+      # *   1. substitute/...//; 5. auto-rewinding back from the corrupted block
+
+      it 'rewinds to the first synchronized block' do
+        expect { editor.send_command("undo #{editor.changenr - 1}") }
+          .to change { editor.changenr }
+          .to(original_changenr)
+      end
+    end
+
+    context 'when redo to not synchronized' do
+      before { editor.send_command("undo #{editor.changenr - 1}") }
+      # *   3. replaying substitute here
+      # | * 2. silent undo back; 4. undo #{editor.changenr-1} to this block
+      # |/
+      # *   1. substitute/...//; 5. auto-rewinding happened, trying :redo
+
+      it 'rewinds to the first synchronized block' do
+        expect { editor.send_command('redo') }
+          .not_to change { editor.changenr }
+          .from(original_changenr)
+      end
+    end
+  end
+
   describe 'undefined actions' do
-    let!(:changenr_was) { editor.echo(func('changenr')) }
+    include_context 'undotree is completely synchronized'
+
+    let!(:changenr_was) { editor.changenr }
 
     before do
       # Undefined actions are handled via :undo which cause changenr() to remain
@@ -170,7 +221,7 @@ describe 'Undoing in modifiable mode', :window do
       expect { editor.send_keys_separately 'J' }
         .to change { editor.echo(var('undotree().seq_last')) }
         .to(be > changenr_was)
-        .and not_to_change { editor.echo(func('changenr')) }
+        .and not_to_change { editor.changenr }
     end
 
     context 'when an entry is affected' do
@@ -218,6 +269,8 @@ describe 'Undoing in modifiable mode', :window do
   end
 
   describe 'INSERT mode' do
+    include_context 'undotree is completely synchronized'
+
     context 'breaking undo blocks' do
       it 'works after unknown action recovery' do
         entry.locate!

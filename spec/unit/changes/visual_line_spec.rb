@@ -17,7 +17,7 @@ describe 'VISUAL LINE mode' do
       call setpos("'<", [0,0,0,0]) | call setpos("'>", [0,0,0,0])
     RESET_VISUAL
   end
-  let(:event) { editor.echo(var('b:__changes[-1]')) }
+  let(:event) { editor.echo(var('b:__events[-1]')) }
   let(:files) { [file("11\n22\n33\n44", 'visual_line_fixuture.txt')] }
   let!(:search_directory) { directory(files).persist! }
 

@@ -89,7 +89,6 @@ if !exists('g:esearch_out_win_highlight_cursor_line_number')
   let g:esearch_out_win_highlight_cursor_line_number = 1
 endif
 
-
 let s:context_syntaxes = {
       \ 'c':               'win_context_c',
       \ 'sh':              'win_context_sh',
@@ -243,6 +242,7 @@ fu! s:cleanup() abort
   augroup ESearchModifiable
     au! * <buffer>
   augroup END
+  call esearch#option#reset()
 endfu
 
 " TODO refactoring
@@ -946,6 +946,8 @@ fu! esearch#out#win#edit() abort
         \ })
   call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
   call esearch#changes#add_observer(function('esearch#out#win#handle_changes'))
+
+  call esearch#option#make_local_to_buffer('backspace', 'indent,start', 'InsertEnter')
   set nomodified
 endfu
 
@@ -996,14 +998,14 @@ fu! esearch#out#win#handle_changes(event) abort
     let debug = s:handle_insert__inline(a:event)
   elseif  a:event.id =~# 'i-delete-newline'
     let debug = s:handle_insert__delete_newlines(a:event)
+  elseif  a:event.id =~# 'i-add-newline'
+    call s:handle_insert__add_newlines(a:event)
   elseif a:event.id =~# 'join'
     call esearch#out#win#unsupported#handle(a:event)
   elseif a:event.id =~# 'cmdline'
     call esearch#out#win#cmdline#handle(a:event)
   else
-    call b:esearch.undotree.synchronize()
-    "" the feature is toggled until commandline and visual-block handling is ready
-    " call esearch#out#win#unsupported#handle(a:event)
+    call esearch#out#win#unsupported#handle(a:event)
   endif
 
   if g:esearch#env isnot 0
@@ -1014,7 +1016,20 @@ fu! esearch#out#win#handle_changes(event) abort
 endfu
 
 fu! s:handle_undo_traversal(event) abort
-  call b:esearch.undotree.checkout(a:event.changenr)
+  call b:esearch.undotree.checkout(a:event.changenr, a:event.kind)
+  call esearch#changes#rewrite_last_state({
+        \ 'changenr': changenr(),
+        \ })
+endfu
+
+fu! s:handle_insert__add_newlines(event) abort
+  " using recorded original text is the only way to safely recover line1
+  " contents as splitting line1 and line2 by col1 and col2 and joining them back
+  " is unreliable when pasting huge amount of newlines or when using 3d party plugins
+  call setline(a:event.line1, a:event.original_text)
+  call deletebufline(bufnr(), a:event.line1 + 1, a:event.line2)
+  call cursor(a:event.line1, a:event.col1)
+  call esearch#changes#undo_state()
 endfu
 
 fu! s:handle_insert__delete_newlines(event) abort
@@ -1064,18 +1079,19 @@ fu! s:handle_insert__inline(event) abort
   let cursorpos = []
 
   if line1 == 1
-    call setline(line1, printf(s:finished_header,
+    let text = printf(s:finished_header,
           \ len(b:esearch.request.data),
           \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
-          \ ))
+          \ )
+    call setline(line1, text)
   elseif line1 == 2 || line1 == context.end && context.end != line('$')
-    call setline(line1, '')
-    call feedkeys("\<Esc>")
+    let text = ''
+    call setline(line1, text)
   elseif line1 == context.begin
-    call setline(line1, context.filename)
-
+    let text = context.filename
+    call setline(line1, text)
   elseif line1 > 2 && col1 < strlen(linenr) + 1
     " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
 
@@ -1121,7 +1137,6 @@ fu! s:handle_normal__inline(event) abort
 
   let text = getline(line1)
   let linenr = printf(' %3d ', state.line_numbers_map[line1])
-  let recover_cursor = ''
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
@@ -1130,23 +1145,9 @@ fu! s:handle_normal__inline(event) abort
           \ b:esearch.files_count,
           \ esearch#inflector#pluralize('file', b:esearch.files_count),
           \ ))
-
-    if mode() ==# 'i'
-      let recover_cursor = "\<Esc>"
-    endif
-  elseif line1 == 2
-    " TODO undef mode
-    if mode() ==# 'i'
-      let recover_cursor = "\<Esc>"
-    endif
   elseif line1 == context.begin
     " it's a filename, restoring
     call setline(line1, context.filename)
-
-    if mode() ==# 'i'
-      let recover_cursor = "\<Down>\<End>"
-    endif
-
   elseif line1 > 2 && col1 < strlen(linenr) + 1
     " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
 
@@ -1159,14 +1160,7 @@ fu! s:handle_normal__inline(event) abort
     endif
     " let text = linenr . text[ [col1, col2, strlen(linenr)] :]
     call setline(line1, text)
-
-    if mode() ==# 'i'
-      let recover_cursor = "\<End>"
-    endif
   endif
 
   call b:esearch.undotree.synchronize()
-  if !empty(recover_cursor)
-    call feedkeys(recover_cursor)
-  endif
 endfu

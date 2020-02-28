@@ -113,6 +113,10 @@ class Editor
     echo func('col', '.')
   end
 
+  def changenr
+    echo(func('changenr'))
+  end
+
   def edit!(filename)
     command!("edit! #{filename}")
   end

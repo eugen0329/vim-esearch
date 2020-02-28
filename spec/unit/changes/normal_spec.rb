@@ -14,7 +14,7 @@ describe 'changes reporting in NORMAL mode' do
     editor.command! 'undo 1 | undo'
   end
 
-  let(:event) { editor.echo(var('b:__changes[-1]')) }
+  let(:event) { editor.echo(var('b:__events[-1]')) }
 
   shared_context 'setup multiline testing' do
     before do
@@ -200,7 +200,7 @@ describe 'changes reporting in NORMAL mode' do
             editor.locate_cursor! 2, 2
             editor.send_keys_separately 'S'
             expect(editor.lines.to_a).to eq(['11', ''])
-            expect(event).to include_payload('i-inline-delete2', 2..1, 2..0) # TODO
+            expect(event).to include_payload('i-inline-delete2', 2..1, 2..1) # TODO
             # expect(event).to eq_event(%[n-inline2 2:1 2:15])
           end
 
@@ -208,7 +208,7 @@ describe 'changes reporting in NORMAL mode' do
             editor.locate_cursor! 2, 2
             editor.send_keys_separately 'S'
             expect(editor.lines.to_a).to eq(['11', ''])
-            expect(event).to include_payload('i-inline-delete2', 2..1, 2..0) # TODO
+            expect(event).to include_payload('i-inline-delete2', 2..1, 2..1) # TODO
             # expect(event).to eq_event(%[n-inline2 2:1 2:15])
           end
         end
