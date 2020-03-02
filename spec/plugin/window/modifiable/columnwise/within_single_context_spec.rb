@@ -36,7 +36,7 @@ describe 'within single context', :window do
           let(:context0) { Context.new('aaaaaaaa', 0.upto(4).map { |i| "aa#{i}#{anchors[i]}" }) }
           let(:context1) { Context.new('bbbbbbbb', 0.upto(4).map { |i| "bb#{i}#{anchors[i]}" }) }
           let(:context2) { Context.new('cccccccc', 0.upto(4).map { |i| "cc#{i}#{anchors[i]}" }) }
-          let(:i) { 1 } # TODO reimplement using shared examples to test all entries
+          let(:i) { 1 } # TODO: reimplement using shared examples to test all entries
 
           context 'from filename' do
             context '1st entry delete' do

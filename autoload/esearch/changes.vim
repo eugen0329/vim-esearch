@@ -52,13 +52,11 @@ fu! s:record_insert_enter(mode) abort
   if a:mode ==# 'i' && b:__states[-1].mode !=# 'i' && v:operator ==# 'c' 
         \ && from.changedtick != b:changedtick
 
-    " call add(b:__states, payload)
     let b:__pending_change_event = 1
   else
     call add(b:__states, payload)
   endif
 
-  " call add(b:__states, payload)
   if len(b:__states) > 5000
     let b:__states = b:__states[-100:]
   endif
@@ -128,22 +126,12 @@ fu! s:record_state_change(mode) abort
   endif
 endfu
 
-" fu! s:identify_change() abort
-"   let [from, to] = b:__states[-2:-1]
-
-" endfu
-
 fu! s:identify_text_change() abort
   if b:__locked
     return
   endif
 
   let [from, to] = b:__states[-2:-1]
-
-  " if b:__pending_change_event
-  "   PP
-  " endif
-
 
   if mode() !=# to.mode || to.line != line('.') || to.col != col('.')
     " Missed event
@@ -222,7 +210,6 @@ if g:esearch#env is# 0
     let a:event.sid = b:__states[-1].id
 
     if b:__pending_change_event
-      " let a:event.is_change = 1
       let b:__pending_change_event = 0
     else
       let a:event.is_change = 0
@@ -270,7 +257,7 @@ fu! s:identify_visual_line() abort
 
 
     if kind ==# 'change'
-      " TODO testing
+      " TODO unit tests
       undo
       let [line1, line2] = [line("'["), line("']")]
       redo
@@ -431,7 +418,7 @@ fu! s:identify_visual_line() abort
       else
 
         if kind ==# 'change'
-          " TODO testing
+          " TODO unit tests
           undo
           let [line1, line2] = [line("'["), line("']")]
           redo
@@ -465,7 +452,7 @@ fu! s:identify_visual_line() abort
               \ 'line2': from.line,
               \ })
       elseif b:__pending_change_event
-        " TODO test
+        " TODO unit tests
         return s:emit({
               \ 'id':    'V-line-change3',
               \ 'line1': to.line,
@@ -526,11 +513,10 @@ fu! s:identify_normal() abort
 
 
       if kind ==# 'change'
-        " TODO testing
+        " TODO unit tests
         undo
         let [line1, line2] = [line("'["), line("']")]
         redo
-        " return s:emit({'id': 'n-change-down5', 'line1': line1, 'line2': line2})
       endif
 
       if s:is_joining(from, to, line1, line2)
@@ -593,7 +579,7 @@ fu! s:identify_normal() abort
     "   - textobject
 
     if kind ==# 'change'
-      " TODO testing
+      " TODO unit tests
       undo
       let [line1, line2] = [line("'["), line("']")]
       redo
@@ -1011,10 +997,16 @@ fu! s:identify_normal_inline(from,to) abort
 endfu
 
 fu! s:columnwise_delete_end_column(from, to, line2) abort
+  if empty(a:to.current_line[a:from.col :])
+    " TODO unit tests
+    return -1
+  endif
+
   try
     silent noau undo
 
     let end_line = getline(a:line2)
+
     if s:String.ends_with(end_line, a:to.current_line[a:from.col :])
       let tail_size = strchars(a:to.current_line[a:from.col :])
       return strchars(end_line[: strchars(end_line) - tail_size - 1 ])
