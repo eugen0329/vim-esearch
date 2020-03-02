@@ -38,7 +38,8 @@ describe 'VISUAL LINE mode' do
             .or include_payload('n-motion-down4', 2.., 2..)
         end
 
-        # jk is required as vim doesn't have VisualEnter hook
+        # jk is required to force vim to record linewise-visual mode state (as
+        # there's no VisualEnter event)
         it 'reports 1 line after movements withing line (to record visual mode state)' do
           editor.locate_line! 2
           editor.press! 'Vjkx'
@@ -80,7 +81,8 @@ describe 'VISUAL LINE mode' do
           expect(event).to include_payload('n-motion-down4', 1.., 1..)
         end
 
-        # jk is required as vim doesn't have VisualEnter hook
+        # jk is required to force vim to record linewise-visual mode state (as
+        # there's no VisualEnter event)
         it 'reports 1 line after movements withing line (to record visual mode state)' do
           editor.locate_line! 1
           editor.press! 'Vjkx'
@@ -220,7 +222,8 @@ describe 'VISUAL LINE mode' do
             expect(event).to include_payload('n-paste-back', 2.., 2..)
           end
 
-          # jk is required as vim doesn't have VisualEnter hook
+          # jk is required to force vim to record linewise-visual mode state (as
+          # there's no VisualEnter event)
           it 'reports 1 line after movements withing line (to record visual mode state)' do
             editor.clipboard = 'c\nd\n'
             editor.locate_line! 2

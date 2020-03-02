@@ -7,53 +7,6 @@ module Helpers::Modifiable
   include VimlValue::SerializationHelpers
   extend RSpec::Matchers::DSL
 
-  def resolve_line(location)
-    if location[:ctx] == :header
-      if location[:ui] == :name
-        line = 1
-      elsif location[:ui] == :separator
-        line = 2
-      else
-        raise ArgumentError
-      end
-    else
-      ctx = contexts[location[:ctx]]
-
-      if location[:entry]
-        line = ctx.entries[location[:entry]].line_in_window
-      elsif location[:ui] == :separator
-        line = ctx.entries[-1].line_in_window + 1
-      elsif location[:ui] == :name
-        line = ctx.entries[0].line_in_window - 1
-      else
-        raise ArgumentError
-      end
-    end
-  end
-
-  def entry_index(location)
-    if location[:ctx] == :header
-      0
-    elsif location.key?(:entry)
-      location[:entry]
-    elsif location[:ui] == :name
-      0
-    elsif location[:ui] == :separator
-      # TODO
-      contexts[ctx_index(location)].entries.count
-    else
-      raise ArgumentError
-    end
-  end
-
-  def ctx_index(location)
-    if location[:ctx].is_a? Integer
-      location[:ctx]
-    else
-      0
-    end
-  end
-
   Context = Struct.new(:name, :content) do
     def line_numbers
       @line_numbers ||= 1.upto(content.length).to_a
@@ -74,72 +27,6 @@ module Helpers::Modifiable
   end
 
   define_negated_matcher :not_to_change, :change
-
-  shared_context 'delete everything up until' do |line_above:, context_index:|
-    let(:i) { context_index }
-
-    include_context 'setup modifiable testing'
-
-    context 'entries 0..1' do
-      shared_examples 'removes entries' do |motion|
-        it 'removes entries 0..1' do
-          contexts[i].entries[1].locate!
-          motion.call(line_above)
-
-          expect(output)
-            .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
-            .and have_missing_entries(contexts[i].entries[..1])
-            .and have_valid_entries(contexts[i].entries[2..])
-            .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
-        end
-      end
-
-      include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
-      include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
-    end
-
-    context 'entries 0..2' do
-      shared_examples 'removes entries' do |motion|
-        it 'removes entries 0..2' do
-          contexts[i].entries[2].locate!
-          motion.call(line_above)
-
-          expect(output)
-            .to  have_missing_entries(contexts[...i].map(&:entries).flatten)
-            .and have_missing_entries(contexts[i].entries[..2])
-            .and have_valid_entries(contexts[i].entries[3..])
-            .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
-        end
-      end
-
-      include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
-      include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
-    end
-
-    context 'entries 0..-1' do
-      shared_examples 'removes entries' do |motion|
-        it 'removes entries 0..-1' do
-          contexts[i].entries[-1].locate!
-          motion.call(line_above)
-
-          expect(output)
-            .to  have_missing_entries(contexts[..i].map(&:entries).flatten)
-            .and have_valid_entries((contexts - contexts[..i]).map(&:entries).flatten)
-        end
-      end
-
-      include_examples 'removes entries', ->(line) { editor.send_keys "V#{line}ggd" }
-      include_examples 'removes entries', ->(line) { editor.send_keys "d#{line}gg" }
-    end
-  end
-
-  shared_examples "doesn't have effect after motion" do |motion|
-    it 'removes entries 0..-1' do
-      entry.locate!
-      expect { instance_exec(&motion) }
-        .not_to change { editor.lines.to_a }
-    end
-  end
 
   shared_context 'setup modifiable testing' do
     let(:contexts) do
@@ -230,7 +117,7 @@ module Helpers::Modifiable
         "expected #{@expected.inspect} to all be present"
       elsif !@actual_matches_expected
         "expected to have entries #{@expected.inspect}, got #{@actual.inspect}"
-      else # !@except_missing
+      else
         "expected #{@except.inspect} to be missing"
       end
     end
