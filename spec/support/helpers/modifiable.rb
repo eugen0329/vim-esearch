@@ -7,6 +7,53 @@ module Helpers::Modifiable
   include VimlValue::SerializationHelpers
   extend RSpec::Matchers::DSL
 
+  def resolve_line(location)
+    if location[:ctx] == :header
+      if location[:ui] == :name
+        line = 1
+      elsif location[:ui] == :separator
+        line = 2
+      else
+        raise ArgumentError
+      end
+    else
+      ctx = contexts[location[:ctx]]
+
+      if location[:entry]
+        line = ctx.entries[location[:entry]].line_in_window
+      elsif location[:ui] == :separator
+        line = ctx.entries[-1].line_in_window + 1
+      elsif location[:ui] == :name
+        line = ctx.entries[0].line_in_window - 1
+      else
+        raise ArgumentError
+      end
+    end
+  end
+
+  def entry_index(location)
+    if location[:ctx] == :header
+      0
+    elsif location.key?(:entry)
+      location[:entry]
+    elsif location[:ui] == :name
+      0
+    elsif location[:ui] == :separator
+      # TODO
+      contexts[ctx_index(location)].entries.count
+    else
+      raise ArgumentError
+    end
+  end
+
+  def ctx_index(location)
+    if location[:ctx].is_a? Integer
+      location[:ctx]
+    else
+      0
+    end
+  end
+
   Context = Struct.new(:name, :content) do
     def line_numbers
       @line_numbers ||= 1.upto(content.length).to_a
@@ -154,9 +201,11 @@ module Helpers::Modifiable
   # Could be splitted into 3 matchers if it'd be possible to combine other
   # matchers within a custom one without hacks.
   matcher :have_entries do |entries|
+    diffable
+
     match do
       @except ||= []
-      @expected = esearch.output.reloaded_entries!(entries - @except)
+      @expected = esearch.output.reloaded_entries!(entries) - @except
       @actual = esearch.output.entries.to_a
       @except = esearch.output.reloaded_entries!(@except)
 
@@ -173,16 +222,16 @@ module Helpers::Modifiable
     end
 
     chain :except do |except|
-      @except = except
+      @except = esearch.output.reloaded_entries!(except)
     end
 
     failure_message do
-      if !@except_missing
-        "expected #{@except.inspect} to be missing"
+      if !@expected_present
+        "expected #{@expected.inspect} to all be present"
       elsif !@actual_matches_expected
         "expected to have entries #{@expected.inspect}, got #{@actual.inspect}"
-      else
-        "expected #{@expected.inspect} to be present"
+      else # !@except_missing
+        "expected #{@except.inspect} to be missing"
       end
     end
   end

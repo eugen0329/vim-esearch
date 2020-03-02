@@ -4,4 +4,8 @@ API::ESearch::Window::MissingEntry = Struct.new(:relative_path, :line_in_file) d
   def empty?
     true
   end
+
+  def line_content
+    nil
+  end
 end
