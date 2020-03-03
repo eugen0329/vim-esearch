@@ -52,7 +52,7 @@ describe 'changes reporting in NORMAL mode' do
           editor.locate_line! 2
           editor.send_keys_separately '2dj'
           expect(editor.lines.to_a).to eq(%w[11])
-          expect(event).to include_payload('n-motion-up', 2.., 4..)
+          expect(event).to include_payload('n-motion-up2', 2.., 4..)
         end
       end
 
@@ -61,7 +61,7 @@ describe 'changes reporting in NORMAL mode' do
           editor.locate_line! 3
           editor.send_keys_separately '1dj'
           expect(editor.lines.to_a).to eq(%w[11 22])
-          expect(event).to include_payload('n-motion-up', 3.., 4..)
+          expect(event).to include_payload('n-motion-up2', 3.., 4..)
         end
       end
     end
@@ -74,21 +74,21 @@ describe 'changes reporting in NORMAL mode' do
           editor.locate_line! 4
           editor.send_keys_separately '2dk'
           expect(editor.lines.to_a).to eq(%w[11])
-          expect(event).to include_payload('n-motion-up', 2.., 4..)
+          expect(event).to include_payload('n-motion-up2', 2.., 4..)
         end
 
         it 'reports 2 lines' do
           editor.locate_line! 4
           editor.send_keys_separately '1dk'
           expect(editor.lines.to_a).to eq(%w[11 22])
-          expect(event).to include_payload('n-motion-up', 3.., 4..)
+          expect(event).to include_payload('n-motion-up2', 3.., 4..)
         end
 
         it 'reports 4 lines' do
           editor.locate_line! 4
           editor.send_keys_separately '4dk'
           expect(editor.lines.to_a).to eq([''])
-          expect(event).to include_payload('n-motion-up', 1.., 4..)
+          expect(event).to include_payload('n-motion-up1', 1.., 4..)
         end
       end
 
@@ -97,7 +97,7 @@ describe 'changes reporting in NORMAL mode' do
           editor.locate_line! 3
           editor.send_keys_separately '1dk'
           expect(editor.lines.to_a).to eq(%w[11 44])
-          expect(event).to include_payload('n-motion-up', 2.., 3..)
+          expect(event).to include_payload('n-motion-up1', 2.., 3..)
         end
       end
     end
@@ -200,16 +200,14 @@ describe 'changes reporting in NORMAL mode' do
             editor.locate_cursor! 2, 2
             editor.send_keys_separately 'S'
             expect(editor.lines.to_a).to eq(['11', ''])
-            expect(event).to include_payload('i-inline-delete2', 2..1, 2..1) # TODO
-            # expect(event).to eq_event(%[n-inline2 2:1 2:15])
+            expect(event).to include_payload('n-inline2', 2..1, 2..15)
           end
 
           it 'reports deleted with cc' do
             editor.locate_cursor! 2, 2
             editor.send_keys_separately 'S'
             expect(editor.lines.to_a).to eq(['11', ''])
-            expect(event).to include_payload('i-inline-delete2', 2..1, 2..1) # TODO
-            # expect(event).to eq_event(%[n-inline2 2:1 2:15])
+            expect(event).to include_payload('n-inline2', 2..1, 2..15)
           end
         end
       end

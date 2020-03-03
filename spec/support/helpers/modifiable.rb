@@ -59,6 +59,7 @@ module Helpers::Modifiable
     after do
       editor.command <<~TEARDOWN
         let g:esearch_win_disable_context_highlights_on_files_count = 100
+        call clever_f#reset()
       TEARDOWN
 
       messages = Debug.messages.join
@@ -92,9 +93,9 @@ module Helpers::Modifiable
 
     match do
       @except ||= []
+      @except = esearch.output.reloaded_entries!(@except)
       @expected = esearch.output.reloaded_entries!(entries) - @except
       @actual = esearch.output.entries.to_a
-      @except = esearch.output.reloaded_entries!(@except)
 
       @expected_present = @expected.all?(&:present?)
       return false unless @expected_present

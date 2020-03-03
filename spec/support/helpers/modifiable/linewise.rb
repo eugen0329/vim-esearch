@@ -59,9 +59,9 @@ module Helpers::Modifiable::Linewise
 
   def entry_index(location)
     if location[:ctx] == :header
-      0 # everything, that belongs to header points to entry 0
+      0 # everything that belongs to header points to entry 0
     elsif location.key?(:entry)
-      location[:entry]
+      location[:entry] < 0 ? contexts[ctx_index(location)].entries.count + location[:entry] : location[:entry]
     elsif location[:ui] == :name
       0 # as ctx name point to entry 0
     elsif location[:ui] == :separator
@@ -74,11 +74,11 @@ module Helpers::Modifiable::Linewise
 
   def ctx_index(location)
     if location[:ctx] == :header
-      0 # everything, that belongs to header points to ctx 0
+      0 # everything that belongs to header points to ctx 0
     elsif location[:ctx].is_a? Integer
       location[:ctx]
     else
-      raise ArgumentError
+      raise ArgumentError, location
     end
   end
 end

@@ -35,6 +35,7 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
           call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
           call s:handle_bottom_ctx(bottom_ctx, state, rebuilder)
           call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder)
+          call s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state)
         else
           call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
           call s:handle_change(top_ctx, bottom_ctx, rebuilder, state)
@@ -50,15 +51,19 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
     else
       if a:event.is_change
         if s:is_columnwise_begin(rebuilder)
-          call s:handle_columnwise_within_1_context(top_ctx, state, rebuilder)
+          call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
+          call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
+          call s:handle_bottom_ctx(top_ctx, state, rebuilder)
+          call s:handle_columnwise_within_1_ctx(top_ctx, state, rebuilder)
+          call s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state)
         else
-          call s:handle_change_within_1_context(top_ctx, bottom_ctx, rebuilder, state)
+          call s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state)
         endif
       else
         call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
         call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
         call s:handle_bottom_ctx(top_ctx, state, rebuilder)
-        call s:handle_columnwise_within_1_context(top_ctx, state, rebuilder)
+        call s:handle_columnwise_within_1_ctx(top_ctx, state, rebuilder)
       endif
     endif
   endif
@@ -67,7 +72,7 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
   call b:esearch.undotree.synchronize(state)
 endfu
 
-fu! s:handle_change_within_1_context(top_ctx, bottom_ctx, rebuilder, state) abort
+fu! s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state) abort
   if s:is_filename_removed(a:bottom_ctx, a:rebuilder)
     call a:rebuilder.recover(a:bottom_ctx, s:null, a:bottom_ctx.filename)
   endif
@@ -134,6 +139,20 @@ fu! s:handle_change(top_ctx, bottom_ctx, rebuilder, state) abort
       call a:rebuilder.recover(a:bottom_ctx, s:null, a:bottom_ctx.filename)
     endif
   endif
+endfu
+
+fu! s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state) abort
+  if a:rebuilder.line1 <= a:top_ctx.begin
+    let line = a:top_ctx.begin + 1
+    let line_in_file = a:state.line_numbers_map[line]
+    let linenr  = printf(s:linenr_format, line_in_file)
+    let col = strlen(linenr) + 1
+  else
+    let line = a:rebuilder.line1
+    let col = a:rebuilder.col1
+  endif
+
+  let a:rebuilder.cursor = [line, col]
 endfu
 
 fu! s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state) abort
@@ -234,7 +253,7 @@ fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
   endif
 endfu
 
-fu! s:handle_columnwise_within_1_context(ctx, state, rebuilder) abort
+fu! s:handle_columnwise_within_1_ctx(ctx, state, rebuilder) abort
   if a:rebuilder.line2 <= 3 || s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
     return
   endif
@@ -423,6 +442,10 @@ fu! s:apply_recovery(state) abort dict
 
   if has_key(self, 'cursor')
     call cursor(self.cursor[0], self.cursor[1])
+    call esearch#changes#rewrite_last_state({
+          \ 'line': self.cursor[0],
+          \ 'col':  self.cursor[1],
+          \ })
   endif
 endfu
 

@@ -989,8 +989,8 @@ endfu
 
 fu! esearch#out#win#handle_changes(event) abort
   if a:event.id =~# '^n-motion' || a:event.id =~# '^n-change'
-        \  || a:event.id =~# '^v-' || a:event.id =~# '^V-line-delete'
-        \  || a:event.id =~# '^v-' || a:event.id =~# '^V-line-change'
+        \  || a:event.id =~# '^v-delete' || a:event.id =~# '^V-line-delete'
+        \  || a:event.id =~# '^V-line-change'
     call esearch#out#win#delete_multiline#handle(a:event)
   elseif a:event.id =~# 'undo'
     call s:handle_undo_traversal(a:event)

@@ -425,7 +425,6 @@ fu! s:identify_visual_line() abort
           return s:emit({'id': 'V-line-delete1', 'line1': line1, 'line2': line2})
         endif
 
-
         return s:emit({
               \ 'id':    'V-line-delete-up2',
               \ 'line1': line1,
@@ -458,6 +457,7 @@ fu! s:identify_visual_line() abort
               \ 'line1': to.line,
               \ 'line2': from.line,
               \ })
+      else
         return s:emit({
               \ 'id': 'V-line-reducing-paste-down',
               \ 'line1': to.line,
@@ -543,12 +543,20 @@ fu! s:identify_normal() abort
           "   - OR the last column and cursor shifted one column left
           " then the end of deleted region is linewise
 
-          return s:emit({
-                \ 'id': 'n-' . kind . '-down-columnwise-right1',
-                \ 'col1':  from.col,
-                \ 'line1': line1,
-                \ 'line2': line2 + (kind ==# 'change' ? 0 : 1),
-                \ })
+          if from.col == 1
+            return s:emit({
+                  \ 'id': 'n-' . kind . '-down5',
+                  \ 'line1': line1,
+                  \ 'line2': line2 + (kind ==# 'change' ? 0 : 1),
+                  \ })
+          else
+            return s:emit({
+                  \ 'id': 'n-' . kind . '-down-columnwise-right1',
+                  \ 'col1':  from.col,
+                  \ 'line1': line1,
+                  \ 'line2': line2 + (kind ==# 'change' ? 0 : 1),
+                  \ })
+          endif
         else
           "   - both sides of the region are linewise (clever-f or other motions)
           return s:emit({
@@ -997,11 +1005,12 @@ fu! s:identify_normal_inline(from,to) abort
 endfu
 
 fu! s:columnwise_delete_end_column(from, to, line2) abort
-  if empty(a:to.current_line[a:from.col :])
-    " TODO unit tests
+  if empty(a:to.current_line)
+  " "   " TODO unit tests
     return -1
   endif
 
+  " return col("']")
   try
     silent noau undo
 
