@@ -31,6 +31,58 @@ describe 'within single context', :window do
     end
 
     context 'within regular file context' do
+      context 'columnwise start' do
+        context 'linewise end' do
+          let(:context0) { Context.new('aaaaaaaa', 0.upto(4).map { |i| "aa#{i}#{anchors[i]}" }) }
+          let(:context1) { Context.new('bbbbbbbb', 0.upto(4).map { |i| "bb#{i}#{anchors[i]}" }) }
+          let(:context2) { Context.new('cccccccc', 0.upto(4).map { |i| "cc#{i}#{anchors[i]}" }) }
+          let(:i) { 1 } # TODO: reimplement using shared examples to test all entries
+
+          context 'from filename' do
+            context '1st entry delete' do
+              let(:anchor) { anchors[0] }
+
+              it do
+                editor.locate_cursor! contexts[i].entries.first.line_in_window - 1, 5
+                editor.send_keys_separately "df#{anchor}"
+                expect(output)
+                  .to have_entries(entries).except(contexts[i].entries.first(1))
+              end
+            end
+
+            context 'n > 1 entry delete' do
+              let(:anchor) { anchors[1] }
+
+              it do
+                editor.locate_cursor! contexts[i].entries.first.line_in_window - 1, 5
+                editor.send_keys_separately "df#{anchor}"
+                expect(output)
+                  .to have_entries(entries).except(contexts[i].entries.first(2))
+              end
+            end
+          end
+
+          context 'from a regular entry' do
+            let(:entry) { contexts[i].entries[0] }
+            let(:anchor1) { anchors[0] }
+            let(:anchor2) { anchors[2] }
+            let(:expected_text) { entry.line_content.partition(anchor1).first }
+
+            it do
+              editor.locate_line! entry.line_in_window
+              editor.send_keys_separately "f#{anchor1}"
+
+              expect { editor.send_keys_separately "df#{anchor2}" }
+                .to change { output.reload(entry).line_content }
+                .to(expected_text)
+              expect(output)
+                .to have_entries(entries).except(contexts[i].entries[1..2])
+              expect(editor)
+            end
+          end
+        end
+      end
+
       context 'linewise end' do
         shared_examples 'single line delete examples' do |context_index:|
           let(:i) { context_index }

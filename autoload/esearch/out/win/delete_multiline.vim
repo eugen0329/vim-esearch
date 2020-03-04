@@ -8,6 +8,7 @@ let s:linenr_format = ' %3d '
 "   - line numbers column (location in a file). Builtin name is LineNr column
 "   - file names
 "   - context separators
+
 fu! esearch#out#win#delete_multiline#handle(event) abort
   let state = deepcopy(b:esearch.undotree.head.state)
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
@@ -21,29 +22,153 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
     let top_ctx = top_ctx.end + 1 <= line2 ? contexts.by_line(top_ctx.end + 1) : s:null
   endif
 
-  if rebuilder.col1 > 0 || rebuilder.col2 > 0
+  if rebuilder.col1 > 0 || rebuilder.col2 > 0 || a:event.is_change
     call rebuilder.consume_current_line()
   endif
 
   if top_ctx isnot# s:null
     let bottom_ctx = contexts.by_line(line2)
 
-    call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
-
-    if !s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder)
-      call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
-      call s:handle_bottom_ctx(top_ctx, state, rebuilder)
-      call s:handle_columnwise_within_1_context(top_ctx, state, rebuilder)
+    if s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder)
+      if a:event.is_change
+        if s:is_columnwise_begin(rebuilder)
+          call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
+          call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
+          call s:handle_bottom_ctx(bottom_ctx, state, rebuilder)
+          call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder)
+          call s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state)
+        else
+          call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
+          call s:handle_change(top_ctx, bottom_ctx, rebuilder, state)
+          call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder)
+        endif
+      else
+        call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
+        call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
+        call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
+        call s:handle_bottom_ctx(bottom_ctx, state, rebuilder)
+        call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder)
+      endif
     else
-      call s:handle_top_ctx_columnwise(top_ctx, state, rebuilder)
-      call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
-      call s:handle_bottom_ctx(bottom_ctx, state, rebuilder)
-      call s:handle_bottom_ctx_columnwise(bottom_ctx, state, rebuilder)
+      if a:event.is_change
+        if s:is_columnwise_begin(rebuilder)
+          call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
+          call s:handle_columnwise_within_1_ctx(top_ctx, rebuilder, state)
+          call s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state)
+        else
+          call s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state)
+        endif
+      else
+        call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
+        call s:handle_columnwise_within_1_ctx(top_ctx, rebuilder, state)
+      endif
     endif
   endif
-
   call rebuilder.apply_recovery(state)
   call b:esearch.undotree.synchronize(state)
+endfu
+
+fu! s:handle_columnwise_within_1_ctx(ctx, rebuilder, state) abort
+  if s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
+    if s:is_orphaned_filename_above(a:ctx, a:rebuilder)
+      call a:rebuilder.consume_line_above()
+    endif
+    if s:is_orphaned_blank_line_below(a:ctx, a:rebuilder, a:state)
+      call a:rebuilder.consume_line_below()
+    endif
+  else
+    if s:is_filename_removed(a:ctx, a:rebuilder)
+      call a:rebuilder.recover(a:ctx, s:null, a:ctx.filename)
+    endif
+    call s:handle_columnwise_with_joining_lines(a:ctx, a:state, a:rebuilder)
+    if s:is_separator_removed(a:ctx, a:rebuilder, a:state)
+          \ && !s:is_until_the_end(a:ctx, a:rebuilder, a:state)
+      call a:rebuilder.recover(a:ctx, s:null, s:separator)
+    endif
+  endif
+endfu
+
+fu! s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state) abort
+  if s:is_filename_removed(a:bottom_ctx, a:rebuilder)
+    call a:rebuilder.recover(a:bottom_ctx, s:null, a:bottom_ctx.filename)
+  endif
+
+  if a:rebuilder.line2 < 4
+    return
+  endif
+
+  if a:rebuilder.line1 != a:rebuilder.line2
+       \ || !(a:rebuilder.line1 == a:top_ctx.begin
+       \      || (a:rebuilder.line1 == a:top_ctx.end && !s:is_last_context(a:top_ctx, a:state)))
+    " If it's not a single-line change or it is and it doesn't affect the UI
+    " TODO handle single-line changes outside
+    if a:rebuilder.line1 <= a:top_ctx.begin
+      let line = a:top_ctx.begin + 1
+    else
+      let line = a:rebuilder.line1
+    endif
+    let line_in_file = a:state.line_numbers_map[line]
+    let linenr  = printf(s:linenr_format, line_in_file)
+    call a:rebuilder.recover(a:top_ctx, line_in_file, linenr)
+    let a:rebuilder.cursor = [line, strlen(linenr) + 1]
+  endif
+
+  if s:is_separator_removed(a:top_ctx, a:rebuilder, a:state)
+    call a:rebuilder.recover(a:top_ctx, s:null, s:separator)
+  endif
+endfu
+
+fu! s:handle_change(top_ctx, bottom_ctx, rebuilder, state) abort
+  if !a:rebuilder.event.is_change
+    return
+  endif
+
+  if s:is_filename_removed(a:top_ctx, a:rebuilder)
+    call a:rebuilder.recover(a:top_ctx, s:null, a:top_ctx.filename)
+  endif
+
+  if a:top_ctx.end == a:rebuilder.line1
+    let a:rebuilder.cursor = [a:top_ctx.end - 1, 9000]
+  else
+    if a:rebuilder.line1 <= a:top_ctx.begin + 1
+      let line = a:top_ctx.begin + 1
+    else
+      let line = a:rebuilder.line1
+    endif
+    let line_in_file = a:state.line_numbers_map[line]
+    let linenr  = printf(s:linenr_format, line_in_file)
+    call a:rebuilder.recover(a:top_ctx, line_in_file, linenr)
+    let a:rebuilder.cursor = [line, strlen(linenr) + 1]
+  endif
+
+  if s:is_separator_removed(a:top_ctx, a:rebuilder, a:state)
+        \ && !s:is_until_the_end(a:bottom_ctx, a:rebuilder, a:state)
+    call a:rebuilder.recover(a:top_ctx, s:null, s:separator)
+  endif
+
+  if s:is_all_entries_removed(a:bottom_ctx, a:rebuilder, a:state)
+    if s:is_orphaned_blank_line_below(a:bottom_ctx, a:rebuilder, a:state)
+      call a:rebuilder.consume_line_below()
+    endif
+  else
+    if s:is_filename_removed(a:bottom_ctx, a:rebuilder)
+      call a:rebuilder.recover(a:bottom_ctx, s:null, a:bottom_ctx.filename)
+    endif
+  endif
+endfu
+
+fu! s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state) abort
+  if a:rebuilder.line1 <= a:top_ctx.begin
+    let line = a:top_ctx.begin + 1
+    let line_in_file = a:state.line_numbers_map[line]
+    let linenr  = printf(s:linenr_format, line_in_file)
+    let col = strlen(linenr) + 1
+  else
+    let line = a:rebuilder.line1
+    let col = a:rebuilder.col1
+  endif
+
+  let a:rebuilder.cursor = [line, col]
 endfu
 
 fu! s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state) abort
@@ -144,12 +269,12 @@ fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
   endif
 endfu
 
-fu! s:handle_columnwise_within_1_context(ctx, state, rebuilder) abort
-  if a:rebuilder.line2 <= 3
+fu! s:handle_columnwise_with_joining_lines(ctx, state, rebuilder) abort
+  if a:rebuilder.line2 <= 3 || s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
     return
   endif
 
-  if s:is_columnwise_end(a:rebuilder) && !s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
+  if s:is_columnwise_end(a:rebuilder)
     let text = getline(a:rebuilder.line1)
     " TODO write more tests for linenr text recovery
 
@@ -185,7 +310,7 @@ fu! s:handle_columnwise_within_1_context(ctx, state, rebuilder) abort
       let recovered = linenr[: max([0, a:rebuilder.col2 - 2])] . text[a:rebuilder.col1 - 1 :]
     else " deletion from filename to an entry.
       " Recovering the last affected entry text and line number virtual
-      " interface. Filename leftover will be removed replaced during linewise
+      " interface. Filename leftover will be deleted during linewise
       " checks
       let line_in_file = a:state.line_numbers_map[a:rebuilder.line2]
       let linenr = printf(s:linenr_format, line_in_file)
@@ -193,8 +318,8 @@ fu! s:handle_columnwise_within_1_context(ctx, state, rebuilder) abort
     endif
 
     call a:rebuilder.recover(a:ctx, line_in_file, recovered)
-  elseif s:is_columnwise_begin(a:rebuilder) && !s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
-
+  elseif s:is_columnwise_begin(a:rebuilder)
+        " \ && a:ctx.begin + 1 <= a:rebuilder.line1 " if filename line is not affected:
     let line_in_file  = a:state.line_numbers_map[a:rebuilder.line1]
     let linenr  = printf(s:linenr_format, line_in_file)
     if a:rebuilder.col1 > strlen(linenr) + 1
@@ -330,6 +455,26 @@ fu! s:apply_recovery(state) abort dict
   call remove(a:state.context_ids_map, self.extended_line1, self.extended_line2)
   call esearch#util#insert(a:state.line_numbers_map, self.add_line_numbers, self.extended_line1)
   call esearch#util#insert(a:state.context_ids_map, self.add_context_ids, self.extended_line1)
+
+  if has_key(self, 'cursor')
+    call cursor(self.cursor)
+    call esearch#changes#rewrite_last_state({
+          \ 'size':  line('$'),
+          \ 'line': line('.'),
+          \ 'col':  col('.'),
+          \ })
+    if mode() ==# 'i'
+      doau CursorMovedI
+    else
+      doau CursorMoved
+    endif
+  else
+    call esearch#changes#rewrite_last_state({
+          \ 'size':  line('$'),
+          \ 'line': line('.'),
+          \ 'col':  col('.'),
+          \ })
+  endif
 endfu
 
 fu! s:is_across_multiple_contexts(top_ctx, bottom_ctx, rebuilder) abort
@@ -356,9 +501,6 @@ fu! s:is_all_entries_removed(ctx, rebuilder, state) abort
     let linenr  = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line1])
     let until_begin = a:rebuilder.line1 <= a:ctx.begin
           \ || a:rebuilder.line1 == a:ctx.begin + 1 && a:rebuilder.col1 <= strlen(linenr) + 1
-    if !until_begin || a:rebuilder.col2 <= 0
-      return until_begin
-    endif
 
     " NOTE the last condition can't be matched if virtualedit doesn't contain 'onemore'
     if s:is_last_context(a:ctx, a:state)

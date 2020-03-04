@@ -15,6 +15,7 @@ let s:Vital   = vital#esearch#new()
 let s:Promise = s:Vital.import('Async.Promise')
 let s:List    = s:Vital.import('Data.List')
 let s:String  = s:Vital.import('Data.String')
+let s:Filepath = s:Vital.import('System.Filepath')
 
 let s:mappings = [
       \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
@@ -709,7 +710,7 @@ fu! s:open(cmd, ...) abort
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
-      unsilent exe a:cmd . ' ' . fnameescape(b:esearch.cwd . '/' . filename)
+      unsilent exe a:cmd . ' ' . filename
     catch /E325:/
       " ignore warnings about swapfiles (let user and #substitute handle them)
     catch
@@ -735,10 +736,18 @@ endfu
 
 fu! esearch#out#win#filename() abort
   let context = esearch#out#win#repo#ctx#new(b:esearch, s:state()).by_line(line('.'))
+
   if context.id == 0
-    return get(b:esearch.contexts, 1, context).filename
+    let filename =  get(b:esearch.contexts, 1, context).filename
+  else
+    let filename = context.filename
   endif
-  return context.filename
+
+  if !s:Filepath.is_absolute(filename)
+    let filename = fnameescape(b:esearch.cwd . '/' . filename)
+  endif
+
+  return filename
 endfu
 
 fu! s:state() abort
@@ -988,11 +997,14 @@ fu! s:write() abort
 endfu
 
 fu! esearch#out#win#handle_changes(event) abort
-  if a:event.id =~# '^n-motion' || a:event.id =~# '^v-' || a:event.id =~# '^V-line-delete-'
+  if a:event.id =~# '^n-motion' || a:event.id =~# '^n-change'
+        \  || a:event.id =~# '^v-delete' || a:event.id =~# '^V-line-delete'
+        \  || a:event.id =~# '^V-line-change'
     call esearch#out#win#delete_multiline#handle(a:event)
   elseif a:event.id =~# 'undo'
     call s:handle_undo_traversal(a:event)
-  elseif a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
+  elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-with-gn'
+        \ || a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
     let debug = s:handle_normal__inline(a:event)
   elseif a:event.id =~# 'i-inline'
     let debug = s:handle_insert__inline(a:event)
@@ -1011,6 +1023,7 @@ fu! esearch#out#win#handle_changes(event) abort
   if g:esearch#env isnot 0
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
+    let a:event.errors = len(v:errors)
     call esearch#log#debug(a:event,  len(v:errors))
   endif
 endfu
@@ -1030,6 +1043,11 @@ fu! s:handle_insert__add_newlines(event) abort
   call deletebufline(bufnr(), a:event.line1 + 1, a:event.line2)
   call cursor(a:event.line1, a:event.col1)
   call esearch#changes#undo_state()
+  if mode() ==# 'i'
+    doau CursorMovedI
+  else
+    doau CursorMoved
+  endif
 endfu
 
 fu! s:handle_insert__delete_newlines(event) abort
@@ -1066,6 +1084,11 @@ fu! s:handle_insert__delete_newlines(event) abort
           \ 'size':         line('$'),
           \ 'col':          1,
           \ })
+    if mode() ==# 'i'
+      doau CursorMovedI
+    else
+      doau CursorMoved
+    endif
   endif
   call b:esearch.undotree.synchronize()
 endfu
@@ -1124,6 +1147,11 @@ fu! s:handle_insert__inline(event) abort
           \ 'col':  cursorpos[1],
           \ })
     call cursor(cursorpos)
+    if mode() ==# 'i'
+      doau CursorMovedI
+    else
+      doau CursorMoved
+    endif
   endif
   call esearch#changes#rewrite_last_state({ 'current_line': text })
   call b:esearch.undotree.synchronize()

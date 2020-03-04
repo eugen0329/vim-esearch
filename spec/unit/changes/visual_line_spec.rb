@@ -38,7 +38,8 @@ describe 'VISUAL LINE mode' do
             .or include_payload('n-motion-down4', 2.., 2..)
         end
 
-        # as required as far as we don't have VisualEnter hook
+        # jk is required to force vim to record linewise-visual mode state (as
+        # there's no VisualEnter event)
         it 'reports 1 line after movements withing line (to record visual mode state)' do
           editor.locate_line! 2
           editor.press! 'Vjkx'
@@ -80,7 +81,8 @@ describe 'VISUAL LINE mode' do
           expect(event).to include_payload('n-motion-down4', 1.., 1..)
         end
 
-        # as required as far as we don't have VisualEnter hook
+        # jk is required to force vim to record linewise-visual mode state (as
+        # there's no VisualEnter event)
         it 'reports 1 line after movements withing line (to record visual mode state)' do
           editor.locate_line! 1
           editor.press! 'Vjkx'
@@ -174,7 +176,7 @@ describe 'VISUAL LINE mode' do
             editor.locate_line! 2
             editor.press! 'Vkjp'
             expect(editor.lines.to_a).to eq(%w[11 c 33 44])
-            expect(event).to include_payload('V-line-paste-up', 2.., unknown..)
+            expect(event).to include_payload('V-line-paste-up1', 2.., unknown..)
           end
 
           it 'reports 2 lines' do
@@ -195,7 +197,7 @@ describe 'VISUAL LINE mode' do
             editor.send_keys_separately 'V', 'kp'
 
             expect(editor.lines.to_a).to eq(%w[11 c d 44])
-            expect(event).to include_payload('V-line-paste-up', 2.., 3..)
+            expect(event).to include_payload('V-line-paste-up2', 2.., 3..)
           end
         end
       end
@@ -220,7 +222,8 @@ describe 'VISUAL LINE mode' do
             expect(event).to include_payload('n-paste-back', 2.., 2..)
           end
 
-          # as required as far as we don't have VisualEnter hook
+          # jk is required to force vim to record linewise-visual mode state (as
+          # there's no VisualEnter event)
           it 'reports 1 line after movements withing line (to record visual mode state)' do
             editor.clipboard = 'c\nd\n'
             editor.locate_line! 2

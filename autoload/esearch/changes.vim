@@ -10,6 +10,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__incrementable_state_id = 0
   let b:__observer = function('<SID>noop')
   let b:__locked = 0
+  let b:__pending_change_event = 0
   " TODO reimplement to work using :au User 
   let b:__multicursor = 0
 
@@ -25,7 +26,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
 
   augroup ESearchChanges
     au! * <buffer>
-    au InsertEnter                           <buffer> call s:record_state_change('i')
+    au InsertEnter                           <buffer> call s:record_insert_enter('i')
     au CursorMoved                           <buffer> call s:record_state_change('n')
     au CursorMovedI                          <buffer> call s:record_state_change('i')
     au TextChanged,TextChangedI,TextChangedP <buffer> call s:identify_text_change()
@@ -33,6 +34,30 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
     au User MultipleCursorsPre let b:__multicursor = 1
     au User MultipleCursorsPost let b:__multicursor = 0
   augroup END
+endfu
+
+fu! s:record_insert_enter(mode) abort
+  if b:__locked
+    return
+  endif
+
+  let payload =  s:payload()
+  if a:mode ==# 'i'
+    let payload.mode = a:mode
+    let payload.enter = 1
+  endif
+
+  let from = b:__states[-1]
+  if a:mode ==# 'i' && from.mode !=# 'i' && v:operator ==# 'c'
+        \ && from.changedtick != b:changedtick
+    let b:__pending_change_event = 1
+  else
+    call add(b:__states, payload)
+  endif
+
+  if len(b:__states) > 5000
+    let b:__states = b:__states[-100:]
+  endif
 endfu
 
 " @vimlint(EVL103, 1, a:resolve)
@@ -177,15 +202,35 @@ fu! esearch#changes#add_observer(funcref) abort
   let b:__observer = a:funcref
 endfu
 
+" v:opeartor variable isn't reset until another operator is used, so to reset
+" them no-op operator is triggererd with set operatorfunc= | norm! g@
 if g:esearch#env is# 0
   " If production - don't store events
   fu! s:emit(event) abort
     let a:event.sid = b:__states[-1].id
+
+    if b:__pending_change_event
+      let a:event.is_change = 1
+      let b:__pending_change_event = 0
+      set operatorfunc=
+      norm! g@
+    else
+      let a:event.is_change = 0
+    endif
     call b:__observer(a:event)
   endfu
 else
   fu! s:emit(event) abort
     let a:event.sid = b:__states[-1].id
+
+    if b:__pending_change_event
+      let a:event.is_change = 1
+      let b:__pending_change_event = 0
+      set operatorfunc=
+      norm! g@
+    else
+      let a:event.is_change = 0
+    endif
     call add(b:__events, a:event)
     call b:__observer(a:event)
   endfu
@@ -206,12 +251,24 @@ endfu
 fu! s:identify_visual_line() abort
   let [from, to] = b:__states[-2:-1]
 
+  let kind = (b:__pending_change_event ? 'change' : 'motion')
+
   if from.line == to.line
     " CURSOR IS ON THE SAME LINE:
     "   - paste  moving up
     "   - paste  replacing a single line
     "   - delete moving up
     let line1 = to.line
+
+
+    if kind ==# 'change'
+      " TODO unit tests
+      undo
+      let [line1, line2] = [line("'["), line("']")]
+      redo
+      return s:emit({'id': 'V-line-change-..2', 'line1': line1, 'line2': line2})
+    endif
+
 
     if from.size > to.size
       " LINES COUNT IS REDUCED:
@@ -248,6 +305,12 @@ fu! s:identify_visual_line() abort
                 \ 'line1':    line1,
                 \ 'line2':    line2,
                 \ })
+        elseif b:__pending_change_event
+          return s:emit({
+                \ 'id':    'V-line-change1',
+                \ 'line1':    line1,
+                \ 'line2':    line2,
+                \ })
         else
           return s:emit({
                 \ 'id':    'V-line-reducing-paste-up1',
@@ -263,6 +326,12 @@ fu! s:identify_visual_line() abort
                 \ 'line1':    line1,
                 \ 'line2':    line2,
                 \ })
+          elseif b:__pending_change_event
+            return s:emit({
+                  \ 'id':    'V-line-change2',
+                  \ 'line1':    line1,
+                  \ 'line2':    line2,
+                  \ })
         else
           return s:emit({
                 \ 'id':    'V-line-reducing-paste-up2',
@@ -281,13 +350,13 @@ fu! s:identify_visual_line() abort
         "   - inline paste
         "   - paste from the last line
         return s:emit({
-              \ 'id':    'V-line-paste-up',
+              \ 'id':    'V-line-paste-up1',
               \ 'line1': from.line,
               \ 'line2': s:unknown,
               \ })
       else
         return s:emit({
-              \ 'id':    'V-line-paste-up',
+              \ 'id':    'V-line-paste-up2',
               \ 'line1': from.line,
               \ 'line2': max([to.selection1[0], to.selection2[0]]),
               \ })
@@ -352,6 +421,15 @@ fu! s:identify_visual_line() abort
               \ 'line2': line2,
               \ })
       else
+
+        if kind ==# 'change'
+          " TODO unit tests
+          undo
+          let [line1, line2] = [line("'["), line("']")]
+          redo
+          return s:emit({'id': 'V-line-delete1', 'line1': line1, 'line2': line2})
+        endif
+
         return s:emit({
               \ 'id':    'V-line-delete-up2',
               \ 'line1': line1,
@@ -374,6 +452,13 @@ fu! s:identify_visual_line() abort
       if s:is_joining(from, to, to.line, from.line)
         return s:emit({
               \ 'id': 'V-join2',
+              \ 'line1': to.line,
+              \ 'line2': from.line,
+              \ })
+      elseif b:__pending_change_event
+        " TODO unit tests
+        return s:emit({
+              \ 'id':    'V-line-change3',
               \ 'line1': to.line,
               \ 'line2': from.line,
               \ })
@@ -406,6 +491,8 @@ fu! s:identify_normal() abort
 
   " TODO rewrite to compare from-to size first
 
+  let kind = (b:__pending_change_event ? 'change' : 'motion')
+
   if from.line == to.line
     " CURSOR IS ON THE SAME LINE:
     "   - paste  up
@@ -429,6 +516,14 @@ fu! s:identify_normal() abort
         let line2 = line1 + from.size  - (to.size + 1)
       endif
 
+
+      if kind ==# 'change'
+        " TODO unit tests
+        undo
+        let [line1, line2] = [line("'["), line("']")]
+        redo
+      endif
+
       if s:is_joining(from, to, line1, line2)
         " NOTE when joining empty lines it's equivalent to motion down
         return s:emit({ 'id': 'n-join', 'line1': line1, 'line2': line2})
@@ -436,40 +531,48 @@ fu! s:identify_normal() abort
         " LINE PREFIXES ARE EQUAL:
         "   - columnwise motion right
 
-        let col2 = s:columnwise_delete_end_column(from, to, line2 + 1) - 1
+        let col2 = s:columnwise_delete_end_column(from, to, line2 + (kind ==# 'change' ? 0 : 1)) - 1
 
-        if from.col == 1 && col2 < 1
-            return s:emit({
-                  \ 'id': 'n-motion-down4',
-                  \ 'line1': line1,
-                  \ 'line2': line2,
-                  \ })
+        if from.col == 1 && (col2 < 1)
+          return s:emit({
+                \ 'id': 'n-' . kind . '-down4',
+                \ 'line1': line1,
+                \ 'line2': line2,
+                \ })
 
-          elseif (&virtualedit ==# 'onemore' && strchars(to.current_line) == to.col - 1)
+        elseif (&virtualedit ==# 'onemore' && strchars(to.current_line) == to.col - 1)
               \ || (strchars(to.current_line) == to.col && to.col == from.col - 1)
           " IF:
           "   - on the last virtual column
           "   - OR the last column and cursor shifted one column left
           " then the end of deleted region is linewise
 
+          if from.col == 1
             return s:emit({
-                  \ 'id': 'n-motion-down-columnwise-right1',
+                  \ 'id': 'n-' . kind . '-down5',
+                  \ 'line1': line1,
+                  \ 'line2': line2 + (kind ==# 'change' ? 0 : 1),
+                  \ })
+          else
+            return s:emit({
+                  \ 'id': 'n-' . kind . '-down-columnwise-right1',
                   \ 'col1':  from.col,
                   \ 'line1': line1,
-                  \ 'line2': line2 + 1,
+                  \ 'line2': line2 + (kind ==# 'change' ? 0 : 1),
                   \ })
+          endif
         else
           "   - both sides of the region are linewise (clever-f or other motions)
           return s:emit({
-                \ 'id': 'n-motion-down-columnwise-right2',
+                \ 'id': 'n-' . kind . '-down-columnwise-right2',
                 \ 'col1':  from.col,
                 \ 'line1': line1,
-                \ 'line2': line2 + 1,
+                \ 'line2': line2 + (kind ==# 'change' ? 0 : 1),
                 \ 'col2': col2,
                 \ })
         endif
       else
-        return s:emit({ 'id': 'n-motion-down2', 'line1': line1, 'line2': line2})
+        return s:emit({ 'id': 'n-' . kind . '-down2', 'line1': line1, 'line2': line2})
       endif
     elseif from.size == to.size
       " LINES COUNT IS KEPT:
@@ -487,16 +590,36 @@ fu! s:identify_normal() abort
     "   - paste down (with p)
     "   - textobject
 
+    if kind ==# 'change'
+      undo
+      let [line1, line2] = [line("'["), line("']")]
+      redo
+
+      if to.size == from.size && to.changenr != from.changenr
+        " TODO acceptance test
+        return s:emit({
+              \ 'id': 'n-inline-repeat-with-gn-up',
+              \ 'line1': line1,
+              \ 'line2': line2,
+              \ 'col1':  col('.'),
+              \ 'col2':  to.col + 1,
+              \ })
+      else
+        " TODO unit tests
+        return s:emit({'id': 'n-change-up3', 'line1': line1, 'line2': line2})
+      endif
+    endif
+
     " LINES DIRTY CHECK
     if to.current_line == from.next_line
       let line1 = min([from.line, to.line])
-      let last  = max([from.line, to.line])
+      let line2  = max([from.line, to.line])
 
       if from.line == from.size && to.size != 1
         let line1 += 1
       endif
 
-      return s:emit({'id': 'n-motion-up', 'line1': line1, 'line2': last})
+      return s:emit({'id': 'n-' . kind . '-up1', 'line1': line1, 'line2': line2})
     elseif to.size == to.line
       " START AT THE LAST LINE:
 
@@ -505,7 +628,7 @@ fu! s:identify_normal() abort
         " to.col == 1 ||  from.col >= 2 && 
         " POSTFIXES PREFIXES ARE EQUAL:
         return s:emit({
-              \ 'id':    'n-motion-up-columnwise-left2',
+              \ 'id':    'n-' . kind . '-up-columnwise-left2',
               \ 'line1': to.line,
               \ 'line2': from.line,
               \ 'col1':  to.col,
@@ -519,7 +642,7 @@ fu! s:identify_normal() abort
           let line1 = to.line + 1
         endif
 
-        return s:emit({'id': 'n-motion-up', 'line1': line1, 'line2': from.size})
+        return s:emit({'id': 'n-' . kind . '-up2', 'line1': line1, 'line2': from.size})
       endif
     else
       if from.current_line[from.col - 1  : ] == to.current_line[to.col - 1 : ]
@@ -532,7 +655,7 @@ fu! s:identify_normal() abort
         " TODO is not recognized whe deleting from the last line
         " TODO fix hack with lastcol
         return s:emit({
-              \ 'id':    'n-motion-up-columnwise-left1',
+              \ 'id':    'n-' . kind . '-up-columnwise-left1',
               \ 'line1': to.line,
               \ 'line2': from.line,
               \ 'col1':  to.col,
@@ -548,17 +671,30 @@ fu! s:identify_normal() abort
               \ 'col2': col("']"),
               \ })
       else
+        let line1 =  to.line
+        let line2 =  to.line + from.size - to.size - 1
         return s:emit({
-              \ 'id': 'n-motion-down3',
-              \ 'line1': to.line,
-              \ 'line2': to.line + from.size - to.size - 1
+              \ 'id': 'n-' . kind . '-down3',
+              \ 'line1': line1,
+              \ 'line2': line2
               \ })
       endif
     endif
   else " from.line < to.line
     " CURSOR JUMPS DOWN:
 
-    if to.size == from.size
+    if to.size == from.size && to.changenr != from.changenr
+      " TODO acceptance tests
+      let [line1, col1] = getpos("'[")[1:2]
+      let [line2, col2] = getpos("']")[1:2]
+      return s:emit({
+            \ 'id': 'n-inline-repeat-with-gn-down',
+            \ 'line1': line1,
+            \ 'line2': line2,
+            \ 'col1':  col1,
+            \ 'col2':  col2,
+            \ })
+    elseif to.size == from.size
       " unregistered event, caused by calling cursor() using +clientserver
       " probably can be handled via fetching from undo, but as far as
       " CursorMoved is executed always during normal execution it's skipped for
@@ -580,7 +716,7 @@ fu! s:identify_normal() abort
       let line1 = to.line
       let line2 = to.line
 
-      return s:emit({ 'id': 'n-motion-up4', 'line1': line1, 'line2': line2})
+      return s:emit({ 'id': 'n-' . kind . '-up4', 'line1': line1, 'line2': line2})
     else
       return s:emit({
             \ 'id':    'n-paste-forward',
@@ -606,7 +742,6 @@ fu! s:identify_visual() abort
 
       if abs(line1 - line2) == abs(from.size - to.size)
         " delete or oneline pasting
-
         if to.selection2[1] == to.selection1[1]
           " the selection has collapsed (deletion was from the first column)
           " TODO unit test
@@ -705,11 +840,13 @@ fu! s:identify_visual() abort
             \ })
     else
 
-      let line1 = to.selection1[0]
-      let line2 = from.line
+      " let line1 = to.selection1[0]
+      " let line2 = from.line
+      noau undo
+      let [line1, line2] = [line("'["), line("']")]
+      noau redo
 
       if abs(line1 - line2) == abs(from.size - to.size)
-        " delete or oneline pasting
         return s:emit({
               \ 'id':    'v-delete-down',
               \ 'line1': line1,
@@ -784,7 +921,7 @@ fu! s:identify_insert() abort
             \ 'col1':  from.col,
             \ 'col2':  from.col })
     else
-      return s:emit({'id': 'i-undefined1', 'debug': [from, to]})
+      return s:emit({'id': 'i-undefined1'})
     endif
   elseif from.line > to.line
     " Line deleting key is pressed (BS, <C-w> or other) at column 1, line is merged with previous
@@ -806,7 +943,8 @@ fu! s:identify_insert() abort
           \ })
   endif
 
-  return s:emit({'id': 'i-undefined', 'debug': [from, to]})
+  " return s:emit({'id': 'i-undefined', 'debug': [from, to]})
+  return s:emit({'id': 'i-undefined'})
 endfu
 
 fu! s:identify_normal_inline(from,to) abort
@@ -897,10 +1035,17 @@ fu! s:identify_normal_inline(from,to) abort
 endfu
 
 fu! s:columnwise_delete_end_column(from, to, line2) abort
+  if empty(a:to.current_line)
+  " "   " TODO unit tests
+    return -1
+  endif
+
+  " return col("']")
   try
     silent noau undo
 
     let end_line = getline(a:line2)
+
     if s:String.ends_with(end_line, a:to.current_line[a:from.col :])
       let tail_size = strchars(a:to.current_line[a:from.col :])
       return strchars(end_line[: strchars(end_line) - tail_size - 1 ])
@@ -973,6 +1118,7 @@ if g:esearch#env isnot 0
     let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
           \ .'"mode": v:val.mode,'
+          \ .'"changedtick": v:val.changedtick,'
           \ . '"selections": v:val.selection1 + v:val.selection2}')
 
     PP tail

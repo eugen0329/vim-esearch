@@ -70,6 +70,10 @@ class Editor
     echo var('v:errors')
   end
 
+  def location
+    echo([func('line', '.'), func('col', '.')])
+  end
+
   def current_line
     echo func('line', '.')
   end
@@ -103,6 +107,10 @@ class Editor
 
   def current_line_number
     echo func('line', '.')
+  end
+
+  def search_literal(text, modifiers = '')
+    echo(func('search', modifiers + text.gsub(/([$^~.*\[\]\\])/, '\\\\\1'), 'w'))
   end
 
   def syntax_aliases_at(location_regexps)
