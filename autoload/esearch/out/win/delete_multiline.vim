@@ -9,14 +9,12 @@ let s:linenr_format = ' %3d '
 "   - file names
 "   - context separators
 
-let g:asd = []
 fu! esearch#out#win#delete_multiline#handle(event) abort
   let state = deepcopy(b:esearch.undotree.head.state)
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let rebuilder = s:Rebuilder(a:event)
   let line1 = a:event.line1
   let line2 = a:event.line2
-
 
   let top_ctx = contexts.by_line(line1)
   if top_ctx.id == 0
@@ -66,10 +64,7 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
       endif
     endif
   endif
-
-  call add(g:asd, [rebuilder.event.id, rebuilder.line1, rebuilder.line2, getline(3,10) ])
   call rebuilder.apply_recovery(state)
-  call add(g:asd, [rebuilder.event.id, rebuilder.line1, rebuilder.line2, getline(3,10)])
   call b:esearch.undotree.synchronize(state)
 endfu
 

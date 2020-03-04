@@ -167,7 +167,7 @@ describe 'Modify linewise', :window do
           locate_anchor(from, anchor1)
 
           if anchor1 == :begin && from_entry == 0
-            # TODO: 1111
+            # TODO: inconsistency related to problems with identifying motion down
             expect { motion.call(anchor2_char) }
               .not_to change { output.reloaded_entries!(unaffected_entries).map(&:line_content) }
 
@@ -193,7 +193,7 @@ describe 'Modify linewise', :window do
       describe 'change' do
         let(:expected_location) { [entry1.line_in_window, entry1.anchor_column(anchor1)] }
         after do
-          next if anchor1 == :begin && from_entry == 0 # TODO: 1111
+          next if anchor1 == :begin && from_entry == 0 # TODO: inconsistency related to problems with identifying motion down
 
           expect(editor.location).to eq(expected_location)
         end
@@ -220,7 +220,7 @@ describe 'Modify linewise', :window do
           locate_anchor(from, anchor1)
 
           if anchor1 == :begin && from_entry == 0
-            # TODO: 1111
+            # TODO: inconsistency related to problems with identifying motion down
             expect { editor.send_keys_separately "df#{anchor2_char}" }
               .not_to change { output.reloaded_entries!(unaffected_entries).map(&:line_content) }
             expect(output).to have_entries(entries) .except(affected_entries[...-1])
@@ -248,7 +248,7 @@ describe 'Modify linewise', :window do
       describe 'change' do
         let(:expected_location) { [entry1.line_in_window, entry1.anchor_column(anchor1)] }
         after do
-          next if anchor1 == :begin && from_entry == 0 # TODO: 1111
+          next if anchor1 == :begin && from_entry == 0 # TODO: inconsistency related to problems with identifying motion down
 
           expect(editor.location).to eq(expected_location)
         end
@@ -284,7 +284,7 @@ describe 'Modify linewise', :window do
             .and not_to_change { output.reloaded_entries!(unaffected_entries).map(&:line_content) }
 
           if from_entry == 0
-            # TODO: 1111
+            # TODO: inconsistency related to problems with identifying motion down
             expect(output)
               .to have_entries(entries)
               .except(affected_entries)
