@@ -8,12 +8,15 @@ let s:linenr_format = ' %3d '
 "   - line numbers column (location in a file). Builtin name is LineNr column
 "   - file names
 "   - context separators
+
+let g:asd = []
 fu! esearch#out#win#delete_multiline#handle(event) abort
   let state = deepcopy(b:esearch.undotree.head.state)
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let rebuilder = s:Rebuilder(a:event)
   let line1 = a:event.line1
   let line2 = a:event.line2
+
 
   let top_ctx = contexts.by_line(line1)
   if top_ctx.id == 0
@@ -52,24 +55,42 @@ fu! esearch#out#win#delete_multiline#handle(event) abort
       if a:event.is_change
         if s:is_columnwise_begin(rebuilder)
           call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
-          call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
-          call s:handle_bottom_ctx(top_ctx, state, rebuilder)
-          call s:handle_columnwise_within_1_ctx(top_ctx, state, rebuilder)
+          call s:handle_columnwise_within_1_ctx(top_ctx, rebuilder, state)
           call s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state)
         else
           call s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state)
         endif
       else
         call s:handle_ctx_above_top(top_ctx, bottom_ctx, rebuilder, state)
-        call s:handle_top_ctx(top_ctx, state, rebuilder, bottom_ctx)
-        call s:handle_bottom_ctx(top_ctx, state, rebuilder)
-        call s:handle_columnwise_within_1_ctx(top_ctx, state, rebuilder)
+        call s:handle_columnwise_within_1_ctx(top_ctx, rebuilder, state)
       endif
     endif
   endif
 
+  call add(g:asd, [rebuilder.event.id, rebuilder.line1, rebuilder.line2, getline(3,10) ])
   call rebuilder.apply_recovery(state)
+  call add(g:asd, [rebuilder.event.id, rebuilder.line1, rebuilder.line2, getline(3,10)])
   call b:esearch.undotree.synchronize(state)
+endfu
+
+fu! s:handle_columnwise_within_1_ctx(ctx, rebuilder, state) abort
+  if s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
+    if s:is_orphaned_filename_above(a:ctx, a:rebuilder)
+      call a:rebuilder.consume_line_above()
+    endif
+    if s:is_orphaned_blank_line_below(a:ctx, a:rebuilder, a:state)
+      call a:rebuilder.consume_line_below()
+    endif
+  else
+    if s:is_filename_removed(a:ctx, a:rebuilder)
+      call a:rebuilder.recover(a:ctx, s:null, a:ctx.filename)
+    endif
+    call s:handle_columnwise_with_joining_lines(a:ctx, a:state, a:rebuilder)
+    if s:is_separator_removed(a:ctx, a:rebuilder, a:state)
+          \ && !s:is_until_the_end(a:ctx, a:rebuilder, a:state)
+      call a:rebuilder.recover(a:ctx, s:null, s:separator)
+    endif
+  endif
 endfu
 
 fu! s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state) abort
@@ -253,7 +274,7 @@ fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
   endif
 endfu
 
-fu! s:handle_columnwise_within_1_ctx(ctx, state, rebuilder) abort
+fu! s:handle_columnwise_with_joining_lines(ctx, state, rebuilder) abort
   if a:rebuilder.line2 <= 3 || s:is_all_entries_removed(a:ctx, a:rebuilder, a:state)
     return
   endif
@@ -294,7 +315,7 @@ fu! s:handle_columnwise_within_1_ctx(ctx, state, rebuilder) abort
       let recovered = linenr[: max([0, a:rebuilder.col2 - 2])] . text[a:rebuilder.col1 - 1 :]
     else " deletion from filename to an entry.
       " Recovering the last affected entry text and line number virtual
-      " interface. Filename leftover will be removed replaced during linewise
+      " interface. Filename leftover will be deleted during linewise
       " checks
       let line_in_file = a:state.line_numbers_map[a:rebuilder.line2]
       let linenr = printf(s:linenr_format, line_in_file)
@@ -441,10 +462,22 @@ fu! s:apply_recovery(state) abort dict
   call esearch#util#insert(a:state.context_ids_map, self.add_context_ids, self.extended_line1)
 
   if has_key(self, 'cursor')
-    call cursor(self.cursor[0], self.cursor[1])
+    call cursor(self.cursor)
     call esearch#changes#rewrite_last_state({
-          \ 'line': self.cursor[0],
-          \ 'col':  self.cursor[1],
+          \ 'size':  line('$'),
+          \ 'line': line('.'),
+          \ 'col':  col('.'),
+          \ })
+    if mode() ==# 'i'
+      doau CursorMovedI
+    else
+      doau CursorMoved
+    endif
+  else
+    call esearch#changes#rewrite_last_state({
+          \ 'size':  line('$'),
+          \ 'line': line('.'),
+          \ 'col':  col('.'),
           \ })
   endif
 endfu

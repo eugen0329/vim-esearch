@@ -48,10 +48,8 @@ fu! s:record_insert_enter(mode) abort
   endif
 
   let from = b:__states[-1]
-
-  if a:mode ==# 'i' && b:__states[-1].mode !=# 'i' && v:operator ==# 'c' 
+  if a:mode ==# 'i' && from.mode !=# 'i' && v:operator ==# 'c'
         \ && from.changedtick != b:changedtick
-
     let b:__pending_change_event = 1
   else
     call add(b:__states, payload)
@@ -204,13 +202,18 @@ fu! esearch#changes#add_observer(funcref) abort
   let b:__observer = a:funcref
 endfu
 
+" v:opeartor variable isn't reset until another operator is used, so to reset
+" them no-op operator is triggererd with set operatorfunc= | norm! g@
 if g:esearch#env is# 0
   " If production - don't store events
   fu! s:emit(event) abort
     let a:event.sid = b:__states[-1].id
 
     if b:__pending_change_event
+      let a:event.is_change = 1
       let b:__pending_change_event = 0
+      set operatorfunc=
+      norm! g@
     else
       let a:event.is_change = 0
     endif
@@ -223,6 +226,8 @@ else
     if b:__pending_change_event
       let a:event.is_change = 1
       let b:__pending_change_event = 0
+      set operatorfunc=
+      norm! g@
     else
       let a:event.is_change = 0
     endif
@@ -528,7 +533,6 @@ fu! s:identify_normal() abort
 
         let col2 = s:columnwise_delete_end_column(from, to, line2 + (kind ==# 'change' ? 0 : 1)) - 1
 
-        " if from.col == 1 && (col2 < 1 || to.col == 1) " TODOlast
         if from.col == 1 && (col2 < 1)
           return s:emit({
                 \ 'id': 'n-' . kind . '-down4',
@@ -587,11 +591,23 @@ fu! s:identify_normal() abort
     "   - textobject
 
     if kind ==# 'change'
-      " TODO unit tests
       undo
       let [line1, line2] = [line("'["), line("']")]
       redo
-      return s:emit({'id': 'n-change-up3', 'line1': line1, 'line2': line2})
+
+      if to.size == from.size && to.changenr != from.changenr
+        " TODO acceptance test
+        return s:emit({
+              \ 'id': 'n-inline-repeat-with-gn-up',
+              \ 'line1': line1,
+              \ 'line2': line2,
+              \ 'col1':  col('.'),
+              \ 'col2':  to.col + 1,
+              \ })
+      else
+        " TODO unit tests
+        return s:emit({'id': 'n-change-up3', 'line1': line1, 'line2': line2})
+      endif
     endif
 
     " LINES DIRTY CHECK
@@ -655,17 +671,30 @@ fu! s:identify_normal() abort
               \ 'col2': col("']"),
               \ })
       else
+        let line1 =  to.line
+        let line2 =  to.line + from.size - to.size - 1
         return s:emit({
               \ 'id': 'n-' . kind . '-down3',
-              \ 'line1': to.line,
-              \ 'line2': to.line + from.size - to.size - 1
+              \ 'line1': line1,
+              \ 'line2': line2
               \ })
       endif
     endif
   else " from.line < to.line
     " CURSOR JUMPS DOWN:
 
-    if to.size == from.size
+    if to.size == from.size && to.changenr != from.changenr
+      " TODO acceptance tests
+      let [line1, col1] = getpos("'[")[1:2]
+      let [line2, col2] = getpos("']")[1:2]
+      return s:emit({
+            \ 'id': 'n-inline-repeat-with-gn-down',
+            \ 'line1': line1,
+            \ 'line2': line2,
+            \ 'col1':  col1,
+            \ 'col2':  col2,
+            \ })
+    elseif to.size == from.size
       " unregistered event, caused by calling cursor() using +clientserver
       " probably can be handled via fetching from undo, but as far as
       " CursorMoved is executed always during normal execution it's skipped for
@@ -713,7 +742,6 @@ fu! s:identify_visual() abort
 
       if abs(line1 - line2) == abs(from.size - to.size)
         " delete or oneline pasting
-
         if to.selection2[1] == to.selection1[1]
           " the selection has collapsed (deletion was from the first column)
           " TODO unit test
@@ -812,11 +840,13 @@ fu! s:identify_visual() abort
             \ })
     else
 
-      let line1 = to.selection1[0]
-      let line2 = from.line
+      " let line1 = to.selection1[0]
+      " let line2 = from.line
+      noau undo
+      let [line1, line2] = [line("'["), line("']")]
+      noau redo
 
       if abs(line1 - line2) == abs(from.size - to.size)
-        " delete or oneline pasting
         return s:emit({
               \ 'id':    'v-delete-down',
               \ 'line1': line1,
@@ -1088,6 +1118,7 @@ if g:esearch#env isnot 0
     let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
           \ .'"mode": v:val.mode,'
+          \ .'"changedtick": v:val.changedtick,'
           \ . '"selections": v:val.selection1 + v:val.selection2}')
 
     PP tail

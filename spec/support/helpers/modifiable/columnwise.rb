@@ -83,7 +83,16 @@ module Helpers::Modifiable::Columnwise
     end
   end
 
-  def build_context(alphabet, fillers_alphabet)
+  # Builds context like:
+  #
+  # a__b__c:
+  #   1 d__e__f
+  #   2 g__h__i
+  #
+  # where [_] belongs to fillers_alphabet and [a-i] belong to alphabet of
+  # anchors. fillers_alphabet is used to add more convenience in testing both
+  # automatically and manually.
+  def build_context(alphabet, fillers_alphabet, entries_count: 4)
     filler = fillers_alphabet.shift
 
     anchor_begin, anchor_middle, anchor_end = alphabet.shift(3)
@@ -94,7 +103,7 @@ module Helpers::Modifiable::Columnwise
     }
     name = "#{anchor_begin}#{filler * 2}#{anchor_middle}#{filler * 2}#{anchor_end}"
 
-    entries = 4.times.map do |i|
+    entries = entries_count.times.map do |i|
       anchor_begin, anchor_middle, anchor_end = alphabet.shift(3)
       anchors = {
         begin:  anchor_begin,

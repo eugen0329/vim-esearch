@@ -214,6 +214,38 @@ describe 'changes reporting in NORMAL mode' do
     end
   end
 
+  context 'cgn motion repeat' do
+    before do
+      vim.insert "11\n22\n11\n44"
+      vim.normal
+      editor.echo func('esearch#changes#listen_for_current_buffer')
+    end
+
+    context 'backward' do
+      it 'reports changed region' do
+        editor.locate_cursor! 1, 1
+        editor.send_keys_separately '*', 'cgn', 'zz', :escape
+        expect { editor.send_keys_separately '.' }
+          .to change { editor.lines.to_a }
+          .from(%w[11 22 zz 44])
+          .to(%w[zz 22 zz 44])
+        expect(event).to include_payload('n-inline-repeat-with-gn-up', 1..1, 1..3)
+      end
+    end
+
+    context 'forward' do
+      it 'reports changed region' do
+        editor.locate_cursor! 1, 1
+        editor.send_keys_separately '**', 'cgn', 'zz', :escape
+        expect { editor.send_keys_separately '.' }
+          .to change { editor.lines.to_a }
+          .from(%w[zz 22 11 44])
+          .to(%w[zz 22 zz 44])
+        expect(event).to include_payload('n-inline-repeat-with-gn-down', 3..1, 3..3)
+      end
+    end
+  end
+
   context 'paste' do
     include_context 'setup multiline testing'
 
