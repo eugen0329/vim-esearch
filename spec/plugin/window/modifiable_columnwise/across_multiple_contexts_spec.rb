@@ -86,8 +86,9 @@ describe 'Modify linewise', :window do
         let(:expected_location) { [entry1.line_in_window, entry1.anchor_column(anchor1)] }
         after do
           if anchor1 == :begin && from_entry == 0
+            # TODO: inconsistency related to problems with identifying motion down
             next
-          end # TODO: inconsistency related to problems with identifying motion down
+          end
 
           expect(editor.location).to eq(expected_location)
         end
@@ -143,8 +144,9 @@ describe 'Modify linewise', :window do
         let(:expected_location) { [entry1.line_in_window, entry1.anchor_column(anchor1)] }
         after do
           if anchor1 == :begin && from_entry == 0
+            # TODO: inconsistency related to problems with identifying motion down
             next
-          end # TODO: inconsistency related to problems with identifying motion down
+          end
 
           expect(editor.location).to eq(expected_location)
         end
