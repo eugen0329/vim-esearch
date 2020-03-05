@@ -12,7 +12,7 @@ describe 'Modify linewise', :window do
   include_context 'setup modifiable testing'
 
   shared_examples 'name -> entry' do |from:, to:|
-    include_context 'setup', from, to
+    include_context 'setup columnwise testing', from, to
 
     shared_examples 'it modifies entries using anchors' do |anchor1, anchor2|
       shared_examples 'modify in mode' do |motion|
@@ -49,7 +49,7 @@ describe 'Modify linewise', :window do
   end
 
   shared_examples 'ctx1.entry1 -> ctx1.entry2' do |from:, to:|
-    include_context 'setup', from, to
+    include_context 'setup columnwise testing', from, to
 
     context 'when deleting from ctx entry to another ctx entry' do
       shared_examples 'it modifies entries using anchors' do |anchor1, anchor2|

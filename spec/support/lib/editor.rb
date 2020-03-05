@@ -176,7 +176,7 @@ class Editor
     command <<~CLEANUP_COMMANDS
       %bwipeout!
       messages clear
-      call feedkeys(\"\\<Esc>\\<Esc>\\<C-\\>\\<C-n>\", \"n\")
+      call feedkeys(\"\\<Esc>\\<Esc>\", \"n\")
       let @#{CLIPBOARD_REGISTER} = ''
       set lines=22
     CLEANUP_COMMANDS

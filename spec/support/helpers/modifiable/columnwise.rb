@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Helpers::Modifiable::Columnwise
-  shared_context 'setup' do |from, to|
+  shared_context 'setup columnwise testing' do |from, to|
     let(:fillers_alphabet) { '_|-'.chars }
     let(:alphabet) { ('a'..'z').to_a + '()[]"+.,%^&$#@!?*~`/\\'.chars }
 
@@ -47,11 +47,15 @@ module Helpers::Modifiable::Columnwise
     end
 
     def anchor_column(anchor)
-      (line_number_text + content).index(anchors[anchor]) + 1
+      cached_line_content.index(anchors[anchor]) + 1
     end
 
     def line_in_window
       esearch.output.find_entry(relative_path, line_in_file).line_in_window
+    end
+
+    def cached_line_content
+      line_number_text + content
     end
 
     def line_content
@@ -63,6 +67,10 @@ module Helpers::Modifiable::Columnwise
     def content
       entries.map(&:content)
     end
+
+    def name_anchor_column(anchor)
+      name.index(name_anchors[anchor]) + 1
+    end
   end
 
   def locate_anchor(location, anchor)
@@ -70,6 +78,16 @@ module Helpers::Modifiable::Columnwise
       editor.search_literal(ctx1.name_anchors[anchor], '\\%>2l')
     else
       entry1.locate_anchor(anchor)
+    end
+  end
+
+  def anchor_column(anchor, location)
+    ctx = contexts[ctx_index(location)]
+
+    if location[:ui] == :name
+      ctx.name_anchor_column(anchor)
+    else
+      ctx.entries[entry_index(location)].anchor_column(anchor)
     end
   end
 
@@ -81,6 +99,14 @@ module Helpers::Modifiable::Columnwise
     else
       ctx.entries[entry_index(location)].anchors[anchor]
     end
+  end
+
+  def delete_between_columns(entry, column1, column2)
+    text = entry.cached_line_content
+    from = [entry.line_number_text.length, column1 - 1].max
+    to = [entry.line_number_text.length, column2 - 1].max
+    text[from..to] = ''
+    text
   end
 
   # Builds context like:

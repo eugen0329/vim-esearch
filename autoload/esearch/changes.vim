@@ -1,6 +1,7 @@
 let s:Vital   = vital#esearch#new()
 let s:String  = s:Vital.import('Data.String')
 let s:unknown = -1
+let s:null = 0
 
 fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__states = []
@@ -11,6 +12,8 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__observer = function('<SID>noop')
   let b:__locked = 0
   let b:__pending_change_event = 0
+  let b:__pending_o_event = 0
+  let b:__pending_insert_leave_event = s:null
   " TODO reimplement to work using :au User 
   let b:__multicursor = 0
 
@@ -29,11 +32,21 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
     au InsertEnter                           <buffer> call s:record_insert_enter('i')
     au CursorMoved                           <buffer> call s:record_state_change('n')
     au CursorMovedI                          <buffer> call s:record_state_change('i')
-    au TextChanged,TextChangedI,TextChangedP <buffer> call s:identify_text_change()
+    au TextChanged,TextChangedI,TextChangedP <buffer> call s:identify_text_change(v:event)
+
+    au InsertLeave <buffer> call timer_start(0, function('s:handle_insert_leave'))
+
     " TODO reimplement to work using :au User 
     au User MultipleCursorsPre let b:__multicursor = 1
     au User MultipleCursorsPost let b:__multicursor = 0
   augroup END
+endfu
+
+fu! s:handle_insert_leave(timer) abort
+  if b:__pending_insert_leave_event isnot# s:null
+    call s:emit(b:__pending_insert_leave_event)
+    let b:__pending_insert_leave_event = s:null
+  endif
 endfu
 
 fu! s:record_insert_enter(mode) abort
@@ -48,9 +61,28 @@ fu! s:record_insert_enter(mode) abort
   endif
 
   let from = b:__states[-1]
-  if a:mode ==# 'i' && from.mode !=# 'i' && v:operator ==# 'c'
+
+  if a:mode ==# 'i' && from.mode !=# 'i'
         \ && from.changedtick != b:changedtick
+        \ && v:operator ==# 'c'
     let b:__pending_change_event = 1
+  elseif a:mode ==# 'i' && from.mode !=# 'i'
+        \ && from.changedtick != b:changedtick
+        \ && from.size == line('$') - 1
+    let b:__pending_o_event = 1
+  elseif a:mode ==# 'i' && from.mode ==# "\<C-v>"
+          \ && from.changedtick == b:changedtick
+    let selection1 = getpos("'<")[1:2]
+    let selection2 = getpos("'>")[1:2]
+    let b:__pending_insert_leave_event = {
+          \ 'id': 'insert-leave-blockwise-visual',
+          \ 'line1': selection1[0],
+          \ 'col1':  selection1[1],
+          \ 'line2': selection2[0],
+          \ 'col2':  selection2[1],
+          \ 'begin_line': line('.'),
+          \ 'begin_col': col('.'),
+          \ }
   else
     call add(b:__states, payload)
   endif
@@ -124,7 +156,7 @@ fu! s:record_state_change(mode) abort
   endif
 endfu
 
-fu! s:identify_text_change() abort
+fu! s:identify_text_change(event) abort
   if b:__locked
     return
   endif
@@ -154,12 +186,17 @@ fu! s:identify_text_change() abort
       " noop, undo was reverted (EasyMotion, Overcommandline etc. do this)
       return
     endif
+  elseif b:__pending_o_event
+    let b:__pending_o_event = 0
+    call s:insert_enter_with_o()
   elseif from.cmdhistnr !=# to.cmdhistnr
     call s:identify_cmdline()
   elseif from.mode ==# 'i'
     call s:identify_insert()
   elseif from.mode ==# 'V' || to.mode ==# 'V'
     call s:identify_visual_line()
+  elseif from.mode ==# "\<C-v>" || to.mode ==# "\<C-v>"
+    call s:identify_visual_block()
   elseif from.mode ==# 'v'
     call s:identify_visual()
   elseif from.mode ==# 'n'
@@ -167,6 +204,64 @@ fu! s:identify_text_change() abort
   else
     call s:emit({'id': 'undefined-mode', 'mode': [from.mode, to.mode]})
   endif
+endfu
+
+fu! s:identify_visual_block() abort
+  let [from, to] = b:__states[-2:-1]
+
+  let [col1, col2] = sort([to.selection1[1], to.selection2[1]], 'n')
+  let line1 = to.selection1[0]
+  let line2 = to.selection2[0]
+
+  if s:is_joining(from, to, line1, line2)
+    return s:emit({
+          \ 'id':    'blockwise-v-join',
+          \ 'line1':    line1,
+          \ 'line2':    line2,
+          \ })
+  else
+    let b:__pending_insert_leave_event = {
+          \ 'id': 'insert-leave-blockwise-visual',
+          \ 'line1': line1,
+          \ 'line2': line1,
+          \ 'col1':  col1,
+          \ 'col2':  col2,
+          \ 'begin_line': line('.'),
+          \ 'begin_col': col('.'),
+          \ }
+
+    return s:emit({
+          \ 'id': 'blockwise-visual',
+          \ 'line1': line1,
+          \ 'line2': line1,
+          \ 'col1':  col1,
+          \ 'col2':  col2,
+          \ })
+  endif
+endfu
+
+fu! s:insert_enter_with_o() abort
+  let [from, to] = b:__states[-2:-1]
+
+  if from.line > to.line
+    let b:__pending_insert_leave_event = {
+          \ 'id': 'insert-leave-o',
+          \ 'line1': to.line,
+          \ 'line2': to.line - (v:count - 1),
+          \ }
+  else
+    let b:__pending_insert_leave_event = {
+          \ 'id': 'insert-leave-o',
+          \ 'line1': to.line,
+          \ 'line2': to.line + (v:count - 1),
+          \ }
+  endif
+
+  return s:emit({
+        \ 'id': 'insert-enter-o',
+        \ 'line1': to.line,
+        \ 'line2': to.line,
+        \ })
 endfu
 
 fu! s:identify_cmdline() abort
@@ -326,12 +421,12 @@ fu! s:identify_visual_line() abort
                 \ 'line1':    line1,
                 \ 'line2':    line2,
                 \ })
-          elseif b:__pending_change_event
-            return s:emit({
-                  \ 'id':    'V-line-change2',
-                  \ 'line1':    line1,
-                  \ 'line2':    line2,
-                  \ })
+        elseif b:__pending_change_event
+          return s:emit({
+                \ 'id':    'V-line-change2',
+                \ 'line1':    line1,
+                \ 'line2':    line2,
+                \ })
         else
           return s:emit({
                 \ 'id':    'V-line-reducing-paste-up2',
@@ -598,7 +693,7 @@ fu! s:identify_normal() abort
       if to.size == from.size && to.changenr != from.changenr
         " TODO acceptance test
         return s:emit({
-              \ 'id': 'n-inline-repeat-with-gn-up',
+              \ 'id': 'n-inline-repeat-gn-up',
               \ 'line1': line1,
               \ 'line2': line2,
               \ 'col1':  col('.'),
@@ -688,7 +783,7 @@ fu! s:identify_normal() abort
       let [line1, col1] = getpos("'[")[1:2]
       let [line2, col2] = getpos("']")[1:2]
       return s:emit({
-            \ 'id': 'n-inline-repeat-with-gn-down',
+            \ 'id': 'n-inline-repeat-gn-down',
             \ 'line1': line1,
             \ 'line2': line2,
             \ 'col1':  col1,
@@ -739,6 +834,15 @@ fu! s:identify_visual() abort
       " lines count reduced (removal or paste)
       let line1 = to.selection1[0]
       let line2 = to.selection2[0]  + from.size - (to.size )
+
+
+      if s:is_joining(from, to, line1, line2)
+        return s:emit({
+              \ 'id':    'v-join1',
+              \ 'line1': line1,
+              \ 'line2': line2,
+              \ })
+      endif
 
       if abs(line1 - line2) == abs(from.size - to.size)
         " delete or oneline pasting
@@ -845,6 +949,14 @@ fu! s:identify_visual() abort
       noau undo
       let [line1, line2] = [line("'["), line("']")]
       noau redo
+
+      if s:is_joining(from, to, line1, line2)
+        return s:emit({
+              \ 'id':    'v-join2',
+              \ 'line1': line1,
+              \ 'line2': line2,
+              \ })
+      endif
 
       if abs(line1 - line2) == abs(from.size - to.size)
         return s:emit({
@@ -1036,7 +1148,7 @@ endfu
 
 fu! s:columnwise_delete_end_column(from, to, line2) abort
   if empty(a:to.current_line)
-  " "   " TODO unit tests
+    " "   " TODO unit tests
     return -1
   endif
 
@@ -1058,6 +1170,10 @@ fu! s:columnwise_delete_end_column(from, to, line2) abort
 endfu
 
 fu! s:is_joining(from, to, line1, line2) abort
+  if v:operator !=# 'J' |
+    return
+  endif
+
   try
     silent noau undo
 
@@ -1117,8 +1233,8 @@ if g:esearch#env isnot 0
     let n = str2nr(get(a:000, 0, 8))
     let tail = copy(b:__states[max([ - n, - len(b:__states)  ]) :])
     let tail = map(tail, '{ "pos": [v:val.line, v:val.col], "id": v:val.id, "changenr": v:val.changenr,'
-          \ .'"mode": v:val.mode,'
-          \ .'"changedtick": v:val.changedtick,'
+          \ . '"mode": v:val.mode,'
+          \ . '"changedtick": v:val.changedtick,'
           \ . '"selections": v:val.selection1 + v:val.selection2}')
 
     PP tail
