@@ -10,7 +10,6 @@ fu! esearch#out#win#blockwise_visual#handle(event) abort
   let line2 = a:event.line2
 
   let view = winsaveview()
-  let col = s:null
   call esearch#util#safe_undojoin()
 
   if ctx.id == 0

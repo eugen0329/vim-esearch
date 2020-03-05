@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module Helpers::Modifiable::Columnwise
   shared_context 'setup columnwise testing' do |from, to|
     let(:fillers_alphabet) { '_|-'.chars }
@@ -145,3 +146,4 @@ module Helpers::Modifiable::Columnwise
     AnchoredContext.new(name, name_anchors, entries)
   end
 end
+# rubocop:enable Metrics/ModuleLength

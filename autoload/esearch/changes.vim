@@ -3,6 +3,9 @@ let s:String  = s:Vital.import('Data.String')
 let s:unknown = -1
 let s:null = 0
 
+" NOTES:
+"   - v:operator ==# 'J' is working only for visual mode. In normal it's not set
+
 fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__states = []
   if g:esearch#env isnot# 0
@@ -213,7 +216,7 @@ fu! s:identify_visual_block() abort
   let line1 = to.selection1[0]
   let line2 = to.selection2[0]
 
-  if s:is_joining(from, to, line1, line2)
+  if v:operator ==# 'J' && s:is_joining(from, to, line1, line2)
     return s:emit({
           \ 'id':    'blockwise-v-join',
           \ 'line1':    line1,
@@ -223,7 +226,7 @@ fu! s:identify_visual_block() abort
     let b:__pending_insert_leave_event = {
           \ 'id': 'insert-leave-blockwise-visual',
           \ 'line1': line1,
-          \ 'line2': line1,
+          \ 'line2': line2,
           \ 'col1':  col1,
           \ 'col2':  col2,
           \ 'begin_line': line('.'),
@@ -233,7 +236,7 @@ fu! s:identify_visual_block() abort
     return s:emit({
           \ 'id': 'blockwise-visual',
           \ 'line1': line1,
-          \ 'line2': line1,
+          \ 'line2': line2,
           \ 'col1':  col1,
           \ 'col2':  col2,
           \ })
@@ -394,7 +397,7 @@ fu! s:identify_visual_line() abort
         endif
         let line2 = line1 + from.size - to.size + to.selection2[0] - to.selection1[0]
 
-        if s:is_joining(from, to, line1, line2)
+        if v:operator ==# 'J' && s:is_joining(from, to, line1, line2)
           return s:emit({
                 \ 'id':    'V-join3',
                 \ 'line1':    line1,
@@ -415,7 +418,7 @@ fu! s:identify_visual_line() abort
         endif
       else
         let line2 = line1 + from.size - to.size + to.selection2[0] - to.selection1[0] - 1
-        if s:is_joining(from, to, line1, line2)
+        if v:operator ==# 'J' && s:is_joining(from, to, line1, line2)
           return s:emit({
                 \ 'id':    'V-join4',
                 \ 'line1':    line1,
@@ -509,7 +512,7 @@ fu! s:identify_visual_line() abort
         let line1 = to.line + 1
       endif
 
-      if s:is_joining(from, to, line1, line2)
+      if v:operator ==# 'J' && s:is_joining(from, to, line1, line2)
         return s:emit({
               \ 'id':    'V-join1',
               \ 'line1': line1,
@@ -544,7 +547,7 @@ fu! s:identify_visual_line() abort
       "   - reducing paste
       "   - joining
 
-      if s:is_joining(from, to, to.line, from.line)
+      if v:operator ==# 'J' && s:is_joining(from, to, to.line, from.line)
         return s:emit({
               \ 'id': 'V-join2',
               \ 'line1': to.line,
@@ -618,6 +621,7 @@ fu! s:identify_normal() abort
         let [line1, line2] = [line("'["), line("']")]
         redo
       endif
+
 
       if s:is_joining(from, to, line1, line2)
         " NOTE when joining empty lines it's equivalent to motion down
@@ -836,7 +840,7 @@ fu! s:identify_visual() abort
       let line2 = to.selection2[0]  + from.size - (to.size )
 
 
-      if s:is_joining(from, to, line1, line2)
+      if v:operator ==# 'J' && s:is_joining(from, to, line1, line2)
         return s:emit({
               \ 'id':    'v-join1',
               \ 'line1': line1,
@@ -950,7 +954,7 @@ fu! s:identify_visual() abort
       let [line1, line2] = [line("'["), line("']")]
       noau redo
 
-      if s:is_joining(from, to, line1, line2)
+      if v:operator ==# 'J' && s:is_joining(from, to, line1, line2)
         return s:emit({
               \ 'id':    'v-join2',
               \ 'line1': line1,
@@ -1148,7 +1152,7 @@ endfu
 
 fu! s:columnwise_delete_end_column(from, to, line2) abort
   if empty(a:to.current_line)
-    " "   " TODO unit tests
+    " TODO unit tests
     return -1
   endif
 
@@ -1170,10 +1174,6 @@ fu! s:columnwise_delete_end_column(from, to, line2) abort
 endfu
 
 fu! s:is_joining(from, to, line1, line2) abort
-  if v:operator !=# 'J' |
-    return
-  endif
-
   try
     silent noau undo
 

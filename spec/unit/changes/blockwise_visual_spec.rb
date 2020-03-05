@@ -53,8 +53,8 @@ describe 'Add newline' do
     context 'when after starting insert without modification' do
       context 'when at the block begin (I)' do
         it 'emits insert leave event' do
-          editor.locatecursor! 1, 2
-          editor.send_kys_separately '\\<C-v>'
+          editor.locate_cursor! 1, 2
+          editor.send_keys_separately '\\<C-v>'
           editor.locate_cursor! 3, 4
           editor.send_keys_separately 'I', 'zz', :escape
           expect(editor.lines.to_a).to eq(%w[1zz111 2zz222 3zz333])

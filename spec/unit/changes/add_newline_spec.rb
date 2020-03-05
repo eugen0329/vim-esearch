@@ -47,7 +47,6 @@ describe 'Add newline' do
     end
   end
 
-
   describe 'add above' do
     context 'when inserting single' do
       it do
