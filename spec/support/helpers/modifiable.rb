@@ -75,6 +75,7 @@ module Helpers::Modifiable
         expect(lines.to_a[1]).to be_blank
         expect(lines.to_a.last).not_to be_blank if lines.to_a.count > 2
       end
+      vim.normal # fix e315 raised while trying to leave insert mode within teardown
       editor.cleanup!
     end
   end

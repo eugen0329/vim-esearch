@@ -229,7 +229,7 @@ describe 'changes reporting in NORMAL mode' do
           .to change { editor.lines.to_a }
           .from(%w[11 22 zz 44])
           .to(%w[zz 22 zz 44])
-        expect(event).to include_payload('n-inline-repeat-with-gn-up', 1..1, 1..3)
+        expect(event).to include_payload('n-inline-repeat-gn-up', 1..1, 1..3)
       end
     end
 
@@ -241,7 +241,7 @@ describe 'changes reporting in NORMAL mode' do
           .to change { editor.lines.to_a }
           .from(%w[zz 22 11 44])
           .to(%w[zz 22 zz 44])
-        expect(event).to include_payload('n-inline-repeat-with-gn-down', 3..1, 3..3)
+        expect(event).to include_payload('n-inline-repeat-gn-down', 3..1, 3..3)
       end
     end
   end

@@ -12,7 +12,7 @@ describe 'Modify linewise', :window do
   include_context 'setup modifiable testing'
 
   shared_examples 'ctx1.name -> ctx2.entry2' do |from:, to:|
-    include_context 'setup', from, to
+    include_context 'setup columnwise testing', from, to
 
     shared_examples 'it modifies entries using anchors' do |anchor1, anchor2|
       let(:anchor2_char) { anchor_char(anchor2, to) }
@@ -48,7 +48,7 @@ describe 'Modify linewise', :window do
   end
 
   shared_examples 'ctx1.entry1 -> ctx2.name' do |from:, to:|
-    include_context 'setup', from, to
+    include_context 'setup columnwise testing', from, to
 
     shared_examples 'it modifies entries using anchors' do |anchor1, anchor2|
       # let(:affected_entries) { entries_from_range(from, to)[...-1] }
@@ -105,7 +105,7 @@ describe 'Modify linewise', :window do
   end
 
   shared_examples 'ctx1.entry1 -> ctx2.entry2' do |from:, to:|
-    include_context 'setup', from, to
+    include_context 'setup columnwise testing', from, to
 
     shared_examples 'it modifies entries using anchors' do |anchor1, anchor2|
       let(:anchor2_char) { anchor_char(anchor2, to) }

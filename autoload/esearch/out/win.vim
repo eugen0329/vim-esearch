@@ -191,7 +191,7 @@ fu! esearch#out#win#init(opts) abort
   augroup ESearchWinHighlights
     au! * <buffer>
     if g:esearch_out_win_highlight_cursor_line_number && &cursorline
-      au CursorMoved <buffer> call s:highlight_cursor_line_number()
+      au CursorMoved,CursorMovedI <buffer> call s:highlight_cursor_line_number()
     endif
     if g:esearch#out#win#context_syntax_highlight
       au CursorMoved <buffer> call s:highlight_viewport()
@@ -1003,13 +1003,15 @@ fu! esearch#out#win#handle_changes(event) abort
     call esearch#out#win#delete_multiline#handle(a:event)
   elseif a:event.id =~# 'undo'
     call s:handle_undo_traversal(a:event)
-  elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-with-gn'
+  elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-gn'
         \ || a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
     let debug = s:handle_normal__inline(a:event)
   elseif a:event.id =~# 'i-inline'
     let debug = s:handle_insert__inline(a:event)
   elseif  a:event.id =~# 'i-delete-newline'
     let debug = s:handle_insert__delete_newlines(a:event)
+  elseif  a:event.id =~# 'blockwise-visual'
+    call esearch#out#win#blockwise_visual#handle(a:event)
   elseif  a:event.id =~# 'i-add-newline'
     call s:handle_insert__add_newlines(a:event)
   elseif a:event.id =~# 'join'
