@@ -231,49 +231,49 @@ describe 'vim-visual-multi compatibility', :window do
     # - too hard to implement
     # - doesn't make sense (like joining lines with J operator or inserting newlines with O)
     describe 'J operator (join lines)' do
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'J' }
     end
 
     describe '. operator (repeat)' do
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'x', 'u', '.' }
     end
 
     describe 'starting INSERT' do
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'I' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately API::VisualMulti::LEADER + 'o' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately API::VisualMulti::LEADER + 'O' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'gcl' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'C' }
     end
 
     describe 'replace' do
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately '\\<Plug>(VM-Replace)', 'zzz' }
     end
 
     describe '<Plug>(VM-Transform-Regions) map' do
       # Can be moved to supported with restrictions in future as it seems too useful
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately API::VisualMulti::LEADER + 'e', 'zzz', :enter }
     end
 
     describe 'pasting' do
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-Transform-Regions)' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-p-Paste-Regions)' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-P-Paste-Regions)' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-p-Paste-Vimreg)' }
-      it_behaves_like 'it disallows non-INSET motion',
+      it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-P-Paste-Vimreg)' }
       # <C-v> is mapped to <Plug>(VM-I-paste)
       it_behaves_like 'it disallows INSERT mode motion',

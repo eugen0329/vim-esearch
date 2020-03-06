@@ -91,7 +91,8 @@ module Helpers::Modifiable::Columnwise
     if location[:ui] == :name
       editor.search_literal(ctx1.name_anchors[anchor], '\\%>2l')
     else
-      entries[entry_index(location)].locate_anchor(anchor)
+      ctx = contexts[ctx_index(location)]
+      ctx.entries[entry_index(location)].locate_anchor(anchor)
     end
   end
 

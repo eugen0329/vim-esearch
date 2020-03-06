@@ -29,7 +29,7 @@ module Helpers::VisualMulti
     include_examples 'keep editor state unmodified', motion
   end
 
-  shared_examples 'it disallows non-INSET motion' do |motion|
+  shared_examples 'it disallows non-INSERT motion' do |motion|
     it_behaves_like 'it disallows EXTEND mode motion', motion, mode: :normal
     it_behaves_like 'it disallows NORMAL mode motion', motion, mode: :normal
   end

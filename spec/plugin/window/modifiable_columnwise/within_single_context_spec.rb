@@ -64,6 +64,7 @@ describe 'Modify linewise', :window do
           it 'modifies entries between and merges texts' do
             locate_anchor(from, anchor1)
 
+            require 'pry'; binding.pry
             expect { motion.call(anchor2_char) }
               .to change { output.reload(entry1).line_content }
               .to(joined_text)

@@ -69,7 +69,8 @@ fu! s:on_start() abort
   call s:nremap('<Plug>(VM-P-Paste-Vimreg)',     '<SID>unsupported(%s, "Is not supported")')
   " <Plug>(VM-Yank)
 
-  "" Movements, just skip
+  "" Arrow movements, just skip
+  """""""""""""""""""""""""""""
   " <Plug>(VM-I-Arrow-w)
   " <Plug>(VM-I-Arrow-b)
   " <Plug>(VM-I-Arrow-W
@@ -102,13 +103,15 @@ fu! s:on_start() abort
   call s:iremap('<Plug>(VM-I-Replace)',     '<SID>unsupported(%s, "Is not supported")')
 
   "" Cursor managing stuff, should be safe..
+  """""""""""""""""""""""""""""""""""""""""""
   " <Plug>(VM-Move-Right)
   " <Plug>(VM-Move-Left)
   " <Plug>(VM-Transpose)
   " <Plug>(VM-Rotate)
   " <Plug>(VM-Duplicate)
 
-  "" Dangerous, but useful. Lets keep
+  "" Dangerous, but useful. Lets keep unhandled
+  """""""""""""""""""""""""""""""""""""""""""""""
   " <Plug>(VM-Align)
   " <Plug>(VM-Align-Char)
   " <Plug>(VM-Align-Regex)
@@ -126,11 +129,10 @@ fu! s:on_start() abort
   " <Plug>(VM-Run-Visual)
   " <Plug>(VM-Run-Last-Visual)
 
-  ""Cmdline
+  ""Cmdline. Seems too useful to disable
   " <expr> <Plug>(VM-:)
   " <expr> <Plug>(VM-/)
   " <expr> <Plug>(VM-?)
-
 endfu
 
 fu! s:nremap(lhs, rhs) abort
@@ -151,22 +153,24 @@ endfu
 " Input characters whitelists are used to prevent from running dangerous which
 " could corrupt the UI.
 
-fu! s:d_operator(orig, linenr_offset, count, register) abort
+fu! s:d_operator(orig, offset_from_linenr, count, register) abort
   let whitelist0 = 'we$' " no extra chars required
   let whitelist1 = 'fs' " f{char} and deleting surround require 1 extra char
   let whitelist2 = ''
-  call s:safely_apply_operator(a:orig, a:linenr_offset, a:count, whitelist0, whitelist1, whitelist2)
+  call s:safely_apply_operator(a:orig, a:offset_from_linenr,
+        \ a:count, whitelist0, whitelist1, whitelist2)
 endfu
 
-fu! s:c_operator(orig, linenr_offset, count, register) abort
+fu! s:c_operator(orig, offset_from_linenr, count, register) abort
   let whitelist0 = 'we$' " no extra chars required
   let whitelist1 = 'f' " f{char}
   let whitelist2 = 's' " changing surround using at least 2 chars
-  call s:safely_apply_operator(a:orig, a:linenr_offset, a:count, whitelist0, whitelist1, whitelist2)
+  call s:safely_apply_operator(a:orig, a:offset_from_linenr,
+        \ a:count, whitelist0, whitelist1, whitelist2)
 endfu
 
-fu! s:safely_apply_operator(orig, linenr_offset, count, whitelist0, whitelist1, whitelist2) abort
-  let regions = s:regions_overlapping_interface(a:linenr_offset)
+fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whitelist1, whitelist2) abort
+  let regions = s:regions_overlapping_interface(a:offset_from_linenr)
   if len(regions) == len(b:VM_Selection.Regions)
     return
   else
@@ -176,7 +180,7 @@ fu! s:safely_apply_operator(orig, linenr_offset, count, whitelist0, whitelist1, 
     return feedkeys(esearch#mappings#key2char(a:orig))
   endif
 
-  let [motion, motion_count] = s:sanitized_operator(a:whitelist0, a:whitelist1, a:whitelist2)
+  let [motion, motion_count] = s:sanitized_motion(a:whitelist0, a:whitelist1, a:whitelist2)
   if motion is s:null
     return
   endif
@@ -186,7 +190,7 @@ fu! s:safely_apply_operator(orig, linenr_offset, count, whitelist0, whitelist1, 
   call feedkeys(esearch#mappings#key2char(a:orig) . motion, 't')
 endfu
 
-fu! s:sanitized_operator(whitelist0, whitelist1, whitelist2) abort
+fu! s:sanitized_motion(whitelist0, whitelist1, whitelist2) abort
   let motion = ''
   let motion_count = ''
 
@@ -210,12 +214,12 @@ fu! s:sanitized_operator(whitelist0, whitelist1, whitelist2) abort
   elseif index(split('ia', '\zs'), char) >= 0
     let textobj = esearch#util#getchar()
     if index(split(s:textobjects_whitelist, '\zs'), textobj) < 0
-      call s:unsupported('', 'Textobject ' . textobj . ' is not supported')
+      call s:unsupported(s:null, 'Textobject ' . textobj . ' is not supported')
       return [s:null, s:null]
     endif
     let motion .= textobj
   else
-    call s:unsupported('', 'Motion ' . motion . ' is not supported')
+    call s:unsupported(s:null, 'Motion ' . motion . ' is not supported')
     return [s:null, s:null]
   endif
 
@@ -224,35 +228,35 @@ endfu
 
 " According to visual-multi source code, regions are roughly the same as
 " cursors, but cursors are used only in INSERT mode
-fu! s:remove_cursors_overlapping_interface(linenr_offset) abort
+fu! s:remove_cursors_overlapping_interface(offset_from_linenr) abort
   if empty(b:VM_Selection)
     return
   endif
 
   let state = b:esearch.undotree.head.state
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
-  let removed_indexes = []
+  let removable_indexes = []
 
   let i = 0
   for cursor in b:VM_Selection.Insert.cursors
     let ctx = contexts.by_line(cursor.l)
     if cursor.l == ctx.begin || (cursor.l == ctx.end && cursor.l != line('$'))
-      call add(removed_indexes, i)
+      call add(removable_indexes, i)
     else
       let linenr = printf(s:linenr_format, state.line_numbers_map[cursor.l])
-      if cursor._a <= strlen(linenr) + a:linenr_offset
-        call add(removed_indexes, i)
+      if cursor._a <= strlen(linenr) + a:offset_from_linenr
+        call add(removable_indexes, i)
       endif
     endif
 
     let i += 1
   endfor
 
-  if empty(removed_indexes)
+  if empty(removable_indexes)
     return
   endif
 
-  for i in reverse(copy(removed_indexes))
+  for i in reverse(copy(removable_indexes))
     let region = b:VM_Selection.Regions[i]
     let cursor = b:VM_Selection.Insert.cursors[i]
     let line = b:VM_Selection.Insert.lines[region.l]
@@ -264,7 +268,7 @@ fu! s:remove_cursors_overlapping_interface(linenr_offset) abort
   endfor
 endfu
 
-fu! s:regions_overlapping_interface(linenr_offset) abort
+fu! s:regions_overlapping_interface(offset_from_linenr) abort
   let state = b:esearch.undotree.head.state
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let regions = []
@@ -274,7 +278,7 @@ fu! s:regions_overlapping_interface(linenr_offset) abort
       call add(regions, region)
     else
       let linenr = printf(s:linenr_format, state.line_numbers_map[region.l])
-      if region.a <= strlen(linenr) + a:linenr_offset
+      if region.a <= strlen(linenr) + a:offset_from_linenr
         call add(regions, region)
       endif
     endif
@@ -283,8 +287,8 @@ fu! s:regions_overlapping_interface(linenr_offset) abort
   return regions
 endfu
 
-fu! s:without_regions_overlapping_interface(orig, linenr_offset) abort
-  let regions = s:regions_overlapping_interface(a:linenr_offset)
+fu! s:without_regions_overlapping_interface(orig, offset_from_linenr) abort
+  let regions = s:regions_overlapping_interface(a:offset_from_linenr)
   if len(regions) == len(b:VM_Selection.Regions)
     return
   else
@@ -309,8 +313,8 @@ fu! s:CtrlW(orig) abort
   return eval(a:orig)
 endfu
 
-fu! s:i_delete_char(orig, linenr_offset) abort
-  let s:linenr_offset = a:linenr_offset
+fu! s:i_delete_char(orig, offset_from_linenr) abort
+  let s:offset_from_linenr = a:offset_from_linenr
   let s:V = b:VM_Selection
   let s:v = s:V.Vars
   let s:G = s:V.Global
@@ -319,10 +323,11 @@ fu! s:i_delete_char(orig, linenr_offset) abort
   let s:X = { -> g:Vm.extend_mode }
   let s:contexts = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.undotree.head.state)
   let snr = matchstr(expand('<sfile>'), '<SNR>\d\+_')
-  return substitute(eval(a:orig), 'vm#icmds#x', snr . 'i_x', '')
+  return substitute(eval(a:orig), 'vm#icmds#x', snr . 'vm_icmds_x', '')
 endfu
 
-fu! s:i_x(cmd) abort
+" Reiplemented based on original vm#icmds#x() function
+fu! s:vm_icmds_x(cmd) abort
   """""" modified block start
   let state = b:esearch.undotree.head.state
   """""" modified block end
@@ -336,7 +341,7 @@ fu! s:i_x(cmd) abort
 
     """""" modified block start
     let linenr = printf(s:linenr_format, state.line_numbers_map[r.l])
-    if r.a <= strlen(linenr) + s:linenr_offset || r.l == s:contexts.by_line(r.l).begin
+    if r.a <= strlen(linenr) + s:offset_from_linenr || r.l == s:contexts.by_line(r.l).begin
       continue
     endif
     """""" modified block end
