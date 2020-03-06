@@ -2,9 +2,19 @@
 
 # rubocop:disable Metrics/ModuleLength
 module Helpers::Modifiable::Columnwise
-  shared_context 'setup columnwise testing' do |from, to|
+  shared_context 'setup columnwise testing contexts' do
+    let(:contexts) do
+      3.times
+       .map { build_context(alphabet, fillers_alphabet) }
+       .sort_by(&:name)
+    end
+    let(:files) { contexts.map { |c| file(c.content, c.name) } }
     let(:fillers_alphabet) { '_|-'.chars }
     let(:alphabet) { ('a'..'z').to_a + '()[]"+.,%^&$#@!?*~`/\\'.chars }
+  end
+
+  shared_context 'setup columnwise testing' do |from, to|
+    include_context 'setup columnwise testing contexts'
 
     let(:from_ctx) { ctx_index(from) }
     let(:to_ctx) { ctx_index(to) }
@@ -17,20 +27,15 @@ module Helpers::Modifiable::Columnwise
     let(:from_line) { bounds.first }
     let(:to_line)   { bounds.last }
 
-    let(:contexts) do
-      3.times
-       .map { build_context(alphabet, fillers_alphabet) }
-       .sort_by(&:name)
-    end
-    let(:files) { contexts.map { |c| file(c.content, c.name) } }
-
     let(:ctx1) { contexts[from_ctx] }
     let(:ctx2) { contexts[to_ctx] }
     let(:entry1) { ctx1.entries[from_entry] }
     let(:entry2) { ctx2.entries[to_entry] }
   end
 
-  AnchoredEntry = Struct.new(:relative_path, :line_in_file, :content, :anchors) do
+  AnchoredEntry = Struct.new(:relative_path, :index, :line_in_file, :content, :anchors) do
+    delegate :line_content, :result_text, to: :parsed_entry
+
     def text_before(anchor)
       content.partition(anchors[anchor]).first
     end
@@ -59,12 +64,20 @@ module Helpers::Modifiable::Columnwise
       line_number_text + content
     end
 
-    def line_content
-      esearch.output.find_entry(relative_path, line_in_file).line_content
+    def parsed_entry
+      esearch.output.find_entry(relative_path, line_in_file)
     end
   end
 
   AnchoredContext = Struct.new(:name, :name_anchors, :entries) do
+    def begin_line
+      entries.first.line_in_window - 1
+    end
+
+    def end_line
+      entries.last.line_in_window + 1
+    end
+
     def content
       entries.map(&:content)
     end
@@ -78,7 +91,7 @@ module Helpers::Modifiable::Columnwise
     if location[:ui] == :name
       editor.search_literal(ctx1.name_anchors[anchor], '\\%>2l')
     else
-      entry1.locate_anchor(anchor)
+      entries[entry_index(location)].locate_anchor(anchor)
     end
   end
 
@@ -119,10 +132,11 @@ module Helpers::Modifiable::Columnwise
   # where [_] belongs to fillers_alphabet and [a-i] belong to alphabet of
   # anchors. fillers_alphabet is used to add more convenience in testing both
   # automatically and manually.
-  def build_context(alphabet, fillers_alphabet, entries_count: 4)
+  def build_context(alphabet, fillers_alphabet, entries_count: 4, anchored_word_width: 1)
+    # TODO: too much duplication
     filler = fillers_alphabet.shift
 
-    anchor_begin, anchor_middle, anchor_end = alphabet.shift(3)
+    anchor_begin, anchor_middle, anchor_end = alphabet.shift(3).map { |c| c * anchored_word_width }
     name_anchors = {
       begin:  anchor_begin,
       middle: anchor_middle,
@@ -131,7 +145,7 @@ module Helpers::Modifiable::Columnwise
     name = "#{anchor_begin}#{filler * 2}#{anchor_middle}#{filler * 2}#{anchor_end}"
 
     entries = entries_count.times.map do |i|
-      anchor_begin, anchor_middle, anchor_end = alphabet.shift(3)
+      anchor_begin, anchor_middle, anchor_end = alphabet.shift(3).map { |c| c * anchored_word_width }
       anchors = {
         begin:  anchor_begin,
         middle: anchor_middle,
@@ -140,7 +154,7 @@ module Helpers::Modifiable::Columnwise
 
       content = "#{anchor_begin}#{filler * 2}#{anchor_middle}#{filler * 2}#{anchor_end}"
 
-      AnchoredEntry.new(name, i + 1, content, anchors)
+      AnchoredEntry.new(name, i, i + 1, content, anchors)
     end
 
     AnchoredContext.new(name, name_anchors, entries)

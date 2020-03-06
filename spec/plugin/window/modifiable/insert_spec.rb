@@ -10,8 +10,8 @@ describe 'Insert mode', :window do
 
   include_context 'setup modifiable testing'
 
-  describe 'recovering line numbers virtual interface' do
-    context 'when only virtual interface is affected' do
+  describe 'recovering line numbers virtual ui' do
+    context 'when only virtual ui is affected' do
       context 'when adding chars' do
         it 'cuts and pastes 1 char after a line number' do
           1.upto(entry.line_number_text.length) do |column|
@@ -42,7 +42,7 @@ describe 'Insert mode', :window do
         context 'inside line number column' do
           # ...length + 1 is required because removing left doesn't affect current
           # character
-          it 'recovers virtual interface after pressing BS' do
+          it 'recovers virtual ui after pressing BS' do
             1.upto(entry.line_number_text.length + 1) do |column|
               editor.locate_cursor! entry.line_in_window, 1
               editor.locate_column! column
@@ -52,7 +52,7 @@ describe 'Insert mode', :window do
             end
           end
 
-          it 'recovers virtual interface after pressing CONTROL-w' do
+          it 'recovers virtual ui after pressing CONTROL-w' do
             # starts from 2 to prevent removing newline
             2.upto(line_number_text.length + 1) do |column|
               editor.locate_cursor! entry.line_in_window, 1
@@ -63,7 +63,7 @@ describe 'Insert mode', :window do
             end
           end
 
-          it 'recovers virtual interface after pressing DEL' do
+          it 'recovers virtual ui after pressing DEL' do
             1.upto(line_number_text.length) do |column|
               editor.locate_cursor! entry.line_in_window, 1
               editor.locate_column! column
@@ -132,8 +132,8 @@ describe 'Insert mode', :window do
       end
     end
 
-    context 'when virtual interface and result text are both affected' do
-      context 'when virtual interface is deleted partially' do
+    context 'when virtual ui and result text are both affected' do
+      context 'when virtual ui is deleted partially' do
         context 'when 1st char from result text is deleted' do
           it 'recovers after pressing BS' do
             editor.locate_cursor! entry.line_in_window, 1
@@ -163,7 +163,7 @@ describe 'Insert mode', :window do
         end
       end
 
-      context 'when virtual interface is deleted entirely' do
+      context 'when virtual ui is deleted entirely' do
         it 'recovers after clearing line with cc' do
           editor.locate_cursor! entry.line_in_window, 1
 

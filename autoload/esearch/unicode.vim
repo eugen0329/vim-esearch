@@ -4,4 +4,6 @@ if exists('g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol')
 else
   let g:esearch#unicode#dir_icon = '🗀 '
 endif
+
+let g:esearch#unicode#nbsp = ' '
 let g:esearch#unicode#spinner = [' ◜ ', '  ◝', '  ◞', ' ◟ ']

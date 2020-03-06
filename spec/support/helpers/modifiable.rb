@@ -27,6 +27,7 @@ module Helpers::Modifiable
   end
 
   define_negated_matcher :not_to_change, :change
+  define_negated_matcher :not_change, :change
 
   shared_context 'setup modifiable testing' do
     let(:contexts) do

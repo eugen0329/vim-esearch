@@ -31,16 +31,12 @@ class API::ESearch::Facade
     :close_search!,
     to: :output
 
-  def initialize(vim_client_getter)
+  def initialize(editor)
     @outputs = {}
-    @vim_client_getter = vim_client_getter
+    @editor = editor
   end
 
   # rubocop:disable Lint/DuplicateMethods
-  def editor
-    @editor ||= Editor.new(vim_client_getter)
-  end
-
   def platform
     @platform ||= API::ESearch::Platform.new
   end

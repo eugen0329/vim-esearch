@@ -20,17 +20,28 @@ class Editor
 
   delegate :cached?, :evaluated?, :with_ignore_cache, :handle_state_change!, :var, :func, to: :reader
 
-  def initialize(vim_client_getter, **kwargs)
+  def initialize(**kwargs)
+    @vim_client_getter =
+      if Configuration.debug_specs_performance?
+        -> { VimrunnerSpy.new(Configuration.vim) }
+      else
+        Configuration.method(:vim)
+      end
+
     @cache_enabled = kwargs.fetch(:cache_enabled) { self.class.cache_enabled }
-    @vim_client_getter = vim_client_getter
     @reader = kwargs.fetch(:reader) do
       self.class.reader_class.new(vim_client_getter, @cache_enabled)
     end
   end
 
   MODES = {
-    'n' => :normal,
-    'c' => :commandline
+    'n'    => :normal,
+    'no'   => :operator_pending,
+    'c'    => :commandline,
+    'i'    => :insert,
+    'v'    => :visual,
+    'V'    => :linewise_visual,
+    "\x16" => :blockwise_visual
   }.freeze
 
   def mode

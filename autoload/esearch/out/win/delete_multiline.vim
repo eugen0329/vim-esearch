@@ -3,7 +3,7 @@ let s:separator = ''
 let s:linenr_format = ' %3d '
 
 " Handles deletion between line1:col1 and line2:col2.
-" Does recovery of virtual interface elements:
+" Does recovery of virtual ui elements:
 "   - header with files and matched lines count
 "   - line numbers column (location in a file). Builtin name is LineNr column
 "   - file names
@@ -287,7 +287,7 @@ fu! s:handle_columnwise_with_joining_lines(ctx, state, rebuilder) abort
       let linenr2 = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line2])
 
       if a:rebuilder.col1 < strlen(linenr) + 1
-        " if deletion starts from linenr virtual interface - everything from the
+        " if deletion starts from linenr virtual ui - everything from the
         " first line is removed
         let part1 = linenr
       else
@@ -497,7 +497,7 @@ fu! s:is_all_entries_removed(ctx, rebuilder, state) abort
     " TODO figure out how to fix the side affect (columnwise events alwasy contain col1 > 0)
 
     " If deletion region is strictly above the first entry
-    " or it is on the first entry and col1 is within line numbers virtual interface
+    " or it is on the first entry and col1 is within line numbers virtual ui
     let linenr  = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line1])
     let until_begin = a:rebuilder.line1 <= a:ctx.begin
           \ || a:rebuilder.line1 == a:ctx.begin + 1 && a:rebuilder.col1 <= strlen(linenr) + 1

@@ -617,7 +617,7 @@ endfu
 fu! esearch#util#safe_undojoin() abort
   try
     undojoin
-  catch /E790: undojoin is not allowed below undo/
+  catch /E790:/
     " TODO
   endtry
 endfu

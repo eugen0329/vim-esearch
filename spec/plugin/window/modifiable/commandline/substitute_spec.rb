@@ -106,7 +106,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
         describe 'ambigous substitution matches' do
           let(:flags) { 'gc' }
 
-          context 'when line number virtual interface is affected' do
+          context 'when line number virtual ui is affected' do
             let(:contexts) { [context1] }
             let(:context1) { Context.new('context1.txt', %w[aaaa bbbb]) }
             let(:entry1) { context1.entries.first }
@@ -297,7 +297,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
     end
   end
 
-  describe 'virtual interface recovery' do
+  describe 'virtual ui recovery' do
     context 'when line numbers are matched' do
       let(:pattern) { entry.line_in_window }
 

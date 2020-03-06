@@ -58,7 +58,7 @@ fu! s:prevent_leak_event_command(option_name, bufnr, leak_prevention_events) abo
   " configure hook for-each-buffer-except a:bufnr. Another alternative would be
   " using CursorMoved, as it's fired ignore :noautocmd, but it's a bit worse in
   " terms of performance within a search window, which is already slightly
-  " decreased due to the virtual interface recovery on frequently executed
+  " decreased due to the virtual ui recovery on frequently executed
   " CursorMoved and TextChanged events
   return printf('au %s * ++nested call s:ensure_restored(%s, %d, %s)',
         \ a:leak_prevention_events,

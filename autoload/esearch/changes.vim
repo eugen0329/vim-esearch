@@ -250,13 +250,13 @@ fu! s:insert_enter_with_o() abort
     let b:__pending_insert_leave_event = {
           \ 'id': 'insert-leave-o',
           \ 'line1': to.line,
-          \ 'line2': to.line - (v:count - 1),
+          \ 'line2': to.line - (v:count1 - 1),
           \ }
   else
     let b:__pending_insert_leave_event = {
           \ 'id': 'insert-leave-o',
           \ 'line1': to.line,
-          \ 'line2': to.line + (v:count - 1),
+          \ 'line2': to.line + (v:count1 - 1),
           \ }
   endif
 
