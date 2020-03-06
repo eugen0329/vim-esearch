@@ -33,12 +33,10 @@ ActiveSupport::Dependencies.autoload_paths += [
 require 'support/client'
 require 'support/server'
 
-vim_instance_getter =
-  if Configuration.debug_specs_performance?
-    -> { VimrunnerSpy.new(Configuration.vim) }
-  else
-    Configuration.method(:vim)
-  end
+EDITOR = Editor.new
+def editor
+  EDITOR
+end
 
 # Required mostly for improvimg performance of neovim backend testing by
 # sacrificing reliability (as with every optimization which involves caching
@@ -50,9 +48,14 @@ if Configuration.dangerously_maximize_performance?
   VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
 
-  ESEARCH = API::ESearch::Facade.new(vim_instance_getter)
+  ESEARCH = API::ESearch::Facade.new(editor)
   def esearch
     ESEARCH
+  end
+
+  VISUAL_MULTI = API::VisualMulti.new(editor)
+  def visual_multi
+    VISUAL_MULTI
   end
 else
   Editor.cache_enabled = false
@@ -68,12 +71,12 @@ else
   API::ESearch::Platform.process_check_timeout = 20.seconds
 
   def esearch
-    @esearch ||= API::ESearch::Facade.new(vim_instance_getter)
+    @esearch ||= API::ESearch::Facade.new(editor)
   end
-end
 
-def editor
-  esearch.editor
+  def visual_multi
+    @visual_multi ||= API::VisualMulti.new(editor)
+  end
 end
 
 RSpec.configure do |c|
@@ -140,6 +143,7 @@ def load_runtime!(vim)
   vim.add_plugin(Configuration.root,                            'plugin/esearch.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'), 'plugin/vimproc.vim')
   vim.add_plugin(Configuration.plugins_dir.join('clever-f.vim'), 'plugin/clever-f.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('vim-visual-multi'), 'plugin/visual-multi.vim')
   ## Will be used for testing contex syntax highlights
   # vim.add_plugin(Configuration.plugins_dir.join('vim-colors-solarized'))
   vim

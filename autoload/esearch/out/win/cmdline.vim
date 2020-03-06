@@ -69,14 +69,14 @@ fu! s:replay_confirmable(event, command, original_pattern) abort
     let context = contexts.by_line(line)
     if context.begin == line || (context.end == line && context.end != line('$'))
       " don't replay changes on top of contexts boundaries (as they contain only
-      " the virtual interface)
+      " the virtual ui)
     else
       let linenr = printf(s:linenr_format, state.line_numbers_map[line])
 
       if s:String.starts_with(modified_text, linenr)
         call setline(line, modified_text) " LineNr isn't corrupted, can be safely replayed
       elseif stridx(command.flags, 'g') < 0
-        " if it was the only match in the line and it corrupts the virtual interface
+        " if it was the only match in the line and it corrupts the virtual ui
         " - don't replay
       else
         call add(ask_again_on_lines, line)

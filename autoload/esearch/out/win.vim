@@ -51,6 +51,7 @@ let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_fr
 let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
+let s:linenr_format = ' %3d %s'
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -496,7 +497,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
       let a:esearch.contexts[-1].filename = filename
     endif
 
-    call add(lines, printf(' %3d %s', parsed[i].lnum, text))
+    call add(lines, printf(s:linenr_format, parsed[i].lnum, text))
     call add(a:esearch.columns_map, parsed[i].col)
     call add(a:esearch.line_numbers_map, parsed[i].lnum)
     call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
@@ -958,6 +959,8 @@ fu! esearch#out#win#edit() abort
 
   call esearch#option#make_local_to_buffer('backspace', 'indent,start', 'InsertEnter')
   set nomodified
+
+  call esearch#compat#visual_multi#init()
 endfu
 
 fu! s:write() abort
@@ -1118,14 +1121,14 @@ fu! s:handle_insert__inline(event) abort
     let text = context.filename
     call setline(line1, text)
   elseif line1 > 2 && col1 < strlen(linenr) + 1
-    " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
+    " VIRTUAL UI WITH LINE NUMBERS IS AFFECTED:
 
     if a:event.id ==# 'i-inline-add'
       " Recovered text:
       "   - take   linenr
-      "   - concat with extracted chars inserted within a virtual interface
+      "   - concat with extracted chars inserted within a virtual ui
       "   - concat with the rest of the text with removed leftovers from
-      "   virtual interface and inserted chars
+      "   virtual ui and inserted chars
       let text = linenr
             \ . text[col1 - 1 : col2 - 1]
             \ . text[strlen(linenr) + (col2 - col1 + 1) :]
@@ -1179,7 +1182,7 @@ fu! s:handle_normal__inline(event) abort
     " it's a filename, restoring
     call setline(line1, context.filename)
   elseif line1 > 2 && col1 < strlen(linenr) + 1
-    " VIRTUAL INTERFACE WITH LINE NUMBERS IS AFFECTED:
+    " VIRTUAL UI WITH LINE NUMBERS IS AFFECTED:
 
     if col2 < strlen(linenr) + 1 " deletion happened within linenr, the text is untouched
       " recover linenr and remove leading previous linenr leftover

@@ -274,7 +274,7 @@ describe 'within single context', :window do
                 end
               end
 
-              context 'from within line number virtual interface' do
+              context 'from within line number virtual ui' do
                 context 'while moving down' do
                   include_examples 'replacing 1st entry text with 2nd entry' do
                     let(:columns_testing_matrix) do
@@ -317,7 +317,7 @@ describe 'within single context', :window do
               let(:anchor1) { anchors[-2] }
               let(:anchor2) { anchors[-1] }
 
-              context 'from within line number virtual interface' do
+              context 'from within line number virtual ui' do
                 let(:expected_text) do
                   entry1.line_number_text +
                     entry2.line_content.partition(anchor2).last
