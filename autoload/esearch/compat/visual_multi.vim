@@ -15,7 +15,7 @@ fu! esearch#compat#visual_multi#init() abort
   au User visual_multi_after_cmd call s:on_after_cmd()
 endfu
 
-fu! s:on_after_cmd()
+fu! s:on_after_cmd() abort
   if !exists('b:esearch')
     return
   endif
@@ -28,7 +28,10 @@ fu! s:on_start() abort
   endif
   let b:esearch_visual_multi_loaded = 1
 
-  au TextChangedP,TextChangedI <buffer> call s:remove_cursors_overlapping_interface(0)
+  augroup ESearchVisualMulti
+    au! * <buffer>
+    au TextChangedP,TextChangedI <buffer> call s:remove_cursors_overlapping_interface(0)
+  augroup END
 
   " NOTE that all the commented code lines below are left intentionally to
   " keep track on what is in TODO status and what is reviewed and is not
@@ -54,10 +57,10 @@ fu! s:on_start() abort
   call s:nremap('<Plug>(VM-I)',                  '<SID>unsupported(%s, "Is not supported")')
   call s:nremap('<Plug>(VM-o)',                  '<SID>unsupported(%s, "Inserting newlines is not supported")')
   call s:nremap('<Plug>(VM-O)',                  '<SID>unsupported(%s, "Inserting newlines is not supported")')
-  call s:nremap('<Plug>(VM-c)',                  "<SID>c_operator(%s, 0, v:count1, v:register)")
+  call s:nremap('<Plug>(VM-c)',                  '<SID>c_operator(%s, 0, v:count1, v:register)')
   call s:nremap('<Plug>(VM-gc)',                 '<SID>unsupported(%s, "Is not supported")')
   call s:nremap('<Plug>(VM-C)',                  '<SID>unsupported(%s, "Is not supported")')
-  call s:nremap('<Plug>(VM-Delete)',             "<SID>d_operator(%s, 0, v:count1, v:register)")
+  call s:nremap('<Plug>(VM-Delete)',             '<SID>d_operator(%s, 0, v:count1, v:register)')
   call s:nremap('<Plug>(VM-Delete-Exit)',        '<SID>d_operator(%s, 0, v:count1, v:register)')
   call s:nremap('<Plug>(VM-Replace-Characters)', '<SID>without_regions_overlapping_interface(%s, -1)')
   call s:nremap('<Plug>(VM-Replace)',            '<SID>unsupported(%s, "Is not supported")')
@@ -360,13 +363,8 @@ fu! s:vm_icmds_x(cmd) abort
     " mode, but implemented as normal mode commands
 
     """""" modified block start
-    if 0 && a:cmd ==# 'x' && s:eol(r)        "at eol, join lines
-      normal! gJ
-    elseif a:cmd ==# 'x'                "normal delete
+    if a:cmd ==# 'x'                "normal delete
       normal! x
-    elseif 0 && a:cmd ==# 'X' && r.a == 1    "at bol, go up and join lines
-      normal! kgJ
-      call r.shift(-1,-1)
     else                                "normal backspace
       normal! X
       call r.update_cursor_pos()

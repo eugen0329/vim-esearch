@@ -12,7 +12,7 @@ function! esearch#mappings#key2char(key) abort
         \)
 endfunction
 
-function! s:split_to_keys(lhs)  "{{{2
+function! s:split_to_keys(lhs) abort "{{{2
   " Assumption: Special keys such as <C-u> are escaped with < and >, i.e.,
   "             a:lhs doesn't directly contain any escape sequences.
   return split(a:lhs, '\(<[^<>]\+>\|.\)\zs')
