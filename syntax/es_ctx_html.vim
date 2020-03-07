@@ -15,4 +15,4 @@ hi def link es_htmlEndTag  Identifier
 hi def link es_htmlTag     Function
 hi def link es_htmlTagName Statement
 
-let b:current_syntax = 'es_html'
+let b:current_syntax = 'es_ctx_html'

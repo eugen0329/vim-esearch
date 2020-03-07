@@ -25,4 +25,4 @@ hi def link es_goString      String
 hi def link es_goRawString   String
 hi def link es_goComment     Comment
 
-let b:current_syntax = 'es_go'
+let b:current_syntax = 'es_ctx_go'

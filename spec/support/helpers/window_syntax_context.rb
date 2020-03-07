@@ -17,6 +17,13 @@ module Helpers::WindowSyntaxContext
      VIM_REGEXP_WORD_END].join
   end
 
+  def char(text)
+    [
+      VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES,
+      editor.escape_regexp(text)
+    ].join
+  end
+
   def region(text, at: nil)
     vim_regexp = text.dup
 

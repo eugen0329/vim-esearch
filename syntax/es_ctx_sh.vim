@@ -14,4 +14,4 @@ hi def link es_shSingleQuote String
 hi def link es_shDoubleQuote String
 hi def link es_shKeyword     Keyword
 
-let b:current_syntax = 'es_sh'
+let b:current_syntax = 'es_ctx_sh'

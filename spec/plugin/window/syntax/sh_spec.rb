@@ -39,8 +39,8 @@ describe 'esearch window context syntax', :window do
         $deref
         $1
 
-        "unterminated string
-        'unterminated string
+        "missing quote
+        'missing quote
 
         case
         esac
@@ -94,8 +94,8 @@ describe 'esearch window context syntax', :window do
         region('\\$deref')             => %w[es_shDerefSimple PreProc],
         region('\\$1')                 => %w[es_shDerefSimple PreProc],
 
-        region("'unterminated string") => %w[es_shSingleQuote String],
-        region('"unterminated string') => %w[es_shDoubleQuote String],
+        region("'missing quote") => %w[es_shSingleQuote String],
+        region('"missing quote') => %w[es_shDoubleQuote String],
 
         word('case')                   => %w[es_shKeyword Keyword],
         word('esac')                   => %w[es_shKeyword Keyword],

@@ -35,4 +35,4 @@ hi def link es_javaScriptComment      Comment
 hi def link es_javaScriptStringD      String
 hi def link es_javaScriptStringS      String
 
-let b:current_syntax = 'es_javascript'
+let b:current_syntax = 'es_ctx_javascript'
