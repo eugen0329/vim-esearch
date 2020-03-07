@@ -16,8 +16,8 @@ syn keyword es_javaScriptReserved    abstract class const debugger export extend
 syn keyword es_javaScriptFunction  function
 syn region  es_javaScriptComment start="//"  end="$"
 syn region  es_javaScriptComment start="/\*" end="\*/\|$"
-syn region  es_javaScriptStringD start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
-syn region  es_javaScriptStringS start=+L\='+ skip=+\\\\\|\\'+ end=+'\|$+
+syn region  es_javaScriptStringD start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+
+syn region  es_javaScriptStringS start=+L\='+ skip=+\\\\\|\\'+ end=+'\|^+
 
 hi def link es_javaScriptConditional  Conditional
 hi def link es_javaScriptRepeat       Repeat

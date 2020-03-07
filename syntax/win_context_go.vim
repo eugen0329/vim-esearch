@@ -9,7 +9,7 @@ syn keyword es_goStatement   defer go goto return break continue fallthrough
 syn keyword es_goConditional if else switch select
 syn keyword es_goLabel       case default
 syn keyword es_goRepeat      for range
-syn region  es_goString      start=+"+   skip=+\\\\\|\\"+ end=+"\|$+
+syn region  es_goString      start=+"+   skip=+\\\\\|\\"+ end=+"\|^+
 syn region  es_goRawString   start=+`+   end=+`\|$+
 syn region  es_goComment     start="/\*" end="\*/\|$"
 syn region  es_goComment     start="//"  end="$"

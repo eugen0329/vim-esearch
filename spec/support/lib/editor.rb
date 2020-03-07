@@ -175,6 +175,10 @@ class Editor
     VIML
   end
 
+  def bufnr
+    echo func('bufnr')
+  end
+
   # TODO: better name
   def ls(include_unlisted: true)
     return command('ls!') if include_unlisted
@@ -195,6 +199,14 @@ class Editor
 
   def close_current_window!
     command!('tabnew | %bwipeout!')
+  end
+
+  def bwipeout(buffer_number)
+    command!("bwipeout #{buffer_number}")
+  end
+
+  def bdelete(buffer_number)
+    command!("bwipeout #{buffer_number}")
   end
 
   def cleanup!

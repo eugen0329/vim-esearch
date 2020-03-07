@@ -15,9 +15,9 @@ syn keyword es_pythonInclude     from import
 syn keyword es_pythonAsync       async await
 syn match   es_pythonComment "#.*$"
 syn region  es_pythonString
-      \ start=+[uU]\=[rR]\?\z(['"]\)+ end="\z1\|$" skip="\\\\\|\\\z1"
+      \ start=+[uU]\=[rR]\?\z(['"]\)+ end="\z1\|^" skip="\\\\\|\\\z1"
 syn region  es_pythonString
-      \ start=+[uU]\=[rR]\?\z('''\|"""\)+ end="\z1\|$" keepend
+      \ start=+[uU]\=[rR]\?\z('''\|"""\)+ end="\z1\|$"
 
 hi def link es_pythonStatement   Statement
 hi def link es_pythonFunction    Function

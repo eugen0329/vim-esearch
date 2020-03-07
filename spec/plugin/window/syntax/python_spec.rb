@@ -35,9 +35,11 @@ describe 'esearch window context syntax', :window do
         if
 
         "string"
+        "escaped quote\\"
         "string\\n"
         'string'
         'string\\n'
+        'escaped quote\\'
         '''string'''
         '''string\\n'''
         """string"""
@@ -129,9 +131,11 @@ describe 'esearch window context syntax', :window do
         word('if')                     => %w[es_pythonConditional Conditional],
 
         region('"string"')             => %w[es_pythonString String],
+        region('"escaped quote\\\\"')  => %w[es_pythonString String],
         region('"string\\\\n"')        => %w[es_pythonString String],
         region("'string'")             => %w[es_pythonString String],
         region("'string\\\\n'")        => %w[es_pythonString String],
+        region("'escaped quote\\\\'")  => %w[es_pythonString String],
         region('"""string"""')         => %w[es_pythonString String],
         region('"""string\\\\n"""')    => %w[es_pythonString String],
         region("'''string'''")         => %w[es_pythonString String],

@@ -33,6 +33,7 @@ describe 'esearch window context syntax', :window do
         switch
 
         "string"
+        "escaped quote\\"
         "str with escape\\n"
         "ellipsized string#{'.' * 500}"
         "unterminated string
@@ -40,6 +41,7 @@ describe 'esearch window context syntax', :window do
         $identifier
 
         'string'
+        'escaped quote\\'
         'str with escape\\n'
         'ellipsized string#{'.' * 500}'
         'unterminated string
@@ -116,6 +118,7 @@ describe 'esearch window context syntax', :window do
         word('switch')                            => %w[es_phpLabel Label],
 
         region('"string"')                        => %w[es_phpStringDouble String],
+        region('"escaped quote\\\\"')             => %w[es_phpStringDouble String],
         region('"str with escape\\\\n"')          => %w[es_phpStringDouble String],
         region('"ellipsized string[^"]\\+$')      => %w[es_phpStringDouble String],
         region('"unterminated string')            => %w[es_phpStringDouble String],
@@ -123,6 +126,7 @@ describe 'esearch window context syntax', :window do
         region('$identifier')                     => %w[es_phpIdentifier Identifier],
 
         region("'string'")                        => %w[es_phpStringSingle String],
+        region("'escaped quote\\\\'")             => %w[es_phpStringSingle String],
         region("'str with escape\\\\n'")          => %w[es_phpStringSingle String],
         region("'ellipsized string[^']\\+$")      => %w[es_phpStringSingle String],
         region("'unterminated string")            => %w[es_phpStringSingle String],

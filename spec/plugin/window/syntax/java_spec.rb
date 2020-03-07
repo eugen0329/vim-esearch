@@ -22,6 +22,7 @@ describe 'esearch window context syntax', :window do
         false
 
         "string"
+        "escaped quote\\"
         "str with escape\\n"
         "ellipsized string#{'.' * 500}"
 
@@ -92,6 +93,7 @@ describe 'esearch window context syntax', :window do
         word('false')                        => %w[es_javaBoolean Boolean],
 
         region('"string"')                   => %w[es_javaString String],
+        region('"escaped quote\\\\"')        => %w[es_javaString String],
         region('"str with escape\\\\n"')     => %w[es_javaString String],
         region('"ellipsized string[^"]\\+$') => %w[es_javaString String],
 

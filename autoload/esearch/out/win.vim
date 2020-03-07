@@ -393,7 +393,19 @@ fu! esearch#out#win#update(bufnr) abort
     endif
 
     let parsed = esearch.parse(data, from, to)
-    call s:render_results(a:bufnr, parsed, esearch)
+    " changing cwd is required as some builtin vim function like bufname() have
+    " side effects
+    try
+      let saved_cwd = getcwd()
+      if !empty(b:esearch.cwd)
+        exe 'lcd' b:esearch.cwd
+      endif
+      call s:render_results(a:bufnr, parsed, esearch)
+    finally
+      if !empty(saved_cwd)
+        exe 'lcd' saved_cwd
+      endif
+    endtry
   endif
 
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]

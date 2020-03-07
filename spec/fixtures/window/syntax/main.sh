@@ -20,6 +20,8 @@ wait
 
 'string'
 "string"
+'escaped quote\'
+"escaped quote\"
 "string\n"
 
 $deref

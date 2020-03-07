@@ -23,9 +23,11 @@ else
 if
 
 "string"
+"escaped quote\"
 "string\n"
 'string'
 'string\n'
+'escaped quote\'
 '''string'''
 '''string\n'''
 """string"""
