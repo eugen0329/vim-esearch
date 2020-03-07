@@ -28,6 +28,7 @@ describe 'esearch window context syntax', :window do
         do {} while();
 
         "string"
+        "escaped quote\\"
         "str with escape\\n"
         "ellipsized string#{'.' * 500}"
 
@@ -89,6 +90,7 @@ describe 'esearch window context syntax', :window do
         word('do')                           => %w[es_cRepeat Repeat],
 
         region('"string"')                   => %w[es_cString String],
+        region('"escaped quote\\\\"')        => %w[es_cString String],
         region('"str with escape\\\\n"')     => %w[es_cString String],
         region('"ellipsized string[^"]\\+$') => %w[es_cString String],
 

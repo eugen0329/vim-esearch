@@ -36,7 +36,9 @@ describe 'esearch window context syntax', :window do
         end
 
         'string'
+        'escaped quote\\'
         "string"
+        "escaped quote\\"
         "string\\n"
         "str\#{ing}"
 
@@ -116,6 +118,8 @@ describe 'esearch window context syntax', :window do
         region('"string\\\\n"')        => %w[es_rubyString String],
         region('"str#{ing}"')          => %w[es_rubyString String], # rubocop:disable Lint/InterpolationCheck
         region("'string'")             => %w[es_rubyString String],
+        region('"escaped quote\\\\"')  => %w[es_rubyString String],
+        region("'escaped quote\\\\'")  => %w[es_rubyString String],
 
         word('true')                   => %w[es_rubyBoolean Boolean],
         word('false')                  => %w[es_rubyBoolean Boolean],

@@ -2,8 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn region  es_htmlString   contained start=+"+ end=+"\|$+
-syn region  es_htmlString   contained start=+'+ end=+'\|$+
+syn region  es_htmlString   contained start=+"+ end=+"\|^+
+syn region  es_htmlString   contained start=+'+ end=+'\|^+
 syn region  es_htmlEndTag             start=+</+      end=+>\|$+ contains=es_htmlTagN
 syn region  es_htmlTag                start=+<[^/]+   end=+>\|$+ fold contains=es_htmlTagN,es_htmlString keepend
 syn match   es_htmlTagName "\h[-\w]*"

@@ -32,6 +32,8 @@ describe 'esearch window context syntax', :window do
 
         'string'
         "string"
+        'escaped quote\\'
+        "escaped quote\\"
         "string\\n"
 
         $deref
@@ -84,8 +86,11 @@ describe 'esearch window context syntax', :window do
         word('wait')                   => %w[es_shStatement Statement],
 
         region('"string"')             => %w[es_shDoubleQuote String],
+        region('"escaped quote\\\\"')  => %w[es_shDoubleQuote String],
         region('"string\\\\n"')        => %w[es_shDoubleQuote String],
         region("'string'")             => %w[es_shSingleQuote String],
+        region("'escaped quote\\\\'")  => %w[es_shSingleQuote String],
+
 
         region('\\$deref')             => %w[es_shDerefSimple PreProc],
         region('\\$1')                 => %w[es_shDerefSimple PreProc],

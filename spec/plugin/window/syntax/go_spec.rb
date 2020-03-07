@@ -20,7 +20,7 @@ describe 'esearch window context syntax', :window do
         type _ interface {}
 
         "string"
-        "str with escaped slash\"
+        "escaped quote\\"
         "str with escape\\n"
         "ellipsized string#{'.' * 500}"
         `raw string`
@@ -70,7 +70,7 @@ describe 'esearch window context syntax', :window do
         word('interface')                    => %w[es_goDeclType Keyword],
 
         region('"string"')                   => %w[es_goString String],
-        region('"str with escaped slash\\"') => %w[es_goString String],
+        region('"escaped quote\\\\"')        => %w[es_goString String],
         region('"str with escape\\\\n"')     => %w[es_goString String],
         region('"ellipsized string[^"]\\+$') => %w[es_goString String],
         region('`raw string`$')              => %w[es_goRawString String],

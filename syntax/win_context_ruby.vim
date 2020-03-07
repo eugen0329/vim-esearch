@@ -12,8 +12,8 @@ syn match   es_rubyConstant       "\<\u\w*"
 syn keyword es_rubyKeyword        super yield
 syn keyword es_rubyMacro          include extend prepend
 syn keyword es_rubyPseudoVariable nil self __ENCODING__ __dir__ __FILE__ __LINE__ __callee__ __method__
-syn region  es_rubyString         start=/\v"/ skip=/\v\\./ end=/\v"|$/
-syn region  es_rubyString         start=/\v'/ skip=/\v\\./ end=/\v'|$/
+syn region  es_rubyString         start=/\v"/ skip=/\v\\[^"]/ end=/\v"|^/
+syn region  es_rubyString         start=/\v'/ skip=/\v\\[^']/ end=/\v'|^/
 syn match   es_rubyComment        "#.*"
 
 hi def link es_rubyControl        Statement

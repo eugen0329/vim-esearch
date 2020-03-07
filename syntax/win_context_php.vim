@@ -13,8 +13,8 @@ syn match   es_phpIdentifier   "$\h\w*"
 syn region  es_phpComment      start="/\*" end="\*/\|$"
 syn match   es_phpComment      "#.\{-}\(?>\|$\)\@="
 syn match   es_phpComment      "//.\{-}\(?>\|$\)\@="
-syn region  es_phpStringDouble start=/\v"/ skip=/\v\\./ end=/\v"|$/
-syn region  es_phpStringSingle start=/\v'/ skip=/\v\\./ end=/\v'|$/
+syn region  es_phpStringDouble start=/\v"/ skip=/\v\\./ end=/\v"|^/
+syn region  es_phpStringSingle start=/\v'/ skip=/\v\\./ end=/\v'|^/
 
 hi def link es_phpConditional Conditional
 hi def link es_phpRepeat Repeat

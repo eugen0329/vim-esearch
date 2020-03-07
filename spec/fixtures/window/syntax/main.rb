@@ -24,7 +24,9 @@ when
 end
 
 'string'
+'escaped quote\'
 "string"
+"escaped quote\"
 "string\n"
 "str#{ing}"
 

@@ -6,7 +6,7 @@ syn keyword es_shStatement   break cd chdir continue eval exec exit kill newgrp 
 syn match   es_shDerefSimple "\$\%(\h\w*\|\d\)"
 syn keyword es_shKeyword     case esac do done for in if fi until while
 syn region  es_shSingleQuote start=+'+ end=+'\|$+
-syn region  es_shDoubleQuote start=+\%(\%(\\\\\)*\\\)\@<!"+ skip=+\\"+ end=+"\|$+
+syn region  es_shDoubleQuote start=+\%(\%(\\\\\)*\\\)\@<!"+ skip=+\\"+ end=+"\|^+
 
 hi def link es_shStatement   Statement
 hi def link es_shDerefSimple PreProc
