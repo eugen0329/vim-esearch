@@ -91,7 +91,6 @@ describe 'esearch window context syntax', :window do
         region("'string'")             => %w[es_shSingleQuote String],
         region("'escaped quote\\\\'")  => %w[es_shSingleQuote String],
 
-
         region('\\$deref')             => %w[es_shDerefSimple PreProc],
         region('\\$1')                 => %w[es_shDerefSimple PreProc],
 

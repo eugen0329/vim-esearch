@@ -92,11 +92,11 @@ describe 'esearch#option' do
       context 'when the buffer is removed' do
         let!(:buffer_number) { editor.bufnr }
 
-        before  do
+        before do
           expect { editor.command! 'noau tabnext' }.not_to change_option(option)
         end
 
-        it "doesn't fail on bufwipeout" do
+        it "doesn't fail on bwipeout" do
           expect { editor.bwipeout(buffer_number) }
             .to change_option(option)
             .to(original)
