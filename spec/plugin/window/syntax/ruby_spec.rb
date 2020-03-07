@@ -136,7 +136,7 @@ describe 'esearch window context syntax', :window do
         word('Modulename')             => %w[es_rubyConstant Type],
 
         word('Constant')               => %w[es_rubyConstant Type],
-        word('method')                 => %w[win_context_ruby cleared],
+        word('method')                 => %w[es_ruby cleared],
 
         region('# comment')            => %w[es_rubyComment Comment],
         region('#comment')             => %w[es_rubyComment Comment],

@@ -27,4 +27,4 @@ hi def link es_rubyPseudoVariable Constant
 hi def link es_rubyString         String
 hi def link es_rubyComment        Comment
 
-let b:current_syntax = 'win_context_ruby'
+let b:current_syntax = 'es_ruby'

@@ -30,4 +30,4 @@ hi def link es_pythonAsync       Statement
 hi def link es_pythonComment     Comment
 hi def link es_pythonString      String
 
-let b:current_syntax = 'win_context_python'
+let b:current_syntax = 'es_python'

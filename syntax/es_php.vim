@@ -29,4 +29,4 @@ hi def link es_phpStringSingle String
 hi def link es_phpStringDouble String
 
 
-let b:current_syntax = 'win_context_php'
+let b:current_syntax = 'es_php'

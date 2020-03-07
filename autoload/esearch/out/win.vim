@@ -95,16 +95,16 @@ if !exists('g:esearch_out_win_render_using_lua')
 endif
 
 let s:context_syntaxes = {
-      \ 'c':               'win_context_c',
-      \ 'sh':              'win_context_sh',
-      \ 'javascript':      'win_context_javascript',
-      \ 'javascriptreact': 'win_context_javascript',
-      \ 'php':             'win_context_php',
-      \ 'go':              'win_context_go',
-      \ 'ruby':            'win_context_ruby',
-      \ 'html':            'win_context_html',
-      \ 'java':            'win_context_java',
-      \ 'python':          'win_context_python',
+      \ 'c':               'es_c',
+      \ 'sh':              'es_sh',
+      \ 'javascript':      'es_javascript',
+      \ 'javascriptreact': 'es_javascript',
+      \ 'php':             'es_php',
+      \ 'go':              'es_go',
+      \ 'ruby':            'es_ruby',
+      \ 'html':            'es_html',
+      \ 'java':            'es_java',
+      \ 'python':          'es_python',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

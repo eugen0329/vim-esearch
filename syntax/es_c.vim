@@ -26,4 +26,4 @@ hi def link es_cString       String
 hi def link es_cDefine       Macro
 hi def link es_cPreProc      PreProc
 
-let b:current_syntax = 'win_context_c'
+let b:current_syntax = 'es_c'
