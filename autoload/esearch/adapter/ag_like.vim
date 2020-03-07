@@ -63,34 +63,12 @@ endfu
 
 fu! esearch#adapter#ag_like#parse_with_getqflist_lines(data, from, to) abort dict
   if empty(a:data) | return [] | endif
-  try
-    let save_cwd = getcwd()
-    if !empty(self.cwd)
-      exe 'lcd' self.cwd
-    endif
-
-    return filter(getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items, 'v:val.valid')
-  finally
-    if !empty(save_cwd)
-      exe 'lcd' save_cwd
-    endif
-  endtry
+  return filter(getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items, 'v:val.valid')
 endfu
 
 fu! esearch#adapter#ag_like#parse_with_getqflist_text(data, from, to) abort dict
   if empty(a:data) | return [] | endif
-  try
-    let save_cwd = getcwd()
-    if !empty(self.cwd)
-      exe 'lcd' self.cwd
-    endif
-
-    return getqflist({'text': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
-  finally
-    if !empty(save_cwd)
-      exe 'lcd' save_cwd
-    endif
-  endtry
+  return getqflist({'text': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
 endfu
 
 fu! esearch#adapter#ag_like#parse(data, from, to) abort dict
