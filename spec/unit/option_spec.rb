@@ -24,6 +24,7 @@ describe 'esearch#option' do
 
     after do
       editor.echo(func('esearch#option#reset'))
+      expect(Debug.messages).not_to include(/error/i)
       editor.cleanup!
     end
 
@@ -86,6 +87,30 @@ describe 'esearch#option' do
         expect { editor.send_keys_separately 'i' }
           .to change_option(option)
           .to(original)
+      end
+
+      context 'when the buffer is removed' do
+        let!(:buffer_number) { editor.bufnr }
+
+        before  do
+          expect { editor.command! 'noau tabnext' }.not_to change_option(option)
+        end
+
+        it "doesn't fail on bufwipeout" do
+          expect { editor.bwipeout(buffer_number) }
+            .to change_option(option)
+            .to(original)
+          expect { editor.send_keys_separately 'i' }
+            .not_to change { Debug.messages }
+        end
+
+        it "doesn't fail on bdelete" do
+          expect { editor.bdelete(buffer_number) }
+            .to change_option(option)
+            .to(original)
+          expect { editor.send_keys_separately 'i' }
+            .not_to change { Debug.messages }
+        end
       end
 
       it 'does restoring once' do

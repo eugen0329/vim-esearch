@@ -2,7 +2,35 @@ if !exists('s:saved_global_options')
   let s:saved_global_options = {}
 endif
 
-fu! esearch#option#make_local_to_buffer(option_name, value, leak_prevention_events) abort
+" Rationale:
+"   There are global options that are required to be configured for a buffer
+"   only (like 'updatetime' or 'backspace'). Usually, imitation of buffer-local
+"   options for global onces is done using restoring original values on BufLeave
+"   and setting them back on BufEnter autocommands.  This autocommands may be
+"   ignored using :noautocmd or 'eventignore'. The plugin doesn't use them to
+"   navigate buffers, but other plugins may, so to prevent annoying option
+"   values leak the following approach is used:
+"   - set/restore are called on BufEnter and BufLeave,BufUnload events
+"   accordingly for the target buffer only (using <buffer>).
+"   - a separate global backup event is set to ensure the options is restored to
+"   the original value. This event is fired once outside the buffer and then
+"   removed using :au!.
+"   - after ensuring the option is restored (happens outside the target buffer),
+"   another event is set to enable the backup event with doublechecks back when
+"   the user returns to the target buffer (BufEnter and CursorMoved are used).
+"
+"   Removing and restoring the backup event is required to not leave garbage
+"   events when the search buffer is deleted or the search is not relevant
+"   anymore. Another and more reliable approach would be to use CursorMoved
+"   (that cannot be skipped with :noautocmd), but it's not the best way in terms
+"   of performance within the window, which already listens and do enough of
+"   work on CursorMoved event.
+"
+"   So such method is implemented to mitigate the drawback of vim builtins without
+"   affecting the UX (by making cursor movements sluggish within the window) and
+"   to not leave garbage evens after the search.
+
+fu! esearch#option#make_local_to_buffer(option_name, value, prevent_leaks_on_events) abort
   augroup ESearchOption
     au! * <buffer>
     execute printf('au BufEnter <buffer> call s:set(%s, %s)',
@@ -11,15 +39,9 @@ fu! esearch#option#make_local_to_buffer(option_name, value, leak_prevention_even
           \ string(a:option_name))
   augroup END
 
-  if !empty(a:leak_prevention_events)
-    " if :noautocmd is used - option won't be reset to the original value, but
-    " backup events may be used to prevent a:value from a leak outside the
-    " buffer
-    augroup ESearchEnsureGlobalOptionNotLeaked
-      au!
-      execute s:prevent_leak_event_command(
-            \ a:option_name, bufnr(), a:leak_prevention_events)
-    augroup END
+  if !empty(a:prevent_leaks_on_events)
+    call s:set_events_to_ensure_option_restored(
+          \ a:option_name, bufnr(), a:prevent_leaks_on_events)
   endif
 
   execute 'call s:set('.string(a:option_name).','.string(a:value).')'
@@ -30,7 +52,7 @@ fu! esearch#option#reset() abort
     au! * <buffer>
   augroup END
   augroup ESearchEnsureGlobalOptionNotLeaked
-    au! *
+    au!
   augroup END
 
   for saved in keys(s:saved_global_options)
@@ -38,45 +60,34 @@ fu! esearch#option#reset() abort
   endfor
 endfu
 
-fu! s:ensure_restored(option_name, bufnr, leak_prevention_events) abort
+fu! s:ensure_restored(option_name, bufnr, prevent_leaks_on_events) abort
   if bufnr('%') == a:bufnr
     return
   endif
-  augroup ESearchEnsureGlobalOptionNotLeaked
-    au! *
-  augroup END
 
   call s:restore(a:option_name)
-  call s:reload_leak_prevention_event(
-        \  a:option_name, a:bufnr, a:leak_prevention_events)
-endfu
 
-fu! s:prevent_leak_event_command(option_name, bufnr, leak_prevention_events) abort
-  " To not affect the overall performance, s:ensure_restored() will be executed
-  " once on a specified event if outside the buffer. Reset (au!) is done within
-  " the function instead of ++once, as vim doesn't expose functionality to
-  " configure hook for-each-buffer-except a:bufnr. Another alternative would be
-  " using CursorMoved, as it's fired ignore :noautocmd, but it's a bit worse in
-  " terms of performance within a search window, which is already slightly
-  " decreased due to the virtual ui recovery on frequently executed
-  " CursorMoved and TextChanged events
-  return printf('au %s * ++nested call s:ensure_restored(%s, %d, %s)',
-        \ a:leak_prevention_events,
-        \ string(a:option_name),
-        \ a:bufnr,
-        \ string(a:leak_prevention_events),
-        \ )
-endfu
-
-fu! s:reload_leak_prevention_event(option_name, bufnr, leak_prevention_events) abort
-  " Once the leak is prevented, we have to set the event back. The safest event is
-  " CursorMoved, configured for the <buffer> only.
   augroup ESearchEnsureGlobalOptionNotLeaked
     au!
-    let prevent_leak_autocommand = s:prevent_leak_event_command(
-          \ a:option_name, a:bufnr, a:leak_prevention_events)
-    execute printf('au CursorMoved,BufEnter <buffer=%d> ++once %s',
-          \ a:bufnr, prevent_leak_autocommand)
+    if bufexists(a:bufnr)
+      " Once the leak is prevented, we have to set the event back. Semantically,
+      " the right event is BufEnter, configured for the target <buffer>, but the safest
+      " way is to backup it with CursorMoved, as it's cannot be skipped with :noautocmd
+      execute printf('au BufEnter,CursorMoved <buffer=%d> ++once call s:set_events_to_ensure_option_restored(%s, %d, %s)',
+            \ a:bufnr, string(a:option_name), string(a:bufnr), string(a:prevent_leaks_on_events))
+    endif
+  augroup END
+endfu
+
+fu! s:set_events_to_ensure_option_restored(option_name, bufnr, prevent_leaks_on_events) abort
+  augroup ESearchEnsureGlobalOptionNotLeaked
+    au!
+    execute printf('au %s * call s:ensure_restored(%s, %d, %s)',
+        \ a:prevent_leaks_on_events,
+        \ string(a:option_name),
+        \ a:bufnr,
+        \ string(a:prevent_leaks_on_events),
+        \ )
   augroup END
 endfu
 
