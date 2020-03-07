@@ -2,7 +2,9 @@ if exists('b:current_syntax')
   finish
 endif
 
-syn match esearchHeader   '\%1l.*'
+if !has('nvim')
+  syn match esearchHeader   '\%1l.*'
+endif
 syn match esearchFilename '^[^ ]\+$'
 syn match esearchLineNr   '^\s\+\d\+\s'
 

@@ -69,7 +69,7 @@ if !exists('g:esearch_win_viewport_highlight_extend_by')
   let g:esearch_win_viewport_highlight_extend_by = 100
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
-  let g:esearch_win_disable_context_highlights_on_files_count = 100
+  let g:esearch_win_disable_context_highlights_on_files_count = 200
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -210,6 +210,18 @@ fu! esearch#out#win#init(opts) abort
   let b:esearch.context_ids_map += [header_context.id, header_context.id]
   let b:esearch.line_numbers_map += [0, 0]
 
+  if has('nvim')
+    " According to :syntime profiling, header has the biggest TOTAL time while
+    " being easy to match (highlight is done fot the whole first line).
+    " matchaddpos() seems to work per window, so optimization is done only for
+    " neovim
+    " Method args are
+    " nvim_buf_add_highlight({buffer}, {ns_id}, {hl_group}, {line},
+    "                        {col_start}, {col_end})
+    let b:esearch.header_highlight_namespace =
+          \ nvim_buf_add_highlight(0, 0, 'esearchHeader', 0, 0, -1)
+  endif
+
   call extend(b:esearch.request, {
         \ 'bufnr':       bufnr('%'),
         \ 'cursor':      0,
@@ -248,6 +260,10 @@ fu! s:cleanup() abort
     au! * <buffer>
   augroup END
   call esearch#option#reset()
+
+  if has_key(b:esearch, 'header_highlight_namespace')
+    call nvim_buf_clear_namespace(bufnr(), b:esearch.header_highlight_namespace, 0,0)
+  endif
 endfu
 
 " TODO refactoring
@@ -285,7 +301,10 @@ fu! s:init_update_events(esearch) abort
   endif
 endfu
 
-" will render <= 2 * batch_size (usually much less than 2x)
+" Is used to render the first batch as soon as possible before the first timer
+" callback invokation. Is called on stdout event from a backend and is undloaded
+" when the first batch is rendered. Will render <= 2 * batch_size entries
+" (usually much less than 2x).
 fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
   if a:bufnr != bufnr('%')
     return 1
