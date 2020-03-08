@@ -22,7 +22,7 @@ syn keyword es_javaScopeDecl    public protected private abstract
 
 syn region  es_javaComment start="//"  end="$"
 syn region  es_javaComment start="/\*" end="\*/\|$"
-syn region  es_javaString  start=+L\="+ skip=+\\\\\|\\"+ end=+"\|$+
+syn region  es_javaString  start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+
 
 hi def link es_javaConditional  Conditional
 hi def link es_javaRepeat       Repeat
@@ -34,8 +34,8 @@ hi def link es_javaStatement    Statement
 hi def link es_javaStorageClass StorageClass
 hi def link es_javaExceptions   Exception
 hi def link es_javaAssert       Statement
-hi def link es_javaClassDecl    javaStorageClass
-hi def link es_javaScopeDecl    javaStorageClass
+hi def link es_javaClassDecl    StorageClass
+hi def link es_javaScopeDecl    StorageClass
 hi def link es_javaComment      Comment
 hi def link es_javaString       String
 

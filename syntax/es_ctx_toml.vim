@@ -17,8 +17,6 @@ syn match   es_tomlComment /#.*/
 syn match   es_tomlKey     /\v(|[{,])\s*\zs[[:alnum:]._-]+\ze\s*\=/ display
 syn match   es_tomlArray   /\v[{,=]\s*\zs[\[\]]/
 
-
-
 hi def link es_tomlBoolean    Boolean
 hi def link es_tomlString     String
 hi def link es_tomlKeyDq      Identifier
