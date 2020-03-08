@@ -97,7 +97,7 @@ describe 'esearch window context syntax', :window do
         region('#define')                    => %w[es_cDefine Macro],
         region('#undef')                     => %w[es_cDefine Macro],
 
-        region('"missing quote')       => %w[es_cString String],
+        region('"missing quote')             => %w[es_cString String],
 
         region('#pragma')                    => %w[es_cPreProc PreProc],
         region('#line')                      => %w[es_cPreProc PreProc],

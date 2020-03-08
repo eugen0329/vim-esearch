@@ -121,7 +121,7 @@ describe 'esearch window context syntax', :window do
         region('"escaped quote\\\\"')             => %w[es_phpStringDouble String],
         region('"str with escape\\\\n"')          => %w[es_phpStringDouble String],
         region('"ellipsized string[^"]\\+$')      => %w[es_phpStringDouble String],
-        region('"missing quote')            => %w[es_phpStringDouble String],
+        region('"missing quote')                  => %w[es_phpStringDouble String],
 
         region('$identifier')                     => %w[es_phpIdentifier Identifier],
 
@@ -129,7 +129,7 @@ describe 'esearch window context syntax', :window do
         region("'escaped quote\\\\'")             => %w[es_phpStringSingle String],
         region("'str with escape\\\\n'")          => %w[es_phpStringSingle String],
         region("'ellipsized string[^']\\+$")      => %w[es_phpStringSingle String],
-        region("'missing quote")            => %w[es_phpStringSingle String],
+        region("'missing quote")                  => %w[es_phpStringSingle String],
 
         word('return')                            => %w[es_phpStatement Statement],
         word('break')                             => %w[es_phpStatement Statement],

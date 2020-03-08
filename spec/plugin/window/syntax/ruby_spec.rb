@@ -124,8 +124,8 @@ describe 'esearch window context syntax', :window do
         word('true')                   => %w[es_rubyBoolean Boolean],
         word('false')                  => %w[es_rubyBoolean Boolean],
 
-        region("'missing quote") => %w[es_rubyString String],
-        region('"missing quote') => %w[es_rubyString String],
+        region("'missing quote")       => %w[es_rubyString String],
+        region('"missing quote')       => %w[es_rubyString String],
 
         word('alias')                  => %w[es_rubyDefine Define],
         word('def')                    => %w[es_rubyDefine Define],

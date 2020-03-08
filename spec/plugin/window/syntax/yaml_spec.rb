@@ -72,7 +72,7 @@ describe 'esearch window context syntax', :window do
         region('# comment')         => %w[es_yamlComment Comment],
         region('#comment')          => %w[es_yamlComment Comment],
 
-        region('key\d\+')           => %w[es_yamlBlockMappingKey Identifier],
+        region('key\d\+')           => %w[es_yamlBlockMappingKey Identifier]
       )
     end
   end

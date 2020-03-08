@@ -13,46 +13,46 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
-      import qualified Some.Module as m
-      import qualified Some.Module hiding (x,y)
-      module
-      infix
-      infixl
-      infixr
-      class
-      data
-      deriving
-      instance
-      default
-      where
-      type
-      newtype
-      do
-      case
-      of
-      let
-      in
-      if
-      then
-      else
-      undefined
-      error
-      trace
-      "es_hsString"
-      "es_hsString\\"
-      "es_hsString
-      'c'
+        import qualified Some.Module as m
+        import qualified Some.Module hiding (x,y)
+        module
+        infix
+        infixl
+        infixr
+        class
+        data
+        deriving
+        instance
+        default
+        where
+        type
+        newtype
+        do
+        case
+        of
+        let
+        in
+        if
+        then
+        else
+        undefined
+        error
+        trace
+        "es_hsString"
+        "es_hsString\\"
+        "es_hsString
+        'c'
 
-      -- es_hsLineComment
-      --es_hsLineComment
-      {-es_hsBlockComment-}
-      {- es_hsBlockComment -}
-      {-es_hsBlockComment
-      {- es_hsBlockComment
-      {-#es_hsPragma#-}
-      {-# es_hsPragma #-}
-      {-#es_hsPragma
-      {-# es_hsPragma
+        -- es_hsLineComment
+        --es_hsLineComment
+        {-es_hsBlockComment-}
+        {- es_hsBlockComment -}
+        {-es_hsBlockComment
+        {- es_hsBlockComment
+        {-#es_hsPragma#-}
+        {-# es_hsPragma #-}
+        {-#es_hsPragma
+        {-# es_hsPragma
 
       SOURCE
     end
@@ -91,7 +91,7 @@ describe 'esearch window context syntax', :window do
         word('then')                      => %w[es_hsConditional Conditional],
         word('else')                      => %w[es_hsConditional Conditional],
         word('undefined')                 => %w[es_hsDebug Debug],
-        word('error')                    => %w[es_hsDebug Debug],
+        word('error')                     => %w[es_hsDebug Debug],
         word('trace')                     => %w[es_hsDebug Debug],
         word('import')                    => %w[es_hsImport Include],
         word('import')                    => %w[es_hsImport Include],
@@ -109,9 +109,8 @@ describe 'esearch window context syntax', :window do
         region('{-#es_hsPragma#-}')       => %w[es_hsPragma SpecialComment],
         region('{-# es_hsPragma #-}')     => %w[es_hsPragma SpecialComment],
         region('{-#es_hsPragma')          => %w[es_hsPragma SpecialComment],
-        region('{-# es_hsPragma')         => %w[es_hsPragma SpecialComment],
+        region('{-# es_hsPragma')         => %w[es_hsPragma SpecialComment]
       )
     end
   end
 end
-
