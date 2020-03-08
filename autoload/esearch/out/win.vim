@@ -138,6 +138,8 @@ let s:context_syntaxes = {
       \ 'sass':            'es_ctx_css',
       \ 'less':            'es_ctx_css',
       \ 'hcl':             'es_ctx_hcl',
+      \ 'groovy':          'es_ctx_groovy',
+      \ 'Jenkinsfile':     'es_ctx_groovy',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

@@ -27,65 +27,69 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('package.json')).to   eq('json')            }
 
     # hcl
-    it { expect(ftdetect.call('main.tf')).to        eq('hcl')        }
-    it { expect(ftdetect.call('main.tfvars')).to    eq('hcl')        }
-    it { expect(ftdetect.call('main.hcl')).to       eq('hcl')        }
+    it { expect(ftdetect.call('main.tf')).to        eq('hcl')             }
+    it { expect(ftdetect.call('main.tfvars')).to    eq('hcl')             }
+    it { expect(ftdetect.call('main.hcl')).to       eq('hcl')             }
+
+    # groovy
+    it { expect(ftdetect.call('main.gradle')).to    eq('groovy')          }
+    it { expect(ftdetect.call('main.groovy')).to    eq('groovy')          }
 
     # css
-    it { expect(ftdetect.call('main.css')).to       eq('css')        }
-    it { expect(ftdetect.call('main.sass')).to      eq('sass')       }
-    it { expect(ftdetect.call('main.scss')).to      eq('scss')       }
-    it { expect(ftdetect.call('main.less')).to      eq('less')       }
+    it { expect(ftdetect.call('main.css')).to       eq('css')             }
+    it { expect(ftdetect.call('main.sass')).to      eq('sass')            }
+    it { expect(ftdetect.call('main.scss')).to      eq('scss')            }
+    it { expect(ftdetect.call('main.less')).to      eq('less')            }
 
     # php
-    it { expect(ftdetect.call('main.php')).to       eq('php')        }
-    it { expect(ftdetect.call('main.phtml')).to     eq('php')        }
+    it { expect(ftdetect.call('main.php')).to       eq('php')             }
+    it { expect(ftdetect.call('main.phtml')).to     eq('php')             }
 
     # c
-    it { expect(ftdetect.call('main.xs')).to        eq('xs')         }
-    it { expect(ftdetect.call('main.x')).to         eq('rpcgen')     }
-    it { expect(ftdetect.call('main.h')).to         eq('c')          }
-    it { expect(ftdetect.call('main.c')).to         eq('c')          }
-    it { expect(ftdetect.call('main.cmod')).to      eq('cmod')       }
+    it { expect(ftdetect.call('main.xs')).to        eq('xs')              }
+    it { expect(ftdetect.call('main.x')).to         eq('rpcgen')          }
+    it { expect(ftdetect.call('main.h')).to         eq('c')               }
+    it { expect(ftdetect.call('main.c')).to         eq('c')               }
+    it { expect(ftdetect.call('main.cmod')).to      eq('cmod')            }
 
-    it { expect(ftdetect.call('main.m')).to         eq('objc')       }
+    it { expect(ftdetect.call('main.m')).to         eq('objc')            }
 
     # xml
-    it { expect(ftdetect.call('file.svg')).to       eq('svg')        }
-    it { expect(ftdetect.call('pom.xml')).to        eq('xml')        }
-    it { expect(ftdetect.call('index.papp')).to     eq('papp')       }
+    it { expect(ftdetect.call('file.svg')).to       eq('svg')             }
+    it { expect(ftdetect.call('pom.xml')).to        eq('xml')             }
+    it { expect(ftdetect.call('index.papp')).to     eq('papp')            }
 
     # yaml
-    it { expect(ftdetect.call('locales.liquid')).to eq('liquid')     }
-    it { expect(ftdetect.call('locales.yaml')).to   eq('yaml')       }
-    it { expect(ftdetect.call('locales.yml')).to    eq('yaml')       }
+    it { expect(ftdetect.call('locales.liquid')).to eq('liquid')          }
+    it { expect(ftdetect.call('locales.yaml')).to   eq('yaml')            }
+    it { expect(ftdetect.call('locales.yml')).to    eq('yaml')            }
 
     # ruby
-    it { expect(ftdetect.call('main.rb')).to        eq('ruby')       }
-    it { expect(ftdetect.call('Gemfile')).to        eq('ruby')       }
+    it { expect(ftdetect.call('main.rb')).to        eq('ruby')            }
+    it { expect(ftdetect.call('Gemfile')).to        eq('ruby')            }
 
     # python
-    it { expect(ftdetect.call('main.py')).to        eq('python')     }
-    it { expect(ftdetect.call('main.kv')).to        eq('kivy')       }
-    it { expect(ftdetect.call('main.pyx')).to       eq('pyrex')      }
-    it { expect(ftdetect.call('main.pxd')).to       eq('pyrex')      }
+    it { expect(ftdetect.call('main.py')).to        eq('python')          }
+    it { expect(ftdetect.call('main.kv')).to        eq('kivy')            }
+    it { expect(ftdetect.call('main.pyx')).to       eq('pyrex')           }
+    it { expect(ftdetect.call('main.pxd')).to       eq('pyrex')           }
 
     # html
-    it { expect(ftdetect.call('index.html')).to     eq('html')       }
-    it { expect(ftdetect.call('index.xhtml')).to    eq('xhtml')      }
-    it { expect(ftdetect.call('index.haml')).to     eq('haml')       }
-    it { expect(ftdetect.call('index.md')).to       eq('markdown')   }
-    it { expect(ftdetect.call('index.tmpl')).to     eq('template')   }
-    it { expect(ftdetect.call('index.wml')).to      eq('wml')        }
-    it { expect(ftdetect.call('index.jsp')).to      eq('jsp')        }
-    it { expect(ftdetect.call('index.vue')).to      eq('vue')        }
+    it { expect(ftdetect.call('index.html')).to     eq('html')            }
+    it { expect(ftdetect.call('index.xhtml')).to    eq('xhtml')           }
+    it { expect(ftdetect.call('index.haml')).to     eq('haml')            }
+    it { expect(ftdetect.call('index.md')).to       eq('markdown')        }
+    it { expect(ftdetect.call('index.tmpl')).to     eq('template')        }
+    it { expect(ftdetect.call('index.wml')).to      eq('wml')             }
+    it { expect(ftdetect.call('index.jsp')).to      eq('jsp')             }
+    it { expect(ftdetect.call('index.vue')).to      eq('vue')             }
 
     # sh
-    it { expect(ftdetect.call('script.bash')).to    eq('sh')         }
-    it { expect(ftdetect.call('script.sh')).to      eq('sh')         }
-    it { expect(ftdetect.call('script.bats')).to    eq('sh')         }
+    it { expect(ftdetect.call('script.bash')).to    eq('sh')              }
+    it { expect(ftdetect.call('script.sh')).to      eq('sh')              }
+    it { expect(ftdetect.call('script.bats')).to    eq('sh')              }
 
-    it { expect(ftdetect.call('Dockerfile')).to     eq('dockerfile') }
+    it { expect(ftdetect.call('Dockerfile')).to     eq('dockerfile')      }
   end
 
   describe '#slow' do
