@@ -13,27 +13,27 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
-      true false
+        true false
 
-      "es_tomlString"
-      """es_tomlString"""
-      'es_tomlString'
-      '''es_tomlString'''
+        "es_tomlString"
+        """es_tomlString"""
+        'es_tomlString'
+        '''es_tomlString'''
 
 
-      'missing quote
-      "missing quote
-      'escaped quote
-      "escaped quote
+        'missing quote
+        "missing quote
+        'escaped quote
+        "escaped quote
 
-      "es_tomlKeyDq" =
-      'es_tomlKeySq' = ["es_tomlString"]
-       es_tomlKey =
+        "es_tomlKeyDq" =
+        'es_tomlKeySq' = ["es_tomlString"]
+         es_tomlKey =
 
-      [es_tomlTable]  #es_tomlComment
-      [es.tomlTable]  #es_tomlComment
-      [[es_tomlTableArray]] # es_tomlComment
-      [[es.tomlTableArray]] # es_tomlComment
+        [es_tomlTable]  #es_tomlComment
+        [es.tomlTable]  #es_tomlComment
+        [[es_tomlTableArray]] # es_tomlComment
+        [[es.tomlTableArray]] # es_tomlComment
 
       SOURCE
     end
@@ -49,25 +49,25 @@ describe 'esearch window context syntax', :window do
     # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
-        word('true')                        => %w[es_tomlBoolean Boolean],
-        word('false')                       => %w[es_tomlBoolean Boolean],
+        word('true')                         => %w[es_tomlBoolean Boolean],
+        word('false')                        => %w[es_tomlBoolean Boolean],
 
-        region("'es_tomlString'")           => %w[es_tomlString String],
-        region('"es_tomlString"')           => %w[es_tomlString String],
-        region('"escaped quote')            => %w[es_ctx_toml cleared],
-        region('"missing quote')            => %w[es_ctx_toml cleared],
-        region("'missing quote")            => %w[es_ctx_toml cleared],
-        region("'escaped quote")            => %w[es_ctx_toml cleared],
+        region("'es_tomlString'")            => %w[es_tomlString String],
+        region('"es_tomlString"')            => %w[es_tomlString String],
+        region('"escaped quote')             => %w[es_ctx_toml cleared],
+        region('"missing quote')             => %w[es_ctx_toml cleared],
+        region("'missing quote")             => %w[es_ctx_toml cleared],
+        region("'escaped quote")             => %w[es_ctx_toml cleared],
 
-        region("'es_tomlKeySq'")            => %w[es_tomlKeySq Identifier],
-        region('"es_tomlKeyDq"')            => %w[es_tomlKeyDq Identifier],
-        word('es_tomlKey')                  => %w[es_tomlKey Identifier],
-        region('\[es_tomlTable\]')          => %w[es_tomlTable Title],
+        region("'es_tomlKeySq'")             => %w[es_tomlKeySq Identifier],
+        region('"es_tomlKeyDq"')             => %w[es_tomlKeyDq Identifier],
+        word('es_tomlKey')                   => %w[es_tomlKey Identifier],
+        region('\[es_tomlTable\]')           => %w[es_tomlTable Title],
         region('\[es\.tomlTable\]')          => %w[es_tomlTable Title],
-        region('\[\[es_tomlTableArray\]\]') => %w[es_tomlTableArray Title],
+        region('\[\[es_tomlTableArray\]\]')  => %w[es_tomlTableArray Title],
         region('\[\[es\.tomlTableArray\]\]') => %w[es_tomlTableArray Title],
-        region('#es_tomlComment')           => %w[es_tomlComment  Comment],
-        region('# es_tomlComment')          => %w[es_tomlComment Comment],
+        region('#es_tomlComment')            => %w[es_tomlComment Comment],
+        region('# es_tomlComment')           => %w[es_tomlComment Comment]
       )
     end
   end

@@ -10,213 +10,213 @@ describe 'esearch window context syntax', :window do
   describe 'vim' do
     let(:source_file_content) do
       <<~SOURCE
-      if
-      for
-      try
-      let
-      map
-      smap
+        if
+        for
+        try
+        let
+        map
+        smap
 
-      el
-      en
-      endfo
-      sil
-      fu
-      retu
-      endf
-      wh
-      endw
-      th
-      cat
-      fina
-      endt
-      fina
-      sy
-      setf
-      unl
-      cal
-      com
-      au
-      do
-      doautoa
-      aug
-      ec
-      exe
-      hi
-      redi
-      hi
-      cm
-      cmapc
-      cno
-      cu
-      im
-      imapc
-      ino
-      iu
-      lm
-      lmapc
-      ln
-      lu
-      mapc
-      nm
-      nmapc
-      nn
-      no
-      nun
-      om
-      omapc
-      ono
-      ou
-      sm
-      smapc
-      snor
-      sunm
-      tma
-      tmapc
-      tno
-      tunma
-      unm
-      vm
-      vmapc
-      vn
-      vu
-      xm
-      xmapc
-      xn
-      xu
-      ab
-      abc
-      ca
-      cabc
-      cnorea
-      cuna
-      ia
-      iabc
-      inorea
-      iuna
-      norea
-      una
+        el
+        en
+        endfo
+        sil
+        fu
+        retu
+        endf
+        wh
+        endw
+        th
+        cat
+        fina
+        endt
+        fina
+        sy
+        setf
+        unl
+        cal
+        com
+        au
+        do
+        doautoa
+        aug
+        ec
+        exe
+        hi
+        redi
+        hi
+        cm
+        cmapc
+        cno
+        cu
+        im
+        imapc
+        ino
+        iu
+        lm
+        lmapc
+        ln
+        lu
+        mapc
+        nm
+        nmapc
+        nn
+        no
+        nun
+        om
+        omapc
+        ono
+        ou
+        sm
+        smapc
+        snor
+        sunm
+        tma
+        tmapc
+        tno
+        tunma
+        unm
+        vm
+        vmapc
+        vn
+        vu
+        xm
+        xmapc
+        xn
+        xu
+        ab
+        abc
+        ca
+        cabc
+        cnorea
+        cuna
+        ia
+        iabc
+        inorea
+        iuna
+        norea
+        una
 
-      elseif
-      endif
-      endfor
-      silent
-      function
-      return
-      endfunction
-      while
-      endwhile
-      throw
-      catch
-      finally
-      endtry
-      finally
-      syntax
-      setfiletype
-      unlet
-      call
-      command
-      autocmd
-      doautocmd
-      doautoall
-      augroup
-      echoerr
-      execute
-      highlight
-      redir
-      highlight
-      cmap
-      cmapclear
-      cnoremap
-      cunmap
-      imap
-      imapclear
-      inoremap
-      iunmap
-      lmap
-      lmapclear
-      lnoremap
-      lunmap
-      mapclear
-      nmap
-      nmapclear
-      nnoremap
-      noremap
-      nunmap
-      omap
-      omapclear
-      onoremap
-      ounmap
-      smap
-      smapclear
-      snoremap
-      sunmap
-      tmap
-      tmapclear
-      tnoremap
-      tunmap
-      unmap
-      vmap
-      vmapclear
-      vnoremap
-      vunmap
-      xmap
-      xmapclear
-      xnoremap
-      xunmap
-      abbreviate
-      abclear
-      cabbrev
-      cabclear
-      cnoreabbrev
-      cunabbrev
-      iabbrev
-      iabclear
-      inoreabbrev
-      iunabbrev
-      noreabbrev
-      unabbreviate
+        elseif
+        endif
+        endfor
+        silent
+        function
+        return
+        endfunction
+        while
+        endwhile
+        throw
+        catch
+        finally
+        endtry
+        finally
+        syntax
+        setfiletype
+        unlet
+        call
+        command
+        autocmd
+        doautocmd
+        doautoall
+        augroup
+        echoerr
+        execute
+        highlight
+        redir
+        highlight
+        cmap
+        cmapclear
+        cnoremap
+        cunmap
+        imap
+        imapclear
+        inoremap
+        iunmap
+        lmap
+        lmapclear
+        lnoremap
+        lunmap
+        mapclear
+        nmap
+        nmapclear
+        nnoremap
+        noremap
+        nunmap
+        omap
+        omapclear
+        onoremap
+        ounmap
+        smap
+        smapclear
+        snoremap
+        sunmap
+        tmap
+        tmapclear
+        tnoremap
+        tunmap
+        unmap
+        vmap
+        vmapclear
+        vnoremap
+        vunmap
+        xmap
+        xmapclear
+        xnoremap
+        xunmap
+        abbreviate
+        abclear
+        cabbrev
+        cabclear
+        cnoreabbrev
+        cunabbrev
+        iabbrev
+        iabclear
+        inoreabbrev
+        iunabbrev
+        noreabbrev
+        unabbreviate
 
-      set      backspace=
-      setl     backspace=
-      setlocal backspace=
+        set      backspace=
+        setl     backspace=
+        setlocal backspace=
 
-      b:var_Var1
-      w:var_Var2
-      g:var_Var3
-      l:var_Var4
-      s:var_Var5
-      t:var_Var6
-      a:var_Var7
-      v:var_Var8
+        b:var_Var1
+        w:var_Var2
+        g:var_Var3
+        l:var_Var4
+        s:var_Var5
+        t:var_Var6
+        a:var_Var7
+        v:var_Var8
 
-      b:var#var
-      w:var#var
-      g:var#var
-      l:var#var
-      s:var#var
-      t:var#var
-      a:var#var
-      v:var#var
+        b:var#var
+        w:var#var
+        g:var#var
+        l:var#var
+        s:var#var
+        t:var#var
+        a:var#var
+        v:var#var
 
-      call eval()
-      call sha256()
-      if !eval()
-      if ==eval()
-      if =~eval()
-      if 1-eval()
-      call Function()
+        call eval()
+        call sha256()
+        if !eval()
+        if ==eval()
+        if =~eval()
+        if 1-eval()
+        call Function()
 
-      call eval() " comment
-      function s:name() " comment
-      call self.name()
+        call eval() " comment
+        function s:name() " comment
+        call self.name()
 
-      if var ==# "string"
-      if var ==# "missing quote
-      if var ==# "escaped quote\\"
-      if var ==# 'missing quote
-      if var ==# 'escaped quote\\'
-      if var ==# 'string'
+        if var ==# "string"
+        if var ==# "missing quote
+        if var ==# "escaped quote\\"
+        if var ==# 'missing quote
+        if var ==# 'escaped quote\\'
+        if var ==# 'string'
 
       SOURCE
     end
@@ -436,7 +436,7 @@ describe 'esearch window context syntax', :window do
         region('"escaped quote\\\\"') => %w[es_vimString String],
         region("'missing quote")      => %w[es_vimString String],
         region("'escaped quote\\\\'") => %w[es_vimString String],
-        region("'string'")            => %w[es_vimString String],
+        region("'string'")            => %w[es_vimString String]
       )
     end
   end

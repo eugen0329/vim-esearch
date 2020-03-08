@@ -99,7 +99,7 @@ describe 'esearch window context syntax', :window do
 
         word('null')                     => %w[es_javaConstant Constant],
 
-        region('"missing quote')       => %w[es_javaString String],
+        region('"missing quote')             => %w[es_javaString String],
 
         word('this')                     => %w[es_javaTypedef Typedef],
         word('super')                    => %w[es_javaTypedef Typedef],

@@ -13,11 +13,13 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
-      {"kw1": null, "kw2": true "kw3": false, "kw4": [], "kw5": {}, "kw6": "val6"}
-      {"kw7": "missing quote
-      {"kw8": null,
-      {"missing keyword quote
-      {"kw9": [
+        {"kw1": null, "kw2": true "kw3": false, "kw4": [], "kw5": {}, "kw6": "val6"}
+        {"kw7": "missing quote
+        {"kw8": "escaped quote\\"
+        {"kw9": null,
+        {"missing keyword quote
+        {"escaped keyword quote\\"
+        {"kw10": [
 
       SOURCE
     end
@@ -33,31 +35,24 @@ describe 'esearch window context syntax', :window do
     # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
-        word('null')                     => %w[es_jsonNull Function],
-        word('true')                     => %w[es_jsonBoolean Boolean],
-        word('false')                    => %w[es_jsonBoolean Boolean],
+        word('null')                          => %w[es_jsonNull Function],
+        word('true')                          => %w[es_jsonBoolean Boolean],
+        word('false')                         => %w[es_jsonBoolean Boolean],
 
-        char('[')                    => %w[es_jsonBraces Delimiter],
-        char(']')                    => %w[es_jsonBraces Delimiter],
-        char('{')                    => %w[es_jsonBraces Delimiter],
-        char('}')                    => %w[es_jsonBraces Delimiter],
-        char(':')                    => %w[es_ctx_json cleared],
+        char('[')                             => %w[es_jsonBraces Delimiter],
+        char(']')                             => %w[es_jsonBraces Delimiter],
+        char('{')                             => %w[es_jsonBraces Delimiter],
+        char('}')                             => %w[es_jsonBraces Delimiter],
+        char(':')                             => %w[es_ctx_json cleared],
 
-        region('"val6"')         => %w[es_jsonString String],
-        region('"missing quote') => %w[es_jsonString String],
-        region('"missing keyword quote') => %w[es_jsonString String],
+        region('"val6"')                      => %w[es_jsonString String],
+        region('"missing quote')              => %w[es_jsonString String],
+        region('"escaped quote\\\\"')         => %w[es_jsonString String],
+        region('"missing keyword quote')      => %w[es_jsonString String],
+        region('"escaped keyword quote\\\\"') => %w[es_jsonString String],
 
-        region('"kw1"') => %w[es_jsonKeyword Label],
-        region('"kw2"') => %w[es_jsonKeyword Label],
-        region('"kw3"') => %w[es_jsonKeyword Label],
-        region('"kw4"') => %w[es_jsonKeyword Label],
-        region('"kw5"') => %w[es_jsonKeyword Label],
-        region('"kw6"') => %w[es_jsonKeyword Label],
-        region('"kw7"') => %w[es_jsonKeyword Label],
-        region('"kw8"') => %w[es_jsonKeyword Label],
-        region('"kw9"') => %w[es_jsonKeyword Label],
+        region('"kw\\d\\+"')                  => %w[es_jsonKeyword Label]
       )
     end
   end
 end
-

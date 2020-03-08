@@ -13,30 +13,30 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
-      ADD
-      ARG
-      CMD
-      COPY
-      ENTRYPOINT
-      ENV
-      EXPOSE
-      HEALTHCHECK
-      LABEL
-      MAINTAINER
-      ONBUILD
-      RUN
-      SHELL
-      STOPSIGNAL
-      USER
-      VOLUME
-      WORKDIR #es_dockerfileComment
-      AS # es_dockerfileComment
-      #es_dockerfileComment
-      # es_dockerfileComment
+        ADD
+        ARG
+        CMD
+        COPY
+        ENTRYPOINT
+        ENV
+        EXPOSE
+        HEALTHCHECK
+        LABEL
+        MAINTAINER
+        ONBUILD
+        RUN
+        SHELL
+        STOPSIGNAL
+        USER
+        VOLUME
+        WORKDIR #es_dockerfileComment
+        AS # es_dockerfileComment
+        #es_dockerfileComment
+        # es_dockerfileComment
 
-      "es_dockerfileString"
-      "es_dockerfileString
-      "es_dockerfileString\\"
+        "es_dockerfileString"
+        "es_dockerfileString
+        "es_dockerfileString\\"
 
       SOURCE
     end
@@ -76,9 +76,8 @@ describe 'esearch window context syntax', :window do
 
         region('"es_dockerfileString"')     => %w[es_dockerfileString String],
         region('"es_dockerfileString')      => %w[es_dockerfileString String],
-        region('"es_dockerfileString\\\\"') => %w[es_dockerfileString String],
+        region('"es_dockerfileString\\\\"') => %w[es_dockerfileString String]
       )
     end
   end
 end
-

@@ -70,10 +70,12 @@ describe 'esearch window context syntax', :window do
         word('interface')                    => %w[es_goDeclType Keyword],
 
         region('"string"')                   => %w[es_goString String],
+        region('"missing quote')             => %w[es_goString String],
         region('"escaped quote\\\\"')        => %w[es_goString String],
         region('"str with escape\\\\n"')     => %w[es_goString String],
         region('"ellipsized string[^"]\\+$') => %w[es_goString String],
         region('`raw string`$')              => %w[es_goRawString String],
+        region('`missing quote$')            => %w[es_goRawString String],
 
         word('defer')                        => %w[es_goStatement Statement],
         word('go')                           => %w[es_goStatement Statement],
@@ -83,7 +85,7 @@ describe 'esearch window context syntax', :window do
         word('continue')                     => %w[es_goStatement Statement],
         word('fallthrough')                  => %w[es_goStatement Statement],
 
-        region('"missing quote')       => %w[es_goString String],
+        region('"missing quote')             => %w[es_goString String],
         region('`unterminated raw string')   => %w[es_goRawString String],
 
         word('case')                         => %w[es_goLabel Label],

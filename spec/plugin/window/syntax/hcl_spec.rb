@@ -13,39 +13,39 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
-      telemetry {}
+        telemetry {}
 
-      resource "aws_key_pair" "auth" {}
+        resource "aws_key_pair" "auth" {}
 
-      resource "aws" {
-        name = "es_hclValueString"
-        route_table_id = "${es_hclStringInterp}"
-        route_table_id = "${es.hclStringInterp}"
-        map_public_ip_on_launch = [true, false]
+        resource "aws" {
+          name = "es_hclValueString"
+          route_table_id = "${es_hclStringInterp}"
+          route_table_id = "${es.hclStringInterp}"
+          map_public_ip_on_launch = [true, false]
 
-        #comment
-        # comment
-        //comment
-        // comment
-        /*comment*/
-        /* comment */
-        /*comment
-        /* comment
+          #comment
+          # comment
+          //comment
+          // comment
+          /*comment*/
+          /* comment */
+          /*comment
+          /* comment
 
-        content
-        in
-        for
-        if
-        string
-        bool
-        number
-        tuple
-        object
-        list
-        map
-        set
-        null
-      }
+          content
+          in
+          for
+          if
+          string
+          bool
+          number
+          tuple
+          object
+          list
+          map
+          set
+          null
+        }
 
       SOURCE
     end
@@ -88,7 +88,7 @@ describe 'esearch window context syntax', :window do
         word('list')                    => %w[es_hclCollectionType Type],
         word('map')                     => %w[es_hclCollectionType Type],
         word('set')                     => %w[es_hclCollectionType Type],
-        word('null')                    => %w[es_hclValueNull Constant],
+        word('null')                    => %w[es_hclValueNull Constant]
       )
     end
   end
