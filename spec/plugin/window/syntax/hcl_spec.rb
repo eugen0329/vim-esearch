@@ -23,14 +23,14 @@ describe 'esearch window context syntax', :window do
           route_table_id = "${es.hclStringInterp}"
           map_public_ip_on_launch = [true, false]
 
-          #comment
-          # comment
-          //comment
-          // comment
-          /*comment*/
-          /* comment */
-          /*comment
-          /* comment
+          #comment1
+          # comment2
+          //comment3
+          // comment4
+          /*comment5*/
+          /* comment6 */
+          /*comment7
+          /* comment8
 
           content
           in
@@ -66,14 +66,14 @@ describe 'esearch window context syntax', :window do
         region('"es_hclValueString"')   => %w[es_hclValueString String],
         region('${es_hclStringInterp}') => %w[es_hclStringInterp Identifier],
         region('${es.hclStringInterp}') => %w[es_hclStringInterp Identifier],
-        region('#comment')              => %w[es_hclComment Comment],
-        region('# comment')             => %w[es_hclComment Comment],
-        region('//comment')             => %w[es_hclComment Comment],
-        region('// comment')            => %w[es_hclComment Comment],
-        region('/\*comment\*/')         => %w[es_hclComment Comment],
-        region('/\* comment \*/')       => %w[es_hclComment Comment],
-        region('/\*comment')            => %w[es_hclComment Comment],
-        region('/\* comment ')          => %w[es_hclComment Comment],
+        region('#comment1')             => %w[es_hclComment Comment],
+        region('# comment2')            => %w[es_hclComment Comment],
+        region('//comment3')            => %w[es_hclComment Comment],
+        region('// comment4')           => %w[es_hclComment Comment],
+        region('/\*comment5\*/')        => %w[es_hclComment Comment],
+        region('/\* comment6 \*/')      => %w[es_hclComment Comment],
+        region('/\*comment7')           => %w[es_hclComment Comment],
+        region('/\* comment8')          => %w[es_hclComment Comment],
         char('[')                       => %w[es_hclBraces Delimiter],
         char(']')                       => %w[es_hclBraces Delimiter],
         word('content')                 => %w[es_hclContent Structure],

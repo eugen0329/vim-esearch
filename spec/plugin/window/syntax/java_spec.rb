@@ -58,7 +58,7 @@ describe 'esearch window context syntax', :window do
         assert
         extends
         implements
-        interface
+        @interface
         enum
         public
         protected
@@ -128,7 +128,7 @@ describe 'esearch window context syntax', :window do
 
         word('extends')                      => %w[es_javaClassDecl StorageClass],
         word('implements')                   => %w[es_javaClassDecl StorageClass],
-        word('interface')                    => %w[es_javaClassDecl StorageClass],
+        region('@interface')                 => %w[es_javaClassDecl StorageClass],
         word('enum')                         => %w[es_javaClassDecl StorageClass],
 
         word('public')                       => %w[es_javaScopeDecl StorageClass],

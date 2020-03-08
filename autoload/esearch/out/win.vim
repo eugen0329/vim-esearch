@@ -715,8 +715,9 @@ fu! s:open(cmd, ...) abort
 
   let filename = esearch#out#win#filename()
   if !empty(filename)
-    let ln = esearch#out#win#line_in_file()
+    let lnum = esearch#out#win#line_in_file()
     let col = esearch#out#win#column_in_file()
+    let topline = str2nr(lnum) - (line('.') - line('w0'))
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
@@ -727,8 +728,7 @@ fu! s:open(cmd, ...) abort
       unsilent echo v:exception . ' at ' . v:throwpoint
     endtry
 
-    keepjumps call cursor(ln, col)
-    norm! zz
+    keepjumps call winrestview({'lnum': lnum, 'col': col,'topline': topline })
     if a:0 | exe a:1 | endif
   endif
 endfu
