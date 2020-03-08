@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_shStatement   break cd chdir continue eval exec exit kill newgrp pwd read readonly return shift test trap ulimit umask wait
 syn match   es_shDerefSimple "\$\%(\h\w*\|\d\)"
 syn keyword es_shKeyword     case esac do done for in if fi until while

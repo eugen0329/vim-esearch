@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_cStatement    goto break return continue asm
 syn keyword es_cLabel        case default
 syn keyword es_cConditional  if else switch

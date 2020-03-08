@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn match  es_dockerfileComment "#.*" display
 syn region es_dockerfileString start=/\v"/ skip=/\v\\./ end=/\v"|^/ display
 " To prevent matching with a commonly used docker-entrypoint.sh only uppercase

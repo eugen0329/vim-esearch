@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_pythonStatement   False None True
 syn keyword es_pythonStatement   as assert break continue del exec global
 syn keyword es_pythonStatement   lambda nonlocal pass print return with yield

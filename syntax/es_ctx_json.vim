@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_jsonBoolean  true false
 syn keyword es_jsonNull     null
 syn match es_jsonBraces      /[{}\[\]]/

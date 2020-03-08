@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_javaScriptConditional if else switch
 syn keyword es_javaScriptRepeat      while for do in
 syn keyword es_javaScriptBranch      break continue
@@ -13,7 +15,7 @@ syn keyword es_javaScriptIdentifier  arguments this var let
 syn keyword es_javaScriptLabel       case default
 syn keyword es_javaScriptException   try catch finally throw
 syn keyword es_javaScriptReserved    abstract class const debugger export extends import
-syn keyword es_javaScriptFunction  function
+syn keyword es_javaScriptFunction    function
 syn region  es_javaScriptComment start="//"  end="$"
 syn region  es_javaScriptComment start="/\*" end="\*/\|$"
 syn region  es_javaScriptStringD start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+

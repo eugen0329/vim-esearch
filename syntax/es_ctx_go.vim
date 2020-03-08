@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_goDirective   package import
 syn keyword es_goDeclaration var const type func
 syn keyword es_goDeclType    struct interface

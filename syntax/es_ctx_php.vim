@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_phpConditional  declare else enddeclare endswitch elseif endif if switch
 syn keyword es_phpRepeat       as do endfor endforeach endwhile for foreach while
 syn keyword es_phpLabel        case default switch

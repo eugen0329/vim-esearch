@@ -541,6 +541,7 @@ fu! s:blocking_highlight_viewport(esearch) abort
       call s:load_syntax(a:esearch, context)
     endif
   endfor
+  call s:set_syntax_sync(a:esearch)
 endfu
 
 fu! s:set_syntax_sync(esearch) abort
@@ -889,8 +890,6 @@ fu! esearch#out#win#finish(bufnr) abort
   if has_key(esearch, 'updates_timer')
     call timer_stop(esearch.updates_timer)
   endif
-
-  call s:set_syntax_sync(esearch)
   call setbufvar(a:bufnr, '&modifiable', 1)
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))

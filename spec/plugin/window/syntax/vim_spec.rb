@@ -208,8 +208,8 @@ describe 'esearch window context syntax', :window do
       call Function()
 
       call eval() " comment
-      function s:one() " comment
-      call self.another()
+      function s:name() " comment
+      call self.name()
 
       if var ==# "string"
       if var ==# "missing quote
@@ -427,8 +427,8 @@ describe 'esearch window context syntax', :window do
         word('eval')                  => %w[es_vimFuncName Function],
         word('sha256')                => %w[es_vimFuncName Function],
         word('Function')              => %w[es_vimFunction cleared],
-        region('s:one')               => %w[es_vimFunction cleared],
-        region('self\.\zsanother')    => %w[es_vimFunction cleared],
+        region('s:name')              => %w[es_vimFunction cleared],
+        region('self\.\zsname')       => %w[es_vimFunction cleared],
 
         region('"string"')            => %w[es_vimString String],
         # that's how vim comments work

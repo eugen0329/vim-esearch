@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on cespare/vim-toml
+
 syn keyword es_tomlBoolean true false
 syn region  es_tomlString        start=/"/ skip=/\\\\\|\\"/   end=/"/        oneline
 syn region  es_tomlString        start=/"""/                  end=/"""/

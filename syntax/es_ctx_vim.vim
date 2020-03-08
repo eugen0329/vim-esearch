@@ -3,12 +3,8 @@ if exists('b:current_syntax')
 endif
 
 " Mostly focused on commands that usually appear within vimrc
-
 syn keyword es_vimCommand if el[seif] en[dif] for endfo[r] sil[ent] fu[nction] retu[rn] endf[unction] wh[ile] endw[hile] try th[row] cat[ch] fina[lly] endt[ry] fina[lly] sy[ntax] setf[iletype] cal[l] com[mand] au[tocmd] do[autocmd] doautoa[ll] aug[roup] ec[hoerr] exe[cute] hi[ghlight] redi[r] hi[ghlight] let unl[et]
 syn keyword es_VimCommand cm[ap] cmapc[lear] cno[remap] cu[nmap] im[ap] imapc[lear] ino[remap] iu[nmap] lm[ap] lmapc[lear] ln[oremap] lu[nmap] map mapc[lear] nm[ap] nmapc[lear] nn[oremap] no[remap] nun[map] om[ap] omapc[lear] ono[remap] ou[nmap] sm[ap] smap smapc[lear] snor[emap] sunm[ap] tma[p] tmapc[lear] tno[remap] tunma[p] unm[ap] vm[ap] vmapc[lear] vn[oremap] vu[nmap] xm[ap] xmapc[lear] xn[oremap] xu[nmap] ab[breviate] abc[lear] ca[bbrev] cabc[lear] cnorea[bbrev] cuna[bbrev] ia[bbrev] iabc[lear] inorea[bbrev] iuna[bbrev] norea[bbrev] una[bbreviate]
-
-
-" syn match  es_vimCommand    /\%(un\)l\%[et]/
 
  " es_vimVarAssignment
 syn match  es_vimCommand   /\<se\%[tlocal]\>/ skipwhite nextgroup=es_vimOption

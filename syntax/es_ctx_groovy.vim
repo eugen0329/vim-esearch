@@ -2,7 +2,7 @@ if exists('b:current_syntax')
   finish
 endif
 
-" rewrited vim builtin syntax
+" based on vim builtin syntax
 
 syn keyword es_groovyExternal     native package
 syn match   es_groovyExternal     "\<import\>\(\s\+static\>\)\?"
