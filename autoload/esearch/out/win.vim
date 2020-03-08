@@ -134,6 +134,10 @@ let s:context_syntaxes = {
       \ 'vim':             'es_ctx_vim',
       \ 'toml':            'es_ctx_toml',
       \ 'dockerfile':      'es_ctx_dockerfile',
+      \ 'css':             'es_ctx_css',
+      \ 'scss':            'es_ctx_css',
+      \ 'sass':            'es_ctx_css',
+      \ 'less':            'es_ctx_css',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

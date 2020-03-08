@@ -16,6 +16,7 @@ if !exists('g:esearch_ftdetect_patterns')
   let g:esearch_ftdetect_patterns = {
         \ '\.sh$':   'sh',
         \ '\.bash$': 'sh',
+        \ '\.bats$': 'sh',
         \ '\.c$':    'c',
         \ '\.h$':    'c',
         \ '\.cpp$':  'cpp',

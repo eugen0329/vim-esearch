@@ -26,6 +26,11 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('file.toml')).to      eq('toml')            }
     it { expect(ftdetect.call('package.json')).to   eq('json')            }
 
+    # css
+    it { expect(ftdetect.call('main.css')).to       eq('css')        }
+    it { expect(ftdetect.call('main.sass')).to       eq('sass')        }
+    it { expect(ftdetect.call('main.scss')).to       eq('scss')        }
+
     # php
     it { expect(ftdetect.call('main.php')).to       eq('php')        }
     it { expect(ftdetect.call('main.phtml')).to     eq('php')        }
