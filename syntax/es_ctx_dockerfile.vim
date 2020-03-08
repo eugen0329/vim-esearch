@@ -4,7 +4,8 @@ endif
 
 syn match  es_dockerfileComment "#.*" display
 syn region es_dockerfileString start=/\v"/ skip=/\v\\./ end=/\v"|^/ display
-syntax case ignore
+" To prevent matching with a commonly used docker-entrypoint.sh only uppercase
+" are allowed
 syntax keyword es_dockerfileKeyword ADD ARG CMD COPY ENTRYPOINT ENV EXPOSE HEALTHCHECK LABEL MAINTAINER ONBUILD RUN SHELL STOPSIGNAL USER VOLUME WORKDIR AS
 
 hi def link es_dockerfileComment Comment

@@ -116,7 +116,6 @@ let s:context_syntaxes = {
       \ 'html':            'es_ctx_html',
       \ 'xhtml':           'es_ctx_html',
       \ 'haml':            'es_ctx_html',
-      \ 'markdown':        'es_ctx_html',
       \ 'htmlcheetah':     'es_ctx_html',
       \ 'wml':             'es_ctx_html',
       \ 'jsp':             'es_ctx_html',
@@ -619,6 +618,11 @@ fu! s:load_syntax(esearch, context) abort
         \ s:String.escape_pattern(a:context.filename),
         \ region.name,
         \ )
+
+  let len = a:context.end - a:context.begin
+  if a:esearch.max_lines_found < len
+    let a:esearch.max_lines_found = len
+  endif
   let a:context.syntax_loaded = 1
 endfu
 

@@ -13,25 +13,6 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
-      add
-      arg
-      cmd
-      copy
-      entrypoint
-      env
-      expose
-      healthcheck
-      label
-      maintainer
-      onbuild
-      run
-      shell
-      stopsignal
-      user
-      volume
-      workdir
-      as
-
       ADD
       ARG
       CMD
@@ -71,25 +52,6 @@ describe 'esearch window context syntax', :window do
     # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
-        word('add')                         => %w[es_dockerfileKeyword Keyword],
-        word('arg')                         => %w[es_dockerfileKeyword Keyword],
-        word('cmd')                         => %w[es_dockerfileKeyword Keyword],
-        word('copy')                        => %w[es_dockerfileKeyword Keyword],
-        word('entrypoint')                  => %w[es_dockerfileKeyword Keyword],
-        word('env')                         => %w[es_dockerfileKeyword Keyword],
-        word('expose')                      => %w[es_dockerfileKeyword Keyword],
-        word('healthcheck')                 => %w[es_dockerfileKeyword Keyword],
-        word('label')                       => %w[es_dockerfileKeyword Keyword],
-        word('maintainer')                  => %w[es_dockerfileKeyword Keyword],
-        word('onbuild')                     => %w[es_dockerfileKeyword Keyword],
-        word('run')                         => %w[es_dockerfileKeyword Keyword],
-        word('shell')                       => %w[es_dockerfileKeyword Keyword],
-        word('stopsignal')                  => %w[es_dockerfileKeyword Keyword],
-        word('user')                        => %w[es_dockerfileKeyword Keyword],
-        word('volume')                      => %w[es_dockerfileKeyword Keyword],
-        word('workdir')                     => %w[es_dockerfileKeyword Keyword],
-        word('as')                          => %w[es_dockerfileKeyword Keyword],
-
         word('ADD')                         => %w[es_dockerfileKeyword Keyword],
         word('ARG')                         => %w[es_dockerfileKeyword Keyword],
         word('CMD')                         => %w[es_dockerfileKeyword Keyword],

@@ -101,7 +101,6 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('Makefile')).to    eq('make')    }
 
     context 'opened buffers' do
-
       context 'when exists' do
         before do
           editor.edit! 'Testfile'
