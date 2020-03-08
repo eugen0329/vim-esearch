@@ -111,6 +111,7 @@ let s:context_syntaxes = {
       \ 'yaml':            'es_ctx_yaml',
       \ 'vim':             'es_ctx_vim',
       \ 'toml':            'es_ctx_toml',
+      \ 'dockerfile':      'es_ctx_dockerfile',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

@@ -38,6 +38,7 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('script.bash')).to  eq('sh')              }
     it { expect(ftdetect.call('script.sh')).to    eq('sh')              }
     it { expect(ftdetect.call('main.m')).to       eq('objc')            }
+    it { expect(ftdetect.call('Dockerfile')).to   eq('dockerfile')      }
   end
 
   describe '#slow' do
