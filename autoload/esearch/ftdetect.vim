@@ -28,6 +28,7 @@ if !exists('g:esearch_ftdetect_patterns')
         \ '\.xml$':  'xml',
         \ '\.html$': 'html',
         \ '\.asm$':  'asm',
+        \ '\.toml$': 'toml',
         \ '\.m$':    get(g:, 'filetype_m', 'objc'),
         \ '\.pl$':   get(g:, 'filetype_pl', 'perl'),
         \ }

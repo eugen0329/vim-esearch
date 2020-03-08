@@ -97,6 +97,8 @@ endif
 let s:context_syntaxes = {
       \ 'c':               'es_ctx_c',
       \ 'sh':              'es_ctx_sh',
+\ 'bash':            'es_ctx_sh',
+\ 'bats':            'es_ctx_sh',
       \ 'javascript':      'es_ctx_javascript',
       \ 'javascriptreact': 'es_ctx_javascript',
       \ 'php':             'es_ctx_php',
@@ -107,6 +109,8 @@ let s:context_syntaxes = {
       \ 'python':          'es_ctx_python',
       \ 'json':            'es_ctx_json',
       \ 'yaml':            'es_ctx_yaml',
+      \ 'vim':             'es_ctx_vim',
+      \ 'toml':            'es_ctx_toml',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

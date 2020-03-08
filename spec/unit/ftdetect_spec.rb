@@ -30,6 +30,7 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('main.mof')).to     eq('msidl')           }
     it { expect(ftdetect.call('Gemfile')).to      eq('ruby')            }
     it { expect(ftdetect.call('pom.xml')).to      eq('xml')             }
+    it { expect(ftdetect.call('file.toml')).to    eq('toml')            }
     it { expect(ftdetect.call('package.json')).to eq('json')            }
     it { expect(ftdetect.call('locales.yaml')).to eq('yaml')            }
     it { expect(ftdetect.call('index.html')).to   eq('html')            }
