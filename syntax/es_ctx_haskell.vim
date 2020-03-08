@@ -12,9 +12,7 @@ syn keyword es_hsStructure   class data deriving instance default where
 syn keyword es_hsTypedef     type newtype
 syn keyword es_hsStatement   do case of let in
 syn keyword es_hsConditional if then else
-" if exists("hs_highlight_debug")
-  syn keyword es_hsDebug     undefined error trace
-" endif
+syn keyword es_hsDebug     undefined error trace
 
 syn match   es_hsLineComment  "---*\([^-!#$%&\*\+./<=>\?@\\^|~].*\)\?$"
 syn region  es_hsBlockComment start="{-"  end="-}\|^"
