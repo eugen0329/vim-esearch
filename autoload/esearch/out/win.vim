@@ -138,6 +138,7 @@ let s:context_syntaxes = {
       \ 'scss':            'es_ctx_css',
       \ 'sass':            'es_ctx_css',
       \ 'less':            'es_ctx_css',
+      \ 'hcl':             'es_ctx_hcl',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

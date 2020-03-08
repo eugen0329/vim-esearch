@@ -2,7 +2,6 @@ if exists('b:current_syntax')
   finish
 endif
 
-
 syn keyword es_cssTagName abbr address area a b base bdo blockquote body br button caption cite code col colgroup dd del dfn div dl dt em fieldset form h1 h2 h3 h4 h5 h6 head hr html img i iframe input ins isindex kbd label legend li link map menu meta noscript ol optgroup option p param pre q s samp script small span strong sub sup tbody td textarea tfoot th thead title tr ul u var object svg article aside audio bdi canvas command data datalist details dialog embed figcaption figure footer header hgroup keygen main mark menuitem meter nav output progress rt rp ruby section source summary time track video wbr
 syn match  es_cssTagName           /\<select\>\|\<style\>\|\<table\>/
 syn match  es_cssTagName           "\*"

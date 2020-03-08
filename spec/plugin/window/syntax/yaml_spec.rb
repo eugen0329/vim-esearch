@@ -29,6 +29,7 @@ describe 'esearch window context syntax', :window do
         key10: #comment
         key11:
           - collection item
+
       SOURCE
     end
     let(:source_file) { file(source_file_content, 'main.yml') }
