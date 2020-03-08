@@ -144,6 +144,7 @@ let s:context_syntaxes = {
       \ 'hcl':             'es_ctx_hcl',
       \ 'groovy':          'es_ctx_groovy',
       \ 'Jenkinsfile':     'es_ctx_groovy',
+      \ 'typescript':      'es_ctx_typescript',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
