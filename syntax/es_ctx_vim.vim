@@ -16,7 +16,7 @@ syn match  es_vimOption    "\w\+" contained
 syn match  es_vimVar       "\<[bwglstav]:\h[a-zA-Z0-9#_]*"
 
 syn match  es_vimFunction  "\%(\<[bwglstav]:\)\=\h[a-zA-Z0-9#_]*\ze("
-syn match  es_vimFuncName  "\<[_0-9a-z]\+\ze("
+syn match  es_vimFuncName  "[^.]\zs\<[_0-9a-z]\+\ze("
 syn region es_vimString    start=+"+ skip=+\\\\\|\\"+ end=+"\|^+
 syn region es_vimString    start=+'+ end=+'\|^+
 syn match  es_vimComment   +\s"[^\-:.%#=*].*[^"]$+lc=1
