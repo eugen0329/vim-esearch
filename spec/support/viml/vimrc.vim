@@ -82,6 +82,8 @@ function! SynStack()  abort
   echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 endfunc
 
+map ,z :<C-u>call SynStack()<CR>
+
 fu! SyntaxAt(ln, column) abort
   let l:s = synID(a:ln, a:column, 0)
   let name = synIDattr(l:s, 'name')

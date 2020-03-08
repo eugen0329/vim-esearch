@@ -35,23 +35,23 @@ describe 'esearch window context syntax', :window do
     # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
-        word('null')                          => %w[es_jsonNull Function],
-        word('true')                          => %w[es_jsonBoolean Boolean],
-        word('false')                         => %w[es_jsonBoolean Boolean],
+        word('null')                    => %w[es_jsonNull Function],
+        word('true')                    => %w[es_jsonBoolean Boolean],
+        word('false')                   => %w[es_jsonBoolean Boolean],
 
-        char('[')                             => %w[es_jsonBraces Delimiter],
-        char(']')                             => %w[es_jsonBraces Delimiter],
-        char('{')                             => %w[es_jsonBraces Delimiter],
-        char('}')                             => %w[es_jsonBraces Delimiter],
-        char(':')                             => %w[es_ctx_json cleared],
+        char('[')                       => %w[es_jsonBraces Delimiter],
+        char(']')                       => %w[es_jsonBraces Delimiter],
+        char('{')                       => %w[es_jsonBraces Delimiter],
+        char('}')                       => %w[es_jsonBraces Delimiter],
+        char(':')                       => %w[es_ctx_json cleared],
 
-        region('"val6"')                      => %w[es_jsonString String],
-        region('"missing quote')              => %w[es_jsonString String],
-        region('"escaped quote\\\\"')         => %w[es_jsonString String],
-        region('"missing keyword quote')      => %w[es_jsonString String],
-        region('"escaped keyword quote\\\\"') => %w[es_jsonString String],
+        region('val6')                  => %w[es_jsonString String],
+        region('missing quote')         => %w[es_jsonString String],
+        region('escaped quote')         => %w[es_jsonString String],
+        region('missing keyword quote') => %w[es_jsonString String],
+        region('escaped keyword quote') => %w[es_jsonString String],
 
-        region('"kw\\d\\+"')                  => %w[es_jsonKeyword Label]
+        region('kw\\d\\+')              => %w[es_jsonKeyword Label]
       )
     end
   end
