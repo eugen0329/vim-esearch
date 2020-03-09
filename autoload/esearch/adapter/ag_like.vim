@@ -61,6 +61,8 @@ fu! esearch#adapter#ag_like#parse_from_1_file(data, from, to) abort dict
   return results
 endfu
 
+" NOTE: sometimes ag outputs blank lines with no content that can be safely
+" skipped, so :len() > 0 is used
 if has('nvim')
   fu! esearch#adapter#ag_like#parse_with_lua(data, from, to) abort dict
     lua << EOF
@@ -68,8 +70,10 @@ if has('nvim')
     local data = vim.api.nvim_eval('a:data[a:from : a:to]')
     local cwd = vim.api.nvim_eval('self.lua_cwd_prefix')
     for i = 1, #data do
-      filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
-      result[i] = {['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}
+      if data[i]:len() > 0 then
+        filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
+        result[i] = {['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}
+      end
     end
 EOF
     return luaeval('result')
@@ -82,8 +86,10 @@ else
     local result = vim.eval('result')
     local cwd = vim.eval('self.lua_cwd_prefix')
     for raw_line in vim.eval('a:data[a:from : a:to]')() do
-      filename, lnum, col, text = string.match(raw_line, '([^:]+):(%d+):(%d+):(.*)')
-      result:add(vim.dict({['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}))
+      if raw_line:len() > 0 then
+        filename, lnum, col, text = string.match(raw_line, '([^:]+):(%d+):(%d+):(.*)')
+        result:add(vim.dict({['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}))
+      end
     end
 EOF
     return result
