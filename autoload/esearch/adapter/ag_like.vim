@@ -66,7 +66,7 @@ if has('nvim')
     lua << EOF
     result = {}
     local data = vim.api.nvim_eval('a:data[a:from : a:to]')
-    local cwd = vim.api.nvim_eval('self.cwd_prefix')
+    local cwd = vim.api.nvim_eval('self.lua_cwd_prefix')
     for i = 1, #data do
       filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
       result[i] = {['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}
@@ -80,7 +80,7 @@ else
 
     lua << EOF
     local result = vim.eval('result')
-    local cwd = vim.eval('self.cwd_prefix')
+    local cwd = vim.eval('self.lua_cwd_prefix')
     for raw_line in vim.eval('a:data[a:from : a:to]')() do
       filename, lnum, col, text = string.match(raw_line, '([^:]+):(%d+):(%d+):(.*)')
       result:add(vim.dict({['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}))

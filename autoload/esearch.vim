@@ -65,10 +65,11 @@ fu! s:new(configuration) abort
         \}, 'keep')
 
   if g:esearch#has#lua
-    let configuration.cwd_prefix =
+    let configuration.lua_cwd_prefix =
           \ luaeval("'^' .. _A:gsub('([^%w])', '%%%1') .. '%/'",
           \ configuration.cwd)
-  elseif g:esearch#has#windows
+  endif
+  if g:esearch#has#windows
     let configuration.cwd_prefix = substitute(configuration.cwd, '\\', '\\\\', 'g').'\\'
   else
     let configuration.cwd_prefix = configuration.cwd . '/'
