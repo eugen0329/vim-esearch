@@ -392,20 +392,7 @@ fu! esearch#out#win#update(bufnr) abort
       let request.cursor += esearch.batch_size
     endif
 
-    let parsed = esearch.parse(data, from, to)
-    " changing cwd is required as some builtin vim function like bufname() have
-    " side effects
-    try
-      let saved_cwd = getcwd()
-      if !empty(b:esearch.cwd)
-        exe 'lcd' b:esearch.cwd
-      endif
-      call s:render_results(a:bufnr, parsed, esearch)
-    finally
-      if !empty(saved_cwd)
-        exe 'lcd' saved_cwd
-      endif
-    endtry
+    call s:render_results(a:bufnr, esearch.parse(data, from, to), esearch)
   endif
 
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
@@ -465,11 +452,7 @@ fu! s:render_results(bufnr, parsed, esearch) abort
   let lines = []
 
   while i < limit
-    if has_key(parsed[i], 'bufnr')
-      let filename = bufname(parsed[i].bufnr)
-    else
-      let filename = substitute(parsed[i].filename, a:esearch.cwd_prefix, '', '')
-    endif
+    let filename = parsed[i].filename
 
     if g:esearch_win_ellipsize_results
       let text = esearch#util#ellipsize(

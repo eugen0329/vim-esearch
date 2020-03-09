@@ -16,12 +16,12 @@ fu! esearch#adapter#ag_like#set_results_parser(esearch) abort
     let a:esearch.parse = function('esearch#adapter#ag_like#parse_from_1_file')
     let a:esearch.format = g:esearch#adapter#ag_like#single_file_search_format
   else
-    if g:esearch#has#getqflist_lines
+    if g:esearch#has#lua
+      let a:esearch.parse =
+            \ function('esearch#adapter#ag_like#parse_with_lua')
+    elseif g:esearch#has#getqflist_lines
       let a:esearch.parse =
             \ function('esearch#adapter#ag_like#parse_with_getqflist_lines')
-    elseif g:esearch#has#getqflist_text
-      let a:esearch.parse =
-            \ function('esearch#adapter#ag_like#parse_with_getqflist_text')
     else
       let a:esearch.parse = function('esearch#adapter#ag_like#parse')
       let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
@@ -61,14 +61,55 @@ fu! esearch#adapter#ag_like#parse_from_1_file(data, from, to) abort dict
   return results
 endfu
 
+if has('nvim')
+  fu! esearch#adapter#ag_like#parse_with_lua(data, from, to) abort dict
+    lua << EOF
+    result = {}
+    local data = vim.api.nvim_eval('a:data[a:from : a:to]')
+    local cwd = vim.api.nvim_eval('self.cwd_prefix')
+    for i = 1, #data do
+      filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
+      result[i] = {['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}
+    end
+EOF
+    return luaeval('result')
+  endfu
+else
+  fu! esearch#adapter#ag_like#parse_with_lua(data, from, to) abort dict
+    let result = []
+
+    lua << EOF
+    local result = vim.eval('result')
+    local cwd = vim.eval('self.cwd_prefix')
+    for raw_line in vim.eval('a:data[a:from : a:to]')() do
+      filename, lnum, col, text = string.match(raw_line, '([^:]+):(%d+):(%d+):(.*)')
+      result:add(vim.dict({['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}))
+    end
+EOF
+    return result
+  endfu
+endif
+
 fu! esearch#adapter#ag_like#parse_with_getqflist_lines(data, from, to) abort dict
   if empty(a:data) | return [] | endif
-  return filter(getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items, 'v:val.valid')
-endfu
 
-fu! esearch#adapter#ag_like#parse_with_getqflist_text(data, from, to) abort dict
-  if empty(a:data) | return [] | endif
-  return getqflist({'text': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
+  let items = getqflist({'lines': a:data[a:from : a:to], 'efm': '%f:%l:%c:%m'}).items
+  try
+    " changing cwd is required as bufname() has side effects
+    let saved_cwd = getcwd()
+    if !empty(b:esearch.cwd)
+      exe 'lcd' b:esearch.cwd
+    endif
+    let g:items = items
+    for i in items
+      let i['filename'] = bufname(i['bufnr'])
+    endfor
+  finally
+    if !empty(saved_cwd)
+      exe 'lcd' saved_cwd
+    endif
+  endtry
+  return items
 endfu
 
 fu! esearch#adapter#ag_like#parse(data, from, to) abort dict
@@ -86,7 +127,8 @@ fu! esearch#adapter#ag_like#parse(data, from, to) abort dict
         call add(self.broken_results, {'after': a:data[i-1], 'res': a:data[i]})
       endif
     else
-      call add(results, {'filename': m[0], 'lnum': m[1], 'col': m[2], 'text': m[3]})
+      call add(results, {'filename': substitute(m[0], b:esearch.cwd_prefix, '', ''),
+            \ 'lnum': m[1], 'col': m[2], 'text': m[3]})
     endif
     let i += 1
   endwhile

@@ -64,7 +64,11 @@ fu! s:new(configuration) abort
         \ 'slice': function('esearch#util#slice')
         \}, 'keep')
 
-  if has('win32')
+  if g:esearch#has#lua
+    let configuration.cwd_prefix =
+          \ luaeval("'^' .. _A:gsub('([^%w])', '%%%1') .. '%/'",
+          \ configuration.cwd)
+  elseif g:esearch#has#windows
     let configuration.cwd_prefix = substitute(configuration.cwd, '\\', '\\\\', 'g').'\\'
   else
     let configuration.cwd_prefix = configuration.cwd . '/'

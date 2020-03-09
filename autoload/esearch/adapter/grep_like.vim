@@ -79,7 +79,7 @@ fu! esearch#adapter#grep_like#parse(data, from, to) abort dict
       let col = match(m[2], pattern) + 1
       if !col | let col = 1 | endif
       call add(results, {
-            \ 'filename': m[0],
+            \ 'filename': substitute(m[0], b:esearch.cwd_prefix, '', ''),
             \ 'lnum': m[1], 'col': col, 'text': m[2] })
     endif
     let i += 1
