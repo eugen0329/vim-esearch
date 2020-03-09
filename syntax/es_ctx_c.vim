@@ -11,11 +11,11 @@ syn keyword es_cRepeat       while for do
 syn keyword es_cStructure    struct union enum typedef
 syn keyword es_cStorageClass static register auto volatile extern const
 syn region  es_cComment       start="//"  end="$"
-syn region  es_cComment       start="/\*" end="\*/\|$"
+syn region  es_cComment       start="/\*" end="\*/\|^"
 syn region  es_cString       start=+"+ skip=+\\\\\|\\"+ end=+"\|^+
 " todo test
-syn match   es_cDefine        '#\(define\|undef\|if\|ifdef\|ifndef\)\>'
-syn match   es_cPreProc       '#\(pragma\|line\|warning\|warn\|error\)\>'
+syn match   es_cDefine        '#\s*\(define\|undef\|if\|ifdef\|ifndef\)\>'
+syn match   es_cPreProc       '#\s*\(pragma\|line\|warning\|warn\|error\)\>'
 
 hi def link es_cStatement    Statement
 hi def link es_cLabel        Label

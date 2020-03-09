@@ -13,26 +13,14 @@ describe 'esearch window context syntax', :window do
         if
         else
         switch
-<<<<<<< c59f4f155a3b9a67589db474f3c43178bd3e049b
-
-        while
-        for
-        do
-
-        true
-        false
-
-=======
         while
         for
         do
         true
         false
->>>>>>> Minor fix
         "string"
         "escaped quote\\"
         "str with escape\\n"
-        "ellipsized string#{'.' * 500}"
         null
         "unterminated string
         `unterminated raw string
@@ -93,7 +81,6 @@ describe 'esearch window context syntax', :window do
         region('"string"')                   => %w[es_javaString String],
         region('"escaped quote\\\\"')        => %w[es_javaString String],
         region('"str with escape\\\\n"')     => %w[es_javaString String],
-        region('"ellipsized string[^"]\\+$') => %w[es_javaString String],
 
         word('null')                         => %w[es_javaConstant Constant],
 

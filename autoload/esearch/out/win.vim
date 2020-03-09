@@ -145,6 +145,7 @@ let s:context_syntaxes = {
       \ 'groovy':          'es_ctx_groovy',
       \ 'Jenkinsfile':     'es_ctx_groovy',
       \ 'typescript':      'es_ctx_typescript',
+      \ 'scala':           'es_ctx_scala',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
@@ -163,7 +164,7 @@ fu! esearch#out#win#init(opts) abort
   end
 
   " Refresh match highlight
-  setlocal ft=esearch
+  setl ft=esearch
   " TODO
   if g:esearch.highlight_match && has_key(a:opts.exp, 'vim_match')
     if exists('b:esearch') && b:esearch._match_highlight_id > 0
@@ -178,25 +179,25 @@ fu! esearch#out#win#init(opts) abort
     let match_highlight_id = -1
   endif
 
-  setlocal modifiable
+  setl modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
-  setlocal undolevels=-1 " Disable undo
-  setlocal nomodifiable
-  setlocal nobackup
-  setlocal noswapfile
-  setlocal nonumber
-  setlocal norelativenumber
-  setlocal nospell
-  setlocal nolist " prevent listing traling spaces on blank lines
-  setlocal nomodeline
+  setl undolevels=-1 " Disable undo
+  setl nomodifiable
+  setl nobackup
+  setl noswapfile
+  setl nonumber
+  setl norelativenumber
+  setl nospell
+  setl nolist " prevent listing traling spaces on blank lines
+  setl nomodeline
   let &buflisted = g:esearch#out#win#buflisted
-  setlocal foldcolumn=0
-  setlocal buftype=nofile
-  setlocal bufhidden=hide
-  setlocal foldlevel=2
-  setlocal foldmethod=syntax
-  setlocal foldtext=esearch#out#win#foldtext()
+  setl foldcolumn=0
+  setl buftype=nofile
+  setl bufhidden=hide
+  setl foldlevel=2
+  setl foldmethod=syntax
+  setl foldtext=esearch#out#win#foldtext()
   syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
