@@ -178,7 +178,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                   [],
         \ 'data':                     [],
         \ 'context_syntax_regions':   {},
-        \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
+        \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight && 0,
         \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
         \})
@@ -200,7 +200,7 @@ fu! esearch#out#win#init(opts) abort
   augroup END
 
   " setup blank context for header
-  call s:add_context(b:esearch.contexts, '', 1)
+  call esearch#out#win#add_context(b:esearch.contexts, '', 1)
   let header_context = b:esearch.contexts[0]
   let header_context.end = 2
   let b:esearch.context_ids_map += [header_context.id, header_context.id]
@@ -392,7 +392,11 @@ fu! esearch#out#win#update(bufnr) abort
       let request.cursor += esearch.batch_size
     endif
 
-    call s:render_results(a:bufnr, esearch.parse(data, from, to), esearch)
+    if g:esearch#has#lua
+      call esearch#out#win#render#lua#do(a:bufnr, data, from, to, esearch)
+    else
+      call esearch#out#win#render#viml#do(a:bufnr, data, from, to, esearch)
+    endif
   endif
 
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
@@ -438,70 +442,9 @@ fu! s:new_context(id, filename, begin) abort
         \ }
 endfu
 
-fu! s:add_context(contexts, filename, begin) abort
+fu! esearch#out#win#add_context(contexts, filename, begin) abort
   let id = len(a:contexts)
   call add(a:contexts, s:new_context(id, a:filename, a:begin))
-endfu
-
-fu! s:render_results(bufnr, parsed, esearch) abort
-  let line = line('$') + 1
-  let parsed = a:parsed
-
-  let i = 0
-  let limit = len(parsed)
-  let lines = []
-
-  while i < limit
-    let filename = parsed[i].filename
-
-    if g:esearch_win_ellipsize_results
-      let text = esearch#util#ellipsize(
-            \ parsed[i].text,
-            \ parsed[i].col,
-            \ a:esearch.context_width.left,
-            \ a:esearch.context_width.right,
-            \ g:esearch#util#ellipsis)
-    else
-
-      let text = parsed[i].text
-    endif
-
-    if filename !=# a:esearch.contexts[-1].filename
-      let a:esearch.contexts[-1].end = line
-
-      if a:esearch.highlights_enabled &&
-            \ len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
-        let a:esearch.highlights_enabled = 0
-        call s:unload_highlights(a:esearch)
-      end
-
-      call add(lines, '')
-      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-      call add(a:esearch.columns_map, 0)
-      call add(a:esearch.line_numbers_map, 0)
-      let line += 1
-
-      call add(lines, filename)
-      call s:add_context(a:esearch.contexts, filename, line)
-      let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
-      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-      call add(a:esearch.columns_map, 0)
-      call add(a:esearch.line_numbers_map, 0)
-      let a:esearch.files_count += 1
-      let line += 1
-      let a:esearch.contexts[-1].filename = filename
-    endif
-
-    call add(lines, printf(s:linenr_format, parsed[i].lnum, text))
-    call add(a:esearch.columns_map, parsed[i].col)
-    call add(a:esearch.line_numbers_map, parsed[i].lnum)
-    call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-    let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text
-    let line += 1
-    let i    += 1
-  endwhile
-
-  call esearch#util#append_lines(lines)
 endfu
 
 fu! s:highlight_viewport() abort
@@ -691,6 +634,7 @@ fu! s:init_mappings() abort
 endfu
 
 fu! esearch#out#win#column_in_file() abort
+  return 1
   return get(b:esearch.columns_map, s:result_line(), 1)
 endfu
 
