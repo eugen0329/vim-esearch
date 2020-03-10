@@ -48,7 +48,7 @@ fu! esearch#out#qflist#setup_autocmds(opts) abort
   augroup ESearchQFListAutocmds
     au! * <buffer>
     for [func_name, event] in items(a:opts.request.events)
-      exe printf('au User %s call esearch#out#qflist#%s()', event, func_name)
+      let a:opts.request.events[func_name] = function('esearch#out#qflist#' . func_name)
     endfor
     call esearch#backend#{a:opts.backend}#init_events()
 
@@ -107,9 +107,6 @@ fu! esearch#out#qflist#finish() abort
 
   if esearch.request.async
     au! ESearchQFListAutocmds * <buffer>
-    for [func_name, event] in items(esearch.request.events)
-      exe printf('au! ESearchQFListAutocmds User %s ', event)
-    endfor
   endif
 
   " Update using all remaining request.data
