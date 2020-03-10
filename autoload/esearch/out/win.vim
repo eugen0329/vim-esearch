@@ -178,7 +178,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                   [],
         \ 'data':                     [],
         \ 'context_syntax_regions':   {},
-        \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight && 0,
+        \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
         \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
         \})
@@ -301,10 +301,12 @@ fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
 endfu
 
 fu! s:unload_update_events(esearch) abort
-  exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:esearch.bufnr))
-  for event in values(a:esearch.request.events)
-    exe printf('au! ESearchWinUpdates User %s ', event)
-  endfor
+  augroup ESearchWinUpdates
+    for event in values(a:esearch.request.events)
+      exe printf('au! User %s', event)
+    endfor
+  augroup END
+  exe printf('au! ESearchWinUpdates * <buffer=%d>', a:esearch.bufnr)
 endfu
 
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
@@ -533,7 +535,7 @@ fu! s:blocking_unload_syntaxes(esearch) abort
 endfu
 
 fu! s:load_syntax(esearch, context) abort
-  if a:context.filetype is# 0
+  if empty(a:context.filetype)
     let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
   endif
 

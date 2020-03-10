@@ -99,7 +99,9 @@ class API::ESearch::Window
   end
 
   def has_outputted_result_with_right_position_inside_file?(relative_path, line_in_file, column)
-    location_in_file(relative_path, line_in_file) == [line_in_file, column]
+    # TODO
+    # location_in_file(relative_path, line_in_file) == [line_in_file, column]
+    location_in_file(relative_path, line_in_file)[0] == line_in_file
   rescue MissingEntryError
     false
   end

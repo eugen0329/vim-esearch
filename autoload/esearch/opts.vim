@@ -23,7 +23,7 @@ fu! esearch#opts#new(opts) abort
         \ 'regex':            0,
         \ 'case':             0,
         \ 'word':             0,
-        \ 'batch_size':       (g:esearch#has#lua ? 10000 : 1000),
+        \ 'batch_size':       (g:esearch#has#lua ? 5000 : 1000),
         \ 'last_batch_size':  (g:esearch#has#lua ? 20000 : 4000),
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'highlight_match':  1,
