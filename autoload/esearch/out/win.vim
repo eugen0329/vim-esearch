@@ -29,10 +29,10 @@ let s:mappings = [
       \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
       \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
       \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
+      \ {'lhs': '<c-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      \ {'lhs': '<c-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
 " TODO
-      " " \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      " \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
 
 let s:null = 0
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'

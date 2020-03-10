@@ -1,4 +1,4 @@
-let esearch#adapter#ag_like#multiple_files_search_format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
+let esearch#adapter#ag_like#format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
 
 fu! esearch#adapter#ag_like#joined_paths(esearch) abort
   if empty(a:esearch.paths)
@@ -16,7 +16,7 @@ fu! esearch#adapter#ag_like#set_results_parser(esearch) abort
           \ function('esearch#adapter#ag_like#parse_with_getqflist_lines')
   else
     let a:esearch.parse = function('esearch#adapter#ag_like#parse')
-    let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_search_format
+    let a:esearch.format = g:esearch#adapter#ag_like#format
   endif
 
   let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
@@ -56,15 +56,16 @@ fu! esearch#adapter#ag_like#parse(data, from, to) abort dict
   let limit = a:to + 1
 
   while i < limit
-    let m = matchlist(a:data[i], format)[1:4]
+    let m = matchlist(a:data[i], format)[1:3]
 
-    if len(m) != 4
+    if len(m) != 3
       if index(self.broken_results, a:data[i]) < 0
         call add(self.broken_results, {'after': a:data[i-1], 'res': a:data[i]})
       endif
     else
-      call add(results, {'filename': substitute(m[0], b:esearch.cwd_prefix, '', ''),
-            \ 'lnum': m[1], 'col': m[2], 'text': m[3]})
+      call add(results, {
+            \ 'filename': substitute(m[0], b:esearch.cwd_prefix, '', ''),
+            \ 'lnum': m[1], 'text': m[2]})
     endif
     let i += 1
   endwhile

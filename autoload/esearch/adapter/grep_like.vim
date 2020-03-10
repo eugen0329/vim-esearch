@@ -41,7 +41,7 @@ fu! esearch#adapter#grep_like#parse(data, from, to) abort dict
     else
       call add(results, {
             \ 'filename': substitute(m[0], b:esearch.cwd_prefix, '', ''),
-            \ 'lnum': m[1], 'text': m[2] })
+            \ 'lnum': m[1], 'text': m[2]})
     endif
     let i += 1
   endwhile
