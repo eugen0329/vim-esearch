@@ -18,13 +18,24 @@ fu! esearch#opts#new(opts) abort
     let opts.adapter = esearch#opts#default_adapter()
   endif
 
+  if g:esearch#has#nvim_lua
+    let batch_size = 5000
+    let final_batch_size = 15000
+  elseif g:esearch#has#vim_lua
+    let batch_size = 2500
+    let final_batch_size = 5000
+  else
+    let batch_size = 1000
+    let final_batch_size = 4000
+  endif
+
   let opts = extend(opts, {
         \ 'out':              g:esearch#defaults#out,
         \ 'regex':            0,
         \ 'case':             0,
         \ 'word':             0,
-        \ 'batch_size':       800,
-        \ 'last_batch_size':  4*800,
+        \ 'batch_size':       batch_size,
+        \ 'final_batch_size':  final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'highlight_match':  1,
         \ 'default_mappings': g:esearch#defaults#default_mappings,

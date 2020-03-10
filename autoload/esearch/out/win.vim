@@ -29,11 +29,11 @@ let s:mappings = [
       \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
       \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
       \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
+      \ {'lhs': '<c-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      \ {'lhs': '<c-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
-" TODO
-      " " \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      " \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
 
+let s:null = 0
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
@@ -89,6 +89,9 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
 endif
 if !exists('g:esearch_out_win_highlight_cursor_line_number')
   let g:esearch_out_win_highlight_cursor_line_number = 1
+endif
+if !exists('g:esearch_out_win_render_using_lua')
+  let g:esearch_out_win_render_using_lua = g:esearch#has#lua
 endif
 
 let s:context_syntaxes = {
@@ -168,7 +171,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'ignore_batches':           0,
         \ 'highlight_viewport':       0,
         \ 'tick':                     0,
-        \ 'columns_map':              [],
         \ 'line_numbers_map':         [],
         \ 'contexts':                 [],
         \ 'context_by_name':          {},
@@ -200,11 +202,10 @@ fu! esearch#out#win#init(opts) abort
   augroup END
 
   " setup blank context for header
-  call s:add_context(b:esearch.contexts, '', 1)
+  call esearch#out#win#add_context(b:esearch.contexts, '', 1)
   let header_context = b:esearch.contexts[0]
   let header_context.end = 2
   let b:esearch.context_ids_map += [header_context.id, header_context.id]
-  let b:esearch.columns_map += [0, 0]
   let b:esearch.line_numbers_map += [0, 0]
 
   call extend(b:esearch.request, {
@@ -225,7 +226,7 @@ fu! s:highlight_cursor_line_number() abort
     try
       call matchdelete(b:esearch_linenr_id)
     catch /E803:/
-      " a workaround for nvim when going to help (isn't reproduced for vim)
+      " a workaround for nvim when switching to a help buffer (isn't reproduced for vim)
       return
     endtry
   endif
@@ -259,8 +260,8 @@ fu! s:init_update_events(esearch) abort
       if a:esearch.backend !=# 'vimproc'
         " TODO
         for [func_name, event] in items(a:esearch.request.events)
-          exe printf('au User %s call s:update_by_backend_callbacks_until_1st_batch_is_rendered(%d)',
-                \ event, a:esearch.bufnr)
+          let a:esearch.request.events[func_name] =
+                \ function('s:update_by_backend_callbacks_until_1st_batch_is_rendered', [bufnr('%')])
         endfor
       endif
 
@@ -275,10 +276,10 @@ fu! s:init_update_events(esearch) abort
     augroup ESearchWinUpdates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
-      for [func_name, event] in items(a:esearch.request.events)
-        exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
-      endfor
     augroup END
+    for [func_name, event] in items(a:esearch.request.events)
+      let a:esearch.request.events[func_name] = function('esearch#out#win#' . func_name, [bufnr('%')])
+    endfor
   endif
 endfu
 
@@ -301,10 +302,12 @@ fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
 endfu
 
 fu! s:unload_update_events(esearch) abort
-  exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:esearch.bufnr))
-  for event in values(a:esearch.request.events)
-    exe printf('au! ESearchWinUpdates User %s ', event)
-  endfor
+  augroup ESearchWinUpdates
+    for func_name in keys(a:esearch.request.events)
+      let a:esearch.request.events[func_name] = s:null
+    endfor
+  augroup END
+  exe printf('au! ESearchWinUpdates * <buffer=%d>', a:esearch.bufnr)
 endfu
 
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
@@ -384,7 +387,7 @@ fu! esearch#out#win#update(bufnr) abort
     " TODO consider to discard ignore_batches as it doesn't make a lot of sense
     if ignore_batches
           \ || data_size - request.cursor - 1 <= esearch.batch_size
-          \ || (request.finished && data_size - request.cursor - 1 <= esearch.last_batch_size)
+          \ || (request.finished && data_size - request.cursor - 1 <= esearch.final_batch_size)
       let [from, to] = [request.cursor, data_size - 1]
       let request.cursor = data_size
     else
@@ -392,20 +395,11 @@ fu! esearch#out#win#update(bufnr) abort
       let request.cursor += esearch.batch_size
     endif
 
-    let parsed = esearch.parse(data, from, to)
-    " changing cwd is required as some builtin vim function like bufname() have
-    " side effects
-    try
-      let saved_cwd = getcwd()
-      if !empty(b:esearch.cwd)
-        exe 'lcd' b:esearch.cwd
-      endif
-      call s:render_results(a:bufnr, parsed, esearch)
-    finally
-      if !empty(saved_cwd)
-        exe 'lcd' saved_cwd
-      endif
-    endtry
+    if g:esearch_out_win_render_using_lua
+      call esearch#out#win#render#lua#do(a:bufnr, data, from, to, esearch)
+    else
+      call esearch#out#win#render#viml#do(a:bufnr, data, from, to, esearch)
+    endif
   endif
 
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
@@ -451,74 +445,9 @@ fu! s:new_context(id, filename, begin) abort
         \ }
 endfu
 
-fu! s:add_context(contexts, filename, begin) abort
+fu! esearch#out#win#add_context(contexts, filename, begin) abort
   let id = len(a:contexts)
   call add(a:contexts, s:new_context(id, a:filename, a:begin))
-endfu
-
-fu! s:render_results(bufnr, parsed, esearch) abort
-  let line = line('$') + 1
-  let parsed = a:parsed
-
-  let i = 0
-  let limit = len(parsed)
-  let lines = []
-
-  while i < limit
-    if has_key(parsed[i], 'bufnr')
-      let filename = bufname(parsed[i].bufnr)
-    else
-      let filename = substitute(parsed[i].filename, a:esearch.cwd_prefix, '', '')
-    endif
-
-    if g:esearch_win_ellipsize_results
-      let text = esearch#util#ellipsize(
-            \ parsed[i].text,
-            \ parsed[i].col,
-            \ a:esearch.context_width.left,
-            \ a:esearch.context_width.right,
-            \ g:esearch#util#ellipsis)
-    else
-
-      let text = parsed[i].text
-    endif
-
-    if filename !=# a:esearch.contexts[-1].filename
-      let a:esearch.contexts[-1].end = line
-
-      if a:esearch.highlights_enabled &&
-            \ len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
-        let a:esearch.highlights_enabled = 0
-        call s:unload_highlights(a:esearch)
-      end
-
-      call add(lines, '')
-      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-      call add(a:esearch.columns_map, 0)
-      call add(a:esearch.line_numbers_map, 0)
-      let line += 1
-
-      call add(lines, filename)
-      call s:add_context(a:esearch.contexts, filename, line)
-      let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
-      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-      call add(a:esearch.columns_map, 0)
-      call add(a:esearch.line_numbers_map, 0)
-      let a:esearch.files_count += 1
-      let line += 1
-      let a:esearch.contexts[-1].filename = filename
-    endif
-
-    call add(lines, printf(s:linenr_format, parsed[i].lnum, text))
-    call add(a:esearch.columns_map, parsed[i].col)
-    call add(a:esearch.line_numbers_map, parsed[i].lnum)
-    call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
-    let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text
-    let line += 1
-    let i    += 1
-  endwhile
-
-  call esearch#util#append_lines(lines)
 endfu
 
 fu! s:highlight_viewport() abort
@@ -573,7 +502,9 @@ fu! s:set_syntax_sync(esearch) abort
         \ ])
 endfu
 
-fu! s:unload_highlights(esearch) abort
+fu! esearch#out#win#unload_highlights() abort
+  let b:esearch.highlights_enabled = 0
+
   " disable highlights of matching braces (3d party plugin)
   " au! parenmatch *
   let b:parenmatch = 0 " another way if parenmatch group name will become outdate
@@ -581,11 +512,11 @@ fu! s:unload_highlights(esearch) abort
   if s:Promise.is_available()
     return s:Promise
           \.new({resolve -> timer_start(0, resolve)})
-          \.then({-> s:blocking_unload_syntaxes(a:esearch)})
+          \.then({-> s:blocking_unload_syntaxes(b:esearch)})
           \.catch({reason -> execute('echoerr reason')})
   endif
 
-  return s:blocking_unload_syntaxes(a:esearch)
+  return s:blocking_unload_syntaxes(b:esearch)
 endfu
 
 fu! s:blocking_unload_syntaxes(esearch) abort
@@ -607,7 +538,7 @@ fu! s:blocking_unload_syntaxes(esearch) abort
 endfu
 
 fu! s:load_syntax(esearch, context) abort
-  if a:context.filetype is# 0
+  if empty(a:context.filetype)
     let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
   endif
 
@@ -708,7 +639,9 @@ fu! s:init_mappings() abort
 endfu
 
 fu! esearch#out#win#column_in_file() abort
-  return get(b:esearch.columns_map, s:result_line(), 1)
+  return 1
+  " TODO resolve on the fly
+  " let col = match(m[2], pattern) + 1
 endfu
 
 fu! s:open(cmd, ...) abort
@@ -892,9 +825,6 @@ fu! esearch#out#win#finish(bufnr) abort
 
   if esearch.request.async
     exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:bufnr))
-    for event in values(esearch.request.events)
-      exe printf('au! ESearchWinUpdates User %s ', event)
-    endfor
   endif
 
   if has_key(esearch, 'updates_timer')

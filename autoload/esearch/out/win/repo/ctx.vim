@@ -7,15 +7,16 @@ fu! esearch#out#win#repo#ctx#new(esearch, state) abort
 endfu
 
 fu! s:by_line(line) abort dict
-  if len(self.state.context_ids_map) <= a:line
+  let line = a:line
+  if len(self.state.context_ids_map) <= line
     return 0
   endif
 
-  let context = self.esearch.contexts[self.state.context_ids_map[a:line]]
+  let context = self.esearch.contexts[self.state.context_ids_map[line]]
 
   " read-through cache synchronization
-  let context.begin = s:line_begin(self.state.context_ids_map, context, a:line)
-  let context.end   = s:line_end(self.state.context_ids_map, context, a:line)
+  let context.begin = s:line_begin(self.state.context_ids_map, context, line)
+  let context.end   = s:line_end(self.state.context_ids_map, context, line)
 
   return context
 endfu

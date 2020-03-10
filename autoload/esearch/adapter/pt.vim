@@ -28,14 +28,14 @@ fu! esearch#adapter#pt#cmd(esearch, pattern, escape) abort
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
-  return g:esearch#adapter#pt#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
+  return g:esearch#adapter#pt#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor ' .
         \ g:esearch#adapter#pt#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
 fu! esearch#adapter#pt#set_results_parser(esearch) abort
   let a:esearch.parse = function('esearch#adapter#ag_like#parse')
-  let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
+  let a:esearch.format = g:esearch#adapter#ag_like#format
   let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
 endfu
 
