@@ -28,7 +28,7 @@ fu! esearch#adapter#ack#cmd(esearch, pattern, escape) abort
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
-  return g:esearch#adapter#ack#bin.' '.r.' '.c.' '.w.' -s --nogroup --nocolor --column ' .
+  return g:esearch#adapter#ack#bin.' '.r.' '.c.' '.w.' -s --nogroup --nocolor ' .
         \ g:esearch#adapter#ack#options . ' -- ' .
         \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu

@@ -7,7 +7,6 @@ fu! esearch#out#win#repo#ctx#new(esearch, state) abort
 endfu
 
 fu! s:by_line(line) abort dict
-  " let line = (type(a:line) == type('') ? str2nr(a:line) : float2nr(a:line))
   let line = a:line
   if len(self.state.context_ids_map) <= line
     return 0

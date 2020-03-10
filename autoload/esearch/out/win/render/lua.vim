@@ -10,12 +10,12 @@ endif
 "   - Different api's are used. Vim exposes vim.* methods, neovim mostly use
 "   vim.api.*
 "   - In vim data is changed directly by changing a lua structure, in neovim we
-"   have to return a value using luaeval() and merrge using extend() (still
-"   hasn't found a way except nvim_buf_set_var that is running twice longer).
-"   - Vim wraps data structures to partially implement viml api on top of them,
-"   neovim use lua primitives
+"   have to return a value using luaeval() and merge using extend() (still
+"   haven't found a way except nvim_buf_set_var that is running twice longer).
+"   - Vim wraps data structures to partially implement viml-like api on top of
+"   them, neovim uses lua primitives
 "   - Due to the note above, in vim indexing starts from 0, in neovim - from 1.
-"   The same is with luaeval 
+"   The same is with luaeval magic _A global constant
 "   - Different serialization approaches. Ex: vim doesn't distinguish float and
 "   int, while neovim does
 
@@ -58,11 +58,10 @@ function parse_from_1_file(data, path, cwd_prefix)
 
   for i = 1, #data do
     if data[i]:len() > 0 then
-      lnum, col, text = string.match(data[i], '(%d+):(%d+):(.*)')
-      parsed[i] = {
+      lnum, text = string.match(data[i], '(%d+):(.*)')
+      parsed[#parsed + 1] = {
         ['filename'] = path,
         ['lnum']     = lnum,
-        ['col']      = col,
         ['text']     = text:gsub("[\r\n]", '')
       }
     end
@@ -76,13 +75,16 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 
   for i = 1, #data do
     if data[i]:len() > 0 then
-      filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
-      parsed[i] = {
-        ['filename'] = string.gsub(filename, cwd_prefix, ''),
-        ['lnum']     = lnum,
-        ['col']      = col,
-        ['text']     = text:gsub("[\r\n]", '')
-      }
+      filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
+      if filename == nil or lnum == nil or text == nil then
+        -- TODO errors handling
+      else
+        parsed[#parsed + 1] = {
+          ['filename'] = string.gsub(filename, cwd_prefix, ''),
+          ['lnum']     = lnum,
+          ['text']     = text:gsub("[\r\n]", '')
+        }
+      end
     end
   end
 
@@ -168,11 +170,10 @@ function parse_from_1_file(data, path, cwd_prefix)
 
   for i = 0, #data - 1 do
     if data[i]:len() > 0 then
-      lnum, col, text = string.match(data[i], '(%d+):(%d+):(.*)')
+      lnum, text = string.match(data[i], '(%d+):(.*)')
       parsed:add(vim.dict({
         ['filename'] = path,
         ['lnum']     = lnum,
-        ['col']      = col,
         ['text']     = text:gsub("[\r\n]", '')
       }))
     end
@@ -186,13 +187,16 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 
   for i = 0, #data - 1 do
     if data[i]:len() > 0 then
-      filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
-      parsed:add(vim.dict({
-        ['filename'] = string.gsub(filename, cwd_prefix, ''),
-        ['lnum']     = lnum,
-        ['col']      = col,
-        ['text']     = text:gsub("[\r\n]", '')
-      }))
+      filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
+      if filename == nil or lnum == nil or text == nil then
+        -- TODO errors handling
+      else
+        parsed:add(vim.dict({
+          ['filename'] = string.gsub(filename, cwd_prefix, ''),
+          ['lnum']     = lnum,
+          ['text']     = text:gsub("[\r\n]", '')
+        }))
+      end
     end
   end
 
