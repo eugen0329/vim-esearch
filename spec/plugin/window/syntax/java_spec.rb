@@ -95,7 +95,7 @@ describe 'esearch window context syntax', :window do
         region('"string"')                   => %w[es_javaString String],
         region('"escaped quote\\\\"')        => %w[es_javaString String],
         region('"str with escape\\\\n"')     => %w[es_javaString String],
-        region('"ellipsized string[^"]\\+$') => %w[es_javaString String],
+        # region('"ellipsized string[^"]\\+$') => %w[es_javaString String],
 
         word('null')                         => %w[es_javaConstant Constant],
 

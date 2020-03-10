@@ -251,7 +251,7 @@ function esearch_out_win_render_vim(data, is_single_file, path, cwd_prefix, esea
         ['filename']      = filename,
         ['filetype']      = false,
         ['syntax_loaded'] = false,
-        ['lines']         = vim.list({}),
+        ['lines']         = vim.dict(),
         }))
       context_by_name[filename] = contexts[#contexts - 1]
       context_ids_map:add(contexts[#contexts - 1]['id'])

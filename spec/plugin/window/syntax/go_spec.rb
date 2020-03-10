@@ -72,7 +72,7 @@ describe 'esearch window context syntax', :window do
         region('"string"')                   => %w[es_goString String],
         region('"escaped quote\\\\"')        => %w[es_goString String],
         region('"str with escape\\\\n"')     => %w[es_goString String],
-        region('"ellipsized string[^"]\\+$') => %w[es_goString String],
+        # region('"ellipsized string[^"]\\+$') => %w[es_goString String],
         region('`raw string`$')              => %w[es_goRawString String],
 
         word('defer')                        => %w[es_goStatement Statement],

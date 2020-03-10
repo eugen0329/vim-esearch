@@ -185,7 +185,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
-    context 'when rendering with lua' do
+    context 'when rendering with lua', :lua_render do
       before { editor.command 'let g:esearch_out_win_render_using_lua = 1' }
 
       include_context 'a backend', 'vim8'
@@ -193,7 +193,7 @@ describe 'esearch#backend', :backend do
       it_behaves_like 'an abortable backend', 'vim8'
     end
 
-    context 'when rendering with viml' do
+    context 'when rendering with viml', :viml_render do
       before { editor.command 'let g:esearch_out_win_render_using_lua = 0' }
 
       include_context 'a backend', 'vim8'

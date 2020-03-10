@@ -92,7 +92,7 @@ describe 'esearch window context syntax', :window do
         region('"string"')                   => %w[es_cString String],
         region('"escaped quote\\\\"')        => %w[es_cString String],
         region('"str with escape\\\\n"')     => %w[es_cString String],
-        region('"ellipsized string[^"]\\+$') => %w[es_cString String],
+        # region('"ellipsized string[^"]\\+$') => %w[es_cString String],
 
         region('#define')                    => %w[es_cDefine Macro],
         region('#undef')                     => %w[es_cDefine Macro],
