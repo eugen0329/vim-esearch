@@ -73,7 +73,7 @@ endfu
 fu! s:stderr(job_id, job, data) abort
   let job = s:jobs[a:job_id]
   let data = split(a:data, "\n", 1)
-  let request.errors += filter(data, "'' !=# v:val")
+  let job.request.errors += filter(data, "'' !=# v:val")
 endfu
 
 func! s:timer_stop_workaround(job, timer) abort

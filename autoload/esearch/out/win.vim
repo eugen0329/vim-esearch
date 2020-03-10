@@ -32,7 +32,6 @@ let s:mappings = [
       \ {'lhs': '<c-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
       \ {'lhs': '<c-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
-" TODO
 
 let s:null = 0
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
