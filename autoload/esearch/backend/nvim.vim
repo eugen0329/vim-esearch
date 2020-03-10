@@ -31,8 +31,8 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
-        \   'schedule_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
-        \   'update': 'ESearchNVimUpdate'.s:incrementable_internal_id
+        \   'schedule_finish': 0,
+        \   'update': 0
         \ }
         \}
 
@@ -72,8 +72,8 @@ fu! s:stdout(job_id, data, event) dict abort
 
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
-  if self.tick % self.ticks == 1
-    exe 'do User '.job.request.events.update
+  if self.tick % self.ticks == 1 && !empty(job.request.events.update)
+    call job.request.events.update()
   endif
 endfu
 
@@ -95,8 +95,8 @@ fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  if !job.request.aborted
-    exe 'do User '.job.request.events.schedule_finish
+  if !job.request.aborted && !empty(job.request.events.schedule_finish)
+    call job.request.events.schedule_finish()
   endif
 endfu
 

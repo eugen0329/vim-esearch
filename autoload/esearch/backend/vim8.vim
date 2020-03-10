@@ -43,8 +43,8 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
-        \   'schedule_finish': 'ESearchvim8Finish'.s:incrementable_internal_id,
-        \   'update': 'ESearchvim8Update'.s:incrementable_internal_id
+        \   'schedule_finish': 0,
+        \   'update': 0
         \ }
         \}
 
@@ -60,17 +60,17 @@ endfu
 
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
-  let job = s:jobs[a:job_id]
+  let request = s:jobs[a:job_id].request
   " as callback can still be triggered with buffered data
-  if job.request.aborted | return | endif
+  if request.aborted | return | endif
 
   let data = split(a:data, "\n", 1)
-  let job.request.data += filter(data, "'' !=# v:val")
+  let request.data += filter(data, "'' !=# v:val")
 
   " Reduce buffer updates to prevent long cursor lock
-  let job.request.tick = job.request.tick + 1
-  if job.request.tick % job.request.ticks == 1 
-    exe 'do User '.job.request.events.update
+  let request.tick = request.tick + 1
+  if request.tick % request.ticks == 1 && !empty(request.events.update)
+    call request.events.update()
   endif
 endfu
 
@@ -92,7 +92,9 @@ endfunc
 func! s:watch_for_buffered_data_render_complete(job, timer) abort
   " dirty check
   if a:job.request.cursor == a:job.request.old_cursor
-    exe 'do User '.a:job.request.events.schedule_finish
+    if !empty(a:job.request.events.schedule_finish)
+      call a:job.request.events.schedule_finish()
+    endif
     call timer_start(0, function('s:timer_stop_workaround', [a:job]))
   else
     let a:job.request.old_cursor = a:job.request.cursor

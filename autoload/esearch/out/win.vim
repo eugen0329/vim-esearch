@@ -34,6 +34,7 @@ let s:mappings = [
       " " \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
       " \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
 
+let s:null = 0
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
@@ -259,8 +260,8 @@ fu! s:init_update_events(esearch) abort
       if a:esearch.backend !=# 'vimproc'
         " TODO
         for [func_name, event] in items(a:esearch.request.events)
-          exe printf('au User %s call s:update_by_backend_callbacks_until_1st_batch_is_rendered(%d)',
-                \ event, a:esearch.bufnr)
+          let a:esearch.request.events[func_name] =
+                \ function('s:update_by_backend_callbacks_until_1st_batch_is_rendered', [bufnr('%')])
         endfor
       endif
 
@@ -275,10 +276,10 @@ fu! s:init_update_events(esearch) abort
     augroup ESearchWinUpdates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
-      for [func_name, event] in items(a:esearch.request.events)
-        exe printf('au User %s call esearch#out#win#%s(%s)', event, func_name, string(bufnr('%')))
-      endfor
     augroup END
+    for [func_name, event] in items(a:esearch.request.events)
+      let a:esearch.request.events[func_name] = function('esearch#out#win#' . func_name, [bufnr('%')])
+    endfor
   endif
 endfu
 
@@ -302,8 +303,8 @@ endfu
 
 fu! s:unload_update_events(esearch) abort
   augroup ESearchWinUpdates
-    for event in values(a:esearch.request.events)
-      exe printf('au! User %s', event)
+    for func_name in keys(a:esearch.request.events)
+      let a:esearch.request.events[func_name] = s:null
     endfor
   augroup END
   exe printf('au! ESearchWinUpdates * <buffer=%d>', a:esearch.bufnr)
@@ -821,9 +822,6 @@ fu! esearch#out#win#finish(bufnr) abort
 
   if esearch.request.async
     exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:bufnr))
-    for event in values(esearch.request.events)
-      exe printf('au! ESearchWinUpdates User %s ', event)
-    endfor
   endif
 
   if has_key(esearch, 'updates_timer')

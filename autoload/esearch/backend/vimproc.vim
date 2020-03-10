@@ -32,9 +32,9 @@ fu! esearch#backend#vimproc#init(cmd, pty) abort
         \ 'aborted': 0,
         \ '_last_update_time':   esearch#util#timenow(),
         \ 'events': {
-        \   'finish':            'ESearchVimProcFinish'.s:incrementable_internal_id,
-        \   'update':            'ESearchVimProcUpdate'.s:incrementable_internal_id,
-        \   'trigger_key_press': 'ESearchVimProcTriggerKeypress'.s:incrementable_internal_id
+        \   'finish':            0,
+        \   'update':            0,
+        \   'trigger_key_press': 0
         \ }
         \}
 
@@ -103,8 +103,8 @@ fu! s:finish(request, request_id) abort
   endif
   let [a:request.cond, a:request.status] = a:request.pipe.waitpid()
   let a:request.finished = 1
-  if !a:request.aborted
-    exe 'do User '.a:request.events.finish
+  if !a:request.aborted && !empty(a:request.events.finish)
+    call a:request.events.finish()
   endif
   exe 'au! ESearchVimproc'.a:request_id
 endfu
@@ -114,7 +114,9 @@ fu! s:_on_cursor_hold(request_id) abort
   call s:read_data(request)
 
   let events = request.events
-  exe 'do User '.events.update
+  if !a:request.aborted && !empty(a:request.events.update)
+    call a:request.events.update()
+  endif
   let request._last_update_time = esearch#util#timenow()
 
   if request.pipe.stdout.eof
@@ -123,8 +125,8 @@ fu! s:_on_cursor_hold(request_id) abort
 
   if s:completed(request)
     call s:finish(request, a:request_id)
-  else
-    exe 'do User '.events.trigger_key_press
+  elseif !empty(events.trigger_key_press)
+    call events.trigger_key_press()
   endif
 endfu
 
