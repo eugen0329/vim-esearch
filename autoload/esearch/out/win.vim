@@ -91,6 +91,9 @@ endif
 if !exists('g:esearch_out_win_highlight_cursor_line_number')
   let g:esearch_out_win_highlight_cursor_line_number = 1
 endif
+if !exists('g:esearch_out_win_render_using_lua')
+  let g:esearch_out_win_render_using_lua = g:esearch#has#lua
+endif
 
 let s:context_syntaxes = {
       \ 'c':               'win_context_c',
@@ -395,7 +398,7 @@ fu! esearch#out#win#update(bufnr) abort
       let request.cursor += esearch.batch_size
     endif
 
-    if g:esearch#has#lua
+    if g:esearch_out_win_render_using_lua
       call esearch#out#win#render#lua#do(a:bufnr, data, from, to, esearch)
     else
       call esearch#out#win#render#viml#do(a:bufnr, data, from, to, esearch)
@@ -502,7 +505,9 @@ fu! s:set_syntax_sync(esearch) abort
         \ ])
 endfu
 
-fu! s:unload_highlights(esearch) abort
+fu! esearch#out#win#unload_highlights() abort
+  let b:esearch.highlights_enabled = 0
+
   " disable highlights of matching braces (3d party plugin)
   " au! parenmatch *
   let b:parenmatch = 0 " another way if parenmatch group name will become outdate
@@ -510,11 +515,11 @@ fu! s:unload_highlights(esearch) abort
   if s:Promise.is_available()
     return s:Promise
           \.new({resolve -> timer_start(0, resolve)})
-          \.then({-> s:blocking_unload_syntaxes(a:esearch)})
+          \.then({-> s:blocking_unload_syntaxes(b:esearch)})
           \.catch({reason -> execute('echoerr reason')})
   endif
 
-  return s:blocking_unload_syntaxes(a:esearch)
+  return s:blocking_unload_syntaxes(b:esearch)
 endfu
 
 fu! s:blocking_unload_syntaxes(esearch) abort

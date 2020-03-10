@@ -16,6 +16,7 @@ install_package_vim() {
   if is_debian_or_debian_like_linux; then
     $sudo add-apt-repository ppa:jonathonf/vim -y
     $sudo apt update -y
+    $sudo apt-get install -y "$apt_get_arguement_to_install_less" lua5.3
     $sudo apt-get install -y "$apt_get_arguement_to_install_less" vim-gtk
   elif is_alpine_linux; then
     apk add "$apk_argument_to_install_less" gvim

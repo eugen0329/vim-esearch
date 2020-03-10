@@ -114,8 +114,8 @@ fu! s:_on_cursor_hold(request_id) abort
   call s:read_data(request)
 
   let events = request.events
-  if !a:request.aborted && !empty(a:request.events.update)
-    call a:request.events.update()
+  if !request.aborted && !empty(request.events.update)
+    call request.events.update()
   endif
   let request._last_update_time = esearch#util#timenow()
 

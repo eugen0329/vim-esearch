@@ -4,7 +4,6 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
   let parsed = a:esearch.parse(a:data, a:from, a:to)
 
   let line = line('$') + 1
-
   let i = 0
   let limit = len(parsed)
   let lines = []
@@ -28,9 +27,8 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       let a:esearch.contexts[-1].end = line
 
       if a:esearch.highlights_enabled &&
-            \ len(a:esearch.contexts) > g:esearch_win_disable_context_highlights_on_files_count
-        let a:esearch.highlights_enabled = 0
-        call s:unload_highlights(a:esearch)
+            \ a:esearch.contexts[-1].id > g:esearch_win_disable_context_highlights_on_files_count
+        call esearch#out#win#unload_highlights()
       end
 
       call add(lines, '')
@@ -61,4 +59,3 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
 
   call esearch#util#append_lines(lines)
 endfu
-

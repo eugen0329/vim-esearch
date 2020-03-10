@@ -185,10 +185,20 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
-    before { editor.press! ':let g:esearch#backend#vim8#timer = 100<Enter>' }
+    context 'when rendering with lua' do
+      before { editor.command 'let g:esearch_out_win_render_using_lua = 1' }
 
-    include_context 'a backend', 'vim8'
-    include_context 'a backend 2', 'vim8'
-    it_behaves_like 'an abortable backend', 'vim8'
+      include_context 'a backend', 'vim8'
+      include_context 'a backend 2', 'vim8'
+      it_behaves_like 'an abortable backend', 'vim8'
+    end
+
+    context 'when rendering with viml' do
+      before { editor.command 'let g:esearch_out_win_render_using_lua = 0' }
+
+      include_context 'a backend', 'vim8'
+      include_context 'a backend 2', 'vim8'
+      it_behaves_like 'an abortable backend', 'vim8'
+    end
   end
 end

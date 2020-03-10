@@ -107,7 +107,9 @@ fu! s:closed(job_id, channel) abort
 
   " TODO should be properly tested first
   if esearch#util#vim8_calls_close_cb_last()
-    exe 'do User '.job.request.events.schedule_finish
+    if !empty(job.request.events.schedule_finish)
+      call job.request.events.schedule_finish()
+    endif
   else
     let job.request.timer_id = timer_start(g:esearch#backend#vim8#timer,
           \ function('s:watch_for_buffered_data_render_complete', [job]),

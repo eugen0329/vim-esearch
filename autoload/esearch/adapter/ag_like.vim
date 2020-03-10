@@ -16,10 +16,7 @@ fu! esearch#adapter#ag_like#set_results_parser(esearch) abort
     let a:esearch.parse = function('esearch#adapter#ag_like#parse_from_1_file')
     let a:esearch.format = g:esearch#adapter#ag_like#single_file_search_format
   else
-    if g:esearch#has#lua
-      let a:esearch.parse =
-            \ function('esearch#adapter#ag_like#parse_with_lua')
-    elseif g:esearch#has#getqflist_lines
+    if g:esearch#has#getqflist_lines
       let a:esearch.parse =
             \ function('esearch#adapter#ag_like#parse_with_getqflist_lines')
     else
@@ -60,41 +57,6 @@ fu! esearch#adapter#ag_like#parse_from_1_file(data, from, to) abort dict
 
   return results
 endfu
-
-" NOTE: sometimes ag outputs blank lines with no content that can be safely
-" skipped, so :len() > 0 is used
-if has('nvim')
-  fu! esearch#adapter#ag_like#parse_with_lua(data, from, to) abort dict
-    lua << EOF
-    result = {}
-    local data = vim.api.nvim_eval('a:data[a:from : a:to]')
-    local cwd = vim.api.nvim_eval('self.lua_cwd_prefix')
-    for i = 1, #data do
-      if data[i]:len() > 0 then
-        filename, lnum, col, text = string.match(data[i], '([^:]+):(%d+):(%d+):(.*)')
-        result[i] = {['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}
-      end
-    end
-EOF
-    return luaeval('result')
-  endfu
-else
-  fu! esearch#adapter#ag_like#parse_with_lua(data, from, to) abort dict
-    let result = []
-
-    lua << EOF
-    local result = vim.eval('result')
-    local cwd = vim.eval('self.lua_cwd_prefix')
-    for raw_line in vim.eval('a:data[a:from : a:to]')() do
-      if raw_line:len() > 0 then
-        filename, lnum, col, text = string.match(raw_line, '([^:]+):(%d+):(%d+):(.*)')
-        result:add(vim.dict({['filename'] = string.gsub(filename, cwd, ''), ['lnum'] = lnum, ['col'] = col, ['text'] = text}))
-      end
-    end
-EOF
-    return result
-  endfu
-endif
 
 fu! esearch#adapter#ag_like#parse_with_getqflist_lines(data, from, to) abort dict
   if empty(a:data) | return [] | endif

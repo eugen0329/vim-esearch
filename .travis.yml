@@ -102,8 +102,11 @@ jobs:
     #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag nvim' --seed 6880
     #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
     #   os: osx
-    - name: 'Acceptance tests of #backend#vim8'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8
+    - name: 'Acceptance tests of #backend#vim8 with #viml render'
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render_lua
+      os: osx
+    - name: 'Acceptance tests of #backend#vim8 with #lua render'
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render_viml
       os: osx
     # - name: 'Acceptance tests of #backend#vimproc'
     #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
