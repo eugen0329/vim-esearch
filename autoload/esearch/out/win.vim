@@ -172,7 +172,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'ignore_batches':           0,
         \ 'highlight_viewport':       0,
         \ 'tick':                     0,
-        \ 'columns_map':              [],
         \ 'line_numbers_map':         [],
         \ 'contexts':                 [],
         \ 'context_by_name':          {},
@@ -208,7 +207,6 @@ fu! esearch#out#win#init(opts) abort
   let header_context = b:esearch.contexts[0]
   let header_context.end = 2
   let b:esearch.context_ids_map += [header_context.id, header_context.id]
-  let b:esearch.columns_map += [0, 0]
   let b:esearch.line_numbers_map += [0, 0]
 
   call extend(b:esearch.request, {
@@ -229,7 +227,7 @@ fu! s:highlight_cursor_line_number() abort
     try
       call matchdelete(b:esearch_linenr_id)
     catch /E803:/
-      " a workaround for nvim when going to help (isn't reproduced for vim)
+      " a workaround for nvim when switching to a help buffer (isn't reproduced for vim)
       return
     endtry
   endif
@@ -643,7 +641,8 @@ endfu
 
 fu! esearch#out#win#column_in_file() abort
   return 1
-  return get(b:esearch.columns_map, s:result_line(), 1)
+  " TODO resolve on the fly
+  " let col = match(m[2], pattern) + 1
 endfu
 
 fu! s:open(cmd, ...) abort

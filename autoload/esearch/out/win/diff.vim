@@ -15,7 +15,8 @@ fu! esearch#out#win#diff#do(parsed_contexts, original_contexts) abort
 
       for [line, text] in items(original.lines)
         if has_key(parsed, line)
-          if parsed[line] != text
+          " TODO test case match
+          if parsed[line] !=# text
             let diff.files[filename].modified[line] = parsed[line]
             let diff.statistics.modified += 1
           endif

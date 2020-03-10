@@ -59,7 +59,6 @@ fu! s:new(configuration) abort
         \ 'metadata': [],
         \ 'glob': 0,
         \ 'visualmode': 0,
-        \ 'is_single_file': function('<SID>is_single_file'),
         \ 'set_default': function('esearch#util#set_default'),
         \ 'slice': function('esearch#util#slice')
         \}, 'keep')
@@ -76,15 +75,6 @@ fu! s:new(configuration) abort
   endif
 
   return configuration
-endfu
-
-fu! s:is_single_file() abort dict
-  " Some adapters don't list filenames when a single file is specified for
-  " search, so this function will be used to match results using different
-  " format patterns
-  return len(self.paths) == 1 &&
-        \ (len(self.metadata) != 1 || empty(self.metadata[0].wildcards)) &&
-        \ !isdirectory(self.paths[0])
 endfu
 
 fu! s:title(esearch, pattern) abort

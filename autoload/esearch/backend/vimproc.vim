@@ -80,7 +80,9 @@ fu! s:_on_cursor_moved(request_id) abort
   endif
 
   call s:read_data(request)
-  exe 'do User '.request.events.update
+  if !request.aborted && !empty(request.events.update)
+    call request.events.update()
+  endif
   let request._last_update_time = esearch#util#timenow()
 
   if request.pipe.stdout.eof

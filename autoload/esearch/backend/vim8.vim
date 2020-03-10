@@ -29,6 +29,7 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
         \     'exit_cb': function('s:exit', [s:incrementable_internal_id]),
         \     'close_cb': function('s:closed', [s:incrementable_internal_id]),
+        \     'mode': 'raw',
         \     'in_io': 'null',
         \   },
         \ },
@@ -61,27 +62,18 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
-  " as callback can still be triggered with buffered data
-  if request.aborted | return | endif
-
   let data = split(a:data, "\n", 1)
   let request.data += filter(data, "'' !=# v:val")
-
-  " Reduce buffer updates to prevent long cursor lock
-  let request.tick = request.tick + 1
-  if request.tick % request.ticks == 1 && !empty(request.events.update)
+  if !request.aborted && request.tick % request.ticks == 1 && !empty(request.events.update)
     call request.events.update()
   endif
+  let request.tick = request.tick + 1
 endfu
 
 fu! s:stderr(job_id, job, data) abort
   let job = s:jobs[a:job_id]
   let data = split(a:data, "\n", 1)
-  if !has_key(job.request, 'errors')
-    let job.request.errors = []
-  endif
-
-  let job.request.errors += filter(data, "'' !=# v:val")
+  let request.errors += filter(data, "'' !=# v:val")
 endfu
 
 func! s:timer_stop_workaround(job, timer) abort

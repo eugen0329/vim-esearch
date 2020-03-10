@@ -35,7 +35,7 @@ endfu
 
 fu! esearch#adapter#pt#set_results_parser(esearch) abort
   let a:esearch.parse = function('esearch#adapter#ag_like#parse')
-  let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_Search_format
+  let a:esearch.format = g:esearch#adapter#ag_like#multiple_files_search_format
   let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
 endfu
 

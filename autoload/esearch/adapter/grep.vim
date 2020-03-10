@@ -73,11 +73,12 @@ fu! esearch#adapter#grep#cmd(esearch, pattern, escape) abort
   let w = options.parametrize('word')
   " -r: recursive, no follow symbolic links
   " -I: Process a binary file as if it did not contain matching data
+  " -H: Print the file name for each match.  This is the default when there is more than one file to search.
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
   " return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -r --line-number --exclude-dir=.{git,svn,hg} ' .
-  return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -I -r -n '.options.show_line_numbers.' '.options.exclude_dirs.' '.
+  return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -H -I -r -n '.options.show_line_numbers.' '.options.exclude_dirs.' '.
         \ g:esearch#adapter#grep#options . ' -- ' .
         \ a:escape(a:pattern) . ' ' . joined_paths
 endfu

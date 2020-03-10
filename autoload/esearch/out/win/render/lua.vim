@@ -24,7 +24,6 @@ if g:esearch#has#nvim_lua
     let [files_count, contexts, context_ids_map, line_numbers_map, context_by_name] =
           \ luaeval('esearch_out_win_render_nvim(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6], _A[7])',
           \ [a:data[a:from : a:to],
-          \ a:esearch.is_single_file(),
           \ get(a:esearch.paths, 0, ''),
           \ a:esearch.lua_cwd_prefix,
           \ a:esearch.contexts[-1],
@@ -42,10 +41,9 @@ if g:esearch#has#nvim_lua
   endfu
 else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-  call luaeval('esearch_out_win_render_vim(_A[0], _A[1], _A[2], _A[3], _A[4], _A[5])',
+  let a:esearch['files_count'] = luaeval('esearch_out_win_render_vim(_A[0], _A[1], _A[2], _A[3], _A[4], _A[5])',
           \ [a:data[a:from : a:to],
-          \ a:esearch.is_single_file(),
-          \ get(a:esearch.paths, 0, ''),
+          \ get(b:esearch.paths, 0, ''),
           \ a:esearch.lua_cwd_prefix,
           \ a:esearch])
   endfu
@@ -53,23 +51,6 @@ endif
 
 if g:esearch#has#nvim_lua
 lua << EOF
-function parse_from_1_file(data, path, cwd_prefix)
-  local parsed = {}
-
-  for i = 1, #data do
-    if data[i]:len() > 0 then
-      lnum, text = string.match(data[i], '(%d+):(.*)')
-      parsed[#parsed + 1] = {
-        ['filename'] = path,
-        ['lnum']     = lnum,
-        ['text']     = text:gsub("[\r\n]", '')
-      }
-    end
-  end
-
-  return parsed
-end
-
 function parse_from_multiple_files_file(data, cwd_prefix)
   local parsed = {}
 
@@ -91,12 +72,8 @@ function parse_from_multiple_files_file(data, cwd_prefix)
   return parsed
 end
 
-function esearch_out_win_render_nvim(data, is_single_file, path, cwd_prefix, last_context, files_count, highlights_enabled)
-  if is_single_file == 1 then
-    parsed = parse_from_1_file(data, path, cwd_prefix)
-  else
-    parsed = parse_from_multiple_files_file(data, cwd_prefix)
-  end
+function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files_count, highlights_enabled)
+  parsed = parse_from_multiple_files_file(data, cwd_prefix)
 
   contexts = {last_context}
   line_numbers_map = {}
@@ -165,23 +142,6 @@ EOF
 
 else
 lua << EOF
-function parse_from_1_file(data, path, cwd_prefix)
-  local parsed = vim.list()
-
-  for i = 0, #data - 1 do
-    if data[i]:len() > 0 then
-      lnum, text = string.match(data[i], '(%d+):(.*)')
-      parsed:add(vim.dict({
-        ['filename'] = path,
-        ['lnum']     = lnum,
-        ['text']     = text:gsub("[\r\n]", '')
-      }))
-    end
-  end
-
-  return parsed
-end
-
 function parse_from_multiple_files_file(data, cwd_prefix)
   local parsed = vim.list()
 
@@ -203,12 +163,8 @@ function parse_from_multiple_files_file(data, cwd_prefix)
   return parsed
 end
 
-function esearch_out_win_render_vim(data, is_single_file, path, cwd_prefix, esearch)
-  if is_single_file == 1 then
-    parsed = parse_from_1_file(data, path, cwd_prefix)
-  else
-    parsed = parse_from_multiple_files_file(data, cwd_prefix)
-  end
+function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
+  parsed = parse_from_multiple_files_file(data, cwd_prefix)
 
   contexts         = esearch['contexts']
   line_numbers_map = esearch['line_numbers_map']
@@ -268,7 +224,7 @@ function esearch_out_win_render_vim(data, is_single_file, path, cwd_prefix, esea
     line = line + 1
     i = i + 1
   end
-  esearch['files_count'] = tostring(files_count)
+  return tostring(files_count)
 end
 EOF
 endif
