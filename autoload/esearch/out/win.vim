@@ -146,6 +146,11 @@ let s:context_syntaxes = {
       \ 'Jenkinsfile':     'es_ctx_groovy',
       \ 'typescript':      'es_ctx_typescript',
       \ 'scala':           'es_ctx_scala',
+      \ 'rust':            'es_ctx_generic',
+      \ 'swift':           'es_ctx_generic',
+      \ 'elixir':          'es_ctx_generic',
+      \ 'erlang':          'es_ctx_generic',
+      \ 'fortran':         'es_ctx_generic',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

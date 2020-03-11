@@ -26,11 +26,9 @@ describe 'esearch window context syntax', :window do
         "string"
         "escaped quote\\"
         "str_with_escape\\n"
-        "ellipsized string#{'.' * 500}"
         'string'
         'str_with_escape\\n'
         'escaped quote\\'
-        'ellipsized string#{'.' * 500}'
         return
         with
         "unterminated string
@@ -94,12 +92,10 @@ describe 'esearch window context syntax', :window do
         region('"string"')                   => %w[es_javaScriptStringD String],
         region('"str_with_escape\\\\n"')     => %w[es_javaScriptStringD String],
         region('"escaped quote\\\\"')        => %w[es_javaScriptStringD String],
-        region('"ellipsized string[^"]\\+$') => %w[es_javaScriptStringD String],
 
         region("'string'")                   => %w[es_javaScriptStringS String],
         region("'str_with_escape\\\\n'")     => %w[es_javaScriptStringS String],
         region("'escaped quote\\\\'")        => %w[es_javaScriptStringS String],
-        region("'ellipsized string[^']\\+$") => %w[es_javaScriptStringS String],
 
         word('return')                       => %w[es_javaScriptStatement Statement],
         word('with')                         => %w[es_javaScriptStatement Statement],

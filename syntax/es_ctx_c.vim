@@ -10,8 +10,8 @@ syn keyword es_cConditional  if else switch
 syn keyword es_cRepeat       while for do
 syn keyword es_cStructure    struct union enum typedef
 syn keyword es_cStorageClass static register auto volatile extern const
-syn region  es_cComment       start="//"  end="$"
-syn region  es_cComment       start="/\*" end="\*/\|^"
+syn region  es_cComment      start="//"  end="$"
+syn region  es_cComment      start="/\*" end="\*/\|^"
 syn region  es_cString       start=+"+ skip=+\\\\\|\\"+ end=+"\|^+
 " todo test
 syn match   es_cDefine        '#\s*\(define\|undef\|if\|ifdef\|ifndef\)\>'

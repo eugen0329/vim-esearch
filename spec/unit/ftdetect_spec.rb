@@ -22,6 +22,9 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('file.toml')).to      eq('toml')            }
     it { expect(ftdetect.call('package.json')).to   eq('json')            }
 
+    # swift
+    it { expect(ftdetect.call('main.swift')).to     eq('swift')           }
+
     # haskell
     it { expect(ftdetect.call('main.hs')).to        eq('haskell')         }
     it { expect(ftdetect.call('main.lhs')).to       eq('lhaskell')        }
