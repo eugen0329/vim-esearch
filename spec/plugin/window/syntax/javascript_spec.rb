@@ -58,6 +58,7 @@ describe 'esearch window context syntax', :window do
         extends
         import
         function
+
       SOURCE
     end
     let(:source_file) { file(source_file_content, 'main.js') }
@@ -80,6 +81,7 @@ describe 'esearch window context syntax', :window do
         word('for')                      => %w[es_javaScriptRepeat Repeat],
         word('do')                       => %w[es_javaScriptRepeat Repeat],
         word('in')                       => %w[es_javaScriptRepeat Repeat],
+        word('in')                       => %w[es_javaScriptRepeat Repeat],
 
         word('break')                    => %w[es_javaScriptBranch Conditional],
         word('continue')                 => %w[es_javaScriptBranch Conditional],
@@ -89,19 +91,19 @@ describe 'esearch window context syntax', :window do
         word('instanceof')               => %w[es_javaScriptOperator Operator],
         word('typeof')                   => %w[es_javaScriptOperator Operator],
 
-        region('"string"')               => %w[es_javaScriptStringD String],
-        region('"str_with_escape\\\\n"') => %w[es_javaScriptStringD String],
-        region('"escaped quote\\\\"')    => %w[es_javaScriptStringD String],
+        region('"string"')               => %w[es_javaScriptString String],
+        region('"str_with_escape\\\\n"') => %w[es_javaScriptString String],
+        region('"escaped quote\\\\"')    => %w[es_javaScriptString String],
 
-        region("'string'")               => %w[es_javaScriptStringS String],
-        region("'str_with_escape\\\\n'") => %w[es_javaScriptStringS String],
-        region("'escaped quote\\\\'")    => %w[es_javaScriptStringS String],
+        region("'string'")               => %w[es_javaScriptString String],
+        region("'str_with_escape\\\\n'") => %w[es_javaScriptString String],
+        region("'escaped quote\\\\'")    => %w[es_javaScriptString String],
 
         word('return')                   => %w[es_javaScriptStatement Statement],
         word('with')                     => %w[es_javaScriptStatement Statement],
 
-        region("'unterminated string")   => %w[es_javaScriptStringS String],
-        region('"unterminated string')   => %w[es_javaScriptStringD String],
+        region("'unterminated string")   => %w[es_javaScriptString String],
+        region('"unterminated string')   => %w[es_javaScriptString String],
 
         word('null')                     => %w[es_javaScriptNull Keyword],
         word('undefined')                => %w[es_javaScriptNull Keyword],

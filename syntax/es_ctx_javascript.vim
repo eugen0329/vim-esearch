@@ -16,10 +16,10 @@ syn keyword es_javaScriptLabel       case default
 syn keyword es_javaScriptException   try catch finally throw
 syn keyword es_javaScriptReserved    abstract class const debugger export extends import
 syn keyword es_javaScriptFunction    function
-syn region  es_javaScriptComment start="//"  end="$"
-syn region  es_javaScriptComment start="/\*" end="\*/\|$"
-syn region  es_javaScriptStringD start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+
-syn region  es_javaScriptStringS start=+L\='+ skip=+\\\\\|\\'+ end=+'\|^+
+syn region  es_javaScriptComment     start="//"  end="$"
+syn region  es_javaScriptComment     start="/\*" end="\*/\|$"
+syn region  es_javaScriptString      start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+
+syn region  es_javaScriptString      start=+L\='+ skip=+\\\\\|\\'+ end=+'\|^+
 
 hi def link es_javaScriptConditional  Conditional
 hi def link es_javaScriptRepeat       Repeat
@@ -34,7 +34,6 @@ hi def link es_javaScriptException    Exception
 hi def link es_javaScriptReserved     Keyword
 hi def link es_javaScriptFunction     Function
 hi def link es_javaScriptComment      Comment
-hi def link es_javaScriptStringD      String
-hi def link es_javaScriptStringS      String
+hi def link es_javaScriptString       String
 
 let b:current_syntax = 'es_ctx_javascript'

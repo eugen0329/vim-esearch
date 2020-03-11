@@ -6,21 +6,25 @@ describe 'esearch#ftdetect' do
   include VimlValue::SerializationHelpers
 
   shared_examples 'detects ft with fast strategy' do
-    it { expect(ftdetect.call('main.ts')).to        eq('typescript')      }
-    it { expect(ftdetect.call('main.tsx')).to       eq('typescript')      }
     it { expect(ftdetect.call('main.go')).to        eq('go')              }
-    it { expect(ftdetect.call('main.jsx')).to       eq('javascriptreact') }
     it { expect(ftdetect.call('main.r')).to         eq('r')               }
     it { expect(ftdetect.call('main.sql')).to       eq('sql')             }
     it { expect(ftdetect.call('main.tex')).to       eq('tex')             }
     it { expect(ftdetect.call('main.asm')).to       eq('asm')             }
     it { expect(ftdetect.call('main.pl')).to        eq('perl')            }
-    it { expect(ftdetect.call('main.js')).to        eq('javascript')      }
-    it { expect(ftdetect.call('main.js')).to        eq('javascript')      }
     it { expect(ftdetect.call('main.java')).to      eq('java')            }
     it { expect(ftdetect.call('main.mof')).to       eq('msidl')           }
     it { expect(ftdetect.call('file.toml')).to      eq('toml')            }
     it { expect(ftdetect.call('package.json')).to   eq('json')            }
+
+    # js and dialects
+    it { expect(ftdetect.call('main.js')).to        eq('javascript')      }
+    it { expect(ftdetect.call('main.ts')).to        eq('typescript')      }
+    it { expect(ftdetect.call('main.coffee')).to    eq('coffee')          }
+
+    # react
+    it { expect(ftdetect.call('main.jsx')).to       eq('javascriptreact') }
+    it { expect(ftdetect.call('main.tsx')).to       eq('typescriptreact') }
 
     # swift
     it { expect(ftdetect.call('main.swift')).to     eq('swift')           }
