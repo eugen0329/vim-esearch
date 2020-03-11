@@ -4,9 +4,9 @@ endif
 
 " based on vim builtin syntax
 
-if exists("g:lisp_isk")
- exe "setl isk=".g:lisp_isk
-elseif (v:version == 704 && has("patch-7.4.1142")) || v:version > 704
+if exists('g:lisp_isk')
+ exe 'setl isk='.g:lisp_isk
+elseif (v:version == 704 && has('patch-7.4.1142')) || v:version > 704
  syn iskeyword 38,42,43,45,47-58,60-62,64-90,97-122,_
 else
  setl isk=38,42,43,45,47-58,60-62,64-90,97-122,_
