@@ -151,6 +151,8 @@ let s:context_syntaxes = {
       \ 'elixir':          'es_ctx_generic',
       \ 'erlang':          'es_ctx_generic',
       \ 'fortran':         'es_ctx_generic',
+      \ 'lisp':            'es_ctx_lisp',
+      \ 'clojure':         'es_ctx_lisp',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')

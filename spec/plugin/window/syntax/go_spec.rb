@@ -52,41 +52,41 @@ describe 'esearch window context syntax', :window do
     # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
-        word('package')                      => %w[es_goDirective Statement],
-        word('import')                       => %w[es_goDirective Statement],
+        word('package')                    => %w[es_goDirective Statement],
+        word('import')                     => %w[es_goDirective Statement],
 
-        word('var')                          => %w[es_goDeclaration Keyword],
-        word('const')                        => %w[es_goDeclaration Keyword],
-        word('type')                         => %w[es_goDeclaration Keyword],
-        word('func')                         => %w[es_goDeclaration Keyword],
-        word('struct')                       => %w[es_goDeclType Keyword],
-        word('interface')                    => %w[es_goDeclType Keyword],
+        word('var')                        => %w[es_goDeclaration Keyword],
+        word('const')                      => %w[es_goDeclaration Keyword],
+        word('type')                       => %w[es_goDeclaration Keyword],
+        word('func')                       => %w[es_goDeclaration Keyword],
+        word('struct')                     => %w[es_goDeclType Keyword],
+        word('interface')                  => %w[es_goDeclType Keyword],
 
-        region('"string"')                   => %w[es_goString String],
-        region('"escaped quote\\\\"')        => %w[es_goString String],
-        region('"str with escape\\\\n"')     => %w[es_goString String],
-        region('`raw string`$')              => %w[es_goRawString String],
+        region('"string"')                 => %w[es_goString String],
+        region('"escaped quote\\\\"')      => %w[es_goString String],
+        region('"str with escape\\\\n"')   => %w[es_goString String],
+        region('`raw string`$')            => %w[es_goRawString String],
 
-        word('defer')                        => %w[es_goStatement Statement],
-        word('go')                           => %w[es_goStatement Statement],
-        word('goto')                         => %w[es_goStatement Statement],
-        word('return')                       => %w[es_goStatement Statement],
-        word('break')                        => %w[es_goStatement Statement],
-        word('continue')                     => %w[es_goStatement Statement],
-        word('fallthrough')                  => %w[es_goStatement Statement],
+        word('defer')                      => %w[es_goStatement Statement],
+        word('go')                         => %w[es_goStatement Statement],
+        word('goto')                       => %w[es_goStatement Statement],
+        word('return')                     => %w[es_goStatement Statement],
+        word('break')                      => %w[es_goStatement Statement],
+        word('continue')                   => %w[es_goStatement Statement],
+        word('fallthrough')                => %w[es_goStatement Statement],
 
-        region('"unterminated string')       => %w[es_goString String],
-        region('`unterminated raw string')   => %w[es_goRawString String],
+        region('"unterminated string')     => %w[es_goString String],
+        region('`unterminated raw string') => %w[es_goRawString String],
 
-        word('case')                         => %w[es_goLabel Label],
-        word('default')                      => %w[es_goLabel Label],
+        word('case')                       => %w[es_goLabel Label],
+        word('default')                    => %w[es_goLabel Label],
 
-        region('// comment line')            => %w[es_goComment Comment],
-        region('/\* comment block')          => %w[es_goComment Comment],
-        region('/\* ellipsized comment')     => %w[es_goComment Comment],
+        region('// comment line')          => %w[es_goComment Comment],
+        region('/\* comment block')        => %w[es_goComment Comment],
+        region('/\* ellipsized comment')   => %w[es_goComment Comment],
 
-        word('for')                          => %w[es_goRepeat Repeat],
-        word('range')                        => %w[es_goRepeat Repeat]
+        word('for')                        => %w[es_goRepeat Repeat],
+        word('range')                      => %w[es_goRepeat Repeat]
       )
     end
   end

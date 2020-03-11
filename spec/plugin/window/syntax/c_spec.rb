@@ -71,53 +71,53 @@ describe 'esearch window context syntax', :window do
     # more potential errors as possible
     it do
       is_expected.to have_highligh_aliases(
-        word('goto')                         => %w[es_cStatement Statement],
-        word('continue')                     => %w[es_cStatement Statement],
-        word('break')                        => %w[es_cStatement Statement],
-        word('return')                       => %w[es_cStatement Statement],
-        word('asm')                          => %w[es_cStatement Statement],
+        word('goto')                     => %w[es_cStatement Statement],
+        word('continue')                 => %w[es_cStatement Statement],
+        word('break')                    => %w[es_cStatement Statement],
+        word('return')                   => %w[es_cStatement Statement],
+        word('asm')                      => %w[es_cStatement Statement],
 
-        word('case')                         => %w[es_cLabel Label],
-        word('default')                      => %w[es_cLabel Label],
+        word('case')                     => %w[es_cLabel Label],
+        word('default')                  => %w[es_cLabel Label],
 
-        word('if')                           => %w[es_cConditional Conditional],
-        word('else')                         => %w[es_cConditional Conditional],
-        word('switch')                       => %w[es_cConditional Conditional],
+        word('if')                       => %w[es_cConditional Conditional],
+        word('else')                     => %w[es_cConditional Conditional],
+        word('switch')                   => %w[es_cConditional Conditional],
 
-        word('while')                        => %w[es_cRepeat Repeat],
-        word('for')                          => %w[es_cRepeat Repeat],
-        word('do')                           => %w[es_cRepeat Repeat],
+        word('while')                    => %w[es_cRepeat Repeat],
+        word('for')                      => %w[es_cRepeat Repeat],
+        word('do')                       => %w[es_cRepeat Repeat],
 
-        region('"string"')                   => %w[es_cString String],
-        region('"escaped quote\\\\"')        => %w[es_cString String],
-        region('"str with escape\\\\n"')     => %w[es_cString String],
+        region('"string"')               => %w[es_cString String],
+        region('"escaped quote\\\\"')    => %w[es_cString String],
+        region('"str with escape\\\\n"') => %w[es_cString String],
 
-        region('#define')                    => %w[es_cDefine Macro],
-        region('#undef')                     => %w[es_cDefine Macro],
+        region('#define')                => %w[es_cDefine Macro],
+        region('#undef')                 => %w[es_cDefine Macro],
 
-        region('"missing quote')             => %w[es_cString String],
+        region('"missing quote')         => %w[es_cString String],
 
-        region('#pragma')                    => %w[es_cPreProc PreProc],
-        region('#line')                      => %w[es_cPreProc PreProc],
-        region('#warning')                   => %w[es_cPreProc PreProc],
-        region('#warn')                      => %w[es_cPreProc PreProc],
-        region('#error')                     => %w[es_cPreProc PreProc],
+        region('#pragma')                => %w[es_cPreProc PreProc],
+        region('#line')                  => %w[es_cPreProc PreProc],
+        region('#warning')               => %w[es_cPreProc PreProc],
+        region('#warn')                  => %w[es_cPreProc PreProc],
+        region('#error')                 => %w[es_cPreProc PreProc],
 
-        region('// comment line')            => %w[es_cComment Comment],
-        region('/\* comment block')          => %w[es_cComment Comment],
-        region('/\* ellipsized comment')     => %w[es_cComment Comment],
+        region('// comment line')        => %w[es_cComment Comment],
+        region('/\* comment block')      => %w[es_cComment Comment],
+        region('/\* ellipsized comment') => %w[es_cComment Comment],
 
-        word('struct')                       => %w[es_cStructure Structure],
-        word('union')                        => %w[es_cStructure Structure],
-        word('enum')                         => %w[es_cStructure Structure],
-        word('typedef')                      => %w[es_cStructure Structure],
+        word('struct')                   => %w[es_cStructure Structure],
+        word('union')                    => %w[es_cStructure Structure],
+        word('enum')                     => %w[es_cStructure Structure],
+        word('typedef')                  => %w[es_cStructure Structure],
 
-        word('static')                       => %w[es_cStorageClass StorageClass],
-        word('register')                     => %w[es_cStorageClass StorageClass],
-        word('auto')                         => %w[es_cStorageClass StorageClass],
-        word('volatile')                     => %w[es_cStorageClass StorageClass],
-        word('extern')                       => %w[es_cStorageClass StorageClass],
-        word('const')                        => %w[es_cStorageClass StorageClass]
+        word('static')                   => %w[es_cStorageClass StorageClass],
+        word('register')                 => %w[es_cStorageClass StorageClass],
+        word('auto')                     => %w[es_cStorageClass StorageClass],
+        word('volatile')                 => %w[es_cStorageClass StorageClass],
+        word('extern')                   => %w[es_cStorageClass StorageClass],
+        word('const')                    => %w[es_cStorageClass StorageClass]
       )
     end
   end
