@@ -82,7 +82,8 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
   esearch_win_disable_context_highlights_on_files_count =
     vim.api.nvim_get_var('esearch_win_disable_context_highlights_on_files_count')
 
-  line = vim.api.nvim_buf_line_count(0)
+  start = vim.api.nvim_buf_line_count(0)
+  line = start
   i = 1
   limit = #parsed + 1
   lines = {}
@@ -106,7 +107,6 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
       line_numbers_map[#line_numbers_map + 1] = 0
       line = line + 1
 
-
       lines[#lines + 1] = filename
       id = contexts[#contexts]['id'] + 1
       contexts[#contexts + 1] = {
@@ -126,7 +126,9 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
       contexts[#contexts]['filename'] = filename
     end
 
-    lines[#lines + 1] = string.format(' %3d %s', parsed[i]['lnum'], text)
+    linenr_text = string.format(' %3d ', parsed[i]['lnum'])
+
+    lines[#lines + 1] = linenr_text .. (text)
     context_ids_map[#context_ids_map + 1] = contexts[#contexts]['id']
     line_numbers_map[#line_numbers_map + 1] = parsed[i]['lnum']
     contexts[#contexts]['lines'][parsed[i]['lnum']] = text
@@ -135,12 +137,45 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
   end
 
   vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
+  highlight_range(start, -1)
 
   return {files_count, contexts, context_ids_map, line_numbers_map, context_by_name}
+end
+
+function lines_changed_callback(_, bufnr, ct, start_row, old_stop_row, stop_row, old_byte_size)
+
+  if vim.api.nvim_call_function('exists', {'b:esearch'}) == 0 then
+    return true
+  end
+
+  if stop_row > old_stop_row then
+    -- if lines are added
+    highlight_range(start_row, stop_row)
+  end
+end
+
+function highlight_range(from, to)
+  local lines = vim.api.nvim_buf_get_lines(0, from, to, false)
+
+  for i, text in ipairs(lines) do
+    if i == 0 then
+      vim.api.nvim_buf_add_highlight(0, -1, 'esearchHeader', 0, 0, -1)
+    elseif text:len() == 0 then
+      -- noop
+    elseif text:sub(1,1) == ' ' then
+      pos1, pos2 =  text:find('%s+%d+%s')
+      if pos2 ~= nil then
+        vim.api.nvim_buf_add_highlight(0, -1, 'esearchLineNr', i + from - 1 , 0, pos2)
+      end
+    else
+      vim.api.nvim_buf_add_highlight(0, -1, 'esearchFilename', i + from - 1 , 0, -1)
+    end
+  end
 end
 EOF
 
 else
+
 lua << EOF
 function parse_from_multiple_files_file(data, cwd_prefix)
   local parsed = vim.list()

@@ -2,11 +2,11 @@ if exists('b:current_syntax')
   finish
 endif
 
-if !has('nvim')
+if !g:esearch_out_win_nvim_lua_syntax
   syn match esearchHeader   '\%1l.*'
+  syn match esearchLineNr   '^\s\+\d\+\s'
+  syn match esearchFilename '^[^ ]\+$'
 endif
-syn match esearchFilename '^[^ ]\+$'
-syn match esearchLineNr   '^\s\+\d\+\s'
 
 hi def link esearchHeader       Title
 hi def link esearchFilename     Directory

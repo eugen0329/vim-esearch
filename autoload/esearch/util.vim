@@ -10,7 +10,7 @@ endfu
 
 if has('nvim')
   fu! esearch#util#append_lines(lines) abort
-    call nvim_buf_set_lines(bufnr('%'), -1, -1, 0, a:lines)
+    call nvim_buf_set_lines(0, -1, -1, 0, a:lines)
   endfu
 else
   fu! esearch#util#append_lines(lines) abort
@@ -618,6 +618,15 @@ fu! esearch#util#safe_undojoin() abort
   try
     undojoin
   catch /E790:/
-    " TODO
+  endtry
+endfu
+
+
+fu! esearch#util#safe_matchdelete(id) abort
+  if a:id < 0 | return | endif
+
+  try
+    call matchdelete(a:id)
+  catch /E803:/
   endtry
 endfu

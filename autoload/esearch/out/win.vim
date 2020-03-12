@@ -69,7 +69,7 @@ if !exists('g:esearch_win_viewport_highlight_extend_by')
   let g:esearch_win_viewport_highlight_extend_by = 100
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
-  let g:esearch_win_disable_context_highlights_on_files_count = 200
+  let g:esearch_win_disable_context_highlights_on_files_count = 2000
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -88,10 +88,17 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
   let g:esearch#out#win#context_syntax_max_lines = 500
 endif
 if !exists('g:esearch_out_win_highlight_cursor_line_number')
-  let g:esearch_out_win_highlight_cursor_line_number = 1
+  let g:esearch_out_win_highlight_cursor_line_number =
+        \ g:esearch#has#virtual_cursor_linenr_highlight && &cursorline
 endif
 if !exists('g:esearch_out_win_render_using_lua')
   let g:esearch_out_win_render_using_lua = g:esearch#has#lua
+endif
+if !exists('g:esearch_out_win_nvim_lua_syntax')
+  let g:esearch_out_win_nvim_lua_syntax = g:esearch#has#nvim_lua
+endif
+if !exists('g:esearch_out_win_highlight_matches')
+  let g:esearch_out_win_highlight_matches = 'viewport'
 endif
 
 let s:context_syntaxes = {
@@ -169,26 +176,11 @@ endif
 " TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
-
   if has_key(b:, 'esearch')
     call s:cleanup()
   end
 
-  " Refresh match highlight
   setl ft=esearch
-  " TODO
-  if g:esearch.highlight_match && has_key(a:opts.exp, 'vim_match')
-    if exists('b:esearch') && b:esearch._match_highlight_id > 0
-      try
-        call matchdelete(b:esearch._match_highlight_id)
-      catch /E803:/
-      endtry
-      unlet b:esearch
-    endif
-    let match_highlight_id = matchadd('esearchMatch', a:opts.exp.vim_match, -1)
-  else
-    let match_highlight_id = -1
-  endif
 
   setl modifiable
   exe '1,$d_'
@@ -200,6 +192,8 @@ fu! esearch#out#win#init(opts) abort
   setl nonumber
   setl norelativenumber
   setl nospell
+  setl nowrap
+  setl synmaxcol=400
   setl nolist " prevent listing traling spaces on blank lines
   setl nomodeline
   let &buflisted = g:esearch#out#win#buflisted
@@ -217,6 +211,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'files_count':              0,
         \ 'mode':                     'normal',
         \ 'viewport_highlight_timer': -1,
+        \ 'match_highlight_timer':    -1,
         \ 'updates_timer':            -1,
         \ 'update_with_timer_start':  0,
         \ 'max_lines_found':          0,
@@ -224,10 +219,10 @@ fu! esearch#out#win#init(opts) abort
         \ 'highlight_viewport':       0,
         \ 'tick':                     0,
         \ 'line_numbers_map':         [],
+        \ 'highlighted_lines_map':    {},
         \ 'contexts':                 [],
         \ 'context_by_name':          {},
         \ 'context_ids_map':          [],
-        \ '_match_highlight_id':      match_highlight_id,
         \ 'broken_results':           [],
         \ 'errors':                   [],
         \ 'data':                     [],
@@ -245,13 +240,15 @@ fu! esearch#out#win#init(opts) abort
 
   augroup ESearchWinHighlights
     au! * <buffer>
-    if g:esearch_out_win_highlight_cursor_line_number && &cursorline
+    if g:esearch_out_win_highlight_cursor_line_number
       au CursorMoved,CursorMovedI <buffer> call s:highlight_cursor_line_number()
     endif
     if g:esearch#out#win#context_syntax_highlight
       au CursorMoved <buffer> call s:highlight_viewport()
     endif
   augroup END
+
+  call s:setup_search_matches_highlight(b:esearch)
 
   " setup blank context for header
   call esearch#out#win#add_context(b:esearch.contexts, '', 1)
@@ -260,16 +257,9 @@ fu! esearch#out#win#init(opts) abort
   let b:esearch.context_ids_map += [header_context.id, header_context.id]
   let b:esearch.line_numbers_map += [0, 0]
 
-  if has('nvim')
-    " According to :syntime profiling, header has the biggest TOTAL time while
-    " being easy to match (highlight is done fot the whole first line).
-    " matchaddpos() seems to work per window, so optimization is done only for
-    " neovim
-    " Method args are
-    " nvim_buf_add_highlight({buffer}, {ns_id}, {hl_group}, {line},
-    "                        {col_start}, {col_end})
-    let b:esearch.header_highlight_namespace =
-          \ nvim_buf_add_highlight(0, 0, 'esearchHeader', 0, 0, -1)
+  if g:esearch_out_win_nvim_lua_syntax
+    call luaeval('highlight_range(0,1)')
+    let b:esearch.lines_changed_callback_enabled = 0
   endif
 
   call extend(b:esearch.request, {
@@ -285,17 +275,48 @@ fu! esearch#out#win#init(opts) abort
   endif
 endfu
 
+fu! s:setup_search_matches_highlight(esearch) abort
+  if g:esearch_out_win_highlight_matches ==# 'viewport'
+    augroup ESearchWinHighlights
+      au CursorMoved <buffer> let b:esearch.match_highlight_timer = esearch#debounce#trailing(
+            \ function('s:highlight_matches_callback', [b:esearch]),
+            \ 50,
+            \ b:esearch.match_highlight_timer)
+    augroup END
+  elseif g:esearch_out_win_highlight_matches ==# 'matchadd'
+    call esearch#util#safe_matchdelete(
+          \ get(a:esearch, 'matches_highlight_id', -1))
+    let a:esearch.matches_highlight_id =
+          \ matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
+  endif
+endfu
+
+if has('nvim')
 fu! s:highlight_cursor_line_number() abort
   if has_key(b:, 'esearch_linenr_id')
-    try
-      call matchdelete(b:esearch_linenr_id)
-    catch /E803:/
-      " a workaround for nvim when switching to a help buffer (isn't reproduced for vim)
-      return
-    endtry
+    call nvim_buf_clear_namespace(0, b:esearch_linenr_id, 0, -1)
+  else
+    let b:esearch_linenr_id = nvim_create_namespace('esearchLineNr')
   endif
-  let b:esearch_linenr_id = matchadd('esearchCursorLineNr', '^\s\+\d\+\s\%' . line('.') . 'l', -1)
+
+  lua << EOF
+    local current_line = vim.api.nvim_get_current_line()
+    local _, last_column = current_line:find('^%s+%d+%s')
+    if last_column ~= nil then
+      vim.api.nvim_buf_add_highlight(0, vim.api.nvim_eval('b:esearch_linenr_id'),
+        'esearchCursorLineNr', vim.api.nvim_win_get_cursor(0)[1] - 1, 0, last_column)
+    end
+EOF
 endfu
+else
+fu! s:highlight_cursor_line_number() abort
+  if has_key(b:, 'esearch_linenr_id')
+    call matchdelete(b:esearch_linenr_id)
+  endif
+  let b:esearch_linenr_id = matchadd('esearchCursorLineNr',
+        \ '^\s\+\d\+\s' . line('.') . 'l', -1)
+endfu
+endif
 
 fu! s:cleanup() abort
   call esearch#changes#unlisten_for_current_buffer()
@@ -310,10 +331,6 @@ fu! s:cleanup() abort
     au! * <buffer>
   augroup END
   call esearch#option#reset()
-
-  if has_key(b:esearch, 'header_highlight_namespace')
-    call nvim_buf_clear_namespace(bufnr(), b:esearch.header_highlight_namespace, 0,0)
-  endif
 endfu
 
 " TODO refactoring
@@ -532,6 +549,35 @@ fu! s:highlight_viewport() abort
   endif
 endfu
 
+fu! s:highlight_matches_callback(esearch, callback) abort
+  let exp = b:esearch.exp.vim
+  let line_numbers_map = s:state().line_numbers_map
+  let highlighted_lines_map = b:esearch.highlighted_lines_map
+
+  let last_line = line('$')
+  let line = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
+  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
+
+  " while line < end
+  for text in nvim_buf_get_lines(0, line - 1, end, 0)
+    if has_key(highlighted_lines_map, line) || line_numbers_map[line] == 0
+      let line += 1
+      continue
+    endif
+    let linenr =  line_numbers_map[line]
+
+    " let text = getline(line)
+    let begin = match(text, exp, max([strlen(linenr), 3]) + 2)
+    if begin < 0 | let line += 1 | continue | endif
+    let matchend = matchend(text, exp, begin)
+
+    call nvim_buf_add_highlight(0, -1, 'esearchMatch', line - 1, begin, matchend)
+    let highlighted_lines_map[line] = 1
+    let line += 1
+  endfor
+  " endwhile
+endfu
+
 fu! s:highlight_viewport_callback(esearch, timer) abort
   let a:esearch.viewport_highlight_timer = -1
 
@@ -569,7 +615,7 @@ fu! s:set_syntax_sync(esearch) abort
 
   syntax sync clear
   exe 'syntax sync minlines='.min([
-        \ a:esearch['max_lines_found'],
+        \ float2nr(a:esearch['max_lines_found']),
         \ g:esearch#out#win#context_syntax_max_lines,
         \ ])
 endfu
@@ -932,6 +978,11 @@ fu! esearch#out#win#finish(bufnr) abort
   call setbufvar(a:bufnr, '&mod',   0)
 
   call esearch#out#win#edit()
+
+  if g:esearch_out_win_nvim_lua_syntax && !b:esearch.lines_changed_callback_enabled
+    let b:esearch.lines_changed_callback_enabled = 1
+    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=lines_changed_callback})')
+  endif
 endfu
 
 " For some reasons s:_is_render_finished fails in Travis

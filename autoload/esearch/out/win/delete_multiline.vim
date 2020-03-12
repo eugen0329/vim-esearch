@@ -451,6 +451,10 @@ fu! s:apply_recovery(state) abort dict
     endif
   endif
 
+  if g:esearch_out_win_nvim_lua_syntax && self.extended_line1 <= 2
+      call luaeval('highlight_range(0,1)')
+  endif
+
   call remove(a:state.line_numbers_map, self.extended_line1, self.extended_line2)
   call remove(a:state.context_ids_map, self.extended_line1, self.extended_line2)
   call esearch#util#insert(a:state.line_numbers_map, self.add_line_numbers, self.extended_line1)
