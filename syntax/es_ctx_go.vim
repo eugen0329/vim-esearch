@@ -13,7 +13,7 @@ syn keyword es_goLabel       case default
 syn keyword es_goRepeat      for range
 syn region  es_goString      start=+"+   skip=+\\\\\|\\"+ end=+"\|^+
 syn region  es_goRawString   start=+`+   end=+`\|$+
-syn region  es_goComment     start="/\*" end="\*/\|$"
+syn region  es_goComment     start="/\*" end="\*/\|^"
 syn region  es_goComment     start="//"  end="$"
 
 hi def link es_goDirective   Statement

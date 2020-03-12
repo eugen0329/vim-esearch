@@ -21,7 +21,7 @@ syn keyword es_javaClassDecl    enum
 syn keyword es_javaScopeDecl    public protected private abstract
 
 syn region  es_javaComment start="//"  end="$"
-syn region  es_javaComment start="/\*" end="\*/\|$"
+syn region  es_javaComment start="/\*" end="\*/\|^"
 syn region  es_javaString  start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+
 
 hi def link es_javaConditional  Conditional

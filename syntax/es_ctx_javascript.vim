@@ -17,7 +17,7 @@ syn keyword es_javaScriptException   try catch finally throw
 syn keyword es_javaScriptReserved    abstract class const debugger export extends import
 syn keyword es_javaScriptFunction    function
 syn region  es_javaScriptComment     start="//"  end="$"
-syn region  es_javaScriptComment     start="/\*" end="\*/\|$"
+syn region  es_javaScriptComment     start="/\*" end="\*/\|^"
 syn region  es_javaScriptString      start=+L\="+ skip=+\\\\\|\\"+ end=+"\|^+
 syn region  es_javaScriptString      start=+L\='+ skip=+\\\\\|\\'+ end=+'\|^+
 
