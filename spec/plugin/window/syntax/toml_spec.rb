@@ -23,8 +23,8 @@ describe 'esearch window context syntax', :window do
 
         'missing quote
         "missing quote
-        'escaped quote
-        "escaped quote
+        'escaped quote\\'
+        "escaped quote\\"
 
         "es_tomlKeyDq" =
         'es_tomlKeySq' = ["es_tomlString"]
@@ -57,7 +57,7 @@ describe 'esearch window context syntax', :window do
         region('"escaped quote')             => %w[es_ctx_toml cleared],
         region('"missing quote')             => %w[es_ctx_toml cleared],
         region("'missing quote")             => %w[es_ctx_toml cleared],
-        region("'escaped quote")             => %w[es_ctx_toml cleared],
+        region("'escaped quote")             => %w[es_tomlString String],
 
         region("'es_tomlKeySq'")             => %w[es_tomlKeySq Identifier],
         region('"es_tomlKeyDq"')             => %w[es_tomlKeyDq Identifier],
