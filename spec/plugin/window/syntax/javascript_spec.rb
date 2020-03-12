@@ -37,6 +37,7 @@ describe 'esearch window context syntax', :window do
         undefined
         // comment line
         /* comment block */
+        /* comment block
         /* ellipsized comment #{'.' * 500}*/
         true
         false

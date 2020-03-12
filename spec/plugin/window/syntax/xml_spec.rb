@@ -19,6 +19,7 @@ describe 'esearch window context syntax', :window do
         <es_xmlTag es_xmlAttrib="es_xmlString"></es_xmlEndTag
         <es_xmlTag es_xmlAttrib="es_xmlString"></
         <es_xmlTag es_xmlAttrib="es_xmlString">
+        <es_xmlTag es_xmlAttrib="es_xmlString\\"
         <es_xmlTag es_xmlAttrib="es_xmlString"
         <es_xmlTag es_xmlAttrib="es_xmlString
         <es_xmlTag es_xmlAttrib="
@@ -30,6 +31,7 @@ describe 'esearch window context syntax', :window do
         <es_xmlTag es_xmlAttrib='es_xmlString'></es_xmlEndTag
         <es_xmlTag es_xmlAttrib='es_xmlString'></
         <es_xmlTag es_xmlAttrib='es_xmlString'>
+        <es_xmlTag es_xmlAttrib='es_xmlString\\'
         <es_xmlTag es_xmlAttrib='es_xmlString'
         <es_xmlTag es_xmlAttrib='es_xmlString
 

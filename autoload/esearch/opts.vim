@@ -37,7 +37,6 @@ fu! esearch#opts#new(opts) abort
         \ 'batch_size':       batch_size,
         \ 'final_batch_size':  final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
-        \ 'highlight_match':  1,
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
         \ 'invert':           function('<SID>invert'),

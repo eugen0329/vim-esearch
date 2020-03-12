@@ -12,7 +12,7 @@ syn keyword es_phpKeyword      var const
 syn keyword es_phpStructure    namespace extends implements instanceof parent self
 syn keyword es_phpConstant     __LINE__ __FILE__ __FUNCTION__ __METHOD__ __CLASS__ __DIR__ __NAMESPACE__ __TRAIT__
 syn match   es_phpIdentifier   "$\h\w*"
-syn region  es_phpComment      start="/\*" end="\*/\|$"
+syn region  es_phpComment      start="/\*" end="\*/\|^"
 syn match   es_phpComment      "#.\{-}\(?>\|$\)\@="
 syn match   es_phpComment      "//.\{-}\(?>\|$\)\@="
 syn region  es_phpStringDouble start=/\v"/ skip=/\v\\./ end=/\v"|^/
