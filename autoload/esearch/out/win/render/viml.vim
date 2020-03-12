@@ -46,6 +46,14 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       let a:esearch.contexts[-1].filename = filename
     endif
 
+    if len(text) > g:unload_context_syntax_on_line_length
+      if len(text) > g:unload_global_syntax_on_line_length
+        call esearch#out#win#_blocking_unload_syntaxes(a:esearch)
+      else
+        let a:esearch.contexts[-1].syntax_loaded = -1
+      end
+    end
+
     call add(lines, printf(s:linenr_format, parsed[i].lnum, text))
     call add(a:esearch.line_numbers_map, parsed[i].lnum)
     call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)

@@ -92,6 +92,11 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
   local context_by_name = {}
   local esearch_win_disable_context_highlights_on_files_count =
     vim.api.nvim_get_var('esearch_win_disable_context_highlights_on_files_count')
+  local unload_context_syntax_on_line_length =
+    vim.api.nvim_get_var('unload_context_syntax_on_line_length')
+  local unload_global_syntax_on_line_length =
+    vim.api.nvim_get_var('unload_global_syntax_on_line_length')
+
 
   local start = vim.api.nvim_buf_line_count(0)
   local line = start
@@ -135,6 +140,14 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
       files_count = files_count + 1
       line = line + 1
       contexts[#contexts]['filename'] = filename
+    end
+
+    if text:len() > unload_context_syntax_on_line_length then
+      if text:len() > unload_global_syntax_on_line_length then
+        vim.api.nvim_eval('esearch#out#win#_blocking_unload_syntaxes(b:esearch)')
+      else
+        contexts[#contexts]['syntax_loaded'] = -1
+      end
     end
 
     linenr_text = string.format(' %3d ', parsed[i]['lnum'])
@@ -218,6 +231,10 @@ function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
   local context_by_name  = esearch['context_by_name']
   local esearch_win_disable_context_highlights_on_files_count =
     vim.eval('g:esearch_win_disable_context_highlights_on_files_count')
+  local unload_context_syntax_on_line_length =
+    vim.eval('g:unload_context_syntax_on_line_length')
+  local unload_global_syntax_on_line_length =
+    vim.eval('g:unload_global_syntax_on_line_length')
 
   local b = vim.buffer()
   local line = vim.eval('line("$") + 1')
@@ -260,6 +277,14 @@ function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
       files_count = files_count + 1
       line = line + 1
       contexts[#contexts - 1]['filename'] = filename
+    end
+
+    if text:len() > unload_context_syntax_on_line_length then
+      if text:len() > unload_global_syntax_on_line_length then
+        vim.eval('esearch#out#win#_blocking_unload_syntaxes(b:esearch)')
+      else
+        contexts[#contexts - 1]['syntax_loaded'] = -1
+      end
     end
 
     b:insert(string.format(' %3d %s', parsed[i]['lnum'], text))
