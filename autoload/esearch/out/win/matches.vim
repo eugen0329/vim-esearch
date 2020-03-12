@@ -1,12 +1,3 @@
-if !exists('g:esearch_win_matches_highlight_debounce_wait')
-  let g:esearch_win_matches_highlight_debounce_wait = 50
-endif
-
-if !exists('g:esearch_out_win_highlight_matches')
-  let g:esearch_out_win_highlight_matches =
-        \ (g:esearch#has#nvim_add_highlight && g:esearch#has#nvim_lua ? 'viewport' : 'matchadd')
-endif
-
 " Two strategies of highlighting a search match:
 "   - for view port only (only available for neovim)
 "   - globally with matchadd
@@ -15,9 +6,9 @@ endif
 " The second strategy causes freezes when long lines are rendered due to the
 " lookbehind to prevent matching esearchLineNr virtual ui.
 "
-" Another option is to obtain the locations using adapter color highlights, but
-" it cause uncontrolled freeze on backend callbacks due to extra text with ansi
-" escape sequences.
+" Another option is to obtain the locations using adapter colorized output, but
+" it cause uncontrolled freeze on backend callbacks due to redundant text with
+" ANSI escape sequences.
 fu! esearch#out#win#matches#init_highlight(esearch) abort
   if g:esearch_out_win_highlight_matches ==# 'viewport'
     augroup ESearchWinHighlights
@@ -29,7 +20,7 @@ fu! esearch#out#win#matches#init_highlight(esearch) abort
     augroup END
     call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=update_matches_highlights_cb})')
     let a:esearch.last_hl_range = [0,0]
-  elseif g:esearch_out_win_highlight_matches ==# 'matchadd'
+  elseif g:esearch_out_win_highlight_matches ==# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
     let a:esearch.matches_highlight_id = matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
   endif
 endfu
@@ -83,7 +74,6 @@ endif
 
 lua << EOF
 function update_matches_highlights_cb(_, bufnr, ct, from, old_to, to, _old_byte_size)
-  print(from, to, old_to)
   if to == old_to then
     local namespace = vim.api.nvim_get_namespaces()['esearchMatchesNS']
     vim.api.nvim_buf_clear_namespace(0, namespace, from, to)

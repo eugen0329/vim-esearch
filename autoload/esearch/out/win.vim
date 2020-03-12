@@ -68,8 +68,16 @@ endif
 if !exists('g:esearch_win_viewport_highlight_extend_by')
   let g:esearch_win_viewport_highlight_extend_by = 100
 endif
+if !exists('g:esearch_win_matches_highlight_debounce_wait')
+  let g:esearch_win_matches_highlight_debounce_wait = 50
+endif
+if !exists('g:esearch_out_win_highlight_matches')
+  let g:esearch_out_win_highlight_matches =
+        \ (g:esearch#has#nvim_add_highlight && g:esearch#has#nvim_lua ? 'viewport' : 'matchadd')
+endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
-  let g:esearch_win_disable_context_highlights_on_files_count = 2000
+  let g:esearch_win_disable_context_highlights_on_files_count =
+        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 2000 : 200)
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -1048,7 +1056,7 @@ fu! esearch#out#win#handle_changes(event) abort
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
     let a:event.errors = len(v:errors)
-    " call esearch#log#debug(a:event,  len(v:errors))
+    call esearch#log#debug(a:event,  len(v:errors))
   endif
 endfu
 

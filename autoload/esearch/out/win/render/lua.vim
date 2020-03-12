@@ -40,12 +40,12 @@ if g:esearch#has#nvim_lua
     endif
   endfu
 
-  fu! esearch#out#win#render#lua#init_nvim_syntax(esearch)
+  fu! esearch#out#win#render#lua#init_nvim_syntax(esearch) abort
     call luaeval('highlight_linenrs_in_range(0,1)')
     let a:esearch.lines_changed_callback_enabled = 0
   endfu
 
-  fu! esearch#out#win#render#lua#nvim_syntax_attach_callback(esearch)
+  fu! esearch#out#win#render#lua#nvim_syntax_attach_callback(esearch) abort
     if b:esearch.lines_changed_callback_enabled | return | endif
 
     let a:esearch.lines_changed_callback_enabled = 1
