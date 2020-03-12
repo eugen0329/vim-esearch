@@ -20,7 +20,7 @@ describe 'esearch window context syntax', :window do
         "string"
         "escaped quote\\"
         "str with escape\\n"
-        "ellipsized string#{'.' * 500}"
+        "ellipsized string#{'.' * 300}"
         `raw string`
         defer
         go
@@ -35,7 +35,7 @@ describe 'esearch window context syntax', :window do
         default
         // comment line
         /* comment block */
-        /* ellipsized comment #{'.' * 500}*/
+        /* ellipsized comment #{'.' * 300}*/
         for {}
         range()
       SOURCE
