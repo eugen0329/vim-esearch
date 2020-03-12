@@ -26,6 +26,10 @@ fu! esearch#out#win#matches#init_highlight(esearch) abort
 endfu
 
 fu! s:highlight_matches_callback(esearch, callback) abort
+  if !exists('b:esearch') || b:esearch.id != a:esearch.id
+    return
+  endif
+
   let [top, bottom] = [ line('w0'), line('w$') ]
   let last_hl_range = a:esearch.last_hl_range
 
