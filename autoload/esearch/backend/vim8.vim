@@ -36,6 +36,7 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \ 'tick': 0,
         \ 'ticks': g:esearch#backend#vim8#ticks,
         \ 'backend':  'vim8',
+        \ 'intermediate':  '',
         \ 'command':  a:cmd,
         \ 'data':     [],
         \ 'errors':     [],
@@ -63,6 +64,15 @@ endfu
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
   let data = split(a:data, "\n", 1)
+
+  if !empty(request.intermediate) && !empty(data)
+    let data[0] = request.intermediate . data[0]
+    let request.intermediate = ''
+  endif
+  if !empty(data) && data[-1] !~# '\r$'
+    let request.intermediate = remove(data, -1)
+  endif
+
   let request.data += filter(data, "'' !=# v:val")
   if !request.aborted && request.tick % request.ticks == 1 && !empty(request.events.update)
     call request.events.update()
