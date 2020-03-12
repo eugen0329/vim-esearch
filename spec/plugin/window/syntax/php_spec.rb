@@ -35,16 +35,14 @@ describe 'esearch window context syntax', :window do
         "string"
         "escaped quote\\"
         "str with escape\\n"
-        "ellipsized string#{'.' * 500}"
-        "unterminated string
+        "missing quote
 
         $identifier
 
         'string'
         'escaped quote\\'
         'str with escape\\n'
-        'ellipsized string#{'.' * 500}'
-        'unterminated string
+        'missing quote
 
         return
         break
@@ -120,16 +118,14 @@ describe 'esearch window context syntax', :window do
         region('"string"')                        => %w[es_phpStringDouble String],
         region('"escaped quote\\\\"')             => %w[es_phpStringDouble String],
         region('"str with escape\\\\n"')          => %w[es_phpStringDouble String],
-        # region('"ellipsized string[^"]\\+$')      => %w[es_phpStringDouble String],
-        region('"unterminated string')            => %w[es_phpStringDouble String],
+        region('"missing quote')                  => %w[es_phpStringDouble String],
 
         region('$identifier')                     => %w[es_phpIdentifier Identifier],
 
         region("'string'")                        => %w[es_phpStringSingle String],
         region("'escaped quote\\\\'")             => %w[es_phpStringSingle String],
         region("'str with escape\\\\n'")          => %w[es_phpStringSingle String],
-        # region("'ellipsized string[^']\\+$")      => %w[es_phpStringSingle String],
-        region("'unterminated string")            => %w[es_phpStringSingle String],
+        region("'missing quote")                  => %w[es_phpStringSingle String],
 
         word('return')                            => %w[es_phpStatement Statement],
         word('break')                             => %w[es_phpStatement Statement],

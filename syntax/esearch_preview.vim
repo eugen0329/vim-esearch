@@ -29,4 +29,4 @@ endif
 hi def link esearchPreviewLineNr LineNr
 hi def link esearchPreviewSign CursorLineNr
 
-let b:current_syntax = 'esearchPreview'
+let b:current_syntax = 'esearch_preview'

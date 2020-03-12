@@ -45,8 +45,8 @@ describe 'esearch window context syntax', :window do
         true.call
         false.call
 
-        "unterminated string
-        'unterminated string
+        "missing quote
+        'missing quote
 
         alias
         def
@@ -124,8 +124,8 @@ describe 'esearch window context syntax', :window do
         word('true')                   => %w[es_rubyBoolean Boolean],
         word('false')                  => %w[es_rubyBoolean Boolean],
 
-        region("'unterminated string") => %w[es_rubyString String],
-        region('"unterminated string') => %w[es_rubyString String],
+        region("'missing quote")       => %w[es_rubyString String],
+        region('"missing quote')       => %w[es_rubyString String],
 
         word('alias')                  => %w[es_rubyDefine Define],
         word('def')                    => %w[es_rubyDefine Define],
@@ -136,7 +136,7 @@ describe 'esearch window context syntax', :window do
         word('Modulename')             => %w[es_rubyConstant Type],
 
         word('Constant')               => %w[es_rubyConstant Type],
-        word('method')                 => %w[win_context_ruby cleared],
+        word('method')                 => %w[es_ctx_ruby cleared],
 
         region('# comment')            => %w[es_rubyComment Comment],
         region('#comment')             => %w[es_rubyComment Comment],

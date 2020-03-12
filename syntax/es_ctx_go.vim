@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_goDirective   package import
 syn keyword es_goDeclaration var const type func
 syn keyword es_goDeclType    struct interface
@@ -25,4 +27,4 @@ hi def link es_goString      String
 hi def link es_goRawString   String
 hi def link es_goComment     Comment
 
-let b:current_syntax = 'win_context_go'
+let b:current_syntax = 'es_ctx_go'

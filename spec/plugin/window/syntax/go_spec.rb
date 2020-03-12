@@ -12,19 +12,16 @@ describe 'esearch window context syntax', :window do
       <<~SOURCE
         package main
         import "fmt"
-
         var a int
         const b int
         func main() {}
         type _ struct {}
         type _ interface {}
-
         "string"
         "escaped quote\\"
         "str with escape\\n"
         "ellipsized string#{'.' * 500}"
         `raw string`
-
         defer
         go
         goto
@@ -32,17 +29,13 @@ describe 'esearch window context syntax', :window do
         break
         continue
         fallthrough
-
         "unterminated string
         `unterminated raw string
-
         case
         default
-
         // comment line
         /* comment block */
         /* ellipsized comment #{'.' * 500}*/
-
         for {}
         range()
       SOURCE
@@ -72,7 +65,6 @@ describe 'esearch window context syntax', :window do
         region('"string"')                 => %w[es_goString String],
         region('"escaped quote\\\\"')      => %w[es_goString String],
         region('"str with escape\\\\n"')   => %w[es_goString String],
-        # region('"ellipsized string[^"]\\+$') => %w[es_goString String],
         region('`raw string`$')            => %w[es_goRawString String],
 
         word('defer')                      => %w[es_goStatement Statement],

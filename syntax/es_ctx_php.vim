@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_phpConditional  declare else enddeclare endswitch elseif endif if switch
 syn keyword es_phpRepeat       as do endfor endforeach endwhile for foreach while
 syn keyword es_phpLabel        case default switch
@@ -29,4 +31,4 @@ hi def link es_phpStringSingle String
 hi def link es_phpStringDouble String
 
 
-let b:current_syntax = 'win_context_php'
+let b:current_syntax = 'es_ctx_php'

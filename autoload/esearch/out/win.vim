@@ -69,7 +69,7 @@ if !exists('g:esearch_win_viewport_highlight_extend_by')
   let g:esearch_win_viewport_highlight_extend_by = 100
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
-  let g:esearch_win_disable_context_highlights_on_files_count = 100
+  let g:esearch_win_disable_context_highlights_on_files_count = 200
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -95,16 +95,67 @@ if !exists('g:esearch_out_win_render_using_lua')
 endif
 
 let s:context_syntaxes = {
-      \ 'c':               'win_context_c',
-      \ 'sh':              'win_context_sh',
-      \ 'javascript':      'win_context_javascript',
-      \ 'javascriptreact': 'win_context_javascript',
-      \ 'php':             'win_context_php',
-      \ 'go':              'win_context_go',
-      \ 'ruby':            'win_context_ruby',
-      \ 'html':            'win_context_html',
-      \ 'java':            'win_context_java',
-      \ 'python':          'win_context_python',
+      \ 'c':               'es_ctx_c',
+      \ 'xs':              'es_ctx_c',
+      \ 'cmod':            'es_ctx_c',
+      \ 'rpcgen':          'es_ctx_c',
+      \ 'haskell':         'es_ctx_haskell',
+      \ 'lhaskell':        'es_ctx_haskell',
+      \ 'agda':            'es_ctx_haskell',
+      \ 'sh':              'es_ctx_sh',
+      \ 'bash':            'es_ctx_sh',
+      \ 'zsh':             'es_ctx_sh',
+      \ 'bats':            'es_ctx_sh',
+      \ 'coffee':          'es_ctx_javascript',
+      \ 'litcoffee':       'es_ctx_javascript',
+      \ 'javascript':      'es_ctx_javascript',
+      \ 'javascriptreact': 'es_ctx_javascriptreact',
+      \ 'typescript':      'es_ctx_typescript',
+      \ 'typescriptreact': 'es_ctx_typescriptreact',
+      \ 'php':             'es_ctx_php',
+      \ 'phtml':           'es_ctx_php',
+      \ 'go':              'es_ctx_go',
+      \ 'ruby':            'es_ctx_ruby',
+      \ 'racc':            'es_ctx_ruby',
+      \ 'xml':             'es_ctx_xml',
+      \ 'svg':             'es_ctx_xml',
+      \ 'ant':             'es_ctx_xml',
+      \ 'papp':            'es_ctx_xml',
+      \ 'html':            'es_ctx_html',
+      \ 'xhtml':           'es_ctx_html',
+      \ 'haml':            'es_ctx_html',
+      \ 'htmlcheetah':     'es_ctx_html',
+      \ 'wml':             'es_ctx_html',
+      \ 'jsp':             'es_ctx_html',
+      \ 'template':        'es_ctx_html',
+      \ 'htmldjango':      'es_ctx_html',
+      \ 'htmlm4':          'es_ctx_html',
+      \ 'vue':             'es_ctx_html',
+      \ 'java':            'es_ctx_java',
+      \ 'python':          'es_ctx_python',
+      \ 'kivy':            'es_ctx_python',
+      \ 'pyrex':           'es_ctx_python',
+      \ 'json':            'es_ctx_json',
+      \ 'yaml':            'es_ctx_yaml',
+      \ 'liquid':          'es_ctx_yaml',
+      \ 'vim':             'es_ctx_vim',
+      \ 'toml':            'es_ctx_toml',
+      \ 'dockerfile':      'es_ctx_dockerfile',
+      \ 'css':             'es_ctx_css',
+      \ 'scss':            'es_ctx_css',
+      \ 'sass':            'es_ctx_css',
+      \ 'less':            'es_ctx_css',
+      \ 'hcl':             'es_ctx_hcl',
+      \ 'groovy':          'es_ctx_groovy',
+      \ 'Jenkinsfile':     'es_ctx_groovy',
+      \ 'scala':           'es_ctx_scala',
+      \ 'rust':            'es_ctx_generic',
+      \ 'swift':           'es_ctx_generic',
+      \ 'elixir':          'es_ctx_generic',
+      \ 'erlang':          'es_ctx_generic',
+      \ 'fortran':         'es_ctx_generic',
+      \ 'lisp':            'es_ctx_lisp',
+      \ 'clojure':         'es_ctx_lisp',
       \}
 
 if !has_key(g:, 'esearch#out#win#open')
@@ -123,7 +174,7 @@ fu! esearch#out#win#init(opts) abort
   end
 
   " Refresh match highlight
-  setlocal ft=esearch
+  setl ft=esearch
   " TODO
   if g:esearch.highlight_match && has_key(a:opts.exp, 'vim_match')
     if exists('b:esearch') && b:esearch._match_highlight_id > 0
@@ -138,25 +189,25 @@ fu! esearch#out#win#init(opts) abort
     let match_highlight_id = -1
   endif
 
-  setlocal modifiable
+  setl modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
-  setlocal undolevels=-1 " Disable undo
-  setlocal nomodifiable
-  setlocal nobackup
-  setlocal noswapfile
-  setlocal nonumber
-  setlocal norelativenumber
-  setlocal nospell
-  setlocal nolist " prevent listing traling spaces on blank lines
-  setlocal nomodeline
+  setl undolevels=-1 " Disable undo
+  setl nomodifiable
+  setl nobackup
+  setl noswapfile
+  setl nonumber
+  setl norelativenumber
+  setl nospell
+  setl nolist " prevent listing traling spaces on blank lines
+  setl nomodeline
   let &buflisted = g:esearch#out#win#buflisted
-  setlocal foldcolumn=0
-  setlocal buftype=nofile
-  setlocal bufhidden=hide
-  setlocal foldlevel=2
-  setlocal foldmethod=syntax
-  setlocal foldtext=esearch#out#win#foldtext()
+  setl foldcolumn=0
+  setl buftype=nofile
+  setl bufhidden=hide
+  setl foldlevel=2
+  setl foldmethod=syntax
+  setl foldtext=esearch#out#win#foldtext()
   syntax sync minlines=100
 
   let b:esearch = extend(a:opts, {
@@ -208,6 +259,18 @@ fu! esearch#out#win#init(opts) abort
   let b:esearch.context_ids_map += [header_context.id, header_context.id]
   let b:esearch.line_numbers_map += [0, 0]
 
+  if has('nvim')
+    " According to :syntime profiling, header has the biggest TOTAL time while
+    " being easy to match (highlight is done fot the whole first line).
+    " matchaddpos() seems to work per window, so optimization is done only for
+    " neovim
+    " Method args are
+    " nvim_buf_add_highlight({buffer}, {ns_id}, {hl_group}, {line},
+    "                        {col_start}, {col_end})
+    let b:esearch.header_highlight_namespace =
+          \ nvim_buf_add_highlight(0, 0, 'esearchHeader', 0, 0, -1)
+  endif
+
   call extend(b:esearch.request, {
         \ 'bufnr':       bufnr('%'),
         \ 'cursor':      0,
@@ -246,6 +309,10 @@ fu! s:cleanup() abort
     au! * <buffer>
   augroup END
   call esearch#option#reset()
+
+  if has_key(b:esearch, 'header_highlight_namespace')
+    call nvim_buf_clear_namespace(bufnr(), b:esearch.header_highlight_namespace, 0,0)
+  endif
 endfu
 
 " TODO refactoring
@@ -283,7 +350,10 @@ fu! s:init_update_events(esearch) abort
   endif
 endfu
 
-" will render <= 2 * batch_size (usually much less than 2x)
+" Is used to render the first batch as soon as possible before the first timer
+" callback invokation. Is called on stdout event from a backend and is undloaded
+" when the first batch is rendered. Will render <= 2 * batch_size entries
+" (usually much less than 2x).
 fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
   if a:bufnr != bufnr('%')
     return 1
@@ -487,6 +557,7 @@ fu! s:blocking_highlight_viewport(esearch) abort
       call s:load_syntax(a:esearch, context)
     endif
   endfor
+  call s:set_syntax_sync(a:esearch)
 endfu
 
 fu! s:set_syntax_sync(esearch) abort
@@ -566,6 +637,11 @@ fu! s:load_syntax(esearch, context) abort
         \ s:String.escape_pattern(a:context.filename),
         \ region.name,
         \ )
+
+  let len = a:context.end - a:context.begin
+  if a:esearch.max_lines_found < len
+    let a:esearch.max_lines_found = len
+  endif
   let a:context.syntax_loaded = 1
 endfu
 
@@ -651,8 +727,9 @@ fu! s:open(cmd, ...) abort
 
   let filename = esearch#out#win#filename()
   if !empty(filename)
-    let ln = esearch#out#win#line_in_file()
-    let col = esearch#out#win#column_in_file()
+    let lnum = esearch#out#win#line_in_file()
+    let col = str2nr(esearch#out#win#column_in_file())
+    let topline = str2nr(lnum) - (line('.') - line('w0'))
     let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
     try
       " See NOTE 1
@@ -663,8 +740,7 @@ fu! s:open(cmd, ...) abort
       unsilent echo v:exception . ' at ' . v:throwpoint
     endtry
 
-    keepjumps call cursor(ln, col)
-    norm! zz
+    keepjumps call winrestview({'lnum': lnum, 'col': col - 1,'topline': topline })
     if a:0 | exe a:1 | endif
   endif
 endfu
@@ -830,8 +906,6 @@ fu! esearch#out#win#finish(bufnr) abort
   if has_key(esearch, 'updates_timer')
     call timer_stop(esearch.updates_timer)
   endif
-
-  call s:set_syntax_sync(esearch)
   call setbufvar(a:bufnr, '&modifiable', 1)
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))

@@ -30,12 +30,11 @@ describe 'esearch window context syntax', :window do
         "string"
         "escaped quote\\"
         "str with escape\\n"
-        "ellipsized string#{'.' * 500}"
 
         #define
         #undef
 
-        "unterminated string
+        "missing quote
 
         #pragma
         #line
@@ -92,12 +91,11 @@ describe 'esearch window context syntax', :window do
         region('"string"')               => %w[es_cString String],
         region('"escaped quote\\\\"')    => %w[es_cString String],
         region('"str with escape\\\\n"') => %w[es_cString String],
-        # region('"ellipsized string[^"]\\+$') => %w[es_cString String],
 
         region('#define')                => %w[es_cDefine Macro],
         region('#undef')                 => %w[es_cDefine Macro],
 
-        region('"unterminated string')   => %w[es_cString String],
+        region('"missing quote')         => %w[es_cString String],
 
         region('#pragma')                => %w[es_cPreProc PreProc],
         region('#line')                  => %w[es_cPreProc PreProc],

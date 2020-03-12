@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_pythonStatement   False None True
 syn keyword es_pythonStatement   as assert break continue del exec global
 syn keyword es_pythonStatement   lambda nonlocal pass print return with yield
@@ -30,4 +32,4 @@ hi def link es_pythonAsync       Statement
 hi def link es_pythonComment     Comment
 hi def link es_pythonString      String
 
-let b:current_syntax = 'win_context_python'
+let b:current_syntax = 'es_ctx_python'

@@ -121,7 +121,11 @@ class Editor
   end
 
   def search_literal(text, modifiers = '')
-    echo(func('search', modifiers + text.gsub(/([$^~.*\[\]\\])/, '\\\\\1'), 'w'))
+    echo(func('search', modifiers + escape_regexp(text), 'w'))
+  end
+
+  def escape_regexp(text)
+    text.gsub(/([$^~.*\[\]\\])/, '\\\\\1')
   end
 
   def syntax_aliases_at(location_regexps)

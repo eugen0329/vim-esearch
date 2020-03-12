@@ -2,6 +2,8 @@ if exists('b:current_syntax')
   finish
 endif
 
+" based on vim builtin syntax
+
 syn keyword es_rubyControl        and break in next not or redo rescue retry return
 syn keyword es_rubyControl        case begin do for if unless while until else elsif ensure then when end
 syn keyword es_rubyBoolean        true false
@@ -27,4 +29,4 @@ hi def link es_rubyPseudoVariable Constant
 hi def link es_rubyString         String
 hi def link es_rubyComment        Comment
 
-let b:current_syntax = 'win_context_ruby'
+let b:current_syntax = 'es_ctx_ruby'

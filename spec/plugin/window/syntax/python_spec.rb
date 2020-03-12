@@ -76,8 +76,8 @@ describe 'esearch window context syntax', :window do
         not
         or
 
-        "unterminated string
-        'unterminated string
+        "missing quote
+        'missing quote
 
         except
         finally
@@ -171,8 +171,8 @@ describe 'esearch window context syntax', :window do
         word('not')                    => %w[es_pythonOperator Operator],
         word('or')                     => %w[es_pythonOperator Operator],
 
-        region("'unterminated string") => %w[es_pythonString String],
-        region('"unterminated string') => %w[es_pythonString String],
+        region("'missing quote")       => %w[es_pythonString String],
+        region('"missing quote')       => %w[es_pythonString String],
 
         word('except')                 => %w[es_pythonException Exception],
         word('finally')                => %w[es_pythonException Exception],
