@@ -44,7 +44,7 @@ describe 'esearch window context syntax', :window do
 
         // comment line
         /* comment block */
-        /* ellipsized comment #{'.' * 500}*/
+        /* ellipsized comment #{'.' * 300}*/
 
         struct{}
         union{}

@@ -28,7 +28,7 @@ describe 'esearch window context syntax', :window do
         super
         // comment line
         /* comment block */
-        /* ellipsized comment #{'.' * 500}*/
+        /* ellipsized comment #{'.' * 300}*/
         new
         instanceof
         return

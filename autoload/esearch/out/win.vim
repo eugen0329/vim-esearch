@@ -105,6 +105,12 @@ endif
 if !exists('g:esearch_out_win_nvim_lua_syntax')
   let g:esearch_out_win_nvim_lua_syntax = g:esearch#has#nvim_lua
 endif
+if !exists('g:unload_context_syntax_on_line_length')
+  let g:unload_context_syntax_on_line_length = 500
+endif
+if !exists('g:unload_global_syntax_on_line_length')
+  let g:unload_global_syntax_on_line_length = 30000
+endif
 
 let s:context_syntaxes = {
       \ 'c':               'es_ctx_c',
@@ -298,7 +304,7 @@ endfu
 else
 fu! s:highlight_cursor_line_number() abort
   if has_key(b:, 'esearch_linenr_id')
-    call matchdelete(b:esearch_linenr_id)
+    call esearch#util#safe_matchdelete(b:esearch_linenr_id)
   endif
   let b:esearch_linenr_id = matchadd('esearchCursorLineNr',
         \ '^\s\+\d\+\s' . line('.') . 'l', -1)
@@ -590,27 +596,32 @@ fu! esearch#out#win#unload_highlights() abort
   if s:Promise.is_available()
     return s:Promise
           \.new({resolve -> timer_start(0, resolve)})
-          \.then({-> s:blocking_unload_syntaxes(b:esearch)})
+          \.then({-> esearch#out#win#_blocking_unload_syntaxes(b:esearch)})
           \.catch({reason -> execute('echoerr reason')})
   endif
 
-  return s:blocking_unload_syntaxes(b:esearch)
+  return esearch#out#win#_blocking_unload_syntaxes(b:esearch)
 endfu
 
-fu! s:blocking_unload_syntaxes(esearch) abort
+fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
   if a:esearch.viewport_highlight_timer >= 0
     call timer_stop(a:esearch.viewport_highlight_timer)
   endif
 
-  for name in map(values(a:esearch.context_syntax_regions), 'v:val.name')
-    exe 'syn clear ' . name
-    exe 'syn clear esearchContext_' . name
-  endfor
+  if g:esearch_out_win_nvim_lua_syntax
+    syn clear
+  else
+    for name in map(values(a:esearch.context_syntax_regions), 'v:val.name')
+      exe 'syn clear ' . name
+      exe 'syn clear esearchContext_' . name
+    endfor
+  endif
   augroup ESearchWinHighlights
     au! * <buffer>
   augroup END
   syntax sync clear
   syntax sync maxlines=1
+  call clearmatches()
 
   let a:esearch.context_syntax_regions = {}
 endfu
@@ -916,7 +927,7 @@ fu! esearch#out#win#finish(bufnr) abort
   call setbufvar(a:bufnr, '&modifiable', 1)
 
   if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
-    call s:blocking_unload_syntaxes(esearch)
+    call esearch#out#win#_blocking_unload_syntaxes(esearch)
 
     let errors = esearch.request.data + esearch.request.errors
     call esearch#util#setline(a:bufnr, 1, 'ERRORS from '.esearch.adapter.' ('.len(errors).')')
