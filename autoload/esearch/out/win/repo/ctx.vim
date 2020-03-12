@@ -1,32 +1,31 @@
 fu! esearch#out#win#repo#ctx#new(esearch, state) abort
   return {
-        \ 'esearch':      a:esearch,
-        \ 'state':        a:state,
-        \ 'by_line':      function('<SID>by_line'),
+        \ 'esearch': a:esearch,
+        \ 'state':   a:state,
+        \ 'by_line': function('<SID>by_line'),
         \ }
 endfu
 
 fu! s:by_line(line) abort dict
   let line = a:line
-  if len(self.state.context_ids_map) <= line
+  if len(self.state.ctx_ids_map) <= line
     return 0
   endif
-
-  let context = self.esearch.contexts[self.state.context_ids_map[line]]
+  let ctx = self.esearch.contexts[self.state.ctx_ids_map[line]]
 
   " read-through cache synchronization
-  let context.begin = s:line_begin(self.state.context_ids_map, context, line)
-  let context.end   = s:line_end(self.state.context_ids_map, context, line)
+  let ctx.begin = s:line_begin(self.state.ctx_ids_map, ctx, line)
+  let ctx.end   = s:line_end(self.state.ctx_ids_map, ctx, line)
 
-  return context
+  return ctx
 endfu
 
-fu! s:line_begin(context_ids_map, context, line) abort
+fu! s:line_begin(ctx_ids_map, ctx, line) abort
   let line = a:line
-  let context_ids_map = a:context_ids_map
+  let ctx_ids_map = a:ctx_ids_map
 
   while line > 0
-    if context_ids_map[line - 1] !=# a:context.id
+    if ctx_ids_map[line - 1] !=# a:ctx.id
       return line
     endif
 
@@ -36,18 +35,18 @@ fu! s:line_begin(context_ids_map, context, line) abort
   return 1
 endfu
 
-fu! s:line_end(context_ids_map, context, line) abort
+fu! s:line_end(ctx_ids_map, ctx, line) abort
   let line = a:line
-  let context_ids_map = a:context_ids_map
+  let ctx_ids_map = a:ctx_ids_map
 
-  while line < len(context_ids_map) - 1
-    if context_ids_map[line + 1] !=# a:context.id
+  while line < len(ctx_ids_map) - 1
+    if ctx_ids_map[line + 1] !=# a:ctx.id
       return line
     endif
 
     let line += 1
   endwhile
 
-  return len(context_ids_map) - 1
-  throw "Can't find context begin: " . string([a:context, a:line])
+  return len(ctx_ids_map) - 1
+  throw "Can't find ctx begin: " . string([a:ctx, a:line])
 endfu

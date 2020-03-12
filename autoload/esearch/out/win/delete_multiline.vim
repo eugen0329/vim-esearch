@@ -396,21 +396,21 @@ fu! s:is_orphaned_filename_above(ctx, rebuilder) abort
 endfu
 
 fu! s:is_last_context(ctx, state) abort
-  if len(b:esearch.contexts) <= 1 || len(a:state.context_ids_map) < 3
+  if len(b:esearch.contexts) <= 1 || len(a:state.ctx_ids_map) < 3
     " if all contexts besides header are removed
     return 0
   endif
 
-  return a:ctx.id ==# b:esearch.contexts[a:state.context_ids_map[-1]].id
+  return a:ctx.id ==# b:esearch.contexts[a:state.ctx_ids_map[-1]].id
 endfu
 
 fu! s:is_first_context(ctx, state) abort
-  if len(b:esearch.contexts) <= 1 || len(a:state.context_ids_map) < 3
+  if len(b:esearch.contexts) <= 1 || len(a:state.ctx_ids_map) < 3
     " if all contexts besides header are removed
     return 0
   endif
 
-  return a:ctx.id ==# b:esearch.contexts[a:state.context_ids_map[3]].id
+  return a:ctx.id ==# b:esearch.contexts[a:state.ctx_ids_map[3]].id
 endfu
 
 fu! s:is_separator_removed(ctx, rebuilder, state) abort
@@ -425,7 +425,7 @@ fu! s:is_until_the_end(bottom_ctx, rebuilder, state) abort
 endfu
 
 fu! s:is_orphaned_blank_line_below(ctx, rebuilder, state) abort
-  return a:ctx.end != len(a:state.context_ids_map) - 1
+  return a:ctx.end != len(a:state.ctx_ids_map) - 1
         \ && a:rebuilder.line2 ==# a:ctx.end - 1
 endfu
 
@@ -452,13 +452,13 @@ fu! s:apply_recovery(state) abort dict
   endif
 
   if g:esearch_out_win_nvim_lua_syntax && self.extended_line1 <= 2
-      call luaeval('highlight_range(0,1)')
+    call luaeval('highlight_linenrs_in_range(0,1)')
   endif
 
   call remove(a:state.line_numbers_map, self.extended_line1, self.extended_line2)
-  call remove(a:state.context_ids_map, self.extended_line1, self.extended_line2)
+  call remove(a:state.ctx_ids_map, self.extended_line1, self.extended_line2)
   call esearch#util#insert(a:state.line_numbers_map, self.add_line_numbers, self.extended_line1)
-  call esearch#util#insert(a:state.context_ids_map, self.add_context_ids, self.extended_line1)
+  call esearch#util#insert(a:state.ctx_ids_map, self.add_context_ids, self.extended_line1)
 
   if has_key(self, 'cursor')
     call cursor(self.cursor)

@@ -32,14 +32,14 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       end
 
       call add(lines, '')
-      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+      call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
       call add(a:esearch.line_numbers_map, 0)
       let line += 1
 
       call add(lines, filename)
       call esearch#out#win#add_context(a:esearch.contexts, filename, line)
       let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
-      call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+      call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
       call add(a:esearch.line_numbers_map, 0)
       let a:esearch.files_count += 1
       let line += 1
@@ -48,7 +48,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
 
     call add(lines, printf(s:linenr_format, parsed[i].lnum, text))
     call add(a:esearch.line_numbers_map, parsed[i].lnum)
-    call add(a:esearch.context_ids_map, a:esearch.contexts[-1].id)
+    call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
     let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text
     let line += 1
     let i    += 1

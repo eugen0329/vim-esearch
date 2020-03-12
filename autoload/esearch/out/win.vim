@@ -97,9 +97,6 @@ endif
 if !exists('g:esearch_out_win_nvim_lua_syntax')
   let g:esearch_out_win_nvim_lua_syntax = g:esearch#has#nvim_lua
 endif
-if !exists('g:esearch_out_win_highlight_matches')
-  let g:esearch_out_win_highlight_matches = 'viewport'
-endif
 
 let s:context_syntaxes = {
       \ 'c':               'es_ctx_c',
@@ -222,7 +219,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'highlighted_lines_map':    {},
         \ 'contexts':                 [],
         \ 'context_by_name':          {},
-        \ 'context_ids_map':          [],
+        \ 'ctx_ids_map':          [],
         \ 'broken_results':           [],
         \ 'errors':                   [],
         \ 'data':                     [],
@@ -248,18 +245,16 @@ fu! esearch#out#win#init(opts) abort
     endif
   augroup END
 
-  call s:setup_search_matches_highlight(b:esearch)
-
   " setup blank context for header
   call esearch#out#win#add_context(b:esearch.contexts, '', 1)
   let header_context = b:esearch.contexts[0]
   let header_context.end = 2
-  let b:esearch.context_ids_map += [header_context.id, header_context.id]
+  let b:esearch.ctx_ids_map += [header_context.id, header_context.id]
   let b:esearch.line_numbers_map += [0, 0]
 
+  call esearch#out#win#matches#init_highlight(b:esearch)
   if g:esearch_out_win_nvim_lua_syntax
-    call luaeval('highlight_range(0,1)')
-    let b:esearch.lines_changed_callback_enabled = 0
+    call esearch#out#win#render#lua#init_nvim_syntax(b:esearch)
   endif
 
   call extend(b:esearch.request, {
@@ -272,22 +267,6 @@ fu! esearch#out#win#init(opts) abort
 
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))
-  endif
-endfu
-
-fu! s:setup_search_matches_highlight(esearch) abort
-  if g:esearch_out_win_highlight_matches ==# 'viewport'
-    augroup ESearchWinHighlights
-      au CursorMoved <buffer> let b:esearch.match_highlight_timer = esearch#debounce#trailing(
-            \ function('s:highlight_matches_callback', [b:esearch]),
-            \ 50,
-            \ b:esearch.match_highlight_timer)
-    augroup END
-  elseif g:esearch_out_win_highlight_matches ==# 'matchadd'
-    call esearch#util#safe_matchdelete(
-          \ get(a:esearch, 'matches_highlight_id', -1))
-    let a:esearch.matches_highlight_id =
-          \ matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
   endif
 endfu
 
@@ -331,6 +310,8 @@ fu! s:cleanup() abort
     au! * <buffer>
   augroup END
   call esearch#option#reset()
+  call esearch#util#safe_matchdelete(
+        \ get(b:esearch, 'matches_highlight_id', -1))
 endfu
 
 " TODO refactoring
@@ -549,35 +530,6 @@ fu! s:highlight_viewport() abort
   endif
 endfu
 
-fu! s:highlight_matches_callback(esearch, callback) abort
-  let exp = b:esearch.exp.vim
-  let line_numbers_map = s:state().line_numbers_map
-  let highlighted_lines_map = b:esearch.highlighted_lines_map
-
-  let last_line = line('$')
-  let line = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
-  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
-
-  " while line < end
-  for text in nvim_buf_get_lines(0, line - 1, end, 0)
-    if has_key(highlighted_lines_map, line) || line_numbers_map[line] == 0
-      let line += 1
-      continue
-    endif
-    let linenr =  line_numbers_map[line]
-
-    " let text = getline(line)
-    let begin = match(text, exp, max([strlen(linenr), 3]) + 2)
-    if begin < 0 | let line += 1 | continue | endif
-    let matchend = matchend(text, exp, begin)
-
-    call nvim_buf_add_highlight(0, -1, 'esearchMatch', line - 1, begin, matchend)
-    let highlighted_lines_map[line] = 1
-    let line += 1
-  endfor
-  " endwhile
-endfu
-
 fu! s:highlight_viewport_callback(esearch, timer) abort
   let a:esearch.viewport_highlight_timer = -1
 
@@ -598,8 +550,8 @@ fu! s:blocking_highlight_viewport(esearch) abort
   let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
   let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
 
-  let state = s:state()
-  for context in b:esearch.contexts[state.context_ids_map[begin] : state.context_ids_map[end]]
+  let state = esearch#out#win#_state()
+  for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]
     if !context.syntax_loaded
       call s:load_syntax(a:esearch, context)
     endif
@@ -804,7 +756,7 @@ fu! esearch#out#win#line_in_file() abort
 endfu
 
 fu! esearch#out#win#filename() abort
-  let context = esearch#out#win#repo#ctx#new(b:esearch, s:state()).by_line(line('.'))
+  let context = esearch#out#win#repo#ctx#new(b:esearch, esearch#out#win#_state()).by_line(line('.'))
 
   if context.id == 0
     let filename =  get(b:esearch.contexts, 1, context).filename
@@ -819,7 +771,7 @@ fu! esearch#out#win#filename() abort
   return filename
 endfu
 
-fu! s:state() abort
+fu! esearch#out#win#_state() abort
   if b:esearch.mode ==# 'normal'
     " Probably a better idea would be to return only paris, stored in states.
     " Storing in normal mode within undotree with a single node is not the best
@@ -979,9 +931,8 @@ fu! esearch#out#win#finish(bufnr) abort
 
   call esearch#out#win#edit()
 
-  if g:esearch_out_win_nvim_lua_syntax && !b:esearch.lines_changed_callback_enabled
-    let b:esearch.lines_changed_callback_enabled = 1
-    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=lines_changed_callback})')
+  if g:esearch_out_win_nvim_lua_syntax
+    call esearch#out#win#render#lua#nvim_syntax_attach_callback(b:esearch)
   endif
 endfu
 
@@ -1019,7 +970,7 @@ fu! esearch#out#win#edit() abort
   endtry
 
   let b:esearch.undotree = esearch#undotree#new({
-        \ 'context_ids_map': b:esearch.context_ids_map,
+        \ 'ctx_ids_map': b:esearch.ctx_ids_map,
         \ 'line_numbers_map': b:esearch.line_numbers_map,
         \ })
   call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
@@ -1094,10 +1045,10 @@ fu! esearch#out#win#handle_changes(event) abort
   endif
 
   if g:esearch#env isnot 0
-    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.context_ids_map))
+    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
     let a:event.errors = len(v:errors)
-    call esearch#log#debug(a:event,  len(v:errors))
+    " call esearch#log#debug(a:event,  len(v:errors))
   endif
 endfu
 

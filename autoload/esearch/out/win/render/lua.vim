@@ -21,7 +21,7 @@ endif
 
 if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-    let [files_count, contexts, context_ids_map, line_numbers_map, context_by_name] =
+    let [files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name] =
           \ luaeval('esearch_out_win_render_nvim(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6], _A[7])',
           \ [a:data[a:from : a:to],
           \ get(a:esearch.paths, 0, ''),
@@ -32,12 +32,24 @@ if g:esearch#has#nvim_lua
 
     let a:esearch.files_count = files_count
     call extend(a:esearch.contexts, contexts[1:])
-    call extend(a:esearch.context_ids_map, context_ids_map)
+    call extend(a:esearch.ctx_ids_map, ctx_ids_map)
     call extend(a:esearch.line_numbers_map, line_numbers_map)
     let context_by_name = context_by_name
     if type(context_by_name) ==# type({})
       call extend(a:esearch.context_by_name, context_by_name)
     endif
+  endfu
+
+  fu! esearch#out#win#render#lua#init_nvim_syntax(esearch)
+    call luaeval('highlight_linenrs_in_range(0,1)')
+    let a:esearch.lines_changed_callback_enabled = 0
+  endfu
+
+  fu! esearch#out#win#render#lua#nvim_syntax_attach_callback(esearch)
+    if b:esearch.lines_changed_callback_enabled | return | endif
+
+    let a:esearch.lines_changed_callback_enabled = 1
+    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=update_linenrs_highlights_cb})')
   endfu
 else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
@@ -56,7 +68,7 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 
   for i = 1, #data do
     if data[i]:len() > 0 then
-      filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
+      local filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
       if filename == nil or lnum == nil or text == nil then
         -- TODO errors handling
       else
@@ -73,25 +85,24 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 end
 
 function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files_count, highlights_enabled)
-  parsed = parse_from_multiple_files_file(data, cwd_prefix)
-
-  contexts = {last_context}
-  line_numbers_map = {}
-  context_ids_map = {}
-  context_by_name = {}
-  esearch_win_disable_context_highlights_on_files_count =
+  local parsed = parse_from_multiple_files_file(data, cwd_prefix)
+  local contexts = {last_context}
+  local line_numbers_map = {}
+  local ctx_ids_map = {}
+  local context_by_name = {}
+  local esearch_win_disable_context_highlights_on_files_count =
     vim.api.nvim_get_var('esearch_win_disable_context_highlights_on_files_count')
 
-  start = vim.api.nvim_buf_line_count(0)
-  line = start
-  i = 1
-  limit = #parsed + 1
-  lines = {}
+  local start = vim.api.nvim_buf_line_count(0)
+  local line = start
+  local i = 1
+  local limit = #parsed + 1
+  local lines = {}
 
   while(i < limit)
   do
-    filename = parsed[i]['filename']
-    text = parsed[i]['text']
+    local filename = parsed[i]['filename']
+    local text = parsed[i]['text']
 
     if filename ~= contexts[#contexts]['filename'] then
       contexts[#contexts]['end'] = line
@@ -103,7 +114,7 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
       end
 
       lines[#lines + 1] = ''
-      context_ids_map[#context_ids_map + 1]  = contexts[#contexts]['id']
+      ctx_ids_map[#ctx_ids_map + 1]  = contexts[#contexts]['id']
       line_numbers_map[#line_numbers_map + 1] = 0
       line = line + 1
 
@@ -119,7 +130,7 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
         ['lines'] = {},
         }
       context_by_name[filename] = contexts[#contexts]
-      context_ids_map[#context_ids_map + 1] = contexts[#contexts]['id']
+      ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']
       line_numbers_map[#line_numbers_map + 1] = 0
       files_count = files_count + 1
       line = line + 1
@@ -129,7 +140,7 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
     linenr_text = string.format(' %3d ', parsed[i]['lnum'])
 
     lines[#lines + 1] = linenr_text .. (text)
-    context_ids_map[#context_ids_map + 1] = contexts[#contexts]['id']
+    ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']
     line_numbers_map[#line_numbers_map + 1] = parsed[i]['lnum']
     contexts[#contexts]['lines'][parsed[i]['lnum']] = text
     line = line + 1
@@ -137,24 +148,24 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
   end
 
   vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
-  highlight_range(start, -1)
+  if vim.api.nvim_eval('g:esearch_out_win_nvim_lua_syntax') == 1 then
+    highlight_linenrs_in_range(start, -1)
+  end
 
-  return {files_count, contexts, context_ids_map, line_numbers_map, context_by_name}
+  return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name}
 end
 
-function lines_changed_callback(_, bufnr, ct, start_row, old_stop_row, stop_row, old_byte_size)
-
+function update_linenrs_highlights_cb(_, bufnr, ct, from, old_to, to, _old_byte_size)
   if vim.api.nvim_call_function('exists', {'b:esearch'}) == 0 then
     return true
   end
 
-  if stop_row > old_stop_row then
-    -- if lines are added
-    highlight_range(start_row, stop_row)
+  if to > old_to then -- if lines are added
+    highlight_linenrs_in_range(from, to)
   end
 end
 
-function highlight_range(from, to)
+function highlight_linenrs_in_range(from, to)
   local lines = vim.api.nvim_buf_get_lines(0, from, to, false)
 
   for i, text in ipairs(lines) do
@@ -182,7 +193,7 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 
   for i = 0, #data - 1 do
     if data[i]:len() > 0 then
-      filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
+      local filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
       if filename == nil or lnum == nil or text == nil then
         -- TODO errors handling
       else
@@ -199,26 +210,25 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 end
 
 function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
-  parsed = parse_from_multiple_files_file(data, cwd_prefix)
-
-  contexts         = esearch['contexts']
-  line_numbers_map = esearch['line_numbers_map']
-  context_ids_map  = esearch['context_ids_map']
-  files_count      = esearch['files_count']
-  context_by_name  = esearch['context_by_name']
-
-  esearch_win_disable_context_highlights_on_files_count =
+  local parsed           = parse_from_multiple_files_file(data, cwd_prefix)
+  local contexts         = esearch['contexts']
+  local line_numbers_map = esearch['line_numbers_map']
+  local ctx_ids_map      = esearch['ctx_ids_map']
+  local files_count      = esearch['files_count']
+  local context_by_name  = esearch['context_by_name']
+  local esearch_win_disable_context_highlights_on_files_count =
     vim.eval('g:esearch_win_disable_context_highlights_on_files_count')
+
   local b = vim.buffer()
-  line = vim.eval('line("$") + 1')
-  i = 0
-  limit = #parsed
-  lines = {}
+  local line = vim.eval('line("$") + 1')
+  local i = 0
+  local limit = #parsed
+  local lines = {}
 
   while(i < limit)
   do
-    filename = parsed[i]['filename']
-    text = parsed[i]['text']
+    local filename = parsed[i]['filename']
+    local text = parsed[i]['text']
 
     if filename ~= contexts[#contexts - 1]['filename'] then
       contexts[#contexts - 1]['end'] = line
@@ -230,7 +240,7 @@ function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
       end
 
       b:insert('')
-      context_ids_map:add(tostring(contexts[#contexts - 1]['id']))
+      ctx_ids_map:add(tostring(contexts[#contexts - 1]['id']))
       line_numbers_map:add(false)
       line = line + 1
 
@@ -245,7 +255,7 @@ function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
         ['lines']         = vim.dict(),
         }))
       context_by_name[filename] = contexts[#contexts - 1]
-      context_ids_map:add(contexts[#contexts - 1]['id'])
+      ctx_ids_map:add(contexts[#contexts - 1]['id'])
       line_numbers_map:add(false)
       files_count = files_count + 1
       line = line + 1
@@ -253,7 +263,7 @@ function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
     end
 
     b:insert(string.format(' %3d %s', parsed[i]['lnum'], text))
-    context_ids_map:add(contexts[#contexts - 1]['id'])
+    ctx_ids_map:add(contexts[#contexts - 1]['id'])
     line_numbers_map:add(parsed[i]['lnum'])
     contexts[#contexts - 1]['lines'][parsed[i]['lnum']] = text
     line = line + 1
