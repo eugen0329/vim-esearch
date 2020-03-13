@@ -94,11 +94,11 @@ module Debug
     nil
   end
 
-  private
-
   def neovim?
     server.is_a?(VimrunnerNeovim::Server)
   end
+
+  private
 
   # Eager reader with disabled caching is used for reliability
   def reader

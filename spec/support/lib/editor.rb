@@ -124,6 +124,12 @@ class Editor
     echo(func('search', modifiers + escape_regexp(text), 'w'))
   end
 
+  def escape_filename(text)
+    text
+      .gsub(/([ *%$'"<{\[\\])/, '\\\\\1')
+      .sub(/^([-+>])/, '\\\\\1') # only leading are escaped (according to builtin :h fnameescape)
+  end
+
   def escape_regexp(text)
     text.gsub(/([$^~.*\[\]\\])/, '\\\\\1')
   end

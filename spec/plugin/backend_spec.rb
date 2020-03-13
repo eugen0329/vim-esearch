@@ -10,6 +10,40 @@ describe 'esearch#backend', :backend do
   include Helpers::Output
   include Helpers::ReportEditorStateOnError
 
+  # to test paths
+  shared_examples 'searches in path' do |path:|
+    context "when searching in #{path}" do
+      let(:pattern) { '1' } # the pattern is secondary
+      let(:line) { 2 }
+      let(:column) { 3..4 }
+      let(:expected_file) { file("_\n__#{pattern}_", path) }
+      let(:test_directory) { directory([expected_file]).persist! }
+      let(:escaped_path) { editor.escape_filename(path) }
+
+      before do
+        esearch.configuration.submit!
+        esearch.cd! test_directory
+      end
+      append_after { esearch.cleanup! }
+
+      include_context 'report editor state on error'
+
+      it "outputs 1 entry from file #{path}" do
+        esearch.search!('1')
+
+        expect(esearch)
+          .to  have_search_started
+          .and have_search_finished
+          .and have_not_reported_errors
+          .and have_search_highlight(escaped_path, line, column)
+          .and have_filename_highlight(escaped_path)
+          .and have_outputted_result_from_file_in_line(escaped_path, line)
+          .and have_outputted_result_with_right_position_inside_file(escaped_path, line, column.begin)
+      end
+    end
+  end
+
+  # to test patterns (both literal and regexp)
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context "when searching for #{dump(search_string)}" do
       let(:other_files) do
@@ -64,8 +98,90 @@ describe 'esearch#backend', :backend do
 
       before do
         esearch.configure(adapter: adapter, regex: 1)
-
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
+      end
+
+      context 'when weird path' do
+        context 'when filenames contain adapter output separators' do
+          context "when dirname doesn't contain basename" do
+            context 'when ASCII' do
+              include_context 'searches in path', path: 'a:b'
+              include_context 'searches in path', path: 'a-b'
+              include_context 'searches in path', path: 'a:1'
+              include_context 'searches in path', path: 'a-1'
+              include_context 'searches in path', path: 'a:1:'
+              include_context 'searches in path', path: 'a:1-'
+              include_context 'searches in path', path: 'a:1:2'
+              include_context 'searches in path', path: 'a:1-2'
+              include_context 'searches in path', path: 'a:1:2:'
+              include_context 'searches in path', path: 'a:1-2:'
+              include_context 'searches in path', path: 'a:1:2-'
+              include_context 'searches in path', path: 'a:1-2-'
+            end
+
+            context 'when multibyte' do
+              include_context 'searches in path', path: 'Σ:1:2-'
+              include_context 'searches in path', path: 'Σ:1-2-'
+            end
+          end
+
+          context 'when dirname contains a filename' do
+            context 'when ASCII' do
+              include_context 'searches in path', path: 'a:b:1/a:b'
+              include_context 'searches in path', path: 'a-b:1:c/a-b'
+              include_context 'searches in path', path: 'a:1:b/a:1'
+              include_context 'searches in path', path: 'a-1:b/a-1'
+            end
+
+            context 'when multibyte' do
+              include_context 'searches in path', path: 'Σ:1:b/Σ:1'
+              include_context 'searches in path', path: 'Σ-1:b/Σ-1'
+            end
+          end
+        end
+
+        context 'when filenames contain whitespaces' do
+          include_context 'searches in path', path: 'a '
+          include_context 'searches in path', path: ' a'
+          include_context 'searches in path', path: 'a b'
+          include_context 'searches in path', path: ' 1 a b'
+        end
+
+        context 'when filenames contain any special characters' do
+          context 'when special for a shell' do
+            include_context 'searches in path', path: '<'
+            include_context 'searches in path', path: '>'
+            include_context 'searches in path', path: '<<'
+            include_context 'searches in path', path: '>>'
+            include_context 'searches in path', path: '"'
+            include_context 'searches in path', path: "'"
+            include_context 'searches in path', path: '('
+            include_context 'searches in path', path: ')'
+            include_context 'searches in path', path: '('
+            include_context 'searches in path', path: '['
+            include_context 'searches in path', path: ']'
+            include_context 'searches in path', path: '\\'
+            include_context 'searches in path', path: '\\\\'
+            include_context 'searches in path', path: ';'
+            include_context 'searches in path', path: '&'
+            include_context 'searches in path', path: '~'
+            include_context 'searches in path', path: '{'
+            include_context 'searches in path', path: '}'
+            include_context 'searches in path', path: '$'
+            include_context 'searches in path', path: '^'
+            include_context 'searches in path', path: '++'
+            include_context 'searches in path', path: '-'
+            include_context 'searches in path', path: '**'
+            include_context 'searches in path', path: '\\.'
+            include_context 'searches in path', path: '\\.\\.'
+          end
+
+          context 'when special for vim' do
+            include_context 'searches in path', path: '%'
+            include_context 'searches in path', path: '<cfile>'
+            include_context 'searches in path', path: '='
+          end
+        end
       end
 
       context 'when weird search strings' do
@@ -144,11 +260,11 @@ describe 'esearch#backend', :backend do
         before { esearch.configure(out: 'win') }
 
         include_context 'works with adapter', 'ag'
-        include_context 'works with adapter', 'ack'
-        include_context 'works with adapter', 'git'
-        include_context 'works with adapter', 'grep'
-        include_context 'works with adapter', 'pt', Configuration.pt_path
-        include_context 'works with adapter', 'rg', Configuration.rg_path
+        # include_context 'works with adapter', 'ack'
+        # include_context 'works with adapter', 'git'
+        # include_context 'works with adapter', 'grep'
+        # include_context 'works with adapter', 'pt', Configuration.pt_path
+        # include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
   end
@@ -158,7 +274,7 @@ describe 'esearch#backend', :backend do
     include_context 'a backend 2', 'system'
   end
 
-  describe '#vimproc', :vimproc, backend: :vimproc do
+  xdescribe '#vimproc', :vimproc, backend: :vimproc do
     before(:context) do
       editor.press! ':let g:esearch#backend#vimproc#updatetime = 30<Enter>'
       editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30<Enter>'

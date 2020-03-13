@@ -61,17 +61,56 @@ else
   endfu
 endif
 
+lua << EOF
+function parse_line(filereadable_cache, line)
+  local offset = 1
+  local filename = ''
+
+  while true do
+    local _, idx = line:find(':', offset)
+
+    if idx == nil then
+      return
+    end
+
+    filename = line:sub(1, idx - 1)
+    offset = idx + 1
+    if filereadable(filename) == 1 then
+      break
+    end
+  end
+
+  local line, text = string.match(line, '(%d+)[-:](.*)', offset)
+  if line == nil or text == nil then
+    return
+  end
+
+  return filename, line, text
+end
+
+EOF
+
 if g:esearch#has#nvim_lua
 lua << EOF
+function filereadable(path)
+  return vim.api.nvim_call_function('filereadable', {path})
+end
+function fnameescape(path)
+  return vim.api.nvim_call_function('fnameescape', {path})
+end
+
 function parse_from_multiple_files_file(data, cwd_prefix)
   local parsed = {}
+  local filereadable_cache = {}
 
   for i = 1, #data do
-    if data[i]:len() > 0 then
-      local filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
-      if filename == nil or lnum == nil or text == nil then
-        -- TODO errors handling
-      else
+    local line = data[i]
+
+    if line:len() > 0 then
+      local filename, lnum, text = parse_line(filereadable_cache, line)
+
+      if filename ~= nil then
+        filereadable_cache[filename] = true
         parsed[#parsed + 1] = {
           ['filename'] = string.gsub(filename, cwd_prefix, ''),
           ['lnum']     = lnum,
@@ -114,7 +153,7 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
 
       if highlights_enabled == 1 and
           contexts[#contexts]['id'] > esearch_win_disable_context_highlights_on_files_count then
-        highlights_enabled = 0
+        highlights_enabled = false
         vim.api.nvim_call_function('esearch#out#win#unload_highlights', {})
       end
 
@@ -123,16 +162,16 @@ function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files
       line_numbers_map[#line_numbers_map + 1] = 0
       line = line + 1
 
-      lines[#lines + 1] = filename
+      lines[#lines + 1] = fnameescape(filename)
       id = contexts[#contexts]['id'] + 1
       contexts[#contexts + 1] = {
-        ['id'] = id,
-        ['begin'] = line,
-        ['end'] = 0,
-        ['filename'] = filename,
-        ['filetype'] = 0,
+        ['id']            = id,
+        ['begin']         = line,
+        ['end']           = 0,
+        ['filename']      = filename,
+        ['filetype']      = 0,
         ['syntax_loaded'] = 0,
-        ['lines'] = {},
+        ['lines']         = {},
         }
       context_by_name[filename] = contexts[#contexts]
       ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']
@@ -201,15 +240,24 @@ EOF
 else
 
 lua << EOF
+function filereadable(path)
+  return vim.funcref('filereadable')(path)
+end
+function fnameescape(path)
+  return vim.funcref('fnameescape')(path)
+end
+
 function parse_from_multiple_files_file(data, cwd_prefix)
   local parsed = vim.list()
+  local filereadable_cache = {}
 
   for i = 0, #data - 1 do
-    if data[i]:len() > 0 then
-      local filename, lnum, text = string.match(data[i], '([^:]+):(%d+):(.*)')
-      if filename == nil or lnum == nil or text == nil then
-        -- TODO errors handling
-      else
+    local line = data[i]
+
+    if line:len() > 0 then
+      local filename, lnum, text = parse_line(filereadable_cache, line)
+
+      if filename ~= nil  then
         parsed:add(vim.dict({
           ['filename'] = string.gsub(filename, cwd_prefix, ''),
           ['lnum']     = lnum,
@@ -261,7 +309,7 @@ function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
       line_numbers_map:add(false)
       line = line + 1
 
-      b:insert(filename)
+      b:insert(fnameescape(filename))
       contexts:add(vim.dict({
         ['id']            = tostring(tonumber(contexts[#contexts - 1]['id']) + 1),
         ['begin']         = tostring(line),
