@@ -66,6 +66,24 @@ function parse_line(filereadable_cache, line)
   local offset = 1
   local filename = ''
 
+  if line:sub(1, 1) == '"' then
+    local filename, line, text = line:match('"([^:]*)":(%d+)[-:](.*)')
+    local controls = {
+      a      = '\a',
+      b      = '\b',
+      t      = '\t',
+      n      = '\n',
+      v      = '\v',
+      f      = '\f',
+      r      = '\r',
+      z      = '\z',
+      ['\\'] = '\\',
+      ['\''] = '\'',
+      ['\"'] = '\"'
+    }
+    return filename:gsub('\\(.)', controls), line, text
+  end
+
   while true do
     local _, idx = line:find(':', offset)
 
@@ -80,7 +98,7 @@ function parse_line(filereadable_cache, line)
     end
   end
 
-  local line, text = string.match(line, '(%d+)[-:](.*)', offset)
+  local line, text = line:match('(%d+)[-:](.*)', offset)
   if line == nil or text == nil then
     return
   end

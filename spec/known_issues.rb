@@ -57,4 +57,14 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   #   `ag *.txt`,       `ag \*.txt`       - a wildcard and a regular string
   #   `git grep *.txt`, `git grep \*.txt` - both wildcards
   pending! 'globbing escaped *', /expected to have results.*got.*\[.+\]/m, adapter: :git
+
+
+  # seems ack cannot work with files named ~
+  pending! 'searching in file "~"',  /MissingEntry/, adapter: :ack
+
+  pending! 'searching in file "a\\n"', /MissingEntry/, adapter: :ag
+  pending! 'searching in file "a\\n"', /MissingEntry/, adapter: :ack
+  pending! 'searching in file "a\\n"', /MissingEntry/, adapter: :pt
+  pending! 'searching in file "a\\n"', /MissingEntry/, adapter: :rg
+  pending! 'searching in file "a\\n"', /MissingEntry/, adapter: :grep
 end

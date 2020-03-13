@@ -39,11 +39,12 @@ class API::ESearch::Window
     return true if Debug.neovim?
 
     editor.syntax_aliases_at([editor.escape_regexp(relative_path)]) ==
-      [["esearchFilename", "Directory"]]
+      [%w[esearchFilename Directory]]
   end
 
   def has_search_highlight?(relative_path, line, column)
     return true if Debug.neovim?
+
     entry = find_entry(relative_path, line)
     raise MissingEntryError if entry.empty?
 

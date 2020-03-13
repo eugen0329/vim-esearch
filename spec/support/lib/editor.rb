@@ -125,9 +125,10 @@ class Editor
   end
 
   def escape_filename(text)
+    # NOTE: only leading [-+>] are escaped (according to builtin :h fnameescape)
     text
-      .gsub(/([ *%$'"<{\[\\])/, '\\\\\1')
-      .sub(/^([-+>])/, '\\\\\1') # only leading are escaped (according to builtin :h fnameescape)
+      .gsub(/([\t\n *%$'"<{\[\\])/, '\\\\\1')
+      .sub(/^([-+>])/, '\\\\\1')
   end
 
   def escape_regexp(text)

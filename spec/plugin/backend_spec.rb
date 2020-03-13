@@ -10,13 +10,13 @@ describe 'esearch#backend', :backend do
   include Helpers::Output
   include Helpers::ReportEditorStateOnError
 
-  # to test paths
+  # to test paths: thorough filename verification, superficial entry check
   shared_examples 'searches in path' do |path:|
-    context "when searching in #{path}" do
-      let(:pattern) { '1' } # the pattern is secondary
+    context "when searching in file #{path.inspect}" do
+      let(:search_string) { '1' } # the search_string is secondary for the examples group
       let(:line) { 2 }
       let(:column) { 3..4 }
-      let(:expected_file) { file("_\n__#{pattern}_", path) }
+      let(:expected_file) { file("_\n__#{search_string}_", path) }
       let(:test_directory) { directory([expected_file]).persist! }
       let(:escaped_path) { editor.escape_filename(path) }
 
@@ -28,22 +28,24 @@ describe 'esearch#backend', :backend do
 
       include_context 'report editor state on error'
 
-      it "outputs 1 entry from file #{path}" do
-        esearch.search!('1')
+      it "outputs 1 entry from file named #{path.inspect}" do
+        esearch.search!(search_string)
 
-        expect(esearch)
-          .to  have_search_started
-          .and have_search_finished
-          .and have_not_reported_errors
-          .and have_search_highlight(escaped_path, line, column)
-          .and have_filename_highlight(escaped_path)
-          .and have_outputted_result_from_file_in_line(escaped_path, line)
-          .and have_outputted_result_with_right_position_inside_file(escaped_path, line, column.begin)
+        KnownIssues.mark_example_pending_if_known_issue(self) do
+          expect(esearch)
+            .to  have_search_started
+            .and have_search_finished
+            .and have_not_reported_errors
+            .and have_search_highlight(escaped_path, line, column)
+            .and have_filename_highlight(escaped_path)
+            .and have_outputted_result_from_file_in_line(escaped_path, line)
+            .and have_outputted_result_with_right_position_inside_file(escaped_path, line, column.begin)
+        end
       end
     end
   end
 
-  # to test patterns (both literal and regexp)
+  # to test search string: thorough entry verification, superficial filename check
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context "when searching for #{dump(search_string)}" do
       let(:other_files) do
@@ -105,23 +107,35 @@ describe 'esearch#backend', :backend do
         context 'when filenames contain adapter output separators' do
           context "when dirname doesn't contain basename" do
             context 'when ASCII' do
-              include_context 'searches in path', path: 'a:b'
-              include_context 'searches in path', path: 'a-b'
-              include_context 'searches in path', path: 'a:1'
-              include_context 'searches in path', path: 'a-1'
-              include_context 'searches in path', path: 'a:1:'
-              include_context 'searches in path', path: 'a:1-'
-              include_context 'searches in path', path: 'a:1:2'
-              include_context 'searches in path', path: 'a:1-2'
-              include_context 'searches in path', path: 'a:1:2:'
-              include_context 'searches in path', path: 'a:1-2:'
-              include_context 'searches in path', path: 'a:1:2-'
-              include_context 'searches in path', path: 'a:1-2-'
+              context 'when basename contains a separator' do
+                include_context 'searches in path', path: 'a:b'
+                include_context 'searches in path', path: 'a-b'
+              end
+
+              context 'when basename is similar to {filename}{SEP}{line}' do
+                include_context 'searches in path', path: 'a:1'
+                include_context 'searches in path', path: 'a-1'
+                include_context 'searches in path', path: 'a:1:'
+                include_context 'searches in path', path: 'a:1-'
+              end
+
+              context 'when basename is similar to {filename}{SEP}{line}{SEP}{text}' do
+                include_context 'searches in path', path: 'a:1:2'
+                include_context 'searches in path', path: 'a:1-2'
+                include_context 'searches in path', path: 'a:1:2:'
+                include_context 'searches in path', path: 'a:1-2:'
+                include_context 'searches in path', path: 'a:1:2-'
+                include_context 'searches in path', path: 'a:1-2-'
+              end
             end
 
             context 'when multibyte' do
-              include_context 'searches in path', path: 'Σ:1:2-'
-              include_context 'searches in path', path: 'Σ:1-2-'
+              context 'when basename is similar to {filename}{SEP}{line}{SEP}{text}' do
+                include_context 'searches in path', path: 'Σ:1:2:'
+                include_context 'searches in path', path: 'Σ:1-2:'
+                include_context 'searches in path', path: 'Σ:1:2-'
+                include_context 'searches in path', path: 'Σ:1-2-'
+              end
             end
           end
 
@@ -140,6 +154,15 @@ describe 'esearch#backend', :backend do
           end
         end
 
+        context 'when filenames contain control chars' do
+          include_context 'searches in path', path: "a\a"
+          include_context 'searches in path', path: "a\b"
+          include_context 'searches in path', path: "a\t"
+          include_context 'searches in path', path: "a\n"
+          include_context 'searches in path', path: "a\v"
+          include_context 'searches in path', path: "a\r"
+        end
+
         context 'when filenames contain whitespaces' do
           include_context 'searches in path', path: 'a '
           include_context 'searches in path', path: ' a'
@@ -150,30 +173,48 @@ describe 'esearch#backend', :backend do
         context 'when filenames contain any special characters' do
           context 'when special for a shell' do
             include_context 'searches in path', path: '<'
-            include_context 'searches in path', path: '>'
             include_context 'searches in path', path: '<<'
             include_context 'searches in path', path: '>>'
-            include_context 'searches in path', path: '"'
+            include_context 'searches in path', path: '('  # globbing
+            include_context 'searches in path', path: ')'  # globbing
+            include_context 'searches in path', path: '['  # globbing
+            include_context 'searches in path', path: ']'  # globbing
+            include_context 'searches in path', path: '{'  # ex: git add package{,-lock}.json
+            include_context 'searches in path', path: '}'
             include_context 'searches in path', path: "'"
-            include_context 'searches in path', path: '('
-            include_context 'searches in path', path: ')'
-            include_context 'searches in path', path: '('
-            include_context 'searches in path', path: '['
-            include_context 'searches in path', path: ']'
-            include_context 'searches in path', path: '\\'
-            include_context 'searches in path', path: '\\\\'
             include_context 'searches in path', path: ';'
             include_context 'searches in path', path: '&'
             include_context 'searches in path', path: '~'
-            include_context 'searches in path', path: '{'
-            include_context 'searches in path', path: '}'
-            include_context 'searches in path', path: '$'
+            include_context 'searches in path', path: '$'  # deref
             include_context 'searches in path', path: '^'
-            include_context 'searches in path', path: '++'
-            include_context 'searches in path', path: '-'
-            include_context 'searches in path', path: '**'
-            include_context 'searches in path', path: '\\.'
-            include_context 'searches in path', path: '\\.\\.'
+            include_context 'searches in path', path: '*'  # globbing
+            include_context 'searches in path', path: '**' # globbing
+
+
+            context 'when special in the beginning of a line' do
+              # See :h fnameescape for details
+              include_context 'searches in path', path: '+'   # disabling features with shopt
+              include_context 'searches in path', path: '++'  # disabling features with shopt
+              include_context 'searches in path', path: '-'   # ex: cd -, git checkout -
+              include_context 'searches in path', path: '--'  # end of options
+              include_context 'searches in path', path: '>'
+              include_context 'searches in path', path: '+a'  # ex: shopt +o extglob
+              include_context 'searches in path', path: '++a'
+              include_context 'searches in path', path: '-a'
+              include_context 'searches in path', path: '--a'
+              include_context 'searches in path', path: '>a'
+              include_context 'searches in path', path: 'a+'
+              include_context 'searches in path', path: 'a++'
+              include_context 'searches in path', path: 'a-'
+              include_context 'searches in path', path: 'a--'
+              include_context 'searches in path', path: 'a>'
+            end
+
+            context 'when special withing double quotes (at least git-grep does this)' do
+              include_context 'searches in path', path: '\\'
+              include_context 'searches in path', path: '\\\\'
+              include_context 'searches in path', path: '"'
+            end
           end
 
           context 'when special for vim' do
@@ -227,9 +268,10 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', '\'',     in: "_\n__\'_",   line: 2, column: 3..4
           include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', ')',      in: "_\n__)_",    line: 2, column: 3..4
-          include_context 'finds 1 entry of', '(',      in: "_\n__(_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '[',      in: "_\n__[_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', ']',      in: "_\n__]_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '\\',     in: "_\n__\\_",   line: 2, column: 3..4
           include_context 'finds 1 entry of', '\\\\',   in: "_\n_\\\\_",  line: 2, column: 2..4
           include_context 'finds 1 entry of', '//',     in: "_\n__//_",   line: 2, column: 3..5
@@ -240,9 +282,9 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', '&',      in: "_\n__&_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '~',      in: "_\n__~_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '==',     in: "_\n__==_",   line: 2, column: 3..5
-          include_context 'finds 1 entry of', '{',      in: "_\n__{_",    line: 2, column: 3..4
-          include_context 'finds 1 entry of', '}',      in: "_\n__}_",    line: 2, column: 3..4
           # invalid as regexps, but valid for literal match
+          include_context 'finds 1 entry of', '-',      in: "_\n__-_",    line: 2, column: 3..4
+          include_context 'finds 1 entry of', '+',      in: "_\n__+_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3..5
           include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3..5
         end
@@ -301,7 +343,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
-    context 'when rendering with lua', :lua_render do
+    context 'when rendering with lua', render: :lua do
       before { editor.command 'let g:esearch_out_win_render_using_lua = 1' }
 
       include_context 'a backend', 'vim8'
@@ -309,7 +351,7 @@ describe 'esearch#backend', :backend do
       it_behaves_like 'an abortable backend', 'vim8'
     end
 
-    xcontext 'when rendering with viml', :viml_render do
+    context 'when rendering with viml', render: :viml do
       before { editor.command 'let g:esearch_out_win_render_using_lua = 0' }
 
       include_context 'a backend', 'vim8'
