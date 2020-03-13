@@ -44,7 +44,7 @@ fu! s:using_readlines_strategy(filename) abort
     call s:set_context_lines(preview_buffer, lines, height)
     let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
     call s:setup_pseudo_file_appearance(filename, preview_buffer, s:preview_window)
-    " call s:goto_window(s:preview_window.number)
+    call s:goto_window(s:preview_window.number)
     call s:setup_autoclose_events()
   catch
     call s:close_preview_window()
@@ -224,8 +224,8 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
 endfu
 
 fu! s:edit_file(filename, preview_buffer) abort
-  if expand('%') !=# a:filename
-    noautocmd keepjumps noswapfile exe 'keepjumps noautocmd noswapfile edit! ' . fnameescape(a:filename)
+  if expand('%:p') !=# a:filename
+    exe 'keepjumps noautocmd noswapfile edit! ' . fnameescape(a:filename)
 
     " if buffer is already created, vim switches to it leaving empty buffer we
     " have to cleanup
@@ -246,10 +246,8 @@ fu! s:goto_window(window) abort
 endfu
 
 fu! s:make_preview_buffer_regular() abort
-  " tell other events that we'll handle options reset
-  au! ESearchPreview BufWinEnter,BufEnter <buffer>
+  let current_filename = expand('%:p')
 
-  let current_filename = expand('%')
   if !has_key(s:preview_buffers_registry, current_filename)
     " execute once guard
     return
@@ -266,6 +264,9 @@ fu! s:make_preview_buffer_regular() abort
   finally
     call remove(s:preview_buffers_registry, current_filename)
   endtry
+
+  " prevent other events to handle the buffer again
+  au! ESearchPreview BufWinEnter,BufEnter <buffer>
 endfu
 
 fu! s:create_buffer(filename, disposable) abort
