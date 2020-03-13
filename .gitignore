@@ -1,4 +1,9 @@
 /spec/support/vim_plugins
+/spec/fixtures
+!/spec/fixtures/.keep
+!/spec/fixtures/manual
+# TODO legacy
+!/spec/fixtures/relative_paths
 /spec/support/bin
 !/spec/support/bin/.keep
 /failed_specs.txt

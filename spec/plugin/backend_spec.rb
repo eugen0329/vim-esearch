@@ -260,11 +260,11 @@ describe 'esearch#backend', :backend do
         before { esearch.configure(out: 'win') }
 
         include_context 'works with adapter', 'ag'
-        # include_context 'works with adapter', 'ack'
-        # include_context 'works with adapter', 'git'
-        # include_context 'works with adapter', 'grep'
-        # include_context 'works with adapter', 'pt', Configuration.pt_path
-        # include_context 'works with adapter', 'rg', Configuration.rg_path
+        include_context 'works with adapter', 'ack'
+        include_context 'works with adapter', 'git'
+        include_context 'works with adapter', 'grep'
+        include_context 'works with adapter', 'pt', Configuration.pt_path
+        include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
   end
@@ -274,7 +274,7 @@ describe 'esearch#backend', :backend do
     include_context 'a backend 2', 'system'
   end
 
-  xdescribe '#vimproc', :vimproc, backend: :vimproc do
+  describe '#vimproc', :vimproc, backend: :vimproc do
     before(:context) do
       editor.press! ':let g:esearch#backend#vimproc#updatetime = 30<Enter>'
       editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30<Enter>'
@@ -309,7 +309,7 @@ describe 'esearch#backend', :backend do
       it_behaves_like 'an abortable backend', 'vim8'
     end
 
-    context 'when rendering with viml', :viml_render do
+    xcontext 'when rendering with viml', :viml_render do
       before { editor.command 'let g:esearch_out_win_render_using_lua = 0' }
 
       include_context 'a backend', 'vim8'
