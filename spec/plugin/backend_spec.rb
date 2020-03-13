@@ -12,7 +12,7 @@ describe 'esearch#backend', :backend do
 
   # to test paths: thorough filename verification, superficial entry check
   shared_examples 'searches in path' do |path:|
-    context "when searching in file #{path.inspect}" do
+    context "when searching in a file with name #{path.inspect}" do
       let(:search_string) { '1' } # the search_string is secondary for the examples group
       let(:line) { 2 }
       let(:column) { 3..4 }
@@ -172,24 +172,25 @@ describe 'esearch#backend', :backend do
 
         context 'when filenames contain any special characters' do
           context 'when special for a shell' do
-            include_context 'searches in path', path: '<'
-            include_context 'searches in path', path: '<<'
-            include_context 'searches in path', path: '>>'
-            include_context 'searches in path', path: '('  # globbing
-            include_context 'searches in path', path: ')'  # globbing
-            include_context 'searches in path', path: '['  # globbing
-            include_context 'searches in path', path: ']'  # globbing
-            include_context 'searches in path', path: '{'  # ex: git add package{,-lock}.json
-            include_context 'searches in path', path: '}'
-            include_context 'searches in path', path: "'"
-            include_context 'searches in path', path: ';'
-            include_context 'searches in path', path: '&'
-            include_context 'searches in path', path: '~'
-            include_context 'searches in path', path: '$'  # deref
-            include_context 'searches in path', path: '^'
-            include_context 'searches in path', path: '*'  # globbing
-            include_context 'searches in path', path: '**' # globbing
-
+            context 'when special regardless the position' do
+              include_context 'searches in path', path: '<'
+              include_context 'searches in path', path: '<<'
+              include_context 'searches in path', path: '>>'
+              include_context 'searches in path', path: '('  # globbing
+              include_context 'searches in path', path: ')'  # globbing
+              include_context 'searches in path', path: '['  # globbing
+              include_context 'searches in path', path: ']'  # globbing
+              include_context 'searches in path', path: '{'  # ex: git add package{,-lock}.json
+              include_context 'searches in path', path: '}'
+              include_context 'searches in path', path: "'"
+              include_context 'searches in path', path: ';'
+              include_context 'searches in path', path: '&'
+              include_context 'searches in path', path: '~'
+              include_context 'searches in path', path: '$'  # deref
+              include_context 'searches in path', path: '^'
+              include_context 'searches in path', path: '*'  # globbing
+              include_context 'searches in path', path: '**' # globbing
+            end
 
             context 'when special in the beginning of a line' do
               # See :h fnameescape for details
@@ -210,7 +211,8 @@ describe 'esearch#backend', :backend do
               include_context 'searches in path', path: 'a>'
             end
 
-            context 'when special withing double quotes (at least git-grep does this)' do
+            # git-grep and likely some other utils do this
+            context 'when special withing double quotes' do
               include_context 'searches in path', path: '\\'
               include_context 'searches in path', path: '\\\\'
               include_context 'searches in path', path: '"'

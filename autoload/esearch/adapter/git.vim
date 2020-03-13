@@ -34,7 +34,7 @@ fu! esearch#adapter#git#cmd(esearch, pattern, escape) abort
   let joined_paths = esearch#adapter#grep_like#joined_paths(a:esearch)
 
   return g:esearch#adapter#git#bin.' -C '.fnameescape(a:esearch.cwd) .
-        \ ' --no-pager grep '.r.' '.c.' '.w.' -H -I --no-color --line-number ' .
+        \ ' --no-pager grep '.r.' '.c.' '.w.' --untracked -H -I --no-color --line-number ' .
         \ g:esearch#adapter#git#options . ' -- ' .
         \ a:escape(a:pattern) . ' ' . joined_paths
 endfu

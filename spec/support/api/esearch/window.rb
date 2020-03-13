@@ -2,6 +2,7 @@
 
 require 'active_support/core_ext/numeric/time'
 
+# rubocop:disable Layout/ClassLength
 class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
@@ -144,3 +145,4 @@ class API::ESearch::Window
     @parser ||= Parser.new(editor)
   end
 end
+# rubocop:enable Layout/ClassLength

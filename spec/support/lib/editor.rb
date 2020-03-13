@@ -124,11 +124,13 @@ class Editor
     echo(func('search', modifiers + escape_regexp(text), 'w'))
   end
 
+  # using vim builtin rules
   def escape_filename(text)
     # NOTE: only leading [-+>] are escaped (according to builtin :h fnameescape)
     text
       .gsub(/([\t\n *%$'"<{\[\\])/, '\\\\\1')
-      .sub(/^([-+>])/, '\\\\\1')
+      .sub(/^([+>])/, '\\\\\1')
+      .sub(/^-$/, '\\-')
   end
 
   def escape_regexp(text)
