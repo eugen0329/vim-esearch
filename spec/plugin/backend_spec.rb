@@ -382,10 +382,10 @@ describe 'esearch#backend', :backend do
     context 'when rendering with viml', render: :viml do
       context 'when parsing with #legacy', parse: :legacy do
         before do
-          editor.command <<~EOF
+          editor.command <<~VIML
             let g:esearch_out_win_render_using_lua = 0
             let g:esearch_out_win_parse_using_getqflist = 0
-          EOF
+          VIML
         end
 
         include_context 'a backend', 'vim8'
@@ -394,10 +394,10 @@ describe 'esearch#backend', :backend do
 
       context 'when parsing with #getqflist', parse: :getqflist do
         before do
-          editor.command <<~EOF
+          editor.command <<~VIML
             let g:esearch_out_win_render_using_lua = 0
             let g:esearch_out_win_parse_using_getqflist = 1
-          EOF
+          VIML
         end
 
         include_context 'a backend', 'vim8'
