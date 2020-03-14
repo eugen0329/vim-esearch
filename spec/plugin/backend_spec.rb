@@ -31,6 +31,7 @@ describe 'esearch#backend', :backend do
       it "outputs 1 entry from the file named #{path.inspect}" do
         esearch.search!(search_string)
 
+        require 'pry'; binding.pry
         KnownIssues.mark_example_pending_if_known_issue(self) do
           expect(esearch)
             .to  have_search_started
@@ -334,8 +335,10 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'ack'
         include_context 'works with adapter', 'git'
         include_context 'works with adapter', 'grep'
-        include_context 'works with adapter', 'pt', Configuration.pt_path
-        include_context 'works with adapter', 'rg', Configuration.rg_path
+        # include_context 'works with adapter', 'pt', Configuration.pt_path
+        # include_context 'works with adapter', 'rg', Configuration.rg_path
+        include_context 'works with adapter', 'pt'
+        include_context 'works with adapter', 'rg'
       end
     end
   end

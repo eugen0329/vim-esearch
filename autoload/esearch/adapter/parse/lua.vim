@@ -78,18 +78,18 @@ function decode(s)
 end
 EOF
 
-
 if g:esearch#has#nvim_lua
 lua << EOF
+
 filereadable_cache = {}
 
 function filereadable(path)
   if filereadable_cache[path] then
     return true
   end
-  local res = vim.api.nvim_call_function('filereadable', {path})
+  local result = vim.api.nvim_call_function('filereadable', {path})
 
-  if res == 1 then
+  if result == 1 then
     filereadable_cache[path] = true;
     return true
   else
@@ -112,7 +112,7 @@ function parse_lines(data, cwd_prefix)
     if line:len() > 0 then
       local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
       if filename == nil or text == nil or not filereadable(filename) then
-        local filename, lnum, text = parse_line(line)
+        filename, lnum, text = parse_line(line)
       end
 
       if filename ~= nil then
@@ -131,9 +131,24 @@ end
 EOF
 else
 lua << EOF
+
+filereadable_cache = {}
+
 function filereadable(path)
-  return vim.funcref('filereadable')(path)
+  if filereadable_cache[path] then
+    return true
+  end
+  local result = vim.funcref('filereadable')(path)
+
+  if result == 1 then
+    filereadable_cache[path] = true;
+    return true
+  else
+    filereadable_cache[path] = false;
+    return false
+  end
 end
+
 function fnameescape(path)
   return vim.funcref('fnameescape')(path)
 end
@@ -164,5 +179,6 @@ function parse_lines(data, cwd_prefix)
 
   return parsed
 end
+
 EOF
 endif

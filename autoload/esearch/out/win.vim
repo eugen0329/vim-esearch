@@ -970,8 +970,6 @@ fu! esearch#out#win#edit() abort
   augroup END
 
   try
-    sil exe 'nunmap <buffer> t'
-    sil exe 'nunmap <buffer> T'
     sil exe 'nunmap <buffer> i'
     sil exe 'nunmap <buffer> I'
     sil exe 'nunmap <buffer> s'
