@@ -10,7 +10,7 @@ module Helpers::Modifiable::Columnwise
     end
     let(:files) { contexts.map { |c| file(c.content, c.name) } }
     let(:fillers_alphabet) { '_.+'.chars }
-    let(:alphabet) { ('a'..'z').to_a + '()[]-,^&$#@!?*~`/\\\''.chars }
+    let(:alphabet) { ('a'..'z').to_a + '()[]-,^&$#@!?*~`/\'"'.chars }
   end
 
   shared_context 'setup columnwise testing' do |from, to|
