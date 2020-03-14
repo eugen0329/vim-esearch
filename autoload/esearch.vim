@@ -1,9 +1,9 @@
 fu! esearch#init(...) abort
-  if g:esearch#env is# 'dev'
-    for path in split(glob(s:autoload . '/esearch/**/*.vim'), '\n')
-      exe 'source' . path
-    endfor
-  endif
+  " if g:esearch#env is# 'dev'
+  "   for path in split(glob(s:autoload . '/esearch/**/*.vim'), '\n')
+  "     exe 'source' . path
+  "   endfor
+  " endif
 
   if s:init_lazy_global_config() != 0
     return 1
@@ -44,7 +44,7 @@ fu! esearch#init(...) abort
         \ 'request': esearch#backend#{esearch.backend}#init(shell_cmd, requires_pty),
         \}, 'force')
 
-  let esearch.parse = esearch#adapter#parse#viml#_funcref()
+  let esearch.parse = esearch#adapter#parse#funcref()
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu
@@ -82,7 +82,7 @@ fu! s:title(esearch, pattern) abort
   let modifiers = ''
   let modifiers .= a:esearch.case ? 'c' : ''
   let modifiers .= a:esearch.word ? 'w' : ''
-  return printf(format, a:pattern, modifiers)
+  return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 
 fu! esearch#_mappings() abort
