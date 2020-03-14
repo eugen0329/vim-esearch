@@ -164,7 +164,7 @@ function parse_lines(data, cwd_prefix)
       -- local filename, lnum, text = parse_line(line)
       local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
       if filename == nil or text == nil or not filereadable(filename) then
-        local filename, lnum, text = parse_line(line)
+        filename, lnum, text = parse_line(line)
       end
 
       if filename ~= nil  then

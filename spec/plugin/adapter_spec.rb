@@ -42,8 +42,7 @@ describe 'esearch#adapter', :adapters do
       end
 
       context 'ugly names' do
-        let(:test_directory) { directory(files) }
-        around { |e| temporary_persist_and_add_to_index(test_directory, &e) }
+        let!(:test_directory) { directory(files).persist! }
 
         it_behaves_like 'search specifying custom paths',
           paths_string:   %q[
@@ -53,10 +52,10 @@ describe 'esearch#adapter', :adapters do
              with\\\\"dquote/file.e
           ].gsub("\n", ' '),
           expected_names: [
-            'with ws/file.e',
-            'with\\backslash/file.e',
-            "with'squote/file.e",
-            'with"dquote/file.e'
+            'with\\ ws/file.e',
+            'with\\\\backslash/file.e',
+            "with\\'squote/file.e",
+            'with\\"dquote/file.e'
           ],
           files:          [
             file('any content', 'with ws/file.e'),
@@ -75,7 +74,7 @@ describe 'esearch#adapter', :adapters do
              file('any content', 'b c.json')]
           end
           let!(:test_directory) { directory(files).persist! }
-          let(:names) { files.map(&:relative_path) }
+          let(:names) { files.map  {  |f| editor.escape_filename(f.relative_path) } }
           let(:paths_string) { '\\\\*.txt b\\\\ c.json' }
 
           before do
@@ -101,7 +100,7 @@ describe 'esearch#adapter', :adapters do
         context 'single *' do
           it_behaves_like 'search specifying custom paths',
             paths_string:   '*.txt',
-            expected_names: ['a.txt', 'b.txt', '*.txt'],
+            expected_names: ['a.txt', 'b.txt', '\\*.txt'],
             files:          [
               file('any content', 'a.txt'),
               file('any content', 'b.txt'),
@@ -113,7 +112,7 @@ describe 'esearch#adapter', :adapters do
         context 'escaped *' do
           it_behaves_like 'search specifying custom paths',
             paths_string:   '\\\\*.txt',
-            expected_names: ['*.txt'],
+            expected_names: ['\\*.txt'],
             files:          [
               file('any content', 'a.txt'),
               file('any content', 'b.txt'),

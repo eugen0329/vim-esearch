@@ -31,7 +31,6 @@ describe 'esearch#backend', :backend do
       it "outputs 1 entry from the file named #{path.inspect}" do
         esearch.search!(search_string)
 
-        require 'pry'; binding.pry
         KnownIssues.mark_example_pending_if_known_issue(self) do
           expect(esearch)
             .to  have_search_started
