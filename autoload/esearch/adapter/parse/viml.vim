@@ -22,17 +22,16 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
   let limit = a:to + 1
 
   while i < limit
-    let ok = 0
     let line = a:data[i]
 
     if line[0] ==# '"'
-      let m = matchlist(line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"\:\(\d\{-}\)[-:]\(.*\)$')[1:3]
-      if len(m) != 3
+      let res = matchlist(line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"\:\(\d\{-}\)[-:]\(.*\)$')[1:3]
+      if len(res) != 3
         let i += 1
         continue
       endif
 
-      let [filename, lnum, text] = m
+      let [filename, lnum, text] = res
 
       " SHARED CODE START
       let filename = substitute(filename, '\\\([abtnvfr"\\]\|033\)',
@@ -40,7 +39,8 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
       " SHARED CODE END
       call add(results, {
             \ 'filename': substitute(filename, b:esearch.cwd_prefix, '', ''),
-            \ 'lnum': lnum, 'text': text})
+            \ 'lnum':     lnum,
+            \ 'text':     text})
 
     else
       let offset = 0
@@ -55,16 +55,17 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
         let offset = idx + 1
 
         if filereadable(filename)
-          let ok = 1
           break
         end
       endwhile
-      if ok
-        let m = matchlist(line, '\(\d\+\)[-:]\(.*\)', offset)[1:2]
-        if !empty(m)
+
+      if idx > 0
+        let matches = matchlist(line, '\(\d\+\)[-:]\(.*\)', offset)[1:2]
+        if !empty(matches)
           call add(results, {
                 \ 'filename': substitute(filename, b:esearch.cwd_prefix, '', ''),
-                \ 'lnum': m[0], 'text': m[1]})
+                \ 'lnum':     matches[0],
+                \ 'text':     matches[1]})
         endif
       endif
     endif
@@ -73,10 +74,6 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
   endwhile
 
   return results
-endfu
-
-fu! s:parse_line() abort
-
 endfu
 
 fu! esearch#adapter#parse#viml#getqflines(data, from, to) abort dict
