@@ -28,7 +28,7 @@ describe 'esearch#backend', :backend do
 
       include_context 'report editor state on error'
 
-      it "outputs 1 entry from file named #{path.inspect}" do
+      it "outputs 1 entry from the file named #{path.inspect}" do
         esearch.search!(search_string)
 
         KnownIssues.mark_example_pending_if_known_issue(self) do
@@ -114,7 +114,6 @@ describe 'esearch#backend', :backend do
 
               context 'when basename is similar to {filename}{SEP}{line}' do
                 include_context 'searches in path', path: 'a:1'
-                include_context 'searches in path', path: 'a-1'
                 include_context 'searches in path', path: 'a:1:'
                 include_context 'searches in path', path: 'a:1-'
               end
@@ -130,6 +129,13 @@ describe 'esearch#backend', :backend do
             end
 
             context 'when multibyte' do
+              context 'when filename with arbitrary chars' do
+                include_context 'searches in path', path: '😄'
+                include_context 'searches in path', path: '概'
+                include_context 'searches in path', path: 'ц'
+                include_context 'searches in path', path: 'æ'
+              end
+
               context 'when basename is similar to {filename}{SEP}{line}{SEP}{text}' do
                 include_context 'searches in path', path: 'Σ:1:2:'
                 include_context 'searches in path', path: 'Σ:1-2:'
@@ -142,25 +148,43 @@ describe 'esearch#backend', :backend do
           context 'when dirname contains a filename' do
             context 'when ASCII' do
               include_context 'searches in path', path: 'a:b:1/a:b'
-              include_context 'searches in path', path: 'a-b:1:c/a-b'
+              include_context 'searches in path', path: 'a:b-1/a-b'
               include_context 'searches in path', path: 'a:1:b/a:1'
               include_context 'searches in path', path: 'a-1:b/a-1'
             end
 
             context 'when multibyte' do
               include_context 'searches in path', path: 'Σ:1:b/Σ:1'
-              include_context 'searches in path', path: 'Σ-1:b/Σ-1'
             end
           end
         end
 
         context 'when filenames contain control chars' do
-          include_context 'searches in path', path: "a\a"
-          include_context 'searches in path', path: "a\b"
-          include_context 'searches in path', path: "a\t"
-          include_context 'searches in path', path: "a\n"
-          include_context 'searches in path', path: "a\v"
-          include_context 'searches in path', path: "a\r"
+          context 'when ASCII' do
+            # \0 isn't accepted by any FS
+            include_context 'searches in path', path: "a\a"
+            include_context 'searches in path', path: "a\b"
+            include_context 'searches in path', path: "a\t"
+            include_context 'searches in path', path: "a\n"
+            include_context 'searches in path', path: "a\v"
+            include_context 'searches in path', path: "a\f"
+            include_context 'searches in path', path: "a\r"
+            include_context 'searches in path', path: "a\e"
+          end
+
+          context 'when UTF-8' do
+            include_context 'searches in path', path: ("\u{0080}".."\u{009F}").to_a.sample
+
+            context 'when lang tags' do
+              include_context 'searches in path',
+                path: ["\u{E0065}", "\u{E006E}", "\u{E002D}", "\u{E0075}", "\u{E0073}"].sample
+            end
+
+            context 'when interlinear annotation' do
+              include_context 'searches in path',
+                path: ["\u{FFF9}", "\u{FFFA}", "\u{FFFB}"].sample
+            end
+          end
         end
 
         context 'when filenames contain whitespaces' do
@@ -216,6 +240,7 @@ describe 'esearch#backend', :backend do
               include_context 'searches in path', path: '\\'
               include_context 'searches in path', path: '\\\\'
               include_context 'searches in path', path: '"'
+              include_context 'searches in path', path: '"a":1:b'
             end
           end
 
@@ -345,20 +370,39 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
+    it_behaves_like 'an abortable backend', 'vim8'
+
     context 'when rendering with lua', render: :lua do
       before { editor.command 'let g:esearch_out_win_render_using_lua = 1' }
 
       include_context 'a backend', 'vim8'
       include_context 'a backend 2', 'vim8'
-      it_behaves_like 'an abortable backend', 'vim8'
     end
 
     context 'when rendering with viml', render: :viml do
-      before { editor.command 'let g:esearch_out_win_render_using_lua = 0' }
+      context 'when parsing with #legacy', parse: :legacy do
+        before do
+          editor.command <<~EOF
+            let g:esearch_out_win_render_using_lua = 0
+            let g:esearch_out_win_parse_using_getqflist = 0
+          EOF
+        end
 
-      include_context 'a backend', 'vim8'
-      include_context 'a backend 2', 'vim8'
-      it_behaves_like 'an abortable backend', 'vim8'
+        include_context 'a backend', 'vim8'
+        include_context 'a backend 2', 'vim8'
+      end
+
+      context 'when parsing with #getqflist', parse: :getqflist do
+        before do
+          editor.command <<~EOF
+            let g:esearch_out_win_render_using_lua = 0
+            let g:esearch_out_win_parse_using_getqflist = 1
+          EOF
+        end
+
+        include_context 'a backend', 'vim8'
+        include_context 'a backend 2', 'vim8'
+      end
     end
   end
 end

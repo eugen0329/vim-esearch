@@ -44,7 +44,7 @@ fu! esearch#init(...) abort
         \ 'request': esearch#backend#{esearch.backend}#init(shell_cmd, requires_pty),
         \}, 'force')
 
-  call esearch#adapter#{esearch.adapter}#set_results_parser(esearch)
+  let esearch.parse = esearch#adapter#parse#viml#_funcref()
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu

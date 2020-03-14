@@ -33,12 +33,6 @@ fu! esearch#adapter#pt#cmd(esearch, pattern, escape) abort
         \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#pt#set_results_parser(esearch) abort
-  let a:esearch.parse = function('esearch#adapter#ag_like#parse')
-  let a:esearch.format = g:esearch#adapter#ag_like#format
-  let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
-endfu
-
 fu! esearch#adapter#pt#requires_pty() abort
   return 1
 endfu

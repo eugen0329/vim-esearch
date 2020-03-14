@@ -62,12 +62,30 @@ else
 endif
 
 lua << EOF
+
+-- From https://www.lua.org/pil/20.4.html
+function code(s)
+  return (string.gsub(s, "\\([\\\"])", function (x)
+            return string.format("\\%03d", string.byte(x))
+          end))
+end
+function decode(s)
+  return (string.gsub(s, "\\(%d%d%d)", function (d)
+            return "\\" .. string.char(d)
+          end))
+end
+
 function parse_line(filereadable_cache, line)
   local offset = 1
   local filename = ''
 
   if line:sub(1, 1) == '"' then
-    local filename, line, text = line:match('"([^:]*)":(%d+)[-:](.*)')
+    local filename, line, text = code(line):match('"(.-)":(%d+)[-:](.*)')
+    if filename == nil then
+      return
+    end
+    filename, line, text = decode(filename), decode(line), decode(text)
+
     local controls = {
       a      = '\a',
       b      = '\b',
@@ -78,8 +96,8 @@ function parse_line(filereadable_cache, line)
       r      = '\r',
       z      = '\z',
       ['\\'] = '\\',
-      ['\''] = '\'',
-      ['\"'] = '\"'
+      ['\"'] = '\"',
+      ['\033'] = string.char(27)
     }
     return filename:gsub('\\(.)', controls), line, text
   end
@@ -109,15 +127,15 @@ end
 EOF
 
 if g:esearch#has#nvim_lua
-lua << EOF
-function filereadable(path)
+  lua << EOF
+  function filereadable(path)
   return vim.api.nvim_call_function('filereadable', {path})
 end
 function fnameescape(path)
   return vim.api.nvim_call_function('fnameescape', {path})
 end
 
-function parse_from_multiple_files_file(data, cwd_prefix)
+function parse_lines(data, cwd_prefix)
   local parsed = {}
   local filereadable_cache = {}
 
@@ -142,7 +160,7 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 end
 
 function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files_count, highlights_enabled)
-  local parsed = parse_from_multiple_files_file(data, cwd_prefix)
+  local parsed = parse_lines(data, cwd_prefix)
   local contexts = {last_context}
   local line_numbers_map = {}
   local ctx_ids_map = {}
@@ -265,7 +283,7 @@ function fnameescape(path)
   return vim.funcref('fnameescape')(path)
 end
 
-function parse_from_multiple_files_file(data, cwd_prefix)
+function parse_lines(data, cwd_prefix)
   local parsed = vim.list()
   local filereadable_cache = {}
 
@@ -289,7 +307,7 @@ function parse_from_multiple_files_file(data, cwd_prefix)
 end
 
 function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
-  local parsed           = parse_from_multiple_files_file(data, cwd_prefix)
+  local parsed           = parse_lines(data, cwd_prefix)
   local contexts         = esearch['contexts']
   local line_numbers_map = esearch['line_numbers_map']
   local ctx_ids_map      = esearch['ctx_ids_map']

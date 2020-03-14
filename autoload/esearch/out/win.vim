@@ -103,7 +103,7 @@ if !exists('g:esearch_out_win_render_using_lua')
   let g:esearch_out_win_render_using_lua = g:esearch#has#lua
 endif
 if !exists('g:esearch_out_win_nvim_lua_syntax')
-  let g:esearch_out_win_nvim_lua_syntax = g:esearch#has#nvim_lua
+  let g:esearch_out_win_nvim_lua_syntax = g:esearch_out_win_render_using_lua && g:esearch#has#nvim_lua
 endif
 if !exists('g:unload_context_syntax_on_line_length')
   let g:unload_context_syntax_on_line_length = 500
@@ -760,13 +760,6 @@ fu! s:open(cmd, ...) abort
     keepjumps call winrestview({'lnum': lnum, 'col': col - 1,'topline': topline })
     if a:0 | exe a:1 | endif
   endif
-endfu
-
-fu! s:escape_filename(esearch, filename) abort
-  let filename = matchstr(a:filename, '^\zs[^ ].*')
-  let filename = substitute(filename, '^\./', '', '')
-
-  return a:esearch.expand_filename(filename)
 endfu
 
 fu! esearch#out#win#line_in_file() abort

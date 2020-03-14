@@ -140,9 +140,9 @@ end
 
 def load_runtime!(vim)
   vim.append_runtimepath(Configuration.viml_dir)
-  vim.add_plugin(Configuration.root,                            'plugin/esearch.vim')
-  vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'), 'plugin/vimproc.vim')
-  vim.add_plugin(Configuration.plugins_dir.join('clever-f.vim'), 'plugin/clever-f.vim')
+  vim.add_plugin(Configuration.root,                                 'plugin/esearch.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'),      'plugin/vimproc.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('clever-f.vim'),     'plugin/clever-f.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vim-visual-multi'), 'plugin/visual-multi.vim')
   ## Will be used for testing contex syntax highlights
   # vim.add_plugin(Configuration.plugins_dir.join('vim-colors-solarized'))

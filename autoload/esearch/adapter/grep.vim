@@ -83,10 +83,6 @@ fu! esearch#adapter#grep#cmd(esearch, pattern, escape) abort
         \ a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#grep#set_results_parser(esearch) abort
-  call esearch#adapter#grep_like#set_results_parser(a:esearch)
-endfu
-
 fu! esearch#adapter#grep#requires_pty() abort
   return 0
 endfu

@@ -34,7 +34,3 @@ endfu
 fu! esearch#adapter#ag#requires_pty() abort
   return 1
 endfu
-
-fu! esearch#adapter#ag#set_results_parser(esearch) abort
-  call esearch#adapter#ag_like#set_results_parser(a:esearch)
-endfu
