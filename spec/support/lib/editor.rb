@@ -126,7 +126,9 @@ class Editor
 
   # using vim builtin rules
   def escape_filename(text)
-    # NOTE: only leading [-+>] are escaped (according to builtin :h fnameescape)
+    # NOTE: only leading [+>] are escaped (according to builtin :h fnameescape).
+    # [-] is escaped when it's the only char in a name (to prevent confusion
+    # with `cd -` argument)
     text
       .gsub(/([\t\n *%$'"<{\[\\])/, '\\\\\1')
       .sub(/^([+>])/, '\\\\\1')

@@ -339,15 +339,26 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#system', :system do
+    before do
+      editor.command <<~VIML
+        let g:esearch_out_win_render_using_lua = 0
+        let g:esearch_out_win_parse_using_getqflist = 0
+      VIML
+    end
+
     include_context 'a backend',   'system'
     include_context 'a backend 2', 'system'
   end
 
   describe '#vimproc', :vimproc, backend: :vimproc do
     before(:context) do
-      editor.press! ':let g:esearch#backend#vimproc#updatetime = 30<Enter>'
-      editor.press! ':let g:esearch#backend#vimproc#read_timeout = 30<Enter>'
-      editor.press! ':let g:esearch_win_update_using_timer = 0<Enter>'
+      editor.command <<~VIML
+        let g:esearch_out_win_render_using_lua = 0
+        let g:esearch_out_win_parse_using_getqflist = 0
+        let g:esearch#backend#vimproc#updatetime = 30
+        let g:esearch#backend#vimproc#read_timeout = 30
+        let g:esearch_win_update_using_timer = 0
+      VIML
     end
     after(:context) { editor.press! ':let g:esearch_win_update_using_timer = 1<Enter>' }
 

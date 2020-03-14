@@ -75,7 +75,7 @@ function decode(s)
           end))
 end
 
-function parse_line(filereadable_cache, line)
+function parse_line(line)
   local offset = 1
   local filename = ''
 
@@ -111,7 +111,7 @@ function parse_line(filereadable_cache, line)
 
     filename = line:sub(1, idx - 1)
     offset = idx + 1
-    if filereadable(filename) == 1 then
+    if filereadable(filename) then
       break
     end
   end
@@ -127,26 +127,42 @@ end
 EOF
 
 if g:esearch#has#nvim_lua
-  lua << EOF
-  function filereadable(path)
-  return vim.api.nvim_call_function('filereadable', {path})
+lua << EOF
+filereadable_cache = {}
+
+function filereadable(path)
+  if filereadable_cache[path] then
+    return true
+  end
+  local res = vim.api.nvim_call_function('filereadable', {path})
+
+  if res == 1 then
+    filereadable_cache[path] = true;
+    return true
+  else
+    filereadable_cache[path] = false;
+    return false
+  end
 end
+
 function fnameescape(path)
   return vim.api.nvim_call_function('fnameescape', {path})
 end
 
 function parse_lines(data, cwd_prefix)
   local parsed = {}
-  local filereadable_cache = {}
+  filereadable_cache = {}
 
   for i = 1, #data do
     local line = data[i]
 
     if line:len() > 0 then
-      local filename, lnum, text = parse_line(filereadable_cache, line)
+      local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
+      if filename == nil or text == nil or not filereadable(filename) then
+        local filename, lnum, text = parse_line(line)
+      end
 
       if filename ~= nil then
-        filereadable_cache[filename] = true
         parsed[#parsed + 1] = {
           ['filename'] = string.gsub(filename, cwd_prefix, ''),
           ['lnum']     = lnum,
@@ -285,13 +301,17 @@ end
 
 function parse_lines(data, cwd_prefix)
   local parsed = vim.list()
-  local filereadable_cache = {}
+  filereadable_cache = {}
 
   for i = 0, #data - 1 do
     local line = data[i]
 
     if line:len() > 0 then
-      local filename, lnum, text = parse_line(filereadable_cache, line)
+      -- local filename, lnum, text = parse_line(line)
+      local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
+      if filename == nil or text == nil or not filereadable(filename) then
+        local filename, lnum, text = parse_line(line)
+      end
 
       if filename ~= nil  then
         parsed:add(vim.dict({

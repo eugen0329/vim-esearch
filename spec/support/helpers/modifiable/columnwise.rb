@@ -65,7 +65,6 @@ module Helpers::Modifiable::Columnwise
     end
 
     def parsed_entry
-      require 'pry'; binding.pry
       esearch.output.find_entry(editor.escape_filename(relative_path), line_in_file)
     end
   end
