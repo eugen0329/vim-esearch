@@ -1,9 +1,9 @@
 fu! esearch#init(...) abort
-  " if g:esearch#env is# 'dev'
-  "   for path in split(glob(s:autoload . '/esearch/**/*.vim'), '\n')
-  "     exe 'source' . path
-  "   endfor
-  " endif
+  if g:esearch#env is# 'dev'
+    for path in split(glob(s:autoload . '/esearch/**/*.vim'), '\n')
+      exe 'source' . path
+    endfor
+  endif
 
   if s:init_lazy_global_config() != 0
     return 1

@@ -1,6 +1,9 @@
 if !exists('g:esearch_out_win_parse_using_getqflist')
   let g:esearch_out_win_parse_using_getqflist = g:esearch#has#getqflist_lines
 endif
+if !exists('g:esearch_out_win_render_using_lua')
+  let g:esearch_out_win_render_using_lua = g:esearch#has#lua
+endif
 
 fu! esearch#adapter#parse#funcref() abort
   if g:esearch_out_win_render_using_lua
