@@ -1,18 +1,3 @@
-let s:Vital   = vital#esearch#new()
-let s:String  = s:Vital.import('Data.String')
-
-if !exists('g:esearch_out_win_parse_using_getqflist')
-  let g:esearch_out_win_parse_using_getqflist = g:esearch#has#getqflist_lines
-endif
-
-fu! esearch#adapter#parse#viml#_funcref() abort
-  if g:esearch_out_win_parse_using_getqflist
-    return function('esearch#adapter#parse#viml#getqflines')
-  else
-    return function('esearch#adapter#parse#viml#legacy')
-  endif
-endfu
-
 let g:esearch#adapter#parse#viml#controls = {
       \  'a':  "\<C-G>",
       \  'b':  "\b",

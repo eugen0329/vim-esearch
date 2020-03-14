@@ -285,6 +285,8 @@ describe 'esearch#backend', :backend do
           before { esearch.configure(adapter: adapter, regex: 0) }
           # potential errors with escaping
           include_context 'finds 1 entry of', '%',      in: "_\n__%__",   line: 2, column: 3..4
+          # TODO
+          # include_context 'finds 1 entry of', '%{',     in: "_\n__%{__",  line: 2, column: 3..4
           include_context 'finds 1 entry of', '<',      in: "_\n__<_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '>',      in: "_\n__>_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '2 > 1',  in: "_\n_2 > 1_", line: 2, column: 2..7
