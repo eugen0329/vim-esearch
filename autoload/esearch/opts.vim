@@ -44,11 +44,11 @@ fu! esearch#opts#new(opts) abort
         \ 'escape_special':   1,
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
-        \ 'project_root_markers':  [],
+        \ 'root_markers':     [],
         \ 'invert':           function('<SID>invert'),
         \ 'slice':            function('esearch#util#slice'),
         \ 'errors':           [],
-        \ 'use': ['visual', 'hlsearch', 'current', 'last'],
+        \ 'use':              ['visual', 'hlsearch', 'current', 'last'],
         \}, 'keep')
 
   return opts

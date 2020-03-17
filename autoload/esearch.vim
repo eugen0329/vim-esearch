@@ -23,9 +23,7 @@ fu! esearch#init(...) abort
   " Read search string
   """""""""""""""
   if !has_key(opts, 'cwd')
-    " TODO coverage
-    let opts.cwd = vital#esearch#import('Prelude')
-          \.path2project_directory(getcwd(), g:esearch.project_root_markers)
+    let opts.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
   endif
   call opts.set_default('adapter', g:esearch.adapter)
 

@@ -273,11 +273,11 @@ fu! s:prompt(adapter_options) abort
 endfu
 
 fu! s:render_directory_prompt(dir) abort
-  if a:dir ==# $PWD
+  if a:dir ==# getcwd()
     return 0
   endif
 
-  let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , $PWD.'/', '', '')
+  let dir = g:esearch#cmdline#dir_icon . substitute(a:dir , getcwd().'/', '', '')
   call esearch#util#highlight('Normal', 'In ')
   call esearch#util#highlight('Directory', dir, 0)
   echo ''
