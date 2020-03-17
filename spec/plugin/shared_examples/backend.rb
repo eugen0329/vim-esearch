@@ -64,7 +64,10 @@ def settings_dependent_context(matching_type, settings)
     press ":cd #{working_directory}/spec/fixtures/backend/<Enter>"
     esearch_settings(settings)
   end
-  after { cmd('bdelete') if bufname('%') =~ /Search/ }
+  after do
+    cmd('set lines=22')
+    cmd('bdelete') if bufname('%') =~ /Search/
+  end
 
   File.readlines("spec/fixtures/backend/#{matching_type}.txt").map(&:chomp).each do |test_query|
     it "finds `#{test_query}`" do

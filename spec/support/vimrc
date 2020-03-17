@@ -1,0 +1,16 @@
+set nocompatible
+
+filetype plugin on
+filetype indent on
+syntax on
+
+set noswapfile nobackup
+
+" remove default ~/.vim directories to avoid loading plugins
+set runtimepath-=~/.vim
+set runtimepath-=~/.vim/after
+
+set lines=22
+set nomore
+
+set showtabline=2
