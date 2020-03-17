@@ -11,20 +11,20 @@
 "
 " Have no idea why it's so (and time to deal) ...
 
-let s:mappings = [
-      \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
-      \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
-      \ {'lhs': 'i',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
-      \ {'lhs': 'I',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
-      \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)', 'default': 1},
-      \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-silent)', 'default': 1},
-      \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)', 'default': 1},
-      \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
-      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
-      \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
-      \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
-      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
+let g:mappings = [
+      \ {'lhs': 't',       'rhs': 'tab',           'default': 1},
+      \ {'lhs': 'T',       'rhs': 'tab-silent',    'default': 1},
+      \ {'lhs': 'i',       'rhs': 'split',         'default': 1},
+      \ {'lhs': 'I',       'rhs': 'split-silent',  'default': 1},
+      \ {'lhs': 's',       'rhs': 'vsplit',        'default': 1},
+      \ {'lhs': 'S',       'rhs': 'vsplit-silent', 'default': 1},
+      \ {'lhs': 'R',       'rhs': 'reload',        'default': 1},
+      \ {'lhs': '<Enter>', 'rhs': 'open',          'default': 1},
+      \ {'lhs': 'o',       'rhs': 'open',          'default': 1},
+      \ {'lhs': '<C-n>',   'rhs': 'next',          'default': 1},
+      \ {'lhs': '<C-p>',   'rhs': 'prev',          'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': 'next-file',     'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': 'prev-file',     'default': 1},
       \ ]
 
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
@@ -33,6 +33,7 @@ let s:header = 'Matches in %d lines, %d file(s)'
 let s:finished_header = 'Matches in %d lines, %d file(s). Finished.'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
+let s:function_t = type(function('tr'))
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -134,8 +135,9 @@ fu! esearch#out#win#init(opts) abort
         \ '__broken_results':    [],
         \ 'errors':              [],
         \ 'data':                [],
-        \ 'syn_regions_loaded':                [],
-        \ 'without':             function('esearch#util#without')
+        \ 'syn_regions_loaded':  [],
+        \ 'open':                function('<SID>open'),
+        \ 'without':             function('esearch#util#without'),
         \})
   " call esearch#log#debug('extend b:esearch after', '/tmp/esearch_log.txt')
 
@@ -319,7 +321,7 @@ fu! s:context(line, esearch) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  call esearch#util#add_map(s:mappings, a:lhs, '<Plug>(esearch-win-'.a:rhs.')')
+  call esearch#util#add_map(g:mappings, a:lhs, a:rhs)
 endfu
 
 fu! s:init_commands() abort
@@ -356,11 +358,19 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
   " nnoremap <silent><buffer> <Plug>(esearch-win-Nop)           <Nop>
 
-  for mapping in s:mappings
-    if !g:esearch.default_mappings && mapping.default | continue | endif
+  for i in range(0, len(g:mappings) - 1)
+    if !g:esearch.default_mappings && g:mappings[i].default | continue | endif
 
-    exe 'nmap <buffer> ' . mapping.lhs . ' ' . mapping.rhs
+    if type(g:mappings[i].rhs) ==# s:function_t
+      exe 'nmap <buffer><silent> ' . g:mappings[i].lhs . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
+    else
+      exe 'nmap <buffer> ' . g:mappings[i].lhs . ' <Plug>(esearch-win-' . g:mappings[i].rhs . ')'
+    endif
   endfor
+endfu
+
+fu! s:invoke_mapping_callback(i) abort
+  call g:mappings[a:i].rhs()
 endfu
 
 fu! s:open(cmd, ...) abort
