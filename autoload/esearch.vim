@@ -22,7 +22,11 @@ fu! esearch#init(...) abort
   " call esearch#log#debug('read search string before', '/tmp/esearch_log.txt')
   " Read search string
   """""""""""""""
-  call opts.set_default('cwd', getcwd())
+  if !has_key(opts, 'cwd')
+    " TODO coverage
+    let opts.cwd = vital#esearch#import('Prelude')
+          \.path2project_directory(getcwd(), g:esearch.project_root_markers)
+  endif
   call opts.set_default('adapter', g:esearch.adapter)
 
   if !has_key(opts, 'exp')

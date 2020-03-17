@@ -1,0 +1,13 @@
+esearch
+4d1d1575d25ab1f5c02c69d0d256d15f0cb0f69f
+
+Async.Promise
+Data.OrderedSet
+Text.Parser
+Text.Lexer
+Data.Dict
+Vim.ViewTracer
+Vim.Message
+Data.String
+System.Filepath
+Vim.Highlight
