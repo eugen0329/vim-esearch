@@ -398,7 +398,9 @@ fu! esearch#util#find_root(path, markers) abort
   " Partially based on vital's prelude path2project-root internals
   let prelude = vital#esearch#import('Prelude')
   let start_dir = prelude.path2directory(a:path)
-  if empty(a:markers) | return start_dir | endif
+  " TODO rewrite to return start_dir when ticket with fixing cwd handling is
+  " ready
+  if empty(a:markers) | return a:path | endif
 
   let dir = start_dir
   let max_depth = 50
@@ -414,7 +416,7 @@ fu! esearch#util#find_root(path, markers) abort
     endfor
 
     let dir_upwards = fnamemodify(dir, ':h')
-    " if it's fs root - use cwd
+    " if it's fs root - use start_dir
     if dir_upwards == dir
       return start_dir
     endif
