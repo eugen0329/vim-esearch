@@ -29,6 +29,7 @@ fu! esearch#opts#new(opts) abort
     let final_batch_size = 4000
   endif
 
+  " root_markers are made to correspond g:ctrlp_root_markers default value
   let opts = extend(opts, {
         \ 'out':              g:esearch#defaults#out,
         \ 'regex':            0,
@@ -39,7 +40,7 @@ fu! esearch#opts#new(opts) abort
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
-        \ 'root_markers':     [],
+        \ 'root_markers':     ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'invert':           function('<SID>invert'),
         \ 'slice':            function('esearch#util#slice'),
         \ 'errors':           [],
