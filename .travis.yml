@@ -89,12 +89,7 @@ before_script:
 
 jobs:
   include:
-    # Why tests for two platforms:
-    #   - tests rely on platform specific calls and should be crossplatform
-    #   - underlying backends (mostly vimproc) rely platform specific calls
-    # OSX acceptance
-
-    # parallel_split_test of #system cause deadlocks on mac, so testing
+    # parallel_split_test cause deadlocks on mac, so testing
     # synchronously
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec rspec spec/plugin/backend_spec.rb --tag system
@@ -104,7 +99,7 @@ jobs:
     #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
     #   os: osx
     - name: 'Acceptance tests of #backend#vim8 with #viml render'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
+      script: bundle exec spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
       os: osx
     # - name: 'Acceptance tests of #backend#vimproc'
     #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
