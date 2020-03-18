@@ -41,7 +41,7 @@ fu! esearch#option#make_local_to_buffer(option_name, value, prevent_leaks_on_eve
 
   if !empty(a:prevent_leaks_on_events)
     call s:set_events_to_ensure_option_restored(
-          \ a:option_name, bufnr(), a:prevent_leaks_on_events)
+          \ a:option_name, bufnr('%'), a:prevent_leaks_on_events)
   endif
 
   execute 'call s:set('.string(a:option_name).','.string(a:value).')'
