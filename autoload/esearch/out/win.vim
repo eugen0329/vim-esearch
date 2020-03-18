@@ -682,7 +682,7 @@ fu! s:include_syntax_cluster(ft) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  call esearch#util#add_map(g:mappings, a:lhs, a:rhs)
+  call esearch#util#add_map(s:mappings, a:lhs, a:rhs)
 endfu
 
 fu! s:init_commands() abort
@@ -723,13 +723,13 @@ fu! s:init_mappings() abort
     nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
   endif
 
-  for i in range(0, len(g:mappings) - 1)
-    if !g:esearch.default_mappings && g:mappings[i].default | continue | endif
+  for i in range(0, len(s:mappings) - 1)
+    if !g:esearch.default_mappings && s:mappings[i].default | continue | endif
 
-    if type(g:mappings[i].rhs) ==# s:function_t
-      exe 'nmap <buffer><silent> ' . g:mappings[i].lhs . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
+    if type(s:mappings[i].rhs) ==# s:function_t
+      exe 'nmap <buffer><silent> ' . s:mappings[i].lhs . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
     else
-      exe 'nmap <buffer> ' . g:mappings[i].lhs . ' <Plug>(esearch-win-' . g:mappings[i].rhs . ')'
+      exe 'nmap <buffer> ' . s:mappings[i].lhs . ' <Plug>(esearch-win-' . s:mappings[i].rhs . ')'
     endif
   endfor
   " TODO handle start via mappings
@@ -743,7 +743,7 @@ fu! esearch#out#win#column_in_file() abort
 endfu
 
 fu! s:invoke_mapping_callback(i) abort
-  call g:mappings[a:i].rhs()
+  call s:mappings[a:i].rhs()
 endfu
 
 fu! s:open(cmd, ...) abort
