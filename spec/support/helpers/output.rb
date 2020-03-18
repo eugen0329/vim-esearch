@@ -23,15 +23,6 @@ module Helpers::Output
     match do |esearch|
       @expected = files
       @actual = esearch.output.entries.map(&:relative_path)
-
-      if esearch.configuration.adapter == 'git'
-        @expected.map! do |path|
-          next path unless path =~ /["\\]/
-
-          "\"#{Shellwords.escape(path)}\""
-        end
-      end
-
       values_match?(@expected.sort, @actual.sort)
     end
 

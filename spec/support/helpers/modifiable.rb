@@ -45,7 +45,7 @@ module Helpers::Modifiable
     let(:output) { esearch.output }
 
     before do
-      esearch.configure!(adapter: 'ag', out: 'win', backend: 'system', regex: 1, use: [])
+      esearch.configure!(adapter: 'ag', out: 'win', backend: 'system', regex: 1, use: [], default_mappings: 0)
       editor.command! <<~SETUP
         let g:esearch#adapter#ag#bin = '#{Configuration.root}/spec/support/scripts/sort_search_results.sh ag'
         let g:esearch_win_disable_context_highlights_on_files_count = 0

@@ -37,10 +37,6 @@ fu! esearch#adapter#rg#cmd(esearch, pattern, escape) abort
         \ a:escape(a:pattern)  . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#rg#set_results_parser(esearch) abort
-  call esearch#adapter#ag_like#set_results_parser(a:esearch)
-endfu
-
 fu! esearch#adapter#rg#requires_pty() abort
   return 1
 endfu

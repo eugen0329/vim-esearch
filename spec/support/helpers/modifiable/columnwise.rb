@@ -9,8 +9,8 @@ module Helpers::Modifiable::Columnwise
        .sort_by(&:name)
     end
     let(:files) { contexts.map { |c| file(c.content, c.name) } }
-    let(:fillers_alphabet) { '_|-'.chars }
-    let(:alphabet) { ('a'..'z').to_a + '()[]"+.,%^&$#@!?*~`/\\'.chars }
+    let(:fillers_alphabet) { '_.+'.chars }
+    let(:alphabet) { ('a'..'z').to_a + '()[]-,^&$#@!?*~`/\'"'.chars }
   end
 
   shared_context 'setup columnwise testing' do |from, to|
@@ -57,7 +57,7 @@ module Helpers::Modifiable::Columnwise
     end
 
     def line_in_window
-      esearch.output.find_entry(relative_path, line_in_file).line_in_window
+      parsed_entry.line_in_window
     end
 
     def cached_line_content
@@ -65,7 +65,7 @@ module Helpers::Modifiable::Columnwise
     end
 
     def parsed_entry
-      esearch.output.find_entry(relative_path, line_in_file)
+      esearch.output.find_entry(editor.escape_filename(relative_path), line_in_file)
     end
   end
 

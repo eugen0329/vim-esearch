@@ -124,6 +124,17 @@ class Editor
     echo(func('search', modifiers + escape_regexp(text), 'w'))
   end
 
+  # using vim builtin rules
+  def escape_filename(text)
+    # NOTE: only leading [+>] are escaped (according to builtin :h fnameescape).
+    # [-] is escaped when it's the only char in a name (to prevent confusion
+    # with `cd -` argument)
+    text
+      .gsub(/([\t\n *%$'"<{\[\\])/, '\\\\\1')
+      .sub(/^([+>])/, '\\\\\1')
+      .sub(/^-$/, '\\-')
+  end
+
   def escape_regexp(text)
     text.gsub(/([$^~.*\[\]\\])/, '\\\\\1')
   end

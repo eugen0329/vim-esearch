@@ -57,4 +57,39 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   #   `ag *.txt`,       `ag \*.txt`       - a wildcard and a regular string
   #   `git grep *.txt`, `git grep \*.txt` - both wildcards
   pending! 'globbing escaped *', /expected to have results.*got.*\[.+\]/m, adapter: :git
+
+  # Ack cannot work with files named ~
+  pending! 'searching in a file with name "~"', /MissingEntry/, adapter: :ack
+
+  # Can be fixed by storing data as a single string instead of list of lines.
+  # Can reduce freezes on stdout callbacks, but seems too hard to implement for
+  # now.
+  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :ag
+  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :ack
+  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :pt
+  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :rg
+  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :grep
+
+  # vimproc doesn't handle LF as job control does
+  pending! 'searching in a file with name "a\\r"', /MissingEntry/, backend: :vimproc
+
+  # getqflist() parser is a fast builtin, but it looks too buggy. Although it's
+  # not the usual case, it affects reliability
+  pending! 'searching in a file with name "a:1:b/a:1"', /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "a:b-1/a-b"', /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "\"a\":1:b"', /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "Σ:1:2-"',    /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "Σ:1:2:"',    /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "a:1:2:"',    /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "a:1:2-"',    /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "a:1"',       /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "a:1:"',      /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "a:1:2"',     /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name "Σ:1:b/Σ:1"', /MissingEntry/, parse: :getqflist
+  # Leading ws are unfairly consumed
+  pending! 'searching in a file with name " a"', /MissingEntry/, parse: :getqflist
+  pending! 'searching in a file with name " 1 a b"', /MissingEntry/, parse: :getqflist
+  # Documented feature of getqflist - to expand tilde and some other special
+  # chars. See :h errorformat
+  pending! 'searching in a file with name "~"', /MissingEntry/, parse: :getqflist
 end

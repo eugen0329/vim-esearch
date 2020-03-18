@@ -16,12 +16,6 @@ fu! esearch#adapter#grep_like#joined_paths(esearch) abort
   return joined_paths
 endfu
 
-fu! esearch#adapter#grep_like#set_results_parser(esearch) abort
-  let a:esearch.parse = function('esearch#adapter#grep_like#parse')
-  let a:esearch.format = g:esearch#adapter#grep_like#multiple_files_Search_format
-  let a:esearch.expand_filename = function('esearch#adapter#ag_like#expand_filename')
-endfu
-
 fu! esearch#adapter#grep_like#parse(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let format = self.format
@@ -47,9 +41,4 @@ fu! esearch#adapter#grep_like#parse(data, from, to) abort dict
   endwhile
 
   return results
-endfu
-
-fu! s:expand_escaped_glob(str) abort
-  let re_escaped='\%(\\\)\@<!\%(\\\\\)*\zs\\'
-  return substitute(a:str, re_escaped . '\*', '*', 'g')
 endfu

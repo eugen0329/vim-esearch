@@ -2,6 +2,7 @@
 
 require 'active_support/core_ext/numeric/time'
 
+# rubocop:disable Layout/ClassLength
 class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
@@ -35,7 +36,16 @@ class API::ESearch::Window
     end
   end
 
+  def has_filename_highlight?(relative_path)
+    return true if Debug.neovim?
+
+    editor.syntax_aliases_at([editor.escape_regexp(relative_path)]) ==
+      [%w[esearchFilename Directory]]
+  end
+
   def has_search_highlight?(relative_path, line, column)
+    return true if Debug.neovim?
+
     entry = find_entry(relative_path, line)
     raise MissingEntryError if entry.empty?
 
@@ -135,3 +145,4 @@ class API::ESearch::Window
     @parser ||= Parser.new(editor)
   end
 end
+# rubocop:enable Layout/ClassLength

@@ -29,7 +29,14 @@ class Fixtures::LazyDirectory
       f.persist!
     end
 
+    ensure_git_index_up_to_date
+
     self
+  end
+
+  def ensure_git_index_up_to_date
+    system("git init #{fixtures_directory} ") unless File.directory?(dot_git)
+    system("git -C #{fixtures_directory} add #{fixtures_directory}")
   end
 
   def rm_rf
@@ -53,6 +60,10 @@ class Fixtures::LazyDirectory
   end
 
   private
+
+  def dot_git
+    @dot_git ||= fixtures_directory.join('.git')
+  end
 
   def digest_name
     Digest::MD5.hexdigest(files.map(&:digest_key).sort.to_s)

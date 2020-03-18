@@ -20,17 +20,16 @@ let s:Filepath = s:Vital.import('System.Filepath')
 let s:mappings = [
       \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
       \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
-      \ {'lhs': 'i',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
-      \ {'lhs': 'I',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
+      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
+      \ {'lhs': 'O',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
       \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)', 'default': 1},
       \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-silent)', 'default': 1},
       \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)', 'default': 1},
       \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
-      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
       \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
       \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
-      \ {'lhs': '<c-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      \ {'lhs': '<c-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
 
 let s:null = 0
@@ -103,7 +102,7 @@ if !exists('g:esearch_out_win_render_using_lua')
   let g:esearch_out_win_render_using_lua = g:esearch#has#lua
 endif
 if !exists('g:esearch_out_win_nvim_lua_syntax')
-  let g:esearch_out_win_nvim_lua_syntax = g:esearch#has#nvim_lua
+  let g:esearch_out_win_nvim_lua_syntax = g:esearch_out_win_render_using_lua && g:esearch#has#nvim_lua
 endif
 if !exists('g:unload_context_syntax_on_line_length')
   let g:unload_context_syntax_on_line_length = 500
@@ -233,10 +232,9 @@ fu! esearch#out#win#init(opts) abort
         \ 'highlighted_lines_map':    {},
         \ 'contexts':                 [],
         \ 'context_by_name':          {},
-        \ 'ctx_ids_map':          [],
+        \ 'ctx_ids_map':              [],
         \ 'broken_results':           [],
         \ 'errors':                   [],
-        \ 'data':                     [],
         \ 'context_syntax_regions':   {},
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
         \ 'without':                  function('esearch#util#without'),
@@ -763,13 +761,6 @@ fu! s:open(cmd, ...) abort
   endif
 endfu
 
-fu! s:escape_filename(esearch, filename) abort
-  let filename = matchstr(a:filename, '^\zs[^ ].*')
-  let filename = substitute(filename, '^\./', '', '')
-
-  return a:esearch.expand_filename(filename)
-endfu
-
 fu! esearch#out#win#line_in_file() abort
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
@@ -977,17 +968,6 @@ fu! esearch#out#win#edit() abort
     au BufHidden,BufLeave <buffer>  ++nested  set nomodified
   augroup END
 
-  try
-    sil exe 'nunmap <buffer> t'
-    sil exe 'nunmap <buffer> T'
-    sil exe 'nunmap <buffer> i'
-    sil exe 'nunmap <buffer> I'
-    sil exe 'nunmap <buffer> s'
-    sil exe 'nunmap <buffer> S'
-    sil exe 'nunmap <buffer> o'
-  catch /E31: No such mapping/
-  endtry
-
   let b:esearch.undotree = esearch#undotree#new({
         \ 'ctx_ids_map': b:esearch.ctx_ids_map,
         \ 'line_numbers_map': b:esearch.line_numbers_map,
@@ -999,6 +979,7 @@ fu! esearch#out#win#edit() abort
   set nomodified
 
   call esearch#compat#visual_multi#init()
+  call esearch#compat#multiple_cursors#init()
 endfu
 
 fu! s:write() abort

@@ -44,7 +44,7 @@ fu! esearch#init(...) abort
         \ 'request': esearch#backend#{esearch.backend}#init(shell_cmd, requires_pty),
         \}, 'force')
 
-  call esearch#adapter#{esearch.adapter}#set_results_parser(esearch)
+  let esearch.parse = esearch#adapter#parse#funcref()
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu
@@ -82,7 +82,7 @@ fu! s:title(esearch, pattern) abort
   let modifiers = ''
   let modifiers .= a:esearch.case ? 'c' : ''
   let modifiers .= a:esearch.word ? 'w' : ''
-  return printf(format, a:pattern, modifiers)
+  return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 
 fu! esearch#_mappings() abort
