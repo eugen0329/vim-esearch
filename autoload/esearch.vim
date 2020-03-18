@@ -53,8 +53,6 @@ fu! s:new(configuration) abort
   let configuration = extend(deepcopy(a:configuration),
         \ deepcopy(g:esearch), 'keep')
   let configuration = extend(configuration, {
-        \ 'cwd': getcwd(),
-        \ 'escaped_cwd': fnameescape(getcwd()),
         \ 'paths': [],
         \ 'metadata': [],
         \ 'glob': 0,
@@ -62,6 +60,13 @@ fu! s:new(configuration) abort
         \ 'set_default': function('esearch#util#set_default'),
         \ 'slice': function('esearch#util#slice')
         \}, 'keep')
+
+  if !has_key(configuration, 'cwd')
+    let configuration.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
+  endif
+  if !has_key(configuration, 'escaped_cwd')
+    let configuration.escaped_cwd = fnameescape(configuration.cwd)
+  endif
 
   if g:esearch#has#lua
     let configuration.lua_cwd_prefix =

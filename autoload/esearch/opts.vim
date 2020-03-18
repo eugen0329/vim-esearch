@@ -39,10 +39,11 @@ fu! esearch#opts#new(opts) abort
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
+        \ 'root_markers':     [],
         \ 'invert':           function('<SID>invert'),
         \ 'slice':            function('esearch#util#slice'),
         \ 'errors':           [],
-        \ 'use': ['visual', 'hlsearch', 'current', 'last'],
+        \ 'use':              ['visual', 'hlsearch', 'current', 'last'],
         \}, 'keep')
 
   return opts
