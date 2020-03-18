@@ -18,18 +18,18 @@ let s:String  = s:Vital.import('Data.String')
 let s:Filepath = s:Vital.import('System.Filepath')
 
 let s:mappings = [
-      \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
-      \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
-      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
-      \ {'lhs': 'O',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
-      \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)', 'default': 1},
-      \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-silent)', 'default': 1},
-      \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)', 'default': 1},
-      \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
-      \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
-      \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
-      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
+      \ {'lhs': 't',       'rhs': 'tab',           'default': 1},
+      \ {'lhs': 'T',       'rhs': 'tab-silent',    'default': 1},
+      \ {'lhs': 'o',       'rhs': 'split',         'default': 1},
+      \ {'lhs': 'O',       'rhs': 'split-silent',  'default': 1},
+      \ {'lhs': 's',       'rhs': 'vsplit',        'default': 1},
+      \ {'lhs': 'S',       'rhs': 'vsplit-silent', 'default': 1},
+      \ {'lhs': 'R',       'rhs': 'reload',        'default': 1},
+      \ {'lhs': '<Enter>', 'rhs': 'open',          'default': 1},
+      \ {'lhs': '<C-n>',   'rhs': 'next',          'default': 1},
+      \ {'lhs': '<C-p>',   'rhs': 'prev',          'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': 'next-file',     'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': 'prev-file',     'default': 1},
       \ ]
 
 let s:null = 0
@@ -51,6 +51,7 @@ let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spi
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let s:linenr_format = ' %3d %s'
+let s:function_t = type(function('tr'))
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -239,6 +240,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
         \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
+        \ 'open':                     function('<SID>open'),
         \})
 
   if b:esearch.request.async
@@ -680,7 +682,7 @@ fu! s:include_syntax_cluster(ft) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  call esearch#util#add_map(s:mappings, a:lhs, '<Plug>(esearch-win-'.a:rhs.')')
+  call esearch#util#add_map(g:mappings, a:lhs, a:rhs)
 endfu
 
 fu! s:init_commands() abort
@@ -721,10 +723,14 @@ fu! s:init_mappings() abort
     nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
   endif
 
-  for mapping in s:mappings
-    if !g:esearch.default_mappings && mapping.default | continue | endif
+  for i in range(0, len(g:mappings) - 1)
+    if !g:esearch.default_mappings && g:mappings[i].default | continue | endif
 
-    exe 'nmap <buffer> ' . mapping.lhs . ' ' . mapping.rhs
+    if type(g:mappings[i].rhs) ==# s:function_t
+      exe 'nmap <buffer><silent> ' . g:mappings[i].lhs . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
+    else
+      exe 'nmap <buffer> ' . g:mappings[i].lhs . ' <Plug>(esearch-win-' . g:mappings[i].rhs . ')'
+    endif
   endfor
   " TODO handle start via mappings
   " exe 'nmap <buffer> m :<C-U>sil cal esearch#out#win#edit()<CR>'
@@ -734,6 +740,10 @@ fu! esearch#out#win#column_in_file() abort
   return 1
   " TODO resolve on the fly
   " let col = match(m[2], pattern) + 1
+endfu
+
+fu! s:invoke_mapping_callback(i) abort
+  call g:mappings[a:i].rhs()
 endfu
 
 fu! s:open(cmd, ...) abort
