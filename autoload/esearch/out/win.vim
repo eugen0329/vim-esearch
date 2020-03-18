@@ -578,7 +578,9 @@ fu! s:set_syntax_sync(esearch) abort
     return
   endif
 
-  syntax sync clear
+  "" for some reason it clears other properties which doesn't related to sync
+  " like syn iskeyword etc.
+  " syntax sync clear
   exe 'syntax sync minlines='.min([
         \ float2nr(a:esearch['max_lines_found']),
         \ g:esearch#out#win#context_syntax_max_lines,
