@@ -11,6 +11,13 @@ let g:esearch#adapter#parse#viml#controls = {
       \  '033':"\e",
       \ }
 
+fu! esearch#adapter#parse#viml#getqflines_funcref() abort
+  return function('esearch#adapter#parse#viml#getqflines')
+endfu
+fu! esearch#adapter#parse#viml#legacy_funcref() abort
+  return function('esearch#adapter#parse#viml#legacy')
+endfu
+
 " NOTE some code is reused by copypasting (wrappend into SHARED CODE
 " {START,END}) as parsing is a bottleneck and should be as fast as possible
 fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict

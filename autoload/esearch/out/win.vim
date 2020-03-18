@@ -979,6 +979,7 @@ fu! esearch#out#win#edit() abort
   set nomodified
 
   call esearch#compat#visual_multi#init()
+  call esearch#compat#multiple_cursors#init()
 endfu
 
 fu! s:write() abort

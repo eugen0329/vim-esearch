@@ -2,7 +2,9 @@ if !g:esearch#has#lua
   finish
 endif
 
-let g:esearch#adapter#parse#lua#loaded = 1
+fu! esearch#adapter#parse#lua#funcref() abort
+  return function('esearch#adapter#parse#lua#parse')
+endfu
 
 if g:esearch#has#nvim_lua
   fu! esearch#adapter#parse#lua#parse(data, from, to) abort dict

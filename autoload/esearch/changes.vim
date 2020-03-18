@@ -18,7 +18,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__pending_o_event = 0
   let b:__pending_insert_leave_event = s:null
   " TODO reimplement to work using :au User 
-  let b:__multicursor = 0
+  let b:__undojoin_executed = 0
 
   if a:0 > 0
     let b:__undotree = a:1
@@ -38,10 +38,6 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
     au TextChanged,TextChangedI,TextChangedP <buffer> call s:identify_text_change(v:event)
 
     au InsertLeave <buffer> call timer_start(0, function('s:handle_insert_leave'))
-
-    " TODO reimplement to work using :au User 
-    au User MultipleCursorsPre let b:__multicursor = 1
-    au User MultipleCursorsPost let b:__multicursor = 0
   augroup END
 endfu
 
@@ -173,13 +169,13 @@ fu! s:identify_text_change(event) abort
 
   let undotree = undotree()
   if undotree.seq_last > undotree.seq_cur
-    " Last undo block number is lower the current - 100% undo
+    " Last undo block number is lower than current - 100% undo
     call s:identify_undo_traversal()
     return
   elseif to.mode !=# 'i'
         \  && has_key(b:__undotree.nodes, changenr())
         \  && from.changedtick != to.changedtick
-        \  && !b:__multicursor
+        \  && !b:__undojoin_executed
 
     if from.changenr < to.changenr
       " Redo or a third party plugin trick with locking undo
