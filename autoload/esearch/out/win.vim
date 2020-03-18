@@ -28,8 +28,8 @@ let s:mappings = [
       \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
       \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
       \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
-      \ {'lhs': '<c-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
-      \ {'lhs': '<c-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': '<Plug>(esearch-win-prev-file)', 'default': 1},
       \ ]
 
 let s:null = 0
