@@ -74,7 +74,7 @@ describe 'esearch#adapter', :adapters do
              file('any content', 'b c.json')]
           end
           let!(:test_directory) { directory(files).persist! }
-          let(:names) { files.map  {  |f| editor.escape_filename(f.relative_path) } }
+          let(:names) { files.map { |f| editor.escape_filename(f.relative_path) } }
           let(:paths_string) { '\\\\*.txt b\\\\ c.json' }
 
           before do

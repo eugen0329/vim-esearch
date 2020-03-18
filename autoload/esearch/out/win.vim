@@ -20,13 +20,12 @@ let s:Filepath = s:Vital.import('System.Filepath')
 let s:mappings = [
       \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)', 'default': 1},
       \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)', 'default': 1},
-      \ {'lhs': 'i',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
-      \ {'lhs': 'I',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
+      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-split)', 'default': 1},
+      \ {'lhs': 'O',       'rhs': '<Plug>(esearch-win-split-silent)', 'default': 1},
       \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)', 'default': 1},
       \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-silent)', 'default': 1},
       \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)', 'default': 1},
       \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)', 'default': 1},
-      \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-open)', 'default': 1},
       \ {'lhs': '<C-n>',   'rhs': '<Plug>(esearch-win-next)', 'default': 1},
       \ {'lhs': '<C-p>',   'rhs': '<Plug>(esearch-win-prev)', 'default': 1},
       \ {'lhs': '<c-j>',   'rhs': '<Plug>(esearch-win-next-file)', 'default': 1},
@@ -968,15 +967,6 @@ fu! esearch#out#win#edit() abort
     " TODO
     au BufHidden,BufLeave <buffer>  ++nested  set nomodified
   augroup END
-
-  try
-    sil exe 'nunmap <buffer> i'
-    sil exe 'nunmap <buffer> I'
-    sil exe 'nunmap <buffer> s'
-    sil exe 'nunmap <buffer> S'
-    sil exe 'nunmap <buffer> o'
-  catch /E31: No such mapping/
-  endtry
 
   let b:esearch.undotree = esearch#undotree#new({
         \ 'ctx_ids_map': b:esearch.ctx_ids_map,
