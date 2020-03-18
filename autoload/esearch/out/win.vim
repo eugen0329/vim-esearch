@@ -73,7 +73,7 @@ if !exists('g:esearch_win_matches_highlight_debounce_wait')
 endif
 if !exists('g:esearch_out_win_highlight_matches')
   let g:esearch_out_win_highlight_matches =
-        \ (g:esearch#has#nvim_add_highlight && g:esearch#has#nvim_lua ? 'viewport' : 'matchadd')
+        \ (g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd')
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
   let g:esearch_win_disable_context_highlights_on_files_count =
@@ -103,7 +103,7 @@ if !exists('g:esearch_out_win_render_using_lua')
   let g:esearch_out_win_render_using_lua = g:esearch#has#lua
 endif
 if !exists('g:esearch_out_win_nvim_lua_syntax')
-  let g:esearch_out_win_nvim_lua_syntax = g:esearch_out_win_render_using_lua && g:esearch#has#nvim_lua
+  let g:esearch_out_win_nvim_lua_syntax = g:esearch_out_win_render_using_lua && g:esearch#has#nvim_lua_syntax
 endif
 if !exists('g:unload_context_syntax_on_line_length')
   let g:unload_context_syntax_on_line_length = 500
@@ -974,9 +974,9 @@ fu! esearch#out#win#edit() abort
   set buftype=acwrite
   augroup ESearchModifiable
     au! * <buffer>
-    au BufWriteCmd <buffer> ++nested call s:write()
+    au BufWriteCmd <buffer> call s:write()
     " TODO
-    au BufHidden,BufLeave <buffer>  ++nested  set nomodified
+    au BufHidden,BufLeave <buffer> set nomodified
   augroup END
 
   let b:esearch.undotree = esearch#undotree#new({
