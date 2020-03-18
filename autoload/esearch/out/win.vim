@@ -453,15 +453,14 @@ fu! esearch#out#win#trigger_key_press(...) abort
   call feedkeys("g\<ESC>", 'n')
 endfu
 
-fu! esearch#out#win#update(bufnr) abort
+fu! esearch#out#win#update(bufnr, ...) abort
   " prevent updates when outside of the window
   if a:bufnr != bufnr('%')
     return 0
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
-  let ignore_batches = esearch.ignore_batches
+  let ignore_batches = get(a:000, 0, esearch.ignore_batches)
   let request = esearch.request
-
   let data = esearch.request.data
   let data_size = len(data)
 
@@ -915,8 +914,8 @@ fu! esearch#out#win#finish(bufnr) abort
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  let esearch.ignore_batches = 1
-  call esearch#out#win#update(a:bufnr)
+  call esearch#out#win#update(a:bufnr, 1)
+  let esearch.contexts[-1].end = line('$')
 
   if esearch.request.async
     exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:bufnr))
