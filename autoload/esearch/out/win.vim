@@ -579,7 +579,7 @@ fu! s:set_syntax_sync(esearch) abort
   endif
 
   "" for some reason it clears other properties which doesn't related to sync
-  " like syn iskeyword etc.
+  "" like syn iskeyword etc.
   " syntax sync clear
   exe 'syntax sync minlines='.min([
         \ float2nr(a:esearch['max_lines_found']),

@@ -212,7 +212,6 @@ describe 'esearch window context syntax', :window do
     # or comments) are not groupped and scattered across source_file to cause as
     # more potential errors as possible
     it do
-      require 'pry'; binding.pry
       is_expected.to have_highligh_aliases(
         region('<')                                    => %w[lispFunc Statement],
         word('find-method')                            => %w[lispFunc Statement],
