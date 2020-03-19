@@ -1,4 +1,5 @@
 let s:null = 0
+let s:Message  = vital#esearch#import('Vim.Message')
 
 fu! esearch#writer#buffer#write(diff, esearch) abort
   return s:new(a:diff, a:esearch).write()
@@ -13,29 +14,68 @@ fu! s:new(diff, esearch) abort
         \ 'replace_lines':         function('<SID>replace_lines'),
         \ 'delete_lines':          function('<SID>delete_lines'),
         \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
+        \ 'detect_conflict':       function('<SID>detect_conflict'),
         \ }
 endfu
 
 fu! s:write() abort dict
-  call setbufvar(self.esearch.bufnr, '&modified', 0)
   let cwd = self.esearch.cwd
+  let conflicts = []
 
-  for [filename, changes] in items(self.diff.files)
-    exe '$tabnew ' . esearch#util#absolute_path(cwd, filename)
+  for [id, ctx] in items(self.diff.contexts)
+    let path = esearch#util#absolute_path(cwd, ctx.filename)
+    exe '$tabnew ' . path
 
-    if !empty(get(changes, 'modified', {}))
-      call self.replace_lines(changes.modified)
+    let conflict = self.detect_conflict(ctx, path)
+    if conflict isnot# s:null
+      call add(conflicts, conflict)
+      continue
+    endif
+
+    if !empty(get(ctx, 'modified', {}))
+      call self.replace_lines(ctx.modified)
     endif
     call self.try_jump_to_diff_line()
 
-    if !empty(get(changes, 'deleted', []))
-      call self.delete_lines(changes.deleted)
+    if !empty(get(ctx, 'deleted', []))
+      call self.delete_lines(ctx.deleted)
     endif
     call self.try_jump_to_diff_line()
 
     let self.modified_line = s:null
   endfor
   redraw!
+
+  if empty(conflicts)
+    call setbufvar(self.esearch.bufnr, '&modified', 0)
+  else
+    let reasons_texts =
+          \ map(conflicts, 'printf("\n\t%s (%s)", v:val.filename, v:val.reason)')
+    let message = "Can't write changes to the following files:"
+          \ . join(reasons_texts, '')
+    call s:Message.echo('ErrorMsg',  message)
+  endif
+endfu
+
+fu! s:detect_conflict(ctx, path) abort dict
+  if !filereadable(a:path)
+    return {
+          \ 'filename': a:ctx.filename,
+          \ 'reason':   'is not readable',
+          \ }
+  endif
+
+  let original_lines = a:ctx.original.lines
+  for changed_line_number in a:ctx.deleted + keys(a:ctx.modified)
+    if getline(changed_line_number) !=# original_lines[changed_line_number]
+      return {
+            \ 'filename': a:ctx.filename,
+            \ 'reason':   'line ' . changed_line_number . ' has changed',
+            \ }
+    endif
+  endfor
+
+  return s:null
 endfu
 
 fu! s:try_jump_to_diff_line() abort dict

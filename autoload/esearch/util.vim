@@ -58,7 +58,6 @@ endfu
 
 fu! esearch#util#bufloc(bufnr) abort
   for tabnr in range(1, tabpagenr('$'))
-    if tabpagenr() == tabnr | continue | endif
     let buflist = tabpagebuflist(tabnr)
     if index(buflist, a:bufnr) >= 0
       for winnr in range(1, tabpagewinnr(tabnr, '$'))
