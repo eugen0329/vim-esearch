@@ -2,11 +2,11 @@ fu! esearch#opts#new(opts) abort
   let opts = copy(a:opts)
 
   if !has_key(opts, 'backend')
-    if has('nvim') && exists('*jobstart')
+    if g:esearch#has#nvim_jobs
       let opts.backend = 'nvim'
-    elseif s:vim8_is_supported()
+    elseif g:esearch#has#vim8_jobs
       let opts.backend = 'vim8'
-    elseif esearch#util#has_vimproc()
+    elseif g:esearch#has#vimproc()
       let opts.backend = 'vimproc'
     else
       " call esearch#help#backend_dependencies()
@@ -72,10 +72,4 @@ fu! s:invert(key) dict abort
   let option = !self[a:key]
   let self[a:key] = option
   return option
-endfu
-
-fu! s:vim8_is_supported() abort
-  return has('job') &&
-        \ esearch#util#vim8_job_start_close_cb_implemented() &&
-        \ (esearch#util#vim8_calls_close_cb_last() || exists('*timer_start'))
 endfu

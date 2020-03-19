@@ -376,7 +376,7 @@ describe 'esearch#backend', :backend do
 
     # TODO
     before(:each) do
-      editor.press! ':let g:esearch#util#unicode_enabled = 0<Enter>'
+      editor.press! ':let g:esearch#has#unicode = 0<Enter>'
     end
 
     include_context 'a backend', 'nvim'

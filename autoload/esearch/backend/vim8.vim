@@ -109,7 +109,7 @@ fu! s:closed(job_id, channel) abort
   let job.request.finished = 1
 
   " TODO should be properly tested first
-  if esearch#util#vim8_calls_close_cb_last()
+  if g:esearch#has#vim8_calls_close_cb_last
     if !empty(job.request.events.schedule_finish)
       call job.request.events.schedule_finish()
     endif

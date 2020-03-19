@@ -4,6 +4,29 @@ let g:esearch#has#windows = has('win32')
 let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')
 let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#has#nvim_add_highlight
 let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight
+let g:esearch#has#unicode = has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
+" Backends
+let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')
+" 7.4.1787 - fix of: channel close callback is invoked before other callbacks
+let g:esearch#has#vim8_calls_close_cb_last = has('patch-7.4.1787')
+" 7.4.1398 - Implemented close-cb
+let g:esearch#has#vim8_jobs = has('job') &&
+        \ has('patch-7.4.1398') &&
+        \ (g:esearch#has#vim8_calls_close_cb_last || exists('*timer_start'))
+
+" Implemented as a function to not preload unneeded code from
+" autoload/vimproc.vim
+fu! esearch#has#vimproc() abort
+  if !exists('s:exists_vimproc')
+    try
+      call vimproc#version()
+      let s:exists_vimproc = 1
+    catch
+      let s:exists_vimproc = 0
+    endtry
+  endif
+  return s:exists_vimproc
+endfu
 
 " 7.3.896 memory leaks in Lua interface
 let s:fixed_lua = (v:version > 703 || v:version == 703 && has('patch896'))

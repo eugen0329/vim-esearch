@@ -39,7 +39,7 @@ let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 let s:lines_map_padding = 0 " to index with line numbers which begin from 1
-if esearch#util#has_unicode()
+if g:esearch#has#unicode
   let s:spinner = g:esearch#unicode#spinner
 else
   let s:spinner = ['.', '..', '...']
@@ -419,7 +419,7 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   let escaped = s:escape_title(a:bufname)
   let escaped_for_bufnr = substitute(escape(a:bufname, '*?\{}[]'), '["]', '\\\\\0', 'g')
 
-  if esearch#util#has_unicode()
+  if g:esearch#has#unicode
     let escaped = substitute(escaped, '/', "\u2215", 'g')
     let escaped_for_bufnr = substitute(escaped_for_bufnr, '/', "\u2215", 'g')
   else
@@ -1054,7 +1054,7 @@ fu! esearch#out#win#handle_changes(event) abort
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
     let a:event.errors = len(v:errors)
-    " call esearch#debug#log(a:event,  len(v:errors))
+    call esearch#debug#log(a:event,  len(v:errors))
   endif
 endfu
 
