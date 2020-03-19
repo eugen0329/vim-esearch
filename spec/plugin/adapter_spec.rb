@@ -22,11 +22,11 @@ describe 'esearch#adapter', :adapters do
     describe "##{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure!(
-          adapter: adapter,
-          out: 'win',
-          backend: 'system',
-          regex: 1,
-          use: [],
+          adapter:      adapter,
+          out:          'win',
+          backend:      'system',
+          regex:        1,
+          use:          [],
           root_markers: []
         )
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
