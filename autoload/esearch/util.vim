@@ -666,7 +666,7 @@ fu! esearch#util#find_root(path, markers) abort
 endfu
 
 fu! esearch#util#absolute_path(cwd, path) abort
-  if s:Filepath.is_absolute(path)
+  if s:Filepath.is_absolute(a:path)
     return a:path
   endif
 
