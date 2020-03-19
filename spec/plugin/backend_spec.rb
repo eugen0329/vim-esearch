@@ -10,6 +10,8 @@ describe 'esearch#backend', :backend do
   include Helpers::Output
   include Helpers::ReportEditorStateOnError
 
+  before  { esearch.configure(root_markers: []) }
+
   # to test paths: thorough filename verification, superficial entry check
   shared_examples 'searches in path' do |path:|
     context "when searching in a file with name #{path.inspect}" do

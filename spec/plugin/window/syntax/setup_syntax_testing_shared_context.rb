@@ -10,7 +10,7 @@ RSpec.shared_context 'setup syntax testing' do
   include_context 'report editor state on error'
 
   before do
-    esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win')
+    esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win', root_markers: [])
     editor.command <<~TEARDOWN
       let g:esearch_win_context_syntax_async = 0
       let g:esearch_win_ellipsize_results = 1

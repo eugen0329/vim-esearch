@@ -7,7 +7,7 @@ RSpec.shared_examples 'a backend' do |backend|
   %w[ack ag git grep pt rg].each do |adapter|
     context "with #{adapter} adapter", :relative_paths do
       around do |example|
-        esearch.configure!(backend: backend, adapter: adapter, out: 'win')
+        esearch.configure!(backend: backend, adapter: adapter, out: 'win', root_markers: [])
         example.run
       end
 
