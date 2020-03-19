@@ -49,6 +49,10 @@ class Fixtures::LazyFile
     File.readlines(path)
   end
 
+  def unlink
+    File.unlink(path)
+  end
+
   def write_content(new_raw_content)
     self.class
         .new(new_raw_content, given_relative_path, working_directory, **kwargs)

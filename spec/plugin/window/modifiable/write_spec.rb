@@ -11,16 +11,30 @@ describe 'Writing in modifiable mode', :window do
 
   include_context 'setup modifiable testing'
 
-  let(:ctx) { Context.new('context1.txt', ['line 1 text', 'line 2 text']) }
-  let(:untouched_ctx) { Context.new('context2.txt', ['line 1 text', 'line 2 text']) }
+  let(:ctx) { Context.new('file1.txt', ['line 1', 'line 2']) }
+  let(:untouched_ctx) { Context.new('file2.txt', ['untouched line 1', 'untouched line 2']) }
   let(:contexts) { [ctx, untouched_ctx] }
 
   after do
-    expect { editor.locate_buffer! test_directory.path.join(untouched_ctx.name).to_s }
+    expect { editor.locate_buffer! untouched_ctx.file.path }
       .to raise_error(Editor::MissingBufferError)
   end
 
-  describe 'write files modified after search' do
+  describe 'write files deleted after search' do
+    context 'when the file is deleted' do
+      it "fails wriing" do
+        ctx.entries[0].locate!
+        editor.send_keys 'dd'
+        ctx.file.unlink
+        editor.bwipeout(ctx.file.path.to_s)
+        expect { write_with_confirmation }
+          .to not_change { untouched_ctx.file.readlines }
+        expect(File.exists?(ctx.file.path)).not_to eq(true)
+      end
+    end
+  end
+
+  describe 'write into files modified after search' do
     context 'when changed on modified lines' do
       shared_examples "it doesn't write changes" do |motion:|
         let(:modified_file_lines) { ['modified'] * 10 }
@@ -28,7 +42,7 @@ describe 'Writing in modifiable mode', :window do
         it "opens, but doesn't modify buffer" do
           ctx.entries[0].locate!
           motion.call
-          files.map { |f| f.write_content(modified_file_lines) }
+          ctx.file.write_content(modified_file_lines)
           expect { write_with_confirmation }
             .to not_change { untouched_ctx.file.readlines }
 
@@ -63,7 +77,7 @@ describe 'Writing in modifiable mode', :window do
         it 'modifies buffer' do
           ctx.entries[0].locate!
           motion.call
-          files.map { |f| f.write_content(modified_file_lines) }
+          ctx.file.write_content(modified_file_lines)
           expect { write_with_confirmation }
             .to not_change { untouched_ctx.file.readlines }
 
@@ -94,7 +108,7 @@ describe 'Writing in modifiable mode', :window do
     end
   end
 
-  describe 'write files without changes after search' do
+  describe 'write into files without changes after search' do
     shared_examples 'it modifies buffer' do |motion:, expected_lines:|
       it 'modifies buffer' do
         ctx.entries[0].locate!

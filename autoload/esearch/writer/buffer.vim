@@ -7,28 +7,29 @@ endfu
 
 fu! s:new(diff, esearch) abort
   return {
-        \ 'diff':                  a:diff,
-        \ 'esearch':               a:esearch,
-        \ 'modified_line':         s:null,
-        \ 'write':                 function('<SID>write'),
-        \ 'replace_lines':         function('<SID>replace_lines'),
-        \ 'delete_lines':          function('<SID>delete_lines'),
-        \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
-        \ 'can_write':            function('<SID>can_write'),
+        \ 'diff':                   a:diff,
+        \ 'esearch':                a:esearch,
+        \ 'modified_line':          s:null,
+        \ 'write':                  function('<SID>write'),
+        \ 'replace_lines':          function('<SID>replace_lines'),
+        \ 'delete_lines':           function('<SID>delete_lines'),
+        \ 'try_jump_to_diff_line':  function('<SID>try_jump_to_diff_line'),
+        \ 'write_unability_reason': function('<SID>write_unability_reason'),
         \ }
 endfu
 
 fu! s:write() abort dict
   call setbufvar(self.esearch.bufnr, '&modified', 0) " TODO move out of here
   let cwd = self.esearch.cwd
-  let dirty_filenames = []
+  let write_unability_reasons = []
 
   for [id, ctx] in items(self.diff.contexts)
     let path = esearch#util#absolute_path(cwd, ctx.filename)
     exe '$tabnew ' . path
 
-    if !self.can_write(ctx)
-      let dirty_filenames += [ctx.filename]
+    let reason = self.write_unability_reason(ctx, path)
+    if reason isnot# s:null
+      call add(write_unability_reasons, reason)
       continue
     endif
 
@@ -46,24 +47,33 @@ fu! s:write() abort dict
   endfor
   redraw!
 
-  if !empty(dirty_filenames)
-    let dirty_filenames = "\n\t" . join(dirty_filenames, "\n\t")
-    call s:Message.echo('ErrorMsg',
-          \ "Can't write changes to the following files (lines content has changed):" . dirty_filenames)
+  if !empty(write_unability_reasons)
+    let reasons_texts =
+          \ map(write_unability_reasons, 'printf("\n\t%s (%s)", v:val.filename, v:val.text)')
+    let message = "Can't write changes to the following files:"
+    call s:Message.echo('ErrorMsg',  message . join(reasons_texts, ''))
   endif
 endfu
 
-fu! s:can_write(ctx) abort dict
-  let original_lines = a:ctx.original.lines
+fu! s:write_unability_reason(ctx, path) abort dict
+  if !filereadable(a:path)
+    return {
+          \ 'filename': a:ctx.filename,
+          \ 'text':     'was deleted',
+          \ }
+  endif
 
+  let original_lines = a:ctx.original.lines
   for changed_line_number in a:ctx.deleted + keys(a:ctx.modified)
-    PP
     if getline(changed_line_number) !=# original_lines[changed_line_number]
-      return 0
+      return {
+            \ 'filename': a:ctx.filename,
+            \ 'text':     'line ' . changed_line_number . ' has changed',
+            \ }
     endif
   endfor
 
-  return 1
+  return s:null
 endfu
 
 fu! s:try_jump_to_diff_line() abort dict
