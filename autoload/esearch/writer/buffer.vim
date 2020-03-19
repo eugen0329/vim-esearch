@@ -1,13 +1,14 @@
 let s:null = 0
+let s:Filepath = vital#esearch#import('System.Filepath')
 
-fu! esearch#writer#buffer#write(diff, search_buffer) abort
-  return s:new(a:diff, a:search_buffer).write()
+fu! esearch#writer#buffer#write(diff, esearch) abort
+  return s:new(a:diff, a:esearch).write()
 endfu
 
-fu! s:new(diff, search_buffer) abort
+fu! s:new(diff, esearch) abort
   return {
         \ 'diff':                  a:diff,
-        \ 'search_buffer':         a:search_buffer,
+        \ 'esearch':               a:esearch,
         \ 'modified_line':         s:null,
         \ 'write':                 function('<SID>write'),
         \ 'replace_lines':         function('<SID>replace_lines'),
@@ -17,10 +18,11 @@ fu! s:new(diff, search_buffer) abort
 endfu
 
 fu! s:write() abort dict
-  call setbufvar(self.search_buffer, '&modified', 0)
+  call setbufvar(self.esearch.bufnr, '&modified', 0)
+  let cwd = self.esearch.cwd
 
   for [filename, changes] in items(self.diff.files)
-    exe '$tabnew ' . filename
+    exe '$tabnew ' . s:Filepath.join(cwd, filename)
 
     if !empty(get(changes, 'modified', {}))
       call self.replace_lines(changes.modified)

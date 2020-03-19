@@ -19,15 +19,15 @@ describe 'Writing in modifiable mode', :window do
     editor.send_keys 'dd'
     editor.send_keys_separately ':write', :enter, 'y'
 
-    expect(editor.current_buffer_name).to eq(contexts[2].name)
+    expect(editor.current_buffer_name).to eq(test_directory.path.join(contexts[2].name).to_s)
     expect(editor.lines.to_a).to eq(contexts[2].content[1..])
     expect(editor).to be_modified
 
-    editor.locate_buffer! contexts[1].name
+    editor.locate_buffer! test_directory.path.join(contexts[1].name).to_s
     expect(editor.lines.to_a).to eq([''])
     expect(editor).to be_modified
 
-    editor.locate_buffer! contexts[0].name
+    editor.locate_buffer! test_directory.path.join(contexts[0].name).to_s
     expect(editor.lines.to_a)
       .to eq(contexts[0].content[..-2] + [contexts[0].content[-1] + 'zzz'])
     expect(editor).to be_modified
