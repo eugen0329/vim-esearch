@@ -8,6 +8,8 @@ module Helpers::Modifiable
   extend RSpec::Matchers::DSL
 
   Context = Struct.new(:name, :content) do
+    attr_accessor :file
+
     def line_numbers
       @line_numbers ||= 1.upto(content.length).to_a
     end
@@ -39,7 +41,11 @@ module Helpers::Modifiable
     let(:sample_line_number) { sample_context.line_numbers.sample }
     let(:entry) { output.find_entry(sample_context.name, sample_line_number) }
     let(:line_number_text) { entry.line_number_text }
-    let(:files) { contexts.map { |c| file(c.content, c.name) } }
+    let(:files) do
+      contexts.map do |c|
+        c.file = file(c.content, c.name)
+      end
+    end
     let!(:test_directory) { directory(files).persist! }
     let(:entries) { contexts.map(&:entries).flatten }
     let(:output) { esearch.output }

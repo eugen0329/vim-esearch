@@ -29,6 +29,10 @@ set laststatus=2
 set ruler
 set noshowmode
 
+
+map ,z :<C-u>call SynStack()<CR>
+cmap <C-v> <C-r>+
+
 if !exists(':PP')
   " don't fail on debugger entry in tests
   command PP call tr('', '', '')
@@ -81,8 +85,6 @@ endfunction
 function! SynStack()  abort
   echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
 endfunc
-
-map ,z :<C-u>call SynStack()<CR>
 
 fu! SyntaxAt(ln, column) abort
   let l:s = synID(a:ln, a:column, 0)

@@ -999,7 +999,7 @@ fu! s:write() abort
     throw parsed.error
   endif
 
-  let diff = esearch#out#win#diff#do(parsed.contexts, b:esearch.context_by_name)
+  let diff = esearch#out#win#diff#do(parsed.contexts, b:esearch.contexts[1:])
 
   if diff.statistics.files == 0
     echo 'Nothing to save'

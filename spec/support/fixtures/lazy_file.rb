@@ -7,16 +7,17 @@ class Fixtures::LazyFile
   attr_reader :given_relative_path, :raw_content, :kwargs
   attr_accessor :working_directory
 
-  def initialize(raw_content, given_relative_path = nil, **kwargs)
+  def initialize(raw_content, given_relative_path = nil, working_directory = nil, **kwargs)
     @given_relative_path = Pathname(given_relative_path).cleanpath.to_s if given_relative_path
     @raw_content = raw_content
+    @working_directory = working_directory
     @kwargs = kwargs
   end
 
   def persist!
     absolute_path = path
     FileUtils.mkdir_p(absolute_path.dirname) unless absolute_path.dirname.directory?
-    File.open(absolute_path, open_mode) { |f| f.puts(content) } # unless absolute_path.file?
+    File.open(absolute_path, open_mode) { |f| f.puts(content) }
     self
   end
 
@@ -42,6 +43,16 @@ class Fixtures::LazyFile
 
   def lines
     content.split("\n")
+  end
+
+  def readlines
+    File.readlines(path)
+  end
+
+  def write_content(new_raw_content)
+    self.class
+        .new(new_raw_content, given_relative_path, working_directory, **kwargs)
+        .persist!
   end
 
   def content

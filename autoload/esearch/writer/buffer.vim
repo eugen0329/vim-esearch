@@ -1,4 +1,5 @@
 let s:null = 0
+let s:Message  = vital#esearch#import('Vim.Message')
 
 fu! esearch#writer#buffer#write(diff, esearch) abort
   return s:new(a:diff, a:esearch).write()
@@ -13,29 +14,56 @@ fu! s:new(diff, esearch) abort
         \ 'replace_lines':         function('<SID>replace_lines'),
         \ 'delete_lines':          function('<SID>delete_lines'),
         \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
+        \ 'can_write':            function('<SID>can_write'),
         \ }
 endfu
 
 fu! s:write() abort dict
-  call setbufvar(self.esearch.bufnr, '&modified', 0)
+  call setbufvar(self.esearch.bufnr, '&modified', 0) " TODO move out of here
   let cwd = self.esearch.cwd
+  let dirty_filenames = []
 
-  for [filename, changes] in items(self.diff.files)
-    exe '$tabnew ' . esearch#util#absolute_path(cwd, filename)
+  for [id, ctx] in items(self.diff.contexts)
+    let path = esearch#util#absolute_path(cwd, ctx.filename)
+    exe '$tabnew ' . path
 
-    if !empty(get(changes, 'modified', {}))
-      call self.replace_lines(changes.modified)
+    if !self.can_write(ctx)
+      let dirty_filenames += [ctx.filename]
+      continue
+    endif
+
+    if !empty(get(ctx, 'modified', {}))
+      call self.replace_lines(ctx.modified)
     endif
     call self.try_jump_to_diff_line()
 
-    if !empty(get(changes, 'deleted', []))
-      call self.delete_lines(changes.deleted)
+    if !empty(get(ctx, 'deleted', []))
+      call self.delete_lines(ctx.deleted)
     endif
     call self.try_jump_to_diff_line()
 
     let self.modified_line = s:null
   endfor
   redraw!
+
+  if !empty(dirty_filenames)
+    let dirty_filenames = "\n\t" . join(dirty_filenames, "\n\t")
+    call s:Message.echo('ErrorMsg',
+          \ "Can't write changes to the following files (lines content has changed):" . dirty_filenames)
+  endif
+endfu
+
+fu! s:can_write(ctx) abort dict
+  let original_lines = a:ctx.original.lines
+
+  for changed_line_number in a:ctx.deleted + keys(a:ctx.modified)
+    PP
+    if getline(changed_line_number) !=# original_lines[changed_line_number]
+      return 0
+    endif
+  endfor
+
+  return 1
 endfu
 
 fu! s:try_jump_to_diff_line() abort dict
