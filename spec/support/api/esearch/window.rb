@@ -32,7 +32,7 @@ class API::ESearch::Window
   def has_search_finished?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.trigger_cursor_moved_event!
-      break true if parser.header_finished? || parser.header_errors?
+      break true if parser.header_finished? || has_reported_errors_in_messages?
     end
   end
 
@@ -67,15 +67,15 @@ class API::ESearch::Window
   end
 
   def has_not_reported_errors?
-    !has_reported_errors_in_header?
+    !has_reported_errors_in_messages?
   end
 
   def has_reported_single_result_in_header?
     parser.header.tap { |h| return h.lines_count == 1 && h.files_count == 1 }
   end
 
-  def has_reported_errors_in_header?
-    parser.header_errors?
+  def has_reported_errors_in_messages?
+    editor.messages.any? { |m| m.include?('returned status') }
   end
 
   def has_outputted_result_from_file_in_line?(relative_path, line_in_file)

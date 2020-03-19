@@ -29,7 +29,8 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
         \     'exit_cb': function('s:exit', [s:incrementable_internal_id]),
         \     'close_cb': function('s:closed', [s:incrementable_internal_id]),
-        \     'mode': 'raw',
+        \     'out_mode': 'raw',
+        \     'err_mode': 'nl',
         \     'in_io': 'null',
         \   },
         \ },
@@ -82,8 +83,8 @@ endfu
 
 fu! s:stderr(job_id, job, data) abort
   let job = s:jobs[a:job_id]
-  let data = split(a:data, "\n", 1)
-  let job.request.errors += filter(data, "'' !=# v:val")
+  let job.request.errors += [a:data]
+  call esearch#stderr#incremental([a:data])
 endfu
 
 func! s:timer_stop_workaround(job, timer) abort

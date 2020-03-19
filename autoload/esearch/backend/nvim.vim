@@ -78,6 +78,7 @@ fu! s:stdout(job_id, data, event) dict abort
 endfu
 
 fu! s:stderr(job_id, data, event) dict abort
+
   let job = s:jobs[a:job_id]
   let data = a:data
   if !has_key(job.request, 'errors')
@@ -88,7 +89,11 @@ fu! s:stderr(job_id, data, event) dict abort
     let job.request.errors[-1] .= data[0]
     call remove(data, 0)
   endif
-  let job.request.errors += filter(data, "'' !=# v:val")
+  let errors = filter(data, "'' !=# v:val")
+  let job.request.errors += errors
+  if empty(errors) | return | endif
+
+  call esearch#stderr#incremental(errors)
 endfu
 
 fu! s:exit(job_id, status, event) abort

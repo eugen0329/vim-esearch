@@ -9,10 +9,6 @@ class API::ESearch::Window::Parser
     @editor = editor
   end
 
-  def header_errors?
-    header_parser.errors?
-  end
-
   def header_finished?
     header_parser.finished?
   end

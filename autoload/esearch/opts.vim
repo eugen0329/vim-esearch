@@ -57,8 +57,6 @@ fu! esearch#opts#default_adapter() abort
     return 'ag'
   elseif executable('pt')
     return 'pt'
-  elseif executable('rg')
-    return 'rg'
   elseif executable('ack')
     return 'ack'
   elseif !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error

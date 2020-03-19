@@ -36,3 +36,7 @@ endfu
 fu! esearch#adapter#ack#requires_pty() abort
   return 1
 endfu
+
+fu! esearch#adapter#ack#is_success(request) abort
+  return a:request.status == 0
+endfu

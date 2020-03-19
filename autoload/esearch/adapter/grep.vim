@@ -86,3 +86,8 @@ endfu
 fu! esearch#adapter#grep#requires_pty() abort
   return 0
 endfu
+
+fu! esearch#adapter#grep#is_success(request) abort
+  " if there are matches || no matches
+  return a:request.status == 0 || a:request.status == 1
+endfu

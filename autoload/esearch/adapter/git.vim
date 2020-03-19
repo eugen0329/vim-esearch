@@ -42,3 +42,8 @@ endfu
 fu! esearch#adapter#git#requires_pty() abort
   return 1
 endfu
+
+fu! esearch#adapter#git#is_success(request) abort
+  " if there are matches || no matches
+  return a:request.status == 0 || a:request.status == 1
+endfu
