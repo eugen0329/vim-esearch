@@ -1,5 +1,4 @@
 let s:null = 0
-let s:Filepath = vital#esearch#import('System.Filepath')
 
 fu! esearch#writer#buffer#write(diff, esearch) abort
   return s:new(a:diff, a:esearch).write()
@@ -22,7 +21,7 @@ fu! s:write() abort dict
   let cwd = self.esearch.cwd
 
   for [filename, changes] in items(self.diff.files)
-    exe '$tabnew ' . s:Filepath.join(cwd, filename)
+    exe '$tabnew ' . esearch#util#absolute_path(cwd, filename)
 
     if !empty(get(changes, 'modified', {}))
       call self.replace_lines(changes.modified)

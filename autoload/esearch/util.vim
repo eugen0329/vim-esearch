@@ -1,6 +1,7 @@
-let s:Vital     = vital#esearch#new()
-let s:Highlight = s:Vital.import('Vim.Highlight')
-let s:Message   = s:Vital.import('Vim.Message')
+let s:Prelude   = vital#esearch#import('Prelude')
+let s:Highlight = vital#esearch#import('Vim.Highlight')
+let s:Message   = vital#esearch#import('Vim.Message')
+let s:Filepath  = vital#esearch#import('System.Filepath')
 
 fu! esearch#util#setline(_, lnum, text) abort
   " call nvim_buf_set_lines(a:_, a:lnum - 1, a:lnum, 0, [a:text])
@@ -634,8 +635,7 @@ endfu
 " TODO coverage
 fu! esearch#util#find_root(path, markers) abort
   " Partially based on vital's prelude path2project-root internals
-  let prelude = vital#esearch#import('Prelude')
-  let start_dir = prelude.path2directory(a:path)
+  let start_dir = s:Prelude.path2directory(a:path)
   " TODO rewrite to return start_dir when ticket with fixing cwd handling is
   " ready
   if empty(a:markers) | return a:path | endif
@@ -649,7 +649,7 @@ fu! esearch#util#find_root(path, markers) abort
       let file = globpath(dir, marker, 1)
 
       if file !=# ''
-        return prelude.substitute_path_separator(fnamemodify(file, ':h'))
+        return s:Prelude.substitute_path_separator(fnamemodify(file, ':h'))
       endif
     endfor
 
@@ -663,4 +663,12 @@ fu! esearch#util#find_root(path, markers) abort
   endwhile
 
   return start_dir
+endfu
+
+fu! esearch#util#absolute_path(cwd, path) abort
+  if s:Filepath.is_absolute(path)
+    return a:path
+  endif
+
+  return s:Filepath.join(a:cwd, a:path)
 endfu
