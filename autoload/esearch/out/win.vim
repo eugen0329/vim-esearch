@@ -1054,7 +1054,7 @@ fu! esearch#out#win#handle_changes(event) abort
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
     let a:event.errors = len(v:errors)
-    call esearch#debug#log(a:event,  len(v:errors))
+    " call esearch#debug#log(a:event,  len(v:errors))
   endif
 endfu
 

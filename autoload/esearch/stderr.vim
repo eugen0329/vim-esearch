@@ -3,8 +3,8 @@ let s:String  = vital#esearch#import('Data.String')
 
 " Handle stderr from backends
 
-fu! esearch#stderr#incremental(errors) abort
-  let prefix = b:esearch.adapter . ': '
+fu! esearch#stderr#incremental(adapter, errors) abort
+  let prefix = a:adapter . ': '
 
   for error in a:errors
     call s:Message.echomsg('ErrorMsg',  prefix . error)
@@ -20,7 +20,7 @@ fu! esearch#stderr#finish(esearch) abort
           \ a:esearch.request.status,
           \ s:String.dstring(errors[-1])
           \ )
-    let message .= '. See :messages to view other ' . len(errors) . '.'
+    let message .= '. Run :messages to view the other ' . len(errors) . '.'
   elseif len(errors) == 1
     let message = printf('%s returned status %d: %s',
           \ a:esearch.adapter,
