@@ -7,29 +7,28 @@ endfu
 
 fu! s:new(diff, esearch) abort
   return {
-        \ 'diff':                   a:diff,
-        \ 'esearch':                a:esearch,
-        \ 'modified_line':          s:null,
-        \ 'write':                  function('<SID>write'),
-        \ 'replace_lines':          function('<SID>replace_lines'),
-        \ 'delete_lines':           function('<SID>delete_lines'),
-        \ 'try_jump_to_diff_line':  function('<SID>try_jump_to_diff_line'),
-        \ 'write_unability_reason': function('<SID>write_unability_reason'),
+        \ 'diff':                  a:diff,
+        \ 'esearch':               a:esearch,
+        \ 'modified_line':         s:null,
+        \ 'write':                 function('<SID>write'),
+        \ 'replace_lines':         function('<SID>replace_lines'),
+        \ 'delete_lines':          function('<SID>delete_lines'),
+        \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
+        \ 'detect_conflict':       function('<SID>detect_conflict'),
         \ }
 endfu
 
 fu! s:write() abort dict
-  call setbufvar(self.esearch.bufnr, '&modified', 0) " TODO move out of here
   let cwd = self.esearch.cwd
-  let write_unability_reasons = []
+  let conflicts = []
 
   for [id, ctx] in items(self.diff.contexts)
     let path = esearch#util#absolute_path(cwd, ctx.filename)
     exe '$tabnew ' . path
 
-    let reason = self.write_unability_reason(ctx, path)
-    if reason isnot# s:null
-      call add(write_unability_reasons, reason)
+    let conflict = self.detect_conflict(ctx, path)
+    if conflict isnot# s:null
+      call add(conflicts, conflict)
       continue
     endif
 
@@ -47,19 +46,22 @@ fu! s:write() abort dict
   endfor
   redraw!
 
-  if !empty(write_unability_reasons)
+  if empty(conflicts)
+    call setbufvar(self.esearch.bufnr, '&modified', 0)
+  else
     let reasons_texts =
-          \ map(write_unability_reasons, 'printf("\n\t%s (%s)", v:val.filename, v:val.text)')
+          \ map(conflicts, 'printf("\n\t%s (%s)", v:val.filename, v:val.reason)')
     let message = "Can't write changes to the following files:"
-    call s:Message.echo('ErrorMsg',  message . join(reasons_texts, ''))
+          \ . join(reasons_texts, '')
+    call s:Message.echo('ErrorMsg',  message)
   endif
 endfu
 
-fu! s:write_unability_reason(ctx, path) abort dict
+fu! s:detect_conflict(ctx, path) abort dict
   if !filereadable(a:path)
     return {
           \ 'filename': a:ctx.filename,
-          \ 'text':     'was deleted',
+          \ 'reason':   'is not readable',
           \ }
   endif
 
@@ -68,7 +70,7 @@ fu! s:write_unability_reason(ctx, path) abort dict
     if getline(changed_line_number) !=# original_lines[changed_line_number]
       return {
             \ 'filename': a:ctx.filename,
-            \ 'text':     'line ' . changed_line_number . ' has changed',
+            \ 'reason':   'line ' . changed_line_number . ' has changed',
             \ }
     endif
   endfor

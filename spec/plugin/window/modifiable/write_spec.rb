@@ -22,14 +22,14 @@ describe 'Writing in modifiable mode', :window do
 
   describe 'write files deleted after search' do
     context 'when the file is deleted' do
-      it "fails wriing" do
+      it 'fails wriing' do
         ctx.entries[0].locate!
         editor.send_keys 'dd'
         ctx.file.unlink
         editor.bwipeout(ctx.file.path.to_s)
         expect { write_with_confirmation }
           .to not_change { untouched_ctx.file.readlines }
-        expect(File.exists?(ctx.file.path)).not_to eq(true)
+        expect(File.exist?(ctx.file.path)).not_to eq(true)
       end
     end
   end
