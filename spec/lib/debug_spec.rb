@@ -117,8 +117,8 @@ describe Debug do
   describe '.working_directories' do
     let(:expected) do
       {
-        '$PWD' => Configuration.root,
-        'getcwd()' => test_directory.path,
+        '$PWD'        => Configuration.root,
+        'getcwd()'    => test_directory.path,
         'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s }
       }
     end

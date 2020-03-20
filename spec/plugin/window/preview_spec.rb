@@ -8,7 +8,7 @@ describe 'esearch#preview' do
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
 
-  # TODO extra testing scenarios (currently blocked by editor version)
+  # TODO: extra testing scenarios (currently blocked by editor version)
   #   - file with a name required to be escaped
   #   - new buffers bloat
 
@@ -60,7 +60,7 @@ describe 'esearch#preview' do
         swap_file.unlink
       end
 
-      it "handles buffer opened staying in the current window" do
+      it 'handles buffer opened staying in the current window' do
         expect { editor.send_keys 'p' }
           .to change { window_handles.count }
           .by(1)
@@ -73,7 +73,7 @@ describe 'esearch#preview' do
 
       # regression bug caused by raising error on nvim_open_win after
       # specifying a buffer with existing swap that was already opened
-      it "handles previously opened buffer" do
+      it 'handles previously opened buffer' do
         2.times do
           expect { editor.send_keys 'p' }
             .to change { window_handles.count }
