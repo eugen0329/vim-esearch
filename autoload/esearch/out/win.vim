@@ -770,7 +770,9 @@ fu! s:open(cmd, ...) abort
     endtry
 
     keepjumps call winrestview({'lnum': lnum, 'col': col - 1,'topline': topline })
-    if a:0 | exe a:1 | endif
+    if a:0
+      exe a:1
+    endif
   endif
 endfu
 

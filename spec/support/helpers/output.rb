@@ -3,6 +3,9 @@
 module Helpers::Output
   extend RSpec::Matchers::DSL
 
+  define_negated_matcher :not_to_change, :change
+  define_negated_matcher :not_change, :change
+
   def finish_search_in_files(filenames)
     have_search_started
       .and have_search_finished

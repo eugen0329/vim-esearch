@@ -124,6 +124,18 @@ class Editor
     echo(func('search', modifiers + escape_regexp(text), 'w'))
   end
 
+  def windows_list
+    editor.echo func('nvim_list_wins')
+  end
+
+  def get_last_window_optoin(name)
+    editor.echo func('nvim_win_get_option', func('max', func('nvim_list_wins')), name)
+  end
+
+  def map_windows_options(name)
+    editor.echo func('map', func('nvim_list_wins'), "nvim_win_get_option(v:val, #{name.dump})")
+  end
+
   # using vim builtin rules
   def escape_filename(text)
     # NOTE: only leading [+>] are escaped (according to builtin :h fnameescape).

@@ -1,3 +1,4 @@
+let s:null = 0
 let s:sign_id = 1
 let s:sign_name = 'ESearchPreviewMatchedLine'
 let s:sign_group = 'ESearchPreviewSigns'
@@ -13,6 +14,7 @@ let s:events = join([
       \ 'BufLeave',
       \ ], ',')
 let s:preview_buffers_registry = {}
+let s:preview_window = s:null
 
 " TODO testing scenarios (currently blocked by editor version)
 "   - file with a name required to be escaped
@@ -42,6 +44,7 @@ fu! s:using_readlines_strategy(filename) abort
 
   try
     call s:set_context_lines(preview_buffer, lines, height)
+    call s:close_preview_window()
     let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
     call s:setup_pseudo_file_appearance(filename, preview_buffer, s:preview_window)
     call s:goto_window(s:preview_window.number)
@@ -124,6 +127,7 @@ fu! s:using_edit_strategy(filename) abort
   let [width, height] = [120, 11]
 
   try
+    call s:close_preview_window()
     let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
     if preview_buffer.newly_created
       call s:save_options(preview_buffer)
@@ -146,9 +150,9 @@ fu! s:using_edit_strategy(filename) abort
 endfu
 
 fu! s:save_options(preview_buffer) abort
-  let a:preview_buffer.guard.winhighlight = nvim_win_get_option(s:preview_window.id, 'winhighlight')
+  " let a:preview_buffer.guard.winhighlight = nvim_win_get_option(s:preview_window.id, 'winhighlight')
   let a:preview_buffer.guard.swapfile = !!nvim_buf_get_option(a:preview_buffer.id, 'swapfile')
-  let a:preview_buffer.guard.signcolumn = nvim_win_get_option(s:preview_window.id, 'signcolumn')
+  " let a:preview_buffer.guard.signcolumn = nvim_win_get_option(s:preview_window.id, 'signcolumn')
 endfu
 
 fu! s:setup_on_user_opens_buffer_events() abort
@@ -219,8 +223,10 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
         \ 'col':       max([5, wincol() - 1]),
         \'relative':   'win',
         \})
-  let number = win_id2win(id)
-  return {'id': id, 'number': number}
+  let data = {'id': id, 'number': win_id2win(id), 'guard': {}}
+  let data.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
+  let data.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
+  return data
 endfu
 
 fu! s:edit_file(filename, preview_buffer) abort
@@ -254,8 +260,8 @@ fu! s:make_preview_buffer_regular() abort
   endif
 
   let preview_buffer = s:preview_buffers_registry[current_filename]
-  let &l:winhighlight = preview_buffer.guard.winhighlight
-  let &l:signcolumn = preview_buffer.guard.signcolumn
+  " let &l:winhighlight = preview_buffer.guard.winhighlight
+  " let &l:signcolumn = preview_buffer.guard.signcolumn
   try
     let &l:swapfile = preview_buffer.guard.swapfile
   catch /:E325:/
@@ -270,7 +276,15 @@ fu! s:make_preview_buffer_regular() abort
 endfu
 
 fu! s:create_buffer(filename, disposable) abort
-  if has_key(s:preview_buffers_registry, a:filename)
+  " if has_key(s:preview_buffers_registry, a:filename)
+  if bufexists(a:filename)
+    let s:preview_buffers_registry[a:filename] = {
+          \ 'id': bufnr('^' . a:filename . '$'),
+          \ 'filename': a:filename,
+          \ 'newly_created': 0,
+          \ 'is_opened': 0,
+          \ 'guard': {},
+          \ }
     return s:preview_buffers_registry[a:filename]
   endif
 
@@ -291,10 +305,12 @@ fu! s:create_buffer(filename, disposable) abort
 endfu
 
 fu! s:close_preview_window() abort
-  call sign_unplace(s:sign_group, {'id': s:sign_id})
-
-  if exists('s:preview_window') && s:preview_window isnot -1
+  if s:preview_window isnot# s:null
+    call nvim_win_set_option(s:preview_window.id, 'winhighlight', s:preview_window.guard.winhighlight)
+    call nvim_win_set_option(s:preview_window.id, 'signcolumn', s:preview_window.guard.signcolumn)
     exe s:preview_window.number . 'close'
-    let s:preview_window = -1
+    let s:preview_window = s:null
   endif
+
+  call sign_unplace(s:sign_group, {'id': s:sign_id})
 endfu
