@@ -8,22 +8,27 @@ describe 'esearch#preview' do
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
 
+  # TODO it's still unknown why neovim don't want to create swap files on
+  # during tests. set swapfile directory=... doesn't work
+
   describe 'neovim', :neovim do
-    let(:test_file) { file('aaa', 'from.txt') }
+    let(:search_string) { 'a' }
+    let(:file_content) { search_string * 3 }
+    let(:test_file) { file(file_content, 'from.txt') }
     let!(:test_directory) { directory([test_file]).persist! }
 
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
+
     before do
       esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win', root_markers: [])
       esearch.cd! test_directory
-      esearch.search!('a')
-      expect { editor.send_keys 'p' }
-        .to change { window_handles.count }
-        .by(1)
-      expect(window_local_highlights[..-2]).to all eq(default_highlight)
-      expect(window_local_highlights.last).to eq('Normal:NormalFloat')
+      esearch.search!(search_string)
     end
-    after { esearch.cleanup! }
+
+    after do
+      expect(editor.messages).not_to include('Error')
+      esearch.cleanup!
+    end
 
     include_context 'report editor state on error'
 
@@ -35,7 +40,56 @@ describe 'esearch#preview' do
       end
     end
 
+    shared_context "open preview and verify it's correctness" do
+      before do
+        expect { editor.send_keys 'p' }
+          .to change { window_handles.count }
+          .by(1)
+        expect(window_local_highlights[..-2]).to all eq(default_highlight)
+        expect(window_local_highlights.last).to eq('Normal:NormalFloat')
+      end
+    end
+
+    describe 'swapfiles' do
+      let!(:swap_file) { file('', swap_path(test_file.path)).persist! }
+
+      before { editor.command 'set updatecount=1' } # start writing swap
+      after do
+        expect(window_local_highlights).to all eq(default_highlight)
+        swap_file.unlink
+      end
+
+      it "handles buffer opened staying in the current window" do
+        expect { editor.send_keys 'p' }
+          .to change { window_handles.count }
+          .by(1)
+          .and not_to_change { editor.current_buffer_name }
+
+        expect { editor.raw_send_keys('S', 'e') }
+          .to not_change { window_handles.count }
+          .and not_to_change { editor.current_buffer_name }
+      end
+
+      # regression bug caused by raising error on nvim_open_win after
+      # specifying a buffer with existing swap that was already opened
+      it "handles previously opened buffer" do
+        2.times do
+          expect { editor.send_keys 'p' }
+            .to change { window_handles.count }
+            .by(1)
+            .and not_to_change { editor.current_buffer_name }
+
+          expect { editor.raw_send_keys('s', 'q') }
+            .to change { window_handles.count }
+            .by(-1)
+            .and not_to_change { editor.current_buffer_name }
+        end
+      end
+    end
+
     describe 'closing on cursor moved' do
+      include_context "open preview and verify it's correctness"
+
       it 'closes window on regular movement' do
         expect { editor.send_keys 'l' }
           .to change { window_handles.count }
@@ -44,12 +98,26 @@ describe 'esearch#preview' do
       end
     end
 
-    describe 'closing on opening' do
+    describe 'handle blank results' do
+      let(:search_string) { 'a' }
+      let(:file_content) { 'b' }
+
+      it "doesn't fail on blank results" do
+        expect { editor.send_keys 'p' }
+          .to not_change { editor.messages }
+          .and not_to_change { window_local_highlights }
+          .and not_to_change { window_handles }
+      end
+    end
+
+    describe 'closing on opening a file' do
+      include_context "open preview and verify it's correctness"
+
       context 'when opening with staying in the current window' do
         shared_examples 'open with stayin in the window' do |keys:|
           include_context 'verify test file content is not modified after a testcase'
 
-          it 'closes preview and resets window-local highlits' do
+          it 'closes preview and resets window-local highlights' do
             expect { editor.send_keys keys }
               .to not_change { window_handles.count }
               .and not_to_change { editor.current_buffer_name }
@@ -66,8 +134,8 @@ describe 'esearch#preview' do
         shared_examples 'open with jumping to the opened file' do |keys:|
           include_context 'verify test file content is not modified after a testcase'
 
-          it 'closes preview and resets window-local highlits' do
-            expect { editor.send_keys key }
+          it 'closes preview and resets window-local highlights' do
+            expect { editor.send_keys keys }
               .to not_change { window_handles.count }
               .and change { editor.current_buffer_name }.to(test_file.path.to_s)
             expect(window_local_highlights).to all eq(default_highlight)
@@ -82,17 +150,20 @@ describe 'esearch#preview' do
       context 'when opening in the current window' do
         include_context 'verify test file content is not modified after a testcase'
 
-        it 'closes preview and resets window-local highlits' do
+        it 'closes preview and resets window-local highlights' do
           expect { editor.send_keys :enter }
-            .to change { window_handles.count }.by(-1)
-                                               .and change { editor.current_buffer_name }
+            .to change { window_handles.count }
+            .by(-1)
+            .and change { editor.current_buffer_name }
             .to(test_file.path.to_s)
           expect(window_local_highlights).to all eq(default_highlight)
         end
       end
     end
 
-    context 'describe keypress' do
+    describe 'bouncing keypress' do
+      include_context "open preview and verify it's correctness"
+
       context 'bouncing split with staying in the current window' do
         include_context 'verify test file content is not modified after a testcase'
 
@@ -100,8 +171,9 @@ describe 'esearch#preview' do
         # winhighlight
         it 'resets window-local highlight for all opened windows' do
           expect { editor.send_keys 'S', 'S' }
-            .to change { window_handles.count }.by(1)
-                                               .and not_to_change { editor.current_buffer_name }
+            .to change { window_handles.count }
+            .by(1)
+            .and not_to_change { editor.current_buffer_name }
           expect(window_local_highlights).to all eq(default_highlight)
         end
       end

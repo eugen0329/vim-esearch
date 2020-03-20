@@ -242,6 +242,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
+        \ 'preview':                  function('<SID>preview'),
         \})
 
   if b:esearch.request.async
@@ -721,9 +722,9 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
 
-  if esearch#preview#is_available()
-    nnoremap <silent><buffer> <S-p> :<C-U>sil cal esearch#preview#start()<CR>
-    nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
+  if g:esearch#has#preview
+    nnoremap <silent><buffer> <S-p> :<C-U>sil cal b:esearch.preview()<CR>
+    nnoremap <silent><buffer> p     :<C-U>sil cal b:esearch.preview()<CR>
   endif
 
   for i in range(0, len(s:mappings) - 1)
@@ -747,6 +748,10 @@ endfu
 
 fu! s:invoke_mapping_callback(i) abort
   call s:mappings[a:i].rhs()
+endfu
+
+fu! s:preview() abort dict
+  return esearch#preview#start(esearch#out#win#filename(), esearch#out#win#line_in_file())
 endfu
 
 fu! s:open(cmd, ...) abort

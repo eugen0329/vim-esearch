@@ -266,6 +266,10 @@ class Editor
     echo func('get', var('w:'), 'quickfix_title', '')
   end
 
+  def cwd
+    echo func('getcwd')
+  end
+
   def trigger_cursor_moved_event!
     press!('<Esc>lh')
   end
@@ -323,6 +327,12 @@ class Editor
   def send_keys_separately(*keyboard_keys)
     editor.command('let &undolevels=&undolevels')
     keyboard_keys.map { |key| send_keys(key, split_undo_entry: false) }
+  end
+
+  # Allows interfacing with prompts etc. where other functions doesn't work
+  def raw_send_keys(*keys)
+    handle_state_change!
+    keys.each { |key| vim.type(key) }
   end
 
   # imitation of command inputter by a user

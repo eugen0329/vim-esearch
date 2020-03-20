@@ -21,4 +21,11 @@ module Helpers::Preview
   def map_windows_options(name)
     editor.echo func('map', func('nvim_list_wins'), "nvim_win_get_option(v:val, #{name.dump})")
   end
+
+  def swap_path(file_path)
+    [
+      editor.echo(var('&directory')),
+      [file_path.relative_path_from(editor.cwd).to_s.gsub('/', '%'), '.swp'].join
+    ].join('/')
+  end
 end

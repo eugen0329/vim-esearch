@@ -3,17 +3,17 @@ let s:sign_id = 1
 let s:sign_name = 'ESearchPreviewMatchedLine'
 let s:sign_group = 'ESearchPreviewSigns'
 let s:events = join([
+      \ 'CursorMoved',
       \ 'CmdlineEnter',
       \ 'QuitPre',
       \ 'ExitPre',
-      \ 'CursorMoved',
       \ 'BufEnter',
       \ 'BufWinEnter',
       \ 'WinLeave',
       \ 'BufWinLeave',
       \ 'BufLeave',
       \ ], ',')
-let s:preview_buffers_registry = {}
+let s:preview_buffers = {}
 let s:preview_window = s:null
 
 " TODO testing scenarios (currently blocked by editor version)
@@ -21,39 +21,41 @@ let s:preview_window = s:null
 "   - new buffers bloat
 "   - bouncing
 "   - buffers with existing swaps
-fu! esearch#preview#start() abort
-  let filename = esearch#out#win#filename()
+fu! esearch#preview#start(filename, line) abort
+  if !filereadable(a:filename)
+    return 0
+  endif
 
-  if getfsize(filename) > 50 * 1024
-    return s:using_readlines_strategy(filename)
+  if getfsize(a:filename) > 50 * 1024
+    return s:using_readlines_strategy(a:filename, a:line)
   else
-    return s:using_edit_strategy(filename)
+    return s:using_edit_strategy(a:filename, a:line)
   endif
 endfu
 
-fu! esearch#preview#is_available() abort
-  return has('nvim') && exists('*nvim_open_win')
-endfu
-
-fu! s:using_readlines_strategy(filename) abort
+fu! s:using_readlines_strategy(filename, line) abort
   let filename = a:filename
+  let line = a:line
   let [width, height] = [120, 11]
 
   let lines = readfile(filename)
+  let search_window = bufwinnr(bufnr('%'))
   let preview_buffer = s:create_buffer(filename, 1)
 
   try
-    call s:set_context_lines(preview_buffer, lines, height)
+    call s:set_context_lines(preview_buffer, lines, height, a:line)
     call s:close_preview_window()
-    let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
+    let s:preview_window = s:open_preview_window(preview_buffer, width, height)
     call s:setup_pseudo_file_appearance(filename, preview_buffer, s:preview_window)
     call s:jump_to_window(s:preview_window.number)
+    call s:reshape_preview_window(line, height)
     call s:setup_autoclose_events()
   catch
     call s:close_preview_window()
     echoerr v:exception
   finally
     let preview_buffer.newly_created = 0
+    call s:jump_to_window(search_window)
   endtry
 endfu
 
@@ -68,10 +70,9 @@ fu! s:setup_pseudo_file_appearance(filename, preview_buffer, preview_window) abo
   endif
 endfu
 
-fu! s:set_context_lines(preview_buffer, lines, height) abort
+fu! s:set_context_lines(preview_buffer, lines, height, line) abort
   let lines = a:lines
-  let line_in_file = esearch#out#win#line_in_file()
-  let column_in_file = esearch#out#win#column_in_file()
+  let line = a:line
 
   let lines_size = len(lines)
 
@@ -80,21 +81,21 @@ fu! s:set_context_lines(preview_buffer, lines, height) abort
     " File smallar then a:height
     let from = 0
     let to = lines_size
-    let line_with_match = line_in_file - 1
-  elseif lines_size - line_in_file < a:height / 2
+    let line_with_match = line - 1
+  elseif lines_size - line < a:height / 2
     " closer to the end then half of the height
     let from = lines_size - a:height
     let to = lines_size
-    let line_with_match = line_in_file - from - 1
-  elseif line_in_file  < a:height / 2
+    let line_with_match = line - from - 1
+  elseif line  < a:height / 2
     " closer to the beginning then half of the height
     let from =  0
     let to = a:height
-    let line_with_match = line_in_file-1
+    let line_with_match = line-1
   else
     " Enough of room up and down
-    let from =  line_in_file - a:height / 2 - 1
-    let to = line_in_file + a:height / 2
+    let from =  line - a:height / 2 - 1
+    let to = line + a:height / 2
     let line_with_match = a:height / 2
   endif
 
@@ -116,10 +117,9 @@ fu! s:set_context_lines(preview_buffer, lines, height) abort
   call assert_equal(len(context_lines),  a:height) " TODO remove when tests are ready
 endfu
 
-fu! s:using_edit_strategy(filename) abort
+fu! s:using_edit_strategy(filename, line) abort
   let filename = a:filename
-  let line_in_file = esearch#out#win#line_in_file()
-  let column_in_file = esearch#out#win#column_in_file()
+  let line = a:line
 
   let search_window = bufwinnr(bufnr('%'))
   let preview_buffer = s:create_buffer(filename, 0)
@@ -128,7 +128,7 @@ fu! s:using_edit_strategy(filename) abort
 
   try
     call s:close_preview_window()
-    let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
+    let s:preview_window = s:open_preview_window(preview_buffer, width, height)
     if preview_buffer.newly_created
       call s:save_options(preview_buffer)
     endif
@@ -136,8 +136,8 @@ fu! s:using_edit_strategy(filename) abort
     call s:jump_to_window(s:preview_window.number)
     call s:edit_file(filename, preview_buffer)
     call s:setup_edited_file_highlight()
-    call s:setup_matching_line_sign(line_in_file)
-    call s:reshape_preview_window(line_in_file, column_in_file, height)
+    call s:setup_matching_line_sign(line)
+    call s:reshape_preview_window(line, height)
     call s:setup_on_user_opens_buffer_events()
     call s:setup_autoclose_events()
   catch
@@ -150,9 +150,7 @@ fu! s:using_edit_strategy(filename) abort
 endfu
 
 fu! s:save_options(preview_buffer) abort
-  " let a:preview_buffer.guard.winhighlight = nvim_win_get_option(s:preview_window.id, 'winhighlight')
   let a:preview_buffer.guard.swapfile = !!nvim_buf_get_option(a:preview_buffer.id, 'swapfile')
-  " let a:preview_buffer.guard.signcolumn = nvim_win_get_option(s:preview_window.id, 'signcolumn')
 endfu
 
 fu! s:setup_on_user_opens_buffer_events() abort
@@ -166,7 +164,7 @@ fu! s:setup_autoclose_events() abort
   exe 'au ' . s:events . ' * ++once call s:close_preview_window()'
 endfu
 
-fu! s:setup_matching_line_sign(line_in_file) abort
+fu! s:setup_matching_line_sign(line) abort
   if empty(sign_getdefined(s:sign_name))
     call sign_define(s:sign_name, {'text': '->'})
   endif
@@ -176,28 +174,29 @@ fu! s:setup_matching_line_sign(line_in_file) abort
         \ s:sign_group,
         \ s:sign_name,
         \ bufnr('%'),
-        \ {'lnum': a:line_in_file})
+        \ {'lnum': a:line})
 endfu
 
-" Internal winrestview() has a lot of side effects so s:reshape_preview_window
+" Builtin winrestview() has a lot of side effects so s:reshape_preview_window
 " should be invoken as later as possible
-fu! s:reshape_preview_window(line_in_file, column_in_file, height) abort
+fu! s:reshape_preview_window(line, height) abort
   let lines_size = line('$')
   exe 'noautocmd keepjumps resize '. a:height
+  resize 10
 
   if lines_size < a:height
-    return cursor(a:line_in_file, a:column_in_file)
+    return cursor(a:line, 0)
   endif
 
   " literally what :help scrolloff does, but without dealing with options
-  if lines_size - a:line_in_file < a:height
+  if lines_size - a:line < a:height
     let topline = lines_size - a:height
   else
-    let topline = a:line_in_file - (a:height / 2)
+    let topline = a:line - (a:height / 2)
   endif
   noautocmd keepjumps call winrestview({
-        \ 'lnum': a:line_in_file,
-        \ 'col': a:column_in_file,
+        \ 'lnum': a:line,
+        \ 'col': 1,
         \ 'topline': topline,
         \ })
 endfu
@@ -215,14 +214,16 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
   else
     let row = (getpos('.')[1] - line('w0') + 1)
   endif
-  let id = nvim_open_win(a:preview_buffer, 0, {
+
+  let id = nvim_open_win(a:preview_buffer.id, 0, {
         \ 'width':     a:width,
         \ 'height':    a:height,
         \ 'focusable': v:false,
         \ 'row':       row,
         \ 'col':       max([5, wincol() - 1]),
-        \'relative':   'win',
+        \ 'relative':  'win',
         \})
+
   let data = {'id': id, 'number': win_id2win(id), 'guard': {}}
   let data.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
   let data.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
@@ -254,21 +255,23 @@ endfu
 fu! s:make_preview_buffer_regular() abort
   let current_filename = expand('%:p')
 
-  if !has_key(s:preview_buffers_registry, current_filename)
+  if !has_key(s:preview_buffers, current_filename)
     " execute once guard
     return
   endif
 
-  let preview_buffer = s:preview_buffers_registry[current_filename]
+  let preview_buffer = s:preview_buffers[current_filename]
   " let &l:winhighlight = preview_buffer.guard.winhighlight
   " let &l:signcolumn = preview_buffer.guard.signcolumn
   try
-    let &l:swapfile = preview_buffer.guard.swapfile
+    if !empty(preview_buffer.guard)
+      let &l:swapfile = preview_buffer.guard.swapfile
+    endif
   catch /:E325:/
     " User is already prompted about existing swap at the moment. Suppress.
     " Occurs when preview is opened and :new command is executed
   finally
-    call remove(s:preview_buffers_registry, current_filename)
+    call remove(s:preview_buffers, current_filename)
   endtry
 
   " prevent other events to handle the buffer again
@@ -276,16 +279,14 @@ fu! s:make_preview_buffer_regular() abort
 endfu
 
 fu! s:create_buffer(filename, disposable) abort
-  " if has_key(s:preview_buffers_registry, a:filename)
-  if bufexists(a:filename)
-    let s:preview_buffers_registry[a:filename] = {
-          \ 'id': bufnr('^' . a:filename . '$'),
-          \ 'filename': a:filename,
-          \ 'newly_created': 0,
-          \ 'is_opened': 0,
-          \ 'guard': {},
-          \ }
-    return s:preview_buffers_registry[a:filename]
+  if has_key(s:preview_buffers, a:filename)
+    if bufexists(a:filename)
+      return s:preview_buffers[a:filename]
+    else
+      " buffer is known as a preview, but it was removed using :bwipeout or the
+      " similar command
+      call remove(s:preview_buffers, a:filename)
+    endif
   endif
 
   if a:disposable
@@ -294,21 +295,21 @@ fu! s:create_buffer(filename, disposable) abort
     let id = nvim_create_buf(1, 0)
   endif
 
-  let s:preview_buffers_registry[a:filename] = {
-        \ 'id': id,
-        \ 'filename': a:filename,
+  let s:preview_buffers[a:filename] = {
+        \ 'id':            id,
+        \ 'filename':      a:filename,
         \ 'newly_created': 1,
-        \ 'is_opened': 0,
-        \ 'guard': {},
+        \ 'is_opened':     0,
+        \ 'guard':         {},
         \ }
-  return s:preview_buffers_registry[a:filename]
+  return s:preview_buffers[a:filename]
 endfu
 
 fu! s:close_preview_window() abort
   if s:preview_window isnot# s:null
     call nvim_win_set_option(s:preview_window.id, 'winhighlight', s:preview_window.guard.winhighlight)
     call nvim_win_set_option(s:preview_window.id, 'signcolumn', s:preview_window.guard.signcolumn)
-    exe s:preview_window.number . 'close'
+    call nvim_win_close(s:preview_window.id, 1)
     let s:preview_window = s:null
   endif
 
