@@ -40,3 +40,9 @@ endfu
 fu! esearch#adapter#rg#requires_pty() abort
   return 1
 endfu
+
+fu! esearch#adapter#rg#is_success(request) abort
+  " https://github.com/BurntSushi/ripgrep/issues/948
+  return a:request.status == 0
+        \ || (a:request.status == 1 && empty(a:request.errors) && empty(a:request.data))
+endfu

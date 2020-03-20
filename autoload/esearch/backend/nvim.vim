@@ -7,7 +7,7 @@ endif
 
 let s:NVIM_JOB_IS_INVALID = -3
 
-fu! esearch#backend#nvim#init(cmd, pty) abort
+fu! esearch#backend#nvim#init(adapter, cmd, pty) abort
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
@@ -22,6 +22,7 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \   },
         \ },
         \ 'backend':  'nvim',
+        \ 'adapter':  a:adapter,
         \ 'command':  a:cmd,
         \ 'data':     [],
         \ 'intermediate':     '',
@@ -88,7 +89,11 @@ fu! s:stderr(job_id, data, event) dict abort
     let job.request.errors[-1] .= data[0]
     call remove(data, 0)
   endif
-  let job.request.errors += filter(data, "'' !=# v:val")
+  let errors = filter(data, "'' !=# v:val")
+  let job.request.errors += errors
+  if empty(errors) | return | endif
+
+  call esearch#stderr#incremental(job.request.adapter, errors)
 endfu
 
 fu! s:exit(job_id, status, event) abort

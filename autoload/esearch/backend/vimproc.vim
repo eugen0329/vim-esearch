@@ -17,11 +17,12 @@ let s:incrementable_internal_id = 0
 
 " TODO decouple consuming of data from pipe and output updation processes
 
-fu! esearch#backend#vimproc#init(cmd, pty) abort
+fu! esearch#backend#vimproc#init(adapter, cmd, pty) abort
   let request = {
         \ 'internal_id': s:incrementable_internal_id,
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
+        \ 'adapter': a:adapter,
         \ 'command': a:cmd,
         \ 'data': [],
         \ 'errors': [],
@@ -69,6 +70,7 @@ fu! s:read_errors(request) abort
           \ stderr.read_lines(-1, g:esearch#backend#vimproc#read_errors_timeout),
           \ "v:val !~# '^\\s*$'")
     let a:request.errors += errors
+    call esearch#stderr#incremental(a:request.adapter, errors)
   endif
 endfu
 

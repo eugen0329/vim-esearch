@@ -26,7 +26,7 @@ else
 endif
 
 if !exists('g:esearch#cmdline#dir_icon')
-  if esearch#util#has_unicode()
+  if g:esearch#has#unicode
     let g:esearch#cmdline#dir_icon = g:esearch#unicode#dir_icon
   else
     let g:esearch#cmdline#dir_icon = 'D '

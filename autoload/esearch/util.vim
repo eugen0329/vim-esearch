@@ -4,10 +4,8 @@ let s:Message   = vital#esearch#import('Vim.Message')
 let s:Filepath  = vital#esearch#import('System.Filepath')
 
 fu! esearch#util#setline(_, lnum, text) abort
-  " call nvim_buf_set_lines(a:_, a:lnum - 1, a:lnum, 0, [a:text])
   call setline(a:lnum, a:text)
 endfu
-
 
 if has('nvim')
   fu! esearch#util#append_lines(lines) abort
@@ -19,10 +17,6 @@ else
       call append(line('$'), l)
     endfor
   endfu
-endif
-
-if !exists('g:esearch#util#unicode_enabled')
-  let g:esearch#util#unicode_enabled = 1
 endif
 
 " borrowed from the airline
@@ -149,11 +143,6 @@ endfu
 fu! esearch#util#timenow() abort
   let now = reltime()
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
-endfu
-
-fu! esearch#util#has_unicode() abort
-  return g:esearch#util#unicode_enabled &&
-        \ has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 endfu
 
 fu! esearch#util#visual_selection() abort
@@ -444,18 +433,6 @@ fu! esearch#util#map_rhs(printable) abort
   return ''
 endfu
 
-fu! esearch#util#has_vimproc() abort
-  if !exists('s:exists_vimproc')
-    try
-      call vimproc#version()
-      let s:exists_vimproc = 1
-    catch
-      let s:exists_vimproc = 0
-    endtry
-  endif
-  return s:exists_vimproc
-endfu
-
 fu! esearch#util#recognize_plug_manager() abort
   if exists('*plug#begin')
     return 'Vundle'
@@ -503,18 +480,8 @@ fu! esearch#util#add_map(mappings, lhs, rhs) abort
   call add(a:mappings, {'lhs': a:lhs, 'rhs': a:rhs, 'default': 0})
 endfu
 
-fu! esearch#util#vim8_job_start_close_cb_implemented() abort
-  " 7.4.1398 - Implemented close-cb
-  return has('patch-7.4.1398')
-endfu
-
-fu! esearch#util#vim8_calls_close_cb_last() abort
-  " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
-  return has('patch-7.4.1787')
-endfu
-
 if !exists('g:esearch#util#ellipsis')
-  if esearch#util#has_unicode()
+  if g:esearch#has#unicode
     let g:esearch#util#ellipsis = g:esearch#unicode#ellipsis
   else
     let g:esearch#util#ellipsis = '|'

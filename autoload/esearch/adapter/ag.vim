@@ -34,3 +34,9 @@ endfu
 fu! esearch#adapter#ag#requires_pty() abort
   return 1
 endfu
+
+fu! esearch#adapter#ag#is_success(request) abort
+  " https://github.com/ggreer/the_silver_searcher/issues/1298
+  return a:request.status == 0
+        \ || (a:request.status == 1 && empty(a:request.errors) && empty(a:request.data))
+endfu

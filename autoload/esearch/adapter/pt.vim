@@ -36,3 +36,8 @@ endfu
 fu! esearch#adapter#pt#requires_pty() abort
   return 1
 endfu
+
+fu! esearch#adapter#pt#is_success(request) abort
+  " https://github.com/monochromegane/the_platinum_searcher/issues/150
+  return a:request.status == 0
+endfu

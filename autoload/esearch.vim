@@ -41,7 +41,7 @@ fu! esearch#init(...) abort
   let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
   let esearch = extend(esearch, {
         \ 'title': s:title(esearch, pattern),
-        \ 'request': esearch#backend#{esearch.backend}#init(shell_cmd, requires_pty),
+        \ 'request': esearch#backend#{esearch.backend}#init(esearch.adapter, shell_cmd, requires_pty),
         \}, 'force')
 
   let esearch.parse = esearch#adapter#parse#funcref()
@@ -107,7 +107,7 @@ endfu
 " Results bufname format builder
 fu! s:title_format(esearch) abort
   if a:esearch.regex
-    if esearch#util#has_unicode()
+    if g:esearch#has#unicode
       " Since we can't use '/' in filenames
       return "Search  \u2215%s\u2215%s"
     else

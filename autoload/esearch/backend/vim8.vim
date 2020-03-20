@@ -17,7 +17,7 @@ if !exists('g:esearch#backend#vim8#timer')
   let g:esearch#backend#vim8#timer = 1000
 endif
 
-fu! esearch#backend#vim8#init(cmd, pty) abort
+fu! esearch#backend#vim8#init(adapter, cmd, pty) abort
   " TODO add 'stoponexit'
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
@@ -29,13 +29,15 @@ fu! esearch#backend#vim8#init(cmd, pty) abort
         \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
         \     'exit_cb': function('s:exit', [s:incrementable_internal_id]),
         \     'close_cb': function('s:closed', [s:incrementable_internal_id]),
-        \     'mode': 'raw',
+        \     'out_mode': 'raw',
+        \     'err_mode': 'nl',
         \     'in_io': 'null',
         \   },
         \ },
         \ 'tick': 0,
         \ 'ticks': g:esearch#backend#vim8#ticks,
         \ 'backend':  'vim8',
+        \ 'adapter':  a:adapter,
         \ 'intermediate':  '',
         \ 'command':  a:cmd,
         \ 'data':     [],
@@ -82,8 +84,8 @@ endfu
 
 fu! s:stderr(job_id, job, data) abort
   let job = s:jobs[a:job_id]
-  let data = split(a:data, "\n", 1)
-  let job.request.errors += filter(data, "'' !=# v:val")
+  let job.request.errors += [a:data]
+  call esearch#stderr#incremental(job.request.adapter, [a:data])
 endfu
 
 func! s:timer_stop_workaround(job, timer) abort
@@ -108,7 +110,7 @@ fu! s:closed(job_id, channel) abort
   let job.request.finished = 1
 
   " TODO should be properly tested first
-  if esearch#util#vim8_calls_close_cb_last()
+  if g:esearch#has#vim8_calls_close_cb_last
     if !empty(job.request.events.schedule_finish)
       call job.request.events.schedule_finish()
     endif

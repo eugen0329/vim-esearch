@@ -16,6 +16,7 @@ let s:Promise = s:Vital.import('Async.Promise')
 let s:List    = s:Vital.import('Data.List')
 let s:String  = s:Vital.import('Data.String')
 let s:Filepath = s:Vital.import('System.Filepath')
+let s:Message = vital#esearch#import('Vim.Message')
 
 let s:mappings = [
       \ {'lhs': 't',       'rhs': 'tab',           'default': 1},
@@ -38,7 +39,7 @@ let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 let s:lines_map_padding = 0 " to index with line numbers which begin from 1
-if esearch#util#has_unicode()
+if g:esearch#has#unicode
   let s:spinner = g:esearch#unicode#spinner
 else
   let s:spinner = ['.', '..', '...']
@@ -326,6 +327,7 @@ fu! s:cleanup() abort
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
         \ get(b:esearch, 'matches_highlight_id', -1))
+  unlet b:esearch
 endfu
 
 " TODO refactoring
@@ -417,7 +419,7 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
   let escaped = s:escape_title(a:bufname)
   let escaped_for_bufnr = substitute(escape(a:bufname, '*?\{}[]'), '["]', '\\\\\0', 'g')
 
-  if esearch#util#has_unicode()
+  if g:esearch#has#unicode
     let escaped = substitute(escaped, '/', "\u2215", 'g')
     let escaped_for_bufnr = substitute(escaped_for_bufnr, '/', "\u2215", 'g')
   else
@@ -928,24 +930,17 @@ fu! esearch#out#win#finish(bufnr) abort
   endif
   call setbufvar(a:bufnr, '&modifiable', 1)
 
-  if esearch.request.status !=# 0 && (len(esearch.request.errors) || len(esearch.request.data))
-    call esearch#out#win#_blocking_unload_syntaxes(esearch)
-
-    let errors = esearch.request.data + esearch.request.errors
-    call esearch#util#setline(a:bufnr, 1, 'ERRORS from '.esearch.adapter.' ('.len(errors).')')
-    let line = 2
-    for err in errors
-      call esearch#util#setline(a:bufnr, line, "\t".err)
-      let line += 1
-    endfor
-  else
-    call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
-          \ len(esearch.request.data),
-          \ esearch#inflector#pluralize('line', len(esearch.request.data)),
-          \ esearch.files_count,
-          \ esearch#inflector#pluralize('file', b:esearch.files_count),
-          \))
+  let g:asd = deepcopy(esearch.request)
+  if !esearch#adapter#{esearch.adapter}#is_success(esearch.request)
+    call esearch#stderr#finish(esearch)
   endif
+
+  call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
+        \ len(esearch.request.data),
+        \ esearch#inflector#pluralize('line', len(esearch.request.data)),
+        \ esearch.files_count,
+        \ esearch#inflector#pluralize('file', b:esearch.files_count),
+        \))
 
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod',   0)
@@ -1059,7 +1054,7 @@ fu! esearch#out#win#handle_changes(event) abort
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
     call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
     let a:event.errors = len(v:errors)
-    call esearch#log#debug(a:event,  len(v:errors))
+    " call esearch#debug#log(a:event,  len(v:errors))
   endif
 endfu
 

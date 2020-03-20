@@ -216,6 +216,10 @@ class Editor
     command!('tabnew | %bwipeout!')
   end
 
+  def messages
+    reader.echo(func('execute', 'messages')).split("\n")
+  end
+
   def bwipeout(buffer_number)
     command!("bwipeout #{buffer_number}")
   end
