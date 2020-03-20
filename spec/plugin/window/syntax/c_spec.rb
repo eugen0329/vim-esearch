@@ -10,6 +10,53 @@ describe 'esearch window context syntax', :window do
   describe 'c' do
     let(:source_file_content) do
       <<~SOURCE
+        new
+        delete
+        this
+        friend
+        using
+        public
+        protected
+        private
+        inline
+        virtual
+        explicit
+        export
+        bool
+        wchar_t
+        throw
+        try
+        catch
+        operator
+        typeid
+        and
+        bitor
+        or
+        xor
+        compl
+        bitand
+        and_eq
+        or_eq
+        xor_eq
+        not
+        not_eq
+        true
+        false
+        class
+        typename
+        template
+        namespace
+        mutable
+        int
+        long
+        short
+        char
+        void
+        signed
+        unsigned
+        float
+        double
+
         goto
         break
         return
@@ -76,6 +123,14 @@ describe 'esearch window context syntax', :window do
         word('break')                    => %w[es_cStatement Statement],
         word('return')                   => %w[es_cStatement Statement],
         word('asm')                      => %w[es_cStatement Statement],
+        word('new')                      => %w[es_cStatement Statement],
+        word('delete')                   => %w[es_cStatement Statement],
+        word('this')                     => %w[es_cStatement Statement],
+        word('friend')                   => %w[es_cStatement Statement],
+        word('using')                    => %w[es_cStatement Statement],
+        word('public')                   => %w[es_cStatement Statement],
+        word('protected')                => %w[es_cStatement Statement],
+        word('private')                  => %w[es_cStatement Statement],
 
         word('case')                     => %w[es_cLabel Label],
         word('default')                  => %w[es_cLabel Label],
@@ -111,13 +166,52 @@ describe 'esearch window context syntax', :window do
         word('union')                    => %w[es_cStructure Structure],
         word('enum')                     => %w[es_cStructure Structure],
         word('typedef')                  => %w[es_cStructure Structure],
+        word('class')                    => %w[es_cStructure Structure],
+        word('typename')                 => %w[es_cStructure Structure],
+        word('template')                 => %w[es_cStructure Structure],
+        word('namespace')                => %w[es_cStructure Structure],
 
         word('static')                   => %w[es_cStorageClass StorageClass],
         word('register')                 => %w[es_cStorageClass StorageClass],
         word('auto')                     => %w[es_cStorageClass StorageClass],
         word('volatile')                 => %w[es_cStorageClass StorageClass],
         word('extern')                   => %w[es_cStorageClass StorageClass],
-        word('const')                    => %w[es_cStorageClass StorageClass]
+        word('const')                    => %w[es_cStorageClass StorageClass],
+        word('mutable')                  => %w[es_cStorageClass StorageClass],
+
+        word('mutable')                  => %w[es_cStorageClass StorageClass],
+
+        word('int')                      => %w[es_cType Type],
+        word('long')                     => %w[es_cType Type],
+        word('short')                    => %w[es_cType Type],
+        word('char')                     => %w[es_cType Type],
+        word('void')                     => %w[es_cType Type],
+        word('signed')                   => %w[es_cType Type],
+        word('unsigned')                 => %w[es_cType Type],
+        word('float')                    => %w[es_cType Type],
+        word('double')                   => %w[es_cType Type],
+        word('inline')                   => %w[es_cType Type],
+        word('virtual')                  => %w[es_cType Type],
+        word('explicit')                 => %w[es_cType Type],
+        word('export')                   => %w[es_cType Type],
+        word('bool')                     => %w[es_cType Type],
+        word('wchar_t')                  => %w[es_cType Type],
+
+        word('operator')                 => %w[es_cOperator Operator],
+        word('typeid')                   => %w[es_cOperator Operator],
+        word('and')                      => %w[es_cOperator Operator],
+        word('bitor')                    => %w[es_cOperator Operator],
+        word('or')                       => %w[es_cOperator Operator],
+        word('xor')                      => %w[es_cOperator Operator],
+        word('compl')                    => %w[es_cOperator Operator],
+        word('bitand')                   => %w[es_cOperator Operator],
+        word('and_eq')                   => %w[es_cOperator Operator],
+        word('or_eq')                    => %w[es_cOperator Operator],
+        word('xor_eq')                   => %w[es_cOperator Operator],
+        word('not')                      => %w[es_cOperator Operator],
+        word('not_eq')                   => %w[es_cOperator Operator],
+        word('true')                     => %w[es_cBoolean Boolean],
+        word('false')                    => %w[es_cBoolean Boolean]
       )
     end
   end
