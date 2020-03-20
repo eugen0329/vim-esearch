@@ -22,7 +22,7 @@ class Fixtures::LazyFile
   end
 
   def path
-    return working_directory.join(relative_path) if working_directory.present?
+    return working_directory.join(relative_path) unless working_directory.nil?
 
     Pathname(relative_path)
   end

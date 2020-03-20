@@ -26,7 +26,11 @@ module Debug
 
   def working_directories
     paths = reader.echo([var('$PWD'), func('getcwd')]).map { |p| Pathname(p) }
-    ['$PWD', 'getcwd()'].zip(paths).to_h
+    result = ['$PWD', 'getcwd()'].zip(paths).to_h
+    if File.directory?(result['getcwd()'])
+      result['cwd_content'] = Dir.entries(result['getcwd()']) - ['.', '..']
+    end
+    result
   end
 
   def user_autocommands
