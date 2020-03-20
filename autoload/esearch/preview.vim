@@ -47,7 +47,7 @@ fu! s:using_readlines_strategy(filename) abort
     call s:close_preview_window()
     let s:preview_window = s:open_preview_window(preview_buffer.id, width, height)
     call s:setup_pseudo_file_appearance(filename, preview_buffer, s:preview_window)
-    call s:goto_window(s:preview_window.number)
+    call s:jump_to_window(s:preview_window.number)
     call s:setup_autoclose_events()
   catch
     call s:close_preview_window()
@@ -133,7 +133,7 @@ fu! s:using_edit_strategy(filename) abort
       call s:save_options(preview_buffer)
     endif
 
-    call s:goto_window(s:preview_window.number)
+    call s:jump_to_window(s:preview_window.number)
     call s:edit_file(filename, preview_buffer)
     call s:setup_edited_file_highlight()
     call s:setup_matching_line_sign(line_in_file)
@@ -145,7 +145,7 @@ fu! s:using_edit_strategy(filename) abort
     echoerr v:exception
   finally
     let preview_buffer.newly_created = 0
-    call s:goto_window(search_window)
+    call s:jump_to_window(search_window)
   endtry
 endfu
 
@@ -247,7 +247,7 @@ fu! s:edit_file(filename, preview_buffer) abort
   return 0
 endfu
 
-fu! s:goto_window(window) abort
+fu! s:jump_to_window(window) abort
   noautocmd keepjumps exe a:window . 'wincmd w'
 endfu
 
