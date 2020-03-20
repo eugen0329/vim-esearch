@@ -192,8 +192,6 @@ fu! esearch#out#win#init(opts) abort
     call s:cleanup()
   end
 
-  setl ft=esearch
-
   setl modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
@@ -248,8 +246,6 @@ fu! esearch#out#win#init(opts) abort
   if b:esearch.request.async
     call s:init_update_events(b:esearch)
   endif
-  call s:init_mappings()
-  call s:init_commands()
 
   augroup ESearchWinHighlights
     au! * <buffer>
@@ -268,16 +264,25 @@ fu! esearch#out#win#init(opts) abort
   let b:esearch.ctx_ids_map += [header_context.id, header_context.id]
   let b:esearch.line_numbers_map += [0, 0]
 
-  call esearch#out#win#matches#init_highlight(b:esearch)
-  if g:esearch_out_win_nvim_lua_syntax
-    call esearch#out#win#render#lua#init_nvim_syntax(b:esearch)
-  endif
-
   call extend(b:esearch.request, {
         \ 'bufnr':       bufnr('%'),
         \ 'cursor':      0,
         \ 'out_finish':  function('esearch#out#win#_is_render_finished')
         \})
+
+  setl ft=esearch
+
+  " Highlights should be set after setting the filetype as all the definitions
+  " are inside syntax/esearch.vim
+  call esearch#out#win#matches#init_highlight(b:esearch)
+  if g:esearch_out_win_nvim_lua_syntax
+    call esearch#out#win#render#lua#init_nvim_syntax(b:esearch)
+  endif
+
+  " Some plugins set mappings on filetype, so they should be set after.
+  " Other things can be conveniently redefined using au FileType esearch
+  call s:init_mappings()
+  call s:init_commands()
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -537,7 +542,7 @@ endfu
 
 fu! s:highlight_viewport() abort
   if g:esearch_win_context_syntax_async && g:esearch#has#debounce
-    let b:esearch.viewport_highlight_timer = esearch#debounce#trailing(
+    let b:esearch.viewport_highlight_timer = esearch#debounce#_trailing(
           \ function('s:highlight_viewport_callback', [b:esearch]),
           \ g:esearch_win_highlight_debounce_wait,
           \ b:esearch.viewport_highlight_timer)
@@ -751,7 +756,9 @@ fu! s:invoke_mapping_callback(i) abort
 endfu
 
 fu! s:preview() abort dict
-  return esearch#preview#start(esearch#out#win#filename(), esearch#out#win#line_in_file())
+  if exists('b:esearch')
+    return esearch#preview#start(esearch#out#win#filename(), esearch#out#win#line_in_file())
+  endif
 endfu
 
 fu! s:open(cmd, ...) abort

@@ -16,11 +16,6 @@ let s:events = join([
 let s:preview_buffers = {}
 let s:preview_window = s:null
 
-" TODO testing scenarios (currently blocked by editor version)
-"   - file with a name required to be escaped
-"   - new buffers bloat
-"   - bouncing
-"   - buffers with existing swaps
 fu! esearch#preview#start(filename, line) abort
   if !filereadable(a:filename)
     return 0
@@ -182,7 +177,6 @@ endfu
 fu! s:reshape_preview_window(line, height) abort
   let lines_size = line('$')
   exe 'noautocmd keepjumps resize '. a:height
-  resize 10
 
   if lines_size < a:height
     return cursor(a:line, 0)
@@ -208,11 +202,10 @@ fu! s:setup_edited_file_highlight() abort
 endfu
 
 fu! s:open_preview_window(preview_buffer, width, height) abort
-  let p = getpos('.')[1]
-  if line('w$') - p < a:height
-    let row = (getpos('.')[1] - line('w0')) - a:height
+  if  &lines - a:height - 1 < winline()
+    let row = winline() - a:height
   else
-    let row = (getpos('.')[1] - line('w0') + 1)
+    let row = winline()
   endif
 
   let id = nvim_open_win(a:preview_buffer.id, 0, {
@@ -283,7 +276,7 @@ fu! s:create_buffer(filename, disposable) abort
     if bufexists(a:filename)
       return s:preview_buffers[a:filename]
     else
-      " buffer is known as a preview, but it was removed using :bwipeout or the
+      " buffer is known as a preview, but it was removed using :bwipeout or a
       " similar command
       call remove(s:preview_buffers, a:filename)
     endif

@@ -8,8 +8,9 @@ describe 'esearch#preview' do
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
 
-  # TODO it's still unknown why neovim don't want to create swap files on
-  # during tests. set swapfile directory=... doesn't work
+  # TODO extra testing scenarios (currently blocked by editor version)
+  #   - file with a name required to be escaped
+  #   - new buffers bloat
 
   describe 'neovim', :neovim do
     let(:search_string) { 'a' }
