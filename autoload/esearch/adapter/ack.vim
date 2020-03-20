@@ -38,5 +38,7 @@ fu! esearch#adapter#ack#requires_pty() abort
 endfu
 
 fu! esearch#adapter#ack#is_success(request) abort
+  " later versions behaves like grep (0 - at least one matched line, 1 - no
+  " lines matched)
   return a:request.status == 0
 endfu

@@ -28,7 +28,7 @@ fu! esearch#stderr#finish(esearch) abort
           \ s:String.dstring(errors[-1])
           \ )
   else
-    let message = printf("%s returned status %d. No STDERR was provided",
+    let message = printf('%s returned status %d. No STDERR was provided',
           \ a:esearch.adapter,
           \ a:esearch.request.status,
           \ )

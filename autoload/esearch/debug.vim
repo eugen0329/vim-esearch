@@ -8,7 +8,7 @@ fu! esearch#debug#log(...) abort
     return
   endif
 
-  if g:esearch#debug#log_output is 1 " to resemble posix STDOUT_FILENO
+  if g:esearch#debug#log_output is# 1 " to resemble posix STDOUT_FILENO
     echo a:000
   else
     let items = join(map(deepcopy(a:000), 'string(v:val)'), ', ')

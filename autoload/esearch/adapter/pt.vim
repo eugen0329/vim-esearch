@@ -38,7 +38,6 @@ fu! esearch#adapter#pt#requires_pty() abort
 endfu
 
 fu! esearch#adapter#pt#is_success(request) abort
-  " So far 0 is only for errors
   " https://github.com/monochromegane/the_platinum_searcher/issues/150
   return a:request.status == 0
 endfu
