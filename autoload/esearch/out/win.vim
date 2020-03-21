@@ -3,7 +3,6 @@ let s:List          = vital#esearch#import('Data.List')
 let s:String        = vital#esearch#import('Data.String')
 let s:Filepath      = vital#esearch#import('System.Filepath')
 let s:Message       = vital#esearch#import('Vim.Message')
-let s:ViewTracer    = vital#esearch#import('Vim.ViewTracer')
 let s:BufferManager = vital#esearch#import('Vim.BufferManager')
 
 let s:mappings = [
@@ -229,7 +228,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
         \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
-        \ 'open':                     function('<SID>open'),
+        \ 'open':                     function('esearch#out#win#open#do'),
         \ 'preview':                  function('<SID>preview'),
         \ 'filename':                 function('<SID>filename'),
         \ 'line_in_file':             function('<SID>line_in_file'),
@@ -237,10 +236,11 @@ fu! esearch#out#win#init(opts) abort
         \ 'is_entry':                 function('<SID>is_entry'),
         \ 'jump2entry':               function('<SID>jump2entry'),
         \ 'jump2file':                function('<SID>jump2file'),
+        \ 'is_current':               function('<SID>is_current'),
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
-        \ 'opened_once_handles': {},
+        \ 'wins_opened_once': {},
         \ 'opened_once_manager': s:BufferManager.new(),
         \ 'opened_manager':      s:BufferManager.new(),
         \}, 'keep')
@@ -322,6 +322,11 @@ fu! s:highlight_cursor_line_number() abort
 endfu
 endif
 
+" Is used to prevent problems with asynchronous code
+fu! s:is_current() abort dict
+  return get(b:, 'esearch', {}) ==# self
+endfu
+
 fu! s:cleanup() abort
   call esearch#changes#unlisten_for_current_buffer()
   call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
@@ -337,7 +342,7 @@ fu! s:cleanup() abort
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
         \ get(b:esearch, 'matches_highlight_id', -1))
-  silent doau User esearch#out#win#uninitialize
+  silent doau User esearch#out#win#uninit_post
 endfu
 
 " TODO refactoring
@@ -747,81 +752,14 @@ fu! s:init_mappings() abort
   " exe 'nmap <buffer> m :<C-U>sil cal esearch#out#win#edit()<CR>'
 endfu
 
-fu! esearch#out#win#column_in_file() abort
-  return 1
-  " TODO resolve on the fly
-  " let col = match(m[2], pattern) + 1
-endfu
-
 fu! s:invoke_mapping_callback(i) abort
   call s:mappings[a:i].rhs()
 endfu
 
 fu! s:preview() abort dict
-  if exists('b:esearch')
-    return esearch#preview#start(self.filename(), self.line_in_file())
-  endif
-endfu
+  if !self.is_current() | return | endif
 
-fu! s:open(opener, ...) abort dict
-  if !exists('b:esearch') || b:esearch.request.status !=# 0
-    return
-  endif
-
-  let filename = self.filename()
-  if empty(filename)
-    return
-  endif
-
-  " TODO use self.
-  let esearch = b:esearch
-  let opts        = get(a:000, 0, {})
-  let stay        = get(opts, 'stay', 0)
-  let once        = get(opts, 'once', 0)
-  let eventignore = get(opts, 'eventignore', 'BufLeave')
-
-  let original_eventignore = &eventignore
-  let lnum = self.line_in_file()
-  let col = str2nr(esearch#out#win#column_in_file())
-  let topline = str2nr(lnum) - (line('.') - line('w0'))
-
-  if stay
-    let search_win_view = winsaveview()
-    let w:esearch = reltime() " to be able to trace the window
-    let search_win_handle = s:ViewTracer.trace_window()
-  endif
-
-  try
-    let &eventignore = eventignore
-    if once
-      if s:ViewTracer.exists(get(esearch.opened_once_handles, a:opener, {}))
-        call s:ViewTracer.jump(esearch.opened_once_handles[a:opener])
-        unsilent call esearch.opened_once_manager
-              \.open(filename, {'opener': 'edit', 'range': ''})
-      else
-        unsilent call esearch.opened_once_manager
-              \.open(filename, {'opener': a:opener, 'range': ''})
-      endif
-      let w:esearch = reltime() " to be able to trace the window
-      let esearch.opened_once_handles[a:opener] = s:ViewTracer.trace_window()
-    else
-      unsilent call esearch.opened_manager
-            \.open(filename, {'opener': a:opener, 'range': ''})
-    endif
-
-    keepjumps call winrestview({'lnum': lnum, 'col': col - 1,'topline': topline })
-
-  catch /E325:/
-    " ignore warnings about swapfiles (let user and #substitute handle them)
-  catch
-    unsilent echo v:exception . ' at ' . v:throwpoint
-  finally
-    let &eventignore = original_eventignore
-    if stay
-      call s:ViewTracer.jump(search_win_handle)
-      call winrestview(search_win_view)
-    endif
-  endtry
+  return esearch#preview#start(self.filename(), self.line_in_file())
 endfu
 
 fu! s:line_in_file() abort dict

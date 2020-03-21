@@ -59,7 +59,7 @@ describe 'esearch#preview' do
           set swapfile directory=/tmp updatecount=1
           set updatecount=1
         VIML
-      end # start writing swap
+      end
       after do
         expect(window_local_highlights).to all eq(default_highlight)
         swap_file.unlink

@@ -22,10 +22,10 @@ describe 'esearch#preview' do
 
     before do
       esearch.configure!(
-        out: 'win',
-        regex: 1,
-        backend: 'system',
-        adapter: 'ag',
+        out:          'win',
+        regex:        1,
+        backend:      'system',
+        adapter:      'ag',
         root_markers: []
       )
       esearch.cd! test_directory
@@ -51,7 +51,7 @@ describe 'esearch#preview' do
       context "when with 'stay' option" do
         describe 'mixing vertical and horizontal splits' do
           context 'when for multiple files' do
-            it "ensures only a single window opened per split kind" do
+            it 'ensures only a single window opened per split kind' do
               expect {
                 ctx1.locate!
                 editor.send_keys 'O'
@@ -65,7 +65,7 @@ describe 'esearch#preview' do
           end
 
           context 'when for a single file' do
-            it "ensures only a single window opened per split kind" do
+            it 'ensures only a single window opened per split kind' do
               expect { editor.send_keys 'O', 'S' }
                 .to change { tabpage_windows_list.count }
                 .by(2)
@@ -76,7 +76,7 @@ describe 'esearch#preview' do
         end
 
         describe 'open in vertical split' do
-          it "opens only one window" do
+          it 'opens only one window' do
             expect { editor.send_keys 'S', 'S' }
               .to change { tabpage_windows_list.count }
               .by(1)
@@ -84,7 +84,7 @@ describe 'esearch#preview' do
               .and not_to_change { tabpages_list.count }
           end
 
-          it "opens staying in the window" do
+          it 'opens staying in the window' do
             expect { editor.send_keys 'S' }
               .to change { tabpage_windows_list.count }
               .by(1)
@@ -94,7 +94,7 @@ describe 'esearch#preview' do
         end
 
         describe 'open in horizontal split' do
-          it "opens only one window" do
+          it 'opens only one window' do
             expect { editor.send_keys 'O', 'O' }
               .to change { tabpage_windows_list.count }
               .by(1)
@@ -102,7 +102,7 @@ describe 'esearch#preview' do
               .and not_to_change { tabpages_list.count }
           end
 
-          it "opens staying in the window" do
+          it 'opens staying in the window' do
             expect { editor.send_keys 'O' }
               .to change { tabpage_windows_list.count }
               .by(1)
@@ -112,7 +112,7 @@ describe 'esearch#preview' do
         end
 
         describe 'open in tab' do
-          it "opens multiple tabs" do
+          it 'opens multiple tabs' do
             expect { editor.send_keys 'T', 'T' }
               .to change { tabpages_list.count }
               .by(2)
@@ -120,7 +120,7 @@ describe 'esearch#preview' do
               .and not_to_change { tabpage_windows_list.count }
           end
 
-          it "opens staying in the window" do
+          it 'opens staying in the window' do
             expect { editor.send_keys 'T' }
               .to change { tabpages_list.count }
               .by(1)
@@ -131,7 +131,7 @@ describe 'esearch#preview' do
       end
 
       describe 'regular' do
-        it "opens a file and jumps to the window" do
+        it 'opens a file and jumps to the window' do
           expect { editor.send_keys 's' }
             .to change { tabpage_windows_list.count }
             .by(1)
@@ -140,7 +140,7 @@ describe 'esearch#preview' do
             .and not_to_change { tabpages_list.count }
         end
 
-        it "opens a file and jumps to the window" do
+        it 'opens a file and jumps to the window' do
           expect { editor.send_keys 'o' }
             .to change { tabpage_windows_list.count }
             .by(1)
@@ -149,7 +149,7 @@ describe 'esearch#preview' do
             .and not_to_change { tabpages_list.count }
         end
 
-        it "opens a file and jumps to the window" do
+        it 'opens a file and jumps to the window' do
           expect { editor.send_keys 't' }
             .to change { tabpages_list.count }
             .by(1)
@@ -158,7 +158,7 @@ describe 'esearch#preview' do
             .and not_to_change { tabpage_windows_list.count }
         end
 
-        it "opens a file reusing the current window" do
+        it 'opens a file reusing the current window' do
           expect { editor.send_keys :enter }
             .to not_change { tabpage_windows_list.count }
             .and change { editor.current_buffer_name }
