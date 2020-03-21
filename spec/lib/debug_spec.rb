@@ -8,7 +8,7 @@ describe Debug do
 
   let(:test_file) { file(%w[line1 line2]) }
   let(:log_file) { file("log entry1\nlog entry2") }
-  let!(:testing_directory) { directory([test_file, log_file]).persist! }
+  let!(:test_directory) { directory([test_file, log_file]).persist! }
 
   subject(:debug) { described_class }
 
@@ -116,10 +116,14 @@ describe Debug do
 
   describe '.working_directories' do
     let(:expected) do
-      {'$PWD' => Configuration.root, 'getcwd()' => testing_directory.path}
+      {
+        '$PWD'        => Configuration.root,
+        'getcwd()'    => test_directory.path,
+        'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s }
+      }
     end
 
-    before { esearch.cd! testing_directory }
+    before { esearch.cd! test_directory }
 
     it { expect(debug.working_directories).to match(expected) }
   end

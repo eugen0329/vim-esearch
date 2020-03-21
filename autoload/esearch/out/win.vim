@@ -192,8 +192,6 @@ fu! esearch#out#win#init(opts) abort
     call s:cleanup()
   end
 
-  setl ft=esearch
-
   setl modifiable
   exe '1,$d_'
   call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
@@ -242,13 +240,12 @@ fu! esearch#out#win#init(opts) abort
         \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
+        \ 'preview':                  function('<SID>preview'),
         \})
 
   if b:esearch.request.async
     call s:init_update_events(b:esearch)
   endif
-  call s:init_mappings()
-  call s:init_commands()
 
   augroup ESearchWinHighlights
     au! * <buffer>
@@ -267,16 +264,25 @@ fu! esearch#out#win#init(opts) abort
   let b:esearch.ctx_ids_map += [header_context.id, header_context.id]
   let b:esearch.line_numbers_map += [0, 0]
 
-  call esearch#out#win#matches#init_highlight(b:esearch)
-  if g:esearch_out_win_nvim_lua_syntax
-    call esearch#out#win#render#lua#init_nvim_syntax(b:esearch)
-  endif
-
   call extend(b:esearch.request, {
         \ 'bufnr':       bufnr('%'),
         \ 'cursor':      0,
         \ 'out_finish':  function('esearch#out#win#_is_render_finished')
         \})
+
+  setl ft=esearch
+
+  " Highlights should be set after setting the filetype as all the definitions
+  " are inside syntax/esearch.vim
+  call esearch#out#win#matches#init_highlight(b:esearch)
+  if g:esearch_out_win_nvim_lua_syntax
+    call esearch#out#win#render#lua#init_nvim_syntax(b:esearch)
+  endif
+
+  " Some plugins set mappings on filetype, so they should be set after.
+  " Other things can be conveniently redefined using au FileType esearch
+  call s:init_mappings()
+  call s:init_commands()
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -536,7 +542,7 @@ endfu
 
 fu! s:highlight_viewport() abort
   if g:esearch_win_context_syntax_async && g:esearch#has#debounce
-    let b:esearch.viewport_highlight_timer = esearch#debounce#trailing(
+    let b:esearch.viewport_highlight_timer = esearch#debounce#_trailing(
           \ function('s:highlight_viewport_callback', [b:esearch]),
           \ g:esearch_win_highlight_debounce_wait,
           \ b:esearch.viewport_highlight_timer)
@@ -721,9 +727,9 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
 
-  if esearch#preview#is_available()
-    nnoremap <silent><buffer> <S-p> :<C-U>sil cal esearch#preview#start()<CR>
-    nnoremap <silent><buffer> p     :<C-U>sil cal esearch#preview#start()<CR>
+  if g:esearch#has#preview
+    nnoremap <silent><buffer> <S-p> :<C-U>sil cal b:esearch.preview()<CR>
+    nnoremap <silent><buffer> p     :<C-U>sil cal b:esearch.preview()<CR>
   endif
 
   for i in range(0, len(s:mappings) - 1)
@@ -749,6 +755,12 @@ fu! s:invoke_mapping_callback(i) abort
   call s:mappings[a:i].rhs()
 endfu
 
+fu! s:preview() abort dict
+  if exists('b:esearch')
+    return esearch#preview#start(esearch#out#win#filename(), esearch#out#win#line_in_file())
+  endif
+endfu
+
 fu! s:open(cmd, ...) abort
   if b:esearch.request.status !=# 0
     return
@@ -770,7 +782,9 @@ fu! s:open(cmd, ...) abort
     endtry
 
     keepjumps call winrestview({'lnum': lnum, 'col': col - 1,'topline': topline })
-    if a:0 | exe a:1 | endif
+    if a:0
+      exe a:1
+    endif
   endif
 endfu
 

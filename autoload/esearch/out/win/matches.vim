@@ -13,7 +13,7 @@ fu! esearch#out#win#matches#init_highlight(esearch) abort
   if g:esearch_out_win_highlight_matches ==# 'viewport'
     augroup ESearchWinHighlights
       let a:esearch.matches_namespace_id = nvim_create_namespace('esearchMatchesNS')
-      au CursorMoved <buffer> let b:esearch.match_highlight_timer = esearch#debounce#trailing(
+      au CursorMoved <buffer> let b:esearch.match_highlight_timer = esearch#debounce#_trailing(
             \ function('s:highlight_matches_callback', [b:esearch]),
             \ g:esearch_win_matches_highlight_debounce_wait,
             \ b:esearch.match_highlight_timer)
