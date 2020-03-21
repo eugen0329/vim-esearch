@@ -136,6 +136,8 @@ fu! s:init_lazy_global_config() abort
     let g:esearch.__lazy_loaded = 1
   endif
 
+  call esearch#highlight#init()
+
   return 0
 endfu
 
