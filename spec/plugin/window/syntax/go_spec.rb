@@ -17,11 +17,10 @@ describe 'esearch window context syntax', :window do
         func main() {}
         type _ struct {}
         type _ interface {}
-        "string"
+        "es_goString"
         "escaped quote\\"
         "str with escape\\n"
-        "ellipsized string#{'.' * 300}"
-        `raw string`
+        `es_goRawString`
         defer
         go
         goto
@@ -29,10 +28,53 @@ describe 'esearch window context syntax', :window do
         break
         continue
         fallthrough
-        "unterminated string
-        `unterminated raw string
+        "unterminated es_goString
+        `unterminated es_goRawString
         case
         default
+
+        append
+        cap
+        close
+        complex
+        copy
+        delete
+        imag
+        len
+        make
+        new
+        panic
+        print
+        println
+        real
+        recover
+        iota
+        true
+        false
+        nil
+        chan
+        map
+        bool
+        string
+        error
+        int
+        int8
+        int16
+        int32
+        int64
+        rune
+        byte
+        uint
+        uint8
+        uint16
+        uint32
+        uint64
+        uintptr
+        float32
+        float64
+        complex64
+        complex128
+
         // comment line
         /* comment block */
         /* ellipsized comment #{'.' * 300}*/
@@ -62,10 +104,10 @@ describe 'esearch window context syntax', :window do
         word('struct')                     => %w[es_goDeclType Keyword],
         word('interface')                  => %w[es_goDeclType Keyword],
 
-        region('"string"')                 => %w[es_goString String],
+        region('"es_goString"')                 => %w[es_goString String],
         region('"escaped quote\\\\"')      => %w[es_goString String],
         region('"str with escape\\\\n"')   => %w[es_goString String],
-        region('`raw string`$')            => %w[es_goRawString String],
+        region('`es_goRawString`$')            => %w[es_goRawString String],
 
         word('defer')                      => %w[es_goStatement Statement],
         word('go')                         => %w[es_goStatement Statement],
@@ -75,8 +117,8 @@ describe 'esearch window context syntax', :window do
         word('continue')                   => %w[es_goStatement Statement],
         word('fallthrough')                => %w[es_goStatement Statement],
 
-        region('"unterminated string')     => %w[es_goString String],
-        region('`unterminated raw string') => %w[es_goRawString String],
+        region('"unterminated es_goString')     => %w[es_goString String],
+        region('`unterminated es_goRawString') => %w[es_goRawString String],
 
         word('case')                       => %w[es_goLabel Label],
         word('default')                    => %w[es_goLabel Label],
@@ -86,7 +128,49 @@ describe 'esearch window context syntax', :window do
         region('/\* ellipsized comment')   => %w[es_goComment Comment],
 
         word('for')                        => %w[es_goRepeat Repeat],
-        word('range')                      => %w[es_goRepeat Repeat]
+        word('range')                      => %w[es_goRepeat Repeat],
+
+        word('append')                     => %w[es_goBuiltins Keyword],
+        word('cap')                        => %w[es_goBuiltins Keyword],
+        word('close')                      => %w[es_goBuiltins Keyword],
+        word('complex')                    => %w[es_goBuiltins Keyword],
+        word('copy')                       => %w[es_goBuiltins Keyword],
+        word('delete')                     => %w[es_goBuiltins Keyword],
+        word('imag')                       => %w[es_goBuiltins Keyword],
+        word('len')                        => %w[es_goBuiltins Keyword],
+        word('make')                       => %w[es_goBuiltins Keyword],
+        word('new')                        => %w[es_goBuiltins Keyword],
+        word('panic')                      => %w[es_goBuiltins Keyword],
+        word('print')                      => %w[es_goBuiltins Keyword],
+        word('println')                    => %w[es_goBuiltins Keyword],
+        word('real')                       => %w[es_goBuiltins Keyword],
+        word('recover')                    => %w[es_goBuiltins Keyword],
+        word('iota')                       => %w[es_goConstants Keyword],
+        word('true')                       => %w[es_goConstants Keyword],
+        word('false')                      => %w[es_goConstants Keyword],
+        word('nil')                        => %w[es_goConstants Keyword],
+        word('chan')                       => %w[es_goType Type],
+        word('map')                        => %w[es_goType Type],
+        word('bool')                       => %w[es_goType Type],
+        word('string')                     => %w[es_goType Type],
+        word('error')                      => %w[es_goType Type],
+        word('int')                        => %w[es_goType Type],
+        word('int8')                       => %w[es_goType Type],
+        word('int16')                      => %w[es_goType Type],
+        word('int32')                      => %w[es_goType Type],
+        word('int64')                      => %w[es_goType Type],
+        word('rune')                       => %w[es_goType Type],
+        word('byte')                       => %w[es_goType Type],
+        word('uint')                       => %w[es_goType Type],
+        word('uint8')                      => %w[es_goType Type],
+        word('uint16')                     => %w[es_goType Type],
+        word('uint32')                     => %w[es_goType Type],
+        word('uint64')                     => %w[es_goType Type],
+        word('uintptr')                    => %w[es_goType Type],
+        word('float32')                    => %w[es_goType Type],
+        word('float64')                    => %w[es_goType Type],
+        word('complex64')                  => %w[es_goType Type],
+        word('complex128')                 => %w[es_goType Type],
       )
     end
   end
