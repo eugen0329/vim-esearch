@@ -7,7 +7,7 @@ describe 'esearch window context syntax', :window do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
-  describe 'json' do
+  describe 'dockerfile' do
     # blank line is kept intentionally to know whether the last verified line
     # corrupts LineNr virtual UI or not
 

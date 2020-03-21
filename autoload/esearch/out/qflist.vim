@@ -26,7 +26,6 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'broken_results':      [],
         \ 'errors':              [],
         \ 'data':                [],
-        \ 'without':             function('esearch#util#without')
         \})
 
 
@@ -134,7 +133,7 @@ fu! esearch#out#qflist#finish() abort
 
   endif
 
-  do User ESearchOutputFinishQFList
+  silent doau User ESearchOutputFinishQFList
 endfu
 
 " For some reasons s:_is_render_finished fails in Travis
@@ -144,10 +143,10 @@ endfu
 
 fu! s:init_commands() abort
   let s:win = {
-        \ 'line_in_file':   function('s:line_in_file'),
-        \ 'open':           function('s:open'),
-        \ 'filename':       function('s:filename'),
-        \ 'is_file_entry':  function('s:is_file_entry')
+        \ 'line_in_file': function('s:line_in_file'),
+        \ 'open':         function('s:open'),
+        \ 'filename':     function('s:filename'),
+        \ 'is_entry':     function('s:is_entry')
         \}
   command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ESubstitute
         \ call esearch#substitute#do(<q-args>, <line1>, <line2>, s:win)
@@ -201,6 +200,6 @@ fu! s:filename() abort
   return bufname(qf[qfln-1].bufnr)
 endfu
 
-fu! s:is_file_entry() abort
+fu! s:is_entry() abort
   return 1 " always true
 endfu

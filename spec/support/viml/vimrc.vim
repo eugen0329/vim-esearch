@@ -5,7 +5,9 @@ set nocompatible
 filetype plugin on
 filetype indent on
 syntax on
-set nobackup swapfile directory=/tmp updatecount=1
+set nobackup noswapfile
+set splitbelow
+set splitright
 
 
 " remove default ~/.vim directories to avoid loading plugins

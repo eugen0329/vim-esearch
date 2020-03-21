@@ -7,7 +7,7 @@ describe 'esearch window context syntax', :window do
   include Helpers::FileSystem
   include Helpers::WindowSyntaxContext
 
-  describe 'generic' do
+  describe 'lisp' do
     # blank line is kept intentionally to know whether the last verified line
     # corrupts LineNr virtual UI or not
 

@@ -185,7 +185,13 @@ describe Debug do
   end
 
   describe '.sourced_scripts' do
-    let(:plugin_path) { Configuration.root.join('plugin/esearch.vim').to_s }
+    let(:plugin_path) do
+      Configuration
+        .root
+        .join('plugin/esearch.vim')
+        .to_s
+        .gsub(`echo $HOME`.chomp, '')
+    end
 
     it { expect(debug.sourced_scripts).to include match(plugin_path) }
   end

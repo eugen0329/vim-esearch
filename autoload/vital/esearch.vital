@@ -1,5 +1,5 @@
 esearch
-4d1d1575d25ab1f5c02c69d0d256d15f0cb0f69f
+b7d21986cf5e7220fd6dadfec970af44d451073c
 
 Async.Promise
 Data.OrderedSet
@@ -11,3 +11,4 @@ Vim.Message
 Data.String
 System.Filepath
 Vim.Highlight
+Vim.BufferManager

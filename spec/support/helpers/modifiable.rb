@@ -14,6 +14,14 @@ module Helpers::Modifiable
       @line_numbers ||= 1.upto(content.length).to_a
     end
 
+    def locate!
+      entries.first.locate!
+    end
+
+    def absolute_path
+      file.path.to_s
+    end
+
     def entries
       line_numbers.map do |line_number|
         esearch.output.find_entry(name, line_number)
@@ -42,9 +50,7 @@ module Helpers::Modifiable
     let(:entry) { output.find_entry(sample_context.name, sample_line_number) }
     let(:line_number_text) { entry.line_number_text }
     let(:files) do
-      contexts.map do |c|
-        c.file = file(c.content, c.name)
-      end
+      contexts.map { |c| c.file = file(c.content, c.name) }
     end
     let!(:test_directory) { directory(files).persist! }
     let(:entries) { contexts.map(&:entries).flatten }

@@ -8,8 +8,10 @@ fu! esearch#debounce#_trailing(callback, wait, timer) abort
 endfu
 
 fu! esearch#debounce#trailing(callback, wait) abort
+  " Wrapping into the list prevents from unbinding self. The same old story as
+  " with js this.
   return {
-        \ '_callback': a:callback,
+        \ '_callback': [a:callback],
         \ '_timer':    -1,
         \ '_wait':     a:wait,
         \ 'invoke':    function('<SID>invoke_trailing'),
@@ -21,5 +23,7 @@ fu! s:invoke_trailing(...) abort dict
     call timer_stop(self._timer)
   endif
 
-  let self._timer = timer_start(self._wait, {_ -> call(self._callback, a:000) })
+  " otherwise closure won't work
+  let args = a:000
+  let self._timer = timer_start(self._wait, {_ -> call(self._callback[0], args) })
 endfu
