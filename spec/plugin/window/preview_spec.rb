@@ -54,10 +54,19 @@ describe 'esearch#preview' do
     describe 'swapfiles' do
       let!(:swap_file) { file('', swap_path(test_file.path)).persist! }
 
-      before { editor.command 'set updatecount=1' } # start writing swap
+      before do
+        editor.command <<~VIML
+          set swapfile directory=/tmp updatecount=1
+          set updatecount=1
+        VIML
+      end # start writing swap
       after do
         expect(window_local_highlights).to all eq(default_highlight)
         swap_file.unlink
+        editor.command <<~VIML
+          set noswapfile
+          set updatecount=0
+        VIML
       end
 
       it 'handles buffer opened staying in the current window' do
@@ -167,11 +176,12 @@ describe 'esearch#preview' do
 
       context 'bouncing split with staying in the current window' do
         include_context 'verify test file content is not modified after a testcase'
+        let(:split_silent) { '\\<Plug>(esearch-win-split-silent)' }
 
         # regression bug when the second opened buffer had incorrect
         # winhighlight
         it 'resets window-local highlight for all opened windows' do
-          expect { editor.send_keys 'S', 'S' }
+          expect { editor.send_keys split_silent, split_silent }
             .to change { window_handles.count }
             .by(1)
             .and not_to_change { editor.current_buffer_name }

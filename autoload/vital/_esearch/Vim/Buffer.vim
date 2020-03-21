@@ -68,6 +68,8 @@ function! s:open(buffer, ...) abort
         throw 'vital: Vim.Buffer: Unknown {buffer} type.'
       endif
     endif
+  catch /E325:/
+    " don't fail on swap prompt
   finally
     call guard.restore()
   endtry

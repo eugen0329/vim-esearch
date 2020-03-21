@@ -1,36 +1,25 @@
-" We expect to receive the following if use #substitute#do over files with an
-" NOTE 1 (unsilent when opening files)
-" existing swap:
-" |0 files changed
-" |The following files has unresolved swapfiles
-" |    file_with_existed_swap.foo
-" But instead:
-" |0 files changed
-" |The following files has unresolved swapfiles
-" |"Search: `query`" [readonly] line 5 of 25 --20%-- col 12
-"
-" Have no idea why it's so (and time to deal) ...
-
-let s:Vital   = vital#esearch#new()
-let s:Promise = s:Vital.import('Async.Promise')
-let s:List    = s:Vital.import('Data.List')
-let s:String  = s:Vital.import('Data.String')
-let s:Filepath = s:Vital.import('System.Filepath')
-let s:Message = vital#esearch#import('Vim.Message')
+let s:Promise       = vital#esearch#import('Async.Promise')
+let s:List          = vital#esearch#import('Data.List')
+let s:String        = vital#esearch#import('Data.String')
+let s:Filepath      = vital#esearch#import('System.Filepath')
+let s:Message       = vital#esearch#import('Vim.Message')
+let s:Message       = vital#esearch#import('Vim.Message')
+let s:ViewTracer    = vital#esearch#import('Vim.ViewTracer')
+let s:BufferManager = vital#esearch#import('Vim.BufferManager')
 
 let s:mappings = [
-      \ {'lhs': 't',       'rhs': 'tab',           'default': 1},
-      \ {'lhs': 'T',       'rhs': 'tab-silent',    'default': 1},
-      \ {'lhs': 'o',       'rhs': 'split',         'default': 1},
-      \ {'lhs': 'O',       'rhs': 'split-silent',  'default': 1},
-      \ {'lhs': 's',       'rhs': 'vsplit',        'default': 1},
-      \ {'lhs': 'S',       'rhs': 'vsplit-silent', 'default': 1},
-      \ {'lhs': 'R',       'rhs': 'reload',        'default': 1},
-      \ {'lhs': '<Enter>', 'rhs': 'open',          'default': 1},
-      \ {'lhs': '<C-n>',   'rhs': 'next',          'default': 1},
-      \ {'lhs': '<C-p>',   'rhs': 'prev',          'default': 1},
-      \ {'lhs': '<S-j>',   'rhs': 'next-file',     'default': 1},
-      \ {'lhs': '<S-k>',   'rhs': 'prev-file',     'default': 1},
+      \ {'lhs': 't',       'rhs': 'tab',                'default': 1},
+      \ {'lhs': 'T',       'rhs': 'tab-silent',         'default': 1},
+      \ {'lhs': 'o',       'rhs': 'split',              'default': 1},
+      \ {'lhs': 'O',       'rhs': 'split-once-silent',  'default': 1},
+      \ {'lhs': 's',       'rhs': 'vsplit',             'default': 1},
+      \ {'lhs': 'S',       'rhs': 'vsplit-once-silent', 'default': 1},
+      \ {'lhs': 'R',       'rhs': 'reload',             'default': 1},
+      \ {'lhs': '<Enter>', 'rhs': 'open',               'default': 1},
+      \ {'lhs': '<C-n>',   'rhs': 'next',               'default': 1},
+      \ {'lhs': '<C-p>',   'rhs': 'prev',               'default': 1},
+      \ {'lhs': '<S-j>',   'rhs': 'next-file',          'default': 1},
+      \ {'lhs': '<S-k>',   'rhs': 'prev-file',          'default': 1},
       \ ]
 
 let s:null = 0
@@ -241,7 +230,13 @@ fu! esearch#out#win#init(opts) abort
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
-        \})
+        \}, 'force')
+  let b:esearch = extend(a:opts, {
+        \ 'opened_once_handles': {},
+        \ 'opened_once_manager': s:BufferManager.new(),
+        \ 'opened_manager':      s:BufferManager.new(),
+        \}, 'keep')
+
 
   if b:esearch.request.async
     call s:init_update_events(b:esearch)
@@ -283,6 +278,8 @@ fu! esearch#out#win#init(opts) abort
   " Other things can be conveniently redefined using au FileType esearch
   call s:init_mappings()
   call s:init_commands()
+
+  doau User esearch#out#win#initialize
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -333,7 +330,7 @@ fu! s:cleanup() abort
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
         \ get(b:esearch, 'matches_highlight_id', -1))
-  unlet b:esearch
+  doau User esearch#out#win#uninitialize
 endfu
 
 " TODO refactoring
@@ -714,18 +711,22 @@ fu! s:init_commands() abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-win-tab)           :<C-U>call <sid>open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-win-tab-silent)    :<C-U>call <SID>open('tabnew', 'tabprevious')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split)         :<C-U>call <SID>open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-silent)  :<C-U>call <SID>open('new', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)        :<C-U>call <SID>open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-silent) :<C-U>call <SID>open('vnew', 'wincmd p')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-open)          :<C-U>call <SID>open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-reload)        :<C-U>call esearch#init(b:esearch)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-prev)          :<C-U>sil exe <SID>jump(0, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-next)          :<C-U>sil exe <SID>jump(1, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)     :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-next-file)     :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tab)                :<C-U>cal <sid>open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tab-silent)         :<C-U>cal <SID>open('tabnew', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-once)         :<C-U>cal <SID>open('new', {'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-once-silent)  :<C-U>cal <SID>open('new', {'stay': 1, 'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split)              :<C-U>cal <SID>open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-silent)       :<C-U>cal <SID>open('new', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once)        :<C-U>cal <SID>open('vnew', {'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once-silent) :<C-U>cal <SID>open('vnew', {'stay': 1, 'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)             :<C-U>cal <SID>open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-silent)      :<C-U>cal <SID>open('vnew', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-open)               :<C-U>cal <SID>open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-prev)               :<C-U>sil exe <SID>jump(0, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-next)               :<C-U>sil exe <SID>jump(1, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)          :<C-U>sil cal <SID>file_jump(0, v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-next-file)          :<C-U>sil cal <SID>file_jump(1, v:count1)<CR>
 
   if g:esearch#has#preview
     nnoremap <silent><buffer> <S-p> :<C-U>sil cal b:esearch.preview()<CR>
@@ -761,31 +762,65 @@ fu! s:preview() abort dict
   endif
 endfu
 
-fu! s:open(cmd, ...) abort
-  if b:esearch.request.status !=# 0
+fu! s:open(opener, ...) abort
+  if !exists('b:esearch') || b:esearch.request.status !=# 0
     return
   endif
 
   let filename = esearch#out#win#filename()
-  if !empty(filename)
-    let lnum = esearch#out#win#line_in_file()
-    let col = str2nr(esearch#out#win#column_in_file())
-    let topline = str2nr(lnum) - (line('.') - line('w0'))
-    let cmd = (a:0 ? 'noautocmd ' :'') . a:cmd
-    try
-      " See NOTE 1
-      unsilent exe a:cmd . ' ' . filename
-    catch /E325:/
-      " ignore warnings about swapfiles (let user and #substitute handle them)
-    catch
-      unsilent echo v:exception . ' at ' . v:throwpoint
-    endtry
+  if empty(filename)
+    return
+  endif
+
+  " TODO use self.
+  let esearch = b:esearch
+  let opts        = get(a:000, 0, {})
+  let stay        = get(opts, 'stay', 0)
+  let once        = get(opts, 'once', 0)
+  let eventignore = get(opts, 'eventignore', 'BufLeave')
+
+  let original_eventignore = &eventignore
+  let lnum = esearch#out#win#line_in_file()
+  let col = str2nr(esearch#out#win#column_in_file())
+  let topline = str2nr(lnum) - (line('.') - line('w0'))
+
+  if stay
+    let search_win_view = winsaveview()
+    let w:esearch = reltime() " to be able to trace the window
+    let search_win_handle = s:ViewTracer.trace_window()
+  endif
+
+  try
+    let &eventignore = eventignore
+    if once
+      if s:ViewTracer.exists(get(esearch.opened_once_handles, a:opener, {}))
+        call s:ViewTracer.jump(esearch.opened_once_handles[a:opener])
+        unsilent call esearch.opened_once_manager
+              \.open(filename, {'opener': 'edit', 'range': ''})
+      else
+        unsilent call esearch.opened_once_manager
+              \.open(filename, {'opener': a:opener, 'range': ''})
+      endif
+      let w:esearch = reltime() " to be able to trace the window
+      let esearch.opened_once_handles[a:opener] = s:ViewTracer.trace_window()
+    else
+      unsilent call esearch.opened_manager
+            \.open(filename, {'opener': a:opener, 'range': ''})
+    endif
 
     keepjumps call winrestview({'lnum': lnum, 'col': col - 1,'topline': topline })
-    if a:0
-      exe a:1
+
+  catch /E325:/
+    " ignore warnings about swapfiles (let user and #substitute handle them)
+  catch
+    unsilent echo v:exception . ' at ' . v:throwpoint
+  finally
+    let &eventignore = original_eventignore
+    if stay
+      call s:ViewTracer.jump(search_win_handle)
+      call winrestview(search_win_view)
     endif
-  endif
+  endtry
 endfu
 
 fu! esearch#out#win#line_in_file() abort
@@ -944,7 +979,6 @@ fu! esearch#out#win#finish(bufnr) abort
   endif
   call setbufvar(a:bufnr, '&modifiable', 1)
 
-  let g:asd = deepcopy(esearch.request)
   if !esearch#adapter#{esearch.adapter}#is_success(esearch.request)
     call esearch#stderr#finish(esearch)
   endif
