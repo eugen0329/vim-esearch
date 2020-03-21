@@ -44,42 +44,90 @@ describe 'esearch#out#win#open' do
 
   describe 'via mappings defined by user' do
     context 'when callable rhs' do
-      context 'when only opener given' do
-        before do
-          editor.command! <<~VIML
-            call esearch#out#win#map('e', { -> b:esearch.open('tab drop') })
-          VIML
-        end
-        include_context 'search matching any lines'
-        before { ctx1.locate! }
+      context 'when callable opener given' do
+        context 'when once options are given' do
+          before do
+            editor.command! %w[
+              call esearch#out#win#map('e', { ->
+               b:esearch.open({filename -> execute('vsplit ' . filename)}, {'once': 1, 'stay': 1})
+              })
+            ].join(' ')
+          end
+          include_context 'search matching any lines'
+          before { ctx1.locate! }
 
-        it do
-          expect { editor.send_keys 'e' }
-            .to change { tabpages_list.count }
-            .by(1)
-            .and change { editor.current_buffer_name }
-            .to(ctx1.absolute_path)
-            .and not_to_change { tabpage_windows_list.count }
+          # Every lambda has it's own internal id showed when string() is
+          # called, so lambda callers are needed to be handled differently
+
+          it 'handles recognizes lambdas with the same bodies as openers' do
+            expect { editor.send_keys 'e', 'e' }
+              .to change { tabpage_windows_list.count }
+              .by(1)
+              .and not_to_change { editor.current_buffer_name }
+              .and not_to_change { tabpages_list.count }
+          end
+        end
+
+        context 'when without options' do
+          before do
+            editor.command! %w[
+              call esearch#out#win#map('e', { ->
+               b:esearch.open({filename -> execute('vsplit ' . filename)})
+              })
+            ].join(' ')
+          end
+          include_context 'search matching any lines'
+          before { ctx1.locate! }
+
+          it 'handles callable rhs with callable opener' do
+            expect { editor.send_keys 'e' }
+              .to change { tabpage_windows_list.count }
+              .by(1)
+              .and change { editor.current_buffer_name }
+              .to(ctx1.absolute_path)
+              .and not_to_change { tabpages_list.count }
+          end
         end
       end
 
-      context 'when opener and options are given' do
-        before do
-          editor.command! [
-            "call esearch#out#win#map('e', { ->",
-            " b:esearch.open('split', {'stay': 1, 'once': 1, 'let': {'&eventignore': 'all'}})",
-            '})'
-          ].join
-        end
-        include_context 'search matching any lines'
-        before { ctx1.locate! }
+      context 'when string opener given' do
+        context 'when once options are given' do
+          before do
+            editor.command! %w[
+              call esearch#out#win#map('e', { ->
+                b:esearch.open('split', {'stay': 1, 'once': 1, 'let': {'&eventignore': 'all'}})
+              })
+            ].join(' ')
+          end
+          include_context 'search matching any lines'
+          before { ctx1.locate! }
 
-        it do
-          expect { editor.send_keys 'e' }
-            .to change { tabpage_windows_list.count }
-            .by(1)
-            .and not_to_change { editor.current_buffer_name }
-            .and not_to_change { tabpages_list.count }
+          it 'handles callable rhs according to provided options' do
+            expect { editor.send_keys 'e', 'e' }
+              .to change { tabpage_windows_list.count }
+              .by(1)
+              .and not_to_change { editor.current_buffer_name }
+              .and not_to_change { tabpages_list.count }
+          end
+        end
+
+        context 'when without options' do
+          before do
+            editor.command! <<~VIML
+              call esearch#out#win#map('e', { -> b:esearch.open('tab drop') })
+            VIML
+          end
+          include_context 'search matching any lines'
+          before { ctx1.locate! }
+
+          it 'handles callable rhs' do
+            expect { editor.send_keys 'e' }
+              .to change { tabpages_list.count }
+              .by(1)
+              .and change { editor.current_buffer_name }
+              .to(ctx1.absolute_path)
+              .and not_to_change { tabpage_windows_list.count }
+          end
         end
       end
     end

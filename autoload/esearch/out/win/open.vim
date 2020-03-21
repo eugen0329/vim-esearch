@@ -1,5 +1,8 @@
 let s:ViewTracer = vital#esearch#import('Vim.ViewTracer')
 
+let s:function_t = type(function('tr'))
+let s:string_t   = type('')
+
 fu! esearch#out#win#open#do(opener, ...) abort dict
   if !self.is_current() | return | endif
   let filename = self.filename()
@@ -33,26 +36,54 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
 endfu
 
 fu! s:open_new(esearch, opener, filename) abort
-  let RawOpener = function('<SID>raw_opener', [a:opener])
+  let Opener = s:to_callable(a:opener)
   call a:esearch.opened_manager
-        \.open(a:filename, {'opener': RawOpener, 'range': ''})
+        \.open(a:filename, {'opener': Opener, 'range': ''})
 endfu
 
 fu! s:open_once(esearch, opener, filename) abort
-  let opened_window = get(a:esearch.windows_opened_once, a:opener, {})
+  let opener_id = s:opener_id(a:opener)
+  let opened_window = get(a:esearch.windows_opened_once, opener_id, {})
 
   if s:ViewTracer.exists(opened_window)
-    let RawOpener = function('<SID>raw_opener', ['edit'])
+    let Opener = s:to_callable('edit')
     call s:ViewTracer.jump(opened_window)
     unsilent call a:esearch.opened_once_manager
-          \.open(a:filename, {'opener': RawOpener, 'range': ''})
+          \.open(a:filename, {'opener': Opener, 'range': ''})
   else
-    let RawOpener = function('<SID>raw_opener', [a:opener])
+    let Opener = s:to_callable(a:opener)
     unsilent call a:esearch.opened_once_manager
-          \.open(a:filename, {'opener': RawOpener, 'range': ''})
+          \.open(a:filename, {'opener': Opener, 'range': ''})
   endif
-  let a:esearch.windows_opened_once[a:opener] =
+  let a:esearch.windows_opened_once[opener_id] =
         \ s:ViewTracer.trace_window()
+endfu
+
+fu! s:to_callable(opener) abort
+  if type(a:opener) ==# s:function_t
+    return a:opener
+  endif
+
+  return function('<SID>raw_opener', [a:opener])
+endfu
+
+fu! s:opener_id(opener) abort
+  if type(a:opener) ==# s:string_t
+    return a:opener
+  elseif type(a:opener) ==# s:function_t
+    let stringified = string(a:opener)
+    " Same lambdas has different ids while they do the same. The code below
+    " expands lambda source and removes lambda ids from it to allow user to
+    " create anonymous functions without flooding vimrc.
+    if stridx(stringified, "function('<lambda>") ==# 0
+      let stringified = execute('function a:opener') " Expand lambda source
+      let stringified = substitute(stringified, '<lambda>\(\d\+\)', '<number>', '')
+    endif
+
+    return stringified
+  endif
+
+  return string(a:opener)
 endfu
 
 " Notes, why opening of a filename escaped previously is required:
