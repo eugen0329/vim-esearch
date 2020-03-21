@@ -11,42 +11,42 @@ describe 'esearch#option' do
   describe 'esearch#context_manager#let#do' do
     let(:original_variables) do
       {
-      'b:int_var'    =>  11,
-      'w:int_var'    =>  12,
-      't:int_var'    =>  13,
-      'g:int_var'    =>  14,
-      'b:float_var'  =>  11.0,
-      'w:float_var'  =>  12.0,
-      't:float_var'  =>  13.0,
-      'g:float_var'  =>  14.0,
-      'b:string_var' => '11',
-      'w:string_var' => '12',
-      't:string_var' => '13',
-      'g:string_var' => '14',
-      '&directory'   => '1-option',
-      '$GLOBAL_VAR'  => '1-GLOBAL_VAR',
-      '@/'           => '1-register1',
-      '@='           => '1-register2',
+        'b:int_var'    => 11,
+        'w:int_var'    => 12,
+        't:int_var'    => 13,
+        'g:int_var'    => 14,
+        'b:float_var'  => 11.0,
+        'w:float_var'  => 12.0,
+        't:float_var'  => 13.0,
+        'g:float_var'  => 14.0,
+        'b:string_var' => '11',
+        'w:string_var' => '12',
+        't:string_var' => '13',
+        'g:string_var' => '14',
+        '&directory'   => '1-option',
+        '$GLOBAL_VAR'  => '1-GLOBAL_VAR',
+        '@/'           => '1-register1',
+        '@='           => '1-register2'
       }
     end
     let(:updated_variables) do
       {
-      'b:int_var'    => 21,
-      'w:int_var'    => 22,
-      't:int_var'    => 23,
-      'g:int_var'    => 24,
-      'b:float_var'  => 21.0,
-      'w:float_var'  => 22.0,
-      't:float_var'  => 23.0,
-      'g:float_var'  => 24.0,
-      'b:string_var' => '21',
-      'w:string_var' => '22',
-      't:string_var' => '23',
-      'g:string_var' => '24',
-      '&directory'   => '2-option',
-      '$GLOBAL_VAR'  => '2-GLOBAL_VAR',
-      '@/'           => '2-register1',
-      '@='           => '2-register2',
+        'b:int_var'    => 21,
+        'w:int_var'    => 22,
+        't:int_var'    => 23,
+        'g:int_var'    => 24,
+        'b:float_var'  => 21.0,
+        'w:float_var'  => 22.0,
+        't:float_var'  => 23.0,
+        'g:float_var'  => 24.0,
+        'b:string_var' => '21',
+        'w:string_var' => '22',
+        't:string_var' => '23',
+        'g:string_var' => '24',
+        '&directory'   => '2-option',
+        '$GLOBAL_VAR'  => '2-GLOBAL_VAR',
+        '@/'           => '2-register1',
+        '@='           => '2-register2'
       }
     end
     let(:variables) { original_variables.keys.map { |k| var(k) } }
@@ -58,7 +58,7 @@ describe 'esearch#option' do
     before do
       editor.command("let g:manager = #{VimlValue.dump(func('esearch#context_manager#let#new'))}")
       editor.command! original_variables
-        .map { |k,v| "let #{k} = #{v.inspect}" }.join("\n")
+        .map { |k, v| "let #{k} = #{v.inspect}" }.join("\n")
     end
 
     describe '#enter' do

@@ -3,6 +3,8 @@
 require 'active_support/cache'
 
 class CacheStore < ActiveSupport::Cache::MemoryStore
+  include CleanCaller
+
   def data
     @data.transform_values(&:value)
   end

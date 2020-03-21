@@ -33,20 +33,35 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
 endfu
 
 fu! s:open_new(esearch, opener, filename) abort
+  let RawOpener = function('<SID>raw_opener', [a:opener])
   call a:esearch.opened_manager
-        \.open(a:filename, {'opener': a:opener, 'range': ''})
+        \.open(a:filename, {'opener': RawOpener, 'range': ''})
 endfu
 
 fu! s:open_once(esearch, opener, filename) abort
-  let opened_win = get(a:esearch.wins_opened_once, a:opener, {})
+  let opened_window = get(a:esearch.windows_opened_once, a:opener, {})
 
-  if s:ViewTracer.exists(opened_win)
-    call s:ViewTracer.jump(opened_win)
+  if s:ViewTracer.exists(opened_window)
+    let RawOpener = function('<SID>raw_opener', ['edit'])
+    call s:ViewTracer.jump(opened_window)
     unsilent call a:esearch.opened_once_manager
-          \.open(a:filename, {'opener': 'edit', 'range': ''})
+          \.open(a:filename, {'opener': RawOpener, 'range': ''})
   else
+    let RawOpener = function('<SID>raw_opener', [a:opener])
     unsilent call a:esearch.opened_once_manager
-          \.open(a:filename, {'opener': a:opener, 'range': ''})
+          \.open(a:filename, {'opener': RawOpener, 'range': ''})
   endif
-  let a:esearch.wins_opened_once[a:opener] = s:ViewTracer.trace_window()
+  let a:esearch.windows_opened_once[a:opener] =
+        \ s:ViewTracer.trace_window()
+endfu
+
+" Notes, why opening of a filename escaped previously is required:
+" - It'll be easier to switch to featching of escaped filename from the layout
+"   in a case when immutable UI feature is disabled
+" - Filenames are escaped to allow copypasting directly from a search window
+"   without extra efforts
+"
+" Internally vital uses `=a:filename` that works only with unescaped strings
+fu! s:raw_opener(opener, filename) abort dict
+  exe self.mods a:opener self.cmdarg a:filename
 endfu

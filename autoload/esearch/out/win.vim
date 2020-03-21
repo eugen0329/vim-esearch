@@ -240,7 +240,7 @@ fu! esearch#out#win#init(opts) abort
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
-        \ 'wins_opened_once': {},
+        \ 'windows_opened_once': {},
         \ 'opened_once_manager': s:BufferManager.new(),
         \ 'opened_manager':      s:BufferManager.new(),
         \}, 'keep')
@@ -775,7 +775,9 @@ fu! s:filename() abort dict
     let filename = context.filename
   endif
 
-  if !s:Filepath.is_absolute(filename)
+  if s:Filepath.is_absolute(filename)
+    let filename = fnameescape(filename)
+  else
     let filename = fnameescape(self.cwd . '/' . filename)
   endif
 
