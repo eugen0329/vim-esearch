@@ -42,8 +42,7 @@ describe 'esearch#out#win#open' do
 
   include_context 'report editor state on error'
 
-  # TODO:
-  # test cmdarg and mods more thoroughly
+  # TODO: test cmdarg and mods more thoroughly
 
   describe 'via mappings defined by user' do
     context 'when callable rhs' do
@@ -51,8 +50,8 @@ describe 'esearch#out#win#open' do
         context 'when once options are given' do
           before do
             editor.command! %w[
-              call esearch#out#win#map('e', { ->
-              b:esearch.open({filename -> execute('vsplit ' . filename)}, {'once': 1, 'stay': 1})
+              call esearch#out#win#map('e { ->
+              b:esearch.open({filename -> execute('vsplit . filename)} {'once': 1 stay': 1})
               })
             ].join(' ')
           end
@@ -74,8 +73,8 @@ describe 'esearch#out#win#open' do
         context 'when without options' do
           before do
             editor.command! %w[
-              call esearch#out#win#map('e', {->
-                b:esearch.open({filename -> execute('vsplit ' . filename)})
+              call esearch#out#win#map('e {->
+              b:esearch.open({filename -> execute('vsplit . filename)})
               })
             ].join(' ')
           end
@@ -97,9 +96,9 @@ describe 'esearch#out#win#open' do
         context 'when once options are given' do
           before do
             editor.command! %w[
-              call esearch#out#win#map('e', { ->
-                b:esearch.open('split',
-                {'cmdarg': '++enc=utf8', 'mods': 'topleft', 'stay': 1, 'once': 1, 'let': {'&eventignore': 'all'}})
+              call esearch#out#win#map('e { ->
+              b:esearch.open('split
+              {'cmdarg': ++enc=utf8 mods': topleft stay': 1 once': 1 let': {'&eventignore': all'}})
               })
             ].join(' ')
           end
