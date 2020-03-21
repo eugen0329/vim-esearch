@@ -28,7 +28,7 @@ fu! esearch#substitute#do(args, from, to, out) abort
     exe noautocmd.'tabn '.search_win_tab
     exe current_search_win_line
 
-    if !a:out.is_file_entry()
+    if !a:out.is_entry()
       let current_search_win_line += 1
       continue
     endif
