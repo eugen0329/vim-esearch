@@ -5,7 +5,7 @@ let s:Filepath      = vital#esearch#import('System.Filepath')
 let s:Message       = vital#esearch#import('Vim.Message')
 let s:BufferManager = vital#esearch#import('Vim.BufferManager')
 
-let s:mappings = [
+let g:esearch#out#win#mappings = [
       \ {'lhs': 't',       'rhs': 'tab',                'default': 1},
       \ {'lhs': 'T',       'rhs': 'tab-silent',         'default': 1},
       \ {'lhs': 'o',       'rhs': 'split',              'default': 1},
@@ -226,16 +226,15 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                   [],
         \ 'context_syntax_regions':   {},
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
-        \ 'without':                  function('esearch#util#without'),
         \ 'header_text':              function('s:header_text'),
-        \ 'open':                     function('esearch#out#win#open#do'),
+        \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
         \ 'filename':                 function('<SID>filename'),
         \ 'line_in_file':             function('<SID>line_in_file'),
         \ 'is_filename':              function('<SID>is_filename'),
         \ 'is_entry':                 function('<SID>is_entry'),
         \ 'jump2entry':               function('<SID>jump2entry'),
-        \ 'jump2file':                function('<SID>jump2file'),
+        \ 'jump2filename':            function('<SID>jump2filename'),
         \ 'is_current':               function('<SID>is_current'),
         \}, 'force')
 
@@ -293,6 +292,12 @@ fu! esearch#out#win#init(opts) abort
   if !b:esearch.request.async
     call esearch#out#win#finish(bufnr('%'))
   endif
+endfu
+
+fu! s:open(...) abort dict
+  " As autoload functions cannot handle dict as s:... functions do. Otherwise
+  " it'd cause preblems with esearch#debounce#... methods
+  return call('esearch#out#win#open#do', a:000, self)
 endfu
 
 if has('nvim')
@@ -700,7 +705,7 @@ fu! s:include_syntax_cluster(ft) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  call esearch#util#add_map(s:mappings, a:lhs, a:rhs)
+  call esearch#util#add_map(g:esearch#out#win#mappings, a:lhs, a:rhs)
 endfu
 
 fu! s:init_commands() abort
@@ -730,8 +735,8 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-open)               :<C-U>cal b:esearch.open('edit')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-prev)               :<C-U>cal b:esearch.jump2entry('^', v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next)               :<C-U>cal b:esearch.jump2entry('v', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)          :<C-U>cal b:esearch.jump2file('^', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-next-file)          :<C-U>cal b:esearch.jump2file('v', v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)          :<C-U>cal b:esearch.jump2filename('^', v:count1)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-next-file)          :<C-U>cal b:esearch.jump2filename('v', v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
 
   if g:esearch#has#preview
@@ -739,13 +744,15 @@ fu! s:init_mappings() abort
     nnoremap <silent><buffer> p     :<C-U>sil cal b:esearch.preview()<CR>
   endif
 
-  for i in range(0, len(s:mappings) - 1)
-    if !g:esearch.default_mappings && s:mappings[i].default | continue | endif
+  for i in range(0, len(g:esearch#out#win#mappings) - 1)
+    if !g:esearch.default_mappings && g:esearch#out#win#mappings[i].default | continue | endif
 
-    if type(s:mappings[i].rhs) ==# s:function_t
-      exe 'nmap <buffer><silent> ' . s:mappings[i].lhs . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
+    if type(g:esearch#out#win#mappings[i].rhs) ==# s:function_t
+      exe 'nmap <buffer><silent> ' . g:esearch#out#win#mappings[i].lhs
+            \ . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
     else
-      exe 'nmap <buffer> ' . s:mappings[i].lhs . ' <Plug>(esearch-win-' . s:mappings[i].rhs . ')'
+      exe 'nmap <buffer> ' . g:esearch#out#win#mappings[i].lhs
+            \ . ' <Plug>(esearch-win-' . g:esearch#out#win#mappings[i].rhs . ')'
     endif
   endfor
   " TODO handle start via mappings
@@ -753,7 +760,7 @@ fu! s:init_mappings() abort
 endfu
 
 fu! s:invoke_mapping_callback(i) abort
-  call s:mappings[a:i].rhs()
+  call g:esearch#out#win#mappings[a:i].rhs()
 endfu
 
 fu! s:preview() abort dict
@@ -831,7 +838,7 @@ fu! s:result_line() abort
   endif
 endfu
 
-fu! s:jump2file(direction, count) abort dict
+fu! s:jump2filename(direction, count) abort dict
   let pattern = s:filename_pattern . '\%>2l'
   let times = a:count
 

@@ -9,9 +9,12 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
   if empty(filename) | return | endif
 
   let opts        = get(a:000, 0, {})
-  let stay        = get(opts, 'stay', 0) " stay in the current window
-  let once        = get(opts, 'once', 0) " open only a single window
-  let assignments = get(opts, 'let', {}) " assign vars/opts/regs
+  let stay        = get(opts, 'stay', 0)    " stay in the current window
+  let once        = get(opts, 'once', 0)    " open only a single window
+  let assignments = get(opts, 'let', {})    " assign vars/opts/regs
+  let cmdarg      = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
+  let mods        = get(opts, 'mods', '')   " EX: botright
+  let open_opts   = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
 
   let let_ctx_manager = esearch#context_manager#let#new().enter(assignments)
   if stay
@@ -23,7 +26,7 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
 
   try
     let Open = once ? function('s:open_once') : function('s:open_new')
-    call Open(self, a:opener, filename)
+    call Open(self, a:opener, filename, open_opts)
     keepjumps call winrestview({'lnum': lnum, 'topline': topline })
 
   catch /E325:/ " swapexists exception, will be handled by a user
@@ -35,26 +38,25 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
   endtry
 endfu
 
-fu! s:open_new(esearch, opener, filename) abort
-  let Opener = s:to_callable(a:opener)
-  call a:esearch.opened_manager
-        \.open(a:filename, {'opener': Opener, 'range': ''})
+fu! s:open_new(esearch, opener, filename, opts) abort
+  let a:opts.opener = s:to_callable(a:opener)
+  call a:esearch.opened_manager.open(a:filename, a:opts)
 endfu
 
-fu! s:open_once(esearch, opener, filename) abort
+fu! s:open_once(esearch, opener, filename, opts) abort
   let opener_id = s:opener_id(a:opener)
   let opened_window = get(a:esearch.windows_opened_once, opener_id, {})
 
   if s:ViewTracer.exists(opened_window)
-    let Opener = s:to_callable('edit')
     call s:ViewTracer.jump(opened_window)
-    unsilent call a:esearch.opened_once_manager
-          \.open(a:filename, {'opener': Opener, 'range': ''})
+    let a:opts.opener = s:to_callable('edit')
+    unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
   else
-    let Opener = s:to_callable(a:opener)
-    unsilent call a:esearch.opened_once_manager
-          \.open(a:filename, {'opener': Opener, 'range': ''})
+    let a:opts.opener = s:to_callable(a:opener)
+    unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
   endif
+
+  let w:esearch = reltime() " to be able to trace the window
   let a:esearch.windows_opened_once[opener_id] =
         \ s:ViewTracer.trace_window()
 endfu

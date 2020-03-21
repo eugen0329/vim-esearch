@@ -26,7 +26,6 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'broken_results':      [],
         \ 'errors':              [],
         \ 'data':                [],
-        \ 'without':             function('esearch#util#without')
         \})
 
 
