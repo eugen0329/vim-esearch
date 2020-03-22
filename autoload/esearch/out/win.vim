@@ -763,9 +763,10 @@ fu! s:invoke_mapping_callback(i) abort
   call g:esearch#out#win#mappings[a:i].rhs(b:esearch)
 endfu
 
-fu! s:preview() abort dict
+fu! s:preview(...) abort dict
   if !self.is_current() | return | endif
-  return esearch#preview#start(self.filename(), self.line_in_file())
+  return call(function('esearch#preview#start'),
+        \ [self.filename(), self.line_in_file()] + a:000)
 endfu
 
 fu! s:line_in_file() abort dict

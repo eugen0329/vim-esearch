@@ -16,22 +16,28 @@ let s:events = join([
 let s:preview_buffers = {}
 let s:preview_window = s:null
 
-fu! esearch#preview#start(filename, line) abort
+fu! esearch#preview#start(filename, line, ...) abort
   if !filereadable(a:filename)
     return 0
   endif
 
-  if getfsize(a:filename) > 50 * 1024
-    return s:using_readlines_strategy(a:filename, a:line)
+  let geometry = {}
+  let opts = get(a:000, 0, {})
+  let max_edit_size   = get(opts, 'max_edit_size', 50 * 1024) " size in bytes
+  let geometry.width  = get(opts, 'width', 120)
+  let geometry.height = get(opts, 'height', 11)
+
+  if getfsize(a:filename) > max_edit_size
+    return s:using_readlines_strategy(a:filename, a:line, geometry)
   else
-    return s:using_edit_strategy(a:filename, a:line)
+    return s:using_edit_strategy(a:filename, a:line, geometry)
   endif
 endfu
 
-fu! s:using_readlines_strategy(filename, line) abort
+fu! s:using_readlines_strategy(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
-  let [width, height] = [120, 11]
+  let [width, height] = [a:geometry.width, a:geometry.height]
 
   let lines = readfile(filename)
   let search_window = bufwinnr(bufnr('%'))
@@ -115,14 +121,14 @@ fu! s:set_context_lines(preview_buffer, lines, height, line) abort
   call assert_equal(len(context_lines),  a:height) " TODO remove when tests are ready
 endfu
 
-fu! s:using_edit_strategy(filename, line) abort
+fu! s:using_edit_strategy(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
 
   let search_window = bufwinnr(bufnr('%'))
   let preview_buffer = s:create_buffer(filename, 0)
 
-  let [width, height] = [120, 11]
+  let [width, height] = [a:geometry.width, a:geometry.height]
 
   try
     call s:close_preview_window()
@@ -261,8 +267,6 @@ fu! s:make_preview_buffer_regular() abort
   endif
 
   let preview_buffer = s:preview_buffers[current_filename]
-  " let &l:winhighlight = preview_buffer.guard.winhighlight
-  " let &l:signcolumn = preview_buffer.guard.signcolumn
   try
     if !empty(preview_buffer.guard)
       let &l:swapfile = preview_buffer.guard.swapfile

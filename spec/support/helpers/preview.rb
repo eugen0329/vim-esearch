@@ -28,4 +28,12 @@ module Helpers::Preview
       [file_path.relative_path_from(editor.cwd).to_s.gsub('/', '%'), '.swp'].join
     ].join('/')
   end
+
+  def window_height(handle)
+    editor.echo(func('nvim_win_get_height', handle))
+  end
+
+  def window_width(handle)
+    editor.echo(func('nvim_win_get_width', handle))
+  end
 end

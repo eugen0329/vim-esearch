@@ -15,15 +15,17 @@ describe 'esearch#preview' do
   describe 'neovim', :neovim do
     let(:search_string) { 'a' }
     let(:file_content) { search_string * 3 }
-    let(:test_file) { file(file_content, 'from.txt') }
+    let(:test_file) { file(file_content, 'test_file.txt') }
     let!(:test_directory) { directory([test_file]).persist! }
 
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
-    before do
-      esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win', root_markers: [])
-      esearch.cd! test_directory
-      esearch.search!(search_string)
+    shared_context 'start search' do
+      before do
+        esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win', root_markers: [])
+        esearch.cd! test_directory
+        esearch.search!(search_string)
+      end
     end
 
     after do
@@ -51,12 +53,66 @@ describe 'esearch#preview' do
       end
     end
 
+    describe 'API' do
+      describe 'max_edit_size option' do
+        before do
+          editor.command! <<~VIML
+            call esearch#out#win#map('e', {es-> es.preview({'max_edit_size': 0}) })
+          VIML
+        end
+        include_context 'start search'
+
+        it 'opens a scratch buffer when the size in KB is exceeded' do
+          expect { editor.send_keys 'e' }
+            .and change { editor.ls }
+            .to include('[Scratch]')
+        end
+      end
+
+      describe 'width and height options' do
+        context 'when using edit strategy' do
+          before do
+            editor.command! "call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10}) })"
+          end
+          include_context 'start search'
+          before { editor.send_keys 'e' }
+
+          it 'opens window with a specified geometry' do
+            expect(window_height(window_handles.last)).to eq(5)
+            expect(window_width(window_handles.last)).to eq(10)
+          end
+        end
+
+        context 'when using readlines strategy' do
+          before do
+            editor.command! <<~VIML
+              call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10, 'max_edit_size': 0}) })
+            VIML
+          end
+          include_context 'start search'
+          before do
+            expect { editor.send_keys 'e' }
+              .to change { editor.ls }
+              .to include('[Scratch]')
+          end
+
+          it 'opens window with a specified geometry' do
+            expect(window_height(window_handles.last)).to eq(5)
+            expect(window_width(window_handles.last)).to eq(10)
+          end
+        end
+      end
+    end
+
     describe 'swapfiles' do
-      let!(:swap_file) { file('', swap_path(test_file.path)).persist! }
+      let(:swap_file) { file('swap_content', swap_path(test_file.path)) }
+      let!(:test_directory) { directory([test_file]).persist! }
 
       before do
+        test_directory.files << swap_file
+        test_directory.persist!
         editor.command <<~VIML
-          set swapfile directory=/tmp updatecount=1
+          set swapfile directory=#{test_directory} updatecount=1
           set updatecount=1
         VIML
       end
@@ -98,6 +154,7 @@ describe 'esearch#preview' do
     end
 
     describe 'closing on cursor moved' do
+      include_context 'start search'
       include_context "open preview and verify it's correctness"
 
       it 'closes window on regular movement' do
@@ -121,6 +178,7 @@ describe 'esearch#preview' do
     end
 
     describe 'closing on opening a file' do
+      include_context 'start search'
       include_context "open preview and verify it's correctness"
 
       context 'when opening with staying in the current window' do
@@ -172,11 +230,13 @@ describe 'esearch#preview' do
     end
 
     describe 'bouncing keypress' do
+      include_context 'start search'
       include_context "open preview and verify it's correctness"
 
       context 'bouncing split with staying in the current window' do
-        include_context 'verify test file content is not modified after a testcase'
         let(:split_silent) { '\\<Plug>(esearch-win-split-silent)' }
+
+        include_context 'verify test file content is not modified after a testcase'
 
         # regression bug when the second opened buffer had incorrect
         # winhighlight

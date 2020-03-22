@@ -7,7 +7,8 @@ require 'active_support/core_ext/class/attribute'
 
 class Fixtures::LazyDirectory
   class_attribute :fixtures_directory
-  attr_reader :files, :given_name
+  attr_reader :given_name
+  attr_accessor :files
 
   def initialize(files = [], given_name = nil)
     @files = files
