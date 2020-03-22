@@ -59,6 +59,7 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('main.c')).to         eq('c')               }
     it { expect(ftdetect.call('main.cmod')).to      eq('cmod')            }
     it { expect(ftdetect.call('main.cpp')).to       eq('cpp')             }
+    it { expect(ftdetect.call('main.cc')).to        eq('cpp')             }
     it { expect(ftdetect.call('main.hpp')).to       eq('cpp')             }
 
     it { expect(ftdetect.call('main.m')).to         eq('objc')            }

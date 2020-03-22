@@ -19,6 +19,7 @@ if !exists('g:esearch_ftdetect_patterns')
         \ '\.bats$':   'sh',
         \ '\.c$':      'c',
         \ '\.h$':      'c',
+        \ '\.cc$':     'cpp',
         \ '\.cpp$':    'cpp',
         \ '\.coffee$': 'coffee',
         \ '\.ts$':     'typescript',
