@@ -48,10 +48,13 @@ fu! s:using_readlines_strategy(filename, line) abort
   catch
     call s:close_preview_window()
     echoerr v:exception
+    return 0
   finally
     let preview_buffer.newly_created = 0
     call s:jump_to_window(search_window)
   endtry
+
+  return 1
 endfu
 
 fu! s:setup_pseudo_file_appearance(filename, preview_buffer, preview_window) abort
@@ -138,10 +141,13 @@ fu! s:using_edit_strategy(filename, line) abort
   catch
     call s:close_preview_window()
     echoerr v:exception
+    return 0
   finally
     let preview_buffer.newly_created = 0
     call s:jump_to_window(search_window)
   endtry
+
+  return 1
 endfu
 
 fu! s:save_options(preview_buffer) abort

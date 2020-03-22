@@ -585,7 +585,7 @@ fu! s:blocking_highlight_viewport(esearch) abort
   let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
   let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
 
-  let state = esearch#out#win#_state()
+  let state = esearch#out#win#_state(a:esearch)
   for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]
     if !context.syntax_loaded
       call s:load_syntax(a:esearch, context)
@@ -760,12 +760,11 @@ fu! s:init_mappings() abort
 endfu
 
 fu! s:invoke_mapping_callback(i) abort
-  call g:esearch#out#win#mappings[a:i].rhs()
+  call g:esearch#out#win#mappings[a:i].rhs(b:esearch)
 endfu
 
 fu! s:preview() abort dict
   if !self.is_current() | return | endif
-
   return esearch#preview#start(self.filename(), self.line_in_file())
 endfu
 
@@ -774,7 +773,7 @@ fu! s:line_in_file() abort dict
 endfu
 
 fu! s:filename() abort dict
-  let context = esearch#out#win#repo#ctx#new(self, esearch#out#win#_state()).by_line(line('.'))
+  let context = esearch#out#win#repo#ctx#new(self, esearch#out#win#_state(self)).by_line(line('.'))
 
   if context.id == 0
     let filename =  get(self.contexts, 1, context).filename
@@ -791,15 +790,15 @@ fu! s:filename() abort dict
   return filename
 endfu
 
-fu! esearch#out#win#_state() abort
-  if b:esearch.mode ==# 'normal'
+fu! esearch#out#win#_state(esearch) abort
+  if a:esearch.mode ==# 'normal'
     " Probably a better idea would be to return only paris, stored in states.
     " Storing in normal mode within undotree with a single node is not the best
     " option as it seems to create extra overhead during #update call
     " (especially on searches with thousands results; according to profiling).
-    return b:esearch
+    return a:esearch
   else
-    return b:esearch.undotree.head.state
+    return a:esearch.undotree.head.state
   endif
 endfu
 
@@ -857,6 +856,8 @@ fu! s:jump2filename(direction, count) abort dict
       let times -= 1
     endwhile
   endif
+
+  return 1
 endfu
 
 fu! s:jump2entry(direction, count) abort dict
@@ -890,6 +891,8 @@ fu! s:jump2entry(direction, count) abort dict
   if last_line !=# 1
     norm! ww
   endif
+
+  return 1
 endfu
 
 fu! s:is_entry() abort dict

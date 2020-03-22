@@ -36,6 +36,8 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
     call let_ctx_manager.exit()
     if stay | call stay_ctx_manager.exit() | endif
   endtry
+
+  return 1
 endfu
 
 fu! s:open_new(esearch, opener, filename, opts) abort
