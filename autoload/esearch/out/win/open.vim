@@ -8,15 +8,16 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
   let filename = self.filename()
   if empty(filename) | return | endif
 
-  let opts        = get(a:000, 0, {})
-  let stay        = get(opts, 'stay', 0)    " stay in the current window
-  let once        = get(opts, 'once', 0)    " open only a single window
-  let assignments = get(opts, 'let', {})    " assign vars/opts/regs
-  let cmdarg      = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
-  let mods        = get(opts, 'mods', '')   " EX: botright
-  let open_opts   = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
+  let opts          = get(a:000, 0, {})
+  let stay          = get(opts, 'stay', 0)    " stay in the current window
+  let once          = get(opts, 'once', 0)    " open only a single window
+  let vars_per_open = get(opts, 'let', {})    " assign vars/opts/regs per functoin execution
+  let window_vars   = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
+  let cmdarg        = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
+  let mods          = get(opts, 'mods', '')   " EX: botright
+  let open_opts     = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
 
-  let let_ctx_manager = esearch#context_manager#let#new().enter(assignments)
+  let let_ctx_manager = esearch#context_manager#let#new().enter(vars_per_open)
   if stay
     let stay_ctx_manager = esearch#context_manager#stay#new().enter()
   endif
@@ -28,6 +29,7 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
     let Open = once ? function('s:open_once') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)
     keepjumps call winrestview({'lnum': lnum, 'topline': topline })
+    call esearch#let#do(window_vars)
 
   catch /E325:/ " swapexists exception, will be handled by a user
   catch
