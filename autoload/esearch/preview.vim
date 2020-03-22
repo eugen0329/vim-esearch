@@ -202,7 +202,7 @@ fu! s:reshape_preview_window(line, height) abort
 endfu
 
 fu! s:setup_edited_file_highlight() abort
-  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat
+  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat foldlevel=1000
   keepjumps doau BufReadPre
   keepjumps doau BufRead
 endfu
@@ -226,6 +226,7 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
   let data = {'id': id, 'number': win_id2win(id), 'guard': {}}
   let data.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
   let data.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
+  let data.guard.foldlevel = nvim_win_get_option(id, 'foldlevel')
   return data
 endfu
 
@@ -308,6 +309,7 @@ fu! s:close_preview_window() abort
   if s:preview_window isnot# s:null
     call nvim_win_set_option(s:preview_window.id, 'winhighlight', s:preview_window.guard.winhighlight)
     call nvim_win_set_option(s:preview_window.id, 'signcolumn', s:preview_window.guard.signcolumn)
+    call nvim_win_set_option(s:preview_window.id, 'foldlevel', s:preview_window.guard.foldlevel)
     call nvim_win_close(s:preview_window.id, 1)
     let s:preview_window = s:null
   endif
