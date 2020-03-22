@@ -93,6 +93,28 @@ describe 'esearch#out#win#open' do
       end
 
       context 'when string opener given' do
+        # BUG #105
+        context 'when CTRL-U mappings are defined' do
+          before do
+            editor.command! <<~VIML
+              cnoremap <c-u> <c-u><BS>
+              call esearch#out#win#map('e', { -> b:esearch.open('vsplit') })
+            VIML
+          end
+          include_context 'search matching any lines'
+          before { ctx1.locate! }
+          after { editor.command! 'cunmap <C-u>' }
+
+          it 'handles recognizes lambdas with the same bodies as openers' do
+            expect { editor.send_keys 'e' }
+              .to change { tabpage_windows_list.count }
+              .by(1)
+              .and change { editor.current_buffer_name }
+              .to(ctx1.absolute_path)
+              .and not_to_change { tabpages_list.count }
+          end
+        end
+
         context 'when once options are given' do
           before do
             editor.command! %w[
@@ -140,6 +162,23 @@ describe 'esearch#out#win#open' do
     include_context 'search matching any lines'
 
     before  { ctx1.locate! }
+
+    # BUG #105
+    context 'when CTRL-U mappings are defined' do
+      before { editor.command! 'cnoremap <c-u> <c-u><BS>' }
+      include_context 'search matching any lines'
+      before { ctx1.locate! }
+      after { editor.command! 'cunmap <C-u>' }
+
+      it 'handles recognizes lambdas with the same bodies as openers' do
+        expect { editor.send_keys 's' }
+          .to change { tabpage_windows_list.count }
+          .by(1)
+          .and change { editor.current_buffer_name }
+          .to(ctx1.absolute_path)
+          .and not_to_change { tabpages_list.count }
+      end
+    end
 
     context "when with 'stay' option" do
       describe 'mixing different openers' do

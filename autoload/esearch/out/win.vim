@@ -748,7 +748,7 @@ fu! s:init_mappings() abort
     if !g:esearch.default_mappings && g:esearch#out#win#mappings[i].default | continue | endif
 
     if type(g:esearch#out#win#mappings[i].rhs) ==# s:function_t
-      exe 'nmap <buffer><silent> ' . g:esearch#out#win#mappings[i].lhs
+      exe 'nnoremap <buffer><silent> ' . g:esearch#out#win#mappings[i].lhs
             \ . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
     else
       exe 'nmap <buffer> ' . g:esearch#out#win#mappings[i].lhs
