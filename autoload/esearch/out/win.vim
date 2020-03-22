@@ -230,6 +230,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
         \ 'filename':                 function('<SID>filename'),
+        \ 'filetype':                 function('<SID>filetype'),
         \ 'line_in_file':             function('<SID>line_in_file'),
         \ 'is_filename':              function('<SID>is_filename'),
         \ 'is_entry':                 function('<SID>is_entry'),
@@ -543,7 +544,7 @@ fu! s:new_context(id, filename, begin) abort
         \ 'begin': a:begin,
         \ 'end': 0,
         \ 'filename': a:filename,
-        \ 'filetype': 0,
+        \ 'filetype': s:null,
         \ 'syntax_loaded': 0,
         \ 'lines': {},
         \ }
@@ -773,22 +774,46 @@ fu! s:line_in_file() abort dict
   return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 
-fu! s:filename() abort dict
-  let context = esearch#out#win#repo#ctx#new(self, esearch#out#win#_state(self)).by_line(line('.'))
+fu! s:filetype(...) abort dict
+  let ctx = s:file_context_at(line('.'), self)
+  if empty(ctx) | return s:null | endif
 
-  if context.id == 0
-    let filename =  get(self.contexts, 1, context).filename
-  else
-    let filename = context.filename
+  if empty(ctx.filetype)
+    let opts = get(a:000)
+
+    if get(opts, 'slow', 1)
+      let ctx.filetype = esearch#ftdetect#slow(ctx.filename)
+    else
+      let ctx.filetype = esearch#ftdetect#fast(ctx.filename)
+    endif
   endif
 
-  if s:Filepath.is_absolute(filename)
-    let filename = fnameescape(filename)
+  return ctx.filetype
+endfu
+
+fu! s:filename() abort dict
+  let ctx = s:file_context_at(line('.'), self)
+  if empty(ctx) | return s:null | endif
+
+  if s:Filepath.is_absolute(ctx.filename)
+    let filename = fnameescape(ctx.filename)
   else
-    let filename = fnameescape(self.cwd . '/' . filename)
+    let filename = fnameescape(self.cwd . '/' . ctx.filename)
   endif
 
   return filename
+endfu
+
+fu! s:file_context_at(line, esearch) abort
+  if len(a:esearch.contexts) < 2 | return s:null | endif " only a header ctx
+
+  let ctx = esearch#out#win#repo#ctx#new(a:esearch, esearch#out#win#_state(a:esearch))
+        \.by_line(a:line)
+  if ctx.id == 0
+    return a:esearch.contexts[1]
+  endif
+
+  return ctx
 endfu
 
 fu! esearch#out#win#_state(esearch) abort
