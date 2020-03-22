@@ -49,11 +49,11 @@ describe 'esearch#out#win#open' do
       context 'when callable opener given' do
         context 'when once options are given' do
           before do
-            editor.command! %w[
-              call esearch#out#win#map('e { ->
-              b:esearch.open({filename -> execute('vsplit . filename)} {'once': 1 stay': 1})
+            editor.command! <<~VIML.gsub("\n", ' ')
+              call esearch#out#win#map('e', { ->
+              b:esearch.open({filename -> execute('vsplit ' . filename)}, {'once': 1, 'stay': 1})
               })
-            ].join(' ')
+            VIML
           end
           include_context 'search matching any lines'
           before { ctx1.locate! }
@@ -72,11 +72,11 @@ describe 'esearch#out#win#open' do
 
         context 'when without options' do
           before do
-            editor.command! %w[
-              call esearch#out#win#map('e {->
-              b:esearch.open({filename -> execute('vsplit . filename)})
+            editor.command! <<~VIML.gsub("\n", ' ')
+              call esearch#out#win#map('e', {->
+              b:esearch.open({filename -> execute('vsplit '. filename)})
               })
-            ].join(' ')
+            VIML
           end
           include_context 'search matching any lines'
           before { ctx1.locate! }
@@ -117,12 +117,12 @@ describe 'esearch#out#win#open' do
 
         context 'when once options are given' do
           before do
-            editor.command! %w[
-              call esearch#out#win#map('e { ->
-              b:esearch.open('split
-              {'cmdarg': ++enc=utf8 mods': topleft stay': 1 once': 1 let': {'&eventignore': all'}})
+            editor.command! <<~VIML.gsub("\n", ' ')
+              call esearch#out#win#map('e', { ->
+              b:esearch.open('split',
+              {'cmdarg': '++enc=utf8', 'mods': 'topleft', 'stay': 1, 'once': 1, 'let': {'&eventignore': 'all'}})
               })
-            ].join(' ')
+            VIML
           end
           include_context 'search matching any lines'
           before { ctx1.locate! }
