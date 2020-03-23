@@ -1,13 +1,6 @@
-let s:jobs = {}
-
 if !exists('g:esearch#backend#vim8#ticks')
   let g:esearch#backend#vim8#ticks = 100
 endif
-
-let s:job_id_counter = 0
-
-let s:jobs = {}
-let s:incrementable_internal_id = 0
 
 if !exists('g:esearch#backend#vim8#ticks')
   let g:esearch#backend#vim8#ticks = 3
@@ -17,18 +10,22 @@ if !exists('g:esearch#backend#vim8#timer')
   let g:esearch#backend#vim8#timer = 1000
 endif
 
+let s:jobs = {}
+let s:id = esearch#count#new()
+
 fu! esearch#backend#vim8#init(adapter, cmd, pty) abort
   " TODO add 'stoponexit'
+  let id = s:id.next()
   let request = {
-        \ 'internal_job_id': s:incrementable_internal_id,
+        \ 'internal_job_id': id,
         \ 'old_cursor': '',
         \ 'jobstart_args': {
         \   'cmd': split(&shell) + split(&shellcmdflag) + [a:cmd],
         \   'opts': {
-        \     'out_cb': function('s:stdout', [s:incrementable_internal_id]),
-        \     'err_cb': function('s:stderr', [s:incrementable_internal_id]),
-        \     'exit_cb': function('s:exit', [s:incrementable_internal_id]),
-        \     'close_cb': function('s:closed', [s:incrementable_internal_id]),
+        \     'out_cb': function('s:stdout', [id]),
+        \     'err_cb': function('s:stderr', [id]),
+        \     'exit_cb': function('s:exit', [id]),
+        \     'close_cb': function('s:closed', [id]),
         \     'out_mode': 'raw',
         \     'err_mode': 'nl',
         \     'in_io': 'null',
@@ -51,8 +48,6 @@ fu! esearch#backend#vim8#init(adapter, cmd, pty) abort
         \   'update': 0
         \ }
         \}
-
-  let s:incrementable_internal_id += 1
 
   return request
 endfu

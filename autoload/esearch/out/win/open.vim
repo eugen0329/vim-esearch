@@ -68,9 +68,8 @@ fu! s:open_once(esearch, opener, filename, opts) abort
     unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
   endif
 
-  let w:esearch = reltime() " to be able to trace the window
   let a:esearch.windows_opened_once[opener_id] =
-        \ s:ViewTracer.trace_window()
+        \ esearch#util#trace_window()
 endfu
 
 fu! s:to_callable(opener) abort

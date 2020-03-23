@@ -1,7 +1,9 @@
-let s:Prelude   = vital#esearch#import('Prelude')
-let s:Highlight = vital#esearch#import('Vim.Highlight')
-let s:Message   = vital#esearch#import('Vim.Message')
-let s:Filepath  = vital#esearch#import('System.Filepath')
+let s:Prelude    = vital#esearch#import('Prelude')
+let s:Highlight  = vital#esearch#import('Vim.Highlight')
+let s:Message    = vital#esearch#import('Vim.Message')
+let s:Filepath   = vital#esearch#import('System.Filepath')
+let s:ViewTracer = vital#esearch#import('Vim.ViewTracer')
+let s:window_id  = esearch#count#new()
 
 fu! esearch#util#setline(_, lnum, text) abort
   call setline(a:lnum, a:text)
@@ -637,4 +639,11 @@ fu! esearch#util#absolute_path(cwd, path) abort
   endif
 
   return s:Filepath.join(a:cwd, a:path)
+endfu
+
+fu! esearch#util#trace_window() abort
+  " ViewTracer works by matching window vars, so using counter prevents from
+  " matching different windows with the same variables defined.
+  let w:esearch = s:window_id.next()
+  return s:ViewTracer.trace_window()
 endfu

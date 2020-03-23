@@ -15,8 +15,7 @@ endfu
 
 fu! s:Stay.enter() abort dict
   let self.view = winsaveview()
-  let w:esearch = reltime() " to be able to trace the window
-  let self.handle = s:ViewTracer.trace_window()
+  let self.handle = esearch#util#trace_window()
   return self
 endfu
 
