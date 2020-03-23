@@ -27,7 +27,7 @@ fu! esearch#preview#reset() abort
   if esearch#preview#is_open()
     call nvim_win_set_option(g:esearch#preview#window.id, 'winhighlight', g:esearch#preview#window.guard.winhighlight)
     call nvim_win_set_option(g:esearch#preview#window.id, 'signcolumn', g:esearch#preview#window.guard.signcolumn)
-    " call nvim_win_set_option(g:esearch#preview#window.id, 'foldlevel', g:esearch#preview#window.guard.foldlevel)
+    call nvim_win_set_option(g:esearch#preview#window.id, 'foldenable', g:esearch#preview#window.guard.foldenable)
   endif
 endfu
 
@@ -46,7 +46,7 @@ fu! esearch#preview#start(filename, line, ...) abort
     return 0
   endif
 
-  let geometry = {}
+  let geometry = {'winline': winline(), 'wincol': wincol()}
   let opts = get(a:000, 0, {})
   let max_edit_size   = get(opts, 'max_edit_size', 50 * 1024) " size in bytes
   " let max_edit_size   = get(opts, 'max_edit_size', 0) " size in bytes
@@ -76,7 +76,7 @@ fu! s:using_scratch(filename, line, geometry) abort
     let g:esearch#preview#window = s:open_preview_window(preview_buffer, width, height)
     call s:setup_pseudo_file_appearance(filename, preview_buffer, g:esearch#preview#window)
     call s:jump_to_window(g:esearch#preview#window.id)
-    call s:reshape_preview_window(line, height)
+    call s:reshape_preview_window(preview_buffer, line, a:geometry)
     call s:setup_autoclose_events()
   catch
     call esearch#preview#close()
@@ -169,7 +169,7 @@ fu! s:using_real_buffer(filename, line, geometry) abort
     call s:edit_file(filename, preview_buffer)
     call s:setup_edited_file_highlight()
     call s:setup_matching_line_sign(line)
-    call s:reshape_preview_window(line, height)
+    call s:reshape_preview_window(preview_buffer, line, a:geometry)
     call s:setup_on_user_opens_buffer_events()
     call s:setup_autoclose_events()
   catch
@@ -215,49 +215,65 @@ endfu
 
 " Builtin winrestview() has a lot of side effects so s:reshape_preview_window
 " should be invoken as later as possible
-fu! s:reshape_preview_window(line, height) abort
-  let lines_size = line('$')
-  exe 'noautocmd keepjumps resize '. a:height
+fu! s:reshape_preview_window(preview_buffer, line, geometry) abort
+  let height = min([nvim_buf_line_count(a:preview_buffer.id), a:geometry.height])
+  let guard = s:Guard.store(['&winminheight'])
 
-  if lines_size < a:height
-    return cursor(a:line, 0)
-  endif
-
-  " literally what :help scrolloff does, but without dealing with options
-  if lines_size - a:line < a:height
-    let topline = lines_size - a:height
+  if  &lines - height - 1 < a:geometry.winline
+    " if there's no room - show above
+    let row = a:geometry.winline - height
   else
-    let topline = a:line - (a:height / 2)
+    let row = a:geometry.winline + 1
   endif
-  noautocmd keepjumps call winrestview({
-        \ 'lnum': a:line,
-        \ 'col': 1,
-        \ 'topline': topline,
-        \ })
+
+
+  try
+    noau set winminheight=1
+    " exe 'noautocmd keepjumps resize '. height
+
+    call nvim_win_set_height(g:esearch#preview#window.id, height)
+    call nvim_win_set_config(g:esearch#preview#window.id, {
+          \ 'row':       row,
+          \ 'col':       max([5, a:geometry.wincol - 1]),
+          \ 'relative': 'win',
+          \ })
+
+    let lines_size = line('$')
+    if lines_size < height
+      return cursor(a:line, 0)
+    endif
+
+    " literally what :help scrolloff does, but without dealing with options
+    if lines_size - a:line < height
+      let topline = lines_size - height
+    else
+      let topline = a:line - (height / 2)
+    endif
+    noautocmd keepjumps call winrestview({
+          \ 'lnum': a:line,
+          \ 'col': 1,
+          \ 'topline': topline,
+          \ })
+  finally
+    call guard.restore()
+  endtry
 endfu
 
 fu! s:setup_edited_file_highlight() abort
-  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat
-  " noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat foldlevel=1000
+  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat nofoldenable
   keepjumps doau BufReadPre
   keepjumps doau BufRead
 endfu
 
 fu! s:open_preview_window(preview_buffer, width, height) abort
-  if  &lines - a:height - 1 < winline()
-    let row = winline() - a:height
-  else
-    let row = winline()
-  endif
-
   let guard = s:Guard.store(['&shortmess'])
   noau set shortmess+=A
   let id = nvim_open_win(a:preview_buffer.id, 0, {
         \ 'width':     a:width,
         \ 'height':    a:height,
         \ 'focusable': v:false,
-        \ 'row':       row,
-        \ 'col':       max([5, wincol() - 1]),
+        \ 'row':       1,
+        \ 'col':       1,
         \ 'relative':  'win',
         \})
   call guard.restore()
@@ -265,7 +281,7 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
   let data = {'id': id, 'number': win_id2win(id), 'guard': {}}
   let data.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
   let data.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
-  " let data.guard.foldlevel = nvim_win_get_option(id, 'foldlevel')
+  let data.guard.foldenable = nvim_win_get_option(id, 'foldenable')
   return data
 endfu
 
@@ -274,12 +290,7 @@ fu! s:edit_file(filename, preview_buffer) abort
 
     let guard = s:Guard.store(['&shortmess'])
     noau set shortmess+=A
-    " if a:preview_buffer.newly_created
-      exe 'edit ' . fnameescape(a:filename)
-      call nvim_buf_set_name(bufnr(), a:filename)
-    " else
-    "   exe 'keepjumps noau edit ' . fnameescape(a:filename)
-    " endif
+    exe 'keepjumps noau edit ' . fnameescape(a:filename)
     call guard.restore()
 
 
@@ -330,7 +341,8 @@ fu! s:make_preview_buffer_regular() abort
 endfu
 
 fu! s:create_scratch_buffer(filename) abort
-  if has_key(g:esearch#preview#scratches, a:filename) && nvim_buf_is_valid(g:esearch#preview#scratches[a:filename].id)
+  if has_key(g:esearch#preview#scratches, a:filename)
+        \ && nvim_buf_is_valid(g:esearch#preview#scratches[a:filename].id)
     return g:esearch#preview#scratches[a:filename]
   endif
 
@@ -348,7 +360,8 @@ endfu
 
 fu! s:create_buffer(filename) abort
   if has_key(g:esearch#preview#buffers, a:filename)
-    if bufexists(a:filename) && nvim_buf_is_valid(g:esearch#preview#buffers[a:filename].id)
+    if bufexists(a:filename)
+          \ && nvim_buf_is_valid(g:esearch#preview#buffers[a:filename].id)
       return g:esearch#preview#buffers[a:filename]
     else
       " buffer is known as a preview, but it was removed using :bwipeout or a
