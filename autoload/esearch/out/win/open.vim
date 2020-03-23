@@ -1,4 +1,6 @@
 let s:ViewTracer = vital#esearch#import('Vim.ViewTracer')
+let s:Message    = vital#esearch#import('Vim.Message')
+let s:Filepath   = vital#esearch#import('System.Filepath')
 
 let s:function_t = type(function('tr'))
 let s:string_t   = type('')
@@ -32,8 +34,10 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
     call esearch#let#do(window_vars)
 
   catch /E325:/ " swapexists exception, will be handled by a user
+  catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch
-    unsilent echo v:exception . ' at ' . v:throwpoint
+    call s:Message.echomsg('ErrorMsg', v:exception . ' at ' . v:throwpoint)
+    return 0
   finally
     call let_ctx_manager.exit()
     if stay | call stay_ctx_manager.exit() | endif
@@ -53,8 +57,12 @@ fu! s:open_once(esearch, opener, filename, opts) abort
 
   if s:ViewTracer.exists(opened_window)
     call s:ViewTracer.jump(opened_window)
-    let a:opts.opener = s:to_callable('edit')
-    unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
+    " Don't open if the file is already opened.
+    " Prevents from triggering existing swap prompt multiple times
+    if s:Filepath.abspath(bufname('%')) !=# a:filename
+      let a:opts.opener = s:to_callable('edit')
+      unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
+    endif
   else
     let a:opts.opener = s:to_callable(a:opener)
     unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)

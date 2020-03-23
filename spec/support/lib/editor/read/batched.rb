@@ -20,7 +20,7 @@ class Editor::Read::Batched < Editor::Read::Base
     !container.__value__.equal?(Editor::Read::Batched::Container::UNDEFINED)
   end
 
-  def handle_state_change!
+  def invalidate_cache!
     eager!
     super
   end

@@ -93,7 +93,7 @@ describe Editor, :editor do
     include_examples '#with_ignore_cache'
   end
 
-  describe '#handle_state_change!' do
-    include_examples '#handle_state_change!'
+  describe '#invalidate_cache!' do
+    include_examples '#invalidate_cache!'
   end
 end

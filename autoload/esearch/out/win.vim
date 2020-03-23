@@ -237,6 +237,8 @@ fu! esearch#out#win#init(opts) abort
         \ 'jump2entry':               function('<SID>jump2entry'),
         \ 'jump2filename':            function('<SID>jump2filename'),
         \ 'is_current':               function('<SID>is_current'),
+        \ 'split_preview':            function('<SID>split_preview'),
+        \ 'last_split_preview':       {},
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
@@ -331,6 +333,30 @@ endif
 " Is used to prevent problems with asynchronous code
 fu! s:is_current() abort dict
   return get(b:, 'esearch', {}) ==# self
+endfu
+
+" A wrapper around regular open
+fu! s:split_preview(...) abort dict
+  if !self.is_current() | return | endif
+
+  let last = self.last_split_preview
+  let current = {
+        \ 'filename':     self.filename(),
+        \ 'line_in_file': self.line_in_file(),
+        \ }
+  let self.last_split_preview = current
+
+  if last ==# current
+    " Open once to prevent redundant jumps that could also cause reappearing swap
+    " handling prompt
+    return 0
+  endif
+
+  return self.open(get(a:000, 0, 'vnew'), extend({
+        \ 'stay': 1,
+        \ 'once': 1,
+        \ 'let!': {'&l:foldenable': 0},
+        \ }, get(a:000, 1, {}), 'force'))
 endfu
 
 fu! s:cleanup() abort
@@ -775,6 +801,8 @@ fu! s:line_in_file() abort dict
 endfu
 
 fu! s:filetype(...) abort dict
+  if !self.is_current() | return | endif
+
   let ctx = s:file_context_at(line('.'), self)
   if empty(ctx) | return s:null | endif
 
@@ -792,6 +820,8 @@ fu! s:filetype(...) abort dict
 endfu
 
 fu! s:filename() abort dict
+  if !self.is_current() | return | endif
+
   let ctx = s:file_context_at(line('.'), self)
   if empty(ctx) | return s:null | endif
 

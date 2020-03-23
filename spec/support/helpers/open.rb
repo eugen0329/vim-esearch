@@ -5,8 +5,12 @@
 module Helpers::Open
   extend RSpec::Matchers::DSL
 
-  def tabpage_windows_list
+  def tabpage_buffers_list
     editor.echo func('tabpagebuflist')
+  end
+
+  def tabpage_windows_list
+    (1..editor.echo( func('tabpagewinnr', func('tabpagenr'), '$'))).to_a
   end
 
   def tabpages_list

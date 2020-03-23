@@ -114,14 +114,14 @@ describe Editor, :editor do
     include_examples '#with_ignore_cache'
   end
 
-  describe '#handle_state_change!' do
-    include_examples '#handle_state_change!'
+  describe '#invalidate_cache!' do
+    include_examples '#invalidate_cache!'
 
     it 'loads lazy values' do
       expect(vim).to receive(:echo).once.with('[abs(-1)]').and_return('[1]')
       container = subject.echo(func('abs', -1))
 
-      expect { subject.handle_state_change! }
+      expect { subject.invalidate_cache! }
         .to change { container.__value__ }
         .from(Editor::Read::Batched::Container::UNDEFINED)
     end

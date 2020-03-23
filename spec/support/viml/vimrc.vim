@@ -8,6 +8,7 @@ syntax on
 set nobackup noswapfile
 set splitbelow
 set splitright
+set foldenable
 
 
 " remove default ~/.vim directories to avoid loading plugins
