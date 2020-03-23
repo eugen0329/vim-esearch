@@ -105,7 +105,7 @@ describe 'esearch#ftdetect' do
 
   describe '#slow' do
     subject(:ftdetect) do
-      ->(filename) { editor.echo func('esearch#ftdetect#slow', filename) }
+      ->(filename) { editor.echo func('esearch#ftdetect#complete', filename) }
     end
 
     include_examples 'detects ft with fast strategy'

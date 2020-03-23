@@ -1,5 +1,5 @@
-let s:Guard       = vital#esearch#import('Vim.Guard')
-
+let s:Guard   = vital#esearch#import('Vim.Guard')
+let s:Message = vital#esearch#import('Vim.Message')
 let s:null = 0
 let s:sign_id = 1
 let s:sign_name = 'ESearchPreviewMatchedLine'
@@ -15,27 +15,33 @@ let s:autoclose_events = join([
 
 let g:esearch#preview#buffers = {}
 let g:esearch#preview#scratches = {}
-let g:esearch#preview#window = s:null
+let g:esearch#preview#win = s:null
+let g:esearch#preview#cache = esearch#cache#lru#new(20)
 
 fu! esearch#preview#is_open() abort
   " window id becomes invalid on bwipeout
-  return g:esearch#preview#window isnot# s:null
-        \ && nvim_win_is_valid(g:esearch#preview#window.id)
+  return g:esearch#preview#win isnot# s:null
+        \ && nvim_win_is_valid(g:esearch#preview#win.id)
 endfu
 
 fu! esearch#preview#reset() abort
+  " If #close() is used on every liste event, it can cause a bug where previewed
+  " buffer loose it's content on open, so this method is defined to 
+  "
   if esearch#preview#is_open()
-    call nvim_win_set_option(g:esearch#preview#window.id, 'winhighlight', g:esearch#preview#window.guard.winhighlight)
-    call nvim_win_set_option(g:esearch#preview#window.id, 'signcolumn', g:esearch#preview#window.guard.signcolumn)
-    call nvim_win_set_option(g:esearch#preview#window.id, 'foldenable', g:esearch#preview#window.guard.foldenable)
+    let id = g:esearch#preview#win.id
+    let guard = g:esearch#preview#win.guard
+    call nvim_win_set_option(id, 'winhighlight', guard.winhighlight)
+    call nvim_win_set_option(id, 'signcolumn',   guard.signcolumn)
+    call nvim_win_set_option(id, 'foldenable',   guard.foldenable)
   endif
 endfu
 
 fu! esearch#preview#close() abort
   if esearch#preview#is_open()
     call esearch#preview#reset()
-    call nvim_win_close(g:esearch#preview#window.id, 1)
-    let g:esearch#preview#window = s:null
+    call nvim_win_close(g:esearch#preview#win.id, 1)
+    let g:esearch#preview#win = s:null
   endif
 
   call sign_unplace(s:sign_group, {'id': s:sign_id})
@@ -46,12 +52,14 @@ fu! esearch#preview#start(filename, line, ...) abort
     return 0
   endif
 
-  let geometry = {'winline': winline(), 'wincol': wincol()}
   let opts = get(a:000, 0, {})
-  let max_edit_size   = get(opts, 'max_edit_size', 50 * 1024) " size in bytes
-  " let max_edit_size   = get(opts, 'max_edit_size', 0) " size in bytes
-  let geometry.width  = get(opts, 'width', 120)
-  let geometry.height = get(opts, 'height', 11)
+  let max_edit_size = get(opts, 'max_edit_size', 50 * 1024) " size in bytes
+  let geometry = {
+        \ 'winline': winline(),
+        \ 'wincol':  wincol(),
+        \ 'width':   get(opts, 'width', 120),
+        \ 'height':  get(opts, 'height', 11),
+        \ }
 
   if getfsize(a:filename) > max_edit_size
     return s:using_scratch(a:filename, a:line, geometry)
@@ -60,22 +68,34 @@ fu! esearch#preview#start(filename, line, ...) abort
   endif
 endfu
 
+fu! s:readfile(filename) abort
+  let key = [a:filename, getfsize(a:filename), getftime(a:filename)]
+
+  if g:esearch#preview#cache.has(key)
+    let lines = g:esearch#preview#cache.get(key)
+  else
+    let lines = readfile(a:filename)
+    call g:esearch#preview#cache.set(key, lines)
+  endif
+
+  return lines
+endfu
+
 fu! s:using_scratch(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
-  let [width, height] = [a:geometry.width, a:geometry.height]
 
-  let lines = readfile(filename)
-  " let search_window = bufwinnr(bufnr('%'))
+  let lines = s:readfile(filename)
   let search_window = bufwinid('%')
   let preview_buffer = s:create_scratch_buffer(filename)
 
   try
-    call s:set_context_lines(preview_buffer, lines, height, a:line)
     call esearch#preview#close()
-    let g:esearch#preview#window = s:open_preview_window(preview_buffer, width, height)
-    call s:setup_pseudo_file_appearance(filename, preview_buffer, g:esearch#preview#window)
-    call s:jump_to_window(g:esearch#preview#window.id)
+    let g:esearch#preview#win = s:open_preview_window(preview_buffer, a:geometry)
+    call s:setup_pseudo_file_appearance(filename, preview_buffer, g:esearch#preview#win)
+    call s:jump_to_window(g:esearch#preview#win.id)
+    call s:set_context_lines(preview_buffer, lines, a:geometry, a:line)
+    call s:setup_matching_line_sign(line)
     call s:reshape_preview_window(preview_buffer, line, a:geometry)
     call s:setup_autoclose_events()
   catch
@@ -91,81 +111,48 @@ fu! s:using_scratch(filename, line, geometry) abort
 endfu
 
 fu! s:setup_pseudo_file_appearance(filename, preview_buffer, preview_window) abort
-  call nvim_win_set_option(a:preview_window.id, 'number', v:false)
-  call nvim_win_set_option(a:preview_window.id, 'list', v:false)  " TODO don't show trailing ws
-
-  let ft = esearch#ftdetect#slow(a:filename)
-  if ft isnot 0
-    call nvim_buf_set_var(a:preview_buffer.id,    '__esearch_preview_filetype__', ft)
-    call nvim_buf_set_option(a:preview_buffer.id, 'filetype', 'esearch_preview')
+  let filetype = esearch#ftdetect#complete(a:filename)
+  if filetype isnot# s:null
+    call nvim_buf_set_option(a:preview_buffer.id, 'filetype', filetype)
   endif
 endfu
 
-fu! s:set_context_lines(preview_buffer, lines, height, line) abort
-  let lines = a:lines
-  let line = a:line
+fu! s:set_context_lines(preview_buffer, lines, geometry, line) abort
+  let syntax_sync_lines = 100
+  let begin = max([a:line - a:geometry.height - syntax_sync_lines, 0])
+  let end = min([a:line + a:geometry.height + syntax_sync_lines, len(a:lines)])
 
-  let lines_size = len(lines)
+  let blank_lines = repeat([''], begin)
+  let context_lines = a:lines[ begin : end]
+  call nvim_buf_set_lines(a:preview_buffer.id, 0, -1, 0,
+        \ blank_lines + context_lines)
 
-  " TODO reafactor when automation is ready (pending on the editor update)
-  if lines_size < a:height
-    " File smallar then a:height
-    let from = 0
-    let to = lines_size
-    let line_with_match = line - 1
-  elseif lines_size - line < a:height / 2
-    " closer to the end then half of the height
-    let from = lines_size - a:height
-    let to = lines_size
-    let line_with_match = line - from - 1
-  elseif line  < a:height / 2
-    " closer to the beginning then half of the height
-    let from =  0
-    let to = a:height
-    let line_with_match = line-1
-  else
-    " Enough of room up and down
-    let from =  line - a:height / 2 - 1
-    let to = line + a:height / 2
-    let line_with_match = a:height / 2
+  " Prevent slowdowns on big syntax syncing ranges (according to the doc,
+  " 'fromstart' option is equivalent to 'syncing starts ...', but with a large
+  " number).
+  if match(s:Message.capture('syn sync'), 'syncing starts \d\{3,}') >= 0
+    syntax sync clear
+    exe printf('syntax sync minlines=%d maxlines=%d',
+          \ syntax_sync_lines,
+          \ syntax_sync_lines + 1)
   endif
-
-  " TODO take 'signcolumn' value into account
-  if &numberwidth < len(string(to)) + 2
-    let padding = 2+len(string(to))
-  else
-    let padding = max([&numberwidth, 3+len(string(to))])
-  endif
-
-  let context_lines = []
-  let lines_format = '%'.padding.'d %s'
-  for i in range(from, to-1)
-    call add(context_lines, printf(lines_format, i+1, lines[i]))
-  endfor
-
-  let context_lines[line_with_match] = substitute(context_lines[line_with_match], '^..', '->', '')
-  call nvim_buf_set_lines(a:preview_buffer.id, 0, -1, 0, context_lines)
-  call assert_equal(len(context_lines),  a:height) " TODO remove when tests are ready
 endfu
 
 fu! s:using_real_buffer(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
 
-  " let search_window = bufwinnr(bufnr('%'))
   let search_window = bufwinid('%')
   let preview_buffer = s:create_buffer(filename)
 
-  let [width, height] = [a:geometry.width, a:geometry.height]
-
   try
     call esearch#preview#close()
-    let g:esearch#preview#window = s:open_preview_window(preview_buffer, width, height)
+    let g:esearch#preview#win = s:open_preview_window(preview_buffer, a:geometry)
     if preview_buffer.newly_created
       call s:save_options(preview_buffer)
     endif
 
-    call s:jump_to_window(g:esearch#preview#window.id)
+    call s:jump_to_window(g:esearch#preview#win.id)
     call s:edit_file(filename, preview_buffer)
     call s:setup_edited_file_highlight()
     call s:setup_matching_line_sign(line)
@@ -216,38 +203,34 @@ endfu
 " Builtin winrestview() has a lot of side effects so s:reshape_preview_window
 " should be invoken as later as possible
 fu! s:reshape_preview_window(preview_buffer, line, geometry) abort
-  let height = min([nvim_buf_line_count(a:preview_buffer.id), a:geometry.height])
+  let a:geometry.height = min([
+        \ nvim_buf_line_count(a:preview_buffer.id),
+        \ a:geometry.height,
+        \ &lines - 1])
+  " NOTE that position is calculated twice. First calculation is required for
+  " initial positioning, as the window cannot be initialized without row/col.
+  " The second calculation is needed to clip the window height to an opened
+  " buffer size 
+  call s:assign_position(a:geometry)
+
   let guard = s:Guard.store(['&winminheight'])
-
-  if  &lines - height - 1 < a:geometry.winline
-    " if there's no room - show above
-    let row = a:geometry.winline - height
-  else
-    let row = a:geometry.winline + 1
-  endif
-
-
   try
     noau set winminheight=1
-    " exe 'noautocmd keepjumps resize '. height
-
-    call nvim_win_set_height(g:esearch#preview#window.id, height)
-    call nvim_win_set_config(g:esearch#preview#window.id, {
-          \ 'row':       row,
-          \ 'col':       max([5, a:geometry.wincol - 1]),
+    call nvim_win_set_config(g:esearch#preview#win.id, {
+          \ 'row':       a:geometry.row,
+          \ 'col':       a:geometry.col,
+          \ 'height':    a:geometry.height,
           \ 'relative': 'win',
           \ })
 
-    let lines_size = line('$')
-    if lines_size < height
-      return cursor(a:line, 0)
-    endif
-
-    " literally what :help scrolloff does, but without dealing with options
-    if lines_size - a:line < height
-      let topline = lines_size - height
+    " literally what :help 'scrolloff' option does, but without dealing with
+    " options
+    if line('$') < a:geometry.height
+      let topline = 1
+    elseif line('$') - a:line < a:geometry.height
+      let topline = line('$') - a:geometry.height
     else
-      let topline = a:line - (height / 2)
+      let topline = a:line - (a:geometry.height / 2)
     endif
     noautocmd keepjumps call winrestview({
           \ 'lnum': a:line,
@@ -265,24 +248,36 @@ fu! s:setup_edited_file_highlight() abort
   keepjumps doau BufRead
 endfu
 
-fu! s:open_preview_window(preview_buffer, width, height) abort
+fu! s:assign_position(geometry) abort
+  if &lines - a:geometry.height - 1 < a:geometry.winline
+    " if there's no room - show above
+    let a:geometry.row = a:geometry.winline - a:geometry.height
+  else
+    let a:geometry.row = a:geometry.winline + 1
+  endif
+  let a:geometry.col = max([5, a:geometry.wincol - 1])
+endfu
+
+fu! s:open_preview_window(preview_buffer, geometry) abort
+  call s:assign_position(a:geometry)
+
   let guard = s:Guard.store(['&shortmess'])
   noau set shortmess+=A
   let id = nvim_open_win(a:preview_buffer.id, 0, {
-        \ 'width':     a:width,
-        \ 'height':    a:height,
+        \ 'width':     a:geometry.width,
+        \ 'height':    a:geometry.height,
         \ 'focusable': v:false,
-        \ 'row':       1,
-        \ 'col':       1,
+        \ 'row':       a:geometry.row,
+        \ 'col':       a:geometry.col,
         \ 'relative':  'win',
         \})
   call guard.restore()
 
-  let data = {'id': id, 'number': win_id2win(id), 'guard': {}}
-  let data.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
-  let data.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
-  let data.guard.foldenable = nvim_win_get_option(id, 'foldenable')
-  return data
+  let window = {'id': id, 'number': win_id2win(id), 'guard': {}}
+  let window.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
+  let window.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
+  let window.guard.foldenable = nvim_win_get_option(id, 'foldenable')
+  return window
 endfu
 
 fu! s:edit_file(filename, preview_buffer) abort

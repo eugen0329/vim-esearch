@@ -14,7 +14,7 @@ describe 'esearch#preview' do
 
   describe 'neovim', :neovim do
     let(:search_string) { 'a' }
-    let(:file_content) { search_string * 3 }
+    let(:file_content) { ([search_string] * 20).join("\n") }
     let(:test_file) { file(file_content, 'test_file.txt') }
     let!(:test_directory) { directory([test_file]).persist! }
 

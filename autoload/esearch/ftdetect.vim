@@ -1,8 +1,7 @@
-let s:Vital    = vital#esearch#new()
-let s:Message  = s:Vital.import('Vim.Message')
-let s:Filepath = s:Vital.import('System.Filepath')
-let s:List     = s:Vital.import('Data.List')
-let s:Promise  = s:Vital.import('Async.Promise')
+let s:Message  = vital#esearch#import('Vim.Message')
+let s:Filepath = vital#esearch#import('System.Filepath')
+let s:List     = vital#esearch#import('Data.List')
+let s:Promise  = vital#esearch#import('Async.Promise')
 
 let s:pattern_to_filetype = {}
 let s:null = 0
@@ -40,7 +39,7 @@ if !exists('g:esearch_ftdetect_patterns')
         \ }
 endif
 
-fu! esearch#ftdetect#slow(filename) abort
+fu! esearch#ftdetect#complete(filename) abort
   let filetype = esearch#ftdetect#fast(a:filename)
   if filetype isnot# 0 | return filetype | endif
 

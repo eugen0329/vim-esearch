@@ -812,7 +812,7 @@ fu! s:filetype(...) abort dict
     let opts = get(a:000)
 
     if get(opts, 'slow', 1)
-      let ctx.filetype = esearch#ftdetect#slow(ctx.filename)
+      let ctx.filetype = esearch#ftdetect#complete(ctx.filename)
     else
       let ctx.filetype = esearch#ftdetect#fast(ctx.filename)
     endif
