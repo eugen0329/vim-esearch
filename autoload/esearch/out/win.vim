@@ -238,6 +238,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'jump2filename':            function('<SID>jump2filename'),
         \ 'is_current':               function('<SID>is_current'),
         \ 'split_preview':            function('<SID>split_preview'),
+        \ 'is_preview_open':          function('esearch#preview#is_open'),
         \ 'last_split_preview':       {},
         \}, 'force')
 

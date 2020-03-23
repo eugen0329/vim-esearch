@@ -1,10 +1,11 @@
+let s:Guard       = vital#esearch#import('Vim.Guard')
+
 let s:null = 0
 let s:sign_id = 1
 let s:sign_name = 'ESearchPreviewMatchedLine'
 let s:sign_group = 'ESearchPreviewSigns'
 let s:events = join([
       \ 'CursorMoved',
-      \ 'CmdlineEnter',
       \ 'QuitPre',
       \ 'ExitPre',
       \ 'BufEnter',
@@ -15,6 +16,10 @@ let s:events = join([
       \ ], ',')
 let s:preview_buffers = {}
 let s:preview_window = s:null
+
+fu! esearch#preview#is_open() abort
+  return s:preview_window isnot# s:null
+endfu
 
 fu! esearch#preview#start(filename, line, ...) abort
   if !filereadable(a:filename)
@@ -220,6 +225,9 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
     let row = winline()
   endif
 
+
+  let guard = s:Guard.store(['&shortmess'])
+  noau set shortmess+=A
   let id = nvim_open_win(a:preview_buffer.id, 0, {
         \ 'width':     a:width,
         \ 'height':    a:height,
@@ -228,6 +236,7 @@ fu! s:open_preview_window(preview_buffer, width, height) abort
         \ 'col':       max([5, wincol() - 1]),
         \ 'relative':  'win',
         \})
+  call guard.restore()
 
   let data = {'id': id, 'number': win_id2win(id), 'guard': {}}
   let data.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
@@ -238,7 +247,11 @@ endfu
 
 fu! s:edit_file(filename, preview_buffer) abort
   if expand('%:p') !=# a:filename
-    exe 'keepjumps noautocmd noswapfile edit! ' . fnameescape(a:filename)
+
+    let guard = s:Guard.store(['&shortmess'])
+    noau set shortmess+=A
+    exe 'keepjumps noautocmd edit! ' . fnameescape(a:filename)
+    call guard.restore()
 
     " if buffer is already created, vim switches to it leaving empty buffer we
     " have to cleanup
@@ -310,7 +323,7 @@ fu! s:create_buffer(filename, disposable) abort
 endfu
 
 fu! s:close_preview_window() abort
-  if s:preview_window isnot# s:null
+  if esearch#preview#is_open()
     call nvim_win_set_option(s:preview_window.id, 'winhighlight', s:preview_window.guard.winhighlight)
     call nvim_win_set_option(s:preview_window.id, 'signcolumn', s:preview_window.guard.signcolumn)
     call nvim_win_set_option(s:preview_window.id, 'foldlevel', s:preview_window.guard.foldlevel)
