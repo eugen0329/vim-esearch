@@ -239,6 +239,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'is_current':               function('<SID>is_current'),
         \ 'split_preview':            function('<SID>split_preview'),
         \ 'is_preview_open':          function('esearch#preview#is_open'),
+        \ 'close_preview':            function('esearch#preview#close'),
         \ 'last_split_preview':       {},
         \}, 'force')
 

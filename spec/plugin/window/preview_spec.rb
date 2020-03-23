@@ -38,7 +38,7 @@ describe 'esearch#preview' do
     shared_context 'verify test file content is not modified after a testcase' do
       after do
         # weird regression bug caused by unknown magic with vim's autocommands
-        editor.locate_buffer! test_file.path
+        editor.edit! test_file.path
         expect(editor.lines.to_a).to eq(test_file.lines)
       end
     end
@@ -64,13 +64,13 @@ describe 'esearch#preview' do
 
         it 'opens a scratch buffer when the size in KB is exceeded' do
           expect { editor.send_keys 'e' }
-            .and change { editor.ls }
+            .to change { editor.ls }
             .to include('[Scratch]')
         end
       end
 
       describe 'width and height options' do
-        context 'when using edit strategy' do
+        context 'when using real buffer' do
           before do
             editor.command! "call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10}) })"
           end
@@ -78,12 +78,13 @@ describe 'esearch#preview' do
           before { editor.send_keys 'e' }
 
           it 'opens window with a specified geometry' do
-            expect(window_height(window_handles.last)).to eq(5)
-            expect(window_width(window_handles.last)).to eq(10)
+            editor.invalidate_cache!
+            expect(window_height(window_handles.last)).to eq(10)
+            expect(window_width(window_handles.last)).to eq(5)
           end
         end
 
-        context 'when using readlines strategy' do
+        context 'when using scratch buffer' do
           before do
             editor.command! <<~VIML
               call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10, 'max_edit_size': 0}) })
@@ -97,8 +98,8 @@ describe 'esearch#preview' do
           end
 
           it 'opens window with a specified geometry' do
-            expect(window_height(window_handles.last)).to eq(5)
-            expect(window_width(window_handles.last)).to eq(10)
+            expect(window_height(window_handles.last)).to eq(10)
+            expect(window_width(window_handles.last)).to eq(5)
           end
         end
       end
@@ -109,13 +110,14 @@ describe 'esearch#preview' do
       let!(:test_directory) { directory([test_file]).persist! }
 
       before do
-        test_directory.files << swap_file
-        test_directory.persist!
         editor.command <<~VIML
           set swapfile directory=#{test_directory} updatecount=1
           set updatecount=1
         VIML
+        test_directory.files << swap_file
+        test_directory.persist!
       end
+      include_context 'start search'
       after do
         expect(window_local_highlights).to all eq(default_highlight)
         swap_file.unlink
@@ -145,7 +147,8 @@ describe 'esearch#preview' do
             .by(1)
             .and not_to_change { editor.current_buffer_name }
 
-          expect { editor.raw_send_keys('s', 'q') }
+          # split and press (A)bort
+          expect { editor.raw_send_keys('s', 'a') }
             .to change { window_handles.count }
             .by(-1)
             .and not_to_change { editor.current_buffer_name }

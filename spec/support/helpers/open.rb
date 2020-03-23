@@ -10,7 +10,7 @@ module Helpers::Open
   end
 
   def tabpage_windows_list
-    (1..editor.echo( func('tabpagewinnr', func('tabpagenr'), '$'))).to_a
+    (1..editor.echo(func('tabpagewinnr', func('tabpagenr'), '$'))).to_a
   end
 
   def tabpages_list

@@ -178,12 +178,12 @@ class Editor
       .map(&:to_i)
   end
 
-  # TODO extract to buffer class
+  # TODO: extract to buffer class
   def buffer_variable(number, name)
     echo func('getbufvar', number, name)
   end
 
-  # TODO extract to Window class
+  # TODO: extract to Window class
   def window_variable(number, name)
     echo func('getwinvar', number, name)
   end

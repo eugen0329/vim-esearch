@@ -22,10 +22,10 @@ module Helpers::Preview
     editor.echo func('map', func('nvim_list_wins'), "nvim_win_get_option(v:val, #{name.dump})")
   end
 
-  def swap_path(file_path)
+  def swap_path(file_path, swap_directory = editor.echo(var('&directory')))
     [
-      editor.echo(var('&directory')),
-      [file_path.relative_path_from(editor.cwd).to_s.gsub('/', '%'), '.swp'].join
+      swap_directory,
+      [file_path.basename, '.swp'].join
     ].join('/')
   end
 
