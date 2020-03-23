@@ -7,16 +7,33 @@ describe 'esearch#preview' do
   include Helpers::Preview
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
+  Context ||= Helpers::Modifiable::Context
 
   # TODO: extra testing scenarios (currently blocked by editor version)
   #   - file with a name required to be escaped
-  #   - new buffers bloat
 
   describe 'neovim', :neovim do
+    # Random #shuffle can be reproduced by specifying --seed N, as Kernel.srand
+    # is used in spec_helper
+    let(:uglified_names) do
+      ['😄', '概', 'ц', 'æ', "a\a", "a\b", "a\t", "a\n", "a\v", "a\f", "a\r",
+       "a\e", '<', '<<', '>>', '(', ')', '[', ']', '{', '}', "'", ';', '&', '~',
+       '$', '^', '*', '**', '+', '++', '-', '--', '>', '+a', '++a', '-a', '--a',
+       '>a', 'a+', 'a++', 'a-', 'a--', 'a>', '\\', '\\\\', '"', '"a":1:b', 'a ',
+       ' a', 'a b', ' 1 a b'].shuffle
+    end
+
     let(:search_string) { 'a' }
-    let(:file_content) { ([search_string] * 20).join("\n") }
-    let(:test_file) { file(file_content, 'test_file.txt') }
-    let!(:test_directory) { directory([test_file]).persist! }
+    let(:contexts) do
+      [Context.new(uglified_names.pop, [search_string] * 10),
+       Context.new(uglified_names.pop, [search_string] * 10)]
+    end
+    let(:files) do
+      contexts.map { |c| c.file = file(c.content, c.name) }
+    end
+    let!(:test_directory) { directory(files).persist! }
+    let(:ctx1) { contexts[0] }
+    let(:ctx2) { contexts[1] }
 
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
@@ -25,6 +42,7 @@ describe 'esearch#preview' do
         esearch.configure!(regex: 1, backend: 'system', adapter: 'ag', 'out': 'win', root_markers: [])
         esearch.cd! test_directory
         esearch.search!(search_string)
+        ctx1.locate!
       end
     end
 
@@ -38,8 +56,8 @@ describe 'esearch#preview' do
     shared_context 'verify test file content is not modified after a testcase' do
       after do
         # weird regression bug caused by unknown magic with vim's autocommands
-        editor.edit! test_file.path
-        expect(editor.lines.to_a).to eq(test_file.lines)
+        editor.edit! ctx1.absolute_path
+        expect(editor.lines.to_a).to eq(ctx1.content)
       end
     end
 
@@ -106,8 +124,10 @@ describe 'esearch#preview' do
     end
 
     describe 'swapfiles' do
-      let(:swap_file) { file('swap_content', swap_path(test_file.path)) }
-      let!(:test_directory) { directory([test_file]).persist! }
+      let(:swap_file) { file('swap_content', swap_path(ctx1.file.path)) }
+      let(:files) do
+        contexts.first(1).map { |c| c.file = file(c.content, c.name) }
+      end
 
       before do
         editor.command <<~VIML
@@ -161,7 +181,7 @@ describe 'esearch#preview' do
       include_context "open preview and verify it's correctness"
 
       it 'closes window on regular movement' do
-        expect { editor.send_keys 'l' }
+        expect { editor.send_keys 'hjkl' }
           .to change { window_handles.count }
           .by(-1)
         expect(window_local_highlights).to all eq(default_highlight)
@@ -170,13 +190,47 @@ describe 'esearch#preview' do
 
     describe 'handle blank results' do
       let(:search_string) { 'a' }
-      let(:file_content) { 'b' }
+      let(:contexts) { [Context.new('file2.txt', 'b')] }
 
       it "doesn't fail on blank results" do
         expect { editor.send_keys 'p' }
           .to not_change { editor.messages }
           .and not_to_change { window_local_highlights }
           .and not_to_change { window_handles }
+      end
+    end
+
+    describe 'handle opening multiple files' do
+      include_context 'start search'
+
+      context 'when opening with stay option' do
+        it 'resets options on opening files' do
+          expect do
+            ctx1.locate!
+            editor.send_keys_separately 'p', 'T'
+            ctx2.locate!
+            editor.send_keys_separately 'p', 'T'
+          end
+            .to change { window_handles.count }
+            .by(2)
+            .and not_to_change { window_local_highlights.uniq }
+            .from([''])
+        end
+      end
+
+      context 'when opening without stay option' do
+        it 'resets options on opening files' do
+          expect do
+            ctx1.locate!
+            editor.send_keys_separately 'p'
+            ctx2.locate!
+            editor.send_keys_separately 'p', 's'
+          end
+            .to change { window_handles.count }
+            .by(1)
+            .and not_to_change { window_local_highlights.uniq }
+            .from([''])
+        end
       end
     end
 
@@ -208,7 +262,7 @@ describe 'esearch#preview' do
           it 'closes preview and resets window-local highlights' do
             expect { editor.send_keys keys }
               .to not_change { window_handles.count }
-              .and change { editor.current_buffer_name }.to(test_file.path.to_s)
+              .and change { editor.current_buffer_name }.to(ctx1.absolute_path.to_s)
             expect(window_local_highlights).to all eq(default_highlight)
           end
         end
@@ -226,7 +280,7 @@ describe 'esearch#preview' do
             .to change { window_handles.count }
             .by(-1)
             .and change { editor.current_buffer_name }
-            .to(test_file.path.to_s)
+            .to(ctx1.absolute_path.to_s)
           expect(window_local_highlights).to all eq(default_highlight)
         end
       end

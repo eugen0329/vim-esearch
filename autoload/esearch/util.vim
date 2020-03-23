@@ -647,3 +647,17 @@ fu! esearch#util#trace_window() abort
   let w:esearch = s:window_id.next()
   return s:ViewTracer.trace_window()
 endfu
+
+" TODO consider to extract to utils
+fu! esearch#util#readfile(filename, cache) abort
+  let key = [a:filename, getfsize(a:filename), getftime(a:filename)]
+
+  if a:cache.has(key)
+    let lines = a:cache.get(key)
+  else
+    let lines = readfile(a:filename)
+    call a:cache.set(key, lines)
+  endif
+
+  return lines
+endfu

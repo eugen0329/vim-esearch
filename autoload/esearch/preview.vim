@@ -6,6 +6,8 @@ let s:sign_name = 'ESearchPreviewMatchedLine'
 let s:sign_group = 'ESearchPreviewSigns'
 let s:autoclose_events = join([
       \ 'CursorMoved',
+      \ 'CursorMovedI',
+      \ 'InsertEnter',
       \ 'QuitPre',
       \ 'ExitPre',
       \ 'BufEnter',
@@ -14,9 +16,34 @@ let s:autoclose_events = join([
       \ ], ',')
 
 let g:esearch#preview#buffers = {}
-let g:esearch#preview#scratches = {}
 let g:esearch#preview#win = s:null
 let g:esearch#preview#cache = esearch#cache#lru#new(20)
+let g:esearch#preview#scratches = esearch#cache#lru#new(5)
+
+" TODO
+" - separate strategies when it's clear how how vim's floats are implemented
+" - Extract signs placing code
+
+fu! esearch#preview#start(filename, line, ...) abort
+  if !filereadable(a:filename)
+    return 0
+  endif
+
+  let opts = get(a:000, 0, {})
+  let max_edit_size = get(opts, 'max_edit_size', 100 * 1024) " size in bytes
+  let geometry = {
+        \ 'winline': winline(),
+        \ 'wincol':  wincol(),
+        \ 'width':   get(opts, 'width', 120),
+        \ 'height':  get(opts, 'height', 11),
+        \ }
+
+  if getfsize(a:filename) > max_edit_size
+    return s:preview_in_scratch(a:filename, a:line, geometry)
+  else
+    return s:preview_in_regular_buffer(a:filename, a:line, geometry)
+  endif
+endfu
 
 fu! esearch#preview#is_open() abort
   " window id becomes invalid on bwipeout
@@ -27,7 +54,6 @@ endfu
 fu! esearch#preview#reset() abort
   " If #close() is used on every liste event, it can cause a bug where previewed
   " buffer loose it's content on open, so this method is defined to 
-  "
   if esearch#preview#is_open()
     let id = g:esearch#preview#win.id
     let guard = g:esearch#preview#win.guard
@@ -47,45 +73,11 @@ fu! esearch#preview#close() abort
   call sign_unplace(s:sign_group, {'id': s:sign_id})
 endfu
 
-fu! esearch#preview#start(filename, line, ...) abort
-  if !filereadable(a:filename)
-    return 0
-  endif
-
-  let opts = get(a:000, 0, {})
-  let max_edit_size = get(opts, 'max_edit_size', 50 * 1024) " size in bytes
-  let geometry = {
-        \ 'winline': winline(),
-        \ 'wincol':  wincol(),
-        \ 'width':   get(opts, 'width', 120),
-        \ 'height':  get(opts, 'height', 11),
-        \ }
-
-  if getfsize(a:filename) > max_edit_size
-    return s:using_scratch(a:filename, a:line, geometry)
-  else
-    return s:using_real_buffer(a:filename, a:line, geometry)
-  endif
-endfu
-
-fu! s:readfile(filename) abort
-  let key = [a:filename, getfsize(a:filename), getftime(a:filename)]
-
-  if g:esearch#preview#cache.has(key)
-    let lines = g:esearch#preview#cache.get(key)
-  else
-    let lines = readfile(a:filename)
-    call g:esearch#preview#cache.set(key, lines)
-  endif
-
-  return lines
-endfu
-
-fu! s:using_scratch(filename, line, geometry) abort
+fu! s:preview_in_scratch(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
 
-  let lines = s:readfile(filename)
+  let lines = esearch#util#readfile(filename, g:esearch#preview#cache)
   let search_window = bufwinid('%')
   let preview_buffer = s:create_scratch_buffer(filename)
 
@@ -138,7 +130,7 @@ fu! s:set_context_lines(preview_buffer, lines, geometry, line) abort
   endif
 endfu
 
-fu! s:using_real_buffer(filename, line, geometry) abort
+fu! s:preview_in_regular_buffer(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
 
@@ -154,7 +146,7 @@ fu! s:using_real_buffer(filename, line, geometry) abort
 
     call s:jump_to_window(g:esearch#preview#win.id)
     call s:edit_file(filename, preview_buffer)
-    call s:setup_edited_file_highlight()
+    call s:configure_edited_preview_buffer()
     call s:setup_matching_line_sign(line)
     call s:reshape_preview_window(preview_buffer, line, a:geometry)
     call s:setup_on_user_opens_buffer_events()
@@ -242,7 +234,7 @@ fu! s:reshape_preview_window(preview_buffer, line, geometry) abort
   endtry
 endfu
 
-fu! s:setup_edited_file_highlight() abort
+fu! s:configure_edited_preview_buffer() abort
   noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat nofoldenable
   keepjumps doau BufReadPre
   keepjumps doau BufRead
@@ -288,7 +280,6 @@ fu! s:edit_file(filename, preview_buffer) abort
     exe 'keepjumps noau edit ' . fnameescape(a:filename)
     call guard.restore()
 
-
     " if the buffer has already created, vim switches to it leaving an empty
     " buffer we have to cleanup
     let current_buffer_id = bufnr('%')
@@ -307,7 +298,6 @@ endfu
 
 fu! s:jump_to_window(window) abort
   noau keepjumps call nvim_set_current_win(a:window)
-  " noautocmd keepjumps exe a:window . 'wincmd w'
 endfu
 
 fu! s:make_preview_buffer_regular() abort
@@ -335,48 +325,71 @@ fu! s:make_preview_buffer_regular() abort
   au! ESearchPreview *
 endfu
 
-fu! s:create_scratch_buffer(filename) abort
-  if has_key(g:esearch#preview#scratches, a:filename)
-        \ && nvim_buf_is_valid(g:esearch#preview#scratches[a:filename].id)
-    return g:esearch#preview#scratches[a:filename]
-  endif
-
-  let id = nvim_create_buf(0, 1)
-
-  let g:esearch#preview#scratches[a:filename] = {
-        \ 'id':            id,
-        \ 'filename':      a:filename,
-        \ 'newly_created': 1,
-        \ 'is_opened':     0,
-        \ 'guard':         {},
-        \ }
-  return g:esearch#preview#scratches[a:filename]
-endfu
-
 fu! s:create_buffer(filename) abort
   if has_key(g:esearch#preview#buffers, a:filename)
-    if bufexists(a:filename)
-          \ && nvim_buf_is_valid(g:esearch#preview#buffers[a:filename].id)
-      return g:esearch#preview#buffers[a:filename]
-    else
-      " buffer is known as a preview, but it was removed using :bwipeout or a
-      " similar command
-      call remove(g:esearch#preview#buffers, a:filename)
+    let buffer = g:esearch#preview#buffers[a:filename]
+    if buffer.is_valid()
+      return buffer
     endif
+    call remove(g:esearch#preview#buffers, a:filename)
   endif
+
+  let buffer = s:Buffer.new(a:filename)
+  let g:esearch#preview#buffers[a:filename] = buffer
+
+  return buffer
+endfu
+
+fu! s:create_scratch_buffer(filename) abort
+  if g:esearch#preview#scratches.has(a:filename)
+    let scratch = g:esearch#preview#scratches.get(a:filename)
+    if scratch.is_valid()
+      return scratch
+    endif
+
+    call g:esearch#preview#scratches.remove(a:filename)
+  endif
+
+  let scratch = s:ScratchBuffer.new(a:filename)
+  call g:esearch#preview#scratches.set(a:filename, scratch)
+
+  return scratch
+endfu
+
+fu! s:is_valid_buffer() abort dict
+  return nvim_buf_is_valid(self.id)
+endfu
+
+let s:Buffer = {
+      \ 'guard': {},
+      \ 'newly_created': 1,
+      \ 'is_valid': function('<SID>is_valid_buffer')}
+
+fu! s:Buffer.new(filename) abort dict
+  let instance = copy(self)
+  let instance.filename = a:filename
 
   if bufexists(a:filename)
-    let id = bufnr('^'.a:filename.'$')
+    let instance.id = bufnr('^'.a:filename.'$')
   else
-    let id = nvim_create_buf(1, 0)
+    let instance.id = nvim_create_buf(1, 0)
   endif
 
-  let g:esearch#preview#buffers[a:filename] = {
-        \ 'id':            id,
-        \ 'filename':      a:filename,
-        \ 'newly_created': 1,
-        \ 'is_opened':     0,
-        \ 'guard':         {},
-        \ }
-  return g:esearch#preview#buffers[a:filename]
+  return instance
+endfu
+
+let s:ScratchBuffer = {
+      \ 'guard': {},
+      \ 'is_valid': function('<SID>is_valid_buffer')}
+
+fu! s:ScratchBuffer.new(filename) abort dict
+  let instance = copy(self)
+  let instance.filename = a:filename
+  let instance.id = nvim_create_buf(0, 1)
+  return instance
+endfu
+
+fu! s:ScratchBuffer.remove() abort dict
+  if !bufexists(self.id) | return | endif
+  silent exe self.id 'bwipeout'
 endfu

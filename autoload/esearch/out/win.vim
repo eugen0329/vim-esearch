@@ -20,6 +20,8 @@ let g:esearch#out#win#mappings = [
       \ {'lhs': '{',       'rhs': 'prev-file',          'default': 1},
       \ ]
 
+let s:false = 0
+let s:true = 1
 let s:null = 0
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
@@ -65,7 +67,7 @@ if !exists('g:esearch_out_win_highlight_matches')
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
   let g:esearch_win_disable_context_highlights_on_files_count =
-        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 2000 : 200)
+        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 100 : 200)
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -230,6 +232,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
         \ 'filename':                 function('<SID>filename'),
+        \ 'unescaped_filename':       function('<SID>unescaped_filename'),
         \ 'filetype':                 function('<SID>filetype'),
         \ 'line_in_file':             function('<SID>line_in_file'),
         \ 'is_filename':              function('<SID>is_filename'),
@@ -660,6 +663,8 @@ fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
     call timer_stop(a:esearch.viewport_highlight_timer)
   endif
 
+  call s:Message.echomsg('WarningMsg', 'Some highlights are disabled to prevent slowdowns')
+
   if g:esearch_out_win_nvim_lua_syntax
     syn clear
   else
@@ -795,7 +800,7 @@ endfu
 fu! s:preview(...) abort dict
   if !self.is_current() | return | endif
   return call(function('esearch#preview#start'),
-        \ [self.filename(), self.line_in_file()] + a:000)
+        \ [self.unescaped_filename(), self.line_in_file()] + a:000)
 endfu
 
 fu! s:line_in_file() abort dict
@@ -821,19 +826,25 @@ fu! s:filetype(...) abort dict
   return ctx.filetype
 endfu
 
-fu! s:filename() abort dict
+fu! s:unescaped_filename() abort dict
   if !self.is_current() | return | endif
 
   let ctx = s:file_context_at(line('.'), self)
   if empty(ctx) | return s:null | endif
 
   if s:Filepath.is_absolute(ctx.filename)
-    let filename = fnameescape(ctx.filename)
+    let filename = ctx.filename
   else
-    let filename = fnameescape(self.cwd . '/' . ctx.filename)
+    let filename = self.cwd . '/' . ctx.filename
   endif
 
   return filename
+endfu
+
+fu! s:filename() abort dict
+  if !self.is_current() | return | endif
+
+  return fnameescape(self.unescaped_filename())
 endfu
 
 fu! s:file_context_at(line, esearch) abort
