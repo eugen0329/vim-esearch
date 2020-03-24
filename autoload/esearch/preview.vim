@@ -19,10 +19,10 @@ let g:esearch#preview#buffers = {}
 let g:esearch#preview#win = s:null
 let g:esearch#preview#cache = esearch#cache#lru#new(20)
 let g:esearch#preview#scratches = esearch#cache#lru#new(5)
-
 " TODO
 " - separate strategies when it's clear how how vim's floats are implemented
 " - Extract signs placing code
+" - Set local options using a context manager
 
 fu! esearch#preview#start(filename, line, ...) abort
   if !filereadable(a:filename)
@@ -77,7 +77,7 @@ fu! s:preview_in_scratch(filename, line, geometry) abort
   let filename = a:filename
   let line = a:line
 
-  let lines = esearch#util#readfile(filename, g:esearch#preview#cache)
+  let lines_text = esearch#util#readfile(filename, g:esearch#preview#cache)
   let search_window = bufwinid('%')
   let preview_buffer = s:create_scratch_buffer(filename)
 
@@ -86,7 +86,7 @@ fu! s:preview_in_scratch(filename, line, geometry) abort
     let g:esearch#preview#win = s:open_preview_window(preview_buffer, a:geometry)
     call s:setup_pseudo_file_appearance(filename, preview_buffer, g:esearch#preview#win)
     call s:jump_to_window(g:esearch#preview#win.id)
-    call s:set_context_lines(preview_buffer, lines, a:geometry, a:line)
+    call s:set_context_lines(preview_buffer, lines_text, a:geometry, a:line)
     call s:setup_matching_line_sign(line)
     call s:reshape_preview_window(preview_buffer, line, a:geometry)
     call s:setup_autoclose_events()
@@ -109,13 +109,14 @@ fu! s:setup_pseudo_file_appearance(filename, preview_buffer, preview_window) abo
   endif
 endfu
 
-fu! s:set_context_lines(preview_buffer, lines, geometry, line) abort
+" Setup context lines prepended by blank lines outside the viewport. syntax_sync_lines offset is added to make syntaxes highlight correct
+fu! s:set_context_lines(preview_buffer, lines_text, geometry, line) abort
   let syntax_sync_lines = 100
   let begin = max([a:line - a:geometry.height - syntax_sync_lines, 0])
-  let end = min([a:line + a:geometry.height + syntax_sync_lines, len(a:lines)])
+  let end = min([a:line + a:geometry.height + syntax_sync_lines, len(a:lines_text)])
 
   let blank_lines = repeat([''], begin)
-  let context_lines = a:lines[ begin : end]
+  let context_lines = a:lines_text[ begin : end]
   call nvim_buf_set_lines(a:preview_buffer.id, 0, -1, 0,
         \ blank_lines + context_lines)
 

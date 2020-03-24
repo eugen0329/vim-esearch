@@ -663,7 +663,7 @@ fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
     call timer_stop(a:esearch.viewport_highlight_timer)
   endif
 
-  call s:Message.echomsg('WarningMsg', 'Some highlights are disabled to prevent slowdowns')
+  echomsg 'esearch: some highlights are disabled to prevent slowdowns'
 
   if g:esearch_out_win_nvim_lua_syntax
     syn clear

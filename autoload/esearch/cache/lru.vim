@@ -11,51 +11,37 @@ fu! s:LRU.new(size, ...) abort dict
 
   let instance.size = a:size
   let instance.queue = s:OrderedSet.new()
-  let instance.storage = {}
+  let instance.data = {}
   return instance
 endfu
 
 fu! s:LRU.has(key) abort dict
-  let key = string(a:key)
   return self.queue.has(a:key)
 endfu
 
 fu! s:LRU.get(key) abort dict
-  let key = string(a:key)
+  call self.queue.remove(a:key)
+  call self.queue.unshift(a:key)
 
-  if !self.queue.has(key)
-    throw ''
-  endif
-
-  call self.queue.remove(key)
-  call self.queue.unshift(key)
-
-  return self.storage[key]
+  return self.data[string(a:key)]
 endfu
 
 fu! s:LRU.set(key, value) abort dict
-  let key = string(a:key)
 
-  " if type(a:value) ==# type({}) && has_key(a:value, 'id')
-  "   PP
-  " endif
-
-  if self.has(key)
-    call self.remove(key)
-  elseif self.queue.size() >= self.size
+  if !self.has(a:key) && self.queue.size() >= self.size
     call self.remove(self.queue.to_list()[-1])
   endif
 
-  call self.queue.unshift(key)
-  let self.storage[key] = a:value
+  call self.queue.unshift(a:key)
+  let self.data[string(a:key)] = a:value
 endfu
 
 fu! s:LRU.remove(key) abort dict
   call self.queue.remove(a:key)
-  let value = remove(self.storage, a:key)
+  let value = remove(self.data, string(a:key))
 
+  " Trigger the destructor if it's available
   if type(value) ==# type({}) && has_key(value, 'remove')
-    " Trigger the destructor
     call value.remove()
   endif
 endfu
