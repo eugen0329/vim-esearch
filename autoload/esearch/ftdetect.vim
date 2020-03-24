@@ -2,9 +2,9 @@ let s:Message  = vital#esearch#import('Vim.Message')
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:List     = vital#esearch#import('Data.List')
 let s:Promise  = vital#esearch#import('Async.Promise')
+call esearch#polyfill#extend(s:)
 
 let s:pattern_to_filetype = {}
-let s:null = 0
 let s:prewarm = s:null
 let s:setfiletype = ['setfiletype', 'setf']
 
@@ -41,7 +41,7 @@ endif
 
 fu! esearch#ftdetect#complete(filename) abort
   let filetype = esearch#ftdetect#fast(a:filename)
-  if filetype isnot# 0 | return filetype | endif
+  if filetype isnot# s:null | return filetype | endif
 
   for [pattern, filetype] in items(s:pattern_to_filetype)
     if a:filename =~# pattern
@@ -49,12 +49,12 @@ fu! esearch#ftdetect#complete(filename) abort
     endif
   endfor
 
-  return 0
+  return s:null
 endfu
 
 fu! esearch#ftdetect#fast(filename) abort
   if exists('g:ft_ignore_pat') &&  a:filename =~# g:ft_ignore_pat
-    return 0
+    return s:null
   endif
 
   if empty(s:pattern_to_filetype) && !s:make_cache()
@@ -84,7 +84,7 @@ fu! esearch#ftdetect#fast(filename) abort
     return opened_buffer_filetype
   endif
 
-  return 0
+  return s:null
 endfu
 
 fu! esearch#ftdetect#async_prewarm_cache() abort
@@ -132,7 +132,7 @@ fu! s:blocking_make_cache() abort
     let definitions = []
   endfor
 
-  return 1
+  return s:true
 endfu
 
 fu! s:make_cache() abort
@@ -140,8 +140,8 @@ fu! s:make_cache() abort
     let [result, error] = s:Promise.wait(s:prewarm, { 'timeout': 1000 })
 
     if s:failed_with(error, s:Promise.TimeoutError)
-      return 0
-    elseif error isnot# v:null
+      return s:false
+    elseif error isnot# s:null
       echoerr 'Failed: ' . string(error)
     else
       let s:prewarm = s:null
@@ -150,7 +150,7 @@ fu! s:make_cache() abort
     call s:blocking_make_cache()
   endif
 
-  return 1
+  return s:true
 endfu
 
 fu! s:failed_with(reason, error) abort

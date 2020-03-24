@@ -1,6 +1,7 @@
-let s:ViewTracer = vital#esearch#import('Vim.ViewTracer')
 let s:Message    = vital#esearch#import('Vim.Message')
 let s:Filepath   = vital#esearch#import('System.Filepath')
+
+call esearch#polyfill#extend(s:)
 
 let s:function_t = type(function('tr'))
 let s:string_t   = type('')
@@ -10,19 +11,17 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
   let filename = self.filename()
   if empty(filename) | return | endif
 
-  let opts          = get(a:000, 0, {})
-  let stay          = get(opts, 'stay', 0)    " stay in the current window
-  let once          = get(opts, 'once', 0)    " open only a single window
-  let vars_per_open = get(opts, 'let', {})    " assign vars/opts/regs per functoin execution
-  let window_vars   = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
-  let cmdarg        = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
-  let mods          = get(opts, 'mods', '')   " EX: botright
-  let open_opts     = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
+  let opts            = get(a:000, 0, {})
+  let stay            = get(opts, 'stay', 0)    " stay in the current window
+  let once            = get(opts, 'once', 0)    " open only a single window
+  let restorable_vars = get(opts, 'let', {})    " assign vars/opts/regs per functoin execution
+  let window_vars     = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
+  let cmdarg          = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
+  let mods            = get(opts, 'mods', '')   " EX: botright
+  let open_opts       = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
 
-  let let_ctx_manager = esearch#context_manager#let#new().enter(vars_per_open)
-  if stay
-    let stay_ctx_manager = esearch#context_manager#stay#new().enter()
-  endif
+  let original_vars = esearch#let#restorable(restorable_vars)
+  if stay | let search_win = esearch#win#stay() | endif
 
   let lnum = self.line_in_file()
   let topline = str2nr(lnum) - (line('.') - line('w0'))
@@ -31,19 +30,19 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
     let Open = once ? function('s:open_once') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)
     keepjumps call winrestview({'lnum': lnum, 'topline': topline })
-    call esearch#let#do(window_vars)
+    call esearch#let#generic(window_vars)
 
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch
     call s:Message.echomsg('ErrorMsg', v:exception . ' at ' . v:throwpoint)
-    return 0
+    return s:false
   finally
-    call let_ctx_manager.exit()
-    if stay | call stay_ctx_manager.exit() | endif
+    call original_vars.restore()
+    if stay | call search_win.restore() | endif
   endtry
 
-  return 1
+  return s:true
 endfu
 
 fu! s:open_new(esearch, opener, filename, opts) abort
@@ -53,10 +52,10 @@ endfu
 
 fu! s:open_once(esearch, opener, filename, opts) abort
   let opener_id = s:opener_id(a:opener)
-  let opened_window = get(a:esearch.windows_opened_once, opener_id, {})
+  let opened_window = get(a:esearch.windows_opened_once, opener_id, s:null)
 
-  if s:ViewTracer.exists(opened_window)
-    call s:ViewTracer.jump(opened_window)
+  if !empty(opened_window) && esearch#win#exists(opened_window)
+    call esearch#win#focus(opened_window)
     " Don't open if the file is already opened.
     " Prevents from triggering existing swap prompt multiple times
     if s:Filepath.abspath(bufname('%')) !=# a:filename
@@ -69,7 +68,7 @@ fu! s:open_once(esearch, opener, filename, opts) abort
   endif
 
   let a:esearch.windows_opened_once[opener_id] =
-        \ esearch#util#trace_window()
+        \ esearch#win#trace()
 endfu
 
 fu! s:to_callable(opener) abort

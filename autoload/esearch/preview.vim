@@ -1,9 +1,7 @@
-let s:Guard   = vital#esearch#import('Vim.Guard')
-let s:Message = vital#esearch#import('Vim.Message')
-let s:null = 0
-let s:sign_id = 1
-let s:sign_name = 'ESearchPreviewMatchedLine'
-let s:sign_group = 'ESearchPreviewSigns'
+let s:Guard    = vital#esearch#import('Vim.Guard')
+let s:Message  = vital#esearch#import('Vim.Message')
+call esearch#polyfill#extend(s:)
+
 let s:autoclose_events = join([
       \ 'CursorMoved',
       \ 'CursorMovedI',
@@ -19,10 +17,10 @@ let g:esearch#preview#buffers = {}
 let g:esearch#preview#win = s:null
 let g:esearch#preview#cache = esearch#cache#lru#new(20)
 let g:esearch#preview#scratches = esearch#cache#lru#new(5)
+let g:esearch#preview#emphasis = s:null
+
 " TODO
 " - separate strategies when it's clear how how vim's floats are implemented
-" - Extract signs placing code
-" - Set local options using a context manager
 
 fu! esearch#preview#start(filename, line, ...) abort
   if !filereadable(a:filename)
@@ -31,17 +29,24 @@ fu! esearch#preview#start(filename, line, ...) abort
 
   let opts = get(a:000, 0, {})
   let max_edit_size = get(opts, 'max_edit_size', 100 * 1024) " size in bytes
-  let geometry = {
-        \ 'winline': winline(),
-        \ 'wincol':  wincol(),
-        \ 'width':   get(opts, 'width', 120),
-        \ 'height':  get(opts, 'height', 11),
-        \ }
+  let shape = s:Shape.new({
+        \ 'winline':   winline(),
+        \ 'wincol':    wincol(),
+        \ 'width':     get(opts, 'width',  120),
+        \ 'height':    get(opts, 'height', 11),
+        \ 'alignment': get(opts, 'align',  'cursor'),
+        \ 'line':      a:line,
+        \ })
+
+  let win_vars = {'&winhighlight': 'Normal:NormalFloat', '&foldenable': s:false}
+  call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   if getfsize(a:filename) > max_edit_size
-    return s:preview_in_scratch(a:filename, a:line, geometry)
+    return s:PreviewInScratchBuffer
+          \.new(a:filename, shape, win_vars).open()
   else
-    return s:preview_in_regular_buffer(a:filename, a:line, geometry)
+    return s:PreviewInRegularBuffer
+          \.new(a:filename, shape, win_vars).open()
   endif
 endfu
 
@@ -52,72 +57,83 @@ fu! esearch#preview#is_open() abort
 endfu
 
 fu! esearch#preview#reset() abort
-  " If #close() is used on every liste event, it can cause a bug where previewed
-  " buffer loose it's content on open, so this method is defined to 
+  " If #close() is used on every listed event, it can cause a bug where previewed
+  " buffer loose it's content on open, so this method is defined to handle this
   if esearch#preview#is_open()
-    let id = g:esearch#preview#win.id
     let guard = g:esearch#preview#win.guard
-    call nvim_win_set_option(id, 'winhighlight', guard.winhighlight)
-    call nvim_win_set_option(id, 'signcolumn',   guard.signcolumn)
-    call nvim_win_set_option(id, 'foldenable',   guard.foldenable)
+    if !empty(guard) | call guard.restore() | endif
   endif
 endfu
 
 fu! esearch#preview#close() abort
   if esearch#preview#is_open()
     call esearch#preview#reset()
-    call nvim_win_close(g:esearch#preview#win.id, 1)
+    call g:esearch#preview#win.close()
     let g:esearch#preview#win = s:null
   endif
 
-  call sign_unplace(s:sign_group, {'id': s:sign_id})
-endfu
-
-fu! s:preview_in_scratch(filename, line, geometry) abort
-  let filename = a:filename
-  let line = a:line
-
-  let lines_text = esearch#util#readfile(filename, g:esearch#preview#cache)
-  let search_window = bufwinid('%')
-  let preview_buffer = s:create_scratch_buffer(filename)
-
-  try
-    call esearch#preview#close()
-    let g:esearch#preview#win = s:open_preview_window(preview_buffer, a:geometry)
-    call s:setup_pseudo_file_appearance(filename, preview_buffer, g:esearch#preview#win)
-    call s:jump_to_window(g:esearch#preview#win.id)
-    call s:set_context_lines(preview_buffer, lines_text, a:geometry, a:line)
-    call s:setup_matching_line_sign(line)
-    call s:reshape_preview_window(preview_buffer, line, a:geometry)
-    call s:setup_autoclose_events()
-  catch
-    call esearch#preview#close()
-    echoerr v:exception
-    return 0
-  finally
-    let preview_buffer.newly_created = 0
-    call s:jump_to_window(search_window)
-  endtry
-
-  return 1
-endfu
-
-fu! s:setup_pseudo_file_appearance(filename, preview_buffer, preview_window) abort
-  let filetype = esearch#ftdetect#complete(a:filename)
-  if filetype isnot# s:null
-    call nvim_buf_set_option(a:preview_buffer.id, 'filetype', filetype)
+  if g:esearch#preview#emphasis isnot# s:null
+    call g:esearch#preview#emphasis.clear()
   endif
 endfu
 
-" Setup context lines prepended by blank lines outside the viewport. syntax_sync_lines offset is added to make syntaxes highlight correct
-fu! s:set_context_lines(preview_buffer, lines_text, geometry, line) abort
+let s:PreviewInScratchBuffer = {}
+
+fu! s:PreviewInScratchBuffer.new(filename, shape, win_vars) abort dict
+  let instance = copy(self)
+  let instance.filename = a:filename
+  let instance.shape    = a:shape
+  let instance.win_vars = a:win_vars
+  return instance
+endfu
+
+fu! s:PreviewInScratchBuffer.open() abort dict
+  let lines_text = esearch#util#readfile(self.filename, g:esearch#preview#cache)
+  let current_win = esearch#win#stay()
+  let self.buffer = s:ScratchBuffer
+        \.fetch_or_create(self.filename, g:esearch#preview#scratches)
+  " try
+    call esearch#preview#close()
+    let g:esearch#preview#win = s:FloatingWindow.new(self.buffer, self.shape).open()
+    call g:esearch#preview#win.let(self.win_vars)
+    call g:esearch#preview#win.focus()
+    call self.set_filetype()
+    call self.set_context_lines(lines_text)
+    let g:esearch#preview#emphasis =
+          \ esearch#emphasize#sign(g:esearch#preview#win.id, self.shape.line, '->')
+          \.draw()
+    call g:esearch#preview#win.reshape()
+    call g:esearch#preview#win.init_autoclose_events()
+  " catch
+    " call esearch#preview#close()
+    " echoerr v:exception
+    " return s:false
+  " finally
+    noau keepj call current_win.restore()
+  " endtry
+
+  return s:true
+endfu
+
+fu! s:PreviewInScratchBuffer.set_filetype() abort
+  let filetype = esearch#ftdetect#complete(self.filename)
+  if filetype isnot# s:null
+    call nvim_buf_set_option(self.buffer.id, 'filetype', filetype)
+  endif
+endfu
+
+" Setup context lines prepended by blank lines outside the viewport.
+" syntax_sync_lines offset is added to make syntaxes highlight correct
+fu! s:PreviewInScratchBuffer.set_context_lines(lines_text) abort
   let syntax_sync_lines = 100
-  let begin = max([a:line - a:geometry.height - syntax_sync_lines, 0])
-  let end = min([a:line + a:geometry.height + syntax_sync_lines, len(a:lines_text)])
+  let line = self.shape.line
+  let height = self.shape.height
+  let begin = max([line - height - syntax_sync_lines, 0])
+  let end = min([line + height + syntax_sync_lines, len(a:lines_text)])
 
   let blank_lines = repeat([''], begin)
   let context_lines = a:lines_text[ begin : end]
-  call nvim_buf_set_lines(a:preview_buffer.id, 0, -1, 0,
+  call nvim_buf_set_lines(self.buffer.id, 0, -1, 0,
         \ blank_lines + context_lines)
 
   " Prevent slowdowns on big syntax syncing ranges (according to the doc,
@@ -131,240 +147,103 @@ fu! s:set_context_lines(preview_buffer, lines_text, geometry, line) abort
   endif
 endfu
 
-fu! s:preview_in_regular_buffer(filename, line, geometry) abort
-  let filename = a:filename
-  let line = a:line
+"""""""""""""""""""""""""""""""""""""""
 
-  let search_window = bufwinid('%')
-  let preview_buffer = s:create_buffer(filename)
+let s:PreviewInRegularBuffer = {}
 
-  try
+fu! s:PreviewInRegularBuffer.new(filename, shape, win_vars) abort dict
+  let instance = copy(self)
+  let instance.filename = a:filename
+  let instance.shape = a:shape
+  let instance.win_vars = a:win_vars
+  return instance
+endfu
+
+fu! s:PreviewInRegularBuffer.open() abort dict
+  let current_win = esearch#win#stay()
+  let self.buffer = s:Buffer.fetch_or_create(self.filename, g:esearch#preview#buffers)
+
+  " try
     call esearch#preview#close()
-    let g:esearch#preview#win = s:open_preview_window(preview_buffer, a:geometry)
-    if preview_buffer.newly_created
-      call s:save_options(preview_buffer)
+    let g:esearch#preview#win = s:FloatingWindow.new(self.buffer, self.shape).open()
+    call g:esearch#preview#win.let(self.win_vars)
+    call g:esearch#preview#win.focus()
+    call self.edit()
+    let g:esearch#preview#emphasis =
+          \ esearch#emphasize#sign(g:esearch#preview#win.id, self.shape.line, '->')
+          \.draw()
+    call g:esearch#preview#win.reshape()
+    call self.init_on_open_autocommands()
+    call g:esearch#preview#win.init_autoclose_events()
+  " catch
+    " call esearch#preview#close()
+    " echoerr v:exception
+    " return s:false
+  " finally
+    noau keepj call current_win.restore()
+  " endtry
+
+  return s:true
+endfu
+
+fu! s:PreviewInRegularBuffer.edit() abort dict
+  if expand('%:p') !=# self.filename
+    let original_options = esearch#util#silence_swap_prompt()
+    try
+      exe 'keepj noau edit ' . fnameescape(self.filename)
+    finally
+      call original_options.restore()
+    endtry
+
+    " if the buffer is already created, vim switches to it leaving an empty
+    " buffer we have to cleanup
+    let current_buffer_id = bufnr('%')
+    if current_buffer_id != self.buffer.id && bufexists(self.buffer.id)
+      exe self.buffer.id . 'bwipeout'
     endif
+    let self.buffer.id = current_buffer_id
+  endif
 
-    call s:jump_to_window(g:esearch#preview#win.id)
-    call s:edit_file(filename, preview_buffer)
-    call s:configure_edited_preview_buffer()
-    call s:setup_matching_line_sign(line)
-    call s:reshape_preview_window(preview_buffer, line, a:geometry)
-    call s:setup_on_user_opens_buffer_events()
-    call s:setup_autoclose_events()
-  catch
-    call esearch#preview#close()
-    echoerr v:exception
-    return 0
-  finally
-    let preview_buffer.newly_created = 0
-    call s:jump_to_window(search_window)
-  endtry
-
-  return 1
+  keepj doau BufReadPre,BufRead
 endfu
 
-fu! s:save_options(preview_buffer) abort
-  let a:preview_buffer.guard.swapfile = !!nvim_buf_get_option(a:preview_buffer.id, 'swapfile')
-endfu
-
-fu! s:setup_on_user_opens_buffer_events() abort
-  augroup ESearchPreview
+fu! s:PreviewInRegularBuffer.init_on_open_autocommands() abort
+  augroup esearch#preview
     au!
     au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
   augroup END
 endfu
 
-fu! s:setup_autoclose_events() abort
-  exe 'au ' . s:autoclose_events . ' * ++once call esearch#preview#close()'
-  exe 'au ' . s:autoclose_events . ',BufWinLeave,BufLeave * ++once call esearch#preview#reset()'
-endfu
-
-fu! s:setup_matching_line_sign(line) abort
-  if empty(sign_getdefined(s:sign_name))
-    call sign_define(s:sign_name, {'text': '->'})
-  endif
-
-  noautocmd setlocal signcolumn=auto
-  noautocmd call sign_place(s:sign_id,
-        \ s:sign_group,
-        \ s:sign_name,
-        \ bufnr('%'),
-        \ {'lnum': a:line})
-endfu
-
-" Builtin winrestview() has a lot of side effects so s:reshape_preview_window
-" should be invoken as later as possible
-fu! s:reshape_preview_window(preview_buffer, line, geometry) abort
-  let a:geometry.height = min([
-        \ nvim_buf_line_count(a:preview_buffer.id),
-        \ a:geometry.height,
-        \ &lines - 1])
-  " NOTE that position is calculated twice. First calculation is required for
-  " initial positioning, as the window cannot be initialized without row/col.
-  " The second calculation is needed to clip the window height to an opened
-  " buffer size 
-  call s:assign_position(a:geometry)
-
-  let guard = s:Guard.store(['&winminheight'])
-  try
-    noau set winminheight=1
-    call nvim_win_set_config(g:esearch#preview#win.id, {
-          \ 'row':       a:geometry.row,
-          \ 'col':       a:geometry.col,
-          \ 'height':    a:geometry.height,
-          \ 'relative': 'win',
-          \ })
-
-    " literally what :help 'scrolloff' option does, but without dealing with
-    " options
-    if line('$') < a:geometry.height
-      let topline = 1
-    elseif line('$') - a:line < a:geometry.height
-      let topline = line('$') - a:geometry.height
-    else
-      let topline = a:line - (a:geometry.height / 2)
-    endif
-    noautocmd keepjumps call winrestview({
-          \ 'lnum': a:line,
-          \ 'col': 1,
-          \ 'topline': topline,
-          \ })
-  finally
-    call guard.restore()
-  endtry
-endfu
-
-fu! s:configure_edited_preview_buffer() abort
-  noautocmd keepjumps setlocal winhighlight=Normal:NormalFloat nofoldenable
-  keepjumps doau BufReadPre
-  keepjumps doau BufRead
-endfu
-
-fu! s:assign_position(geometry) abort
-  if &lines - a:geometry.height - 1 < a:geometry.winline
-    " if there's no room - show above
-    let a:geometry.row = a:geometry.winline - a:geometry.height
-  else
-    let a:geometry.row = a:geometry.winline + 1
-  endif
-  let a:geometry.col = max([5, a:geometry.wincol - 1])
-endfu
-
-fu! s:open_preview_window(preview_buffer, geometry) abort
-  call s:assign_position(a:geometry)
-
-  let guard = s:Guard.store(['&shortmess'])
-  noau set shortmess+=A
-  let id = nvim_open_win(a:preview_buffer.id, 0, {
-        \ 'width':     a:geometry.width,
-        \ 'height':    a:geometry.height,
-        \ 'focusable': v:false,
-        \ 'row':       a:geometry.row,
-        \ 'col':       a:geometry.col,
-        \ 'relative':  'win',
-        \})
-  call guard.restore()
-
-  let window = {'id': id, 'number': win_id2win(id), 'guard': {}}
-  let window.guard.winhighlight = nvim_win_get_option(id, 'winhighlight')
-  let window.guard.signcolumn = nvim_win_get_option(id, 'signcolumn')
-  let window.guard.foldenable = nvim_win_get_option(id, 'foldenable')
-  return window
-endfu
-
-fu! s:edit_file(filename, preview_buffer) abort
-  if expand('%:p') !=# a:filename
-
-    let guard = s:Guard.store(['&shortmess'])
-    noau set shortmess+=A
-    exe 'keepjumps noau edit ' . fnameescape(a:filename)
-    call guard.restore()
-
-    " if the buffer has already created, vim switches to it leaving an empty
-    " buffer we have to cleanup
-    let current_buffer_id = bufnr('%')
-    if current_buffer_id != a:preview_buffer.id
-      if bufexists(a:preview_buffer.id)
-        exe a:preview_buffer.id . 'bwipeout'
-      endif
-      let a:preview_buffer.id = current_buffer_id
-    endif
-
-    return 1
-  endif
-
-  return 0
-endfu
-
-fu! s:jump_to_window(window) abort
-  noau keepjumps call nvim_set_current_win(a:window)
-endfu
-
 fu! s:make_preview_buffer_regular() abort
   let current_filename = expand('%:p')
-
   if !has_key(g:esearch#preview#buffers, current_filename)
-    " execute once guard
+    " execute once
     return
   endif
 
-  let preview_buffer = g:esearch#preview#buffers[current_filename]
-  try
-    if !empty(preview_buffer.guard)
-      let &l:swapfile = preview_buffer.guard.swapfile
-    endif
-  catch /:E325:/
-    " User is already prompted about existing swap at the moment. Suppress.
-    " Occurs when preview is opened and :new command is executed
-  finally
-    call remove(g:esearch#preview#buffers, current_filename)
-  endtry
+  call remove(g:esearch#preview#buffers, current_filename)
   call esearch#preview#reset()
-
-  " prevent other events to handle the buffer again
-  au! ESearchPreview *
+  au! esearch#preview *
 endfu
 
-fu! s:create_buffer(filename) abort
-  if has_key(g:esearch#preview#buffers, a:filename)
-    let buffer = g:esearch#preview#buffers[a:filename]
-    if buffer.is_valid()
-      return buffer
+"""""""""""""""""""""""""""""""""""""""
+
+let s:Buffer = {}
+
+fu! s:Buffer.fetch_or_create(filename, cache) abort dict
+  if has_key(a:cache, a:filename)
+    let instance = a:cache[a:filename]
+    if instance.is_valid()
+      return instance
     endif
-    call remove(g:esearch#preview#buffers, a:filename)
+    call remove(a:cache, a:filename)
   endif
 
-  let buffer = s:Buffer.new(a:filename)
-  let g:esearch#preview#buffers[a:filename] = buffer
+  let instance = self.new(a:filename)
+  let a:cache[a:filename] = instance
 
-  return buffer
+  return instance
 endfu
-
-fu! s:create_scratch_buffer(filename) abort
-  if g:esearch#preview#scratches.has(a:filename)
-    let scratch = g:esearch#preview#scratches.get(a:filename)
-    if scratch.is_valid()
-      return scratch
-    endif
-
-    call g:esearch#preview#scratches.remove(a:filename)
-  endif
-
-  let scratch = s:ScratchBuffer.new(a:filename)
-  call g:esearch#preview#scratches.set(a:filename, scratch)
-
-  return scratch
-endfu
-
-fu! s:is_valid_buffer() abort dict
-  return nvim_buf_is_valid(self.id)
-endfu
-
-let s:Buffer = {
-      \ 'guard': {},
-      \ 'newly_created': 1,
-      \ 'is_valid': function('<SID>is_valid_buffer')}
 
 fu! s:Buffer.new(filename) abort dict
   let instance = copy(self)
@@ -379,9 +258,13 @@ fu! s:Buffer.new(filename) abort dict
   return instance
 endfu
 
-let s:ScratchBuffer = {
-      \ 'guard': {},
-      \ 'is_valid': function('<SID>is_valid_buffer')}
+fu! s:Buffer.is_valid() abort dict
+  return nvim_buf_is_valid(self.id)
+endfu
+
+"""""""""""""""""""""""""""""""""""""""
+
+let s:ScratchBuffer = {}
 
 fu! s:ScratchBuffer.new(filename) abort dict
   let instance = copy(self)
@@ -390,7 +273,150 @@ fu! s:ScratchBuffer.new(filename) abort dict
   return instance
 endfu
 
+fu! s:ScratchBuffer.fetch_or_create(filename, cache) abort
+  if a:cache.has(a:filename)
+    let instance = a:cache.get(a:filename)
+    if instance.is_valid()
+      return instance
+    endif
+
+    call a:cache.remove(a:filename)
+  endif
+
+  let instance = self.new(a:filename)
+  call a:cache.set(a:filename, instance)
+
+  return instance
+endfu
+
 fu! s:ScratchBuffer.remove() abort dict
   if !bufexists(self.id) | return | endif
   silent exe self.id 'bwipeout'
+endfu
+
+fu! s:ScratchBuffer.is_valid() abort dict
+  return nvim_buf_is_valid(self.id)
+endfu
+
+"""""""""""""""""""""""""""""""""""""""
+
+let s:FloatingWindow = {'guard': s:null, 'id': -1}
+
+fu! s:FloatingWindow.new(buffer, shape) abort dict
+  let instance        = copy(self)
+  let instance.buffer = a:buffer
+  let instance.shape  = a:shape
+  return instance
+endfu
+
+fu! s:FloatingWindow.let(variables) abort dict
+  let self.guard = esearch#win#let_restorable(self.id, a:variables)
+endfu
+
+fu! s:FloatingWindow.open() abort dict
+  try
+    let original_options = esearch#util#silence_swap_prompt()
+    let self.id = nvim_open_win(self.buffer.id, 0, {
+          \ 'width':     self.shape.width,
+          \ 'height':    self.shape.height,
+          \ 'focusable': s:false,
+          \ 'row':       self.shape.row,
+          \ 'col':       self.shape.col,
+          \ 'relative':  self.shape.relative,
+          \})
+  finally
+    call original_options.restore()
+  endtry
+
+  return self
+endfu
+
+fu! s:FloatingWindow.close() abort dict
+  call nvim_win_close(self.id, 1)
+endfu
+
+" Shape on create is only to prevent blinks. Actual shape setting is set there
+" NOTE: Builtin winrestview() has a lot of side effects so reshape()
+" should be invoken as later as possible
+fu! s:FloatingWindow.reshape() abort dict
+  " Prevent showing more lines than the buffer has
+  call self.shape.clip_height(nvim_buf_line_count(self.buffer.id))
+
+  let height = self.shape.height
+  let line = self.shape.line
+
+  " Allow the window be smallar than winminheight
+  try
+    let winminheight = esearch#let#restorable({'&winminheight': 1})
+    call nvim_win_set_config(g:esearch#preview#win.id, {
+          \ 'height':    height,
+          \ 'row':       self.shape.row,
+          \ 'col':       self.shape.col,
+          \ 'relative':  self.shape.relative,
+          \ })
+
+    " literally what :help 'scrolloff' option does, but without dealing with
+    " options
+    if line('$') < height
+      let topline = 1
+    elseif line('$') - line < height
+      let topline = line('$') - height
+    else
+      let topline = line - (height / 2)
+    endif
+    noau keepj call winrestview({
+          \ 'lnum':    line,
+          \ 'col':     1,
+          \ 'topline': topline,
+          \ })
+  finally
+    call winminheight.restore()
+  endtry
+endfu
+
+fu! s:FloatingWindow.init_autoclose_events() abort dict
+  exe 'au ' . s:autoclose_events . ' * ++once call esearch#preview#close()'
+  exe 'au ' . s:autoclose_events . ',BufWinLeave,BufLeave * ++once call esearch#preview#reset()'
+endfu
+
+fu! s:FloatingWindow.focus() abort dict
+  noau keepj call esearch#win#focus(self.id)
+endfu
+
+"""""""""""""""""""""""""""""""""""""""
+
+let s:Shape = {'relative': 'win'}
+
+fu! s:Shape.new(definitions) abort dict
+  let instance = extend(copy(self), a:definitions, 'force')
+  call instance.align()
+
+  return instance
+endfu
+
+fu! s:Shape.align() abort dict
+  if self.alignment ==# 'cursor'
+    call self.align_to_cursor()
+  else
+    throw 'Unknown preview align'
+  endif
+endfu
+
+fu! s:Shape.align_to_cursor() abort dict
+  if &lines - self.height - 1 < self.winline
+    " if there's no room - show above
+    let self.row = self.winline - self.height
+  else
+    let self.row = self.winline + 1
+  endif
+  let self.col = max([5, self.wincol - 1])
+endfu
+
+fu! s:Shape.clip_height(max_height) abort dict
+  let self.height = min([
+        \ a:max_height,
+        \ self.height,
+        \ &lines - 1])
+
+  call self.align()
 endfu

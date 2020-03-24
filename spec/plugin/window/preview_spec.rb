@@ -16,7 +16,7 @@ describe 'esearch#preview' do
     # Random #shuffle can be reproduced by specifying --seed N, as Kernel.srand
     # is used in spec_helper
     let(:uglified_names) do
-      ['😄', '概', 'ц', 'æ', "a\a", "a\b", "a\t", "a\n", "a\v", "a\f", "a\r",
+      ['😄', '概', 'ц', 'æ', "a\a", "a\b", "a\t", "a\v", "a\f", "a\r",
        "a\e", '<', '<<', '>>', '(', ')', '[', ']', '{', '}', "'", ';', '&', '~',
        '$', '^', '*', '**', '+', '++', '-', '--', '>', '+a', '++a', '-a', '--a',
        '>a', 'a+', 'a++', 'a-', 'a--', 'a>', '\\', '\\\\', '"', '"a":1:b', 'a ',

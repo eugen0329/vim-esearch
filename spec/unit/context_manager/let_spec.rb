@@ -56,7 +56,7 @@ describe 'esearch#option' do
     end
 
     before do
-      editor.command("let g:manager = #{VimlValue.dump(func('esearch#context_manager#let#new'))}")
+      editor.command("let g:manager = #{VimlValue.dump(func('esearch#let#restorable'))}")
       editor.command! original_variables
         .map { |k, v| "let #{k} = #{v.inspect}" }.join("\n")
     end

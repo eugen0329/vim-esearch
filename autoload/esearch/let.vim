@@ -1,6 +1,10 @@
-" Assigns variables specified in {variables} dictionary.
+let s:Guard = vital#esearch#import('Vim.Guard')
+let s:null = 0
+let s:GenericLet = function('esearch#let#generic')
 
-fu! esearch#let#do(variables) abort
+" Generic letter (not setter, to not confuse with set command). Behaves like a
+" usual let
+fu! esearch#let#generic(variables) abort
   " Most parts are inspired by Vim.Guard source code
   for [name, value] in items(a:variables)
     if name =~# '^[bwtg]:'
@@ -32,4 +36,22 @@ endfu
 fu! s:let_var(name, value) abort
   exe printf('let %s = %s', a:name,
         \ type(a:value) ==# type('') ? string(a:value) : a:value)
+endfu
+
+" Python-like context manager to temporary set variables with following vital's guards
+" interface
+
+fu! esearch#let#restorable(variables, ...) abort
+  let Guard  = get(a:000, 0, s:Guard)
+  let Letter = get(a:000, 1, s:GenericLet)
+
+  let guard = Guard.store(keys(a:variables))
+  try
+    call Letter(a:variables)
+  catch
+    call guard.restore()
+    throw v:exception
+  endtry
+
+  return guard
 endfu
