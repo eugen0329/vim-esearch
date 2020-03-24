@@ -137,6 +137,10 @@ fu! s:init_lazy_global_config() abort
   return 0
 endfu
 
+fu! esearch#debounce(...) abort
+  return call('esearch#debounce#new', a:000)
+endfu
+
 if !exists('g:esearch#env')
   let g:esearch#env = 0 " prod
 endif
