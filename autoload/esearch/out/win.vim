@@ -295,6 +295,10 @@ fu! esearch#out#win#init(opts) abort
 
   silent doau User esearch#out#win#init_post
 
+  augroup esearch#out#win#hook
+    silent doau User esearch#out#win#hook
+  augroup END
+
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
   if !b:esearch.request.async
@@ -365,6 +369,7 @@ fu! s:split_preview(...) abort dict
 endfu
 
 fu! s:cleanup() abort
+  au!  esearch#out#win#hook * <buffer>
   call esearch#changes#unlisten_for_current_buffer()
   call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
   if has_key(b:esearch, 'updates_timer')
@@ -376,6 +381,7 @@ fu! s:cleanup() abort
   augroup ESearchModifiable
     au! * <buffer>
   augroup END
+
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
         \ get(b:esearch, 'matches_highlight_id', -1))
