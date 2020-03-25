@@ -20,9 +20,7 @@ let g:esearch#out#win#mappings = [
       \ {'lhs': '{',       'rhs': 'prev-file',          'default': 1},
       \ ]
 
-let s:false = 0
-let s:true = 1
-let s:null = 0
+call esearch#polyfill#extend(s:)
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
@@ -231,6 +229,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
+        \ 'close_preview':            function('esearch#preview#close'),
         \ 'filename':                 function('<SID>filename'),
         \ 'unescaped_filename':       function('<SID>unescaped_filename'),
         \ 'filetype':                 function('<SID>filetype'),
@@ -241,9 +240,8 @@ fu! esearch#out#win#init(opts) abort
         \ 'jump2filename':            function('<SID>jump2filename'),
         \ 'is_current':               function('<SID>is_current'),
         \ 'split_preview':            function('<SID>split_preview'),
-        \ 'is_preview_open':          function('esearch#preview#is_open'),
-        \ 'close_preview':            function('esearch#preview#close'),
         \ 'last_split_preview':       {},
+        \ 'is_preview_open':          function('esearch#preview#is_open'),
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
@@ -293,11 +291,10 @@ fu! esearch#out#win#init(opts) abort
   call s:init_mappings()
   call s:init_commands()
 
-  silent doau User esearch#out#win#init_post
-
   augroup esearch#out#win#hook
     silent doau User esearch#out#win#hook
   augroup END
+  silent doau User esearch#out#win#init_post
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -342,6 +339,11 @@ endif
 " Is used to prevent problems with asynchronous code
 fu! s:is_current() abort dict
   return get(b:, 'esearch', {}) ==# self
+endfu
+
+fu! s:close_split_preview() abort dict
+  if !self.is_current() | return | endif
+
 endfu
 
 " A wrapper around regular open

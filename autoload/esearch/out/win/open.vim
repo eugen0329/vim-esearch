@@ -21,7 +21,7 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
   let open_opts       = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
 
   let original_vars = esearch#let#restorable(restorable_vars)
-  if stay | let search_win = esearch#win#stay() | endif
+  if stay | let current_win = esearch#win#stay() | endif
 
   let lnum = self.line_in_file()
   let topline = str2nr(lnum) - (line('.') - line('w0'))
@@ -39,7 +39,7 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
     return s:false
   finally
     call original_vars.restore()
-    if stay | call search_win.restore() | endif
+    if stay | call current_win.restore() | endif
   endtry
 
   return s:true

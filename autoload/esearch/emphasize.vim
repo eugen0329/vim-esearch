@@ -2,6 +2,8 @@ let s:sign_name  = 'esearchEmphasizeSign'
 let s:sign_group = 'esearchEmphasizeSigns'
 let s:sign_id    = 502012 " TODO: investigate what is the scope of id's
 
+call esearch#polyfill#extend(s:)
+
 fu! esearch#emphasize#sign(win_handle, line, text) abort
   return s:SignEmphasis.new(a:win_handle, a:line, a:text)
 endfu
@@ -9,11 +11,11 @@ endfu
 let s:SignEmphasis = {}
 
 fu! s:SignEmphasis.new(win_handle, line, text) abort dict
-  let instance = copy(self)
+  let instance            = copy(self)
   let instance.win_handle = a:win_handle
-  let instance.line          = a:line
-  let instance.text          = a:text
-  let instance.guard         = {}
+  let instance.line       = a:line
+  let instance.text       = a:text
+  let instance.signcolumn = s:null
 
   return instance
 endfu
@@ -23,7 +25,7 @@ fu! s:SignEmphasis.draw() abort dict
     call sign_define(s:sign_name, {'text': self.text})
   endif
 
-  let self.guard = esearch#win#let_restorable(
+  let self.signcolumn = esearch#win#let_restorable(
         \ self.win_handle, {'&signcolumn': 'auto'})
 
   noau call sign_place(s:sign_id,
@@ -37,5 +39,5 @@ endfu
 
 fu! s:SignEmphasis.clear() abort dict
   call sign_unplace(s:sign_group, {'id': s:sign_id})
-  call self.guard.restore()
+  call self.signcolumn.restore()
 endfu

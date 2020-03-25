@@ -27,7 +27,6 @@ fu! s:LRU.get(key) abort dict
 endfu
 
 fu! s:LRU.set(key, value) abort dict
-
   if !self.has(a:key) && self.queue.size() >= self.size
     call self.remove(self.queue.to_list()[-1])
   endif

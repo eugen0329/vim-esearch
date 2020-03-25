@@ -11,7 +11,7 @@ if !exists('g:esearch#backend#vim8#timer')
 endif
 
 let s:jobs = {}
-let s:id = esearch#count#new()
+let s:id = esearch#itertools#count()
 
 fu! esearch#backend#vim8#init(adapter, cmd, pty) abort
   " TODO add 'stoponexit'

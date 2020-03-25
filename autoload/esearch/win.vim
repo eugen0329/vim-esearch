@@ -1,4 +1,4 @@
-let s:window_id  = esearch#count#new()
+let s:window_id  = esearch#itertools#count()
 
 " Utility functions to work with wondows. Includes:
 " - normalized windows api

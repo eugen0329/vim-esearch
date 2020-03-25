@@ -19,7 +19,7 @@ fu! s:Trailing.apply(...) abort dict
     call timer_stop(self._timer)
   endif
 
-  " A separate variable is required, as otherwise closure won't work
+  " A separate variable is required, as otherwise the closure won't work
   let args = a:000
   let self._timer = timer_start(self._wait, {_ -> call(self._callback[0], args) })
 endfu
