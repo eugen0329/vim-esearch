@@ -17,6 +17,7 @@ let s:autoclose_events = join([
 
 let g:esearch#preview#buffers = {}
 let g:esearch#preview#win = s:null
+let g:esearch#preview#last = s:null
 let g:esearch#preview#cache = esearch#cache#lru#new(20)
 let g:esearch#preview#scratches = esearch#cache#lru#new(5)
 let g:esearch#preview#emphasis = s:null
@@ -40,18 +41,24 @@ fu! esearch#preview#start(filename, line, ...) abort
         \ 'filename': a:filename,
         \ 'line':     a:line,
         \ }
-  " let strategy = get(opts, 'align',  'cursor')
-
   let win_vars = {'&winhighlight': 'Normal:NormalFloat', '&foldenable': s:false}
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
-  if getfsize(a:filename) > max_edit_size
-    return s:PreviewInScratchBuffer
-          \.new(location, shape, win_vars).open()
-  else
-    return s:PreviewInRegularBuffer
-          \.new(location, shape, win_vars).open()
+  let strategy = get(opts, 'strategy', s:null)
+  if empty(strategy)
+    let strategy = (getfsize(a:filename) > max_edit_size ? 'scratch' : 'regular')
   endif
+
+  unlet g:esearch#preview#last
+  if strategy ==# 'scratch'
+    let g:esearch#preview#last = s:PreviewInScratchBuffer
+          \.new(location, shape, win_vars, opts)
+  else
+    let g:esearch#preview#last = s:PreviewInRegularBuffer
+          \.new(location, shape, win_vars, opts)
+  endif
+
+  return g:esearch#preview#last.open()
 endfu
 
 fu! esearch#preview#is_open() abort
@@ -83,11 +90,12 @@ endfu
 
 let s:PreviewInScratchBuffer = {}
 
-fu! s:PreviewInScratchBuffer.new(location, shape, win_vars) abort dict
+fu! s:PreviewInScratchBuffer.new(location, shape, win_vars, opts) abort dict
   let instance = copy(self)
   let instance.location = a:location
   let instance.shape    = a:shape
   let instance.win_vars = a:win_vars
+  let instance.opts     = a:opts
   return instance
 endfu
 
@@ -95,19 +103,20 @@ fu! s:PreviewInScratchBuffer.open() abort dict
   let lines_text = esearch#util#readfile(self.location.filename, g:esearch#preview#cache)
   let current_win = esearch#win#stay()
   let self.buffer = s:ScratchBuffer
-        \.fetch_or_create(self.location, g:esearch#preview#scratches)
+        \.fetch_or_create(self.location.filename, g:esearch#preview#scratches)
   try
     call esearch#preview#close()
-    let g:esearch#preview#win = s:FloatingWindow.new(self.buffer, self.shape).open()
-    call g:esearch#preview#win.let(self.win_vars)
-    call g:esearch#preview#win.focus()
+    let self.win = s:FloatingWindow.new(self.buffer, self.location, self.shape).open()
+    let g:esearch#preview#win = self.win
+    call self.win.let(self.win_vars)
+    call self.win.focus()
     call self.set_filetype()
     call self.set_context_lines(lines_text)
     let g:esearch#preview#emphasis =
-          \ esearch#emphasize#sign(g:esearch#preview#win.id, self.location.line, '->')
+          \ esearch#emphasize#sign(self.win.id, self.location.line, '->')
           \.draw()
-    call g:esearch#preview#win.reshape()
-    call g:esearch#preview#win.init_autoclose_autocommands()
+    call self.win.reshape()
+    call self.win.init_autoclose_autocommands()
   catch
     call esearch#preview#close()
     echoerr v:exception
@@ -155,30 +164,33 @@ endfu
 
 let s:PreviewInRegularBuffer = {}
 
-fu! s:PreviewInRegularBuffer.new(location, shape, win_vars) abort dict
+fu! s:PreviewInRegularBuffer.new(location, shape, win_vars, opts) abort dict
   let instance = copy(self)
   let instance.location = a:location
-  let instance.shape = a:shape
+  let instance.shape    = a:shape
   let instance.win_vars = a:win_vars
+  let instance.opts     = a:opts
   return instance
 endfu
 
 fu! s:PreviewInRegularBuffer.open() abort dict
   let current_win = esearch#win#stay()
-  let self.buffer = s:Buffer.fetch_or_create(self.location, g:esearch#preview#buffers)
+  let self.buffer = s:Buffer
+        \.fetch_or_create(self.location.filename, g:esearch#preview#buffers)
 
   try
     call esearch#preview#close()
-    let g:esearch#preview#win = s:FloatingWindow.new(self.buffer, self.shape).open()
-    call g:esearch#preview#win.let(self.win_vars)
-    call g:esearch#preview#win.focus()
+    let self.win = s:FloatingWindow.new(self.buffer, self.location, self.shape).open()
+    let g:esearch#preview#win = self.win
+    call self.win.let(self.win_vars)
+    call self.win.focus()
     call self.edit()
     let g:esearch#preview#emphasis =
-          \ esearch#emphasize#sign(g:esearch#preview#win.id, self.location.line, '->')
+          \ esearch#emphasize#sign(self.win.id, self.location.line, '->')
           \.draw()
-    call g:esearch#preview#win.reshape()
+    call self.win.reshape()
     call self.init_on_open_autocommands()
-    call g:esearch#preview#win.init_autoclose_autocommands()
+    call self.win.init_autoclose_autocommands()
   catch
     call esearch#preview#close()
     echoerr v:exception
@@ -232,15 +244,14 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
-let s:Buffer = {}
+let s:Buffer = {'kind': 'regular'}
 
-fu! s:Buffer.new(location) abort dict
+fu! s:Buffer.new(filename) abort dict
   let instance = copy(self)
-  let instance.filename = a:location.filename
-  let instance.line = a:location.line
+  let instance.filename = a:filename
 
-  if bufexists(instance.filename)
-    let instance.id = bufnr('^'.instance.filename.'$')
+  if bufexists(a:filename)
+    let instance.id = bufnr('^'.a:filename.'$')
   else
     let instance.id = nvim_create_buf(1, 0)
   endif
@@ -248,18 +259,17 @@ fu! s:Buffer.new(location) abort dict
   return instance
 endfu
 
-fu! s:Buffer.fetch_or_create(location, cache) abort dict
-  let filename = a:location.filename
-  if has_key(a:cache, filename)
-    let instance = a:cache[filename]
+fu! s:Buffer.fetch_or_create(filename, cache) abort dict
+  if has_key(a:cache, a:filename)
+    let instance = a:cache[a:filename]
     if instance.is_valid()
       return instance
     endif
-    call remove(a:cache, filename)
+    call remove(a:cache, a:filename)
   endif
 
-  let instance = self.new(a:location)
-  let a:cache[filename] = instance
+  let instance = self.new(a:filename)
+  let a:cache[a:filename] = instance
 
   return instance
 endfu
@@ -270,31 +280,27 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
-let s:ScratchBuffer = {}
+let s:ScratchBuffer = {'kind': 'scratch'}
 
-fu! s:ScratchBuffer.new(location) abort dict
+fu! s:ScratchBuffer.new(filename) abort dict
   let instance          = copy(self)
-  let instance.line     = a:location.line
-  let instance.filename = a:location.filename
-  let instance.kind     = 'scratch'
+  let instance.filename = a:filename
   let instance.id       = nvim_create_buf(0, 1)
   return instance
 endfu
 
-fu! s:ScratchBuffer.fetch_or_create(location, cache) abort
-  let filename = a:location.filename
-
-  if a:cache.has(filename)
-    let instance = a:cache.get(filename)
+fu! s:ScratchBuffer.fetch_or_create(filename, cache) abort
+  if a:cache.has(a:filename)
+    let instance = a:cache.get(a:filename)
     if instance.is_valid()
       return instance
     endif
 
-    call a:cache.remove(filename)
+    call a:cache.remove(a:filename)
   endif
 
-  let instance = self.new(a:location)
-  call a:cache.set(filename, instance)
+  let instance = self.new(a:filename)
+  call a:cache.set(a:filename, instance)
 
   return instance
 endfu
@@ -312,10 +318,12 @@ endfu
 
 let s:FloatingWindow = {'guard': s:null, 'id': -1}
 
-fu! s:FloatingWindow.new(buffer, shape) abort dict
-  let instance        = copy(self)
-  let instance.buffer = a:buffer
-  let instance.shape  = a:shape
+fu! s:FloatingWindow.new(buffer, location, shape) abort dict
+  let instance = copy(self)
+  let instance.buffer   = a:buffer
+  let instance.location = a:location
+  let instance.shape    = a:shape
+
   return instance
 endfu
 
@@ -333,7 +341,7 @@ fu! s:FloatingWindow.open() abort dict
           \ 'anchor':    self.shape.anchor,
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
-          \ 'relative':  self.shape.relative,
+          \ 'relative':  'win',
           \})
   finally
     call original_options.restore()
@@ -346,29 +354,31 @@ fu! s:FloatingWindow.close() abort dict
   call nvim_win_close(self.id, 1)
 endfu
 
-" Shape on create is only to prevent blinks. Actual shape setting is set there
-" NOTE: Builtin winrestview() has a lot of side effects so reshape()
-" should be invoken as later as possible
+" Shape specified on create is only to prevent blinks. Actual shape setting is set there
 fu! s:FloatingWindow.reshape() abort dict
   " Prevent showing more lines than the buffer has
   call self.shape.clip_height(nvim_buf_line_count(self.buffer.id))
-
   let height = self.shape.height
-  let line = self.buffer.line
+  let line   = self.location.line
 
-  " Allow the window be smallar than winminheight
+  if nvim_get_current_win() !=# self.id
+    let current_win = esearch#win#stay()
+    call self.focus()
+  endif
+
+  " allow the window be smallar than winminheight
+  let winminheight = esearch#let#restorable({'&winminheight': 1})
+
   try
-    let winminheight = esearch#let#restorable({'&winminheight': 1})
-    call nvim_win_set_config(g:esearch#preview#win.id, {
-          \ 'height':    height,
+    call nvim_win_set_config(self.id, {
+          \ 'height':    self.shape.height,
           \ 'anchor':    self.shape.anchor,
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
-          \ 'relative':  self.shape.relative,
+          \ 'relative':  'win',
+          \ 'win':       self.id,
           \ })
-
-    " literally what :help 'scrolloff' option does, but without dealing with
-    " options
+    " Prevent showing EndOfBuffer
     if line('$') < height
       let topline = 1
     elseif line('$') - line < height
@@ -377,17 +387,19 @@ fu! s:FloatingWindow.reshape() abort dict
       let topline = line - (height / 2)
     endif
     noau keepj call winrestview({
+          \ 'topline': topline,
           \ 'lnum':    line,
           \ 'col':     1,
-          \ 'topline': topline,
           \ })
   finally
     call winminheight.restore()
+    if exists('current_win') | noau keepj call current_win.restore() | endif
   endtry
 endfu
 
+
 fu! s:FloatingWindow.init_autoclose_autocommands() abort dict
-  augroup esearch#preview#autoclose
+  augroup esearch_preview_autoclose
     au!
     exe 'au ' . s:autoclose_events . ' * ++once call esearch#preview#close()'
     exe 'au ' . s:autoclose_events . ',BufWinLeave,BufLeave * ++once call esearch#preview#reset()'
@@ -400,7 +412,7 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
-let s:Shape = {'relative': 'win'}
+let s:Shape = {}
 
 fu! s:Shape.new(definitions) abort dict
   let instance = copy(self)
@@ -443,7 +455,7 @@ fu! s:Shape.new(definitions) abort dict
     let instance.height = s:measure(height, winheight(0))
   endif
 
-  call instance.align()
+  call instance.realign()
 
   return instance
 endfu
@@ -458,7 +470,7 @@ fu! s:measure(value, interval) abort
   endif
 endfu
 
-fu! s:Shape.align() abort dict
+fu! s:Shape.realign() abort dict
   if self.alignment ==# 'cursor'
     call self.align_to_cursor()
   elseif self.alignment ==# 'top'
@@ -510,13 +522,13 @@ fu! s:Shape.align_to_cursor() abort dict
   let self.anchor = 'NW'
 endfu
 
-fu! s:Shape.clip_height(max_height) abort dict
+fu! s:Shape.clip_height(height_limit) abort dict
   if s:List.has(['left', 'right'], self.alignment) | return | endif
 
   let self.height = min([
-        \ a:max_height,
+        \ a:height_limit,
         \ self.height,
         \ &lines - 1])
 
-  call self.align()
+  call self.realign()
 endfu

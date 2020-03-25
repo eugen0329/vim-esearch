@@ -38,7 +38,7 @@ let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_fr
 let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
-let s:linenr_format = ' %3d %s'
+let s:linenr_format = ' %3d '
 let s:function_t = type(function('tr'))
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
@@ -229,11 +229,15 @@ fu! esearch#out#win#init(opts) abort
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
-        \ 'close_preview':            function('esearch#preview#close'),
+        \ 'preview_focus':            function('<SID>preview_focus'),
+        \ 'preview_zoom':             function('<SID>preview_zoom'),
+        \ 'preview_close':            function('esearch#preview#close'),
+        \ 'is_preview_open':          function('esearch#preview#is_open'),
         \ 'filename':                 function('<SID>filename'),
         \ 'unescaped_filename':       function('<SID>unescaped_filename'),
         \ 'filetype':                 function('<SID>filetype'),
         \ 'line_in_file':             function('<SID>line_in_file'),
+        \ 'ctx_view':                 function('<SID>ctx_view'),
         \ 'is_filename':              function('<SID>is_filename'),
         \ 'is_entry':                 function('<SID>is_entry'),
         \ 'jump2entry':               function('<SID>jump2entry'),
@@ -241,7 +245,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'is_current':               function('<SID>is_current'),
         \ 'split_preview':            function('<SID>split_preview'),
         \ 'last_split_preview':       {},
-        \ 'is_preview_open':          function('esearch#preview#is_open'),
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
@@ -782,8 +785,8 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
 
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <S-p> :<C-U>sil cal b:esearch.preview()<CR>
-    nnoremap <silent><buffer> p     :<C-U>sil cal b:esearch.preview()<CR>
+    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_focus()<CR>
+    nnoremap <silent><buffer> p     :<C-U>call b:esearch.preview_zoom()<CR>
   endif
 
   for i in range(0, len(g:esearch#out#win#mappings) - 1)
@@ -805,14 +808,93 @@ fu! s:invoke_mapping_callback(i) abort
   call g:esearch#out#win#mappings[a:i].rhs(b:esearch)
 endfu
 
+fu! s:preview_zoom() abort dict
+  if self.is_preview_open()
+    let height = g:esearch#preview#last.win.shape.height * 2
+    let confirmation_prompt_height = 2 " prevent overlapping the text
+    let height = esearch#util#clip(height, 0, &lines - confirmation_prompt_height)
+
+    if g:esearch#preview#last.win.shape.height !=# height
+      let g:esearch#preview#last.win.shape.height = height
+      call g:esearch#preview#last.win.reshape()
+    endif
+  else
+    return self.preview()
+  endif
+endfu
+
+fu! s:preview_focus(...) abort dict
+  if !self.is_current() | return | endif
+
+  " Owerwrite strategy passed by user, as only a regular buffer
+  " makes sense to focus in
+  let opts = extend(copy(get(a:000, 0, {})), {'strategy': 'regular'}, 'force')
+
+  " TEST CASES
+  " g:esearch#preview#last is empty
+  " start searching within the window
+  if !self.is_preview_open() || g:esearch#preview#win.buffer.kind !=# 'regular'
+    let args = [self.unescaped_filename(), self.line_in_file(), opts]
+    call call(function('esearch#preview#start'), args)
+  endif
+
+ " Is used to jump to the corresponding line and column where user was within
+ " the search window. View column will correspond to the column inside the file.
+  let view = self.ctx_view()
+
+  if exists('#esearch_preview_autoclose')
+    au! esearch_preview_autoclose
+  endif
+  call g:esearch#preview#win.focus()
+  call g:esearch#preview#win.reshape()
+  let view.topline = winsaveview().topline " keep scroll after the reedit
+
+  " Reedit to open the swap prompt
+  if filereadable(swapname('%'))
+    let undolevels = esearch#let#restorable({'&l:undolevels': -1})
+    try
+      edit
+    catch /E325:/ " swapexists exception, will be handled by a user
+    catch /Vim:Interrupt/ " Throwed on cancelling swap
+    finally
+      " When (Q)uit or (A)bort was pressed - vim unloads current buffer as it
+      " was with an existing swap. Closing and returning back.
+      if empty(bufname('%'))
+        call esearch#preview#close()
+        return s:false
+      endif
+
+      call undolevels.restore()
+    endtry
+  endif
+
+  augroup esearch_preview_autoclose
+    au BufWinLeave,BufLeave <buffer> ++once call esearch#preview#close()
+  augroup END
+
+  call winrestview(view)
+endfu
+
 fu! s:preview(...) abort dict
   if !self.is_current() | return | endif
   return call(function('esearch#preview#start'),
         \ [self.unescaped_filename(), self.line_in_file()] + a:000)
 endfu
 
+" Returns dict that can be forwarded into builtin winrestview()
+fu! s:ctx_view() abort dict
+  let line = self.line_in_file()
+  let state = esearch#out#win#_state(self)
+  let linenr = printf(s:linenr_format, state.line_numbers_map[line('.')])
+  " \ 'topline': winsaveview().topline,
+  return {
+        \ 'lnum': line,
+        \ 'col': max([0, col('.') - strlen(linenr) - 1])
+        \ }
+endfu
+
 fu! s:line_in_file() abort dict
-  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
+  return (matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*'))
 endfu
 
 fu! s:filetype(...) abort dict
