@@ -75,7 +75,7 @@ describe 'esearch#preview' do
       describe 'max_edit_size option' do
         before do
           editor.command! <<~VIML
-            call esearch#out#win#map('e', {es-> es.preview({'max_edit_size': 0}) })
+          call esearch#out#win#map('e', {es-> es.preview({'max_edit_size': 0}) })
           VIML
         end
         include_context 'start search'
@@ -105,7 +105,7 @@ describe 'esearch#preview' do
         context 'when using scratch buffer' do
           before do
             editor.command! <<~VIML
-              call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10, 'max_edit_size': 0}) })
+            call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10, 'max_edit_size': 0}) })
             VIML
           end
           include_context 'start search'
@@ -123,6 +123,87 @@ describe 'esearch#preview' do
       end
     end
 
+    describe 'entering' do
+      context 'when preview is closed' do
+        include_context 'start search'
+
+        it 'opens preview window and enters into it' do
+          expect {
+            editor.send_keys 'P'
+          } .to change { window_handles.count }
+            .by(1)
+            .and change { editor.current_buffer_name }
+            .to(ctx1.absolute_path)
+            .and change { window_local_highlights.uniq.sort }
+            .to(['', "Normal:NormalFloat"].sort)
+        end
+      end
+
+      context 'when preview is opened' do
+        include_context 'start search'
+        before { editor.send_keys 'p' }
+
+        it 'enters it' do
+          expect {
+            editor.send_keys 'P'
+          } .to not_to_change { window_handles }
+            .and change { editor.current_buffer_name }
+            .to(ctx1.absolute_path)
+            .and not_to_change { window_local_highlights.uniq.sort }
+            .from(['', "Normal:NormalFloat"].sort)
+        end
+      end
+
+
+      context 'when preview is entered' do
+        before do
+          editor.command! <<~VIML
+          call esearch#out#win#map('e', {es-> es.preview_enter({'let!': {'&winhighlight': 'Normal:PMenu'}}) })
+          VIML
+        end
+        include_context 'start search'
+        before  { editor.send_keys_separately 'e' }
+
+        context 'when user closes the preview' do
+          include_context 'verify test file content is not modified after a testcase'
+
+          # regression on reentering
+          it 'reenters consistently' do
+            expect { editor.send_keys_separately ':q\\<CR>' }
+              .to change { window_handles.count }
+                .by(-1)
+                .and change { editor.current_buffer_name }
+                .to(include('Search'))
+                .and change { window_local_highlights }
+                .to(all(eq('')))
+
+            expect {
+              editor.send_keys 'e'
+            } .to change { window_handles.count }
+              .by(1)
+              .and change { editor.current_buffer_name }
+              .to(ctx1.absolute_path)
+              .and change { window_local_highlights.uniq.sort }
+              .to(['', "Normal:PMenu"].sort)
+          end
+        end
+
+        context 'when user switches to another buffer' do
+          include_context 'verify test file content is not modified after a testcase'
+
+          it 'closes the preview' do
+            expect { editor.send_keys_separately '\\<C-w>j' }
+              .to change { window_handles.count }
+                .by(-1)
+                .and change { editor.current_buffer_name }
+                .to(include('Search'))
+                .and change { window_local_highlights }
+                .to(all(eq('')))
+          end
+        end
+      end
+    end
+
     describe 'swapfiles' do
       let(:swap_file) { file('swap_content', swap_path(ctx1.file.path)) }
       let(:files) do
@@ -131,47 +212,83 @@ describe 'esearch#preview' do
 
       before do
         editor.command <<~VIML
-          set swapfile directory=#{test_directory} updatecount=1
-          set updatecount=1
+        set swapfile directory=#{test_directory} updatecount=1
+        set updatecount=1
         VIML
         test_directory.files << swap_file
         test_directory.persist!
       end
       include_context 'start search'
       after do
-        expect(window_local_highlights).to all eq(default_highlight)
         swap_file.unlink
         editor.command <<~VIML
-          set noswapfile
-          set updatecount=0
+        set noswapfile
+        set updatecount=0
         VIML
       end
 
-      it 'handles buffer opened staying in the current window' do
-        expect { editor.send_keys 'p' }
-          .to change { window_handles.count }
-          .by(1)
-          .and not_to_change { editor.current_buffer_name }
+      context 'when entering' do
+        shared_examples 'it handles cancelling with' do |key:|
+          it "clears everything on cancelling" do
+            editor.send_keys 'p'
 
-        expect { editor.raw_send_keys('S', 'e') }
-          .to not_change { window_handles.count }
-          .and not_to_change { editor.current_buffer_name }
+            expect {
+              editor.send_keys 'P'
+              editor.raw_send_keys key
+            } .to change { window_handles.count }
+              .by(-1)
+              .and not_to_change { editor.current_buffer_name }
+
+            expect(window_local_highlights).to all(eq(''))
+          end
+        end
+
+        it_behaves_like 'it handles cancelling with', key: 'a'
+        it_behaves_like 'it handles cancelling with', key: 'q'
+
+        it "doesn't reset highlights and other options" do
+          editor.send_keys 'p'
+
+          expect {
+            editor.send_keys 'P'
+            editor.raw_send_keys 'e'
+          } .to not_to_change { window_handles.count }
+            .and change { editor.current_buffer_name }
+            .to(ctx1.absolute_path)
+            .and not_to_change { window_local_highlights.uniq.sort }
+            .from(['', "Normal:NormalFloat"].sort)
+        end
       end
 
-      # regression bug caused by raising error on nvim_open_win after
-      # specifying a buffer with existing swap that was already opened
-      it 'handles previously opened buffer' do
-        2.times do
+      context 'when showing' do
+        after { expect(window_local_highlights).to all eq(default_highlight) }
+
+        it 'handles buffer opened staying in the current window' do
           expect { editor.send_keys 'p' }
             .to change { window_handles.count }
             .by(1)
             .and not_to_change { editor.current_buffer_name }
 
-          # split and press (A)bort
-          expect { editor.raw_send_keys('s', 'a') }
-            .to change { window_handles.count }
-            .by(-1)
+          expect { editor.raw_send_keys('S', 'e') }
+            .to not_change { window_handles.count }
             .and not_to_change { editor.current_buffer_name }
+        end
+
+        # regression bug caused by raising error on nvim_open_win after
+        # specifying a buffer with existing swap that was already opened
+        it 'handles previously opened buffer' do
+          2.times do
+            expect { editor.send_keys 'p' }
+              .to change { window_handles.count }
+              .by(1)
+              .and not_to_change { editor.current_buffer_name }
+
+            # split and press (A)bort
+            expect { editor.raw_send_keys('s', 'a') }
+              .to change { window_handles.count }
+              .by(-1)
+              .and not_to_change { editor.current_buffer_name }
+          end
         end
       end
     end

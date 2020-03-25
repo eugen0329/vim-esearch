@@ -4,23 +4,19 @@ let s:Prelude  = vital#esearch#import('Prelude')
 let s:List     = vital#esearch#import('Data.List')
 call esearch#polyfill#extend(s:)
 
-let s:autoclose_events = join([
-      \ 'CursorMoved',
-      \ 'CursorMovedI',
-      \ 'InsertEnter',
+let s:default_close_on = [
       \ 'QuitPre',
-      \ 'ExitPre',
       \ 'BufEnter',
       \ 'BufWinEnter',
       \ 'WinLeave',
-      \ ], ',')
-
+      \ ]
+let g:esearch#preview#_reset_on = 'BufWinLeave,BufLeave'
+let g:esearch#preview#_skip_reset = s:false
 let g:esearch#preview#buffers = {}
 let g:esearch#preview#win = s:null
 let g:esearch#preview#last = s:null
 let g:esearch#preview#cache = esearch#cache#lru#new(20)
 let g:esearch#preview#scratches = esearch#cache#lru#new(5)
-let g:esearch#preview#emphasis = s:null
 
 " TODO
 " - separate strategies when it's clear how vim's floats are implemented
@@ -37,11 +33,19 @@ fu! esearch#preview#start(filename, line, ...) abort
         \ 'height':    get(opts, 'height', s:null),
         \ 'alignment': get(opts, 'align',  'cursor'),
         \ })
+
+  let close_on  = copy(s:default_close_on)
+  let close_on += get(opts, 'close_on',  ['CursorMoved', 'CursorMovedI', 'InsertEnter'])
+  let close_on  = uniq(copy(close_on))
+
   let location = {
         \ 'filename': a:filename,
         \ 'line':     a:line,
         \ }
-  let win_vars = {'&winhighlight': 'Normal:NormalFloat', '&foldenable': s:false}
+  let win_vars = {'&foldenable': s:false}
+  if g:esearch#env isnot# 0
+    let win_vars['&winhighlight'] = 'Normal:NormalFloat'
+  endif
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let strategy = get(opts, 'strategy', s:null)
@@ -52,10 +56,10 @@ fu! esearch#preview#start(filename, line, ...) abort
   unlet g:esearch#preview#last
   if strategy ==# 'scratch'
     let g:esearch#preview#last = s:PreviewInScratchBuffer
-          \.new(location, shape, win_vars, opts)
+          \.new(location, shape, win_vars, opts, close_on)
   else
     let g:esearch#preview#last = s:PreviewInRegularBuffer
-          \.new(location, shape, win_vars, opts)
+          \.new(location, shape, win_vars, opts, close_on)
   endif
 
   return g:esearch#preview#last.open()
@@ -66,12 +70,19 @@ fu! esearch#preview#is_open() abort
   return g:esearch#preview#win isnot# s:null
         \ && esearch#win#exists(g:esearch#preview#win.id)
 endfu
+let g:asd = []
 
 fu! esearch#preview#reset() abort
+  if g:esearch#preview#_skip_reset
+    return
+  endif
+
   " If #close() is used on every listed event, it can cause a bug where previewed
   " buffer loose it's content on open, so this method is defined to handle this
   if esearch#preview#is_open()
+    call g:esearch#preview#win.clear_emphasis()
     let guard = g:esearch#preview#win.guard
+    let g:asd  += [deepcopy(guard)]
     if !empty(guard) | call guard.restore() | endif
   endif
 endfu
@@ -80,22 +91,19 @@ fu! esearch#preview#close() abort
   if esearch#preview#is_open()
     call esearch#preview#reset()
     call g:esearch#preview#win.close()
-    let g:esearch#preview#win = s:null
   endif
-
-  if g:esearch#preview#emphasis isnot# s:null
-    call g:esearch#preview#emphasis.clear()
-  endif
+  let g:esearch#preview#win = s:null
 endfu
 
 let s:PreviewInScratchBuffer = {}
 
-fu! s:PreviewInScratchBuffer.new(location, shape, win_vars, opts) abort dict
+fu! s:PreviewInScratchBuffer.new(location, shape, win_vars, opts, close_on) abort dict
   let instance = copy(self)
   let instance.location = a:location
   let instance.shape    = a:shape
   let instance.win_vars = a:win_vars
   let instance.opts     = a:opts
+  let instance.close_on = a:close_on
   return instance
 endfu
 
@@ -105,16 +113,14 @@ fu! s:PreviewInScratchBuffer.open() abort dict
   let self.buffer = s:ScratchBuffer
         \.fetch_or_create(self.location.filename, g:esearch#preview#scratches)
   try
-    call esearch#preview#close()
-    let self.win = s:FloatingWindow.new(self.buffer, self.location, self.shape).open()
+    let self.win = s:create_or_update_floating_window(
+          \ 'scratch', self.buffer, self.location, self.shape, self.close_on)
     let g:esearch#preview#win = self.win
     call self.win.let(self.win_vars)
     call self.win.focus()
-    call self.set_filetype()
+    call self.buffer.set_filetype()
     call self.set_context_lines(lines_text)
-    let g:esearch#preview#emphasis =
-          \ esearch#emphasize#sign(self.win.id, self.location.line, '->')
-          \.draw()
+    call self.win.set_emphasis(esearch#emphasize#sign(self.win.id, self.location.line, '->'))
     call self.win.reshape()
     call self.win.init_autoclose_autocommands()
   catch
@@ -126,13 +132,6 @@ fu! s:PreviewInScratchBuffer.open() abort dict
   endtry
 
   return s:true
-endfu
-
-fu! s:PreviewInScratchBuffer.set_filetype() abort dict
-  let filetype = esearch#ftdetect#complete(self.location.filename)
-  if filetype isnot# s:null
-    call nvim_buf_set_option(self.buffer.id, 'filetype', filetype)
-  endif
 endfu
 
 " Setup context lines prepended by blank lines outside the viewport.
@@ -164,12 +163,13 @@ endfu
 
 let s:PreviewInRegularBuffer = {}
 
-fu! s:PreviewInRegularBuffer.new(location, shape, win_vars, opts) abort dict
+fu! s:PreviewInRegularBuffer.new(location, shape, win_vars, opts, close_on) abort dict
   let instance = copy(self)
   let instance.location = a:location
   let instance.shape    = a:shape
   let instance.win_vars = a:win_vars
   let instance.opts     = a:opts
+  let instance.close_on = a:close_on
   return instance
 endfu
 
@@ -179,15 +179,13 @@ fu! s:PreviewInRegularBuffer.open() abort dict
         \.fetch_or_create(self.location.filename, g:esearch#preview#buffers)
 
   try
-    call esearch#preview#close()
-    let self.win = s:FloatingWindow.new(self.buffer, self.location, self.shape).open()
+    let self.win = s:create_or_update_floating_window(
+          \ 'regular', self.buffer, self.location, self.shape, self.close_on)
     let g:esearch#preview#win = self.win
     call self.win.let(self.win_vars)
     call self.win.focus()
     call self.edit()
-    let g:esearch#preview#emphasis =
-          \ esearch#emphasize#sign(self.win.id, self.location.line, '->')
-          \.draw()
+    call self.win.set_emphasis(esearch#emphasize#sign(self.win.id, self.location.line, '->'))
     call self.win.reshape()
     call self.init_on_open_autocommands()
     call self.win.init_autoclose_autocommands()
@@ -224,7 +222,7 @@ fu! s:PreviewInRegularBuffer.edit() abort dict
 endfu
 
 fu! s:PreviewInRegularBuffer.init_on_open_autocommands() abort
-  augroup esearch#preview
+  augroup esearch_preview
     au!
     au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
   augroup END
@@ -239,7 +237,7 @@ fu! s:make_preview_buffer_regular() abort
 
   call remove(g:esearch#preview#buffers, current_filename)
   call esearch#preview#reset()
-  au! esearch#preview *
+  au! esearch_preview *
 endfu
 
 """""""""""""""""""""""""""""""""""""""
@@ -280,7 +278,7 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
-let s:ScratchBuffer = {'kind': 'scratch'}
+let s:ScratchBuffer = {'kind': 'scratch', 'filetype': s:null}
 
 fu! s:ScratchBuffer.new(filename) abort dict
   let instance          = copy(self)
@@ -305,6 +303,15 @@ fu! s:ScratchBuffer.fetch_or_create(filename, cache) abort
   return instance
 endfu
 
+fu! s:ScratchBuffer.set_filetype() abort dict
+  if !empty(self.filetype) | return | endif
+
+  let self.filetype = esearch#ftdetect#complete(self.filename)
+  if self.filetype isnot# s:null
+    call nvim_buf_set_option(self.id, 'filetype', self.filetype)
+  endif
+endfu
+
 fu! s:ScratchBuffer.remove() abort dict
   if !bufexists(self.id) | return | endif
   silent exe self.id 'bwipeout'
@@ -316,13 +323,31 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
-let s:FloatingWindow = {'guard': s:null, 'id': -1}
+" Maintain the window as a singleton.
+fu! s:create_or_update_floating_window(kind, buffer, location, shape, close_on) abort
+  " Reuse only if the buffers are the same
+  if esearch#preview#is_open()
+        \ && g:esearch#preview#win.buffer.filename ==# a:location.filename
+        \ && g:esearch#preview#win.buffer.kind ==# a:kind
+    call g:esearch#preview#win.update(a:location, a:shape, a:close_on)
+    return g:esearch#preview#win
+  else
+    call esearch#preview#close()
+    return s:FloatingWindow
+          \.new(a:buffer, a:location, a:shape, a:close_on)
+          \.open()
+  endif
+endfu
 
-fu! s:FloatingWindow.new(buffer, location, shape) abort dict
+let s:FloatingWindow = {'guard': s:null, 'id': s:null, 'emphasis': s:null}
+
+fu! s:FloatingWindow.new(buffer, location, shape, close_on) abort dict
   let instance = copy(self)
+
   let instance.buffer   = a:buffer
   let instance.location = a:location
   let instance.shape    = a:shape
+  let instance.close_on = a:close_on
 
   return instance
 endfu
@@ -341,7 +366,7 @@ fu! s:FloatingWindow.open() abort dict
           \ 'anchor':    self.shape.anchor,
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
-          \ 'relative':  'win',
+          \ 'relative':  'editor',
           \})
   finally
     call original_options.restore()
@@ -351,6 +376,7 @@ fu! s:FloatingWindow.open() abort dict
 endfu
 
 fu! s:FloatingWindow.close() abort dict
+  call self.clear_emphasis()
   call nvim_win_close(self.id, 1)
 endfu
 
@@ -371,26 +397,28 @@ fu! s:FloatingWindow.reshape() abort dict
 
   try
     call nvim_win_set_config(self.id, {
+          \ 'width':     self.shape.width,
           \ 'height':    self.shape.height,
           \ 'anchor':    self.shape.anchor,
+          \ 'relative':  'editor',
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
-          \ 'relative':  'win',
-          \ 'win':       self.id,
           \ })
+
     " Prevent showing EndOfBuffer
     if line('$') < height
-      let topline = 1
-    elseif line('$') - line < height
-      let topline = line('$') - height
+      noau keepj call winrestview({'topline': 1, 'lnum': line})
+    elseif line('$') - line < height / 2
+      " EMphasized line will be shown below the center as EndOfBuffer is near.
+      let topline = line('$') - height + 1
+      noau keepj call winrestview({'topline': topline, 'lnum': line})
     else
-      let topline = line - (height / 2)
+      " The only way to perfectly center is to use zz as we cannot calculate the
+      " correct topline position due to wraps, that occupy more than one screen
+      " line
+      noau keepj call winrestview({'lnum': line})
+      norm! zz
     endif
-    noau keepj call winrestview({
-          \ 'topline': topline,
-          \ 'lnum':    line,
-          \ 'col':     1,
-          \ })
   finally
     call winminheight.restore()
     if exists('current_win') | noau keepj call current_win.restore() | endif
@@ -399,11 +427,34 @@ endfu
 
 
 fu! s:FloatingWindow.init_autoclose_autocommands() abort dict
+  let autocommands = join(self.close_on, ',')
   augroup esearch_preview_autoclose
     au!
-    exe 'au ' . s:autoclose_events . ' * ++once call esearch#preview#close()'
-    exe 'au ' . s:autoclose_events . ',BufWinLeave,BufLeave * ++once call esearch#preview#reset()'
+    exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
+    exe 'au ' . g:esearch#preview#_reset_on . ' * ++once call esearch#preview#reset()'
   augroup END
+endfu
+
+fu! s:FloatingWindow.set_emphasis(emphasis) abort dict
+  let self.emphasis = a:emphasis
+  call self.emphasis.draw()
+endfu
+
+" Helps to prevent blinks
+fu! s:FloatingWindow.update(location, shape, close_on) abort dict
+  let g:esearch#preview#win.location = a:location
+  let g:esearch#preview#win.shape    = a:shape
+  let g:esearch#preview#win.close_on = a:close_on
+
+  " Emphasis must be removed as it doesn't correspond to a:location anymore
+  call self.clear_emphasis()
+endfu
+
+fu! s:FloatingWindow.clear_emphasis() abort dict
+  if !empty(self.emphasis)
+    call self.emphasis.clear()
+    let self.emphasis = s:null
+  endif
 endfu
 
 fu! s:FloatingWindow.focus() abort dict
@@ -419,6 +470,7 @@ fu! s:Shape.new(definitions) abort dict
   let instance.winline = winline()
   let instance.wincol  = wincol()
   let instance.alignment = a:definitions.alignment
+  let instance.relative_win_position = nvim_win_get_position(0)
 
   if &showtabline ==# 2 || &showtabline == 1 && tabpagenr('$') > 1
     let tabline_room = 1
@@ -436,33 +488,34 @@ fu! s:Shape.new(definitions) abort dict
   let instance.bottom = winheight(0) + tabline_room + statusline_room
 
   if instance.alignment ==# 'cursor'
-    call extend(instance, {'width': 120, 'height': 15})
+    call extend(instance, {'width': 120, 'height': 0.5})
   elseif s:List.has(['top', 'bottom'], instance.alignment)
-    call extend(instance, {'width': winwidth(0), 'height': 15})
+    call extend(instance, {'width': 1.0, 'height': 0.5})
   elseif s:List.has(['left', 'right'], instance.alignment)
-    call extend(instance, {'width': winwidth(0) / 2, 'height': winheight(0) - 0})
+    call extend(instance, {'width': 0.5, 'height': 1.0})
   else
     throw 'Unknown preview align'
   endif
 
   let width = a:definitions.width
   if s:Prelude.is_numeric(width) && width > 0
-    let instance.width = s:measure(width, winwidth(0))
+    let instance.width = width
   endif
-
   let height = a:definitions.height
   if s:Prelude.is_numeric(height) && height > 0
-    let instance.height = s:measure(height, winheight(0))
+    let instance.height = height
   endif
 
+  let instance.height = s:absolute_value(instance.height, winheight(0))
+  let instance.width = s:absolute_value(instance.width, winwidth(0))
   call instance.realign()
 
   return instance
 endfu
 
-fu! s:measure(value, interval) abort
+fu! s:absolute_value(value, interval) abort
   if type(a:value) ==# type(1.0)
-    return float2nr(a:value * a:interval)
+    return float2nr(ceil(a:value * a:interval))
   elseif type(a:value) ==# type(1) && a:value > 0
     return a:value
   else
@@ -487,27 +540,27 @@ fu! s:Shape.realign() abort dict
 endfu
 
 fu! s:Shape.align_to_top() abort dict
-  let self.col    = 0
+  let self.col    = self.relative_win_position[1]
   let self.row    = self.top
-  let self.anchor = 'NE'
+  let self.anchor = 'NW'
 endfu
 
 fu! s:Shape.align_to_right() abort dict
-  let self.col    = winwidth(0) + 1
+  let self.col    = self.relative_win_position[1] + winwidth(0) + 1
   let self.row    = self.top
   let self.anchor = 'NE'
 endfu
 
 fu! s:Shape.align_to_left() abort dict
-  let self.col    = 0
+  let self.col    = self.relative_win_position[1]
   let self.row    = self.top
-  let self.anchor = 'NE'
+  let self.anchor = 'NW'
 endfu
 
 fu! s:Shape.align_to_bottom() abort dict
   let self.row    = self.bottom
-  let self.col    = 0
-  let self.anchor = 'SE'
+  let self.col    = self.relative_win_position[1]
+  let self.anchor = 'SW'
 endfu
 
 fu! s:Shape.align_to_cursor() abort dict
@@ -517,7 +570,7 @@ fu! s:Shape.align_to_cursor() abort dict
   else
     let self.row = self.winline + 1
   endif
-  let self.col = max([5, self.wincol - 1])
+  let self.col = max([5, self.wincol - 1]) + self.relative_win_position[1]
 
   let self.anchor = 'NW'
 endfu

@@ -8,10 +8,10 @@ let s:LRU = {}
 
 fu! s:LRU.new(size, ...) abort dict
   let instance = copy(self)
-
   let instance.size = a:size
   let instance.queue = s:OrderedSet.new()
   let instance.data = {}
+
   return instance
 endfu
 

@@ -172,7 +172,6 @@ if !has_key(g:, 'esearch#out#win#buflisted')
   let g:esearch#out#win#buflisted = 0
 endif
 
-" TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
   silent doau User esearch#out#win#init_pre
@@ -229,7 +228,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
-        \ 'preview_focus':            function('<SID>preview_focus'),
+        \ 'preview_enter':            function('<SID>preview_enter'),
         \ 'preview_zoom':             function('<SID>preview_zoom'),
         \ 'preview_close':            function('esearch#preview#close'),
         \ 'is_preview_open':          function('esearch#preview#is_open'),
@@ -785,7 +784,7 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
 
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_focus()<CR>
+    nnoremap <buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
     nnoremap <silent><buffer> p     :<C-U>call b:esearch.preview_zoom()<CR>
   endif
 
@@ -823,16 +822,15 @@ fu! s:preview_zoom() abort dict
   endif
 endfu
 
-fu! s:preview_focus(...) abort dict
+fu! s:preview_enter(...) abort dict
   if !self.is_current() | return | endif
 
+  let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
+  let opts = extend(copy(opts), copy(get(a:000, 0, {})))
   " Owerwrite strategy passed by user, as only a regular buffer
   " makes sense to focus in
-  let opts = extend(copy(get(a:000, 0, {})), {'strategy': 'regular'}, 'force')
+  let opts.strategy = 'regular'
 
-  " TEST CASES
-  " g:esearch#preview#last is empty
-  " start searching within the window
   if !self.is_preview_open() || g:esearch#preview#win.buffer.kind !=# 'regular'
     let args = [self.unescaped_filename(), self.line_in_file(), opts]
     call call(function('esearch#preview#start'), args)
@@ -850,23 +848,25 @@ fu! s:preview_focus(...) abort dict
   let view.topline = winsaveview().topline " keep scroll after the reedit
 
   " Reedit to open the swap prompt
-  if filereadable(swapname('%'))
-    let undolevels = esearch#let#restorable({'&l:undolevels': -1})
-    try
-      edit
-    catch /E325:/ " swapexists exception, will be handled by a user
-    catch /Vim:Interrupt/ " Throwed on cancelling swap
-    finally
-      " When (Q)uit or (A)bort was pressed - vim unloads current buffer as it
-      " was with an existing swap. Closing and returning back.
-      if empty(bufname('%'))
-        call esearch#preview#close()
-        return s:false
-      endif
+  let options = esearch#let#restorable({'&l:undolevels': -1})
+  " As we want to keep the highlights and emphasis
+  let g:esearch#preview#_skip_reset = s:true
+  try
+    edit
+  catch /E325:/ " swapexists exception, will be handled by a user
+  catch /Vim:Interrupt/ " Throwed on cancelling swap
+  finally
+    let g:esearch#preview#_skip_reset = s:false
+    " When (Q)uit or (A)bort are pressed - vim unloads the current buffer as it
+    " was with an existing swap. Closing and returning back to the search
+    " window.
+    if empty(bufname('%'))
+      call esearch#preview#close()
+      return s:false
+    endif
 
-      call undolevels.restore()
-    endtry
-  endif
+    call options.restore()
+  endtry
 
   augroup esearch_preview_autoclose
     au BufWinLeave,BufLeave <buffer> ++once call esearch#preview#close()
