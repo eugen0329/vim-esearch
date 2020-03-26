@@ -1,3 +1,6 @@
+let s:Guard = vital#esearch#import('Vim.Guard')
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 let s:Promise       = vital#esearch#import('Async.Promise')
 let s:List          = vital#esearch#import('Data.List')
 let s:String        = vital#esearch#import('Data.String')
@@ -20,7 +23,6 @@ let g:esearch#out#win#mappings = [
       \ {'lhs': '{',       'rhs': 'prev-file',          'default': 1},
       \ ]
 
-call esearch#polyfill#extend(s:)
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
@@ -39,7 +41,7 @@ let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spi
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let s:linenr_format = ' %3d '
-let s:function_t = type(function('tr'))
+let s:t_func = type(function('tr'))
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -244,6 +246,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'is_current':               function('<SID>is_current'),
         \ 'split_preview':            function('<SID>split_preview'),
         \ 'last_split_preview':       {},
+        \ 'is_blank':                 function('<SID>is_blank'),
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
@@ -346,6 +349,11 @@ endfu
 fu! s:close_split_preview() abort dict
   if !self.is_current() | return | endif
 
+endfu
+
+fu! s:is_blank() abort dict
+" only a header ctx
+  if len(self.contexts) < 2 | return s:true | endif
 endfu
 
 " A wrapper around regular open
@@ -784,14 +792,14 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
 
   if g:esearch#has#preview
-    nnoremap <buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
+    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
     nnoremap <silent><buffer> p     :<C-U>call b:esearch.preview_zoom()<CR>
   endif
 
   for i in range(0, len(g:esearch#out#win#mappings) - 1)
     if !g:esearch.default_mappings && g:esearch#out#win#mappings[i].default | continue | endif
 
-    if type(g:esearch#out#win#mappings[i].rhs) ==# s:function_t
+    if type(g:esearch#out#win#mappings[i].rhs) ==# s:t_func
       exe 'nnoremap <buffer><silent> ' . g:esearch#out#win#mappings[i].lhs
             \ . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
     else
@@ -823,7 +831,7 @@ fu! s:preview_zoom() abort dict
 endfu
 
 fu! s:preview_enter(...) abort dict
-  if !self.is_current() | return | endif
+  if !self.is_current() || self.is_blank() | return | endif
 
   let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
   let opts = extend(copy(opts), copy(get(a:000, 0, {})))
@@ -869,7 +877,12 @@ fu! s:preview_enter(...) abort dict
   endtry
 
   augroup esearch_preview_autoclose
-    au BufWinLeave,BufLeave <buffer> ++once call esearch#preview#close()
+    au WinLeave * ++once call esearch#preview#close()
+    au WinEnter * ++once au! esearch_preview_autoclose
+    " From :h local-options
+    " When splitting a window, the local options are copied to the new window.  Thus
+    " right after the split the contents of the two windows look the same.
+    au WinNew * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
   augroup END
 
   call winrestview(view)
@@ -938,7 +951,7 @@ fu! s:filename() abort dict
 endfu
 
 fu! s:file_context_at(line, esearch) abort
-  if len(a:esearch.contexts) < 2 | return s:null | endif " only a header ctx
+  if a:esearch.is_blank() | return s:null | endif
 
   let ctx = esearch#out#win#repo#ctx#new(a:esearch, esearch#out#win#_state(a:esearch))
         \.by_line(a:line)

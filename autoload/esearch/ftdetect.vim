@@ -2,7 +2,8 @@ let s:Message  = vital#esearch#import('Vim.Message')
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:List     = vital#esearch#import('Data.List')
 let s:Promise  = vital#esearch#import('Async.Promise')
-call esearch#polyfill#extend(s:)
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 let s:pattern_to_filetype = {}
 let s:prewarm = s:null

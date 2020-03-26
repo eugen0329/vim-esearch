@@ -5,6 +5,7 @@ require 'spec_helper'
 describe 'esearch#preview' do
   include Helpers::FileSystem
   include Helpers::Preview
+  include Helpers::Open
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
   Context ||= Helpers::Modifiable::Context
@@ -75,7 +76,7 @@ describe 'esearch#preview' do
       describe 'max_edit_size option' do
         before do
           editor.command! <<~VIML
-          call esearch#out#win#map('e', {es-> es.preview({'max_edit_size': 0}) })
+            call esearch#out#win#map('e', {es-> es.preview({'max_edit_size': 0}) })
           VIML
         end
         include_context 'start search'
@@ -105,7 +106,7 @@ describe 'esearch#preview' do
         context 'when using scratch buffer' do
           before do
             editor.command! <<~VIML
-            call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10, 'max_edit_size': 0}) })
+              call esearch#out#win#map('e', {es-> es.preview({'width': 5, 'height': 10, 'max_edit_size': 0}) })
             VIML
           end
           include_context 'start search'
@@ -135,7 +136,41 @@ describe 'esearch#preview' do
             .and change { editor.current_buffer_name }
             .to(ctx1.absolute_path)
             .and change { window_local_highlights.uniq.sort }
-            .to(['', "Normal:NormalFloat"].sort)
+            .to(['', 'Normal:NormalFloat'].sort)
+        end
+      end
+
+      context 'when editing from preview' do
+        include_context 'start search'
+        before { editor.send_keys 'P' }
+
+        it 'handles edit self' do
+          expect { editor.command! "edit #{editor.escape_filename(ctx1.absolute_path)}" }
+            .to not_change { tabpages_list.count }
+            .and not_change { editor.current_buffer_name }
+            .and not_change { window_local_highlights.uniq.sort }
+
+          expect { editor.send_keys_separately ':q', :enter, :enter }
+            .to change { window_local_highlights.uniq.sort }
+            .to([''])
+        end
+
+        it 'handles edit in split' do
+          expect { editor.command! "vnew #{editor.escape_filename(ctx1.absolute_path)}" }
+            .to not_change { tabpages_list.count }
+            .and not_change { editor.current_buffer_name }
+            .and change { window_local_highlights.uniq.sort }
+            .to(all(eq('')))
+        end
+
+        it 'handles edit in tab' do
+          expect { editor.command! "tabedit #{editor.escape_filename(ctx2.absolute_path)}" }
+            .to change { tabpages_list.count }
+            .by(1)
+            .and change { editor.current_buffer_name }
+            .to(ctx2.absolute_path)
+            .and change { window_local_highlights.uniq.sort }
+            .to([''].sort)
         end
       end
 
@@ -144,25 +179,18 @@ describe 'esearch#preview' do
         before { editor.send_keys 'p' }
 
         it 'enters it' do
-          expect {
-            editor.send_keys 'P'
-          } .to not_to_change { window_handles }
+          expect { editor.send_keys 'P' }
+            .to not_to_change { window_handles }
             .and change { editor.current_buffer_name }
             .to(ctx1.absolute_path)
             .and not_to_change { window_local_highlights.uniq.sort }
-            .from(['', "Normal:NormalFloat"].sort)
+            .from(['', 'Normal:NormalFloat'].sort)
         end
       end
 
-
       context 'when preview is entered' do
-        before do
-          editor.command! <<~VIML
-          call esearch#out#win#map('e', {es-> es.preview_enter({'let!': {'&winhighlight': 'Normal:PMenu'}}) })
-          VIML
-        end
         include_context 'start search'
-        before  { editor.send_keys_separately 'e' }
+        before  { editor.send_keys_separately 'p' }
 
         context 'when user closes the preview' do
           include_context 'verify test file content is not modified after a testcase'
@@ -171,20 +199,20 @@ describe 'esearch#preview' do
           it 'reenters consistently' do
             expect { editor.send_keys_separately ':q\\<CR>' }
               .to change { window_handles.count }
-                .by(-1)
-                .and change { editor.current_buffer_name }
-                .to(include('Search'))
-                .and change { window_local_highlights }
-                .to(all(eq('')))
+              .by(-1)
+              .and change { editor.current_buffer_name }
+              .to(include('Search'))
+              .and change { window_local_highlights }
+              .to(all(eq('')))
 
             expect {
-              editor.send_keys 'e'
+              editor.send_keys 'P'
             } .to change { window_handles.count }
               .by(1)
               .and change { editor.current_buffer_name }
               .to(ctx1.absolute_path)
               .and change { window_local_highlights.uniq.sort }
-              .to(['', "Normal:PMenu"].sort)
+              .to(['', 'Normal:PMenu'].sort)
           end
         end
 
@@ -194,11 +222,11 @@ describe 'esearch#preview' do
           it 'closes the preview' do
             expect { editor.send_keys_separately '\\<C-w>j' }
               .to change { window_handles.count }
-                .by(-1)
-                .and change { editor.current_buffer_name }
-                .to(include('Search'))
-                .and change { window_local_highlights }
-                .to(all(eq('')))
+              .by(-1)
+              .and change { editor.current_buffer_name }
+              .to(include('Search'))
+              .and change { window_local_highlights }
+              .to(all(eq('')))
           end
         end
       end
@@ -212,8 +240,8 @@ describe 'esearch#preview' do
 
       before do
         editor.command <<~VIML
-        set swapfile directory=#{test_directory} updatecount=1
-        set updatecount=1
+          set swapfile directory=#{test_directory} updatecount=1
+          set updatecount=1
         VIML
         test_directory.files << swap_file
         test_directory.persist!
@@ -222,14 +250,14 @@ describe 'esearch#preview' do
       after do
         swap_file.unlink
         editor.command <<~VIML
-        set noswapfile
-        set updatecount=0
+          set noswapfile
+          set updatecount=0
         VIML
       end
 
       context 'when entering' do
         shared_examples 'it handles cancelling with' do |key:|
-          it "clears everything on cancelling" do
+          it 'clears options on cancelling' do
             editor.send_keys 'p'
 
             expect {
@@ -256,7 +284,7 @@ describe 'esearch#preview' do
             .and change { editor.current_buffer_name }
             .to(ctx1.absolute_path)
             .and not_to_change { window_local_highlights.uniq.sort }
-            .from(['', "Normal:NormalFloat"].sort)
+            .from(['', 'Normal:NormalFloat'].sort)
         end
       end
 

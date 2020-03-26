@@ -52,16 +52,19 @@ describe 'esearch#option' do
     let(:variables) { original_variables.keys.map { |k| var(k) } }
 
     subject(:manager_enter) do
-      ->(assignments) { editor.echo(func('g:manager.enter', assignments)) }
+      lambda do |assignments|
+        editor.command! <<~VIML
+          let g:variables = #{VimlValue.dump(func('esearch#let#restorable', assignments))}
+        VIML
+      end
     end
 
     before do
-      editor.command("let g:manager = #{VimlValue.dump(func('esearch#let#restorable'))}")
       editor.command! original_variables
         .map { |k, v| "let #{k} = #{v.inspect}" }.join("\n")
     end
 
-    describe '#enter' do
+    describe '#restorable' do
       it 'sets variables on enter' do
         expect { manager_enter.call(updated_variables) }
           .to change { editor.echo(variables) }
@@ -70,9 +73,9 @@ describe 'esearch#option' do
       end
     end
 
-    describe '#exit' do
+    describe '.restore' do
       subject(:manager_exit) do
-        -> { editor.echo(func('g:manager.exit')) }
+        -> { editor.echo(func('g:variables.restore')) }
       end
 
       before { manager_enter.call(updated_variables) }

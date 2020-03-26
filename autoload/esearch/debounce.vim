@@ -4,7 +4,7 @@ endfu
 
 let s:Trailing = {'_timer': -1}
 
-fu s:Trailing.new(callback, wait, ...) abort dict
+fu! s:Trailing.new(callback, wait, ...) abort dict
   let instance = copy(self)
   let instance._wait     = a:wait
   " Wrapping into a list prevents from unbinding self. The same old story as

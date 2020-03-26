@@ -1,10 +1,8 @@
 let s:Message    = vital#esearch#import('Vim.Message')
 let s:Filepath   = vital#esearch#import('System.Filepath')
 
-call esearch#polyfill#extend(s:)
-
-let s:function_t = type(function('tr'))
-let s:string_t   = type('')
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#out#win#open#do(opener, ...) abort dict
   if !self.is_current() | return | endif
@@ -72,7 +70,7 @@ fu! s:open_once(esearch, opener, filename, opts) abort
 endfu
 
 fu! s:to_callable(opener) abort
-  if type(a:opener) ==# s:function_t
+  if type(a:opener) ==# s:t_func
     return a:opener
   endif
 
@@ -80,9 +78,9 @@ fu! s:to_callable(opener) abort
 endfu
 
 fu! s:opener_id(opener) abort
-  if type(a:opener) ==# s:string_t
+  if type(a:opener) ==# s:t_string
     return a:opener
-  elseif type(a:opener) ==# s:function_t
+  elseif type(a:opener) ==# s:t_func
     let stringified = string(a:opener)
     " Same lambdas has different ids while they do the same. The code below
     " expands lambda source and removes lambda ids from it to allow user to

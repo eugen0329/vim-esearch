@@ -3,7 +3,9 @@ let s:List          = s:Vital.import('Data.List')
 let s:Message       = s:Vital.import('Vim.Message')
 let s:linenr_format = ' %3d '
 let s:textobjects_whitelist = 'w()[]{}<>|''`"'
-let s:null = 0
+
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#compat#visual_multi#init() abort
   if exists('g:esearch_visual_multi_loaded') || !exists('g:esearch')

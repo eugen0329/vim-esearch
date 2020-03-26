@@ -1,8 +1,10 @@
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
+
 let s:sign_name  = 'esearchEmphasizeSign'
 let s:sign_group = 'esearchEmphasizeSigns'
 let s:sign_id    = 502012 " TODO: investigate what is the scope of id's
 
-call esearch#polyfill#extend(s:)
 
 fu! esearch#emphasize#sign(win_handle, line, text) abort
   return s:SignEmphasis.new(a:win_handle, a:line, a:text)
