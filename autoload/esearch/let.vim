@@ -45,11 +45,11 @@ endfu
 
 fu! esearch#let#restorable(variables, ...) abort
   let Guard  = get(a:000, 0, s:Guard)
-  let Letter = get(a:000, 1, s:GenericLet)
+  let Setter = get(a:000, 1, s:GenericLet)
 
   let guard = Guard.store(keys(a:variables))
   try
-    call Letter(a:variables)
+    call Setter(a:variables)
   catch
     call guard.restore()
     throw v:exception

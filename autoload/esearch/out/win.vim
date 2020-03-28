@@ -296,8 +296,8 @@ fu! esearch#out#win#init(opts) abort
   call s:init_mappings()
   call s:init_commands()
 
-  augroup esearch#out#win#hook
-    silent doau User esearch#out#win#hook
+  augroup esearch_win_event
+    silent doau User esearch_win_event
   augroup END
   silent doau User esearch#out#win#init_post
 
@@ -381,7 +381,7 @@ fu! s:split_preview(...) abort dict
 endfu
 
 fu! s:cleanup() abort
-  au!  esearch#out#win#hook * <buffer>
+  au!  esearch_win_event * <buffer>
   call esearch#changes#unlisten_for_current_buffer()
   call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
   if has_key(b:esearch, 'updates_timer')
@@ -833,15 +833,15 @@ endfu
 fu! s:preview_enter(...) abort dict
   if !self.is_current() || self.is_blank() | return | endif
 
-  let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
-  let opts = extend(copy(opts), copy(get(a:000, 0, {})))
-  " Owerwrite strategy passed by user, as only a regular buffer
-  " makes sense to focus in
-  let opts.strategy = 'regular'
-
   if !self.is_preview_open() || g:esearch#preview#win.buffer.kind !=# 'regular'
-    let args = [self.unescaped_filename(), self.line_in_file(), opts]
-    call call(function('esearch#preview#start'), args)
+    let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
+    let opts = extend(copy(opts), copy(get(a:000, 0, {})))
+    let opts.scratch_fallback = s:false
+    " Owerwrite the flag to fallback to opening in a scratch buffer, as only a
+    " regular buffer makes sense to enter in. Swap prompt can emerge.
+    if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
+      return
+    endif
   endif
 
  " Is used to jump to the corresponding line and column where user was within
@@ -851,38 +851,23 @@ fu! s:preview_enter(...) abort dict
   if exists('#esearch_preview_autoclose')
     au! esearch_preview_autoclose
   endif
-  call g:esearch#preview#win.focus()
+  call g:esearch#preview#win.enter()
   call g:esearch#preview#win.reshape()
-  let view.topline = winsaveview().topline " keep scroll after the reedit
-
-  " Reedit to open the swap prompt
-  let options = esearch#let#restorable({'&l:undolevels': -1})
-  " As we want to keep the highlights and emphasis
-  let g:esearch#preview#_skip_reset = s:true
-  try
-    edit
-  catch /E325:/ " swapexists exception, will be handled by a user
-  catch /Vim:Interrupt/ " Throwed on cancelling swap
-  finally
-    let g:esearch#preview#_skip_reset = s:false
-    " When (Q)uit or (A)bort are pressed - vim unloads the current buffer as it
-    " was with an existing swap. Closing and returning back to the search
-    " window.
-    if empty(bufname('%'))
-      call esearch#preview#close()
-      return s:false
-    endif
-
-    call options.restore()
-  endtry
+  let view.topline = winsaveview().topline " keep the scroll position
 
   augroup esearch_preview_autoclose
-    au WinLeave * ++once call esearch#preview#close()
+    au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
     au WinEnter * ++once au! esearch_preview_autoclose
     " From :h local-options
-    " When splitting a window, the local options are copied to the new window.  Thus
+    " When splitting a window, the local options are copied to the new window. Thus
     " right after the split the contents of the two windows look the same.
-    au WinNew * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
+    au WinNew * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | au! esearch_preview_autoclose
+
+    " NOTE dc09e176. Prevents options inheritance when trying to delete the
+    " buffer. Grep note id to locate the test case.
+    au BufDelete * ++once call esearch#preview#close()
+
+    au CmdwinEnter * call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
   augroup END
 
   call winrestview(view)
@@ -890,7 +875,7 @@ endfu
 
 fu! s:preview(...) abort dict
   if !self.is_current() | return | endif
-  return call(function('esearch#preview#start'),
+  return call(function('esearch#preview#open'),
         \ [self.unescaped_filename(), self.line_in_file()] + a:000)
 endfu
 

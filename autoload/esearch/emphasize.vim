@@ -4,6 +4,9 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:sign_name  = 'esearchEmphasizeSign'
 let s:sign_group = 'esearchEmphasizeSigns'
 let s:sign_id    = 502012 " TODO: investigate what is the scope of id's
+" should be big enought to overrule the less important signs in terms of
+" previews like linters etc.
+let s:priority   = 1000
 
 
 fu! esearch#emphasize#sign(win_handle, line, text) abort
@@ -34,7 +37,7 @@ fu! s:SignEmphasis.draw() abort dict
         \ s:sign_group,
         \ s:sign_name,
         \ esearch#win#bufnr(self.win_handle),
-        \ {'lnum': self.line})
+        \ {'lnum': self.line, 'priority': s:priority})
 
   return self
 endfu

@@ -112,8 +112,12 @@ class Editor
     echo func('Matches', group)
   end
 
+  def expand(expr)
+    echo func('expand', expr)
+  end
+
   def current_buffer_name
-    bufname('%')
+    expand('%:p')
   end
 
   def current_line_number
@@ -149,6 +153,23 @@ class Editor
 
   def changenr
     echo(func('changenr'))
+  end
+
+  def open_buffer!(filename)
+    command!("buffer #{filename}")
+  end
+
+  def quit!
+    command! 'quit'
+  end
+
+  def syntax_under_cursor
+    echo(func('SynStack'))
+  end
+
+  def edit_ignoring_swap!(filename, opener: 'edit')
+    raw_send_keys ":#{opener} #{escape_filename(filename)}<CR>"
+    raw_send_keys 'e' # to bypass the swap prompt
   end
 
   def edit!(filename)

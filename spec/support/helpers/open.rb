@@ -16,4 +16,25 @@ module Helpers::Open
   def tabpages_list
     (1..editor.echo(func('tabpagenr', '$'))).to_a
   end
+
+  def start_editing(path)
+    change { editor.current_buffer_name }
+      .to(path.to_s)
+  end
+
+  def windows
+    editor.echo func('nvim_list_wins')
+  end
+
+  def open_window(path)
+    change { editor.current_buffer_name }
+      .to end_with path.to_s
+  end
+
+  def open_tab(path)
+    change { tabpages_list.count }
+      .by(1)
+      .and change { editor.current_buffer_name }
+      .to end_with path
+  end
 end

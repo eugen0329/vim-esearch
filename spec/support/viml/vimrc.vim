@@ -86,7 +86,9 @@ function! VimrunnerEvaluate(expr)
 endfunction
 
 function! SynStack()  abort
-  echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+  let stack = map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+  echo stack
+  return stack
 endfunc
 
 fu! SyntaxAt(ln, column) abort

@@ -2,7 +2,7 @@ let s:window_id  = esearch#itertools#count()
 
 " Utility functions to work with wondows. Includes:
 " - normalized windows api
-" - guards to set/reset windows configs without focus
+" - guards to set/reset windows configs without enter
 
 fu! esearch#win#guard() abort
   return s:Guard
@@ -18,13 +18,13 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
-fu! esearch#win#letter() abort
-  return s:Letter
+fu! esearch#win#setter() abort
+  return s:Setter
 endfu
 
-let s:Letter = {'_resources': {}}
+let s:Setter = {'_resources': {}}
 
-fu! s:Letter.new(handle) abort dict
+fu! s:Setter.new(handle) abort dict
   let instance = copy(self)
   let instance.handle = a:handle
   return instance
@@ -49,7 +49,7 @@ fu! s:CurrentWindowGuard.new() abort dict
 endfu
 
 fu! s:CurrentWindowGuard.restore() abort dict
-  call esearch#win#focus(self.handle)
+  call esearch#win#enter(self.handle)
   call winrestview(self.view)
 endfu
 
@@ -59,7 +59,7 @@ fu! esearch#win#let_restorable(handle, variables) abort
   return esearch#let#restorable(
         \ a:variables,
         \ s:Guard.new(a:handle),
-        \ s:Letter.new(a:handle).apply)
+        \ s:Setter.new(a:handle).apply)
 endfu
 
 """""""""""""""""""""""""""""""""""""""
@@ -76,7 +76,7 @@ if g:esearch#has#nvim_winid
     return nvim_get_current_win()
   endfu
 
-  fu! esearch#win#focus(handle) abort
+  fu! esearch#win#enter(handle) abort
     return nvim_set_current_win(a:handle)
   endfu
 
@@ -84,7 +84,7 @@ if g:esearch#has#nvim_winid
     return nvim_win_get_buf(a:handle)
   endfu
 
-  fu! s:Letter.apply(variables) abort dict
+  fu! s:Setter.apply(variables) abort dict
     for [name, value] in items(a:variables)
       if name =~# '^w:'
         call nvim_win_set_var(self.handle, name[2:], value)
@@ -126,7 +126,7 @@ if g:esearch#has#nvim_winid
 
   fu! s:Guard.restore() abort dict
     if esearch#win#exists(self.handle)
-      call s:Letter.new(self.handle).apply(self._resources)
+      call s:Setter.new(self.handle).apply(self._resources)
     endif
   endfu
 else
@@ -143,7 +143,7 @@ else
     return s:ViewTracer.trace_window()
   endfu
 
-  fu! esearch#win#focus(handle) abort
+  fu! esearch#win#enter(handle) abort
     call s:ViewTracer.jump(a:handle)
   endfu
 
@@ -151,7 +151,7 @@ else
     throw 'NotImplemented'
   endfu
 
-  fu! s:Letter.apply(variables) abort dict
+  fu! s:Setter.apply(variables) abort dict
     throw 'NotImplemented'
   endfu
 
