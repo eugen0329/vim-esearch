@@ -346,13 +346,8 @@ fu! s:is_current() abort dict
   return get(b:, 'esearch', {}) ==# self
 endfu
 
-fu! s:close_split_preview() abort dict
-  if !self.is_current() | return | endif
-
-endfu
-
 fu! s:is_blank() abort dict
-" only a header ctx
+  " if only a header ctx
   if len(self.contexts) < 2 | return s:true | endif
 endfu
 
@@ -837,43 +832,21 @@ endfu
 fu! s:preview_enter(...) abort dict
   if !self.is_current() || self.is_blank() | return | endif
 
-  if !self.is_preview_open() || g:esearch#preview#win.buffer.kind !=# 'regular'
-    let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
-    let opts = extend(copy(opts), copy(get(a:000, 0, {})))
-    let opts.scratch_fallback = s:false
-    " Owerwrite the flag to fallback to opening in a scratch buffer, as only a
-    " regular buffer makes sense to enter in. Swap prompt can emerge.
-    if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
-      return
-    endif
+  let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
+  if esearch#preview#is_open()
+    let opts.width = g:esearch#preview#win.shape.width
+    let opts.height = g:esearch#preview#win.shape.height
+  endif
+  let opts = extend(copy(opts), copy(get(a:000, 0, {})))
+  let opts.enter = s:true
+  let view = self.ctx_view()
+
+  if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
+    return
   endif
 
  " Is used to jump to the corresponding line and column where user was within
  " the search window. View column will correspond to the column inside the file.
-  let view = self.ctx_view()
-
-  if exists('#esearch_preview_autoclose')
-    au! esearch_preview_autoclose
-  endif
-  call g:esearch#preview#win.enter()
-  call g:esearch#preview#win.reshape()
-  let view.topline = winsaveview().topline " keep the scroll position
-
-  augroup esearch_preview_autoclose
-    au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
-    au WinEnter * ++once au! esearch_preview_autoclose
-    " From :h local-options
-    " When splitting a window, the local options are copied to the new window. Thus
-    " right after the split the contents of the two windows look the same.
-    au WinNew * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | au! esearch_preview_autoclose
-
-    " NOTE dc09e176. Prevents options inheritance when trying to delete the
-    " buffer. Grep note id to locate the test case.
-    au BufDelete * ++once call esearch#preview#close()
-
-    au CmdwinEnter * call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
-  augroup END
-
   call winrestview(view)
 endfu
 
@@ -888,7 +861,6 @@ fu! s:ctx_view() abort dict
   let line = self.line_in_file()
   let state = esearch#out#win#_state(self)
   let linenr = printf(s:linenr_format, state.line_numbers_map[line('.')])
-  " \ 'topline': winsaveview().topline,
   return {
         \ 'lnum': line,
         \ 'col': max([0, col('.') - strlen(linenr) - 1])

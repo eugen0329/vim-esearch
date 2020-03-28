@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-ASD = 1
 
 describe 'esearch#preview' do
   include Helpers::FileSystem
@@ -19,8 +18,8 @@ describe 'esearch#preview' do
   describe 'neovim', :neovim do
     let(:search_string) { 'n' }
     let(:contexts) do
-      [Context.new('a' + '.c', ['int'] * 100),
-       Context.new('b' + '.c', ['int'] * 100)]
+      [Context.new('a.c', ['int'] * 100),
+       Context.new('b.c', ['int'] * 100)]
     end
     let(:files) do
       contexts.map { |c| c.file = file(c.content, c.name) }
@@ -32,9 +31,9 @@ describe 'esearch#preview' do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
     after do
       expect(editor.messages).not_to match(/E\d{1,4}:/)
-      # a workaround to prevent possible bug in neovim/it's client that causes
+      # tabnew is a workaround to prevent possible bug in neovim/it's client that causes
       # crash on using %bwipeout with a floating window open
-      editor.echo func('esearch#preview#close')
+      editor.command! 'call esearch#preview#close() | tabnew'
       esearch.cleanup!
     end
     include_context 'report editor state on error'
@@ -133,7 +132,7 @@ describe 'esearch#preview' do
             expect(editor.syntax_under_cursor).not_to be_blank
           end
 
-          it 'opens the preview on double click' do
+          it 'opens the preview of different files' do
             expect {
               ctx1.locate!
               editor.send_keys 'p'
@@ -152,7 +151,7 @@ describe 'esearch#preview' do
         after { expect(window_highlights).to all eq(default_highlight) }
 
         context 'when on moving the cursor' do
-          it do
+          it 'closes the preview' do
             expect { editor.send_keys 'hjkl' }.to close_window(windows.last)
           end
         end
@@ -309,7 +308,7 @@ describe 'esearch#preview' do
 
         context 'from the preview' do
           it 'closes the preview on splitting' do
-            expect { editor.command! "split #{editor.escape_filename(ctx2.absolute_path)}" }
+            expect { editor.split! ctx2.absolute_path }
               .to start_editing(ctx2.absolute_path)
               .and not_to_change { windows.count }
               .and change { window_highlights }
@@ -317,7 +316,7 @@ describe 'esearch#preview' do
           end
 
           it 'closes the preview on editing in a tab' do
-            expect { editor.command! "tabedit #{editor.escape_filename(ctx2.absolute_path)}" }
+            expect { editor.tabedit! ctx2.absolute_path }
               .to open_tab(ctx2.absolute_path)
               .and change { window_highlights }
               .to(all(be_blank))
@@ -361,6 +360,7 @@ describe 'esearch#preview' do
 
           context 'when deleting an opened buffer' do
             # NOTE dc09e176. Prevents options inheritance when trying to delete the buffer
+            # A rare but still possible case
             it 'prevents options inheritance' do
               expect { editor.raw_send_keys 'P' }
                 .to change { windows.count }
@@ -441,9 +441,9 @@ describe 'esearch#preview' do
                   end
                 end
 
-                # (A)abort throws an exception,
+                # Pressing (A)bort throws an exception,
                 it_behaves_like 'it handles cancelling with', keys: 'a'
-                # ...  while (Q)uit not
+                # ...  while pressing (Q)uit aren't
                 it_behaves_like 'it handles cancelling with', keys: 'q'
               end
 
@@ -457,9 +457,9 @@ describe 'esearch#preview' do
                   end
                 end
 
-                # (A)abort throws an exception,
+                # Pressing (A)bort throws an exception,
                 it_behaves_like 'it handles cancelling with', keys: 'a'
-                # ...  while (Q)uit not
+                # ...  while pressing (Q)uit aren't
                 it_behaves_like 'it handles cancelling with', keys: 'q'
               end
             end

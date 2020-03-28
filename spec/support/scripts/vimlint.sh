@@ -22,9 +22,6 @@ sh "$vimlint/bin/vimlint.sh" -l "$vimlint" -p "$vimlparser"
   $vimlint_warning_unused_arguments_and_variables_workaround
   $todo_vimlint_warning_unused_local_variables
   $todo_vimlint_warning_scipt_encodings
-  -e EVL101.s:false=1
-  -e EVL101.s:true=1
-  -e EVL101.s:null=1
   $directories
 EOF
 )

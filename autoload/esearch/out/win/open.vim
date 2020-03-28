@@ -55,7 +55,7 @@ fu! s:open_once(esearch, opener, filename, opts) abort
   if !empty(opened_window) && esearch#win#exists(opened_window)
     call esearch#win#enter(opened_window)
     " Don't open if the file is already opened.
-    " Prevents from triggering existing swap prompt multiple times
+    " Prevents from asking about existing swap prompt multiple times
     if s:Filepath.abspath(bufname('%')) !=# a:filename
       let a:opts.opener = s:to_callable('edit')
       unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)

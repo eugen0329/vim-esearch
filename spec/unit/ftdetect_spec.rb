@@ -131,7 +131,7 @@ describe 'esearch#ftdetect' do
       context "when doesn't exist" do
         after { editor.cleanup! }
 
-        it { expect(ftdetect.call('Testfile')).to eq(nil) }
+        it { expect(ftdetect.call('Testfile')).to be_nil.or eq(0) }
       end
     end
   end

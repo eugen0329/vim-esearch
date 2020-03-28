@@ -57,11 +57,15 @@ fu! esearch#preview#open(filename, line, ...) abort
   if empty(strategy)
     let strategy = (getfsize(a:filename) > max_edit_size ? 'scratch' : 'regular')
   endif
-  let scratch_fallback = get(opts, 'scratch_fallback', s:true)
+  let enter = get(opts, 'enter', s:false)
 
   let g:esearch#preview#last = s:Preview
-        \.new(location, shape, win_vars, opts, close_on, scratch_fallback)
-  return g:esearch#preview#last.open()
+        \.new(location, shape, win_vars, opts, close_on, enter)
+  if enter
+    return g:esearch#preview#last.open_and_enter()
+  else
+    return g:esearch#preview#last.open()
+  endif
 endfu
 
 fu! esearch#preview#is_open() abort
@@ -89,7 +93,6 @@ fu! esearch#preview#close(...) abort
     call esearch#preview#reset()
     call g:esearch#preview#win.close()
     let g:esearch#preview#win = s:null
-    redraw!
   endif
 endfu
 
@@ -97,14 +100,14 @@ endfu
 
 let s:Preview = {}
 
-fu! s:Preview.new(location, shape, win_vars, opts, close_on, scratch_fallback) abort dict
+fu! s:Preview.new(location, shape, win_vars, opts, close_on, enter) abort dict
   let instance = copy(self)
-  let instance.location         = a:location
-  let instance.shape            = a:shape
-  let instance.win_vars         = a:win_vars
-  let instance.opts             = a:opts
-  let instance.close_on         = a:close_on
-  let instance.scratch_fallback = a:scratch_fallback
+  let instance.location = a:location
+  let instance.shape    = a:shape
+  let instance.win_vars = a:win_vars
+  let instance.opts     = a:opts
+  let instance.close_on = a:close_on
+  let instance.enter    = a:enter
   return instance
 endfu
 
@@ -114,29 +117,16 @@ fu! s:Preview.open() abort dict
         \ self.location.filename, g:esearch#preview#buffers)
 
   try
-    if self.scratch_fallback
-      let g:esearch#preview#win = s:create_or_update_floating_window(
-            \ 'regular', self.buffer, self.location, self.shape, self.close_on)
-      let self.win = g:esearch#preview#win
-      call self.win.enter()
-      if !self.buffer.edit()
-        let self.buffer = s:ScratchBuffer.fetch_or_create(
-              \ self.location.filename, g:esearch#preview#scratches)
-        call self.win.update(
-              \ self.buffer, self.location, self.shape, self.close_on)
-        call self.buffer.edit()
-      endif
-    else
-      call esearch#preview#close()
-      let g:esearch#preview#win = s:FloatingWindow
-            \.new(self.buffer, self.location, self.shape, self.close_on)
-            \.open()
-      let self.win = g:esearch#preview#win
-      call self.win.enter()
-      if !self.buffer.edit_allowing_swap_prompt()
-        call esearch#preview#close()
-        return s:false
-      endif
+    let g:esearch#preview#win = s:create_or_update_floating_window(
+          \ 'regular', self.buffer, self.location, self.shape, self.close_on)
+    let self.win = g:esearch#preview#win
+    call self.win.enter()
+    if !self.buffer.edit()
+      let self.buffer = s:ScratchBuffer.fetch_or_create(
+            \ self.location.filename, g:esearch#preview#scratches)
+      call self.win.update(
+            \ self.buffer, self.location, self.shape, self.close_on)
+      call self.buffer.edit()
     endif
 
     " it's better to let variables after editing the buffer to prevent
@@ -146,13 +136,47 @@ fu! s:Preview.open() abort dict
     call self.win.set_emphasis(
           \ esearch#emphasize#sign(self.win.id, self.location.line, '->'))
     call self.win.reshape()
-    call self.win.init_autoclose_autocommands()
+    call self.win.init_stay_events()
   catch
     call esearch#preview#close()
     echoerr v:exception
     return s:false
   finally
     noau keepj call current_win.restore()
+  endtry
+
+  return s:true
+endfu
+
+fu! s:Preview.open_and_enter() abort dict
+  let current_win = esearch#win#stay()
+  let self.buffer = s:RegularBuffer.fetch_or_create(
+        \ self.location.filename, g:esearch#preview#buffers)
+
+  try
+    call esearch#preview#close()
+    let g:esearch#preview#win = s:FloatingWindow
+          \.new(self.buffer, self.location, self.shape, self.close_on)
+          \.open()
+    let self.win = g:esearch#preview#win
+    call self.win.enter()
+    if !self.buffer.edit_allowing_swap_prompt()
+      call esearch#preview#close()
+      return s:false
+    endif
+
+    " it's better to let variables after editing the buffer to prevent
+    " inheriting some options by buffers (for example, &winhl local to window
+    " becoms local to buffer).
+    call self.win.let(self.win_vars)
+    call self.win.set_emphasis(
+          \ esearch#emphasize#sign(self.win.id, self.location.line, '->'))
+    call self.win.reshape()
+    call self.win.init_enter_events()
+  catch
+    call esearch#preview#close()
+    echoerr v:exception
+    return s:false
   endtry
 
   return s:true
@@ -220,16 +244,10 @@ fu! s:RegularBuffer.edit_allowing_swap_prompt() abort dict
     endif
   endif
 
-  " \ '&eventignore': 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete',
-  " \ '&undolevels': -1,
-  let eventignore = esearch#let#restorable({
-        \ })
   try
     exe 'edit ' . fnameescape(self.filename)
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap
-  finally
-    call eventignore.restore()
   endtry
 
   " When (Q)uit or (A)bort are pressed - vim unloads the current buffer as it
@@ -419,7 +437,7 @@ fu! s:FloatingWindow.open() abort dict
           \ 'anchor':    self.shape.anchor,
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
-          \ 'relative':  'editor',
+          \ 'relative':  'win',
           \})
   finally
     call original_options.restore()
@@ -459,7 +477,7 @@ fu! s:FloatingWindow.reshape() abort dict
           \ 'width':     self.shape.width,
           \ 'height':    self.shape.height,
           \ 'anchor':    self.shape.anchor,
-          \ 'relative':  'editor',
+          \ 'relative':  'win',
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
           \ })
@@ -484,8 +502,24 @@ fu! s:FloatingWindow.reshape() abort dict
   endtry
 endfu
 
+fu! s:FloatingWindow.init_enter_events() abort dict
+  augroup esearch_preview_autoclose
+    au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
+    au WinEnter * ++once au! esearch_preview_autoclose
+    " From :h local-options
+    " When splitting a window, the local options are copied to the new window. Thus
+    " right after the split the contents of the two windows look the same.
+    au WinNew * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | au! esearch_preview_autoclose
 
-fu! s:FloatingWindow.init_autoclose_autocommands() abort dict
+    " NOTE dc09e176. Prevents options inheritance when trying to delete the
+    " buffer. Grep note id to locate the test case.
+    au BufDelete * ++once call esearch#preview#close()
+
+    au CmdwinEnter * call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
+  augroup END
+endfu
+
+fu! s:FloatingWindow.init_stay_events() abort dict
   let autocommands = join(self.close_on, ',')
 
   augroup esearch_preview_autoclose
@@ -495,7 +529,7 @@ fu! s:FloatingWindow.init_autoclose_autocommands() abort dict
 
     " We cannot close the preview when entering cmdwin, so the only option is to
     " reinitialize the events.
-    au CmdwinLeave * ++once call g:esearch#preview#win.init_autoclose_autocommands()
+    au CmdwinLeave * ++once call g:esearch#preview#win.init_stay_events()
   augroup END
 endfu
 

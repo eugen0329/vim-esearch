@@ -268,6 +268,14 @@ class Editor
       .reject { |message| message.include?('E325:') }
   end
 
+  def split!(path)
+    command! "split #{editor.escape_filename(path)}"
+  end
+
+  def tabedit!(path)
+    command! "tabedit #{editor.escape_filename(path)}"
+  end
+
   def bwipeout(buffer_number)
     command!("bwipeout #{buffer_number}")
   end
