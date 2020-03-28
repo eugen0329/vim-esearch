@@ -167,8 +167,8 @@ class Editor
     echo(func('SynStack'))
   end
 
-  def edit_ignoring_swap!(filename, opener: 'edit')
-    raw_send_keys ":#{opener} #{escape_filename(filename)}<CR>"
+  def edit_ignoring_swap!(filename, opener: 'edit!')
+    raw_send_keys "\e\e\e:#{opener} #{escape_filename(filename)}\n"
     raw_send_keys 'e' # to bypass the swap prompt
   end
 
@@ -247,6 +247,7 @@ class Editor
   def delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     # TODO: fix after modifier implementation
     command <<~CLEANUP_COMMANDS
+      tabnew
       %bwipeout!
       messages clear
       call feedkeys(\"\\<Esc>\\<Esc>\", \"n\")
@@ -260,7 +261,11 @@ class Editor
   end
 
   def messages
-    reader.echo(func('execute', 'messages')).split("\n")
+    # E325 - messages about existing swaps, not relevant and can be skipped
+    reader
+      .echo(func('execute', 'messages'))
+      .split("\n")
+      .reject { |message| message.include?('E325:') }
   end
 
   def bwipeout(buffer_number)

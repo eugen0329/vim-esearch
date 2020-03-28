@@ -1,6 +1,5 @@
 let s:Buffer   = vital#esearch#import('Vim.Buffer')
 let s:Message  = vital#esearch#import('Vim.Message')
-let s:Message  = vital#esearch#import('Vim.Message')
 let s:Prelude  = vital#esearch#import('Prelude')
 let s:List     = vital#esearch#import('Data.List')
 
@@ -434,8 +433,14 @@ fu! s:FloatingWindow.close() abort dict
   call nvim_win_close(self.id, 1)
 endfu
 
-" Shape specified on create is only to prevent blinks. Actual shape setting is set there
+" Shape specified on create is only to prevent blinks.
+" Actual shape settings are set there
 fu! s:FloatingWindow.reshape() abort dict
+  if !self.buffer.is_valid()
+    call s:Message.echomsg('ErrorMsg', 'Preview buffer was deleted')
+    return esearch#preview#close()
+  endif
+
   " Prevent showing more lines than the buffer has
   call self.shape.clip_height(nvim_buf_line_count(self.buffer.id))
   let height = self.shape.height
@@ -557,11 +562,12 @@ fu! s:Shape.new(measures) abort dict
   let instance.editor_top = instance.tabline_height
   let instance.editor_bottom = &lines - instance.tabline_height - instance.statusline_height - 1
 
+  let max_height = min([19, &lines / 2])
   if instance.alignment ==# 'cursor'
-    call extend(instance, {'width': 120, 'height': 19})
+    call extend(instance, {'width': 120, 'height': max_height})
     let instance.relative = 0
   elseif s:List.has(['top', 'bottom'], instance.alignment)
-    call extend(instance, {'width': 1.0, 'height': 19})
+    call extend(instance, {'width': 1.0, 'height': max_height})
     let instance.relative = 1
   elseif s:List.has(['left', 'right'], instance.alignment)
     call extend(instance, {'width': 0.5, 'height': 1.0})

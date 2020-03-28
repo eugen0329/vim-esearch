@@ -725,9 +725,13 @@ fu! s:load_syntax(esearch, context) abort
     let region = a:esearch.context_syntax_regions[syntax_name]
   endif
 
-  exe printf('syntax region esearchContext_%s start="\M^%s$" end="^$" contains=esearchFilename,%s',
+  " fnameescape() is used as listed filenames are escaped
+  " escape(..., '/') as the filename pattern is enclosed in //
+  " escape(..., '^$.*[]\') is used as matching should be literal
+  let start = escape(fnameescape(a:context.filename), '/^$.*[]\')
+  exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
         \ region.name,
-        \ s:String.escape_pattern(a:context.filename),
+        \ start,
         \ region.name,
         \ )
 

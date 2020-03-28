@@ -39,8 +39,8 @@ module Helpers::Preview
     editor.echo func('nvim_win_get_option', func('nvim_get_current_win'), 'winhighlight')
   end
 
-  def window_height(handle)
-    editor.echo(func('nvim_win_get_height', handle))
+  def window_height(window)
+    editor.echo(func('nvim_win_get_config', window))['height']
   end
 
   def window_width(handle)
