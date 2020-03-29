@@ -37,8 +37,8 @@ fu! s:highlight_matches_callback(esearch, callback) abort
     return
   endif
 
-  let exp = b:esearch.exp.vim
-  let state = esearch#out#win#_state()
+  let exp = a:esearch.exp.vim
+  let state = esearch#out#win#_state(a:esearch)
   let line_numbers_map = state.line_numbers_map
   let ctx_ids_map = state.ctx_ids_map
   let highlighted_lines_map = a:esearch.highlighted_lines_map

@@ -105,7 +105,7 @@ describe 'esearch#ftdetect' do
 
   describe '#slow' do
     subject(:ftdetect) do
-      ->(filename) { editor.echo func('esearch#ftdetect#slow', filename) }
+      ->(filename) { editor.echo func('esearch#ftdetect#complete', filename) }
     end
 
     include_examples 'detects ft with fast strategy'
@@ -131,7 +131,7 @@ describe 'esearch#ftdetect' do
       context "when doesn't exist" do
         after { editor.cleanup! }
 
-        it { expect(ftdetect.call('Testfile')).to eq(0) }
+        it { expect(ftdetect.call('Testfile')).to be_blank | eq(0) }
       end
     end
   end

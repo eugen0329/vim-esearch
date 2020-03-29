@@ -8,6 +8,7 @@ syntax on
 set nobackup noswapfile
 set splitbelow
 set splitright
+set foldenable
 
 
 " remove default ~/.vim directories to avoid loading plugins
@@ -85,7 +86,9 @@ function! VimrunnerEvaluate(expr)
 endfunction
 
 function! SynStack()  abort
-  echo map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+  let stack = map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")')
+  echo stack
+  return stack
 endfunc
 
 fu! SyntaxAt(ln, column) abort

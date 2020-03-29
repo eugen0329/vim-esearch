@@ -1,3 +1,6 @@
+let s:Guard = vital#esearch#import('Vim.Guard')
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 let s:Promise       = vital#esearch#import('Async.Promise')
 let s:List          = vital#esearch#import('Data.List')
 let s:String        = vital#esearch#import('Data.String')
@@ -20,7 +23,6 @@ let g:esearch#out#win#mappings = [
       \ {'lhs': '{',       'rhs': 'prev-file',          'default': 1},
       \ ]
 
-let s:null = 0
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 " The first line. It contains information about the number of results
 let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
@@ -38,8 +40,8 @@ let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_fr
 let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
-let s:linenr_format = ' %3d %s'
-let s:function_t = type(function('tr'))
+let s:linenr_format = ' %3d '
+let s:t_func = type(function('tr'))
 
 if get(g:, 'esearch#out#win#keep_fold_gutter', 0)
   let s:blank_line_fold = 0
@@ -65,7 +67,7 @@ if !exists('g:esearch_out_win_highlight_matches')
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
   let g:esearch_win_disable_context_highlights_on_files_count =
-        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 2000 : 200)
+        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 100 : 200)
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -172,10 +174,9 @@ if !has_key(g:, 'esearch#out#win#buflisted')
   let g:esearch#out#win#buflisted = 0
 endif
 
-" TODO wrap arguments with hash
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
-  silent doau User esearch#out#win#init_pre
+  silent doau User esearch_win_init_pre
 
   if has_key(b:, 'esearch')
     call s:cleanup()
@@ -229,13 +230,23 @@ fu! esearch#out#win#init(opts) abort
         \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
+        \ 'preview_enter':            function('<SID>preview_enter'),
+        \ 'preview_zoom':             function('<SID>preview_zoom'),
+        \ 'preview_close':            function('esearch#preview#close'),
+        \ 'is_preview_open':          function('esearch#preview#is_open'),
         \ 'filename':                 function('<SID>filename'),
+        \ 'unescaped_filename':       function('<SID>unescaped_filename'),
+        \ 'filetype':                 function('<SID>filetype'),
         \ 'line_in_file':             function('<SID>line_in_file'),
+        \ 'ctx_view':                 function('<SID>ctx_view'),
         \ 'is_filename':              function('<SID>is_filename'),
         \ 'is_entry':                 function('<SID>is_entry'),
         \ 'jump2entry':               function('<SID>jump2entry'),
         \ 'jump2filename':            function('<SID>jump2filename'),
         \ 'is_current':               function('<SID>is_current'),
+        \ 'split_preview':            function('<SID>split_preview'),
+        \ 'last_split_preview':       {},
+        \ 'is_blank':                 function('<SID>is_blank'),
         \}, 'force')
 
   let b:esearch = extend(a:opts, {
@@ -285,7 +296,10 @@ fu! esearch#out#win#init(opts) abort
   call s:init_mappings()
   call s:init_commands()
 
-  silent doau User esearch#out#win#init_post
+  augroup esearch_win_event
+    silent doau User esearch_win_event
+  augroup END
+  silent doau User esearch_win_init_post
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -332,7 +346,37 @@ fu! s:is_current() abort dict
   return get(b:, 'esearch', {}) ==# self
 endfu
 
+fu! s:is_blank() abort dict
+  " if only a header ctx
+  if len(self.contexts) < 2 | return s:true | endif
+endfu
+
+" A wrapper around regular open
+fu! s:split_preview(...) abort dict
+  if !self.is_current() | return | endif
+
+  let last = self.last_split_preview
+  let current = {
+        \ 'filename':     self.filename(),
+        \ 'line_in_file': self.line_in_file(),
+        \ }
+  let self.last_split_preview = current
+
+  if last ==# current
+    " Open once to prevent redundant jumps that could also cause reappearing swap
+    " handling prompt
+    return 0
+  endif
+
+  return self.open(get(a:000, 0, 'vnew'), extend({
+        \ 'stay': 1,
+        \ 'once': 1,
+        \ 'let!': {'&l:foldenable': 0},
+        \ }, get(a:000, 1, {}), 'force'))
+endfu
+
 fu! s:cleanup() abort
+  au!  esearch_win_event * <buffer>
   call esearch#changes#unlisten_for_current_buffer()
   call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
   if has_key(b:esearch, 'updates_timer')
@@ -344,10 +388,11 @@ fu! s:cleanup() abort
   augroup ESearchModifiable
     au! * <buffer>
   augroup END
+
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
         \ get(b:esearch, 'matches_highlight_id', -1))
-  silent doau User esearch#out#win#uninit_post
+  silent doau User esearch_win_uninit_post
 endfu
 
 " TODO refactoring
@@ -543,7 +588,7 @@ fu! s:new_context(id, filename, begin) abort
         \ 'begin': a:begin,
         \ 'end': 0,
         \ 'filename': a:filename,
-        \ 'filetype': 0,
+        \ 'filetype': s:null,
         \ 'syntax_loaded': 0,
         \ 'lines': {},
         \ }
@@ -585,7 +630,7 @@ fu! s:blocking_highlight_viewport(esearch) abort
   let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
   let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
 
-  let state = esearch#out#win#_state()
+  let state = esearch#out#win#_state(a:esearch)
   for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]
     if !context.syntax_loaded
       call s:load_syntax(a:esearch, context)
@@ -631,6 +676,8 @@ fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
     call timer_stop(a:esearch.viewport_highlight_timer)
   endif
 
+  echomsg 'esearch: some highlights are disabled to prevent slowdowns'
+
   if g:esearch_out_win_nvim_lua_syntax
     syn clear
   else
@@ -673,9 +720,13 @@ fu! s:load_syntax(esearch, context) abort
     let region = a:esearch.context_syntax_regions[syntax_name]
   endif
 
-  exe printf('syntax region esearchContext_%s start="\M^%s$" end="^$" contains=esearchFilename,%s',
+  " fnameescape() is used as listed filenames are escaped
+  " escape(..., '/') as the filename pattern is enclosed in //
+  " escape(..., '^$.*[]\') is used as matching should be literal
+  let start = escape(fnameescape(a:context.filename), '/^$.*[]\')
+  exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
         \ region.name,
-        \ s:String.escape_pattern(a:context.filename),
+        \ start,
         \ region.name,
         \ )
 
@@ -740,14 +791,14 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
 
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <S-p> :<C-U>sil cal b:esearch.preview()<CR>
-    nnoremap <silent><buffer> p     :<C-U>sil cal b:esearch.preview()<CR>
+    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
+    nnoremap <silent><buffer> p     :<C-U>call b:esearch.preview_zoom()<CR>
   endif
 
   for i in range(0, len(g:esearch#out#win#mappings) - 1)
     if !g:esearch.default_mappings && g:esearch#out#win#mappings[i].default | continue | endif
 
-    if type(g:esearch#out#win#mappings[i].rhs) ==# s:function_t
+    if type(g:esearch#out#win#mappings[i].rhs) ==# s:t_func
       exe 'nnoremap <buffer><silent> ' . g:esearch#out#win#mappings[i].lhs
             \ . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
     else
@@ -760,46 +811,131 @@ fu! s:init_mappings() abort
 endfu
 
 fu! s:invoke_mapping_callback(i) abort
-  call g:esearch#out#win#mappings[a:i].rhs()
+  call g:esearch#out#win#mappings[a:i].rhs(b:esearch)
 endfu
 
-fu! s:preview() abort dict
-  if !self.is_current() | return | endif
+fu! s:preview_zoom() abort dict
+  if self.is_preview_open()
+    let height = g:esearch#preview#last.win.shape.height * 2
+    let confirmation_prompt_height = 2 " prevent overlapping the text
+    let height = esearch#util#clip(height, 0, &lines - confirmation_prompt_height)
 
-  return esearch#preview#start(self.filename(), self.line_in_file())
+    if g:esearch#preview#last.win.shape.height !=# height
+      let g:esearch#preview#last.win.shape.height = height
+      call g:esearch#preview#last.win.reshape()
+    endif
+  else
+    return self.preview()
+  endif
+endfu
+
+fu! s:preview_enter(...) abort dict
+  if !self.is_current() || self.is_blank() | return | endif
+
+  if esearch#preview#is_open()
+    " Reuse the opened preview options
+    let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
+    " Overwrite height and width as it could be zoomed
+    let opts.width = g:esearch#preview#win.shape.width
+    let opts.height = g:esearch#preview#win.shape.height
+  else
+    let opts = {}
+  endif
+  let opts = extend(copy(opts), copy(get(a:000, 0, {})))
+  let opts.enter = s:true
+  let view = self.ctx_view()
+
+  if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
+    return
+  endif
+
+ " Is used to jump to the corresponding line and column where user was within
+ " the search window. View column will correspond to the column inside the file.
+  call winrestview(view)
+endfu
+
+fu! s:preview(...) abort dict
+  if !self.is_current() | return | endif
+  return call(function('esearch#preview#open'),
+        \ [self.unescaped_filename(), self.line_in_file()] + a:000)
+endfu
+
+" Returns dict that can be forwarded into builtin winrestview()
+fu! s:ctx_view() abort dict
+  let line = self.line_in_file()
+  let state = esearch#out#win#_state(self)
+  let linenr = printf(s:linenr_format, state.line_numbers_map[line('.')])
+  return {
+        \ 'lnum': line,
+        \ 'col': max([0, col('.') - strlen(linenr) - 1])
+        \ }
 endfu
 
 fu! s:line_in_file() abort dict
-  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
+  return (matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*'))
 endfu
 
-fu! s:filename() abort dict
-  let context = esearch#out#win#repo#ctx#new(self, esearch#out#win#_state()).by_line(line('.'))
+fu! s:filetype(...) abort dict
+  if !self.is_current() | return | endif
 
-  if context.id == 0
-    let filename =  get(self.contexts, 1, context).filename
-  else
-    let filename = context.filename
+  let ctx = s:file_context_at(line('.'), self)
+  if empty(ctx) | return s:null | endif
+
+  if empty(ctx.filetype)
+    let opts = get(a:000)
+
+    if get(opts, 'fast', 0)
+      let ctx.filetype = esearch#ftdetect#complete(ctx.filename)
+    else
+      let ctx.filetype = esearch#ftdetect#fast(ctx.filename)
+    endif
   endif
 
-  if s:Filepath.is_absolute(filename)
-    let filename = fnameescape(filename)
+  return ctx.filetype
+endfu
+
+fu! s:unescaped_filename() abort dict
+  if !self.is_current() | return | endif
+
+  let ctx = s:file_context_at(line('.'), self)
+  if empty(ctx) | return s:null | endif
+
+  if s:Filepath.is_absolute(ctx.filename)
+    let filename = ctx.filename
   else
-    let filename = fnameescape(self.cwd . '/' . filename)
+    let filename = s:Filepath.join(self.cwd, ctx.filename)
   endif
 
   return filename
 endfu
 
-fu! esearch#out#win#_state() abort
-  if b:esearch.mode ==# 'normal'
+fu! s:filename() abort dict
+  if !self.is_current() | return | endif
+
+  return fnameescape(self.unescaped_filename())
+endfu
+
+fu! s:file_context_at(line, esearch) abort
+  if a:esearch.is_blank() | return s:null | endif
+
+  let ctx = esearch#out#win#repo#ctx#new(a:esearch, esearch#out#win#_state(a:esearch))
+        \.by_line(a:line)
+  if ctx.id == 0
+    return a:esearch.contexts[1]
+  endif
+
+  return ctx
+endfu
+
+fu! esearch#out#win#_state(esearch) abort
+  if a:esearch.mode ==# 'normal'
     " Probably a better idea would be to return only paris, stored in states.
     " Storing in normal mode within undotree with a single node is not the best
     " option as it seems to create extra overhead during #update call
     " (especially on searches with thousands results; according to profiling).
-    return b:esearch
+    return a:esearch
   else
-    return b:esearch.undotree.head.state
+    return a:esearch.undotree.head.state
   endif
 endfu
 
@@ -857,6 +993,8 @@ fu! s:jump2filename(direction, count) abort dict
       let times -= 1
     endwhile
   endif
+
+  return 1
 endfu
 
 fu! s:jump2entry(direction, count) abort dict
@@ -890,6 +1028,8 @@ fu! s:jump2entry(direction, count) abort dict
   if last_line !=# 1
     norm! ww
   endif
+
+  return 1
 endfu
 
 fu! s:is_entry() abort dict
@@ -918,7 +1058,7 @@ fu! esearch#out#win#finish(bufnr) abort
     return 1
   endif
 
-  doau User esearch#out#win#finish
+  silent doau User esearch_win_finish_pre
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   call esearch#out#win#update(a:bufnr, 1)

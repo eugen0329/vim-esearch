@@ -1,5 +1,7 @@
-let s:null = 0
 let s:Message  = vital#esearch#import('Vim.Message')
+
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#writer#buffer#write(diff, esearch) abort
   return s:new(a:diff, a:esearch).write()

@@ -1,5 +1,5 @@
 fu! esearch#init(...) abort
-  silent doau User esearch#init_pre
+  silent doau User eseach_init_pre
 
   if s:init_lazy_global_config() != 0
     return 1
@@ -135,6 +135,10 @@ fu! s:init_lazy_global_config() abort
   call esearch#highlight#init()
 
   return 0
+endfu
+
+fu! esearch#debounce(...) abort
+  return call('esearch#debounce#new', a:000)
 endfu
 
 if !exists('g:esearch#env')

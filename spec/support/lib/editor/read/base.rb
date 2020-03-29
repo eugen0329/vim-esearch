@@ -25,7 +25,7 @@ class Editor::Read::Base
     vim.command(command)
   end
 
-  def handle_state_change!
+  def invalidate_cache!
     cache.clear
   end
 

@@ -51,30 +51,19 @@ endfu
 
 " TODO encoding
 fu! s:stdout(job_id, data, event) dict abort
-  let job = s:jobs[a:job_id]
-  let data = a:data
+  let request = s:jobs[a:job_id].request
 
-  " If there is incomplete line from the last s:stduout call
-  if !empty(job.request.intermediate) && !empty(data)
-    let data[0] = job.request.intermediate . data[0]
-    let job.request.intermediate = ''
+  if !empty(request.intermediate)
+    let a:data[0] = request.intermediate . a:data[0]
+    let request.intermediate = ''
   endif
-
-  " If the last line is incomplete:
-  if !empty(data) && data[-1] !~# '\r$'
-    let job.request.intermediate = remove(data, -1)
-  endif
-
-  if self.pty
-    call map(data, "substitute(v:val, '\\r$', '', '')")
-  endif
-  let data = filter(data, "'' !=# v:val")
-  let job.request.data += data
+  let request.intermediate = remove(a:data, -1)
+  call extend(request.data, a:data)
 
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
-  if self.tick % self.ticks == 1 && !empty(job.request.events.update)
-    call job.request.events.update()
+  if self.tick % self.ticks == 1 && !empty(request.events.update)
+    call request.events.update()
   endif
 endfu
 

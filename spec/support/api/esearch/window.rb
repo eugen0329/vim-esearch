@@ -97,7 +97,7 @@ class API::ESearch::Window
   end
 
   def reloaded_entries!(entries)
-    editor.handle_state_change!
+    editor.invalidate_cache!
     entries.map { |entry| reload(entry) }
   end
 

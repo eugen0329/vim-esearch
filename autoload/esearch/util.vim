@@ -1,7 +1,7 @@
-let s:Prelude   = vital#esearch#import('Prelude')
-let s:Highlight = vital#esearch#import('Vim.Highlight')
-let s:Message   = vital#esearch#import('Vim.Message')
-let s:Filepath  = vital#esearch#import('System.Filepath')
+let s:Prelude    = vital#esearch#import('Prelude')
+let s:Highlight  = vital#esearch#import('Vim.Highlight')
+let s:Message    = vital#esearch#import('Vim.Message')
+let s:Filepath   = vital#esearch#import('System.Filepath')
 
 fu! esearch#util#setline(_, lnum, text) abort
   call setline(a:lnum, a:text)
@@ -637,4 +637,26 @@ fu! esearch#util#absolute_path(cwd, path) abort
   endif
 
   return s:Filepath.join(a:cwd, a:path)
+endfu
+
+" TODO consider to extract to utils
+fu! esearch#util#readfile(filename, cache) abort
+  let key = [a:filename, getfsize(a:filename), getftime(a:filename)]
+
+  if a:cache.has(key)
+    let lines = a:cache.get(key)
+  else
+    let lines = readfile(a:filename)
+    call a:cache.set(key, lines)
+  endif
+
+  return lines
+endfu
+
+" Is DANGEROUS as it can cause editing file with an existing swap, required ONLY
+" for floating preview windows
+fu! esearch#util#silence_swap_prompt() abort
+  " A - suppress swap prompt
+  " F - don't echo that a:filename is edited
+  return esearch#let#restorable({'&shortmess': 'AF'})
 endfu

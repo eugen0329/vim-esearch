@@ -34,13 +34,13 @@ RSpec.shared_context 'inherited from Editor::Read::Base' do
     end
   end
 
-  shared_examples '#handle_state_change!' do
+  shared_examples '#invalidate_cache!' do
     let(:cache_enabled) { true }
 
     it 'clears cache' do
       expect(vim).to receive(:echo).twice.with('[abs(-1)]').and_return('[1]')
       2.times { subject.echo(func('abs', -1)).to_s }
-      subject.handle_state_change!
+      subject.invalidate_cache!
       2.times { subject.echo(func('abs', -1)).to_s }
     end
   end

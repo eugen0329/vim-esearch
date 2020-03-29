@@ -10,6 +10,10 @@ module Helpers::Modifiable
   Context = Struct.new(:name, :content) do
     attr_accessor :file
 
+    def lines
+      entries.map(&:result_text)
+    end
+
     def line_numbers
       @line_numbers ||= 1.upto(content.length).to_a
     end
@@ -24,7 +28,7 @@ module Helpers::Modifiable
 
     def entries
       line_numbers.map do |line_number|
-        esearch.output.find_entry(name, line_number)
+        esearch.output.find_entry(editor.escape_filename(name), line_number)
       rescue API::ESearch::Window::MissingEntryError
         nil
       end

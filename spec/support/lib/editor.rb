@@ -18,7 +18,7 @@ class Editor
   class_attribute :reader_class, default: Editor::Read::Batched
   attr_reader :vim_client_getter, :reader
 
-  delegate :cached?, :evaluated?, :with_ignore_cache, :handle_state_change!, :var, :func, to: :reader
+  delegate :cached?, :evaluated?, :with_ignore_cache, :invalidate_cache!, :var, :func, to: :reader
 
   def initialize(**kwargs)
     @vim_client_getter =
@@ -112,8 +112,12 @@ class Editor
     echo func('Matches', group)
   end
 
+  def expand(expr)
+    echo func('expand', expr)
+  end
+
   def current_buffer_name
-    bufname('%')
+    expand('%:p')
   end
 
   def current_line_number
@@ -151,6 +155,23 @@ class Editor
     echo(func('changenr'))
   end
 
+  def open_buffer!(filename)
+    command!("buffer #{filename}")
+  end
+
+  def quit!
+    command! 'quit'
+  end
+
+  def syntax_under_cursor
+    echo(func('SynStack'))
+  end
+
+  def edit_ignoring_swap!(filename, opener: 'edit!')
+    raw_send_keys "\e\e\e:#{opener} #{escape_filename(filename)}\n"
+    raw_send_keys 'e' # to bypass the swap prompt
+  end
+
   def edit!(filename)
     command!("edit! #{filename}")
   end
@@ -170,21 +191,43 @@ class Editor
       .map { |l| l.scan(/^Tab page (\d)/)[0][0] }
   end
 
-  def buffers
-    editor
-      .ls
+  def buffer_numbers
+    ls
       .split("\n")
-      .map { |l| l.scan(/\s+([\w\d%#\s]*?)\s+\+?\s*"(.*)"/)[0][1] }
+      .map { |line| line.scan(/\A\s+\d+/) }
+      .flatten
+      .map(&:to_i)
+  end
+
+  # TODO: extract to buffer class
+  def buffer_variable(number, name)
+    echo func('getbufvar', number, name)
+  end
+
+  # TODO: extract to Window class
+  def window_variable(number, name)
+    echo func('getwinvar', number, name)
+  end
+
+  def jumps
+    command('jumps').split("\n")
+  end
+
+  def buffers
+    ls
+      .split("\n")
+      .map { |line| line.scan(/\A\s+([\w\d%#=\s]*?)\s+\+?\s*"(.*)"/)[0][1] }
+      .map { |path| Pathname(path).cleanpath.expand_path.to_s }
   end
 
   def locate_buffer!(name)
     location = with_ignore_cache do
-      editor.echo func('esearch#util#bufloc', editor.func('bufnr', "^#{name}"))
+      echo func('esearch#util#bufloc', func('bufnr', "^#{name}"))
     end
 
     raise MissingBufferError if location.blank?
 
-    editor.command! <<~VIML
+    command! <<~VIML
       tabn #{location[0]}
       #{location[1]} winc w
     VIML
@@ -204,6 +247,7 @@ class Editor
   def delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
     # TODO: fix after modifier implementation
     command <<~CLEANUP_COMMANDS
+      tabnew
       %bwipeout!
       messages clear
       call feedkeys(\"\\<Esc>\\<Esc>\", \"n\")
@@ -217,7 +261,19 @@ class Editor
   end
 
   def messages
-    reader.echo(func('execute', 'messages')).split("\n")
+    # E325 - messages about existing swaps, not relevant and can be skipped
+    reader
+      .echo(func('execute', 'messages'))
+      .split("\n")
+      .reject { |message| message.include?('E325:') }
+  end
+
+  def split!(path)
+    command! "split #{editor.escape_filename(path)}"
+  end
+
+  def tabedit!(path)
+    command! "tabedit #{editor.escape_filename(path)}"
   end
 
   def bwipeout(buffer_number)
@@ -230,7 +286,7 @@ class Editor
 
   def cleanup!
     delete_all_buffers_and_clear_messages_and_reset_input_and_do_too_much!
-    handle_state_change!
+    invalidate_cache!
   end
 
   def bufdelete!(ignore_unsaved_changes: false)
@@ -280,7 +336,7 @@ class Editor
   end
 
   def command!(string_to_execute)
-    handle_state_change!
+    invalidate_cache!
 
     instrument(:command!, data: string_to_execute) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -298,7 +354,7 @@ class Editor
   end
 
   def press!(keyboard_keys)
-    handle_state_change!
+    invalidate_cache!
 
     instrument(:press, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
@@ -308,14 +364,14 @@ class Editor
   end
 
   def press_with_user_mappings!(*keyboard_keys, split_undo_entry: true)
-    handle_state_change!
+    invalidate_cache!
 
     instrument(:press_with_user_mappings!, data: keyboard_keys) do
       throttle(:state_modifying_interactions, interval: throttle_interval) do
         # from :h undojoin
         # Setting the value of 'undolevels' also breaks undo entry.  Even when the new value
         # is equal to the old value.
-        editor.command('let &undolevels=&undolevels') if split_undo_entry
+        command('let &undolevels=&undolevels') if split_undo_entry
         vim.feedkeys keyboard_keys_to_string(*keyboard_keys)
       end
     end
@@ -325,13 +381,13 @@ class Editor
 
   # is required as far as continious sequence may be handled incorrectly by vim
   def send_keys_separately(*keyboard_keys)
-    editor.command('let &undolevels=&undolevels')
+    command('let &undolevels=&undolevels')
     keyboard_keys.map { |key| send_keys(key, split_undo_entry: false) }
   end
 
   # Allows interfacing with prompts etc. where other functions doesn't work
   def raw_send_keys(*keys)
-    handle_state_change!
+    invalidate_cache!
     keys.each { |key| vim.type(key) }
   end
 
@@ -343,12 +399,12 @@ class Editor
 
     history_updated = with_ignore_cache do
       became_truthy_within?(5.seconds) do
-        editor.echo(func('histget', ':', -1)) == string_to_execute
+        echo(func('histget', ':', -1)) == string_to_execute
       end
     end
     raise unless history_updated
 
-    editor.command('let &undolevels=&undolevels')
+    command('let &undolevels=&undolevels')
     press! ":#{string_to_execute}<Enter>"
   end
 
@@ -361,7 +417,7 @@ class Editor
   end
 
   def clipboard=(content)
-    editor.command "let @#{CLIPBOARD_REGISTER} = \"#{content}\""
+    command "let @#{CLIPBOARD_REGISTER} = \"#{content}\""
   end
 
   private
