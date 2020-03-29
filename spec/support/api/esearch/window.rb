@@ -125,7 +125,8 @@ class API::ESearch::Window
 
   def find_entry(relative_path, line_in_file)
     found = parser.entries.find do |entry|
-      entry.relative_path == relative_path && entry.line_in_file == line_in_file
+      Pathname(entry.relative_path).cleanpath == Pathname(relative_path).cleanpath &&
+        entry.line_in_file == line_in_file
     end
 
     found || MissingEntry.new(relative_path, line_in_file)

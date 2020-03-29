@@ -28,21 +28,19 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
 
     if line[0] ==# '"'
       let res = matchlist(line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"\:\(\d\{-}\)[-:]\(.*\)$')[1:3]
-      if len(res) != 3
-        let i += 1
-        continue
-      endif
+      if len(res) == 3
+        let [filename, lnum, text] = res
 
-      let [filename, lnum, text] = res
-
-      let filename = substitute(filename, '\\\([abtnvfr"\\]\|033\)',
-            \ '\=g:esearch#adapter#parse#viml#controls[submatch(1)]', 'g')
-      if filereadable(filename)
-        call add(results, {
-              \ 'filename': filename,
-              \ 'lnum':     lnum,
-              \ 'text':     text})
-        continue
+        let filename = substitute(filename, '\\\([abtnvfr"\\]\|033\)',
+              \ '\=g:esearch#adapter#parse#viml#controls[submatch(1)]', 'g')
+        if filereadable(filename)
+          call add(results, {
+                \ 'filename': filename,
+                \ 'lnum':     lnum,
+                \ 'text':     text})
+          let i += 1
+          continue
+        endif
       endif
     endif
 
