@@ -1,5 +1,4 @@
 let g:esearch#has#debounce = has('timers')
-let g:esearch#has#getqflist_lines = has('patch8.0.1031')
 let g:esearch#has#windows = has('win32')
 let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')
 let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#has#nvim_add_highlight

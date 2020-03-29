@@ -13,7 +13,7 @@ endif
 let s:jobs = {}
 let s:id = esearch#itertools#count()
 
-fu! esearch#backend#vim8#init(adapter, cmd, pty) abort
+fu! esearch#backend#vim8#init(cwd, adapter, cmd, pty) abort
   " TODO add 'stoponexit'
   let id = s:id.next()
   let request = {
@@ -37,6 +37,7 @@ fu! esearch#backend#vim8#init(adapter, cmd, pty) abort
         \ 'adapter':  a:adapter,
         \ 'intermediate':  '',
         \ 'command':  a:cmd,
+        \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'errors':     [],
         \ 'finished': 0,
@@ -54,7 +55,13 @@ endfu
 
 fu! esearch#backend#vim8#run(request) abort
   let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
-  let a:request.job_id = job_start(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+  let original_cwd = getcwd()
+  exe 'lcd ' . a:request.cwd
+  try
+    let a:request.job_id = job_start(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+  finally
+    exe 'lcd ' . original_cwd
+  endtry
 endfu
 
 " TODO encoding

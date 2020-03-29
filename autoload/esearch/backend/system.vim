@@ -1,6 +1,7 @@
-fu! esearch#backend#system#init(adapter, cmd, pty) abort
+fu! esearch#backend#system#init(cwd, adapter, cmd, pty) abort
   let request = {
         \ 'command': a:cmd,
+        \ 'cwd':     a:cwd,
         \ 'adapter':  a:adapter,
         \ 'errors': [],
         \ 'async': 0,
@@ -12,14 +13,20 @@ fu! esearch#backend#system#init(adapter, cmd, pty) abort
 endfu
 
 fu! esearch#backend#system#run(request) abort
-  let a:request.data = split(system(a:request.command), "\n")
-  let a:request.status = v:shell_error
+  let original_cwd = getcwd()
+  exe 'lcd ' . a:request.cwd
+  try
+    let a:request.data = split(system(a:request.command), "\n")
+    let a:request.status = v:shell_error
 
-  if a:request.status !=# 0
-    let a:request.errors = a:request.data
-    call esearch#stderr#incremental(a:request.adapter, a:request.errors)
-    redraw!
-  endif
+    if a:request.status !=# 0
+      let a:request.errors = a:request.data
+      call esearch#stderr#incremental(a:request.adapter, a:request.errors)
+      redraw!
+    endif
+  finally
+    exe 'lcd ' . original_cwd
+  endtry
 endfu
 
 fu! esearch#backend#system#escape_cmd(cmd) abort
