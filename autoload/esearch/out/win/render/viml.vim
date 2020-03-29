@@ -4,11 +4,11 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
   let original_cwd = getcwd()
   exe 'lcd ' . a:esearch.request.cwd
   try
+    let parsed = a:esearch.parse(a:data, a:from, a:to)
     let line = line('$') + 1
     let i = 0
     let limit = len(parsed)
     let lines = []
-    let parsed = a:esearch.parse(a:data, a:from, a:to)
 
     while i < limit
       let filename = parsed[i].filename

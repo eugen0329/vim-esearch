@@ -41,7 +41,10 @@ function parse_line(line)
       ['\"'] = '\"',
       ['\033'] = string.char(27)
     }
-    return filename:gsub('\\(.)', controls), line, text
+    filename = filename:gsub('\\(.)', controls)
+    if filereadable(filename) then
+      return filename, line, text
+    end
   end
 
   while true do

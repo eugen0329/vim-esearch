@@ -37,35 +37,38 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
 
       let filename = substitute(filename, '\\\([abtnvfr"\\]\|033\)',
             \ '\=g:esearch#adapter#parse#viml#controls[submatch(1)]', 'g')
-      call add(results, {
-            \ 'filename': filename,
-            \ 'lnum':     lnum,
-            \ 'text':     text})
-    else
-      let offset = 0
-      while 1
-        let idx = stridx(line, ':', offset)
+      if filereadable(filename)
+        call add(results, {
+              \ 'filename': filename,
+              \ 'lnum':     lnum,
+              \ 'text':     text})
+        continue
+      endif
+    endif
 
-        if idx < 0
-          break
-        endif
+    let offset = 0
+    while 1
+      let idx = stridx(line, ':', offset)
 
-        let filename = line[0 : idx - 1]
-        let offset = idx + 1
+      if idx < 0
+        break
+      endif
 
-        if filereadable(filename)
-          break
-        end
-      endwhile
+      let filename = line[0 : idx - 1]
+      let offset = idx + 1
 
-      if idx > 0
-        let matches = matchlist(line, '\(\d\+\)[-:]\(.*\)', offset)[1:2]
-        if !empty(matches)
-          call add(results, {
-                \ 'filename': filename,
-                \ 'lnum':     matches[0],
-                \ 'text':     matches[1]})
-        endif
+      if filereadable(filename)
+        break
+      end
+    endwhile
+
+    if idx > 0
+      let matches = matchlist(line, '\(\d\+\)[-:]\(.*\)', offset)[1:2]
+      if !empty(matches)
+        call add(results, {
+              \ 'filename': filename,
+              \ 'lnum':     matches[0],
+              \ 'text':     matches[1]})
       endif
     endif
 
