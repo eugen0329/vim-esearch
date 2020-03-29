@@ -39,8 +39,11 @@ class API::ESearch::Window
   def has_filename_highlight?(relative_path)
     return true if Debug.neovim?
 
-    filename = editor.escape_regexp(editor.escape_filename(relative_path))
-    editor.syntax_aliases_at([filename]) ==
+    # Both a valid. The only difference is that vim escapes > and + only when
+    # they are leading
+    filename_variations = [editor.escape_regexp(editor.escape_filename(relative_path)),
+                           editor.escape_regexp(editor.escape_filename('./' + relative_path))]
+    editor.syntax_aliases_at([filename_variations.join('\|')]) ==
       [%w[esearchFilename Directory]]
   end
 
@@ -128,8 +131,8 @@ class API::ESearch::Window
     found = parser.entries.find do |entry|
       entry_path = Pathname(entry.relative_path).cleanpath
 
-      # Both a valid. The only difference is that vim escapes only several
-      # characters in paths when they are leading like > and +
+      # Both a valid. The only difference is that vim escapes > and + only when
+      # they are leading
       path_variations = [Pathname(editor.escape_filename('./' + relative_path)).cleanpath,
                          Pathname(editor.escape_filename(relative_path)).cleanpath]
 
