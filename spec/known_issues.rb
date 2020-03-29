@@ -60,6 +60,7 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
 
   # Ack cannot work with files named ~
   pending! 'searching in a file with name "~"', /MissingEntry/, adapter: :ack
+  pending! 'searching in a file with name "-"', /MissingEntry/, adapter: :ack
 
   # Can be fixed by storing data as a single string instead of list of lines.
   # Can reduce freezes on stdout callbacks, but seems too hard to implement for

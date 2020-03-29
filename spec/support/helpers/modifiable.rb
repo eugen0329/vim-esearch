@@ -28,7 +28,7 @@ module Helpers::Modifiable
 
     def entries
       line_numbers.map do |line_number|
-        esearch.output.find_entry(editor.escape_filename(name), line_number)
+        esearch.output.find_entry(name, line_number)
       rescue API::ESearch::Window::MissingEntryError
         nil
       end

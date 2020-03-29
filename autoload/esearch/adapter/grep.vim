@@ -80,7 +80,7 @@ fu! esearch#adapter#grep#cmd(esearch, pattern, escape) abort
   " return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -r --line-number --exclude-dir=.{git,svn,hg} ' .
   return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -H -I -r -n '.options.show_line_numbers.' '.options.exclude_dirs.' '.
         \ g:esearch#adapter#grep#options . ' -- ' .
-        \ a:escape(a:pattern) . ' ' . joined_paths
+        \ a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
 endfu
 
 fu! esearch#adapter#grep#requires_pty() abort
