@@ -884,7 +884,7 @@ fu! s:filetype(...) abort dict
   if empty(ctx.filetype)
     let opts = get(a:000)
 
-    if get(opts, 'slow', 1)
+    if get(opts, 'fast', 0)
       let ctx.filetype = esearch#ftdetect#complete(ctx.filename)
     else
       let ctx.filetype = esearch#ftdetect#fast(ctx.filename)
@@ -903,7 +903,7 @@ fu! s:unescaped_filename() abort dict
   if s:Filepath.is_absolute(ctx.filename)
     let filename = ctx.filename
   else
-    let filename = self.cwd . '/' . ctx.filename
+    let filename = s:Filepath.join(self.cwd, ctx.filename)
   endif
 
   return filename

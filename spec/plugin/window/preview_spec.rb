@@ -87,6 +87,33 @@ describe 'esearch#preview' do
     end
 
     describe 'opening' do
+      describe 'window location options reset' do
+        context 'when default close_on event are overrided' do
+          before do
+            editor.command! 'call esearch#out#win#map("e", {es-> es.preview({"close_on": []})})'
+          end
+          include_context 'start search'
+
+          # NOTE ae2cf10d. Prevent local variables inheritance while updating the
+          # preview window.
+          # Is caused due to reusing the window to prevent blinks when opening
+          # on cursor movement. For some reason window-local options are
+          # propagated to buffers.
+          it 'resets buf 1 option after previewing bufs in order 1 -> 2 -> 1' do
+            ctx1.locate!
+            editor.send_keys 'e'
+            ctx2.locate!
+            editor.send_keys 'e'
+            ctx1.locate!
+
+            expect { editor.send_keys :enter }
+              .to start_editing(ctx1.absolute_path)
+              .and change { window_highlights }
+              .to all eq(default_highlight)
+          end
+        end
+      end
+
       describe 'regular open' do
         include_context 'start search'
 

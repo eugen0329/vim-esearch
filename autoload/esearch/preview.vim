@@ -5,21 +5,20 @@ let s:List     = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-let s:DEFAULT_CLOSE_ON = [
+let g:esearch#preview#close_on = [
       \ 'QuitPre',
       \ 'BufEnter',
       \ 'BufWinEnter',
-      \ 'WinLeave',
       \ ]
-let s:DEFAULT_RESET_ON = 'BufWinLeave,BufLeave'
+let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 " The constant is used to ignore events used by :edit and :view commands to
 " reduce the execution of unwanted autocommands like updating lightline,
 " powerline etc.
 " From docs: BufDelte - ...also used just before a buffer in the buffer list is
 " renamed.
-let s:SILENT_OPEN_EVENTIGNORE = 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
+let g:esearch#preview#silent_open_eventignore =
+      \ 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
 
-let g:esearch#preview#_skip_reset = s:false
 let g:esearch#preview#buffers     = {}
 let g:esearch#preview#win         = s:null
 let g:esearch#preview#last        = s:null
@@ -37,7 +36,7 @@ fu! esearch#preview#open(filename, line, ...) abort
         \ 'alignment': get(opts, 'align',  'cursor'),
         \ })
 
-  let close_on  = copy(s:DEFAULT_CLOSE_ON)
+  let close_on  = copy(g:esearch#preview#close_on)
   let close_on += get(opts, 'close_on',  ['CursorMoved', 'CursorMovedI', 'InsertEnter'])
   let close_on  = uniq(copy(close_on))
 
@@ -70,10 +69,6 @@ fu! esearch#preview#is_open() abort
 endfu
 
 fu! esearch#preview#reset() abort
-  if g:esearch#preview#_skip_reset
-    return
-  endif
-
   " If #close() is used on every listed event, it can cause a bug where previewed
   " buffer loose it's content on open, so this method is defined to handle this
   if esearch#preview#is_open()
@@ -209,7 +204,7 @@ fu! s:RegularBuffer.fetch_or_create(filename, cache) abort dict
 endfu
 
 fu! s:RegularBuffer.view() abort dict
-  let eventignore = esearch#let#restorable({'&eventignore': s:SILENT_OPEN_EVENTIGNORE})
+  let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})
   try
     exe 'keepj view ' . fnameescape(self.filename)
   finally
@@ -277,7 +272,7 @@ fu! s:RegularBuffer.edit() abort dict
   " also preload the highlights and other stuff
 
   let s:swapname = ''
-  let eventignore = esearch#let#restorable({'&eventignore': s:SILENT_OPEN_EVENTIGNORE})
+  let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})
   try
     augroup esearch_preview_swap_probe
       au!
@@ -305,7 +300,7 @@ fu! s:RegularBuffer.edit() abort dict
   augroup esearch_prevew_make_regular
     au!
     au BufWinEnter,BufEnter <buffer> ++once call esearch#preview#reset()
-          \ | au! esearch_prevew_make_regular *
+          " \ | au! esearch_prevew_make_regular *
   augroup END
 
   return s:true
@@ -396,7 +391,7 @@ fu! s:create_or_update_floating_window(buffer, location, shape, close_on) abort
   endif
 endfu
 
-let s:FloatingWindow = {'guard': s:null, 'id': s:null, 'emphasis': s:null}
+let s:FloatingWindow = {'guard': s:null, 'id': s:null, 'emphasis': s:null, 'variables': s:null}
 
 fu! s:FloatingWindow.new(buffer, location, shape, close_on) abort dict
   let instance = copy(self)
@@ -410,6 +405,7 @@ fu! s:FloatingWindow.new(buffer, location, shape, close_on) abort dict
 endfu
 
 fu! s:FloatingWindow.let(variables) abort dict
+  let self.variables = a:variables
   let self.guard = esearch#win#let_restorable(self.id, a:variables)
 endfu
 
@@ -511,7 +507,7 @@ fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
   augroup esearch_preview_autoclose
     au!
     exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
-    exe 'au ' . s:DEFAULT_RESET_ON . ' * ++once call esearch#preview#reset()'
+    exe 'au ' . g:esearch#preview#reset_on . ' * ++once call esearch#preview#reset()'
 
     " We cannot close the preview when entering cmdwin, so the only option is to
     " reinitialize the events.
@@ -531,7 +527,11 @@ fu! s:FloatingWindow.update(buffer, location, shape, close_on) abort dict
   let self.shape    = a:shape
   let self.close_on = a:close_on
 
+  " NOTE ae2cf10d. Prevent local variables inheritance while updating the
+  " preview window
+  call self.guard.restore()
   call nvim_win_set_buf(self.id, a:buffer.id)
+  let self.guard = esearch#win#let_restorable(self.id, self.variables)
 
   " Emphasis must be removed as it doesn't correspond to a:location anymore
   call self.clear_emphasis()
