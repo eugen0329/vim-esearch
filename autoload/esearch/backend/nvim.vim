@@ -44,15 +44,14 @@ fu! esearch#backend#nvim#init(cwd, adapter, cmd, pty) abort
 endfu
 
 fu! esearch#backend#nvim#run(request) abort
-  let orignal_cwd = getcwd()
-  exe 'lcd ' . a:request.cwd
+  let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let job_id = jobstart(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
     let a:request.job_id = job_id
     call jobclose(job_id, 'stdin')
     let s:jobs[job_id] = { 'data': [], 'request': a:request }
   finally
-    exe 'lcd ' . orignal_cwd
+    call original_cwd.restore()
   endtry
 endfu
 

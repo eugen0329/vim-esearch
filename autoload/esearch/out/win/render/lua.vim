@@ -21,8 +21,7 @@ endif
 
 if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-    let original_cwd = getcwd()
-    exe 'lcd ' . a:esearch.request.cwd
+    let original_cwd = esearch#util#lcd(a:esearch.cwd)
     try
       let [files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name] =
             \ luaeval('esearch_out_win_render_nvim(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6])',
@@ -32,7 +31,7 @@ if g:esearch#has#nvim_lua
             \ a:esearch.files_count,
             \ a:esearch.highlights_enabled])
     finally
-      exe 'lcd ' . original_cwd
+      call original_cwd.restore()
     endtry
 
     let a:esearch.files_count = files_count
@@ -58,15 +57,14 @@ if g:esearch#has#nvim_lua
   endfu
 else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-    let original_cwd = getcwd()
-    exe 'lcd ' . a:esearch.request.cwd
+    let original_cwd = esearch#util#lcd(a:esearch.cwd)
     try
       let a:esearch['files_count'] = luaeval('esearch_out_win_render_vim(_A[0], _A[1], _A[2], _A[3], _A[4])',
             \ [a:data[a:from : a:to],
             \ get(b:esearch.paths, 0, ''),
             \ a:esearch])
     finally
-      exe 'lcd ' . original_cwd
+      call original_cwd.restore()
     endtry
   endfu
 endif

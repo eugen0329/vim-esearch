@@ -13,8 +13,7 @@ fu! esearch#backend#system#init(cwd, adapter, cmd, pty) abort
 endfu
 
 fu! esearch#backend#system#run(request) abort
-  let original_cwd = getcwd()
-  exe 'lcd ' . a:request.cwd
+  let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let a:request.data = split(system(a:request.command), "\n")
     let a:request.status = v:shell_error
@@ -25,7 +24,7 @@ fu! esearch#backend#system#run(request) abort
       redraw!
     endif
   finally
-    exe 'lcd ' . original_cwd
+    call original_cwd.restore()
   endtry
 endfu
 

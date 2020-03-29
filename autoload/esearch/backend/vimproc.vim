@@ -47,8 +47,7 @@ fu! esearch#backend#vimproc#init(cwd, adapter, cmd, pty) abort
 endfu
 
 fu! esearch#backend#vimproc#run(request) abort
-  let original_cwd = getcwd()
-  exe 'lcd ' . a:request.cwd
+  let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let pipe = vimproc#popen3(
           \ vimproc#util#iconv(a:request.command, &encoding, 'char'), a:request.pty)
@@ -63,7 +62,7 @@ fu! esearch#backend#vimproc#run(request) abort
       exe 'au CursorHold  * call s:_on_cursor_hold('. a:request.internal_id.')'
     aug END
   finally
-    exe 'lcd ' . original_cwd
+    call original_cwd.restore()
   endtry
 endfu
 

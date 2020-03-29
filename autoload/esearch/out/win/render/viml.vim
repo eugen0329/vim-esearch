@@ -1,8 +1,7 @@
 let s:linenr_format = ' %3d %s'
 
 fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
-  let original_cwd = getcwd()
-  exe 'lcd ' . a:esearch.request.cwd
+  let original_cwd = esearch#util#lcd(a:esearch.cwd)
   try
     let parsed = a:esearch.parse(a:data, a:from, a:to)
     let line = line('$') + 1
@@ -64,7 +63,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       let i    += 1
     endwhile
   finally
-    exe 'lcd ' . original_cwd
+    call original_cwd.restore()
   endtry
 
   call esearch#util#append_lines(lines)
