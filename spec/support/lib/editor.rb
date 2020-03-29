@@ -216,7 +216,7 @@ class Editor
   def buffers
     ls
       .split("\n")
-      .map { |line| line.scan(/\A\s+([\w\d%#\s]*?)\s+\+?\s*"(.*)"/)[0][1] }
+      .map { |line| line.scan(/\A\s+([\w\d%#=\s]*?)\s+\+?\s*"(.*)"/)[0][1] }
       .map { |path| Pathname(path).cleanpath.expand_path.to_s }
   end
 

@@ -7,6 +7,7 @@ describe 'esearch#preview' do
   include Helpers::Preview
   include Helpers::Open
   include Helpers::ReportEditorStateOnError
+  include Helpers::Undotree
   include VimlValue::SerializationHelpers
   Context ||= Helpers::Modifiable::Context
 
@@ -211,22 +212,33 @@ describe 'esearch#preview' do
           test_directory.persist!
         end
 
-        include_context 'enable swaps'
-        include_context 'start search'
-        include_context "open preview and verify it's correctness"
-        include_context 'verify test files content is not modified after a testcase'
+        context 'opening' do
+          include_context 'enable swaps'
+          include_context 'start search'
+          # See :h ls
+          let(:active_and_readonly_indicator) { 'a= ' }
 
-        it 'previews in a scratch buffer' do
-          expect(editor.ls).to include('[Scratch]')
+          it 'previews in a readonly buffer' do
+            expect { editor.send_keys 'p' }
+              .to change { editor.ls }
+              .to include(active_and_readonly_indicator)
+          end
         end
 
-        it_behaves_like 'it closes the preview stying in the search window', keys: ['T', CONFIRM_EDIT_IN_SWAP_PROMPT]
-        it_behaves_like 'it closes the preview stying in the search window', keys: ['S', CONFIRM_EDIT_IN_SWAP_PROMPT]
-        it_behaves_like 'it closes the preview stying in the search window', keys: ['O', CONFIRM_EDIT_IN_SWAP_PROMPT]
+        context 'closing' do
+          include_context 'enable swaps'
+          include_context 'start search'
+          include_context "open preview and verify it's correctness"
+          include_context 'verify test files content is not modified after a testcase'
 
-        it_behaves_like 'it closes the preview and enters into the buffer', keys: ['t', CONFIRM_EDIT_IN_SWAP_PROMPT]
-        it_behaves_like 'it closes the preview and enters into the buffer', keys: ['s', CONFIRM_EDIT_IN_SWAP_PROMPT]
-        it_behaves_like 'it closes the preview and enters into the buffer', keys: ['o', CONFIRM_EDIT_IN_SWAP_PROMPT]
+          it_behaves_like 'it closes the preview stying in the search window', keys: ['T', CONFIRM_EDIT_IN_SWAP_PROMPT]
+          it_behaves_like 'it closes the preview stying in the search window', keys: ['S', CONFIRM_EDIT_IN_SWAP_PROMPT]
+          it_behaves_like 'it closes the preview stying in the search window', keys: ['O', CONFIRM_EDIT_IN_SWAP_PROMPT]
+
+          it_behaves_like 'it closes the preview and enters into the buffer', keys: ['t', CONFIRM_EDIT_IN_SWAP_PROMPT]
+          it_behaves_like 'it closes the preview and enters into the buffer', keys: ['s', CONFIRM_EDIT_IN_SWAP_PROMPT]
+          it_behaves_like 'it closes the preview and enters into the buffer', keys: ['o', CONFIRM_EDIT_IN_SWAP_PROMPT]
+        end
       end
     end
 
@@ -392,7 +404,9 @@ describe 'esearch#preview' do
         include_context 'verify test files content is not modified after a testcase'
 
         context 'when a file is not opened' do
-          context 'when editing' do
+          context 'when confirm editing' do
+            # Verifying undotree_nodes is required to test editing from a non-blank
+            # buffer that cause the undo corruption.
             context 'when the preview is opened' do
               it 'enters the buffer after confirmation' do
                 2.times do
@@ -401,6 +415,7 @@ describe 'esearch#preview' do
                     .to not_change { windows.count }
                     .and start_editing(ctx1.absolute_path)
                   expect(editor).to have_popup_highlight('Normal:NormalFloat')
+                  expect(undotree_nodes).to be_blank
                   editor.quit!
                 end
               end
@@ -412,6 +427,8 @@ describe 'esearch#preview' do
                   expect { editor.raw_send_keys 'P', CONFIRM_EDIT_IN_SWAP_PROMPT }
                     .to open_window(ctx1.absolute_path)
                   expect(editor).to have_popup_highlight('Normal:NormalFloat')
+                  expect(editor.changenr).to eq(0)
+                  expect(undotree_nodes).to be_blank
                   editor.quit!
                 end
               end

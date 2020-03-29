@@ -1,5 +1,5 @@
 fu! esearch#init(...) abort
-  silent doau User esearch#init_pre
+  silent doau User eseach_init_pre
 
   if s:init_lazy_global_config() != 0
     return 1

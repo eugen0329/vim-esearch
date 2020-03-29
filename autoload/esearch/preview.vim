@@ -2,29 +2,28 @@ let s:Buffer   = vital#esearch#import('Vim.Buffer')
 let s:Message  = vital#esearch#import('Vim.Message')
 let s:Prelude  = vital#esearch#import('Prelude')
 let s:List     = vital#esearch#import('Data.List')
-
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-let s:default_close_on = [
+let s:DEFAULT_CLOSE_ON = [
       \ 'QuitPre',
       \ 'BufEnter',
       \ 'BufWinEnter',
       \ 'WinLeave',
       \ ]
-      " \ 'BufRead',
-      " \ 'BufLeave',
-      " \ 'BufWinLeave',
-let g:esearch#preview#_reset_on = 'BufWinLeave,BufLeave'
-let g:esearch#preview#_skip_reset = s:false
-let g:esearch#preview#buffers = {}
-let g:esearch#preview#win = s:null
-let g:esearch#preview#last = s:null
-let g:esearch#preview#cache = esearch#cache#lru#new(20)
-let g:esearch#preview#scratches = esearch#cache#lru#new(5)
+let s:DEFAULT_RESET_ON = 'BufWinLeave,BufLeave'
+" The constant is used to ignore events used by :edit and :view commands to
+" reduce the execution of unwanted autocommands like updating lightline,
+" powerline etc.
+" From docs: BufDelte - ...also used just before a buffer in the buffer list is
+" renamed.
+let s:SILENT_OPEN_EVENTIGNORE = 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
 
-" TODO
-" - separate strategies when it's clear how vim's floats are implemented
+let g:esearch#preview#_skip_reset = s:false
+let g:esearch#preview#buffers     = {}
+let g:esearch#preview#win         = s:null
+let g:esearch#preview#last        = s:null
+let g:esearch#preview#cache       = esearch#cache#lru#new(20)
 
 fu! esearch#preview#open(filename, line, ...) abort
   if !filereadable(a:filename)
@@ -32,14 +31,13 @@ fu! esearch#preview#open(filename, line, ...) abort
   endif
 
   let opts = get(a:000, 0, {})
-  let max_edit_size = get(opts, 'max_edit_size', 100 * 1024) " size in bytes
   let shape = s:Shape.new({
         \ 'width':     get(opts, 'width',  s:null),
         \ 'height':    get(opts, 'height', s:null),
         \ 'alignment': get(opts, 'align',  'cursor'),
         \ })
 
-  let close_on  = copy(s:default_close_on)
+  let close_on  = copy(s:DEFAULT_CLOSE_ON)
   let close_on += get(opts, 'close_on',  ['CursorMoved', 'CursorMovedI', 'InsertEnter'])
   let close_on  = uniq(copy(close_on))
 
@@ -53,14 +51,11 @@ fu! esearch#preview#open(filename, line, ...) abort
   endif
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
-  let strategy = get(opts, 'strategy', s:null)
-  if empty(strategy)
-    let strategy = (getfsize(a:filename) > max_edit_size ? 'scratch' : 'regular')
-  endif
   let enter = get(opts, 'enter', s:false)
 
   let g:esearch#preview#last = s:Preview
         \.new(location, shape, win_vars, opts, close_on, enter)
+
   if enter
     return g:esearch#preview#last.open_and_enter()
   else
@@ -118,15 +113,11 @@ fu! s:Preview.open() abort dict
 
   try
     let g:esearch#preview#win = s:create_or_update_floating_window(
-          \ 'regular', self.buffer, self.location, self.shape, self.close_on)
+          \ self.buffer, self.location, self.shape, self.close_on)
     let self.win = g:esearch#preview#win
     call self.win.enter()
     if !self.buffer.edit()
-      let self.buffer = s:ScratchBuffer.fetch_or_create(
-            \ self.location.filename, g:esearch#preview#scratches)
-      call self.win.update(
-            \ self.buffer, self.location, self.shape, self.close_on)
-      call self.buffer.edit()
+      call self.buffer.view()
     endif
 
     " it's better to let variables after editing the buffer to prevent
@@ -136,10 +127,10 @@ fu! s:Preview.open() abort dict
     call self.win.set_emphasis(
           \ esearch#emphasize#sign(self.win.id, self.location.line, '->'))
     call self.win.reshape()
-    call self.win.init_stay_events()
+    call self.win.init_leaved_autoclose_events()
   catch
     call esearch#preview#close()
-    echoerr v:exception
+    call s:Message.echomsg('ErrorMsg', v:exception)
     return s:false
   finally
     noau keepj call current_win.restore()
@@ -150,8 +141,8 @@ endfu
 
 fu! s:Preview.open_and_enter() abort dict
   let current_win = esearch#win#stay()
-  let self.buffer = s:RegularBuffer.fetch_or_create(
-        \ self.location.filename, g:esearch#preview#buffers)
+  let reuse_existing = s:false
+  let self.buffer = s:RegularBuffer.new(self.location.filename, reuse_existing)
 
   try
     call esearch#preview#close()
@@ -172,37 +163,26 @@ fu! s:Preview.open_and_enter() abort dict
     call self.win.set_emphasis(
           \ esearch#emphasize#sign(self.win.id, self.location.line, '->'))
     call self.win.reshape()
-    call self.win.init_enter_events()
+    call self.win.init_entered_autoclose_events()
   catch
     call esearch#preview#close()
-    echoerr v:exception
+    call s:Message.echomsg('ErrorMsg', v:exception)
     return s:false
   endtry
 
   return s:true
 endfu
 
-fu! s:make_preview_buffer_regular() abort
-  let current_filename = expand('%:p')
-  if !has_key(g:esearch#preview#buffers, current_filename)
-    " execute once
-    return
-  endif
-
-  call remove(g:esearch#preview#buffers, current_filename)
-  call esearch#preview#reset()
-  au! esearch_preview *
-endfu
-
 """""""""""""""""""""""""""""""""""""""
 
 let s:RegularBuffer = {'kind': 'regular', 'swapname': ''}
 
-fu! s:RegularBuffer.new(filename) abort dict
+fu! s:RegularBuffer.new(filename, ...) abort dict
   let instance = copy(self)
   let instance.filename = a:filename
 
-  if bufexists(a:filename)
+  let reuse_existing = get(a:000, 0, s:true)
+  if reuse_existing && bufexists(a:filename)
     let instance.id = bufnr('^'.a:filename.'$')
     let instance.bufwinid = bufwinid(instance.id)
   else
@@ -228,20 +208,18 @@ fu! s:RegularBuffer.fetch_or_create(filename, cache) abort dict
   return instance
 endfu
 
+fu! s:RegularBuffer.view() abort dict
+  let eventignore = esearch#let#restorable({'&eventignore': s:SILENT_OPEN_EVENTIGNORE})
+  try
+    exe 'keepj view ' . fnameescape(self.filename)
+  finally
+    call eventignore.restore()
+  endtry
+endfu
+
 fu! s:RegularBuffer.edit_allowing_swap_prompt() abort dict
   if exists('#esearch_preview_autoclose')
     au! esearch_preview_autoclose
-  endif
-
-  let win_ids = win_findbuf(self.id)
-  " If the buffer has an assigned filename that is equal to the name we are
-  " going to preview AND if it's assigned to a window, then we must do nothing
-  if expand('%:p') ==# self.filename
-    if empty(win_ids) || win_ids ==# [g:esearch#preview#win.id]
-      " noop
-    else
-      return s:true
-    endif
   endif
 
   try
@@ -249,12 +227,18 @@ fu! s:RegularBuffer.edit_allowing_swap_prompt() abort dict
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap
   endtry
-
   " When (Q)uit or (A)bort are pressed - vim unloads the current buffer as it
   " was with an existing swap
   if empty(bufname('%'))
+    exe self.id . 'bwipeout'
     return s:false
   endif
+
+  let current_buffer_id = bufnr('%')
+  if current_buffer_id != self.id && bufexists(self.id)
+    exe self.id . 'bwipeout'
+  endif
+  let self.id = current_buffer_id
 
   return s:true
 endfu
@@ -292,11 +276,8 @@ fu! s:RegularBuffer.edit() abort dict
   " Otherwise - use :edit to verify that there's no swapfiles appeared and
   " also preload the highlights and other stuff
 
-  " From docs:
-  " BufDelte - ...also used just before a buffer in the buffer list is renamed.
-  let eventignore = esearch#let#restorable(
-        \ {'&eventignore': 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'})
   let s:swapname = ''
+  let eventignore = esearch#let#restorable({'&eventignore': s:SILENT_OPEN_EVENTIGNORE})
   try
     augroup esearch_preview_swap_probe
       au!
@@ -321,9 +302,10 @@ fu! s:RegularBuffer.edit() abort dict
   endif
   let self.id = current_buffer_id
 
-  augroup esearch_preview
+  augroup esearch_prevew_make_regular
     au!
-    au BufWinEnter,BufEnter <buffer> ++once call s:make_preview_buffer_regular()
+    au BufWinEnter,BufEnter <buffer> ++once call esearch#preview#reset()
+          \ | au! esearch_prevew_make_regular *
   augroup END
 
   return s:true
@@ -335,6 +317,10 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
+let g:esearch#preview#scratches = esearch#cache#lru#new(5)
+
+" Isn't used now. Consider to leverage it for preventing buffer bloating when
+" previewing on timeout.
 let s:ScratchBuffer = {'kind': 'scratch', 'filetype': s:null, 'lines': []}
 
 fu! s:ScratchBuffer.new(filename) abort dict
@@ -398,7 +384,7 @@ endfu
 """""""""""""""""""""""""""""""""""""""
 
 " Maintain the window as a singleton.
-fu! s:create_or_update_floating_window(kind, buffer, location, shape, close_on) abort
+fu! s:create_or_update_floating_window(buffer, location, shape, close_on) abort
   if esearch#preview#is_open()
     return g:esearch#preview#win
           \.update(a:buffer, a:location, a:shape, a:close_on)
@@ -502,7 +488,7 @@ fu! s:FloatingWindow.reshape() abort dict
   endtry
 endfu
 
-fu! s:FloatingWindow.init_enter_events() abort dict
+fu! s:FloatingWindow.init_entered_autoclose_events() abort dict
   augroup esearch_preview_autoclose
     au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
     au WinEnter * ++once au! esearch_preview_autoclose
@@ -519,17 +505,17 @@ fu! s:FloatingWindow.init_enter_events() abort dict
   augroup END
 endfu
 
-fu! s:FloatingWindow.init_stay_events() abort dict
+fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
   let autocommands = join(self.close_on, ',')
 
   augroup esearch_preview_autoclose
     au!
     exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
-    exe 'au ' . g:esearch#preview#_reset_on . ' * ++once call esearch#preview#reset()'
+    exe 'au ' . s:DEFAULT_RESET_ON . ' * ++once call esearch#preview#reset()'
 
     " We cannot close the preview when entering cmdwin, so the only option is to
     " reinitialize the events.
-    au CmdwinLeave * ++once call g:esearch#preview#win.init_stay_events()
+    au CmdwinLeave * ++once call g:esearch#preview#win.init_leaved_autoclose_events()
   augroup END
 endfu
 
@@ -596,12 +582,12 @@ fu! s:Shape.new(measures) abort dict
   let instance.editor_top = instance.tabline_height
   let instance.editor_bottom = &lines - instance.tabline_height - instance.statusline_height - 1
 
-  let max_height = min([19, &lines / 2])
+  let default_height = min([19, &lines / 2])
   if instance.alignment ==# 'cursor'
-    call extend(instance, {'width': 120, 'height': max_height})
+    call extend(instance, {'width': 120, 'height': default_height})
     let instance.relative = 0
   elseif s:List.has(['top', 'bottom'], instance.alignment)
-    call extend(instance, {'width': 1.0, 'height': max_height})
+    call extend(instance, {'width': 1.0, 'height': default_height})
     let instance.relative = 1
   elseif s:List.has(['left', 'right'], instance.alignment)
     call extend(instance, {'width': 0.5, 'height': 1.0})
@@ -659,7 +645,7 @@ fu! s:Shape.align_to_top() abort dict
 endfu
 
 fu! s:Shape.align_to_right() abort dict
-  let self.col    = self.relative_win_position[1] + winwidth(0) + 1
+  let self.col    = self.relative_win_position[1] + self.winwidth + 1
   let self.row    = self.top
   let self.anchor = 'NE'
 endfu
@@ -689,6 +675,7 @@ fu! s:Shape.align_to_cursor() abort dict
 endfu
 
 fu! s:Shape.clip_height(height_limit) abort dict
+  " Left and right aligned previews are stretched
   if s:List.has(['left', 'right'], self.alignment) | return | endif
 
   let self.height = min([

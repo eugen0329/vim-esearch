@@ -176,7 +176,7 @@ endif
 
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
-  silent doau User esearch#out#win#init_pre
+  silent doau User esearch_win_init_pre
 
   if has_key(b:, 'esearch')
     call s:cleanup()
@@ -299,7 +299,7 @@ fu! esearch#out#win#init(opts) abort
   augroup esearch_win_event
     silent doau User esearch_win_event
   augroup END
-  silent doau User esearch#out#win#init_post
+  silent doau User esearch_win_init_post
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -392,7 +392,7 @@ fu! s:cleanup() abort
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
         \ get(b:esearch, 'matches_highlight_id', -1))
-  silent doau User esearch#out#win#uninit_post
+  silent doau User esearch_win_uninit_post
 endfu
 
 " TODO refactoring
@@ -832,10 +832,14 @@ endfu
 fu! s:preview_enter(...) abort dict
   if !self.is_current() || self.is_blank() | return | endif
 
-  let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
   if esearch#preview#is_open()
+    " Reuse the opened preview options
+    let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
+    " Overwrite height and width as it could be zoomed
     let opts.width = g:esearch#preview#win.shape.width
     let opts.height = g:esearch#preview#win.shape.height
+  else
+    let opts = {}
   endif
   let opts = extend(copy(opts), copy(get(a:000, 0, {})))
   let opts.enter = s:true
@@ -1054,7 +1058,7 @@ fu! esearch#out#win#finish(bufnr) abort
     return 1
   endif
 
-  doau User esearch#out#win#finish
+  silent doau User esearch_win_finish_pre
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   call esearch#out#win#update(a:bufnr, 1)

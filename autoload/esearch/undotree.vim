@@ -87,7 +87,7 @@ fu! s:locate_synchronized(command) abort dict
   return -1
 endfu
 
-if g:esearch#env isnot 0
+if g:esearch#env isnot# 0
   command! T call s:debug()
   fu! s:debug() abort
     let tree = deepcopy(b:esearch.undotree)
