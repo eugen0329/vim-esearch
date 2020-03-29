@@ -39,7 +39,8 @@ class API::ESearch::Window
   def has_filename_highlight?(relative_path)
     return true if Debug.neovim?
 
-    editor.syntax_aliases_at([editor.escape_regexp(relative_path)]) ==
+    filename = editor.escape_regexp(editor.escape_filename(relative_path))
+    editor.syntax_aliases_at([filename]) ==
       [%w[esearchFilename Directory]]
   end
 
@@ -125,8 +126,14 @@ class API::ESearch::Window
 
   def find_entry(relative_path, line_in_file)
     found = parser.entries.find do |entry|
-      Pathname(entry.relative_path).cleanpath == Pathname(relative_path).cleanpath &&
-        entry.line_in_file == line_in_file
+      entry_path = Pathname(entry.relative_path).cleanpath
+
+      # Both a valid. The only difference is that vim escapes only several
+      # characters in paths when they are leading like > and +
+      path_variations = [Pathname(editor.escape_filename('./' + relative_path)).cleanpath,
+                         Pathname(editor.escape_filename(relative_path)).cleanpath]
+
+      path_variations.include?(entry_path) && entry.line_in_file == line_in_file
     end
 
     found || MissingEntry.new(relative_path, line_in_file)
