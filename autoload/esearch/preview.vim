@@ -9,6 +9,7 @@ let g:esearch#preview#close_on = [
       \ 'QuitPre',
       \ 'BufEnter',
       \ 'BufWinEnter',
+      \ 'TabLeave',
       \ ]
 let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 " The constant is used to ignore events used by :edit and :view commands to
