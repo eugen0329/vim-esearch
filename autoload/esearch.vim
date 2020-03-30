@@ -16,7 +16,7 @@ fu! esearch#init(...) abort
   else
     let esearch.exp  = esearch#source#pick_exp(esearch.use, esearch)
     let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
-    let esearch.exp  = esearch#cmdline#read(esearch, adapter_opts)
+    let esearch      = esearch#cmdline#read(esearch, adapter_opts)
     let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
@@ -61,8 +61,13 @@ fu! s:new(configuration) abort
   if !has_key(configuration, 'cwd')
     let configuration.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
   endif
-  if !has_key(configuration, 'escaped_cwd')
-    let configuration.escaped_cwd = fnameescape(configuration.cwd)
+  if type(get(configuration, 'paths', 0)) ==# type('')
+    let [paths, metadata, error] = esearch#shell#split(configuration.paths)
+    if !empty(error)
+      echo " can't parse paths: " . error
+    else
+      let [configuration.paths, configuration.metadata] = [paths, metadata]
+    endif
   endif
 
   return configuration

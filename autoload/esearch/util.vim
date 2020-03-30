@@ -186,7 +186,11 @@ fu! esearch#util#without(key) dict abort
 endfu
 
 fu! esearch#util#slice(...) dict abort
-  return filter(deepcopy(self), 'index(a:000, v:key) >= 0')
+  return filter(copy(self), 'index(a:000, v:key) >= 0')
+endfu
+
+fu! esearch#util#_slice(dict, keys) abort
+  return filter(copy(a:dict), 'index(a:keys, v:key) >= 0')
 endfu
 
 fu! esearch#util#set_default(key, default) dict abort
@@ -487,10 +491,10 @@ if !exists('g:esearch#util#ellipsis')
   endif
 endif
 
-let g:esearch#util#mockable = {}
-fu! g:esearch#util#mockable.echo(string) abort
-  echo a:string
-endfu
+" let g:esearch#util#mockable = {}
+" fu! g:esearch#util#mockable.echo(string) abort
+"   echo a:string
+" endfu
 
 fu! esearch#util#parse_help_options(command) abort
   let options = {}
@@ -688,4 +692,12 @@ fu! s:DirectoryGuard.restore() abort dict
   if !empty(self.cwd)
     exe 'lcd ' . self.cwd
   endif
+endfu
+
+fu! esearch#util#slice_factory(keys) abort
+  let private_scope = {}
+  exe    " fu! l:private_scope.slice(dict) abort\n"
+     \ . "   return esearch#util#_slice(a:dict,".string(a:keys).")\n"
+     \ . " endfu"
+  return private_scope.slice
 endfu

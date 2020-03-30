@@ -9,7 +9,6 @@ fu! esearch#opts#new(opts) abort
     elseif g:esearch#has#vimproc()
       let opts.backend = 'vimproc'
     else
-      " call esearch#help#backend_dependencies()
       let opts.backend = 'system'
     endif
   endif
