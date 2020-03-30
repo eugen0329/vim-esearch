@@ -8,11 +8,11 @@ endfu
 
 if g:esearch#has#nvim_lua
   fu! esearch#adapter#parse#lua#parse(data, from, to) abort dict
-    return luaeval('parse_lines(_A[1], _A[2])', [a:data[a:from : a:to], self.lua_cwd_prefix])
+    return luaeval('parse_lines(_A[1])', [a:data[a:from : a:to]])
   endfu
 else
   fu! esearch#adapter#parse#lua#parse(data, from, to) abort dict
-    return luaeval('parse_lines(_A[0], _A[1])', [a:data[a:from : a:to], self.lua_cwd_prefix])
+    return luaeval('parse_lines(_A[0])', [a:data[a:from : a:to]])
   endfu
 endif
 
@@ -41,7 +41,10 @@ function parse_line(line)
       ['\"'] = '\"',
       ['\033'] = string.char(27)
     }
-    return filename:gsub('\\(.)', controls), line, text
+    filename = filename:gsub('\\(.)', controls)
+    if filereadable(filename) then
+      return filename, line, text
+    end
   end
 
   while true do
@@ -104,7 +107,7 @@ function fnameescape(path)
   return vim.api.nvim_call_function('fnameescape', {path})
 end
 
-function parse_lines(data, cwd_prefix)
+function parse_lines(data)
   local parsed = {}
   filereadable_cache = {}
 
@@ -119,7 +122,7 @@ function parse_lines(data, cwd_prefix)
 
       if filename ~= nil then
         parsed[#parsed + 1] = {
-          ['filename'] = string.gsub(filename, cwd_prefix, ''),
+          ['filename'] = filename,
           ['lnum']     = lnum,
           ['text']     = text:gsub("[\r\n]", '')
         }
@@ -155,7 +158,7 @@ function fnameescape(path)
   return vim.funcref('fnameescape')(path)
 end
 
-function parse_lines(data, cwd_prefix)
+function parse_lines(data)
   local parsed = vim.list()
   filereadable_cache = {}
 
@@ -171,7 +174,7 @@ function parse_lines(data, cwd_prefix)
 
       if filename ~= nil  then
         parsed:add(vim.dict({
-          ['filename'] = string.gsub(filename, cwd_prefix, ''),
+          ['filename'] = filename,
           ['lnum']     = lnum,
           ['text']     = text:gsub("[\r\n]", '')
         }))

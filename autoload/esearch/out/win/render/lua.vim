@@ -21,14 +21,18 @@ endif
 
 if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-    let [files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name] =
-          \ luaeval('esearch_out_win_render_nvim(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6], _A[7])',
-          \ [a:data[a:from : a:to],
-          \ get(a:esearch.paths, 0, ''),
-          \ a:esearch.lua_cwd_prefix,
-          \ a:esearch.contexts[-1],
-          \ a:esearch.files_count,
-          \ a:esearch.highlights_enabled])
+    let original_cwd = esearch#util#lcd(a:esearch.cwd)
+    try
+      let [files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name] =
+            \ luaeval('esearch_out_win_render_nvim(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6])',
+            \ [a:data[a:from : a:to],
+            \ get(a:esearch.paths, 0, ''),
+            \ a:esearch.contexts[-1],
+            \ a:esearch.files_count,
+            \ a:esearch.highlights_enabled])
+    finally
+      call original_cwd.restore()
+    endtry
 
     let a:esearch.files_count = files_count
     call extend(a:esearch.contexts, contexts[1:])
@@ -53,11 +57,15 @@ if g:esearch#has#nvim_lua
   endfu
 else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-  let a:esearch['files_count'] = luaeval('esearch_out_win_render_vim(_A[0], _A[1], _A[2], _A[3], _A[4], _A[5])',
-          \ [a:data[a:from : a:to],
-          \ get(b:esearch.paths, 0, ''),
-          \ a:esearch.lua_cwd_prefix,
-          \ a:esearch])
+    let original_cwd = esearch#util#lcd(a:esearch.cwd)
+    try
+      let a:esearch['files_count'] = luaeval('esearch_out_win_render_vim(_A[0], _A[1], _A[2], _A[3], _A[4])',
+            \ [a:data[a:from : a:to],
+            \ get(b:esearch.paths, 0, ''),
+            \ a:esearch])
+    finally
+      call original_cwd.restore()
+    endtry
   endfu
 endif
 
@@ -65,8 +73,8 @@ if g:esearch#has#nvim_lua
 lua << EOF
 filereadable_cache = {}
 
-function esearch_out_win_render_nvim(data, path, cwd_prefix, last_context, files_count, highlights_enabled)
-  local parsed = parse_lines(data, cwd_prefix)
+function esearch_out_win_render_nvim(data, path, last_context, files_count, highlights_enabled)
+  local parsed = parse_lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
   local ctx_ids_map = {}
@@ -182,8 +190,8 @@ EOF
 else
 
 lua << EOF
-function esearch_out_win_render_vim(data, path, cwd_prefix, esearch)
-  local parsed           = parse_lines(data, cwd_prefix)
+function esearch_out_win_render_vim(data, path, esearch)
+  local parsed           = parse_lines(data)
   local contexts         = esearch['contexts']
   local line_numbers_map = esearch['line_numbers_map']
   local ctx_ids_map      = esearch['ctx_ids_map']

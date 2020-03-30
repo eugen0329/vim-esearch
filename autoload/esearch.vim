@@ -37,9 +37,10 @@ fu! esearch#init(...) abort
   let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
   let esearch = extend(esearch, {
         \ 'title': s:title(esearch, pattern),
-        \ 'request': esearch#backend#{esearch.backend}#init(esearch.adapter, shell_cmd, requires_pty),
         \}, 'force')
 
+  let esearch.request = esearch#backend#{esearch.backend}#init(
+        \ esearch.cwd, esearch.adapter, shell_cmd, requires_pty)
   let esearch.parse = esearch#adapter#parse#funcref()
 
   call esearch#out#{esearch.out}#init(esearch)
@@ -62,17 +63,6 @@ fu! s:new(configuration) abort
   endif
   if !has_key(configuration, 'escaped_cwd')
     let configuration.escaped_cwd = fnameescape(configuration.cwd)
-  endif
-
-  if g:esearch#has#lua
-    let configuration.lua_cwd_prefix =
-          \ luaeval("'^' .. _A:gsub('([^%w])', '%%%1') .. '%/'",
-          \ configuration.cwd)
-  endif
-  if g:esearch#has#windows
-    let configuration.cwd_prefix = substitute(configuration.cwd, '\\', '\\\\', 'g').'\\'
-  else
-    let configuration.cwd_prefix = configuration.cwd . '/'
   endif
 
   return configuration

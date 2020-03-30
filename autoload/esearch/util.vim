@@ -660,3 +660,26 @@ fu! esearch#util#silence_swap_prompt() abort
   " F - don't echo that a:filename is edited
   return esearch#let#restorable({'&shortmess': 'AF'})
 endfu
+
+fu! esearch#util#lcd(path) abort
+  return s:DirectoryGuard.store(a:path)
+endfu
+
+let s:DirectoryGuard = {'cwd': ''}
+
+fu! s:DirectoryGuard.store(path) abort dict
+  let instance = copy(self)
+
+  if !empty(a:path)
+    let instance.cwd = getcwd()
+    exe 'lcd ' . a:path
+  endif
+
+  return instance
+endfu
+
+fu! s:DirectoryGuard.restore() abort dict
+  if !empty(self.cwd)
+    exe 'lcd ' . self.cwd
+  endif
+endfu

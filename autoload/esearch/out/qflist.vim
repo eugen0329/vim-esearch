@@ -28,7 +28,6 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'data':                [],
         \})
 
-
   call extend(g:esearch_qf.request, {
         \ 'cursor':     0,
         \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
@@ -85,15 +84,20 @@ fu! esearch#out#qflist#update() abort
       let request.cursor += esearch.batch_size
     endif
 
-    let parsed = esearch.parse(data, from, to)
-
-    if esearch#util#qftype(bufnr('%')) ==# 'qf'
-      let curpos = getcurpos()[1:]
-      noau call setqflist(parsed, 'a')
-      call cursor(curpos)
-    else
-      noau call setqflist(parsed, 'a')
-    endif
+    let original_cwd = esearch#util#lcd(esearch.cwd)
+    try
+      let parsed = esearch.parse(data, from, to)
+      let g:parsed = parsed
+      if esearch#util#qftype(bufnr('%')) ==# 'qf'
+        let curpos = getcurpos()[1:]
+        noau call setqflist(parsed, 'a')
+        call cursor(curpos)
+      else
+        noau call setqflist(parsed, 'a')
+      endif
+    finally
+      call original_cwd.restore()
+    endtry
   endif
 endfu
 

@@ -20,7 +20,6 @@ describe 'esearch#backend', :backend do
       let(:column) { 3..4 }
       let(:expected_file) { file("_\n__#{search_string}_", path) }
       let(:test_directory) { directory([expected_file]).persist! }
-      let(:escaped_path) { editor.escape_filename(path) }
 
       before do
         esearch.configuration.submit!
@@ -38,10 +37,10 @@ describe 'esearch#backend', :backend do
             .to  have_search_started
             .and have_search_finished
             .and have_not_reported_errors
-            .and have_search_highlight(escaped_path, line, column)
-            .and have_filename_highlight(escaped_path)
-            .and have_outputted_result_from_file_in_line(escaped_path, line)
-            .and have_outputted_result_with_right_position_inside_file(escaped_path, line, column.begin)
+            .and have_search_highlight(path, line, column)
+            .and have_filename_highlight(path)
+            .and have_outputted_result_from_file_in_line(path, line)
+            .and have_outputted_result_with_right_position_inside_file(path, line, column.begin)
         end
       end
     end
@@ -346,7 +345,6 @@ describe 'esearch#backend', :backend do
     before do
       editor.command <<~VIML
         let g:esearch_out_win_render_using_lua = 0
-        let g:esearch_out_win_parse_using_getqflist = 0
       VIML
     end
 
@@ -358,7 +356,6 @@ describe 'esearch#backend', :backend do
     before(:context) do
       editor.command <<~VIML
         let g:esearch_out_win_render_using_lua = 0
-        let g:esearch_out_win_parse_using_getqflist = 0
         let g:esearch#backend#vimproc#updatetime = 30
         let g:esearch#backend#vimproc#read_timeout = 30
         let g:esearch_win_update_using_timer = 0
@@ -399,19 +396,6 @@ describe 'esearch#backend', :backend do
         before do
           editor.command <<~VIML
             let g:esearch_out_win_render_using_lua = 0
-            let g:esearch_out_win_parse_using_getqflist = 0
-          VIML
-        end
-
-        include_context 'a backend', 'vim8'
-        include_context 'a backend 2', 'vim8'
-      end
-
-      context 'when parsing with #getqflist', parse: :getqflist do
-        before do
-          editor.command <<~VIML
-            let g:esearch_out_win_render_using_lua = 0
-            let g:esearch_out_win_parse_using_getqflist = 1
           VIML
         end
 

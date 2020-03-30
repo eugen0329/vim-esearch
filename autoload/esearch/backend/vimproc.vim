@@ -17,13 +17,14 @@ let s:incrementable_internal_id = 0
 
 " TODO decouple consuming of data from pipe and output updation processes
 
-fu! esearch#backend#vimproc#init(adapter, cmd, pty) abort
+fu! esearch#backend#vimproc#init(cwd, adapter, cmd, pty) abort
   let request = {
         \ 'internal_id': s:incrementable_internal_id,
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
         \ 'adapter': a:adapter,
         \ 'command': a:cmd,
+        \ 'cwd': a:cwd,
         \ 'data': [],
         \ 'errors': [],
         \ 'async': 1,
@@ -46,17 +47,23 @@ fu! esearch#backend#vimproc#init(adapter, cmd, pty) abort
 endfu
 
 fu! esearch#backend#vimproc#run(request) abort
-  let pipe = vimproc#popen3(
-        \ vimproc#util#iconv(a:request.command, &encoding, 'char'), a:request.pty)
-  call pipe.stdin.close()
+  let original_cwd = esearch#util#lcd(a:request.cwd)
+  try
+    let pipe = vimproc#popen3(
+          \ vimproc#util#iconv(a:request.command, &encoding, 'char'), a:request.pty)
+    call pipe.stdin.close()
 
-  let a:request.pipe = pipe
+    let a:request.pipe = pipe
 
-  exe 'aug ESearchVimproc'.a:request.internal_id
-    au!
-    exe 'au CursorMoved * call s:_on_cursor_moved('.a:request.internal_id.')'
-    exe 'au CursorHold  * call s:_on_cursor_hold('. a:request.internal_id.')'
-  aug END
+    " TODO should not be within the adapter
+    exe 'aug ESearchVimproc'.a:request.internal_id
+      au!
+      exe 'au CursorMoved * call s:_on_cursor_moved('.a:request.internal_id.')'
+      exe 'au CursorHold  * call s:_on_cursor_hold('. a:request.internal_id.')'
+    aug END
+  finally
+    call original_cwd.restore()
+  endtry
 endfu
 
 fu! esearch#backend#vimproc#escape_cmd(cmd) abort
@@ -167,7 +174,6 @@ fu! esearch#backend#vimproc#init_events() abort
   au BufUnload <buffer>
         \ call esearch#backend#vimproc#abort(str2nr(expand('<abuf>')))
 endfu
-
 
 function! esearch#backend#vimproc#sid() abort
   return maparg('<SID>', 'n')
