@@ -63,7 +63,6 @@ fu! esearch#util#bufloc(bufnr) abort
   return []
 endf
 
-
 fu! esearch#util#flatten(list) abort
   let flatten = []
   for elem in a:list
@@ -588,7 +587,6 @@ fu! esearch#util#safe_undojoin() abort
   endtry
 endfu
 
-
 fu! esearch#util#safe_matchdelete(id) abort
   if a:id < 0 | return | endif
 
@@ -659,6 +657,14 @@ fu! esearch#util#silence_swap_prompt() abort
   " A - suppress swap prompt
   " F - don't echo that a:filename is edited
   return esearch#let#restorable({'&shortmess': 'AF'})
+endfu
+
+fu! esearch#util#is_visual() abort
+  " From :h mode()
+  " Note that in the future more modes and more specific modes may
+  " be added. It's better not to compare the whole string but only
+  " the leading character(s).
+  return mode() =~? "^[vS\<C-v>]"
 endfu
 
 fu! esearch#util#lcd(path) abort

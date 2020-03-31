@@ -26,11 +26,13 @@ let g:esearch#preview#last        = s:null
 let g:esearch#preview#cache       = esearch#cache#lru#new(20)
 
 fu! esearch#preview#open(filename, line, ...) abort
-  if !filereadable(a:filename)
+  let opts = get(a:000, 0, {})
+
+  if !filereadable(a:filename) ||
+        \  (esearch#util#is_visual() && !get(opts, 'allow_visual', s:false))
     return s:false
   endif
 
-  let opts = get(a:000, 0, {})
   let shape = s:Shape.new({
         \ 'width':     get(opts, 'width',  s:null),
         \ 'height':    get(opts, 'height', s:null),
