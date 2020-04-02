@@ -1,13 +1,13 @@
-let s:Selection    = esearch#ui#controllers#selection#import()
-let s:SearchPrompt = esearch#ui#prompt#search#import()
-let s:PathsPrompt   = esearch#ui#prompt#paths#import()
+let s:Selection       = esearch#ui#controllers#selection#import()
+let s:SearchPrompt    = esearch#ui#prompt#search#import()
+let s:PathTitlePrompt = esearch#ui#prompt#path_title#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-cnoremap <Plug>(esearch-toggle-regex)      <C-r>=<SID>interrupt('s:cycle_mode', 'regex')<CR><CR>
-cnoremap <Plug>(esearch-toggle-case)       <C-r>=<SID>interrupt('s:cycle_mode', 'case')<CR><CR>
-cnoremap <Plug>(esearch-toggle-word)       <C-r>=<SID>interrupt('s:cycle_mode', 'word')<CR><CR>
+cnoremap <Plug>(esearch-toggle-regex)      <C-r>=<SID>interrupt('s:next_mode', 'next_regex')<CR><CR>
+cnoremap <Plug>(esearch-toggle-case)       <C-r>=<SID>interrupt('s:next_mode', 'next_case')<CR><CR>
+cnoremap <Plug>(esearch-toggle-word)       <C-r>=<SID>interrupt('s:next_mode', 'next_word')<CR><CR>
 cnoremap <Plug>(esearch-cmdline-open-menu) <C-r>=<SID>interrupt('s:open_menu')<CR><CR>
 
 let s:self = s:null
@@ -41,12 +41,11 @@ fu! s:SearchInputController.render_initial_selection() abort dict
 endfu
 
 fu! s:SearchInputController.render_input() abort
-  call esearch#ui#render(s:PathsPrompt.new({}))
+  call esearch#ui#render(s:PathTitlePrompt.new({}))
 
   let self.str .= self.restore_cmdpos_chars()
   let self.pressed_mapped_key = s:null
-  let self.str = input(esearch#ui#to_string(s:SearchPrompt.new({}))
-        \ , self.str, 'customlist,esearch#completion#buffer_words')
+  let self.str = self.input()
 
   if !empty(self.pressed_mapped_key)
     call call(self.pressed_mapped_key.handler, self.pressed_mapped_key.args)
@@ -56,6 +55,22 @@ fu! s:SearchInputController.render_input() abort
   call self.props.dispatch({'type': 'str', 'str': self.str})
   call self.props.dispatch({'type': 'route', 'route': 'exit'})
 endfu
+
+if has('nvim')
+  fu! s:SearchInputController.input() abort dict
+    return input({
+          \ 'prompt': esearch#ui#to_string(s:SearchPrompt.new({})),
+          \ 'default': self.str,
+          \ 'completion': 'customlist,esearch#completion#buffer_words',
+          \})
+  endfu
+    " echohl NONE
+else
+  fu! s:SearchInputController.input() abort dict
+    return input(esearch#ui#to_string(s:SearchPrompt.new({}))
+          \ , self.str, 'customlist,esearch#completion#buffer_words')
+  endfu
+endif
 
 fu! s:SearchInputController.restore_cmdpos_chars() abort
   return repeat("\<Left>", strchars(self.str) + 1 - self.props.cmdpos)
@@ -72,7 +87,7 @@ fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'route', 'route': 'menu'})
 endfu
 
-fu! s:cycle_mode(type) abort dict
+fu! s:next_mode(type) abort dict
   call s:self.props.dispatch({'type': 'str', 'str': s:self.str})
   call s:self.props.dispatch({'type': a:type})
 endfu

@@ -1,4 +1,4 @@
-let s:Message = esearch#message#import()
+let s:Message             = esearch#message#import()
 let s:PathInputController = esearch#ui#component()
 
 fu! s:PathInputController.render() abort dict
@@ -7,8 +7,7 @@ fu! s:PathInputController.render() abort dict
         \ esearch#shell#fnamesescape_and_join(self.props.paths, self.props.metadata)
 
   while 1
-    call s:Message.echon('Normal', 'Input search PATHS: ')
-    let user_input_in_shell_format = input('',
+    let user_input_in_shell_format = input('[path] > ',
           \ user_input_in_shell_format,
           \'customlist,esearch#ui#controllers#path_input#_complete_files')
 
@@ -42,4 +41,3 @@ endfu
 fu! esearch#ui#controllers#path_input#import() abort
   return esearch#ui#connect(s:PathInputController, function('<SID>map_state_to_props'))
 endfu
-

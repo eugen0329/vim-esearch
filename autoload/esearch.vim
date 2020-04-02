@@ -15,8 +15,7 @@ fu! esearch#init(...) abort
     let esearch.exp = esearch#regex#new(esearch.exp)
   else
     let esearch.exp  = esearch#source#pick_exp(esearch.use, esearch)
-    let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
-    let esearch      = esearch#cmdline#read(esearch, adapter_opts)
+    let esearch      = esearch#cmdline#read(esearch)
     let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
@@ -26,51 +25,61 @@ fu! esearch#init(...) abort
   let g:esearch.regex       = esearch.regex
   let g:esearch.paths       = esearch.paths
   let g:esearch.metadata    = esearch.metadata
+  let g:esearch.adapters    = esearch.adapters
 
   if empty(esearch.exp)
     return 1
   endif
 
-  let EscapeFunc = function('esearch#backend#'.esearch.backend.'#escape_cmd')
+  let Escape = function('esearch#backend#'.esearch.backend.'#escape_cmd')
   let pattern = esearch.regex ? esearch.exp.pcre : esearch.exp.literal
-  let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, EscapeFunc)
-  let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
+  " let command = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, Escape)
+  let command = esearch.current_adapter.command(esearch, pattern, Escape)
+
   let esearch = extend(esearch, {
         \ 'title': s:title(esearch, pattern),
         \}, 'force')
 
   let esearch.request = esearch#backend#{esearch.backend}#init(
-        \ esearch.cwd, esearch.adapter, shell_cmd, requires_pty)
+        \ esearch.cwd, esearch.adapter, command)
   let esearch.parse = esearch#adapter#parse#funcref()
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! s:new(configuration) abort
-  let configuration = extend(deepcopy(a:configuration),
-        \ deepcopy(g:esearch), 'keep')
-  let configuration = extend(configuration, {
-        \ 'paths': [],
-        \ 'metadata': [],
-        \ 'glob': 0,
-        \ 'visualmode': 0,
+fu! s:new(esearch) abort
+  let esearch = extend(copy(a:esearch), copy(g:esearch), 'keep')
+  let esearch = extend(esearch, {
+        \ 'paths':       [],
+        \ 'metadata':    [],
+        \ 'glob':        0,
+        \ 'adapters':    {},
+        \ 'visualmode':  0,
         \ 'set_default': function('esearch#util#set_default'),
-        \ 'slice': function('esearch#util#slice')
+        \ 'slice':       function('esearch#util#slice')
         \}, 'keep')
 
-  if !has_key(configuration, 'cwd')
-    let configuration.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
+  if has_key(esearch.adapters, esearch.adapter)
+    call extend(esearch.adapters[esearch.adapter], esearch#adapter#{esearch.adapter}#new())
+  else
+    let esearch.adapters[esearch.adapter] = esearch#adapter#{esearch.adapter}#new()
   endif
-  if type(get(configuration, 'paths', 0)) ==# type('')
-    let [paths, metadata, error] = esearch#shell#split(configuration.paths)
+  let esearch.current_adapter = esearch.adapters[esearch.adapter]
+
+  if !has_key(esearch, 'cwd')
+    let esearch.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
+  endif
+
+  if type(get(esearch, 'paths', 0)) ==# type('')
+    let [paths, metadata, error] = esearch#shell#split(esearch.paths)
     if !empty(error)
       echo " can't parse paths: " . error
     else
-      let [configuration.paths, configuration.metadata] = [paths, metadata]
+      let [esearch.paths, esearch.metadata] = [paths, metadata]
     endif
   endif
 
-  return configuration
+  return esearch
 endfu
 
 fu! s:title(esearch, pattern) abort

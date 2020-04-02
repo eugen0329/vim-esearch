@@ -13,14 +13,14 @@ endif
 let s:jobs = {}
 let s:id = esearch#itertools#count()
 
-fu! esearch#backend#vim8#init(cwd, adapter, cmd, pty) abort
+fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   " TODO add 'stoponexit'
   let id = s:id.next()
   let request = {
         \ 'internal_job_id': id,
         \ 'old_cursor': '',
         \ 'jobstart_args': {
-        \   'cmd': split(&shell) + split(&shellcmdflag) + [a:cmd],
+        \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
         \   'opts': {
         \     'out_cb': function('s:stdout', [id]),
         \     'err_cb': function('s:stderr', [id]),
@@ -36,7 +36,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, cmd, pty) abort
         \ 'backend':  'vim8',
         \ 'adapter':  a:adapter,
         \ 'intermediate':  '',
-        \ 'command':  a:cmd,
+        \ 'command':  a:command,
         \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'errors':     [],
@@ -57,7 +57,7 @@ fu! esearch#backend#vim8#run(request) abort
   let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
   let original_cwd = esearch#util#lcd(a:request.cwd)
   try
-    let a:request.job_id = job_start(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+    let a:request.job_id = job_start(a:request.jobstart_args.command, a:request.jobstart_args.opts)
   finally
     call original_cwd.restore()
   endtry
@@ -130,8 +130,8 @@ endfu
 " TODO write expansion for commands
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
-fu! esearch#backend#vim8#escape_cmd(cmd) abort
-  return shellescape(a:cmd)
+fu! esearch#backend#vim8#escape_cmd(command) abort
+  return shellescape(a:command)
 endfu
 
 fu! esearch#backend#vim8#init_events() abort

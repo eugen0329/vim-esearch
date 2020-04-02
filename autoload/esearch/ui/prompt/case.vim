@@ -1,10 +1,11 @@
 let s:Case = esearch#ui#component()
 
 fu! s:Case.render() abort dict
-  return [['NONE', self.props.case ? 'c' : '>']]
+  let icon = self.props.current_adapter.spec.case[self.props.case].icon
+  return [['NONE', empty(icon) ? '>' : icon]]
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['case'])
+let s:map_state_to_props = esearch#util#slice_factory(['case', 'current_adapter'])
 
 fu! esearch#ui#prompt#case#import() abort
   return esearch#ui#connect(s:Case, s:map_state_to_props)

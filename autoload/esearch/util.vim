@@ -1,7 +1,7 @@
-let s:Prelude    = vital#esearch#import('Prelude')
-let s:Highlight  = vital#esearch#import('Vim.Highlight')
-let s:Message    = vital#esearch#import('Vim.Message')
-let s:Filepath   = vital#esearch#import('System.Filepath')
+let s:Prelude   = vital#esearch#import('Prelude')
+let s:Highlight = vital#esearch#import('Vim.Highlight')
+let s:Message   = vital#esearch#import('Vim.Message')
+let s:Filepath  = vital#esearch#import('System.Filepath')
 
 fu! esearch#util#setline(_, lnum, text) abort
   call setline(a:lnum, a:text)
@@ -94,6 +94,14 @@ fu! esearch#util#uniq(list) abort
     endif
   endwhile
   return a:list
+endfu
+
+fu! esearch#util#ellipsize_right(text, max_len, ellipsis) abort
+  if strchars(a:text) < a:max_len
+    return a:text
+  endif
+
+  return a:text[: a:max_len - 1 - strchars(a:ellipsis)] . a:ellipsis
 endfu
 
 fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
@@ -697,7 +705,27 @@ endfu
 fu! esearch#util#slice_factory(keys) abort
   let private_scope = {}
   exe    " fu! l:private_scope.slice(dict) abort\n"
-     \ . "   return esearch#util#_slice(a:dict,".string(a:keys).")\n"
-     \ . " endfu"
+     \ . '   return esearch#util#_slice(a:dict,'.string(a:keys).")\n"
+     \ . ' endfu'
   return private_scope.slice
+endfu
+
+" tim pope
+fu! esearch#util#pluralize(word, count) abort
+  let word = a:word
+
+  if a:count % 10 == 1
+    return word
+  endif
+
+  if empty(word)
+    return word
+  endif
+
+  let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
+  let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
+  let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')
+  let word = substitute(word, '\v\Cf@<!f$',          've',  '')
+  let word .= 's'
+  return word
 endfu

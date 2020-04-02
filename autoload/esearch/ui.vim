@@ -24,7 +24,9 @@ let s:current_context = {}
 let s:Component = {}
 
 fu! s:Component.new(props) abort dict
-  return extend(copy(self), {'props': a:props})
+  let props = copy(self.default_props)
+  call extend(props, a:props)
+  return extend(copy(self), {'props': props})
 endfu
 
 fu! s:Component.context() abort dict
@@ -34,6 +36,8 @@ endfu
 fu! s:Component.keypress(event) abort dict
   return s:null
 endfu
+
+let s:Component.default_props = {}
 
 fu! esearch#ui#context() abort
   return s:Context
@@ -56,11 +60,11 @@ fu! s:Context.restore() abort dict
 endfu
 
 fu! esearch#ui#render(component) abort
-  let list = type(a:component) ==# s:t_list
+  let tokens = type(a:component) ==# s:t_list
         \ ? a:component
         \ : a:component.render()
 
-  for [color, text] in list
+  for [color, text] in tokens
     call s:Message.echon(color, text)
   endfor
 endfu

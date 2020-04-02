@@ -1,6 +1,6 @@
-let s:Case    = esearch#ui#prompt#case#import()
-let s:Regex   = esearch#ui#prompt#regex#import()
-let s:Word    = esearch#ui#prompt#word#import()
+let s:Case  = esearch#ui#prompt#case#import()
+let s:Regex = esearch#ui#prompt#regex#import()
+let s:Word  = esearch#ui#prompt#word#import()
 
 let s:SearchPrompt = esearch#ui#component()
 
@@ -26,6 +26,8 @@ fu! s:SearchPrompt.render() abort dict
   return result
 endfu
 
+let s:map_state_to_props = esearch#util#slice_factory(['adapter'])
+
 fu! esearch#ui#prompt#search#import() abort
-  return esearch#ui#connect(s:SearchPrompt)
+  return esearch#ui#connect(s:SearchPrompt, s:map_state_to_props)
 endfu

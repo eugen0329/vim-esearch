@@ -4,7 +4,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 let s:down_keys   = ["\<C-j>", 'j', "\<Down>"]
 let s:up_keys     = ["\<C-k>", 'k', "\<Up>"]
-let s:cancel_keys = ["\<Esc>", "\<C-c>"]
+let s:cancel_keys = ["\<Esc>", "\<C-c>", 'q']
 
 let s:MenuController = esearch#ui#component()
 
@@ -29,8 +29,9 @@ fu! s:MenuController.force_update() abort dict
   call esearch#ui#render(self.menu)
 endfu
 
+" inspired by nerdree menu
 fu! s:MenuController.loop() abort dict
-  while 1
+  while s:true
     redraw!
     call self.force_update()
 
@@ -64,7 +65,7 @@ fu! s:MenuController.restore_options() abort dict
 endfu
 
 fu! s:MenuController.cursor_down() abort dict
-  if self.cursor < self.menu.height - 1
+  if self.cursor < len(self.menu.items) - 1
     let self.cursor += 1
   else
     let self.cursor = 0
@@ -75,7 +76,7 @@ fu! s:MenuController.cursor_up() abort dict
   if self.cursor > 0
     let self.cursor -= 1
   else
-    let self.cursor = self.menu.height - 1
+    let self.cursor = len(self.menu.items) - 1
   endif
 endfu
 

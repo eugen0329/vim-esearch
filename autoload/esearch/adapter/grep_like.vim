@@ -1,5 +1,3 @@
-let esearch#adapter#grep_like#multiple_files_Search_format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
-
 fu! esearch#adapter#grep_like#joined_paths(esearch) abort
   if empty(a:esearch.paths)
     return ''

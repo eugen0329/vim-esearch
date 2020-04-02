@@ -31,9 +31,9 @@ fu! esearch#opts#new(opts) abort
   " root_markers are made to correspond g:ctrlp_root_markers default value
   let opts = extend(opts, {
         \ 'out':              g:esearch#defaults#out,
-        \ 'regex':            0,
-        \ 'case':             0,
-        \ 'word':             0,
+        \ 'regex':            'literal',
+        \ 'case':             'ignore',
+        \ 'word':             'any',
         \ 'batch_size':       batch_size,
         \ 'final_batch_size':  final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
@@ -45,6 +45,14 @@ fu! esearch#opts#new(opts) abort
         \ 'errors':           [],
         \ 'use':              ['visual', 'hlsearch', 'current', 'last'],
         \}, 'keep')
+
+  " TODO warn deprecated
+  if type(opts.regex) isnot# type('')
+  endif
+  if type(opts.case) isnot# type('')
+  endif
+  if type(opts.word) isnot# type('')
+  endif
 
   return opts
 endfu

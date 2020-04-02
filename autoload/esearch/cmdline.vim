@@ -45,9 +45,7 @@ if !exists('g:esearch#cmdline#select_initial')
   let g:esearch#cmdline#select_initial = 1
 endif
 
-" TODO MAJOR PRIO refactoring
-" a:adapter_options are used to display adapter config in the prompt (>>>)
-fu! esearch#cmdline#read(esearch, adapter_options) abort
+fu! esearch#cmdline#read(esearch) abort
   let esearch = a:esearch
   let old_mapargs = {}
   try
@@ -138,12 +136,12 @@ fu! s:app(esearch, route) abort
 endfu
 
 fu! s:reducer(state, action) abort
-  if a:action.type ==# 'case'
-    return extend(copy(a:state), {'case': !a:state.case})
-  elseif a:action.type ==# 'regex'
-    return extend(copy(a:state), {'regex': !a:state.regex})
-  elseif a:action.type ==# 'word'
-    return extend(copy(a:state), {'word': !a:state.word})
+  if a:action.type ==# 'next_case'
+    return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
+  elseif a:action.type ==# 'next_regex'
+    return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
+  elseif a:action.type ==# 'next_word'
+    return extend(copy(a:state), {'word': s:cycle_mode(a:state, 'word')})
   elseif a:action.type ==# 'cmdpos'
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
   elseif a:action.type ==# 'paths'
@@ -159,10 +157,15 @@ fu! s:reducer(state, action) abort
   endif
 endfu
 
-fu! s:menu_items() abort
-  if !exists('g:esearch#cmdline#menu_items')
-    let g:esearch#cmdline#menu_items = []
+fu! s:cycle_mode(state, mode_name) abort
+  let kinds = keys(a:state.current_adapter.spec[a:mode_name])
+  let i = index(kinds, a:state[a:mode_name])
+
+  if i >= len(kinds) - 1
+    let i = 0
+  else
+    let i += 1
   endif
 
-  return g:esearch#cmdline#menu_items
+  return kinds[i]
 endfu
