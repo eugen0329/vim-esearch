@@ -208,7 +208,7 @@ fu! s:parse_substitute(word) abort
 endfu
 
 fu! s:to_str(...) abort dict
-  let parts = extend(copy(self), get(a:000, 0, {}), 'force')
+  let parts = extend(copy(self), get(a:000, 0, {}))
   return parts.range
         \ . parts.command
         \ . parts.slash

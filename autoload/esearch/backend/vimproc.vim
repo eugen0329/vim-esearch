@@ -49,7 +49,7 @@ fu! esearch#backend#vimproc#run(request) abort
   let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let pipe = vimproc#popen3(
-          \ vimproc#util#iconv(a:request.command, &encoding, 'char'))
+          \ vimproc#util#iconv(a:request.command, &encoding, 'char'), 1)
     call pipe.stdin.close()
 
     let a:request.pipe = pipe

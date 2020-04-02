@@ -65,11 +65,11 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   # Can be fixed by storing data as a single string instead of list of lines.
   # Can reduce freezes on stdout callbacks, but seems too hard to implement for
   # now.
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :ag
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :ack
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :pt
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :rg
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :grep
+  skip! 'searching in a file with name "a\\n"', adapter: :ag
+  skip! 'searching in a file with name "a\\n"', adapter: :ack
+  skip! 'searching in a file with name "a\\n"', adapter: :pt
+  skip! 'searching in a file with name "a\\n"', adapter: :rg
+  skip! 'searching in a file with name "a\\n"', adapter: :grep
 
   # vimproc doesn't handle LF as job control does
   pending! 'searching in a file with name "a\\r"', /MissingEntry/, backend: :vimproc

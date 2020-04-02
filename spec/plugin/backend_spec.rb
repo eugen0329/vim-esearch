@@ -9,6 +9,7 @@ describe 'esearch#backend', :backend do
   include Helpers::Strings
   include Helpers::Output
   include Helpers::ReportEditorStateOnError
+  include VimlValue::SerializationHelpers
 
   before  { esearch.configure(root_markers: []) }
 

@@ -112,7 +112,7 @@ fu! esearch#changes#unlisten_for_current_buffer() abort
 endfu
 
 fu! esearch#changes#rewrite_last_state(attributes) abort
-  call extend(b:__states[-1], a:attributes, 'force')
+  call extend(b:__states[-1], a:attributes)
 endfu
 
 fu! esearch#changes#undo_state() abort

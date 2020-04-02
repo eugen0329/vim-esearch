@@ -247,7 +247,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'split_preview':            function('<SID>split_preview'),
         \ 'last_split_preview':       {},
         \ 'is_blank':                 function('<SID>is_blank'),
-        \}, 'force')
+        \})
 
   let b:esearch = extend(a:opts, {
         \ 'windows_opened_once': {},
@@ -372,7 +372,7 @@ fu! s:split_preview(...) abort dict
         \ 'stay': 1,
         \ 'once': 1,
         \ 'let!': {'&l:foldenable': 0},
-        \ }, get(a:000, 1, {}), 'force'))
+        \ }, get(a:000, 1, {})))
 endfu
 
 fu! s:cleanup() abort

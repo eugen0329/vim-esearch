@@ -1,7 +1,7 @@
 fu! esearch#init(...) abort
   silent doau User eseach_init_pre
 
-  if s:init_lazy_global_config() != 0
+  if esearch#opts#init_lazy_global_config() != 0
     return 0
   endif
 
@@ -19,13 +19,14 @@ fu! esearch#init(...) abort
     let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
-  let g:esearch.last_search = esearch.exp
-  let g:esearch.case        = esearch.case
-  let g:esearch.bound       = esearch.bound
-  let g:esearch.regex       = esearch.regex
-  let g:esearch.paths       = esearch.paths
-  let g:esearch.metadata    = esearch.metadata
-  let g:esearch.adapters    = esearch.adapters
+  let g:esearch.last_search     = esearch.exp
+  let g:esearch.case            = esearch.case
+  let g:esearch.bound           = esearch.bound
+  let g:esearch.regex           = esearch.regex
+  let g:esearch.paths           = esearch.paths
+  let g:esearch.metadata        = esearch.metadata
+  let g:esearch.adapters        = esearch.adapters
+  let g:esearch.current_adapter = esearch.current_adapter
 
   if empty(esearch.exp)
     return 1
@@ -49,14 +50,13 @@ fu! s:new(esearch) abort
         \ 'paths':      [],
         \ 'metadata':   [],
         \ 'glob':       0,
-        \ 'adapters':   {},
         \ 'visualmode': 0,
         \ 'is_regex':   function('<SID>is_regex'),
         \ 'pattern':    function('<SID>pattern'),
         \}, 'keep')
 
   if has_key(esearch.adapters, esearch.adapter)
-    call extend(esearch.adapters[esearch.adapter], esearch#adapter#{esearch.adapter}#new())
+    call extend(esearch.adapters[esearch.adapter], esearch#adapter#{esearch.adapter}#new(), 'keep')
   else
     let esearch.adapters[esearch.adapter] = esearch#adapter#{esearch.adapter}#new()
   endif
@@ -134,29 +134,6 @@ fu! s:title_format(esearch) abort
   else
     return 'Search `%s`%s'
   endif
-endfu
-
-fu! s:init_lazy_global_config() abort
-  let global_esearch = exists('g:esearch') ? g:esearch : {}
-
-  if type(global_esearch) != type({})
-    echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
-    return 1
-  endif
-
-  if !has_key(global_esearch, 'last_id')
-    let global_esearch.last_id = 0
-  endif
-
-  if !has_key(global_esearch, '__lazy_loaded')
-    let g:esearch = esearch#opts#new(global_esearch)
-    if empty(g:esearch) | return 1 | endif
-    let g:esearch.__lazy_loaded = 1
-  endif
-
-  call esearch#highlight#init()
-
-  return 0
 endfu
 
 fu! esearch#debounce(...) abort

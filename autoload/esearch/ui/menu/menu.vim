@@ -2,7 +2,7 @@ let s:List         = vital#esearch#import('Data.List')
 let s:PathEntry    = esearch#ui#menu#path_entry#import()
 let s:CaseEntry    = esearch#ui#menu#case_entry#import()
 let s:RegexEntry   = esearch#ui#menu#regex_entry#import()
-let s:BoundEntry    = esearch#ui#menu#bound_entry#import()
+let s:BoundEntry   = esearch#ui#menu#bound_entry#import()
 let s:SearchPrompt = esearch#ui#prompt#search#import()
 
 let s:Menu = esearch#ui#component()

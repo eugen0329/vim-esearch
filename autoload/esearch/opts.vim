@@ -44,6 +44,7 @@ fu! esearch#opts#new(opts) abort
         \ 'out':              g:esearch#defaults#out,
         \ 'regex':            'literal',
         \ 'bound':            'disabled',
+        \ 'adapters':         {},
         \ 'batch_size':       batch_size,
         \ 'final_batch_size': final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
@@ -82,3 +83,28 @@ fu! s:invert(key) dict abort
   let self[a:key] = option
   return option
 endfu
+
+" TODO
+fu! esearch#opts#init_lazy_global_config() abort
+  let global_esearch = exists('g:esearch') ? g:esearch : {}
+
+  if type(global_esearch) != type({})
+    echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
+    return 1
+  endif
+
+  if !has_key(global_esearch, 'last_id')
+    let global_esearch.last_id = 0
+  endif
+
+  if !has_key(global_esearch, '__lazy_loaded')
+    let g:esearch = esearch#opts#new(global_esearch)
+    if empty(g:esearch) | return 1 | endif
+    let g:esearch.__lazy_loaded = 1
+  endif
+
+  call esearch#highlight#init()
+
+  return 0
+endfu
+

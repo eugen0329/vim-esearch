@@ -32,7 +32,11 @@ module Helpers::Commandline
   end
 
   def menu_items
-    esearch.output.echo_calls_history[..-2].last(4).map { |s| s.gsub(/pattern [>\w]{3} /, '') }
+    esearch
+      .output
+      .echo_calls_history[..-2]
+      .last(4)
+      .map { |s| s.gsub(/pattern [>\w]{3} /, '') } # TODO
   end
 
   def without_location_mark(location_string)

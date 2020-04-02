@@ -44,7 +44,12 @@ class API::ESearch::Configuration
   end
 
   def adapter_bin=(path)
-    editor.command!("let g:esearch#adapter##{adapter}#bin = '#{path}'")
+    # TODO: configuration
+    editor.command! <<~VIML
+      call esearch#opts#init_lazy_global_config()
+      call extend(g:esearch.adapters, {#{adapter.dump}: {}}, 'keep')
+      call extend(g:esearch.adapters[#{adapter.dump}], {'bin': '#{path}'})
+    VIML
   end
 
   def adapter
