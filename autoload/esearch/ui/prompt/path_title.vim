@@ -10,10 +10,10 @@ fu! s:PathTitlePrompt.render() abort dict
       return []
     else
       " TODO reuse pathprompt when proper paths persing is implemented
-      return [
-            \  [self.props.normal_highlight, 'In '],
-            \  ['Directory', g:esearch#cmdline#dir_icon . self.props.cwd],
-            \]
+      return  [
+            \   [self.props.normal_highlight, 'In '],
+            \   ['Directory', g:esearch#cmdline#dir_icon . self.props.cwd],
+            \ ]
     endif
   endif
 
