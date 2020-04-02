@@ -100,7 +100,7 @@ describe 'esearch#backend', :backend do
       let(:adapter) { adapter }
 
       before do
-        esearch.configure(adapter: adapter, regex: 1)
+        esearch.configure(adapter: adapter, regex: 0)
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       end
 
@@ -255,6 +255,14 @@ describe 'esearch#backend', :backend do
 
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do
+          before do
+            if adapter == 'grep'
+              esearch.configure(adapter: adapter, regex: 'perl')
+            else
+              esearch.configure(adapter: adapter, regex: 1)
+            end
+          end
+
           include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3..6
           include_context 'finds 1 entry of', /3\d+5/, in: "\n__345", line: 2, column: 3..6
           include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3..6
@@ -335,10 +343,8 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'ack'
         include_context 'works with adapter', 'git'
         include_context 'works with adapter', 'grep'
-        # include_context 'works with adapter', 'pt', Configuration.pt_path
-        # include_context 'works with adapter', 'rg', Configuration.rg_path
-        include_context 'works with adapter', 'pt'
-        include_context 'works with adapter', 'rg'
+        include_context 'works with adapter', 'pt', Configuration.pt_path
+        include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
   end
