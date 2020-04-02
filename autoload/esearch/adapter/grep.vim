@@ -24,7 +24,7 @@ endif
 " -R: recursive, follow symbolic links
 " -H: Print the file name for each match.
 " -x: Line regexp
-let s:Grep.mandatory_options = '-H -R -n --color=never'
+let s:Grep.mandatory_options = '-H -R -n'
 let s:Grep.spec = {
       \   '_regex': ['literal', 'basic'],
       \   'regex': {
@@ -54,7 +54,7 @@ fu! s:Grep.command(esearch, pattern, escape) abort dict
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
   return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
 endfu
 
 fu! s:Grep.is_success(request) abort

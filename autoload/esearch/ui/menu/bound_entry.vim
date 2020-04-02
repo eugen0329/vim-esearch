@@ -4,7 +4,7 @@ let s:BoundEntry = esearch#ui#component()
 
 fu! s:BoundEntry.render() abort dict
   let hint = s:String.pad_right(self.props.keys[0], 8, ' ')
-  let hint .= 'toggle bound regex match'
+  let hint .= 'toggle match bounds'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.bound[self.props.bound].option
   let option = join(filter([self.props.bound, option], '!empty(v:val)'), ': ')

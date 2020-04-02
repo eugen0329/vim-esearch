@@ -70,8 +70,13 @@ module Helpers::Modifiable
         default_mappings: 0,
         root_markers:     []
       )
+      # TODO: reduce duplication with configuration#adapter=()
+      path = "#{Configuration.root}/spec/support/scripts/sort_search_results.sh ag"
       editor.command! <<~SETUP
-        let g:esearch#adapter#ag#bin = '#{Configuration.root}/spec/support/scripts/sort_search_results.sh ag'
+        call esearch#opts#init_lazy_global_config()
+        call extend(g:esearch.adapters, {#{esearch.configuration.adapter.dump}: {}}, 'keep')
+        call extend(g:esearch.adapters[#{esearch.configuration.adapter.dump}], {'bin': '#{path}'})
+
         let g:esearch_win_disable_context_highlights_on_files_count = 0
         set backspace=indent,eol,start
         cd #{test_directory}
