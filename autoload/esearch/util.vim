@@ -170,10 +170,6 @@ fu! esearch#util#get(key) dict abort
   return self[a:key]
 endfu
 
-fu! esearch#util#dict() dict abort
-  return filter(copy(self), 'type(v:val) != '.type(function('tr')))
-endfu
-
 fu! esearch#util#with_val(val) dict abort
   let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
   return filter(copy(self), 'type(v:val) == type('.val.') && v:val==# '.val)

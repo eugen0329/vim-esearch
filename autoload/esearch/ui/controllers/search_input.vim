@@ -15,7 +15,12 @@ let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
-  return self.render_initial_selection() && self.render_input()
+  try
+    let original_mappings = esearch#mappings#restorable('c', g:esearch#cmdline#mappings)
+    return self.render_initial_selection() && self.render_input()
+  finally
+    call original_mappings.restore()
+  endtry
 endfu
 
 fu! s:SearchInputController.render_initial_selection() abort dict
@@ -25,7 +30,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
     if empty(self.props.str)
       let self.str = ''
     else
-      let [self.str, finish, retype] = s:Selection.new({}).render()
+      let [self.str, finish, retype] = s:Selection.new().render()
       if finish
         call self.props.dispatch({'type': 'str', 'str': self.str})
         call self.props.dispatch({'type': 'route', 'route': 'exit'})
@@ -41,7 +46,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
 endfu
 
 fu! s:SearchInputController.render_input() abort
-  call esearch#ui#render(s:PathTitlePrompt.new({}))
+  call esearch#ui#render(s:PathTitlePrompt.new())
 
   let self.str .= self.restore_cmdpos_chars()
   let self.pressed_mapped_key = s:null
@@ -56,21 +61,10 @@ fu! s:SearchInputController.render_input() abort
   call self.props.dispatch({'type': 'route', 'route': 'exit'})
 endfu
 
-if has('nvim')
-  fu! s:SearchInputController.input() abort dict
-    return input({
-          \ 'prompt': esearch#ui#to_string(s:SearchPrompt.new({})),
-          \ 'default': self.str,
-          \ 'completion': 'customlist,esearch#completion#buffer_words',
-          \})
-  endfu
-    " echohl NONE
-else
-  fu! s:SearchInputController.input() abort dict
-    return input(esearch#ui#to_string(s:SearchPrompt.new({}))
-          \ , self.str, 'customlist,esearch#completion#buffer_words')
-  endfu
-endif
+fu! s:SearchInputController.input() abort dict
+  return input(esearch#ui#to_string(s:SearchPrompt.new())
+        \ , self.str, 'customlist,esearch#completion#buffer_words')
+endfu
 
 fu! s:SearchInputController.restore_cmdpos_chars() abort
   return repeat("\<Left>", strchars(self.str) + 1 - self.props.cmdpos)

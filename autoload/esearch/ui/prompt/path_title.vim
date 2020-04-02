@@ -5,15 +5,24 @@ let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:PathTitlePrompt = esearch#ui#component()
 
 fu! s:PathTitlePrompt.render() abort dict
-  if self.props.cwd ==# getcwd() && empty(self.props.paths)
-    return []
+  if empty(self.props.paths)
+    if self.props.cwd ==# getcwd()
+      return []
+    else
+      " TODO reuse pathprompt when proper paths persing is implemented
+      return [
+            \  [self.props.normal_highlight, 'In '],
+            \  ['Directory', g:esearch#cmdline#dir_icon . self.props.cwd],
+            \]
+    endif
   endif
 
   return self.render_in(self.props.paths, self.props.metadata)
-        \ + s:PathPrompt.new({}).render()
+        \ + s:PathPrompt.new().render()
 endfu
 
 fu! s:PathTitlePrompt.render_in(paths, metadata) abort dict
+
   let path_kinds = {}
   for i in range(0, len(a:paths) - 1)
     if isdirectory(a:paths[i])
@@ -35,8 +44,17 @@ endfu
 
 let s:PathTitlePrompt.default_props = {'normal_highlight': 'NONE'}
 
-let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths', 'metadata'])
+" TODO replace when proper paths are implemented
+" let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths', 'metadata'])
+fu! s:map_state_to_props(state) abort
+  return {
+        \ 'cwd':      a:state.cwd,
+        \ 'paths':     get(a:state, 'paths', []),
+        \ 'metadata': get(a:state, 'metadata', []),
+        \ }
+endfu
 
 fu! esearch#ui#prompt#path_title#import() abort
-  return esearch#ui#connect(s:PathTitlePrompt, s:map_state_to_props)
+  return esearch#ui#connect(s:PathTitlePrompt, function('<SID>map_state_to_props'))
+  " return esearch#ui#connect(s:PathTitlePrompt, s:map_state_to_props)
 endfu

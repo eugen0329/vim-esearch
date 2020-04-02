@@ -53,7 +53,7 @@ fu! esearch#out#qflist#setup_autocmds(opts) abort
     " Keep only User cmds(reponsible for results updating) and qf initialization
     au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "
 
-    " We need to handle quickfix bufhidden=wipe behaviour
+    " We need to handle quickfix bufhidden=wipe behavior
     if !exists('#ESearchQFListAutocmds#FileType')
       au FileType qf
             \ if exists('g:esearch_qf') && !g:esearch_qf.request.finished && esearch#util#qftype(bufnr('%')) ==# 'qf' |

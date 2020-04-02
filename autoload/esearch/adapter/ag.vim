@@ -17,14 +17,16 @@ else
 endif
 let s:Ag.mandatory_options = '--nogroup --nocolor --noheading'
 let s:Ag.spec = {
+      \   '_regex': ['literal', 'pcre'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
-      \     'regex':     {'icon': 'r', 'option': ''},
+      \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
       \   'word': {
       \     'any':       {'icon': '',  'option': ''},
       \     'whole':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
+      \   '_case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': '--case-sensitive'},
@@ -39,8 +41,8 @@ fu! s:Ag.command(esearch, pattern, escape) abort dict
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
-  return join([self.bin, r, c, w, self.mandatory_options,
-        \ self.options, a:escape(a:pattern), joined_paths], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
 fu! s:Ag.is_success(request) abort

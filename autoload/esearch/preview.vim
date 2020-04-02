@@ -489,7 +489,9 @@ endfu
 
 fu! s:FloatingWindow.init_entered_autoclose_events() abort dict
   augroup esearch_preview_autoclose
+    " Before leaving a window
     au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
+    " After entering another window
     au WinEnter * ++once au! esearch_preview_autoclose
     " From :h local-options
     " When splitting a window, the local options are copied to the new window. Thus

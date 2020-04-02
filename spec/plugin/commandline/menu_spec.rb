@@ -96,7 +96,6 @@ describe 'esearch#cmdline menu', :commandline do
           include_context 'opened menu testing'
 
           it 'locates "word" option' do
-            # require 'pry'; binding.pry
             expect { editor.send_keys_separately(*keys, :enter, :escape, 'search string', :enter) }
               .to change { menu_items }
               .from(match_array([

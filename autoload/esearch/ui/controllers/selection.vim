@@ -6,18 +6,13 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 let s:SelectionController = esearch#ui#component()
 
-fu! s:SelectionController.new(props) abort dict
-  let instance = extend(copy(self), {'props': a:props})
-  return instance
-endfu
-
 fu! s:SelectionController.render() abort dict
-  let paths = s:PathTitlePrompt.new({}).render()
+  let paths = s:PathTitlePrompt.new().render()
   if !empty(paths)
     call esearch#ui#render(paths)
     call esearch#ui#render([['NONE', "\n"]])
   endif
-  call esearch#ui#render(s:SearchPrompt.new({}))
+  call esearch#ui#render(s:SearchPrompt.new())
   call esearch#ui#render([['Visual', substitute(self.props.str, "\n", ' ', 'g')]])
 
   let retype = s:null

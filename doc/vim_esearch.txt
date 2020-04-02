@@ -55,7 +55,7 @@ Example:
     \ 'use':        ['visual', 'hlsearch', 'last'],
     \}
 <
-Note: don't set values if you don't need to override default behaviour.
+Note: don't set values if you don't need to override default behavior.
 
                                         *Esearch-adapter*
 Adapter is a system-wide executable, which is used to dispatch your search

@@ -16,15 +16,18 @@ else
   let s:Pt.options = '--follow'
 endif
 let s:Pt.mandatory_options = '--nogroup --nocolor'
+" https://github.com/google/re2/wiki/Syntax
 let s:Pt.spec = {
+      \   '_regex': ['literal', 're2'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': ''},
-      \     'regex':     {'icon': 'r', 'option': '-e'},
+      \     're2':       {'icon': 'r', 'option': '-e'},
       \   },
       \   'word': {
       \     'any':       {'icon': '',  'option': ''},
       \     'whole':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
+      \   '_case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': ''},
@@ -39,8 +42,8 @@ fu! s:Pt.command(esearch, pattern, escape) abort dict
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
-  return join([self.bin, r, c, w, self.mandatory_options,
-        \ self.options, a:escape(a:pattern), joined_paths], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
 fu! s:Pt.is_success(request) abort

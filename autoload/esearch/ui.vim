@@ -23,9 +23,9 @@ endfu
 let s:current_context = {}
 let s:Component = {}
 
-fu! s:Component.new(props) abort dict
+fu! s:Component.new(...) abort dict
   let props = copy(self.default_props)
-  call extend(props, a:props)
+  call extend(props, get(a:000, 0, {}))
   return extend(copy(self), {'props': props})
 endfu
 
@@ -85,11 +85,11 @@ fu! esearch#ui#connect(component, ...) abort
         \ 'map_state_to_props': get(a:000, 0 , {-> {} }),
         \ })
 
-  fu! wrapped.new(props) abort
+  fu! wrapped.new(...) abort
     let props = self.map_state_to_props(self.context().store.state)
     call extend(props, {'dispatch': self.context().store.dispatch})
     return self.component
-          \.new(extend(props, a:props))
+          \.new(extend(props, get(a:000, 0, {})))
   endfu
 
   fu! wrapped.render() abort

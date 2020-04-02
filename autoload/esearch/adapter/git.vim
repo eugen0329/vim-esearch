@@ -21,6 +21,7 @@ endif
 " -I - don't search binary files
 let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
 let s:Git.spec = {
+      \   '_regex': ['literal', 'perl'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '--fixed-strings'},
       \     'basic':    {'icon': 'G', 'option': '--basic-regexp'},
@@ -31,6 +32,7 @@ let s:Git.spec = {
       \     'any':       {'icon': '',  'option': ''},
       \     'whole':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
+      \   '_case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': ''},
@@ -44,8 +46,8 @@ fu! s:Git.command(esearch, pattern, escape) abort dict
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
-  return join([self.bin, '--no-pager grep', r, c, w, self.mandatory_options,
-        \ self.options, a:escape(a:pattern), joined_paths], ' ')
+  return join([self.bin, '--no-pager grep', r, c, w, self.mandatory_options, self.options], ' ')
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
 fu! s:Git.is_success(request) abort

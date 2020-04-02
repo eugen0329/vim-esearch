@@ -17,14 +17,16 @@ else
 endif
 let s:Ack.mandatory_options = '--nogroup --nocolor --noheading'
 let s:Ack.spec = {
+      \   '_regex': ['literal', 'pcre'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--literal'},
-      \     'regex':     {'icon': 'r', 'option': ''},
+      \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
       \   'word': {
       \     'any':       {'icon': '',  'option': ''},
       \     'whole':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
+      \   '_case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': '--no-smart-case'},
@@ -39,8 +41,8 @@ fu! s:Ack.command(esearch, pattern, escape) abort dict
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
 
-  return join([self.bin, r, c, w, self.mandatory_options,
-        \ self.options, a:escape(a:pattern), joined_paths], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
 fu! s:Ack.is_success(request) abort

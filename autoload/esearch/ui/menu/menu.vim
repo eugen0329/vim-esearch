@@ -15,7 +15,7 @@ fu! s:Menu.new(props) abort dict
         \   s:PathEntry.new({'keys':  ['p', "\<C-p>"]}),
         \ ]
   let instance.height = len(instance.items)
-  let instance.prompt = s:SearchPrompt.new({})
+  let instance.prompt = s:SearchPrompt.new()
 
   return instance
 endfu
