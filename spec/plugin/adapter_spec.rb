@@ -25,7 +25,7 @@ describe 'esearch#adapter', :adapters do
           adapter:      adapter,
           out:          'win',
           backend:      'system',
-          regex:        1,
+          regex:        (adapter =~ /grep|git/ ? 'perl' : 1),
           use:          [],
           root_markers: []
         )
@@ -40,7 +40,7 @@ describe 'esearch#adapter', :adapters do
 
         it do
           editor.send_keys(*open_input_keys, '.*', *open_menu_keys)
-          editor.send_keys(*open_paths_input_keys, paths_string, :enter, :enter)
+          editor.send_keys(*open_paths_input_keys, paths_string, :enter, close_menu_key, :enter)
 
           KnownIssues.mark_example_pending_if_known_issue(self) do
             expect(esearch).to finish_search_in_files(expected_names)
@@ -87,7 +87,7 @@ describe 'esearch#adapter', :adapters do
           before do
             editor.cd! test_directory
             editor.send_keys(*open_input_keys, '.*', *open_menu_keys)
-            editor.send_keys(*open_paths_input_keys, paths_string, :enter, :enter)
+            editor.send_keys(*open_paths_input_keys, paths_string, :enter, close_menu_key, :enter)
             expect(esearch).to finish_search_in_files(names) # fail fast
             editor.close_current_window!
           end
@@ -96,7 +96,7 @@ describe 'esearch#adapter', :adapters do
             editor.send_keys(*open_input_keys, '.*', *open_menu_keys)
             editor.send_keys(*open_paths_input_keys)
             expect(editor).to have_commandline_content(inputted_keys(paths_string))
-            editor.send_keys(:enter, :enter)
+            editor.send_keys(:enter, close_menu_key, :enter)
 
             expect(esearch).to finish_search_in_files(names)
           end

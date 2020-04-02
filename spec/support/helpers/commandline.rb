@@ -6,6 +6,10 @@ module Helpers::Commandline
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
 
+  def close_menu_key
+    :escape
+  end
+
   def open_menu_keys
     ['\\<C-o>']
   end

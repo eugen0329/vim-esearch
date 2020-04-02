@@ -256,11 +256,7 @@ describe 'esearch#backend', :backend do
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do
           before do
-            if adapter == 'grep'
-              esearch.configure(adapter: adapter, regex: 'perl')
-            else
-              esearch.configure(adapter: adapter, regex: 1)
-            end
+            esearch.configure(adapter: adapter, regex: (adapter =~ /grep|git/ ? 'perl' : 1))
           end
 
           include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3..6

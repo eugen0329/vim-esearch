@@ -66,7 +66,7 @@ fu! esearch#backend#vimproc#run(request) abort
 endfu
 
 fu! esearch#backend#vimproc#escape_cmd(cmd) abort
-  return esearch#util#shellescape(a:cmd)
+  return escape(fnameescape(a:cmd), ';')
 endfu
 
 fu! s:read_errors(request) abort

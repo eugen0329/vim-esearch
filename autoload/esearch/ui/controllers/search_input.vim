@@ -1,6 +1,6 @@
-let s:Selection       = esearch#ui#controllers#selection#import()
-let s:SearchPrompt    = esearch#ui#prompt#search#import()
-let s:PathTitlePrompt = esearch#ui#prompt#path_title#import()
+let s:SelectionController = esearch#ui#controllers#selection#import()
+let s:SearchPrompt        = esearch#ui#prompt#search#import()
+let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -30,7 +30,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
     if empty(self.props.str)
       let self.str = ''
     else
-      let [self.str, finish, retype] = s:Selection.new().render()
+      let [self.str, finish, retype] = s:SelectionController.new().render()
       if finish
         call self.props.dispatch({'type': 'str', 'str': self.str})
         call self.props.dispatch({'type': 'route', 'route': 'exit'})
@@ -39,6 +39,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
         call feedkeys(retype)
       endif
     endif
+
     call self.props.dispatch({'type': 'did_initial'})
   endif
 
@@ -81,9 +82,9 @@ fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'route', 'route': 'menu'})
 endfu
 
-fu! s:next_mode(type) abort dict
+fu! s:next_mode(event_type) abort dict
   call s:self.props.dispatch({'type': 'str', 'str': s:self.str})
-  call s:self.props.dispatch({'type': a:type})
+  call s:self.props.dispatch({'type': a:event_type})
 endfu
 
 let s:map_state_to_props = esearch#util#slice_factory(['str', 'cmdpos', 'did_initial'])

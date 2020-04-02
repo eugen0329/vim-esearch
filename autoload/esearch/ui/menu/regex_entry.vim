@@ -7,9 +7,8 @@ fu! s:RegexEntry.render() abort dict
   let hint .= 'toggle regex regex match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.regex[self.props.regex].option
-  if !empty(option)
-    let result += [['Comment', ' (' . option  . ')']]
-  endif
+  let option = join(filter([self.props.regex, option], '!empty(v:val)'), ': ')
+  let result += [['Comment', ' (' . option  . ')']]
 
   return result
 endfu

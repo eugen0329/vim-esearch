@@ -41,9 +41,9 @@ fu! esearch#opts#new(opts) abort
   let opts = extend(opts, {
         \ 'out':              g:esearch#defaults#out,
         \ 'regex':            'literal',
-        \ 'word':             'any',
+        \ 'bound':            'disabled',
         \ 'batch_size':       batch_size,
-        \ 'final_batch_size':  final_batch_size,
+        \ 'final_batch_size': final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,

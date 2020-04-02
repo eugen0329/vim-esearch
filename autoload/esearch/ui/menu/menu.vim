@@ -1,18 +1,25 @@
+let s:List         = vital#esearch#import('Data.List')
 let s:PathEntry    = esearch#ui#menu#path_entry#import()
 let s:CaseEntry    = esearch#ui#menu#case_entry#import()
 let s:RegexEntry   = esearch#ui#menu#regex_entry#import()
-let s:WordEntry    = esearch#ui#menu#word_entry#import()
+let s:BoundEntry    = esearch#ui#menu#bound_entry#import()
 let s:SearchPrompt = esearch#ui#prompt#search#import()
 
 let s:Menu = esearch#ui#component()
 
+let s:case_keys  = ['s', "\<C-s>"]
+let s:regex_keys = ['r', "\<C-r>"]
+let s:bound_keys = ['b', "\<C-b>"]
+let s:path_keys  = ['p', "\<C-p>"]
+let s:keys = s:case_keys + s:regex_keys + s:bound_keys + s:path_keys + ["\<Enter>"]
+
 fu! s:Menu.new(props) abort dict
   let instance = extend(copy(self), {'props': a:props})
   let instance.items = [
-        \   s:CaseEntry.new({'keys':  ['s', "\<C-s>"]}),
-        \   s:RegexEntry.new({'keys': ['r', "\<C-r>"]}),
-        \   s:WordEntry.new({'keys':  ['b', "\<C-b>"]}),
-        \   s:PathEntry.new({'keys':  ['p', "\<C-p>"]}),
+        \   s:CaseEntry.new({'keys':  s:case_keys}),
+        \   s:RegexEntry.new({'keys': s:regex_keys}),
+        \   s:BoundEntry.new({'keys':  s:bound_keys}),
+        \   s:PathEntry.new({'keys':  s:path_keys}),
         \ ]
   let instance.height = len(instance.items)
   let instance.prompt = s:SearchPrompt.new()
@@ -34,11 +41,18 @@ fu! s:Menu.render() abort dict
 endfu
 
 fu! s:Menu.keypress(event) abort dict
-  if a:event.key ==# "\<Enter>"
+  let is_handled = 0
+  let key = a:event.key
+
+  if !s:List.has(s:keys, key)
+    " TODO show an error
+    return is_handled
+  endif
+
+  if key ==# "\<Enter>"
     return self.items[self.props.cursor].keypress(a:event)
   end
 
-  let is_handled = 0
   for item in self.items
     let is_handled = (item.keypress(a:event) ? 1 : is_handled)
   endfor

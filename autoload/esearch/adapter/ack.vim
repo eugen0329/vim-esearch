@@ -4,7 +4,6 @@ endfu
 
 let s:Ack = {}
 if exists('g:esearch#adapter#ack#bin')
-  " TODO warn deprecated
   let s:Ack.bin = g:esearch#adapter#ack#bin
 else
   let s:Ack.bin = 'ack'
@@ -15,16 +14,17 @@ if exists('g:esearch#adapter#ack#options')
 else
   let s:Ack.options = ''
 endif
-let s:Ack.mandatory_options = '--nogroup --nocolor --noheading'
+let s:Ack.mandatory_options = '--nogroup --nocolor --noheading --with-filename'
 let s:Ack.spec = {
       \   '_regex': ['literal', 'pcre'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--literal'},
       \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
-      \   'word': {
-      \     'any':       {'icon': '',  'option': ''},
-      \     'whole':     {'icon': 'w', 'option': '--word-regexp'},
+      \   '_bound': ['disabled', 'word'],
+      \   'bound': {
+      \     'disabled':  {'icon': '',  'option': ''},
+      \     'word':      {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
       \   'case': {
@@ -36,7 +36,7 @@ let s:Ack.spec = {
 
 fu! s:Ack.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.word[a:esearch.word].option
+  let c = self.spec.bound[a:esearch.bound].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

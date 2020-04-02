@@ -1,6 +1,6 @@
 let s:Case  = esearch#ui#prompt#case#import()
 let s:Regex = esearch#ui#prompt#regex#import()
-let s:Word  = esearch#ui#prompt#word#import()
+let s:Bound = esearch#ui#prompt#bound#import()
 
 let s:SearchPrompt = esearch#ui#component()
 
@@ -9,7 +9,7 @@ fu! s:SearchPrompt.new(props) abort dict
   let instance.items = [
         \ s:Case.new({'key': 's'}),
         \ s:Regex.new({'key': 'r'}),
-        \ s:Word.new({'key': 'w'}),
+        \ s:Bound.new({'key': 'w'}),
         \ ]
   let instance.height = len(instance.items)
 

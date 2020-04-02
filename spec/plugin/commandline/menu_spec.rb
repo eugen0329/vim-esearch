@@ -20,7 +20,7 @@ describe 'esearch#cmdline menu', :commandline do
         it "sets #{options} using hotkey #{hotkey}" do
           expect {
             editor.send_keys(*open_input_keys, *open_menu_keys)
-            editor.send_keys(hotkey, :escape, 'search str', :enter)
+            editor.send_keys(hotkey, close_menu_key, 'search str', :enter)
           }.to set_global_options(options)
             .and start_search_with_options(options)
             .and finish_search_for('search str')
@@ -72,7 +72,7 @@ describe 'esearch#cmdline menu', :commandline do
 
           it 'locates "regex" option' do
             expect {
-              editor.send_keys_separately(*keys, :enter, :escape, 'search string', :enter)
+              editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter)
             }.to change { menu_items }
               .from(match_array([
                 start_with('> s '),
@@ -96,7 +96,7 @@ describe 'esearch#cmdline menu', :commandline do
           include_context 'opened menu testing'
 
           it 'locates "word" option' do
-            expect { editor.send_keys_separately(*keys, :enter, :escape, 'search string', :enter) }
+            expect { editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter) }
               .to change { menu_items }
               .from(match_array([
                 start_with('> s '),
@@ -122,7 +122,7 @@ describe 'esearch#cmdline menu', :commandline do
           it 'locates "case" option' do
             expect {
               editor.send_keys(*keys)
-              editor.send_keys(:enter, :escape, 'search string', :enter)
+              editor.send_keys(:enter, close_menu_key, 'search string', :enter)
             }.to set_global_options('case' => 1)
               .and start_search_with_options('case' => 1)
           end
@@ -156,7 +156,7 @@ describe 'esearch#cmdline menu', :commandline do
       context 'default hotkeys' do
         before { editor.send_keys(*open_input_keys, *open_menu_keys) }
 
-        it { expect { editor.send_keys(:escape) }.to change { editor.mode }.to(:commandline) }
+        it { expect { editor.send_keys(close_menu_key) }.to change { editor.mode }.to(:commandline) }
       end
 
       context 'cursor position' do

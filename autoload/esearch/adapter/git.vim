@@ -21,16 +21,17 @@ endif
 " -I - don't search binary files
 let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
 let s:Git.spec = {
-      \   '_regex': ['literal', 'perl'],
+      \   '_regex': ['literal', 'basic'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '--fixed-strings'},
       \     'basic':    {'icon': 'G', 'option': '--basic-regexp'},
       \     'extended': {'icon': 'E', 'option': '--extended-regexp'},
       \     'perl':     {'icon': 'P', 'option': '--perl-regexp'},
       \   },
-      \   'word': {
-      \     'any':       {'icon': '',  'option': ''},
-      \     'whole':     {'icon': 'w', 'option': '--word-regexp'},
+      \   '_bound': ['disabled', 'word'],
+      \   'bound': {
+      \     'disabled': {'icon': '',  'option': ''},
+      \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
       \   'case': {
@@ -41,7 +42,7 @@ let s:Git.spec = {
 
 fu! s:Git.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.word[a:esearch.word].option
+  let c = self.spec.bound[a:esearch.bound].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

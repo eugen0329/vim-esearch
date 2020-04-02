@@ -100,8 +100,8 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
   elseif a:action.type ==# 'next_regex'
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
-  elseif a:action.type ==# 'next_word'
-    return extend(copy(a:state), {'word': s:cycle_mode(a:state, 'word')})
+  elseif a:action.type ==# 'next_bound'
+    return extend(copy(a:state), {'bound': s:cycle_mode(a:state, 'bound')})
   elseif a:action.type ==# 'cmdpos'
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
   elseif a:action.type ==# 'paths'

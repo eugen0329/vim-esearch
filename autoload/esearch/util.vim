@@ -132,10 +132,6 @@ fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
   endif
 endfu
 
-fu! esearch#util#shellescape(str) abort
-  return escape(fnameescape(a:str), ';')
-endfu
-
 fu! esearch#util#clip(value, from, to) abort
   " is made inclusive to be compliant with vim internal functions
   if a:value >= a:to
@@ -494,11 +490,6 @@ if !exists('g:esearch#util#ellipsis')
     let g:esearch#util#ellipsis = '|'
   endif
 endif
-
-" let g:esearch#util#mockable = {}
-" fu! g:esearch#util#mockable.echo(string) abort
-"   echo a:string
-" endfu
 
 fu! esearch#util#parse_help_options(command) abort
   let options = {}

@@ -23,7 +23,8 @@ endif
 " -n: output line numbers
 " -R: recursive, follow symbolic links
 " -H: Print the file name for each match.
-let s:Grep.mandatory_options = '-H -R -n'
+" -x: Line regexp
+let s:Grep.mandatory_options = '-H -R -n --color=never'
 let s:Grep.spec = {
       \   '_regex': ['literal', 'basic'],
       \   'regex': {
@@ -32,9 +33,11 @@ let s:Grep.spec = {
       \     'extended': {'icon': 'E', 'option': '-E'},
       \     'perl':     {'icon': 'P', 'option': '-P'},
       \   },
-      \   'word': {
-      \     'any':       {'icon': '',  'option': ''},
-      \     'whole':     {'icon': 'w', 'option': '-w'},
+      \   '_bound': ['disabled', 'word'],
+      \   'bound': {
+      \     'disabled': {'icon': '',  'option': ''},
+      \     'word':     {'icon': 'w', 'option': '-w'},
+      \     'line':     {'icon': 'l', 'option': '-x'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
       \   'case': {
@@ -45,7 +48,7 @@ let s:Grep.spec = {
 
 fu! s:Grep.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.word[a:esearch.word].option
+  let c = self.spec.bound[a:esearch.bound].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

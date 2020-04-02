@@ -7,9 +7,8 @@ fu! s:CaseEntry.render() abort dict
   let hint .= 'toggle case match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.case[self.props.case].option
-  if !empty(option)
-    let result += [['Comment', ' (' . option  . ')']]
-  endif
+  let option = join(filter([self.props.case, option], '!empty(v:val)'), ': ')
+  let result += [['Comment', ' (' . option  . ')']]
 
   return result
 endfu
