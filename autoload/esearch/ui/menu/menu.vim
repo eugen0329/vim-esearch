@@ -35,7 +35,7 @@ fu! s:Menu.render() abort dict
     let result += [['NONE', "\n"]]
   endfor
   let result += self.prompt.render()
-  let result += [['NONE', self.props.str]]
+  let result += [['NONE', self.props.cmdline]]
 
   return result
 endfu
@@ -60,7 +60,7 @@ fu! s:Menu.keypress(event) abort dict
   return is_handled
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['str'])
+let s:map_state_to_props = esearch#util#slice_factory(['cmdline'])
 
 fu! esearch#ui#menu#menu#import() abort
   return esearch#ui#connect(s:Menu, s:map_state_to_props)

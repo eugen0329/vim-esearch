@@ -22,8 +22,8 @@ fu! s:PathInputController.render() abort dict
     endif
   endwhile
 
-  call self.props.dispatch({'type': 'paths', 'paths': paths, 'metadata': metadata})
-  call self.props.dispatch({'type': 'route', 'route': 'menu'})
+  call self.props.dispatch({'type': 'SET_PATHS', 'paths': paths, 'metadata': metadata})
+  call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'menu'})
 endfu
 
 fu! s:map_state_to_props(state) abort dict

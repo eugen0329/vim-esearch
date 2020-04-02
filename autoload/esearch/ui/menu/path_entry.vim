@@ -18,7 +18,7 @@ endfu
 
 fu! s:PathEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
-    call self.props.dispatch({'type': 'route', 'route': 'path_input'})
+    call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'path_input'})
     return 1
   end
 endfu

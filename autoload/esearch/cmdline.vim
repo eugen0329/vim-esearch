@@ -2,7 +2,7 @@ let s:Context = esearch#ui#context()
 let s:Router  = esearch#ui#router#import()
 
 let g:esearch#cmdline#mappings = {
-      \ '<C-o>':      '<Plug>(esearch-cmdline-open-menu)',
+      \ '<C-o>':      '<Plug>(esearch-open-menu)',
       \ '<C-r><C-r>': '<Plug>(esearch-toggle-regex)',
       \ '<C-s><C-s>': '<Plug>(esearch-toggle-case)',
       \ '<C-b><C-b>': '<Plug>(esearch-toggle-word)',
@@ -50,19 +50,19 @@ endif
 fu! esearch#cmdline#read(esearch) abort
   let esearch = s:app(a:esearch)
 
-  if empty(esearch.str)
+  if empty(esearch.cmdline)
     let esearch.exp = {}
     return esearch
   endif
 
   if esearch.is_regex()
-    let esearch.exp.literal = esearch.str
-    let esearch.exp.pcre = esearch.str
-    let esearch.exp.vim = esearch#regex#pcre2vim(esearch.str)
+    let esearch.exp.literal = esearch.cmdline
+    let esearch.exp.pcre = esearch.cmdline
+    let esearch.exp.vim = esearch#regex#pcre2vim(esearch.cmdline)
   else
-    let esearch.exp.literal = esearch.str
-    let esearch.exp.pcre = esearch.str
-    let esearch.exp.vim = '\M'.escape(esearch.str, '\$^')
+    let esearch.exp.literal = esearch.cmdline
+    let esearch.exp.pcre = esearch.cmdline
+    let esearch.exp.vim = '\M'.escape(esearch.cmdline, '\$^')
   endif
 
   return esearch
@@ -90,27 +90,27 @@ fu! s:initial_state(esearch) abort
   let initial_state = a:esearch
   let initial_state.route = 'search_input'
   let initial_state.did_initial = 0
-  let initial_state.str = initial_state.pattern()
-  let initial_state.cmdpos = strchars(initial_state.str) + 1
+  let initial_state.cmdline = initial_state.pattern()
+  let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
   return initial_state
 endfu
 
 fu! s:reducer(state, action) abort
-  if a:action.type ==# 'next_case'
+  if a:action.type ==# 'NEXT_CASE'
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
-  elseif a:action.type ==# 'next_regex'
+  elseif a:action.type ==# 'NEXT_REGEX'
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
-  elseif a:action.type ==# 'next_bound'
+  elseif a:action.type ==# 'NEXT_BOUND'
     return extend(copy(a:state), {'bound': s:cycle_mode(a:state, 'bound')})
-  elseif a:action.type ==# 'cmdpos'
+  elseif a:action.type ==# 'SET_CMDPOS'
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
-  elseif a:action.type ==# 'paths'
+  elseif a:action.type ==# 'SET_PATHS'
     return extend(copy(a:state), {'paths': a:action.paths, 'metadata': a:action.metadata})
-  elseif a:action.type ==# 'did_initial'
+  elseif a:action.type ==# 'SET_DID_INITIAL'
     return extend(copy(a:state), {'did_initial': 1})
-  elseif a:action.type ==# 'str'
-    return extend(copy(a:state), {'str': a:action.str})
-  elseif a:action.type ==# 'route'
+  elseif a:action.type ==# 'SET_CMDLINE'
+    return extend(copy(a:state), {'cmdline': a:action.cmdline})
+  elseif a:action.type ==# 'SET_ROUTE'
     return extend(copy(a:state), {'route': a:action.route})
   else
     throw 'Unknown action ' . string(a:action)

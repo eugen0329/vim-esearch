@@ -41,7 +41,7 @@ fu! s:MenuController.loop() abort dict
     elseif s:List.has(s:up_keys, key)
       call self.cursor_up()
     elseif s:List.has(s:cancel_keys, key)
-      return self.props.dispatch({'type': 'route', 'route': 'search_input'})
+      return self.props.dispatch({'type': 'SET_ROUTE', 'route': 'search_input'})
     else
       if self.menu.keypress({'key': key})
         return

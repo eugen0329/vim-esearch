@@ -15,7 +15,7 @@ endfu
 
 fu! s:CaseEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
-    call self.props.dispatch({'type': 'next_case'})
+    call self.props.dispatch({'type': 'NEXT_CASE'})
   endif
 endfu
 

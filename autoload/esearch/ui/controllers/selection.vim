@@ -13,10 +13,10 @@ fu! s:SelectionController.render() abort dict
     call esearch#ui#render([['NONE', "\n"]])
   endif
   call esearch#ui#render(s:SearchPrompt.new())
-  call esearch#ui#render([['Visual', substitute(self.props.str, "\n", ' ', 'g')]])
+  call esearch#ui#render([['Visual', substitute(self.props.cmdline, "\n", ' ', 'g')]])
 
   let retype = s:null
-  let str =  self.props.str
+  let str =  self.props.cmdline
   let finish = s:false
 
   let char = esearch#util#getchar()
@@ -41,7 +41,7 @@ fu! s:SelectionController.render() abort dict
   return [str, finish, retype]
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['str'])
+let s:map_state_to_props = esearch#util#slice_factory(['cmdline'])
 
 fu! esearch#ui#controllers#selection#import() abort
   return esearch#ui#connect(s:SelectionController, s:map_state_to_props)
