@@ -31,10 +31,12 @@ fu! esearch#opts#new(opts) abort
   " pt implicitly matches using regexp when ignore-case mode is enabled. Setting
   " case mode to 'sensitive' makes pt adapter more predictable and slightly
   " more similar to the default behavior of other adapters.
-  if opts.adapter ==# 'pt'
-    let opts.case = 'sensitive'
-  else
-    let opts.case = 'ignore'
+  if !has_key(opts, 'case')
+    if opts.adapter ==# 'pt'
+      let opts.case = 'sensitive'
+    else
+      let opts.case = 'ignore'
+    endif
   endif
 
   " root_markers are made to correspond g:ctrlp_root_markers default value

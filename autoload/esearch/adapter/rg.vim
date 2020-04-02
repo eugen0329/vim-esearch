@@ -25,7 +25,7 @@ let s:Rg.spec = {
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
       \     'crate':     {'icon': 'r', 'option': ''},
-      \     'pcre2':     {'icon': 'P', 'option': '--pcre2'},
+      \     'pcre':      {'icon': 'P', 'option': '--pcre2'},
       \   },
       \   '_bound': ['disabled', 'word'],
       \   'bound': {

@@ -346,11 +346,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#system', :system do
-    before do
-      editor.command <<~VIML
-        let g:esearch_out_win_render_using_lua = 0
-      VIML
-    end
+    before { editor.command('let g:esearch_out_win_render_using_lua = 0') }
 
     include_context 'a backend',   'system'
     include_context 'a backend 2', 'system'

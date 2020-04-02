@@ -21,7 +21,7 @@ fu! s:split_to_keys(lhs) abort "{{{2
   return split(a:lhs, '\(<[^<>]\+>\|.\)\zs')
 endfu
 
-fu esearch#mappings#restorable(mode, pairs, ...) abort
+fu! esearch#mappings#restorable(mode, pairs, ...) abort
   return s:Guard.store(a:mode, a:pairs, get(a:000, 0, {}))
 endfu
 
