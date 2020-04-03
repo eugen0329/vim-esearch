@@ -18,11 +18,23 @@ endfu
 fu! s:IncrementableEntry.keypress(event) abort dict
   let stop_propagation = 0
 
-  if self.props['-'] ==# a:event.key || a:event.target == self && a:event.key ==# '-'
+  " TODO compact
+  if self.props['-'] ==# a:event.key || a:event.target == self && s:List.has(["\<C-x>", '-'], a:event.key)
     call self.props.dispatch({'type': 'DECREMENT', 'name': self.props.name})
     let stop_propagation = 1
-  elseif self.props['+'] ==# a:event.key || a:event.target == self && a:event.key ==# '+'
+  elseif self.props['+'] ==# a:event.key || a:event.target == self && s:List.has(["\<C-a>", '+'], a:event.key)
     call self.props.dispatch({'type': 'INCREMENT', 'name': self.props.name})
+    let stop_propagation = 1
+  elseif a:event.target == self && s:List.has(["\<BS>"], a:event.key)
+    let value = self.props.value / 10
+    call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': value})
+    let stop_propagation = 1
+  elseif a:event.target == self && s:List.has(["\<Del>"], a:event.key)
+    call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': 0})
+    let stop_propagation = 1
+  elseif a:event.target == self && a:event.key =~# '^\d$'
+    let value =  abs(self.props.value * 10 + str2nr(a:event.key))
+    call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': value})
     let stop_propagation = 1
   endif
 

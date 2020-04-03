@@ -108,6 +108,10 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'textobj': s:cycle_mode(a:state, 'textobj')})
   elseif a:action.type ==# 'SET_CURSOR'
     return extend(copy(a:state), {'cursor': a:action.cursor})
+  elseif a:action.type ==# 'SET_VALUE'
+    let settable = {}
+    let settable[a:action.name] = a:action.value
+    return extend(copy(a:state), settable)
   elseif a:action.type ==# 'INCREMENT'
     let incrementable = {}
     let incrementable[a:action.name] = a:state[a:action.name] + 1

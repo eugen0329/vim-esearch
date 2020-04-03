@@ -8,16 +8,18 @@ let s:SearchPrompt       = esearch#ui#prompt#search#import()
 
 let s:Menu = esearch#ui#component()
 
-let s:case_keys    = ['s', "\<C-s>"]
-let s:regex_keys   = ['r', "\<C-r>"]
-let s:textobj_keys = ['t', "\<C-t>"]
-let s:path_keys    = ['p', "\<C-p>"]
-let s:after_keys   = ['a', 'A']
-let s:before_keys  = ['b', 'B']
-let s:context_keys = ['c', 'C']
+let s:case_keys          = ['s', "\<C-s>"]
+let s:regex_keys         = ['r', "\<C-r>"]
+let s:textobj_keys       = ['t', "\<C-t>"]
+let s:path_keys          = ['p', "\<C-p>"]
+let s:after_keys         = ['a', 'A']
+let s:before_keys        = ['b', 'B']
+let s:context_keys       = ['c', 'C']
+let s:incrementable_keys = ["\<C-a>", "\<C-x>"]
 
 let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys
-      \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", '+', '-']
+      \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", "\<Del>", "\<BS>", '+', '-'] + s:incrementable_keys
+      \ + map(range(0, 9), 'string(v:val)')
 
 fu! s:Menu.new(props) abort dict
   let instance = extend(copy(self), {'props': a:props})
