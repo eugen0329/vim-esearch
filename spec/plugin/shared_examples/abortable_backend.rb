@@ -23,7 +23,6 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     esearch.configuration.adapter_bin =
       "sh #{Configuration.scripts_dir}/#{infinity_search_executable} #{adapter}"
     esearch.configuration.submit!
-    require 'pry'; binding.pry
     e.run
     esearch.configuration.adapter_bin = adapter
   end
