@@ -5,7 +5,7 @@ let g:esearch#cmdline#mappings = {
       \ '<C-o>':      '<Plug>(esearch-open-menu)',
       \ '<C-r><C-r>': '<Plug>(esearch-toggle-regex)',
       \ '<C-s><C-s>': '<Plug>(esearch-toggle-case)',
-      \ '<C-b><C-b>': '<Plug>(esearch-toggle-word)',
+      \ '<C-f><C-f>': '<Plug>(esearch-toggle-word)',
       \}
 
 if !exists('g:esearch#cmdline#dir_icon')
@@ -104,8 +104,8 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
   elseif a:action.type ==# 'NEXT_REGEX'
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
-  elseif a:action.type ==# 'NEXT_BOUND'
-    return extend(copy(a:state), {'bound': s:cycle_mode(a:state, 'bound')})
+  elseif a:action.type ==# 'NEXT_FULL'
+    return extend(copy(a:state), {'full': s:cycle_mode(a:state, 'full')})
   elseif a:action.type ==# 'SET_CURSOR'
     return extend(copy(a:state), {'cursor': a:action.cursor})
   elseif a:action.type ==# 'INCREMENT'

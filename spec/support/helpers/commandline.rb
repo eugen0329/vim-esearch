@@ -35,7 +35,7 @@ module Helpers::Commandline
     esearch
       .output
       .echo_calls_history[..-2]
-      .last(4)
+      .last(7)
       .map { |s| s.gsub(/pattern [>\w]{3} /, '') } # TODO
   end
 

@@ -21,7 +21,7 @@ fu! esearch#init(...) abort
 
   let g:esearch.last_search     = esearch.exp
   let g:esearch.case            = esearch.case
-  let g:esearch.bound           = esearch.bound
+  let g:esearch.full           = esearch.full
   let g:esearch.regex           = esearch.regex
   let g:esearch.paths           = esearch.paths
   let g:esearch.metadata        = esearch.metadata
@@ -70,10 +70,10 @@ fu! s:new(esearch) abort
   endif
   if has_key(esearch, 'word')
     " TODO warn deprecated
-    let esearch.bound = esearch.current_adapter.spec._bound[!!esearch.word]
+    let esearch.full = esearch.current_adapter.spec._full[!!esearch.word]
   endif
-  if type(esearch.bound) !=# type('')
-    let esearch.bound = esearch.current_adapter.spec._bound[!!esearch.bound]
+  if type(esearch.full) !=# type('')
+    let esearch.full = esearch.current_adapter.spec._full[!!esearch.full]
   endif
 
   if !has_key(esearch, 'cwd')
@@ -104,7 +104,7 @@ fu! s:title(esearch, pattern) abort
   let format = s:title_format(a:esearch)
   let modifiers = ''
   let modifiers .= a:esearch.case ==# 'ignore' ? 'i' : ''
-  let modifiers .= a:esearch.bound ==# 'word' ? 'w' : ''
+  let modifiers .= a:esearch.full ==# 'word' ? 'w' : ''
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 

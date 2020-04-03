@@ -4,7 +4,7 @@ let s:CaseEntry = esearch#ui#component()
 
 fu! s:CaseEntry.render() abort dict
   let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
-  let hint .= 'toggle case match'
+  let hint .= 'case match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.case[self.props.case].option
   let option = join(filter([self.props.case, option], '!empty(v:val)'), ': ')

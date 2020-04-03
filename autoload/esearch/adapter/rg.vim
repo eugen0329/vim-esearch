@@ -27,9 +27,9 @@ let s:Rg.spec = {
       \     'crate':     {'icon': 'r', 'option': ''},
       \     'pcre':      {'icon': 'P', 'option': '--pcre2'},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled': {'icon': '',  'option': ''},
+      \   '_full': ['none', 'word'],
+      \   'full': {
+      \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \     'line':     {'icon': 'l', 'option': '--line-regexp'},
       \   },
@@ -43,7 +43,7 @@ let s:Rg.spec = {
 
 fu! s:Rg.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
+  let c = self.spec.full[a:esearch.full].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

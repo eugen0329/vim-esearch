@@ -5,7 +5,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#out#win#open#do(opener, ...) abort dict
-  if !self.is_current() | return | endif
+  if !self.is_current() || self.is_blank() | return | endif
   let filename = self.filename()
   if empty(filename) | return | endif
 

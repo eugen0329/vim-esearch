@@ -657,7 +657,7 @@ endfu
 fu! esearch#util#is_visual() abort
   " From :h mode()
   " Note that in the future more modes and more specific modes may
-  " be added. It's better not to compare the whole string but only
+  " be added. It's better not to compare the full string but only
   " the leading character(s).
   return mode() =~? "^[vS\<C-v>]"
 endfu

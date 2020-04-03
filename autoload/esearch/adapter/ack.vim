@@ -21,9 +21,9 @@ let s:Ack.spec = {
       \     'literal':   {'icon': '',  'option': '--literal'},
       \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled':  {'icon': '',  'option': ''},
+      \   '_full': ['none', 'word'],
+      \   'full': {
+      \     'none':      {'icon': '',  'option': ''},
       \     'word':      {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
@@ -36,7 +36,7 @@ let s:Ack.spec = {
 
 fu! s:Ack.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
+  let c = self.spec.full[a:esearch.full].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

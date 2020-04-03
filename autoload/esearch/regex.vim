@@ -16,7 +16,7 @@ fu! esearch#regex#finalize(exp, opts) abort
   let vexp = a:exp.vim
   " let vexp = escape(vexp, '$')
 
-  if a:opts.bound ==# 'word'
+  if a:opts.full ==# 'word'
     let vexp = '\%(\<\|\>\)'.vexp.'\%(\<\|\>\)'
   endif
 

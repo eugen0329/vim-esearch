@@ -23,9 +23,9 @@ let s:Pt.spec = {
       \     'literal':   {'icon': '',  'option': ''},
       \     're2':       {'icon': 'r', 'option': '-e'},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled': {'icon': '',  'option': ''},
+      \   '_full': ['none', 'word'],
+      \   'full': {
+      \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
@@ -38,7 +38,7 @@ let s:Pt.spec = {
 
 fu! s:Pt.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
+  let c = self.spec.full[a:esearch.full].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

@@ -29,23 +29,23 @@ describe 'esearch#cmdline menu', :commandline do
 
       context 'default mappings' do
         context 'when enabling options' do
-          before { esearch.configure!(adapter: 'ag', bound: 'disabled', case: 'ignore', regex: 'literal') }
+          before { esearch.configure!(adapter: 'ag', full: 0, case: 'ignore', regex: 'literal') }
 
           include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'sensitive'
           include_examples 'it sets options using hotkey', 's',       'case'  => 'sensitive'
 
-          include_examples 'it sets options using hotkey', '\\<C-b>', 'bound'  => 'word'
-          include_examples 'it sets options using hotkey', 'b',       'bound'  => 'word'
+          include_examples 'it sets options using hotkey', '\\<C-f>', 'full'  => 'word'
+          include_examples 'it sets options using hotkey', 'f',       'full'  => 'word'
 
           include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'pcre'
           include_examples 'it sets options using hotkey', 'r',       'regex' => 'pcre'
         end
 
         context 'when disabling options' do
-          before { esearch.configure!(adapter: 'ag', bound: 'word', regex: 'pcre') }
+          before { esearch.configure!(adapter: 'ag', full: 'word', regex: 'pcre') }
 
-          include_examples 'it sets options using hotkey', '\\<C-b>', 'bound'  => 'disabled'
-          include_examples 'it sets options using hotkey', 'b',       'bound'  => 'disabled'
+          include_examples 'it sets options using hotkey', '\\<C-f>', 'full'  => 'none'
+          include_examples 'it sets options using hotkey', 'f',       'full'  => 'none'
 
           include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'literal'
           include_examples 'it sets options using hotkey', 'r',       'regex' => 'literal'
@@ -74,19 +74,24 @@ describe 'esearch#cmdline menu', :commandline do
           include_context 'opened menu testing'
 
           it 'locates "regex" menu entry' do
-            expect {
-              editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter)
-            }.to change { menu_items }
+            expect { editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter) }
+              .to change { menu_items }
               .from(match_array([
                 start_with('> s '),
                 start_with('  r '),
-                start_with('  b '),
-                start_with('  p ')
+                start_with('  f '),
+                start_with('  p '),
+                start_with('  aA '),
+                start_with('  bB '),
+                start_with('  cC ')
               ])).to(match_array([
                 start_with('  s '),
                 start_with('> r '),
-                start_with('  b '),
-                start_with('  p ')
+                start_with('  f '),
+                start_with('  p '),
+                start_with('  aA '),
+                start_with('  bB '),
+                start_with('  cC ')
               ]))
               .and set_global_options('regex' => 'pcre')
               .and start_search_with_options('regex' => 'pcre')
@@ -94,26 +99,32 @@ describe 'esearch#cmdline menu', :commandline do
         end
       end
 
-      shared_examples 'it locates "bound" menu items by pressing' do |keys:|
+      shared_examples 'it locates "full" menu items by pressing' do |keys:|
         context "when pressing #{keys}" do
           include_context 'opened menu testing'
 
-          it 'locates "bound" menu entry' do
+          it 'locates "full" menu entry' do
             expect { editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter) }
               .to change { menu_items }
               .from(match_array([
                 start_with('> s '),
                 start_with('  r '),
-                start_with('  b '),
-                start_with('  p ')
+                start_with('  f '),
+                start_with('  p '),
+                start_with('  aA '),
+                start_with('  bB '),
+                start_with('  cC ')
               ])).to(match_array([
                 start_with('  s '),
                 start_with('  r '),
-                start_with('> b '),
-                start_with('  p ')
+                start_with('> f '),
+                start_with('  p '),
+                start_with('  aA '),
+                start_with('  bB '),
+                start_with('  cC ')
               ]))
-              .and set_global_options('bound' => 'word')
-              .and start_search_with_options('bound' => 'word')
+              .and set_global_options('full' => 'word')
+              .and start_search_with_options('full' => 'word')
           end
         end
       end
@@ -123,10 +134,8 @@ describe 'esearch#cmdline menu', :commandline do
           include_context 'opened menu testing'
 
           it 'locates "case" menu entry' do
-            expect {
-              editor.send_keys(*keys)
-              editor.send_keys(:enter, close_menu_key, 'search string', :enter)
-            }.to set_global_options('case' => 'sensitive')
+            expect { editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter) }
+              .to set_global_options('case' => 'sensitive')
               .and start_search_with_options('case' => 'sensitive')
           end
         end
@@ -134,22 +143,25 @@ describe 'esearch#cmdline menu', :commandline do
 
       context 'default hotkeys' do
         ## Menu outlook is:
-        # > s       toggle case sensitive match
-        #   r       toggle regexp match
-        #   b       toggle bound match
-        #   p       edit paths
+        # > s      toggle case match
+        #   r      toggle regexp match
+        #   f      toggle full textobj match
+        #   p      edit paths
+        #   aA     adjust after (0)
+        #   bB     adjust before (0)
+        #   cC     adjust context (1)
 
         include_examples 'it locates "regex" menu items by pressing', keys: ['j']
         include_examples 'it locates "regex" menu items by pressing', keys: ['\\<C-j>']
 
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['kk']
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['jj']
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['\\<C-k>\\<C-k>']
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['\\<C-j>\\<C-j>']
+        include_examples 'it locates "full" menu items by pressing',  keys: ['k'] * 5
+        include_examples 'it locates "full" menu items by pressing',  keys: ['j'] * 2
+        include_examples 'it locates "full" menu items by pressing',  keys: ['\\<C-k>'] * 5
+        include_examples 'it locates "full" menu items by pressing',  keys: ['\\<C-j>'] * 2
 
         include_examples 'it locates "case" menu items by pressing',  keys: []
-        include_examples 'it locates "case" menu items by pressing',  keys: ['jjjj']
-        include_examples 'it locates "case" menu items by pressing',  keys: ['kkkk']
+        include_examples 'it locates "case" menu items by pressing',  keys: ['j'] * 7
+        include_examples 'it locates "case" menu items by pressing',  keys: ['k'] * 7
       end
     end
 

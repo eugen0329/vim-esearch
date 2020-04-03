@@ -38,7 +38,7 @@ endfu
 
 fu! s:MenuController.force_update() abort dict
   let self.menu = self.props.menu_class.new({'cursor': self.props.cursor})
-  echo '' | redraw
+  echo '' | redraw!
   call esearch#ui#render(self.menu)
 endfu
 
