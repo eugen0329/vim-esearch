@@ -46,8 +46,10 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   pending! '/(?<name>', /reported_errors/, adapter: :rg, matching: :regexp
 
   # TODO: investigate
-  skip! '/3\d+5/', :osx, adapter: :git, matching: :regexp
-  skip! '/3\d*5/', :osx, adapter: :git, matching: :regexp
+  skip! '/3\d+5/', adapter: :git, matching: :regexp
+  skip! '/3\d*5/', adapter: :git, matching: :regexp
+  skip! '/3\d+5/', adapter: :grep, matching: :regexp
+  skip! '/3\d*5/', adapter: :grep, matching: :regexp
 
   # TODO: investigate
   random_failure! 'aborts on search restart', /.*/, :osx, backend: :vimproc
