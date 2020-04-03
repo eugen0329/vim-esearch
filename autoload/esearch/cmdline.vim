@@ -1,5 +1,5 @@
 let s:Context = esearch#ui#context()
-let s:Router  = esearch#ui#router#import()
+let s:App  = esearch#ui#app#import()
 
 let g:esearch#cmdline#mappings = {
       \ '<C-o>':      '<Plug>(esearch-open-menu)',
@@ -76,10 +76,13 @@ fu! s:app(esearch) abort
   let initial_state = s:initial_state(a:esearch)
   let store = esearch#ui#create_store(function('<SID>reducer'), initial_state)
   let context = s:Context.new().provide({'store': store})
+  let app = s:App.new(store)
+
   try
-    while s:Router.new().render()
+    while app.render()
     endwhile
   finally
+    call app.component_will_unmount()
     call context.restore()
   endtry
 
@@ -88,8 +91,9 @@ endfu
 
 fu! s:initial_state(esearch) abort
   let initial_state = a:esearch
-  let initial_state.route = 'search_input'
+  let initial_state.location = 'search_input'
   let initial_state.did_initial = 0
+  let initial_state.cursor = 0
   let initial_state.cmdline = initial_state.pattern()
   let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
   return initial_state
@@ -102,6 +106,16 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
   elseif a:action.type ==# 'NEXT_BOUND'
     return extend(copy(a:state), {'bound': s:cycle_mode(a:state, 'bound')})
+  elseif a:action.type ==# 'SET_CURSOR'
+    return extend(copy(a:state), {'cursor': a:action.cursor})
+  elseif a:action.type ==# 'INCREMENT'
+    let incrementable = {}
+    let incrementable[a:action.name] = a:state[a:action.name] + 1
+    return extend(copy(a:state), incrementable)
+  elseif a:action.type ==# 'DECREMENT'
+    let decrementable = {}
+    let decrementable[a:action.name] = max([0, a:state[a:action.name] - 1])
+    return extend(copy(a:state), decrementable)
   elseif a:action.type ==# 'SET_CMDPOS'
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
   elseif a:action.type ==# 'SET_PATHS'
@@ -110,8 +124,8 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'did_initial': 1})
   elseif a:action.type ==# 'SET_CMDLINE'
     return extend(copy(a:state), {'cmdline': a:action.cmdline})
-  elseif a:action.type ==# 'SET_ROUTE'
-    return extend(copy(a:state), {'route': a:action.route})
+  elseif a:action.type ==# 'SET_LOCATION'
+    return extend(copy(a:state), {'location': a:action.location})
   else
     throw 'Unknown action ' . string(a:action)
   endif

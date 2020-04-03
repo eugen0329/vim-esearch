@@ -33,7 +33,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
       let [self.cmdline, finish, retype] = s:SelectionController.new().render()
       if finish
         call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': self.cmdline})
-        call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'exit'})
+        call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
         return s:false
       elseif !empty(retype)
         call feedkeys(retype)
@@ -59,7 +59,7 @@ fu! s:SearchInputController.render_input() abort
   endif
 
   call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': self.cmdline})
-  call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'exit'})
+  call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
 endfu
 
 fu! s:SearchInputController.input() abort dict
@@ -79,7 +79,7 @@ endfu
 
 fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': s:self.cmdline})
-  call s:self.props.dispatch({'type': 'SET_ROUTE', 'route': 'menu'})
+  call s:self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
 fu! s:next_mode(event_type) abort dict

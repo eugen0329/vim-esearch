@@ -1,27 +1,37 @@
-let s:List         = vital#esearch#import('Data.List')
-let s:PathEntry    = esearch#ui#menu#path_entry#import()
-let s:CaseEntry    = esearch#ui#menu#case_entry#import()
-let s:RegexEntry   = esearch#ui#menu#regex_entry#import()
-let s:BoundEntry   = esearch#ui#menu#bound_entry#import()
-let s:SearchPrompt = esearch#ui#prompt#search#import()
+let s:List               = vital#esearch#import('Data.List')
+let s:PathEntry          = esearch#ui#menu#path_entry#import()
+let s:CaseEntry          = esearch#ui#menu#case_entry#import()
+let s:RegexEntry         = esearch#ui#menu#regex_entry#import()
+let s:BoundEntry         = esearch#ui#menu#bound_entry#import()
+let s:IncrementableEntry = esearch#ui#menu#incrementable_entry#import()
+let s:SearchPrompt       = esearch#ui#prompt#search#import()
 
 let s:Menu = esearch#ui#component()
 
-let s:case_keys  = ['s', "\<C-s>"]
-let s:regex_keys = ['r', "\<C-r>"]
-let s:bound_keys = ['b', "\<C-b>"]
-let s:path_keys  = ['p', "\<C-p>"]
-let s:keys = s:case_keys + s:regex_keys + s:bound_keys + s:path_keys + ["\<Enter>"]
+let s:case_keys          = ['s', "\<C-s>"]
+let s:regex_keys         = ['r', "\<C-r>"]
+let s:bound_keys         = ['b', "\<C-b>"]
+let s:path_keys          = ['p', "\<C-p>"]
+let s:after_keys         = ['a', 'A']
+let s:before_keys        = ['b', 'B']
+let s:context_keys       = ['c', 'C']
+
+let s:keys = s:case_keys + s:regex_keys + s:bound_keys + s:path_keys
+      \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", '+', '-']
 
 fu! s:Menu.new(props) abort dict
   let instance = extend(copy(self), {'props': a:props})
+
   let instance.items = [
         \   s:CaseEntry.new({'keys':  s:case_keys}),
         \   s:RegexEntry.new({'keys': s:regex_keys}),
         \   s:BoundEntry.new({'keys':  s:bound_keys}),
         \   s:PathEntry.new({'keys':  s:path_keys}),
+        \   s:IncrementableEntry.new({'-': 'a', '+': 'A', 'name': 'after', 'value': a:props.after}),
+        \   s:IncrementableEntry.new({'-': 'b', '+': 'B', 'name': 'before', 'value': a:props.before}),
+        \   s:IncrementableEntry.new({'-': 'c', '+': 'C', 'name': 'context', 'value': a:props.context}),
         \ ]
-  let instance.height = len(instance.items)
+  let instance.height = len(instance.items) + 1 " + height
   let instance.prompt = s:SearchPrompt.new()
 
   return instance
@@ -41,12 +51,12 @@ fu! s:Menu.render() abort dict
 endfu
 
 fu! s:Menu.keypress(event) abort dict
-  let is_handled = 0
+  let stop_propagation = 0
   let key = a:event.key
 
   if !s:List.has(s:keys, key)
     " TODO show an error
-    return is_handled
+    return stop_propagation
   endif
 
   if key ==# "\<Enter>"
@@ -54,13 +64,17 @@ fu! s:Menu.keypress(event) abort dict
   end
 
   for item in self.items
-    let is_handled = (item.keypress(a:event) ? 1 : is_handled)
+    let stop_propagation = item.keypress(a:event)
+
+    if stop_propagation
+      break
+    endif
   endfor
 
-  return is_handled
+  return stop_propagation
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['cmdline'])
+let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'after', 'before', 'context'])
 
 fu! esearch#ui#menu#menu#import() abort
   return esearch#ui#connect(s:Menu, s:map_state_to_props)

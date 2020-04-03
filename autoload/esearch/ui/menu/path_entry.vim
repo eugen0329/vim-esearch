@@ -4,7 +4,7 @@ let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:PathEntry  = esearch#ui#component()
 
 fu! s:PathEntry.render() abort dict
-  let text = s:String.pad_right(self.props.keys[0], 8, ' ') . 'edit [path]'
+  let text = s:String.pad_right(self.props.keys[0], 7, ' ') . 'edit [path]'
   let result = [['NONE', text]]
 
   if !empty(self.props.paths)
@@ -18,7 +18,7 @@ endfu
 
 fu! s:PathEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
-    call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'path_input'})
+    call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'path_input'})
     return 1
   end
 endfu

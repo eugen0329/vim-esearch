@@ -6,6 +6,7 @@ fu! s:PathInputController.render() abort dict
   let user_input_in_shell_format =
         \ esearch#shell#fnamesescape_and_join(self.props.paths, self.props.metadata)
 
+  redraw!
   while 1
     let user_input_in_shell_format = input('[path] > ',
           \ user_input_in_shell_format,
@@ -23,7 +24,7 @@ fu! s:PathInputController.render() abort dict
   endwhile
 
   call self.props.dispatch({'type': 'SET_PATHS', 'paths': paths, 'metadata': metadata})
-  call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'menu'})
+  call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
 fu! s:map_state_to_props(state) abort dict

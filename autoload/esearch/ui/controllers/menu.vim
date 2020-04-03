@@ -9,77 +9,82 @@ let s:cancel_keys = ["\<Esc>", "\<C-c>", 'q']
 let s:MenuController = esearch#ui#component()
 
 fu! s:MenuController.new(props) abort dict
-  let instance        = extend(copy(self), {'props': a:props})
-  let instance.cursor = 0
-  let instance.menu   = a:props.menu_class.new({'cursor': instance.cursor})
+  let instance      = extend(copy(self), {'props': a:props})
+  let instance.menu = a:props.menu_class.new({'cursor': a:props.cursor})
   return instance
 endfu
 
+" inspired by nerdree menu
 fu! s:MenuController.render() abort dict
-  call self.save_options()
-  try
-    call self.loop()
-  finally
-    call self.restore_options()
-  endtry
+  call self.force_update()
+
+  let key = esearch#util#getchar()
+  if s:List.has(s:down_keys, key)
+    call self.cursor_down()
+  elseif s:List.has(s:up_keys, key)
+    call self.cursor_up()
+  elseif s:List.has(s:cancel_keys, key)
+    return self.props.dispatch({'type': 'SET_LOCATION', 'location': 'search_input'})
+  elseif key ==# 'G'
+    call self.cursor_last()
+  elseif key ==# 'g' && esearch#util#getchar() ==# 'g'
+    call self.cursor_first()
+  else
+    if self.menu.keypress({'key': key, 'target': self.menu.items[self.props.cursor]})
+      return
+    endif
+  endif
 endfu
 
 fu! s:MenuController.force_update() abort dict
-  let self.menu = self.props.menu_class.new({'cursor': self.cursor})
+  let self.menu = self.props.menu_class.new({'cursor': self.props.cursor})
+  echo '' | redraw
   call esearch#ui#render(self.menu)
 endfu
 
-" inspired by nerdree menu
-fu! s:MenuController.loop() abort dict
-  while s:true
-    redraw!
-    call self.force_update()
-
-    let key = esearch#util#getchar()
-    if s:List.has(s:down_keys, key)
-      call self.cursor_down()
-    elseif s:List.has(s:up_keys, key)
-      call self.cursor_up()
-    elseif s:List.has(s:cancel_keys, key)
-      return self.props.dispatch({'type': 'SET_ROUTE', 'route': 'search_input'})
-    else
-      if self.menu.keypress({'key': key})
-        return
-      endif
-    endif
-  endwhile
-endfu
-
-fu! s:MenuController.save_options() abort dict
-  let self.saved_winheight = winheight(0)
-  let self.saved_options = esearch#let#restorable({
+fu! s:MenuController.component_will_mount() abort dict
+  let s:saved_winheight = winheight(0)
+  let s:saved_options = esearch#let#restorable({
         \ '&cmdheight': self.menu.height,
         \ '&lazyredraw': 0,
+        \ '&more': 0,
         \ '&t_ve': '',
         \ '&showtabline': 0})
+  call esearch#ui#flush()
 endfu
 
-fu! s:MenuController.restore_options() abort dict
-  call self.saved_options.restore()
-  exe 'resize ' . self.saved_winheight
+fu! s:MenuController.component_will_unmount() abort dict
+  call s:saved_options.restore()
+  exe 'resize ' . s:saved_winheight
+  redraw!
+endfu
+
+fu! s:MenuController.cursor_first() abort dict
+  call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': 0})
+endfu
+
+fu! s:MenuController.cursor_last() abort dict
+  call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': len(self.menu.items) - 1})
 endfu
 
 fu! s:MenuController.cursor_down() abort dict
-  if self.cursor < len(self.menu.items) - 1
-    let self.cursor += 1
+  if self.props.cursor < len(self.menu.items) - 1
+    call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': self.props.cursor + 1})
   else
-    let self.cursor = 0
+    call self.cursor_first()
   endif
 endfu
 
 fu! s:MenuController.cursor_up() abort dict
-  if self.cursor > 0
-    let self.cursor -= 1
+  if self.props.cursor > 0
+    call self.props.dispatch({'type': 'SET_CURSOR', 'cursor': self.props.cursor - 1})
   else
-    let self.cursor = len(self.menu.items) - 1
+    call self.cursor_last()
   endif
 endfu
 
+let s:map_state_to_props = esearch#util#slice_factory(['cursor'])
+
 fu! esearch#ui#controllers#menu#import() abort
-  return esearch#ui#connect(s:MenuController)
+  return esearch#ui#connect(s:MenuController, s:map_state_to_props)
 endfu

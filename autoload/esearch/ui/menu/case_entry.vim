@@ -3,7 +3,7 @@ let s:List      = vital#esearch#import('Data.List')
 let s:CaseEntry = esearch#ui#component()
 
 fu! s:CaseEntry.render() abort dict
-  let hint = s:String.pad_right(self.props.keys[0], 8, ' ')
+  let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
   let hint .= 'toggle case match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.case[self.props.case].option

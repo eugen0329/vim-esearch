@@ -48,6 +48,8 @@ fu! esearch#opts#new(opts) abort
         \ 'batch_size':       batch_size,
         \ 'final_batch_size': final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
+        \ 'after':            0,
+        \ 'before':           0,
         \ 'context':          0,
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,

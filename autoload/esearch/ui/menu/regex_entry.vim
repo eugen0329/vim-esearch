@@ -3,7 +3,7 @@ let s:List       = vital#esearch#import('Data.List')
 let s:RegexEntry = esearch#ui#component()
 
 fu! s:RegexEntry.render() abort dict
-  let hint = s:String.pad_right(self.props.keys[0], 8, ' ')
+  let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
   let hint .= 'toggle regex match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.regex[self.props.regex].option
