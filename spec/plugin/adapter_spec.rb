@@ -21,8 +21,7 @@ describe 'esearch#adapter', :adapters do
   shared_examples 'adapter testing examples' do |adapter, adapter_bin|
     describe "##{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
-        esearch.configuration.adapter_bin = adapter_bin if adapter_bin
-        esearch.configure!(
+        esearch.configure(
           adapter:      adapter,
           out:          'win',
           backend:      'system',
@@ -30,6 +29,8 @@ describe 'esearch#adapter', :adapters do
           use:          [],
           root_markers: []
         )
+        esearch.configuration.adapter_bin = adapter_bin if adapter_bin
+        esearch.configuration.submit!
       end
       after { esearch.cleanup! }
       let!(:test_directory) { directory(files).persist! }

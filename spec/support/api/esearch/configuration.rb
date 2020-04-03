@@ -44,7 +44,7 @@ class API::ESearch::Configuration
   end
 
   def adapter_bin=(path)
-    staged_configuration.deep_merge!(adapters: {rg: {bin: path.to_s}})
+    staged_configuration.deep_merge!({adapters: {adapter => {bin: path.to_s}}}.deep_symbolize_keys)
   end
 
   def adapter
