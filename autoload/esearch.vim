@@ -1,8 +1,8 @@
 fu! esearch#init(...) abort
   silent doau User eseach_init_pre
 
-  if s:init_lazy_global_config() != 0
-    return 1
+  if esearch#opts#init_lazy_global_config() != 0
+    return 0
   endif
 
   let esearch = s:new(a:0 ? a:1 : {})
@@ -15,64 +15,96 @@ fu! esearch#init(...) abort
     let esearch.exp = esearch#regex#new(esearch.exp)
   else
     let esearch.exp  = esearch#source#pick_exp(esearch.use, esearch)
-    let adapter_opts = esearch#adapter#{esearch.adapter}#_options()
-    let esearch.exp  = esearch#cmdline#read(esearch, adapter_opts)
+    let esearch      = esearch#cmdline#read(esearch)
     let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
-  let g:esearch.last_search = esearch.exp
-  let g:esearch.case        = esearch.case
-  let g:esearch.word        = esearch.word
-  let g:esearch.regex       = esearch.regex
-  let g:esearch.paths       = esearch.paths
-  let g:esearch.metadata    = esearch.metadata
+  let g:esearch.last_search     = esearch.exp
+  let g:esearch.case            = esearch.case
+  let g:esearch.bound           = esearch.bound
+  let g:esearch.regex           = esearch.regex
+  let g:esearch.paths           = esearch.paths
+  let g:esearch.metadata        = esearch.metadata
+  let g:esearch.adapters        = esearch.adapters
+  let g:esearch.current_adapter = esearch.current_adapter
 
   if empty(esearch.exp)
     return 1
   endif
 
-  let EscapeFunc = function('esearch#backend#'.esearch.backend.'#escape_cmd')
-  let pattern = esearch.regex ? esearch.exp.pcre : esearch.exp.literal
-  let shell_cmd = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, EscapeFunc)
-  let requires_pty = esearch#adapter#{esearch.adapter}#requires_pty()
-  let esearch = extend(esearch, {
-        \ 'title': s:title(esearch, pattern),
-        \}, 'force')
-
+  let Escape = function('esearch#backend#'.esearch.backend.'#escape_cmd')
+  let pattern = esearch.pattern()
+  " let command = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, Escape)
+  let command = esearch.current_adapter.command(esearch, pattern, Escape)
   let esearch.request = esearch#backend#{esearch.backend}#init(
-        \ esearch.cwd, esearch.adapter, shell_cmd, requires_pty)
+        \ esearch.cwd, esearch.adapter, command)
   let esearch.parse = esearch#adapter#parse#funcref()
 
+  let esearch.title = s:title(esearch, pattern)
   call esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! s:new(configuration) abort
-  let configuration = extend(deepcopy(a:configuration),
-        \ deepcopy(g:esearch), 'keep')
-  let configuration = extend(configuration, {
-        \ 'paths': [],
-        \ 'metadata': [],
-        \ 'glob': 0,
+fu! s:new(esearch) abort
+  let esearch = extend(copy(a:esearch), copy(g:esearch), 'keep')
+  let esearch = extend(esearch, {
+        \ 'paths':      [],
+        \ 'metadata':   [],
+        \ 'glob':       0,
         \ 'visualmode': 0,
-        \ 'set_default': function('esearch#util#set_default'),
-        \ 'slice': function('esearch#util#slice')
+        \ 'is_regex':   function('<SID>is_regex'),
+        \ 'pattern':    function('<SID>pattern'),
         \}, 'keep')
 
-  if !has_key(configuration, 'cwd')
-    let configuration.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
+  if has_key(esearch.adapters, esearch.adapter)
+    call extend(esearch.adapters[esearch.adapter], esearch#adapter#{esearch.adapter}#new(), 'keep')
+  else
+    let esearch.adapters[esearch.adapter] = esearch#adapter#{esearch.adapter}#new()
   endif
-  if !has_key(configuration, 'escaped_cwd')
-    let configuration.escaped_cwd = fnameescape(configuration.cwd)
+  let esearch.current_adapter = esearch.adapters[esearch.adapter]
+
+  if type(esearch.regex) !=# type('')
+    let esearch.regex = esearch.current_adapter.spec._regex[!!esearch.regex]
+  endif
+  if type(esearch.case) !=# type('')
+    let esearch.case = esearch.current_adapter.spec._case[!!esearch.case]
+  endif
+  if has_key(esearch, 'word')
+    " TODO warn deprecated
+    let esearch.bound = esearch.current_adapter.spec._bound[!!esearch.word]
+  endif
+  if type(esearch.bound) !=# type('')
+    let esearch.bound = esearch.current_adapter.spec._bound[!!esearch.bound]
   endif
 
-  return configuration
+  if !has_key(esearch, 'cwd')
+    let esearch.cwd = esearch#util#find_root(getcwd(), g:esearch.root_markers)
+  endif
+
+  if type(get(esearch, 'paths', 0)) ==# type('')
+    let [paths, metadata, error] = esearch#shell#split(esearch.paths)
+    if !empty(error)
+      echo " can't parse paths: " . error
+    else
+      let [esearch.paths, esearch.metadata] = [paths, metadata]
+    endif
+  endif
+
+  return esearch
+endfu
+
+fu! s:is_regex() abort dict
+  return self.regex !=# 'literal'
+endfu
+
+fu! s:pattern() abort dict
+  return self.is_regex() ? self.exp.pcre : self.exp.literal
 endfu
 
 fu! s:title(esearch, pattern) abort
   let format = s:title_format(a:esearch)
   let modifiers = ''
-  let modifiers .= a:esearch.case ? 'c' : ''
-  let modifiers .= a:esearch.word ? 'w' : ''
+  let modifiers .= a:esearch.case ==# 'ignore' ? 'i' : ''
+  let modifiers .= a:esearch.bound ==# 'word' ? 'w' : ''
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 
@@ -102,29 +134,6 @@ fu! s:title_format(esearch) abort
   else
     return 'Search `%s`%s'
   endif
-endfu
-
-fu! s:init_lazy_global_config() abort
-  let global_esearch = exists('g:esearch') ? g:esearch : {}
-
-  if type(global_esearch) != type({})
-    echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
-    return 1
-  endif
-
-  if !has_key(global_esearch, 'last_id')
-    let global_esearch.last_id = 0
-  endif
-
-  if !has_key(global_esearch, '__lazy_loaded')
-    let g:esearch = esearch#opts#new(global_esearch)
-    if empty(g:esearch) | return 1 | endif
-    let g:esearch.__lazy_loaded = 1
-  endif
-
-  call esearch#highlight#init()
-
-  return 0
 endfu
 
 fu! esearch#debounce(...) abort

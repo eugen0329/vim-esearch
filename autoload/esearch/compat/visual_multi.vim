@@ -361,7 +361,7 @@ fu! s:vm_icmds_x(cmd) abort
     call r.shift(change, change)
     call s:F.Cursor(r.A)
 
-    " we want to emulate the behaviour that <del> and <bs> have in insert
+    " we want to emulate the behavior that <del> and <bs> have in insert
     " mode, but implemented as normal mode commands
 
     """""" modified block start

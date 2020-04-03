@@ -181,7 +181,7 @@ describe VimlValue::Lexer do
       it { expect(subject.to_a).to        eq(tokens)              }
       it { expect(subject.rewind.to_a).to eq(subject.rewind.to_a) }
 
-      context 'standard enums behaviour correspondence' do
+      context 'standard enums behavior correspondence' do
         it 'rewinds enumerator on call(&block)' do
           expect { lexer.each_token {} }
             .not_to change { lexer.next_token }

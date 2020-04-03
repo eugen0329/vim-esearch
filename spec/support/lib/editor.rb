@@ -265,7 +265,7 @@ class Editor
     reader
       .echo(func('execute', 'messages'))
       .split("\n")
-      .reject { |message| message.include?('E325:') }
+      .reject { |message| message.include?('E325:') || message.blank? }
   end
 
   def split!(path)

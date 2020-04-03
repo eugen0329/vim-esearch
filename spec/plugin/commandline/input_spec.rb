@@ -207,7 +207,7 @@ describe 'esearch#cmdline input', :commandline do
         end
       end
 
-      describe 'retype if key is kind of escape (control-*, alt-*, F1, ..)' do
+      describe 'retype if key is a kind of escape (control-*, alt-*, F1, ..)' do
         context 'defined in g:cmdline_mappings' do
           context 'defaults' do
             include_examples 'it starts search at location "|" after pressing',
@@ -216,7 +216,7 @@ describe 'esearch#cmdline input', :commandline do
               expected_input:  'was|'
 
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-o>', :enter, :enter],
+              keys:            ['\\<C-o>', :enter, :escape, :enter],
               prefilled_input: 'was',
               expected_input:  'was|'
           end

@@ -1,11 +1,10 @@
 let s:Message  = vital#esearch#import('Vim.Message')
 let s:Filepath = vital#esearch#import('System.Filepath')
-let s:List     = vital#esearch#import('Data.List')
 let s:Promise  = vital#esearch#import('Async.Promise')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-let s:pattern_to_filetype = {}
+let g:esearch#ftdetect#pattern2ft = {}
 let s:prewarm = s:null
 let s:setfiletype = ['setfiletype', 'setf']
 
@@ -44,7 +43,7 @@ fu! esearch#ftdetect#complete(filename) abort
   let filetype = esearch#ftdetect#fast(a:filename)
   if filetype isnot# s:null | return filetype | endif
 
-  for [pattern, filetype] in items(s:pattern_to_filetype)
+  for [pattern, filetype] in items(g:esearch#ftdetect#pattern2ft)
     if a:filename =~# pattern
       return filetype
     endif
@@ -58,7 +57,7 @@ fu! esearch#ftdetect#fast(filename) abort
     return s:null
   endif
 
-  if empty(s:pattern_to_filetype) && !s:make_cache()
+  if empty(g:esearch#ftdetect#pattern2ft) && !s:make_cache()
     return ''
   endif
 
@@ -71,12 +70,12 @@ fu! esearch#ftdetect#fast(filename) abort
   endif
 
   let basename_pattern = '^' . basename . '$'
-  if has_key(s:pattern_to_filetype, basename_pattern)
-    return s:pattern_to_filetype[basename_pattern]
+  if has_key(g:esearch#ftdetect#pattern2ft, basename_pattern)
+    return g:esearch#ftdetect#pattern2ft[basename_pattern]
   endif
 
-  if has_key(s:pattern_to_filetype, extension_pattern)
-    return s:pattern_to_filetype[extension_pattern]
+  if has_key(g:esearch#ftdetect#pattern2ft, extension_pattern)
+    return g:esearch#ftdetect#pattern2ft[extension_pattern]
   endif
 
   " is checked last as it's slower then other
@@ -89,7 +88,7 @@ fu! esearch#ftdetect#fast(filename) abort
 endfu
 
 fu! esearch#ftdetect#async_prewarm_cache() abort
-  if s:Promise.is_available()
+  if s:Promise.is_available() && empty(g:esearch#ftdetect#pattern2ft)
     " TODO split captured command lines by chunks and process during multiple calls
     " of blocking_make_cache, otherwise this call doesn't make sense
     let s:prewarm = s:Promise
@@ -115,7 +114,7 @@ fu! s:blocking_make_cache() abort
       let definitions += split(line, '\s\+')
     endif
 
-    if s:List.has(s:setfiletype, definitions[1])
+    if index(s:setfiletype, definitions[1]) >= 0
       " Plain setfiletype
       let filetype = definitions[2]
     elseif definitions[1] ==# 'call' && definitions[2] =~# '^s:\%(StarSetf\|setf\)('
@@ -128,7 +127,7 @@ fu! s:blocking_make_cache() abort
       continue
     endif
 
-    let s:pattern_to_filetype[glob2regpat(definitions[0])] = filetype
+    let g:esearch#ftdetect#pattern2ft[glob2regpat(definitions[0])] = filetype
 
     let definitions = []
   endfor

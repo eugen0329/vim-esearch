@@ -247,7 +247,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'split_preview':            function('<SID>split_preview'),
         \ 'last_split_preview':       {},
         \ 'is_blank':                 function('<SID>is_blank'),
-        \}, 'force')
+        \})
 
   let b:esearch = extend(a:opts, {
         \ 'windows_opened_once': {},
@@ -372,7 +372,7 @@ fu! s:split_preview(...) abort dict
         \ 'stay': 1,
         \ 'once': 1,
         \ 'let!': {'&l:foldenable': 0},
-        \ }, get(a:000, 1, {}), 'force'))
+        \ }, get(a:000, 1, {})))
 endfu
 
 fu! s:cleanup() abort
@@ -576,9 +576,9 @@ endfu
 fu! s:header_text() abort dict
   return printf(s:finished_header,
         \ len(self.request.data),
-        \ esearch#inflector#pluralize('line', len(self.request.data)),
+        \ esearch#util#pluralize('line', len(self.request.data)),
         \ self.files_count,
-        \ esearch#inflector#pluralize('file', self.files_count),
+        \ esearch#util#pluralize('file', self.files_count),
         \ )
 endfu
 
@@ -1073,15 +1073,15 @@ fu! esearch#out#win#finish(bufnr) abort
   endif
   call setbufvar(a:bufnr, '&modifiable', 1)
 
-  if !esearch#adapter#{esearch.adapter}#is_success(esearch.request)
+  if !esearch.current_adapter.is_success(esearch.request)
     call esearch#stderr#finish(esearch)
   endif
 
   call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
         \ len(esearch.request.data),
-        \ esearch#inflector#pluralize('line', len(esearch.request.data)),
+        \ esearch#util#pluralize('line', len(esearch.request.data)),
         \ esearch.files_count,
-        \ esearch#inflector#pluralize('file', b:esearch.files_count),
+        \ esearch#util#pluralize('file', b:esearch.files_count),
         \))
 
   call setbufvar(a:bufnr, '&ma', 0)
@@ -1154,10 +1154,10 @@ fu! s:write() abort
     let lines_stats += [diff.statistics.deleted . ' deleted']
   endif
   let files_stats_text = printf(' %s %s %d %s',
-        \ (len(lines_stats) > 1 ? 'lines' : esearch#inflector#pluralize('line', changes_count)),
+        \ (len(lines_stats) > 1 ? 'lines' : esearch#util#pluralize('line', changes_count)),
         \ (diff.statistics.files > 1 ? 'across' : 'inside'),
         \ diff.statistics.files,
-        \ esearch#inflector#pluralize('file', diff.statistics.files),
+        \ esearch#util#pluralize('file', diff.statistics.files),
         \ )
   let message = 'Write changes? (' . join(lines_stats, ', ') . files_stats_text . ')'
 
@@ -1276,9 +1276,9 @@ fu! s:handle_insert__inline(event) abort
   if line1 == 1
     let text = printf(s:finished_header,
           \ len(b:esearch.request.data),
-          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
+          \ esearch#util#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
-          \ esearch#inflector#pluralize('file', b:esearch.files_count),
+          \ esearch#util#pluralize('file', b:esearch.files_count),
           \ )
     call setline(line1, text)
   elseif line1 == 2 || line1 == context.end && context.end != line('$')
@@ -1341,9 +1341,9 @@ fu! s:handle_normal__inline(event) abort
   if line1 == 1
     call setline(line1, printf(s:finished_header,
           \ len(b:esearch.request.data),
-          \ esearch#inflector#pluralize('line', len(b:esearch.request.data)),
+          \ esearch#util#pluralize('line', len(b:esearch.request.data)),
           \ b:esearch.files_count,
-          \ esearch#inflector#pluralize('file', b:esearch.files_count),
+          \ esearch#util#pluralize('file', b:esearch.files_count),
           \ ))
   elseif line1 == context.begin
     " it's a filename, restoring

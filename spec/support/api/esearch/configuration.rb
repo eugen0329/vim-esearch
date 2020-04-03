@@ -19,7 +19,7 @@ class API::ESearch::Configuration
 
   def configure(options)
     cache.write_multi(options)
-    staged_configuration.merge!(options)
+    staged_configuration.deep_merge!(options.deep_symbolize_keys)
   end
 
   # TODO: a hack that should be rewrited in future
@@ -44,7 +44,7 @@ class API::ESearch::Configuration
   end
 
   def adapter_bin=(path)
-    editor.command!("let g:esearch#adapter##{adapter}#bin = '#{path}'")
+    staged_configuration.deep_merge!({adapters: {adapter => {bin: path.to_s}}}.deep_symbolize_keys)
   end
 
   def adapter

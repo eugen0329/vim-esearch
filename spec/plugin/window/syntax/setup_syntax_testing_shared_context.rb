@@ -15,7 +15,7 @@ RSpec.shared_context 'setup syntax testing' do
       let g:esearch_win_context_syntax_async = 0
       let g:esearch_win_ellipsize_results = 1
     TEARDOWN
-    esearch.search! '^', paths: [source_file.path.to_s]
+    esearch.search! '^', paths: source_file.path.to_s
     expect(esearch).to have_search_finished
   end
   after do
@@ -23,6 +23,9 @@ RSpec.shared_context 'setup syntax testing' do
       let g:esearch_win_context_syntax_async = 1
       let g:esearch_win_ellipsize_results = 0
     TEARDOWN
+    expect(editor.messages).not_to include('Error')
+    expect(editor.messages).not_to match(/E\d{1,4}:/)
+    expect(editor.messages.size).to be < 2
     editor.cleanup!
   end
 

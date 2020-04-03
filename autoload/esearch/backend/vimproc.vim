@@ -17,7 +17,7 @@ let s:incrementable_internal_id = 0
 
 " TODO decouple consuming of data from pipe and output updation processes
 
-fu! esearch#backend#vimproc#init(cwd, adapter, cmd, pty) abort
+fu! esearch#backend#vimproc#init(cwd, adapter, cmd) abort
   let request = {
         \ 'internal_id': s:incrementable_internal_id,
         \ 'format': '%f:%l:%c:%m,%f:%l:%m',
@@ -28,7 +28,6 @@ fu! esearch#backend#vimproc#init(cwd, adapter, cmd, pty) abort
         \ 'data': [],
         \ 'errors': [],
         \ 'async': 1,
-        \ 'pty': a:pty,
         \ 'status': 0,
         \ 'finished': 0,
         \ 'aborted': 0,
@@ -50,7 +49,7 @@ fu! esearch#backend#vimproc#run(request) abort
   let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let pipe = vimproc#popen3(
-          \ vimproc#util#iconv(a:request.command, &encoding, 'char'), a:request.pty)
+          \ vimproc#util#iconv(a:request.command, &encoding, 'char'), 1)
     call pipe.stdin.close()
 
     let a:request.pipe = pipe
@@ -67,7 +66,7 @@ fu! esearch#backend#vimproc#run(request) abort
 endfu
 
 fu! esearch#backend#vimproc#escape_cmd(cmd) abort
-  return esearch#util#shellescape(a:cmd)
+  return escape(fnameescape(a:cmd), ';')
 endfu
 
 fu! s:read_errors(request) abort

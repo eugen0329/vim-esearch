@@ -116,7 +116,7 @@ fu! s:execute(command_string, original_pattern) abort
 endfu
 
 " According to :help, undo block is formed on each change no matter the size.
-" When [c]onfirmation flag is used, :substitute produce undo block on each
+" When [c]onfirmation flag is used, :substitute produce an undo block on each
 " confirmed line, so all the confirmed lines can be pretty reliably (to a
 " certain extent) fetched from undo history.
 fu! s:lookup_confirmations_from_undo(from_block, until_block) abort
@@ -208,7 +208,7 @@ fu! s:parse_substitute(word) abort
 endfu
 
 fu! s:to_str(...) abort dict
-  let parts = extend(copy(self), get(a:000, 0, {}), 'force')
+  let parts = extend(copy(self), get(a:000, 0, {}))
   return parts.range
         \ . parts.command
         \ . parts.slash

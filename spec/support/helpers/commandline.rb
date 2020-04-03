@@ -6,6 +6,10 @@ module Helpers::Commandline
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
 
+  def close_menu_key
+    :escape
+  end
+
   def open_menu_keys
     ['\\<C-o>']
   end
@@ -28,7 +32,11 @@ module Helpers::Commandline
   end
 
   def menu_items
-    esearch.output.echo_calls_history[..-2].last(4)
+    esearch
+      .output
+      .echo_calls_history[..-2]
+      .last(4)
+      .map { |s| s.gsub(/pattern [>\w]{3} /, '') } # TODO
   end
 
   def without_location_mark(location_string)
@@ -153,7 +161,7 @@ module Helpers::Commandline
   end
 
   matcher :set_global_options do |options, timeout: 1|
-    attr_reader :expected, :actual
+    attr_reader :actual
     supports_block_expectations
 
     match do |block|

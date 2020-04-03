@@ -45,7 +45,7 @@ endfu
 fu! esearch#out#qflist#setup_autocmds(opts) abort
   augroup ESearchQFListAutocmds
     au! * <buffer>
-    for [func_name, event] in items(a:opts.request.events)
+    for [func_name, Event] in items(a:opts.request.events)
       let a:opts.request.events[func_name] = function('esearch#out#qflist#' . func_name)
     endfor
     call esearch#backend#{a:opts.backend}#init_events()
@@ -53,7 +53,7 @@ fu! esearch#out#qflist#setup_autocmds(opts) abort
     " Keep only User cmds(reponsible for results updating) and qf initialization
     au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "
 
-    " We need to handle quickfix bufhidden=wipe behaviour
+    " We need to handle quickfix bufhidden=wipe behavior
     if !exists('#ESearchQFListAutocmds#FileType')
       au FileType qf
             \ if exists('g:esearch_qf') && !g:esearch_qf.request.finished && esearch#util#qftype(bufnr('%')) ==# 'qf' |

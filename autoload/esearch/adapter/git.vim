@@ -1,49 +1,57 @@
-if !exists('g:esearch#adapter#git#options')
-  let g:esearch#adapter#git#options = ''
+fu! esearch#adapter#git#new() abort
+  return copy(s:Git)
+endfu
+
+let s:Git = {}
+if exists('g:esearch#adapter#git#bin')
+  " TODO warn deprecated
+  let s:Git.bin = g:esearch#adapter#git#bin
+else
+  let s:Git.bin = 'git'
 endif
-if !exists('g:esearch#adapter#git#bin')
-  let g:esearch#adapter#git#bin = 'git'
+if exists('g:esearch#adapter#git#options')
+  " TODO warn deprecated
+  let s:Git.options = g:esearch#adapter#git#options
+else
+  " -I: Process a binary file as if it did not contain matching data
+  let s:Git.options = '-I '
 endif
 
-fu! esearch#adapter#git#_options() abort
-  if !exists('s:options')
-    if has('macunix')
-      let regex = '-E'
-    else
-      let regex = '--perl-regexp'
-    endif
-    let s:options = {
-    \ 'regex': { 'p': ['--fixed-strings', regex], 's': ['>', 'r'] },
-    \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
-    \ 'word':  { 'p': ['',                '--word-regexp'], 's': ['>', 'w'] },
-    \ 'stringify':   function('esearch#util#stringify'),
-    \ 'parametrize': function('esearch#util#parametrize'),
-    \}
-  endif
-  return s:options
+" -H - show filenames
+" -I - don't search binary files
+let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
+let s:Git.spec = {
+      \   '_regex': ['literal', 'basic'],
+      \   'regex': {
+      \     'literal':  {'icon': '',  'option': '--fixed-strings'},
+      \     'basic':    {'icon': 'G', 'option': '--basic-regexp'},
+      \     'extended': {'icon': 'E', 'option': '--extended-regexp'},
+      \     'pcre':     {'icon': 'P', 'option': '--perl-regexp'},
+      \   },
+      \   '_bound': ['disabled', 'word'],
+      \   'bound': {
+      \     'disabled': {'icon': '',  'option': ''},
+      \     'word':     {'icon': 'w', 'option': '--word-regexp'},
+      \   },
+      \   '_case': ['ignore', 'sensitive'],
+      \   'case': {
+      \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
+      \     'sensitive': {'icon': 's', 'option': ''},
+      \   }
+      \ }
+
+fu! s:Git.command(esearch, pattern, escape) abort dict
+  let r = self.spec.regex[a:esearch.regex].option
+  let c = self.spec.bound[a:esearch.bound].option
+  let w = self.spec.case[a:esearch.case].option
+
+  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+
+  return join([self.bin, '--no-pager grep', r, c, w, self.mandatory_options, self.options], ' ')
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
-fu! esearch#adapter#git#cmd(esearch, pattern, escape) abort
-  let options = esearch#adapter#git#_options()
-  let r = options.parametrize('regex')
-  let c = options.parametrize('case')
-  let w = options.parametrize('word')
-  " -H - show filenames
-  " -I - don't search binary files
-
-  let joined_paths = esearch#adapter#grep_like#joined_paths(a:esearch)
-
-  return g:esearch#adapter#git#bin.' -C '.fnameescape(a:esearch.cwd) .
-        \ ' --no-pager grep '.r.' '.c.' '.w.' --untracked -H -I --no-color --line-number ' .
-        \ g:esearch#adapter#git#options . ' -- ' .
-        \ a:escape(a:pattern) . ' ' . joined_paths
-endfu
-
-fu! esearch#adapter#git#requires_pty() abort
-  return 1
-endfu
-
-fu! esearch#adapter#git#is_success(request) abort
+fu! s:Git.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors
   return a:request.status == 0 || a:request.status == 1
 endfu

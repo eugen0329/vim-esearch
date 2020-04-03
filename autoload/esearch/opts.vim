@@ -9,7 +9,6 @@ fu! esearch#opts#new(opts) abort
     elseif g:esearch#has#vimproc()
       let opts.backend = 'vimproc'
     else
-      " call esearch#help#backend_dependencies()
       let opts.backend = 'system'
     endif
   endif
@@ -29,14 +28,25 @@ fu! esearch#opts#new(opts) abort
     let final_batch_size = 4000
   endif
 
+  " pt implicitly matches using regexp when ignore-case mode is enabled. Setting
+  " case mode to 'sensitive' makes pt adapter more predictable and slightly
+  " more similar to the default behavior of other adapters.
+  if !has_key(opts, 'case')
+    if opts.adapter ==# 'pt'
+      let opts.case = 'sensitive'
+    else
+      let opts.case = 'ignore'
+    endif
+  endif
+
   " root_markers are made to correspond g:ctrlp_root_markers default value
   let opts = extend(opts, {
         \ 'out':              g:esearch#defaults#out,
-        \ 'regex':            0,
-        \ 'case':             0,
-        \ 'word':             0,
+        \ 'regex':            'literal',
+        \ 'bound':            'disabled',
+        \ 'adapters':         {},
         \ 'batch_size':       batch_size,
-        \ 'final_batch_size':  final_batch_size,
+        \ 'final_batch_size': final_batch_size,
         \ 'context_width':    { 'left': 60, 'right': 60 },
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
@@ -73,3 +83,28 @@ fu! s:invert(key) dict abort
   let self[a:key] = option
   return option
 endfu
+
+" TODO
+fu! esearch#opts#init_lazy_global_config() abort
+  let global_esearch = exists('g:esearch') ? g:esearch : {}
+
+  if type(global_esearch) != type({})
+    echohl Error | echo 'Error: g:esearch must be a dict' | echohl None
+    return 1
+  endif
+
+  if !has_key(global_esearch, 'last_id')
+    let global_esearch.last_id = 0
+  endif
+
+  if !has_key(global_esearch, '__lazy_loaded')
+    let g:esearch = esearch#opts#new(global_esearch)
+    if empty(g:esearch) | return 1 | endif
+    let g:esearch.__lazy_loaded = 1
+  endif
+
+  call esearch#highlight#init()
+
+  return 0
+endfu
+

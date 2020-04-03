@@ -21,15 +21,14 @@ fu! esearch#out#win#open#do(opener, ...) abort dict
   let original_vars = esearch#let#restorable(restorable_vars)
   if stay | let current_win = esearch#win#stay() | endif
 
-  let lnum = self.line_in_file()
-  let topline = str2nr(lnum) - (line('.') - line('w0'))
+  let view = self.ctx_view()
+  let view.topline = str2nr(view.lnum) - (line('.') - line('w0'))
 
   try
     let Open = once ? function('s:open_once') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)
-    keepjumps call winrestview({'lnum': lnum, 'topline': topline })
+    keepjumps call winrestview(view)
     call esearch#let#generic(window_vars)
-
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch

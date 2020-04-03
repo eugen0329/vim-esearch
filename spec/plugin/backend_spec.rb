@@ -9,6 +9,7 @@ describe 'esearch#backend', :backend do
   include Helpers::Strings
   include Helpers::Output
   include Helpers::ReportEditorStateOnError
+  include VimlValue::SerializationHelpers
 
   before  { esearch.configure(root_markers: []) }
 
@@ -100,7 +101,7 @@ describe 'esearch#backend', :backend do
       let(:adapter) { adapter }
 
       before do
-        esearch.configure(adapter: adapter, regex: 1)
+        esearch.configure(adapter: adapter, regex: 0)
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       end
 
@@ -255,6 +256,10 @@ describe 'esearch#backend', :backend do
 
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do
+          before do
+            esearch.configure(adapter: adapter, regex: (adapter =~ /grep|git/ ? 'extended' : 1))
+          end
+
           include_context 'finds 1 entry of', /345/,   in: "\n__345", line: 2, column: 3..6
           include_context 'finds 1 entry of', /3\d+5/, in: "\n__345", line: 2, column: 3..6
           include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3..6
@@ -342,11 +347,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#system', :system do
-    before do
-      editor.command <<~VIML
-        let g:esearch_out_win_render_using_lua = 0
-      VIML
-    end
+    before { editor.command('let g:esearch_out_win_render_using_lua = 0') }
 
     include_context 'a backend',   'system'
     include_context 'a backend 2', 'system'

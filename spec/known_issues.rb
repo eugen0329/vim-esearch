@@ -46,8 +46,10 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   pending! '/(?<name>', /reported_errors/, adapter: :rg, matching: :regexp
 
   # TODO: investigate
-  skip! '/3\d+5/', :osx, adapter: :git, matching: :regexp
-  skip! '/3\d*5/', :osx, adapter: :git, matching: :regexp
+  skip! '/3\d+5/', adapter: :git, matching: :regexp
+  skip! '/3\d*5/', adapter: :git, matching: :regexp
+  skip! '/3\d+5/', adapter: :grep, matching: :regexp
+  skip! '/3\d*5/', adapter: :grep, matching: :regexp
 
   # TODO: investigate
   random_failure! 'aborts on search restart', /.*/, :osx, backend: :vimproc
@@ -65,11 +67,11 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   # Can be fixed by storing data as a single string instead of list of lines.
   # Can reduce freezes on stdout callbacks, but seems too hard to implement for
   # now.
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :ag
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :ack
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :pt
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :rg
-  pending! 'searching in a file with name "a\\n"', /MissingEntry/, adapter: :grep
+  skip! 'searching in a file with name "a\\n"', adapter: :ag
+  skip! 'searching in a file with name "a\\n"', adapter: :ack
+  skip! 'searching in a file with name "a\\n"', adapter: :pt
+  skip! 'searching in a file with name "a\\n"', adapter: :rg
+  skip! 'searching in a file with name "a\\n"', adapter: :grep
 
   # vimproc doesn't handle LF as job control does
   pending! 'searching in a file with name "a\\r"', /MissingEntry/, backend: :vimproc

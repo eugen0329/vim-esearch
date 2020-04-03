@@ -1,29 +1,12 @@
-let g:esearch#cmdline#menu_feature_toggle = 1
-if g:esearch#cmdline#menu_feature_toggle == 1
-  let g:cmdline_mappings = {
-        \ '<C-o>':       '<Plug>(esearch-cmdline-open-menu)',
-        \ 'key':         function('esearch#util#key'),
-        \ 'dict':        function('esearch#util#dict'),
-        \}
-  let s:comments = {
-        \ '<Plug>(esearch-cmdline-open-menu)': 'Toggle regex(r) or literal(>) match',
-        \}
-else
-  let g:cmdline_mappings = {
-        \ '<C-o><C-r>':  '<Plug>(esearch-toggle-regex)',
-        \ '<C-o><C-s>':  '<Plug>(esearch-toggle-case)',
-        \ '<C-o><C-w>':  '<Plug>(esearch-toggle-word)',
-        \ '<C-o><C-h>':  '<Plug>(esearch-cmdline-help)',
-        \ 'key':         function('esearch#util#key'),
-        \ 'dict':        function('esearch#util#dict'),
-        \}
-  let s:comments = {
-        \ '<Plug>(esearch-toggle-regex)': 'Toggle regex(r) or literal(>) match',
-        \ '<Plug>(esearch-toggle-case)':  'Toggle case sensitive(c) or insensitive(>) match',
-        \ '<Plug>(esearch-toggle-word)':  'Toggle only whole words matching(w)',
-        \ '<Plug>(esearch-cmdline-help)': 'Show this message',
-        \}
-endif
+let s:Context = esearch#ui#context()
+let s:Router  = esearch#ui#router#import()
+
+let g:esearch#cmdline#mappings = {
+      \ '<C-o>':      '<Plug>(esearch-open-menu)',
+      \ '<C-r><C-r>': '<Plug>(esearch-toggle-regex)',
+      \ '<C-s><C-s>': '<Plug>(esearch-toggle-case)',
+      \ '<C-b><C-b>': '<Plug>(esearch-toggle-word)',
+      \}
 
 if !exists('g:esearch#cmdline#dir_icon')
   if g:esearch#has#unicode
@@ -32,10 +15,6 @@ if !exists('g:esearch#cmdline#dir_icon')
     let g:esearch#cmdline#dir_icon = 'D '
   endif
 endif
-if !exists('g:esearch#cmdline#help_prompt')
-  let g:esearch#cmdline#help_prompt = 1
-endif
-
 
 if !exists('g:esearch#cmdline#clear_selection_chars')
   let g:esearch#cmdline#clear_selection_chars = [
@@ -68,382 +47,85 @@ if !exists('g:esearch#cmdline#select_initial')
   let g:esearch#cmdline#select_initial = 1
 endif
 
-cnoremap <Plug>(esearch-toggle-regex)      <C-r>=<SID>run('s:invert', 'regex')<CR>
-cnoremap <Plug>(esearch-toggle-case)       <C-r>=<SID>run('s:invert', 'case')<CR>
-cnoremap <Plug>(esearch-toggle-word)       <C-r>=<SID>run('s:invert', 'word')<CR>
-cnoremap <Plug>(esearch-cmdline-open-menu) <C-r>=<SID>run('s:open_menu')<CR>
+fu! esearch#cmdline#read(esearch) abort
+  let esearch = s:app(a:esearch)
 
-if g:esearch#cmdline#menu_feature_toggle == 0
-  cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('esearch#cmdline#help')<CR>
-else
-  cnoremap <Plug>(esearch-cmdline-help) <C-r>=<SID>run('s:open_menu')<CR>
-endif
-
-" TODO MAJOR PRIO refactoring
-" a:adapter_options are used to display adapter config in the prompt (>>>)
-fu! esearch#cmdline#read(esearch, adapter_options) abort
-  let old_mapargs = {}
-  try
-    let old_mapargs = s:init_mappings()
-    let s:pattern = a:esearch.exp
-    let s:esearch = a:esearch
-
-    let s:cmdline = s:esearch.regex ? a:esearch.exp.pcre : a:esearch.exp.literal
-    """""""""""""""""""""""""""
-
-    " Initial selection handling
-    """""""""""""""""""""""""""
-    let finish_input = 0
-    if !empty(s:cmdline) && g:esearch#cmdline#select_initial
-      let [s:cmdline, finish_input, retype_keys] =
-            \ s:handle_initial_select(s:cmdline, a:esearch.cwd, a:adapter_options)
-      redraw!
-
-      if retype_keys isnot 0
-        call feedkeys(retype_keys)
-      endif
-    endif
-    """""""""""
-
-    " Reading string from user
-    """""""""""""""""""""""""""
-    if finish_input
-      let str = s:cmdline
-    else
-      let str = s:main_loop(a:esearch, a:adapter_options)
-    endif
-    """""""""""""""""""""""""""
-  finally
-    call s:recover_mappings(old_mapargs)
-  endtry
-
-
-  if empty(str)
-    return {}
+  if empty(esearch.cmdline)
+    let esearch.exp = {}
+    return esearch
   endif
 
-  " Build search expression
-  """""""""""""""""""""""""""
-  if s:esearch.regex
-    let s:pattern.literal = str
-    let s:pattern.pcre = str
-    let s:pattern.vim = esearch#regex#pcre2vim(str)
+  if esearch.is_regex()
+    let esearch.exp.literal = esearch.cmdline
+    let esearch.exp.pcre = esearch.cmdline
+    let esearch.exp.vim = esearch#regex#pcre2vim(esearch.cmdline)
   else
-    let s:pattern.literal = str
-    let s:pattern.pcre = str
-    let s:pattern.vim = '\M'.escape(str, '\$^')
-  endif
-  """""""""""""""""""""""""""
-
-  return s:pattern
-endfu
-
-fu! s:main_loop(cmdline_opts, adapter_options) abort
-  let s:cmdpos = strchars(s:cmdline) + 1
-  let s:list_help = 0
-  let s:events = []
-
-  let str = ''
-  let s:adapter_options = a:adapter_options
-
-  " Main loop
-  """""""""""
-  while 1
-    call s:print_directory_prompt(a:cmdline_opts.cwd)
-    let str = input(s:prompt(a:adapter_options), s:cmdline, 'customlist,esearch#completion#buffer_words')
-    if empty(s:events) | break | endif
-
-    for handler in s:events
-      call call(handler.funcref, handler.args)
-    endfor
-
-    if !empty(s:events)
-      redraw!
-      let s:events = []
-    endif
-
-    let s:cmdline .= s:restore_cursor_position()
-  endwhile
-  redraw!
-  return str
-endfu
-
-fu! s:handle_initial_select(cmdline, dir, adapter_options) abort
-  call s:print_directory_prompt(a:dir)
-  call esearch#util#highlight('Normal', s:prompt(a:adapter_options))
-  call esearch#util#highlight('Visual',
-        \ substitute(a:cmdline, "\n", ' ', 'g'), 0)
-
-  let retype_keys = 0
-  let cmdline =  a:cmdline
-  let finish_input = 0
-
-  let char = esearch#util#getchar()
-
-  if index(g:esearch#cmdline#clear_selection_chars, char) >= 0
-    let cmdline = ''
-  elseif index(g:esearch#cmdline#start_search_chars, char) >= 0
-    let finish_input = 1
-  elseif index(g:esearch#cmdline#cancel_selection_and_retype_chars, char) >= 0
-    let retype_keys = char
-  elseif index(g:esearch#cmdline#cancel_selection_chars, char) >= 0
-    " no-op
-  elseif esearch#util#escape_kind(char) isnot 0
-    let retype_keys = char
-  elseif s:is_commandline_hotkey_prefix(char)
-    let retype_keys = char
-  else
-    let cmdline = char
+    let esearch.exp.literal = esearch.cmdline
+    let esearch.exp.pcre = esearch.cmdline
+    let esearch.exp.vim = '\M'.escape(esearch.cmdline, '\$^')
   endif
 
-  return [cmdline, finish_input, retype_keys]
-endfu
-
-fu! s:is_commandline_hotkey_prefix(char) abort
-  return mapcheck(a:char, 'c') !=# ''
-endfu
-
-fu! s:is_cmdline_mapping(char) abort
-  " NOTE mapcheck is not working
-  let ma = maparg(a:char, 'c', 0,1)
-  return !empty(ma)
-endfu
-
-fu! s:list_help() abort
-  let s:cmdpos = getcmdpos()
-  let s:cmdline = getcmdline()
-
-  let s:list_help = 1
-
-  call feedkeys("\<Enter>", 'm')
-  return ''
-endfu
-
-fu! esearch#cmdline#help() abort
-  call esearch#help#cmdline(g:cmdline_mappings, s:comments)
-  call getchar()
-endfu
-
-fu! s:run(func, ...) abort
-  call add(s:events, {'funcref': function(a:func), 'args': a:000})
-  let s:cmdpos = getcmdpos()
-  let s:cmdline = getcmdline()
-  call feedkeys("\<Enter>", 'n')
-  return ''
-endfu
-
-fu! s:invert(option) abort
-  call s:synchronize_regexp()
-  call s:esearch.invert(a:option)
-  call g:esearch.invert(a:option) " TODO reduce dependency
-endfu
-
-fu! s:synchronize_regexp() abort
-  let s:pattern.literal = s:cmdline
-  let s:pattern.pcre = s:cmdline
-endfu
-
-fu! s:prompt(adapter_options) abort
-  let r = a:adapter_options.stringify('regex')
-  let c = a:adapter_options.stringify('case')
-  let w = a:adapter_options.stringify('word')
-
-  if g:esearch#cmdline#help_prompt
-    let mapping = g:cmdline_mappings.key('<Plug>(esearch-cmdline-open-menu)')
-    let help = ' (Press ' . esearch#util#stringify_mapping(mapping) . ' to configure)'
-  else
-    let help = ''
-  endif
-
-  return 'pattern'.help.' '.r.c.w.' '
-endfu
-
-" TODO extract out of there and refactor
-fu! s:print_directory_prompt(cwd) abort
-  if a:cwd ==# getcwd() && empty(get(s:esearch, 'paths', []))
-    " TODO weid legacy code, should be rewritten
-    return 0
-  endif
-  let [cwd, paths, metadata] = [a:cwd, s:esearch.paths, s:esearch.metadata]
-
-  if empty(paths)
-    call esearch#util#highlight('Normal', 'In directory ')
-    call esearch#util#highlight('Directory',
-          \ g:esearch#cmdline#dir_icon . substitute(a:cwd , getcwd().'/', '', ''), 0)
-    return
-  endif
-
-  try
-    call s:print_paths_kinds_hint(paths, metadata)
-    call s:print_paths(paths, metadata)
-  finally
-    " reset colors
-    echohl NONE
-    " print newline
-    echo ''
-  endtry
-endfu
-
-fu! s:print_paths_kinds_hint(paths, metadata) abort
-  let path_kinds = {}
-  for i in range(0, len(a:paths) - 1)
-    if isdirectory(a:paths[i])
-      let path_kinds['directory'] = 1
-    elseif !empty(a:metadata) || !filereadable(a:paths[i])
-      let path_kinds['path'] = 1
-    else
-      let path_kinds['file'] = 1
-    endif
-
-    if len(path_kinds) > 1
-      call esearch#util#highlight('Normal', 'In ')
-      return
-    endif
-  endfor
-
-  let where = 'In ' . esearch#inflector#pluralize(keys(path_kinds)[0], len(a:paths)) . ' '
-  call esearch#util#highlight('Normal', where)
-endfu
-
-fu! s:print_paths(paths, metadata) abort
-  let metadata = a:metadata
-  let paths = a:paths
-  let last = len(paths) - 1
-
-  for i in range(0, last)
-    let path = paths[i]
-
-    if isdirectory(paths[i])
-      let highlight = 'Directory'
-      call esearch#util#highlight(highlight, g:esearch#cmdline#dir_icon)
-    else
-      let highlight = 'Normal'
-      call esearch#util#highlight(highlight, '')
-    endif
-
-    " TODO rewrite metadata storage approach
-    if empty(metadata) || empty(metadata[i].wildcards)
-      let escaped = esearch#shell#fnameescape(paths[i])
-      call esearch#util#highlight(highlight, escaped)
-    else
-      call s:print_with_highlighted_special_characters(highlight, path, metadata[i])
-    endif
-
-    if i != last
-      call esearch#util#highlight('Normal', ', ')
-    endif
-  endfor
-endfu
-
-fu! s:print_with_highlighted_special_characters(highlight, path, metadata) abort
-  let parts = esearch#shell#fnameescape_splitted(a:path, a:metadata)
-
-  for regular_index in range(0, len(parts)-3, 2)
-    let special_index = regular_index + 1
-    call esearch#util#highlight(a:highlight, parts[regular_index])
-    call esearch#util#highlight('Identifier', parts[special_index])
-  endfor
-  call esearch#util#highlight(a:highlight, parts[-1])
-endfu
-
-fu! s:restore_cursor_position() abort
-  if strchars(s:cmdline) + 1 != s:cmdpos
-    return repeat("\<Left>", strchars(s:cmdline) + 1 - s:cmdpos )
-  endif
-  return ''
-endfu
-
-fu! s:init_mappings() abort
-  let mapargs =  {}
-  let s:mapargs = []
-  " TODO add support for g:esearch.default_mappings
-  for map in keys(g:cmdline_mappings.dict())
-    let mapargs[map] = maparg(map, 'c', 0, 1)
-    exe 'cmap ' . map . ' ' . g:cmdline_mappings[map]
-    let  s:mapargs += [maparg(map)]
-  endfor
-
-  return mapargs
-endfu
-
-fu! s:recover_mappings(mapargs) abort
-  for map in keys(a:mapargs)
-    let maparg = a:mapargs[map]
-    if empty(maparg)
-      exe 'cunmap '.map
-    else
-      let cmd  = 'silent ' . maparg.mode . (maparg.noremap ? 'nore': '')
-      let cmd .= 'map ' . maparg.lhs . maparg.rhs
-      exe cmd
-    endif
-  endfor
+  return esearch
 endfu
 
 fu! esearch#cmdline#map(lhs, rhs) abort
-  let g:cmdline_mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
+  let g:esearch#cmdline#mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
 endfu
 
-fu! s:change_paths() abort
-  redraw!
+fu! s:app(esearch) abort
+  let initial_state = s:initial_state(a:esearch)
+  let store = esearch#ui#create_store(function('<SID>reducer'), initial_state)
+  let context = s:Context.new().provide({'store': store})
+  try
+    while s:Router.new().render()
+    endwhile
+  finally
+    call context.restore()
+  endtry
 
-  let user_input_in_shell_format =
-        \ esearch#shell#fnamesescape_and_join(s:esearch.paths, s:esearch.metadata)
-  while 1
-    call esearch#util#highlight('Normal', 'Input search PATHS: ')
-    call esearch#util#highlight('Comment', "(example: dir/ *.json 'file with spaces.txt' etc.)", 0)
-    let user_input_in_shell_format = input('',
-          \ user_input_in_shell_format,
-          \'customlist,esearch#cmdline#complete_files')
-
-    let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
-    if error isnot 0
-      call esearch#util#highlight('ErrorMsg', " can't parse paths: " . error, 0)
-      call getchar()
-      redraw!
-    else
-      break
-    endif
-  endwhile
-
-  let s:esearch.paths    = paths
-  let s:esearch.metadata = metadata
+  return store.state
 endfu
 
-fu! esearch#cmdline#complete_files(A,L,P) abort
-  return esearch#completion#complete_files(s:esearch.cwd, a:A, a:L, a:P)
+fu! s:initial_state(esearch) abort
+  let initial_state = a:esearch
+  let initial_state.route = 'search_input'
+  let initial_state.did_initial = 0
+  let initial_state.cmdline = initial_state.pattern()
+  let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
+  return initial_state
 endfu
 
-if g:esearch#cmdline#menu_feature_toggle == 1
-  fu! s:open_menu() abort
-    let prompt =
-          \   "  Hotkey  Action (press a hotkey or select using j/k/enter)\n"
-          \ . '  ------  -------------------------------------------------'
+fu! s:reducer(state, action) abort
+  if a:action.type ==# 'NEXT_CASE'
+    return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
+  elseif a:action.type ==# 'NEXT_REGEX'
+    return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
+  elseif a:action.type ==# 'NEXT_BOUND'
+    return extend(copy(a:state), {'bound': s:cycle_mode(a:state, 'bound')})
+  elseif a:action.type ==# 'SET_CMDPOS'
+    return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
+  elseif a:action.type ==# 'SET_PATHS'
+    return extend(copy(a:state), {'paths': a:action.paths, 'metadata': a:action.metadata})
+  elseif a:action.type ==# 'SET_DID_INITIAL'
+    return extend(copy(a:state), {'did_initial': 1})
+  elseif a:action.type ==# 'SET_CMDLINE'
+    return extend(copy(a:state), {'cmdline': a:action.cmdline})
+  elseif a:action.type ==# 'SET_ROUTE'
+    return extend(copy(a:state), {'route': a:action.route})
+  else
+    throw 'Unknown action ' . string(a:action)
+  endif
+endfu
 
-    call esearch#ui#menu#new(s:menu_items(), prompt, "\n".s:prompt(s:adapter_options) . s:cmdline).start()
-  endfu
+fu! s:cycle_mode(state, mode_name) abort
+  let kinds = keys(a:state.current_adapter.spec[a:mode_name])
+  let i = index(kinds, a:state[a:mode_name])
 
-  fu! s:menu_items() abort
-    if !exists('g:esearch#cmdline#menu_items')
-      let g:esearch#cmdline#menu_items = []
+  if i >= len(kinds) - 1
+    let i = 0
+  else
+    let i += 1
+  endif
 
-      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
-            \'text': 'c       toggle (c)ase sensitive match',
-            \ 'shortcut': ['c', "\<C-c>", 's', "\<C-s>"],
-            \ 'callback': function('<SID>invert', ['case'])}))
-      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
-            \ 'text': 'r       toggle (r)egexp match',
-            \ 'shortcut': ['r', "\<C-r>"],
-            \ 'callback': function('<SID>invert', ['regex'])}))
-      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
-            \ 'text': 'w       toggle (w)ord match',
-            \ 'shortcut': ['w', "\<C-w>"],
-            \ 'callback': function('<SID>invert', ['word'])}))
-      call add(g:esearch#cmdline#menu_items, esearch#ui#menu#item({
-            \ 'text': 'p       edit (p)aths',
-            \ 'shortcut': ["\<C-p>", 'p'],
-            \ 'callback': function('<SID>change_paths')}))
-    endif
-
-    return g:esearch#cmdline#menu_items
-  endfu
-endif
+  return kinds[i]
+endfu

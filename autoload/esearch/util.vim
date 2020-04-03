@@ -1,7 +1,7 @@
-let s:Prelude    = vital#esearch#import('Prelude')
-let s:Highlight  = vital#esearch#import('Vim.Highlight')
-let s:Message    = vital#esearch#import('Vim.Message')
-let s:Filepath   = vital#esearch#import('System.Filepath')
+let s:Prelude   = vital#esearch#import('Prelude')
+let s:Highlight = vital#esearch#import('Vim.Highlight')
+let s:Message   = vital#esearch#import('Vim.Message')
+let s:Filepath  = vital#esearch#import('System.Filepath')
 
 fu! esearch#util#setline(_, lnum, text) abort
   call setline(a:lnum, a:text)
@@ -96,6 +96,14 @@ fu! esearch#util#uniq(list) abort
   return a:list
 endfu
 
+fu! esearch#util#ellipsize_right(text, max_len, ellipsis) abort
+  if strchars(a:text) < a:max_len
+    return a:text
+  endif
+
+  return a:text[: a:max_len - 1 - strchars(a:ellipsis)] . a:ellipsis
+endfu
+
 fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
   if strchars(a:text) < a:left + a:right
     return a:text
@@ -122,10 +130,6 @@ fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
           \ . a:text[a:col - a:left + strchars(a:ellipsis) : a:col + a:right - 1 - strchars(a:ellipsis)]
           \ . a:ellipsis
   endif
-endfu
-
-fu! esearch#util#shellescape(str) abort
-  return escape(fnameescape(a:str), ';')
 endfu
 
 fu! esearch#util#clip(value, from, to) abort
@@ -162,10 +166,6 @@ fu! esearch#util#get(key) dict abort
   return self[a:key]
 endfu
 
-fu! esearch#util#dict() dict abort
-  return filter(copy(self), 'type(v:val) != '.type(function('tr')))
-endfu
-
 fu! esearch#util#with_val(val) dict abort
   let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
   return filter(copy(self), 'type(v:val) == type('.val.') && v:val==# '.val)
@@ -186,7 +186,11 @@ fu! esearch#util#without(key) dict abort
 endfu
 
 fu! esearch#util#slice(...) dict abort
-  return filter(deepcopy(self), 'index(a:000, v:key) >= 0')
+  return filter(copy(self), 'index(a:000, v:key) >= 0')
+endfu
+
+fu! esearch#util#_slice(dict, keys) abort
+  return filter(copy(a:dict), 'index(a:keys, v:key) >= 0')
 endfu
 
 fu! esearch#util#set_default(key, default) dict abort
@@ -487,11 +491,6 @@ if !exists('g:esearch#util#ellipsis')
   endif
 endif
 
-let g:esearch#util#mockable = {}
-fu! g:esearch#util#mockable.echo(string) abort
-  echo a:string
-endfu
-
 fu! esearch#util#parse_help_options(command) abort
   let options = {}
   let option = '-\{1,2}[0-9a-zA-Z][0-9a-zA-Z-]*'
@@ -688,4 +687,32 @@ fu! s:DirectoryGuard.restore() abort dict
   if !empty(self.cwd)
     exe 'lcd ' . self.cwd
   endif
+endfu
+
+fu! esearch#util#slice_factory(keys) abort
+  let private_scope = {}
+  exe    " fu! l:private_scope.slice(dict) abort\n"
+     \ . '   return esearch#util#_slice(a:dict,'.string(a:keys).")\n"
+     \ . ' endfu'
+  return private_scope.slice
+endfu
+
+" tim pope
+fu! esearch#util#pluralize(word, count) abort
+  let word = a:word
+
+  if a:count % 10 == 1
+    return word
+  endif
+
+  if empty(word)
+    return word
+  endif
+
+  let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
+  let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
+  let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')
+  let word = substitute(word, '\v\Cf@<!f$',          've',  '')
+  let word .= 's'
+  return word
 endfu

@@ -7,11 +7,11 @@ endif
 
 let s:NVIM_JOB_IS_INVALID = -3
 
-fu! esearch#backend#nvim#init(cwd, adapter, cmd, pty) abort
+fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   let request = {
         \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
-        \   'cmd': split(&shell) + split(&shellcmdflag) + [a:cmd],
+        \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
         \   'opts': {
         \     'on_stdout': function('s:stdout'),
         \     'on_stderr': function('s:stderr'),
@@ -23,7 +23,7 @@ fu! esearch#backend#nvim#init(cwd, adapter, cmd, pty) abort
         \ },
         \ 'backend':  'nvim',
         \ 'adapter':  a:adapter,
-        \ 'command':  a:cmd,
+        \ 'command':  a:command,
         \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'intermediate': '',
@@ -46,7 +46,7 @@ endfu
 fu! esearch#backend#nvim#run(request) abort
   let original_cwd = esearch#util#lcd(a:request.cwd)
   try
-    let job_id = jobstart(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
+    let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.job_id = job_id
     call jobclose(job_id, 'stdin')
     let s:jobs[job_id] = { 'data': [], 'request': a:request }
@@ -103,8 +103,8 @@ endfu
 " TODO write expansion for commands
 " g:esearch.expand_special has no affect due to josbstart is a function
 " (e.g #dispatch uses cmdline, where #,%,... can be expanded)
-fu! esearch#backend#nvim#escape_cmd(cmd) abort
-  return shellescape(a:cmd)
+fu! esearch#backend#nvim#escape_cmd(command) abort
+  return shellescape(a:command)
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
