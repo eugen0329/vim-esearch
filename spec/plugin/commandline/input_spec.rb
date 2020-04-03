@@ -232,9 +232,9 @@ describe 'esearch#cmdline input', :commandline do
           end
 
           context 'control-*' do
-            include_context 'defined commandline hotkey', '<C-f>', '<S-Left>'
+            include_context 'defined commandline hotkey', '<C-x>', '<S-Left>'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-f>', :enter],
+              keys:            ['\\<C-x>', :enter],
               prefilled_input: 'was',
               expected_input:  '|was'
           end
@@ -248,9 +248,9 @@ describe 'esearch#cmdline input', :commandline do
           end
 
           context 'multiple keys sequence' do
-            include_context 'defined commandline hotkey', '<C-f><C-f>', 'after'
+            include_context 'defined commandline hotkey', '<C-x><C-x>', 'after'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-f>\\<C-f>', :enter],
+              keys:            ['\\<C-x>\\<C-x>', :enter],
               prefilled_input: 'was',
               expected_input:  'wasafter|'
           end

@@ -19,10 +19,14 @@ fu! esearch#init(...) abort
     let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
+  " TODO add 'remember' option to handle memoization below
   let g:esearch.last_search     = esearch.exp
   let g:esearch.case            = esearch.case
-  let g:esearch.full           = esearch.full
+  let g:esearch.full            = esearch.full
   let g:esearch.regex           = esearch.regex
+  let g:esearch.before          = esearch.before
+  let g:esearch.after           = esearch.after
+  let g:esearch.context         = esearch.context
   let g:esearch.paths           = esearch.paths
   let g:esearch.metadata        = esearch.metadata
   let g:esearch.adapters        = esearch.adapters

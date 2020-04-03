@@ -10,7 +10,7 @@ let s:Menu = esearch#ui#component()
 
 let s:case_keys    = ['s', "\<C-s>"]
 let s:regex_keys   = ['r', "\<C-r>"]
-let s:full_keys    = ['f', "\<C-f>"]
+let s:full_keys    = ['f', "\<C-f>", 'b', "\<C-b>"]
 let s:path_keys    = ['p', "\<C-p>"]
 let s:after_keys   = ['a', 'A']
 let s:before_keys  = ['b', 'B']
@@ -27,9 +27,9 @@ fu! s:Menu.new(props) abort dict
         \   s:RegexEntry.new({'keys': s:regex_keys}),
         \   s:FullEntry.new({'keys':  s:full_keys}),
         \   s:PathEntry.new({'keys':  s:path_keys}),
-        \   s:IncrementableEntry.new({'-': 'a', '+': 'A', 'name': 'after', 'value': a:props.after}),
-        \   s:IncrementableEntry.new({'-': 'b', '+': 'B', 'name': 'before', 'value': a:props.before}),
-        \   s:IncrementableEntry.new({'-': 'c', '+': 'C', 'name': 'context', 'value': a:props.context}),
+        \   s:IncrementableEntry.new({'-': 'a', '+': 'A', 'name': 'after',   'option': '-A', 'value': a:props.after}),
+        \   s:IncrementableEntry.new({'-': 'b', '+': 'B', 'name': 'before',  'option': '-B', 'value': a:props.before}),
+        \   s:IncrementableEntry.new({'-': 'c', '+': 'C', 'name': 'context', 'option': '-C', 'value': a:props.context}),
         \ ]
   let instance.height = len(instance.items) + 1 " + height
   let instance.prompt = s:SearchPrompt.new()

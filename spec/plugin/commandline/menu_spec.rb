@@ -34,7 +34,7 @@ describe 'esearch#cmdline menu', :commandline do
           include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'sensitive'
           include_examples 'it sets options using hotkey', 's',       'case'  => 'sensitive'
 
-          include_examples 'it sets options using hotkey', '\\<C-f>', 'full'  => 'word'
+          include_examples 'it sets options using hotkey', '\\<C-b>', 'full'  => 'word'
           include_examples 'it sets options using hotkey', 'f',       'full'  => 'word'
 
           include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'pcre'
@@ -44,7 +44,7 @@ describe 'esearch#cmdline menu', :commandline do
         context 'when disabling options' do
           before { esearch.configure!(adapter: 'ag', full: 'word', regex: 'pcre') }
 
-          include_examples 'it sets options using hotkey', '\\<C-f>', 'full'  => 'none'
+          include_examples 'it sets options using hotkey', '\\<C-b>', 'full'  => 'none'
           include_examples 'it sets options using hotkey', 'f',       'full'  => 'none'
 
           include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'literal'

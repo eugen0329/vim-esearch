@@ -1,5 +1,3 @@
-let esearch#adapter#ag_like#format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
-
 fu! esearch#adapter#ag_like#joined_paths(esearch) abort
   if empty(a:esearch.paths)
     return ''

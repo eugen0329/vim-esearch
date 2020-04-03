@@ -6,9 +6,11 @@ fu! s:IncrementableEntry.render() abort dict
   let hint = s:String.pad_right(self.props['-'] . self.props['+'], 7, ' ')
   let hint .= self.props.name
   let result = [['NONE', hint]]
-  " let option = self.props.current_adapter.spec.incrementable[self.props.incrementable].option
-  " let option = join(filter([self.props.incrementable, option], '!empty(v:val)'), ': ')
-  let result += [['Comment', ' (' . self.props.value  . ')']]
+  if self.props.value ==# 0
+    let result += [['Comment', ' (none)']]
+  else
+    let result += [['Comment', ' (' . self.props.option . ' ' . self.props.value  . ')']]
+  endif
 
   return result
 endfu

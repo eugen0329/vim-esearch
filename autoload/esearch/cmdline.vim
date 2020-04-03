@@ -5,7 +5,7 @@ let g:esearch#cmdline#mappings = {
       \ '<C-o>':      '<Plug>(esearch-open-menu)',
       \ '<C-r><C-r>': '<Plug>(esearch-toggle-regex)',
       \ '<C-s><C-s>': '<Plug>(esearch-toggle-case)',
-      \ '<C-f><C-f>': '<Plug>(esearch-toggle-word)',
+      \ '<C-b><C-b>': '<Plug>(esearch-toggle-word)',
       \}
 
 if !exists('g:esearch#cmdline#dir_icon')
