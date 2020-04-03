@@ -25,7 +25,7 @@ describe 'esearch#adapter', :adapters do
           adapter:      adapter,
           out:          'win',
           backend:      'system',
-          regex:        (adapter =~ /grep|git/ ? 'perl' : 1),
+          regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
           use:          [],
           root_markers: []
         )

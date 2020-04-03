@@ -31,7 +31,7 @@ let s:Grep.spec = {
       \     'literal':  {'icon': '',  'option': '-F'},
       \     'basic':    {'icon': 'G', 'option': '-G'},
       \     'extended': {'icon': 'E', 'option': '-E'},
-      \     'perl':     {'icon': 'P', 'option': '-P'},
+      \     'pcre':     {'icon': 'P', 'option': '-P'},
       \   },
       \   '_bound': ['disabled', 'word'],
       \   'bound': {

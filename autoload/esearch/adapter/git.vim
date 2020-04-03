@@ -26,7 +26,7 @@ let s:Git.spec = {
       \     'literal':  {'icon': '',  'option': '--fixed-strings'},
       \     'basic':    {'icon': 'G', 'option': '--basic-regexp'},
       \     'extended': {'icon': 'E', 'option': '--extended-regexp'},
-      \     'perl':     {'icon': 'P', 'option': '--perl-regexp'},
+      \     'pcre':     {'icon': 'P', 'option': '--perl-regexp'},
       \   },
       \   '_bound': ['disabled', 'word'],
       \   'bound': {
