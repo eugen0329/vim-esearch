@@ -23,7 +23,7 @@ if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let original_cwd = esearch#util#lcd(a:esearch.cwd)
     try
-      let [files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name] =
+      let [files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count] =
             \ luaeval('esearch_out_win_render_nvim(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6])',
             \ [a:data[a:from : a:to],
             \ get(a:esearch.paths, 0, ''),
@@ -35,6 +35,7 @@ if g:esearch#has#nvim_lua
     endtry
 
     let a:esearch.files_count = files_count
+    let a:esearch.separators_count += separators_count
     call extend(a:esearch.contexts, contexts[1:])
     call extend(a:esearch.ctx_ids_map, ctx_ids_map)
     call extend(a:esearch.line_numbers_map, line_numbers_map)
@@ -74,7 +75,7 @@ lua << EOF
 filereadable_cache = {}
 
 function esearch_out_win_render_nvim(data, path, last_context, files_count, highlights_enabled)
-  local parsed = parse_lines(data)
+  local parsed, separators_count = parse_lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
   local ctx_ids_map = {}
@@ -85,7 +86,6 @@ function esearch_out_win_render_nvim(data, path, last_context, files_count, high
     vim.api.nvim_get_var('unload_context_syntax_on_line_length')
   local unload_global_syntax_on_line_length =
     vim.api.nvim_get_var('unload_global_syntax_on_line_length')
-
 
   local start = vim.api.nvim_buf_line_count(0)
   local line = start
@@ -154,7 +154,7 @@ function esearch_out_win_render_nvim(data, path, last_context, files_count, high
     highlight_linenrs_in_range(start, -1)
   end
 
-  return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name}
+  return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count}
 end
 
 function update_linenrs_highlights_cb(_, bufnr, ct, from, old_to, to, _old_byte_size)
@@ -191,12 +191,12 @@ else
 
 lua << EOF
 function esearch_out_win_render_vim(data, path, esearch)
-  local parsed           = parse_lines(data)
-  local contexts         = esearch['contexts']
-  local line_numbers_map = esearch['line_numbers_map']
-  local ctx_ids_map      = esearch['ctx_ids_map']
-  local files_count      = esearch['files_count']
-  local context_by_name  = esearch['context_by_name']
+  local parsed, separators_count = parse_lines(data)
+  local contexts                 = esearch['contexts']
+  local line_numbers_map         = esearch['line_numbers_map']
+  local ctx_ids_map              = esearch['ctx_ids_map']
+  local files_count              = esearch['files_count']
+  local context_by_name          = esearch['context_by_name']
   local esearch_win_disable_context_highlights_on_files_count =
     vim.eval('g:esearch_win_disable_context_highlights_on_files_count')
   local unload_context_syntax_on_line_length =

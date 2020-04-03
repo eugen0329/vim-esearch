@@ -19,12 +19,17 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let results = []
   let pattern = self.exp.vim
+  let separators_count = 0
 
   let i = a:from
   let limit = a:to + 1
 
   while i < limit
     let line = a:data[i]
+
+    if empty(line) || line ==# '--'
+      let separators_count += 1
+    endif
 
     if line[0] ==# '"'
       let res = matchlist(line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"\:\(\d\{-}\)[-:]\(.*\)$')[1:3]
@@ -73,5 +78,5 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return results
+  return [results, separators_count]
 endfu

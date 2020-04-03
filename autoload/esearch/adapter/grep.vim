@@ -14,8 +14,8 @@ if exists('g:esearch#adapter#grep#options')
   " TODO warn deprecated
   let s:Grep.options = g:esearch#adapter#grep#options
 else
-" -I: Process a binary file as if it did not contain matching data
-  let s:Grep.options = '-I'
+  " -I: don't match binary files
+  let s:Grep.options = '-I '
 endif
 
 " Short options are used as they are supported more often than long ones
@@ -52,8 +52,9 @@ fu! s:Grep.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+  let context = a:esearch.context > 0 ? '-C ' . a:esearch.context : ''
 
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
 endfu
 

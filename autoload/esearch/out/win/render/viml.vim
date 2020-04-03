@@ -3,7 +3,8 @@ let s:linenr_format = ' %3d %s'
 fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
   let original_cwd = esearch#util#lcd(a:esearch.cwd)
   try
-    let parsed = a:esearch.parse(a:data, a:from, a:to)
+    let [parsed, separators_count] = a:esearch.parse(a:data, a:from, a:to)
+    let a:esearch.separators_count += separators_count
     let line = line('$') + 1
     let i = 0
     let limit = len(parsed)

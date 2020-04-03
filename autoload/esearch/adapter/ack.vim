@@ -12,7 +12,7 @@ if exists('g:esearch#adapter#ack#options')
   " TODO warn deprecated
   let s:Ack.options = g:esearch#adapter#ack#options
 else
-  let s:Ack.options = ''
+  let s:Ack.options = '--follow'
 endif
 let s:Ack.mandatory_options = '--nogroup --nocolor --noheading --with-filename'
 let s:Ack.spec = {
@@ -40,8 +40,9 @@ fu! s:Ack.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+  let context = a:esearch.context > 0 ? '-C ' . a:esearch.context : ''
 
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 

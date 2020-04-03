@@ -22,7 +22,7 @@ function parse_line(line)
   local filename = ''
 
   if line:sub(1, 1) == '"' then
-    local filename, line, text = code(line):match('"(.-)":(%d+)[-:](.*)')
+    local filename, line, text = code(line):match('"(.-)"[-:](%d+)[-:](.*)')
     if filename == nil then
       return
     end
@@ -48,7 +48,7 @@ function parse_line(line)
   end
 
   while true do
-    local _, idx = line:find(':', offset)
+    local _, idx = line:find('[-:]', offset)
 
     if idx == nil then
       return
@@ -109,13 +109,15 @@ end
 
 function parse_lines(data)
   local parsed = {}
-  filereadable_cache = {}
+  local separators_count = 0
 
   for i = 1, #data do
     local line = data[i]
 
-    if line:len() > 0 then
-      local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
+    if line:len() == 0 or line == '--' then
+      separators_count = separators_count + 1
+    else
+      local filename, lnum, text = string.match(line, '([^:-]+)[:-](%d+)[:-](.*)')
       if filename == nil or text == nil or not filereadable(filename) then
         filename, lnum, text = parse_line(line)
       end
@@ -130,7 +132,7 @@ function parse_lines(data)
     end
   end
 
-  return parsed
+  return parsed, separators_count
 end
 
 EOF
@@ -160,12 +162,14 @@ end
 
 function parse_lines(data)
   local parsed = vim.list()
-  filereadable_cache = {}
+  local separators_count = 0
 
   for i = 0, #data - 1 do
     local line = data[i]
 
-    if line:len() > 0 then
+    if line:len() == 0 or line == '--' then
+      separators_count = separators_count + 1
+    else
       -- local filename, lnum, text = parse_line(line)
       local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
       if filename == nil or text == nil or not filereadable(filename) then
@@ -182,7 +186,7 @@ function parse_lines(data)
     end
   end
 
-  return parsed
+  return parsed, separators_count
 end
 
 EOF

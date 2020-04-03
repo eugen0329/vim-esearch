@@ -13,7 +13,7 @@ if exists('g:esearch#adapter#git#options')
   " TODO warn deprecated
   let s:Git.options = g:esearch#adapter#git#options
 else
-  " -I: Process a binary file as if it did not contain matching data
+  " -I: don't match binary files
   let s:Git.options = '-I '
 endif
 
@@ -46,8 +46,9 @@ fu! s:Git.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+  let context = a:esearch.context > 0 ? '-C ' . a:esearch.context : ''
 
-  return join([self.bin, '--no-pager grep', r, c, w, self.mandatory_options, self.options], ' ')
+  return join([self.bin, '--no-pager grep', r, c, w, self.mandatory_options, self.options, context], ' ')
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 

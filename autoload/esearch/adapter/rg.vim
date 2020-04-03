@@ -14,7 +14,7 @@ if exists('g:esearch#adapter#rg#options')
   let s:Rg.options = g:esearch#adapter#rg#options
 else
   " --text: Search binary files as if they were text
-  let s:Rg.options = '--text'
+  let s:Rg.options = '--follow'
 endif
 let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-filename'
 " https://docs.rs/regex/1.3.6/regex/#syntax
@@ -47,8 +47,9 @@ fu! s:Rg.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+  let context = a:esearch.context > 0 ? '-C ' . a:esearch.context : ''
 
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 

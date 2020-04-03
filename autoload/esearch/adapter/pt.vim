@@ -42,8 +42,9 @@ fu! s:Pt.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
+  let context = a:esearch.context > 0 ? '-C ' . a:esearch.context : ''
 
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
+  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
