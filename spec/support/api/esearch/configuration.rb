@@ -19,7 +19,7 @@ class API::ESearch::Configuration
 
   def configure(options)
     cache.write_multi(options)
-    staged_configuration.merge!(options)
+    staged_configuration.deep_merge!(options.deep_symbolize_keys)
   end
 
   # TODO: a hack that should be rewrited in future
@@ -44,12 +44,7 @@ class API::ESearch::Configuration
   end
 
   def adapter_bin=(path)
-    # TODO: configuration
-    editor.command! <<~VIML
-      call esearch#opts#init_lazy_global_config()
-      call extend(g:esearch.adapters, {#{adapter.dump}: {}}, 'keep')
-      call extend(g:esearch.adapters[#{adapter.dump}], {'bin': '#{path}'})
-    VIML
+    staged_configuration.deep_merge!(adapters: {rg: {bin: path.to_s}})
   end
 
   def adapter
