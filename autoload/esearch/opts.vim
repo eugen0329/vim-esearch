@@ -43,7 +43,7 @@ fu! esearch#opts#new(opts) abort
   let opts = extend(opts, {
         \ 'out':              g:esearch#defaults#out,
         \ 'regex':            'literal',
-        \ 'full':            'none',
+        \ 'textobj':          'none',
         \ 'adapters':         {},
         \ 'batch_size':       batch_size,
         \ 'final_batch_size': final_batch_size,

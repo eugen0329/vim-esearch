@@ -16,6 +16,8 @@ endfu
 fu! s:RegexEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
     call self.props.dispatch({'type': 'NEXT_REGEX'})
+    let stop_propagation = 1
+    return stop_propagation
   endif
 endfu
 

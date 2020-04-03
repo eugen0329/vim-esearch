@@ -33,8 +33,8 @@ let s:Grep.spec = {
       \     'extended': {'icon': 'E', 'option': '-E'},
       \     'pcre':     {'icon': 'P', 'option': '-P'},
       \   },
-      \   '_full': ['none', 'word'],
-      \   'full': {
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
       \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '-w'},
       \     'line':     {'icon': 'l', 'option': '-x'},
@@ -48,7 +48,7 @@ let s:Grep.spec = {
 
 fu! s:Grep.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.full[a:esearch.full].option
+  let c = self.spec.textobj[a:esearch.textobj].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

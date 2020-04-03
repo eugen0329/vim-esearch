@@ -29,23 +29,23 @@ describe 'esearch#cmdline menu', :commandline do
 
       context 'default mappings' do
         context 'when enabling options' do
-          before { esearch.configure!(adapter: 'ag', full: 0, case: 'ignore', regex: 'literal') }
+          before { esearch.configure!(adapter: 'ag', textobj: 0, case: 'ignore', regex: 'literal') }
 
           include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'sensitive'
           include_examples 'it sets options using hotkey', 's',       'case'  => 'sensitive'
 
-          include_examples 'it sets options using hotkey', '\\<C-b>', 'full'  => 'word'
-          include_examples 'it sets options using hotkey', 'f',       'full'  => 'word'
+          include_examples 'it sets options using hotkey', '\\<C-t>', 'textobj'  => 'word'
+          include_examples 'it sets options using hotkey', 't',       'textobj'  => 'word'
 
           include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'pcre'
           include_examples 'it sets options using hotkey', 'r',       'regex' => 'pcre'
         end
 
         context 'when disabling options' do
-          before { esearch.configure!(adapter: 'ag', full: 'word', regex: 'pcre') }
+          before { esearch.configure!(adapter: 'ag', textobj: 'word', regex: 'pcre') }
 
-          include_examples 'it sets options using hotkey', '\\<C-b>', 'full'  => 'none'
-          include_examples 'it sets options using hotkey', 'f',       'full'  => 'none'
+          include_examples 'it sets options using hotkey', '\\<C-t>', 'textobj'  => 'none'
+          include_examples 'it sets options using hotkey', 't',       'textobj'  => 'none'
 
           include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'literal'
           include_examples 'it sets options using hotkey', 'r',       'regex' => 'literal'
@@ -79,7 +79,7 @@ describe 'esearch#cmdline menu', :commandline do
               .from(match_array([
                 start_with('> s '),
                 start_with('  r '),
-                start_with('  f '),
+                start_with('  t '),
                 start_with('  p '),
                 start_with('  aA '),
                 start_with('  bB '),
@@ -87,7 +87,7 @@ describe 'esearch#cmdline menu', :commandline do
               ])).to(match_array([
                 start_with('  s '),
                 start_with('> r '),
-                start_with('  f '),
+                start_with('  t '),
                 start_with('  p '),
                 start_with('  aA '),
                 start_with('  bB '),
@@ -99,17 +99,17 @@ describe 'esearch#cmdline menu', :commandline do
         end
       end
 
-      shared_examples 'it locates "full" menu items by pressing' do |keys:|
+      shared_examples 'it locates "textobj" menu items by pressing' do |keys:|
         context "when pressing #{keys}" do
           include_context 'opened menu testing'
 
-          it 'locates "full" menu entry' do
+          it 'locates "textobj" menu entry' do
             expect { editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter) }
               .to change { menu_items }
               .from(match_array([
                 start_with('> s '),
                 start_with('  r '),
-                start_with('  f '),
+                start_with('  t '),
                 start_with('  p '),
                 start_with('  aA '),
                 start_with('  bB '),
@@ -117,14 +117,14 @@ describe 'esearch#cmdline menu', :commandline do
               ])).to(match_array([
                 start_with('  s '),
                 start_with('  r '),
-                start_with('> f '),
+                start_with('> t '),
                 start_with('  p '),
                 start_with('  aA '),
                 start_with('  bB '),
                 start_with('  cC ')
               ]))
-              .and set_global_options('full' => 'word')
-              .and start_search_with_options('full' => 'word')
+              .and set_global_options('textobj' => 'word')
+              .and start_search_with_options('textobj' => 'word')
           end
         end
       end
@@ -145,7 +145,7 @@ describe 'esearch#cmdline menu', :commandline do
         ## Menu outlook is:
         # > s      toggle case match
         #   r      toggle regexp match
-        #   f      toggle full textobj match
+        #   t      toggle textobj match
         #   p      edit paths
         #   aA     adjust after (0)
         #   bB     adjust before (0)
@@ -154,10 +154,10 @@ describe 'esearch#cmdline menu', :commandline do
         include_examples 'it locates "regex" menu items by pressing', keys: ['j']
         include_examples 'it locates "regex" menu items by pressing', keys: ['\\<C-j>']
 
-        include_examples 'it locates "full" menu items by pressing',  keys: ['k'] * 5
-        include_examples 'it locates "full" menu items by pressing',  keys: ['j'] * 2
-        include_examples 'it locates "full" menu items by pressing',  keys: ['\\<C-k>'] * 5
-        include_examples 'it locates "full" menu items by pressing',  keys: ['\\<C-j>'] * 2
+        include_examples 'it locates "textobj" menu items by pressing',  keys: ['k'] * 5
+        include_examples 'it locates "textobj" menu items by pressing',  keys: ['j'] * 2
+        include_examples 'it locates "textobj" menu items by pressing',  keys: ['\\<C-k>'] * 5
+        include_examples 'it locates "textobj" menu items by pressing',  keys: ['\\<C-j>'] * 2
 
         include_examples 'it locates "case" menu items by pressing',  keys: []
         include_examples 'it locates "case" menu items by pressing',  keys: ['j'] * 7

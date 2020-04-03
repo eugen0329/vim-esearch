@@ -19,7 +19,8 @@ endfu
 fu! s:PathEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
     call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'path_input'})
-    return 1
+    let stop_propagation = 1
+    return stop_propagation
   end
 endfu
 

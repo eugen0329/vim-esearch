@@ -22,8 +22,8 @@ let s:Ag.spec = {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
       \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
-      \   '_full': ['none', 'word'],
-      \   'full': {
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
       \     'none':      {'icon': '',  'option': ''},
       \     'word':      {'icon': 'w', 'option': '--word-regexp'},
       \   },
@@ -37,7 +37,7 @@ let s:Ag.spec = {
 
 fu! s:Ag.command(esearch, pattern, escape) abort dict
   let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.full[a:esearch.full].option
+  let c = self.spec.textobj[a:esearch.textobj].option
   let w = self.spec.case[a:esearch.case].option
 
   let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)

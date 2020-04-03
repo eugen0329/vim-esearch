@@ -7,7 +7,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 cnoremap <Plug>(esearch-toggle-regex) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
 cnoremap <Plug>(esearch-toggle-case)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-toggle-word)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_FULL')<CR><CR>
+cnoremap <Plug>(esearch-toggle-word)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
 cnoremap <Plug>(esearch-open-menu)    <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
 let s:self = s:null
