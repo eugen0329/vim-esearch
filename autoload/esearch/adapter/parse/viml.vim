@@ -15,10 +15,14 @@ fu! esearch#adapter#parse#viml#legacy_funcref() abort
   return function('esearch#adapter#parse#viml#legacy')
 endfu
 
+" Parse lines in format filename[-:]line_number[-:]text
+" The method isn't split into smallar submethods to prevent redundant calls as
+" it's expected to consume thousands of lines per second.
 fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let results = []
   let pattern = self.exp.vim
+  let separators_count = 0
 
   let i = a:from
   let limit = a:to + 1
@@ -26,8 +30,16 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
   while i < limit
     let line = a:data[i]
 
+    if empty(line) || line ==# '--'
+      let separators_count += 1
+      let i += 1
+      continue
+    endif
+
+    " At the moment only git adapter outputs lines that wrapped in "" when special
+    " characters are encountered.
     if line[0] ==# '"'
-      let res = matchlist(line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"\:\(\d\{-}\)[-:]\(.*\)$')[1:3]
+      let res = matchlist(line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"[-:]\(\d\+\)[-:]\(.*\)$')[1:3]
       if len(res) == 3
         let [filename, lnum, text] = res
 
@@ -44,24 +56,25 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
       endif
     endif
 
-    let offset = 0
+    " try to find the first readable filename
+    let filename_end = 0
     while 1
-      let idx = stridx(line, ':', offset)
-
-      if idx < 0
+      let filename_end = match(line, '[-:]\d\+[-:]', filename_end + 1)
+      if filename_end < 0
         break
       endif
 
-      let filename = line[0 : idx - 1]
-      let offset = idx + 1
+      " NOTE that unlike regular slicing, strpart() works with byte offsets
+      " instead of char offsets, so it must be used with match()
+      let filename = strpart(line, 0 , filename_end)
 
       if filereadable(filename)
         break
       end
     endwhile
 
-    if idx > 0
-      let matches = matchlist(line, '\(\d\+\)[-:]\(.*\)', offset)[1:2]
+    if filename_end > 0
+      let matches = matchlist(line, '\(\d\+\)[-:]\(.*\)', filename_end)[1:2]
       if !empty(matches)
         call add(results, {
               \ 'filename': filename,
@@ -73,5 +86,5 @@ fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return results
+  return [results, separators_count]
 endfu

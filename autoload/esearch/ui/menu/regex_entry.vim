@@ -3,8 +3,8 @@ let s:List       = vital#esearch#import('Data.List')
 let s:RegexEntry = esearch#ui#component()
 
 fu! s:RegexEntry.render() abort dict
-  let hint = s:String.pad_right(self.props.keys[0], 8, ' ')
-  let hint .= 'toggle regex match'
+  let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
+  let hint .= 'regex match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.regex[self.props.regex].option
   let option = join(filter([self.props.regex, option], '!empty(v:val)'), ': ')
@@ -16,6 +16,8 @@ endfu
 fu! s:RegexEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
     call self.props.dispatch({'type': 'NEXT_REGEX'})
+    let stop_propagation = 1
+    return stop_propagation
   endif
 endfu
 

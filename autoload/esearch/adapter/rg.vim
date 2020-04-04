@@ -2,7 +2,7 @@ fu! esearch#adapter#rg#new() abort
   return copy(s:Rg)
 endfu
 
-let s:Rg = {}
+let s:Rg = esearch#adapter#base#import()
 if exists('g:esearch#adapter#rg#bin')
   " TODO warn deprecated
   let s:Rg.bin = g:esearch#adapter#rg#bin
@@ -14,7 +14,7 @@ if exists('g:esearch#adapter#rg#options')
   let s:Rg.options = g:esearch#adapter#rg#options
 else
   " --text: Search binary files as if they were text
-  let s:Rg.options = '--text'
+  let s:Rg.options = '--follow'
 endif
 let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-filename'
 " https://docs.rs/regex/1.3.6/regex/#syntax
@@ -27,9 +27,9 @@ let s:Rg.spec = {
       \     'crate':     {'icon': 'r', 'option': ''},
       \     'pcre':      {'icon': 'P', 'option': '--pcre2'},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled': {'icon': '',  'option': ''},
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \     'line':     {'icon': 'l', 'option': '--line-regexp'},
       \   },
@@ -40,17 +40,6 @@ let s:Rg.spec = {
       \     'smart':     {'icon': 'S', 'option': '--smart-case'},
       \   }
       \ }
-
-fu! s:Rg.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
-endfu
 
 fu! s:Rg.is_success(request) abort
   " https://github.com/BurntSushi/ripgrep/issues/948

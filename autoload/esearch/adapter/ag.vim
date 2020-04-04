@@ -2,7 +2,7 @@ fu! esearch#adapter#ag#new() abort
   return copy(s:Ag)
 endfu
 
-let s:Ag = {}
+let s:Ag = esearch#adapter#base#import()
 if exists('g:esearch#adapter#ag#bin')
   " TODO warn deprecated
   let s:Ag.bin = g:esearch#adapter#ag#bin
@@ -13,7 +13,7 @@ if exists('g:esearch#adapter#ag#options')
   " TODO warn deprecated
   let s:Ag.options = g:esearch#adapter#ag#options
 else
-  let s:Ag.options = ''
+  let s:Ag.options = '--follow'
 endif
 let s:Ag.mandatory_options = '--nogroup --nocolor --noheading'
 let s:Ag.spec = {
@@ -22,9 +22,9 @@ let s:Ag.spec = {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
       \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled':  {'icon': '',  'option': ''},
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':      {'icon': '',  'option': ''},
       \     'word':      {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
@@ -34,17 +34,6 @@ let s:Ag.spec = {
       \     'smart':     {'icon': 'S', 'option': '--smart-case'},
       \   }
       \ }
-
-fu! s:Ag.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
-endfu
 
 fu! s:Ag.is_success(request) abort
   " https://github.com/ggreer/the_silver_searcher/issues/1298

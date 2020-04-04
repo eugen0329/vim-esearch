@@ -5,10 +5,10 @@ let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-cnoremap <Plug>(esearch-toggle-regex) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-toggle-case)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-toggle-word)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_BOUND')<CR><CR>
-cnoremap <Plug>(esearch-open-menu)    <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
+cnoremap <Plug>(esearch-toggle-regex)   <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
+cnoremap <Plug>(esearch-toggle-case)    <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
+cnoremap <Plug>(esearch-toggle-textobj) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
+cnoremap <Plug>(esearch-open-menu)      <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
 let s:self = s:null
 let s:SearchInputController = esearch#ui#component()
@@ -33,7 +33,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
       let [self.cmdline, finish, retype] = s:SelectionController.new().render()
       if finish
         call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': self.cmdline})
-        call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'exit'})
+        call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
         return s:false
       elseif !empty(retype)
         call feedkeys(retype)
@@ -41,6 +41,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
     endif
 
     call self.props.dispatch({'type': 'SET_DID_INITIAL'})
+    redraw!
   endif
 
   return s:true
@@ -59,10 +60,12 @@ fu! s:SearchInputController.render_input() abort
   endif
 
   call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': self.cmdline})
-  call self.props.dispatch({'type': 'SET_ROUTE', 'route': 'exit'})
+  call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
 endfu
 
 fu! s:SearchInputController.input() abort dict
+  " NOTE that it's impossible to properly retype keys (see SelectionController
+  " for details) when inputsave() and inputrestore() are used.
   return input(esearch#ui#to_string(s:SearchPrompt.new())
         \ , self.cmdline, 'customlist,esearch#completion#buffer_words')
 endfu
@@ -79,7 +82,7 @@ endfu
 
 fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': s:self.cmdline})
-  call s:self.props.dispatch({'type': 'SET_ROUTE', 'route': 'menu'})
+  call s:self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
 fu! s:next_mode(event_type) abort dict

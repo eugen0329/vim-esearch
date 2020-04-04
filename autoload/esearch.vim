@@ -19,10 +19,14 @@ fu! esearch#init(...) abort
     let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
   endif
 
+  " TODO add 'remember' option to handle memoization below
   let g:esearch.last_search     = esearch.exp
   let g:esearch.case            = esearch.case
-  let g:esearch.bound           = esearch.bound
+  let g:esearch.textobj         = esearch.textobj
   let g:esearch.regex           = esearch.regex
+  let g:esearch.before          = esearch.before
+  let g:esearch.after           = esearch.after
+  let g:esearch.context         = esearch.context
   let g:esearch.paths           = esearch.paths
   let g:esearch.metadata        = esearch.metadata
   let g:esearch.adapters        = esearch.adapters
@@ -70,10 +74,10 @@ fu! s:new(esearch) abort
   endif
   if has_key(esearch, 'word')
     " TODO warn deprecated
-    let esearch.bound = esearch.current_adapter.spec._bound[!!esearch.word]
+    let esearch.textobj = esearch.current_adapter.spec._textobj[!!esearch.word]
   endif
-  if type(esearch.bound) !=# type('')
-    let esearch.bound = esearch.current_adapter.spec._bound[!!esearch.bound]
+  if type(esearch.textobj) !=# type('')
+    let esearch.textobj = esearch.current_adapter.spec._textobj[!!esearch.textobj]
   endif
 
   if !has_key(esearch, 'cwd')
@@ -104,7 +108,7 @@ fu! s:title(esearch, pattern) abort
   let format = s:title_format(a:esearch)
   let modifiers = ''
   let modifiers .= a:esearch.case ==# 'ignore' ? 'i' : ''
-  let modifiers .= a:esearch.bound ==# 'word' ? 'w' : ''
+  let modifiers .= a:esearch.textobj ==# 'word' ? 'w' : ''
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 

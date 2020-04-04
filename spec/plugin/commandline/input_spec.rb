@@ -25,15 +25,15 @@ describe 'esearch#cmdline input', :commandline do
             expect {
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys[..-2])
-            }.not_to start_search
+            }.not_to start_stubbed_search
 
             expect(editor)
               .to have_commandline_cursor_location(expected_input)
               .or not_to_be_in_commandline
 
             expect { editor.send_keys(keys.last) }
-              .to start_search
-              .and finish_search_for(expected_input.tr('|', ''))
+              .to start_stubbed_search
+              .and finish_stubbed_search_for(expected_input.tr('|', ''))
           end
         end
       end
@@ -46,7 +46,7 @@ describe 'esearch#cmdline input', :commandline do
             expect {
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
-            }.not_to start_search
+            }.not_to start_stubbed_search
 
             expect(editor)
               .to  be_in_commandline
@@ -63,7 +63,7 @@ describe 'esearch#cmdline input', :commandline do
             expect {
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
-            }.not_to start_search
+            }.not_to start_stubbed_search
           end
         end
       end
@@ -232,9 +232,9 @@ describe 'esearch#cmdline input', :commandline do
           end
 
           context 'control-*' do
-            include_context 'defined commandline hotkey', '<C-b>', '<S-Left>'
+            include_context 'defined commandline hotkey', '<C-x>', '<S-Left>'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-b>', :enter],
+              keys:            ['\\<C-x>', :enter],
               prefilled_input: 'was',
               expected_input:  '|was'
           end
@@ -248,9 +248,9 @@ describe 'esearch#cmdline input', :commandline do
           end
 
           context 'multiple keys sequence' do
-            include_context 'defined commandline hotkey', '<C-f><C-f>', 'after'
+            include_context 'defined commandline hotkey', '<C-x><C-x>', 'after'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-f>\\<C-f>', :enter],
+              keys:            ['\\<C-x>\\<C-x>', :enter],
               prefilled_input: 'was',
               expected_input:  'wasafter|'
           end

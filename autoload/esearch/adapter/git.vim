@@ -2,18 +2,18 @@ fu! esearch#adapter#git#new() abort
   return copy(s:Git)
 endfu
 
-let s:Git = {}
+let s:Git = esearch#adapter#base#import()
 if exists('g:esearch#adapter#git#bin')
   " TODO warn deprecated
   let s:Git.bin = g:esearch#adapter#git#bin
 else
-  let s:Git.bin = 'git'
+  let s:Git.bin = 'git --no-pager grep'
 endif
 if exists('g:esearch#adapter#git#options')
   " TODO warn deprecated
   let s:Git.options = g:esearch#adapter#git#options
 else
-  " -I: Process a binary file as if it did not contain matching data
+  " -I: don't match binary files
   let s:Git.options = '-I '
 endif
 
@@ -28,9 +28,9 @@ let s:Git.spec = {
       \     'extended': {'icon': 'E', 'option': '--extended-regexp'},
       \     'pcre':     {'icon': 'P', 'option': '--perl-regexp'},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled': {'icon': '',  'option': ''},
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
@@ -39,17 +39,6 @@ let s:Git.spec = {
       \     'sensitive': {'icon': 's', 'option': ''},
       \   }
       \ }
-
-fu! s:Git.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-
-  return join([self.bin, '--no-pager grep', r, c, w, self.mandatory_options, self.options], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
-endfu
 
 fu! s:Git.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors

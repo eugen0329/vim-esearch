@@ -13,7 +13,7 @@ fu! s:SelectionController.render() abort dict
     call esearch#ui#render([['NONE', "\n"]])
   endif
   call esearch#ui#render(s:SearchPrompt.new())
-  call esearch#ui#render([['Visual', substitute(self.props.cmdline, "\n", ' ', 'g')]])
+  call esearch#ui#render([['Visual', substitute(self.props.cmdline, "\n", '\\n', 'g')]])
 
   let retype = s:null
   let str =  self.props.cmdline
@@ -36,8 +36,8 @@ fu! s:SelectionController.render() abort dict
   else
     let str = char
   endif
-
   redraw!
+
   return [str, finish, retype]
 endfu
 

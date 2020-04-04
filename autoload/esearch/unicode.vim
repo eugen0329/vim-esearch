@@ -5,3 +5,5 @@ else
   let g:esearch#unicode#dir_icon = '🗀 '
 endif
 let g:esearch#unicode#spinner = [' ◜ ', '  ◝', '  ◞', ' ◟ ']
+let g:esearch#unicode#le = '≤'
+" let g:esearch#unicode#almost = '≈'

@@ -2,7 +2,7 @@ fu! esearch#adapter#pt#new() abort
   return copy(s:Pt)
 endfu
 
-let s:Pt = {}
+let s:Pt = esearch#adapter#base#import()
 if exists('g:esearch#adapter#pt#bin')
   " TODO warn deprecated
   let s:Pt.bin = g:esearch#adapter#pt#bin
@@ -23,9 +23,9 @@ let s:Pt.spec = {
       \     'literal':   {'icon': '',  'option': ''},
       \     're2':       {'icon': 'r', 'option': '-e'},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled': {'icon': '',  'option': ''},
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
       \   '_case': ['ignore', 'sensitive'],
@@ -35,17 +35,6 @@ let s:Pt.spec = {
       \     'smart':     {'icon': 'S', 'option': '--smart-case'},
       \   }
       \ }
-
-fu! s:Pt.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
-endfu
 
 fu! s:Pt.is_success(request) abort
   " https://github.com/monochromegane/the_platinum_searcher/issues/150

@@ -24,8 +24,7 @@ let g:esearch#out#win#mappings = [
       \ ]
 
 let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
-" The first line. It contains information about the number of results
-let s:file_entry_pattern = '^\s\+\d\+\s\+.*'
+let s:entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 let s:lines_map_padding = 0 " to index with line numbers which begin from 1
 if g:esearch#has#unicode
@@ -33,11 +32,18 @@ if g:esearch#has#unicode
 else
   let s:spinner = ['.', '..', '...']
 endif
+
+if g:esearch#has#unicode
+  let s:le = g:esearch#unicode#le
+else
+  let s:le = '<='
+endif
+
 let s:spinner_frames_size = len(s:spinner)
 let s:spinner_slowdown = 2
 let s:spinner_max_frame_size = max(map(copy(s:spinner), 'strchars(v:val)'))
-let s:request_finished_header = 'Matches in %3d line(s), %3d%-'.s:spinner_max_frame_size.'s file(s)'
-let s:header = 'Matches in %d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:request_finished_header = 'Matches in '.s:le.'%3d line(s), %3d%-'.s:spinner_max_frame_size.'s file(s)'
+let s:header = 'Matches in '.s:le.'%d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let s:linenr_format = ' %3d '
@@ -87,7 +93,7 @@ if !exists('g:esearch#out#win#context_syntax_max_lines')
 endif
 if !exists('g:esearch_out_win_highlight_cursor_line_number')
   let g:esearch_out_win_highlight_cursor_line_number =
-        \ g:esearch#has#virtual_cursor_linenr_highlight && &cursorline
+        \ g:esearch#has#virtual_cursor_linenr_highlight
 endif
 if !exists('g:esearch_out_win_render_using_lua')
   let g:esearch_out_win_render_using_lua = g:esearch#has#lua
@@ -209,6 +215,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'bufnr':                    bufnr('%'),
         \ 'last_update_at':           reltime(),
         \ 'files_count':              0,
+        \ 'separators_count':         0,
         \ 'mode':                     'normal',
         \ 'viewport_highlight_timer': -1,
         \ 'match_highlight_timer':    -1,
@@ -337,7 +344,7 @@ fu! s:highlight_cursor_line_number() abort
     call esearch#util#safe_matchdelete(b:esearch_linenr_id)
   endif
   let b:esearch_linenr_id = matchadd('esearchCursorLineNr',
-        \ '^\s\+\d\+\s' . line('.') . 'l', -1)
+        \ '^\s\+\d\+\s\%' . line('.') . 'l', -1)
 endfu
 endif
 
@@ -554,13 +561,13 @@ fu! esearch#out#win#update(bufnr, ...) abort
   let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
   if request.finished
     call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
-          \ len(esearch.request.data),
+          \ len(esearch.request.data) - esearch.separators_count,
           \ esearch.files_count,
           \ spinner
           \ ))
   else
     call esearch#util#setline(a:bufnr, 1, printf(s:header,
-          \ len(esearch.request.data),
+          \ len(esearch.request.data)  - esearch.separators_count,
           \ spinner,
           \ esearch.files_count,
           \ spinner
@@ -575,8 +582,8 @@ endfu
 
 fu! s:header_text() abort dict
   return printf(s:finished_header,
-        \ len(self.request.data),
-        \ esearch#util#pluralize('line', len(self.request.data)),
+        \ len(self.request.data) - self.separators_count,
+        \ esearch#util#pluralize('line', len(self.request.data) - self.separators_count),
         \ self.files_count,
         \ esearch#util#pluralize('file', self.files_count),
         \ )
@@ -954,7 +961,7 @@ endfu
 
 fu! esearch#out#win#foldexpr() abort
   let line = getline(v:lnum)
-  if line =~# s:file_entry_pattern || line =~# s:filename_pattern
+  if line =~# s:entry_pattern || line =~# s:filename_pattern
     return 1
   endif
   return s:blank_line_fold
@@ -998,42 +1005,45 @@ fu! s:jump2filename(direction, count) abort dict
 endfu
 
 fu! s:jump2entry(direction, count) abort dict
-  let pattern = s:file_entry_pattern
-  let last_line = line('$')
+  if self.is_blank()
+    return 0
+  endif
+
+  let pattern = s:entry_pattern
   let times = a:count
 
+  " When jumping down from the header context, it locates the second entry as
+  " clicking on the header cause opening the first encountered entry below.
   if a:direction ==# 'v'
+    let pattern .= line('$') <= 4 ? '\%>3l' : '\%>4l'
+
     while times > 0
-      " If one result - move cursor on it, else - move to the next
-      " bypassing the first entry line
-      let pattern .= last_line <= 4 ? '\%>3l' : '\%>4l'
       call search(pattern, 'W')
       let times -= 1
     endwhile
   else
-    while times > 0
-      " If cursor is in gutter between result groups(empty line)
-      if '' ==# getline(line('.'))
-        call search(pattern, 'Wb')
-      endif
-      " If no results behind - jump the first, else - previous
-      call search(pattern, line('.') < 4 ? '' : 'Wbe')
-      let times -= 1
-    endwhile
+    " When jumping up from the header context, it locates the first entry below
+    if line('.') <= 3
+      call search(pattern, 'W')
+    else
+      let pattern .= '\%<'.line('.').'l'
+      while times > 0
+        call search(pattern,  'Wb')
+        let times -= 1
+      endwhile
+    endif
   endif
 
-  call search('^', 'Wb', line('.'))
-  " If there is no results - do nothing, otherwise - jump to the text of the
-  " entry
-  if last_line !=# 1
-    norm! ww
-  endif
+  " Locate the first column (including virtual) after a line number
+  norm! 0
+  let pos = searchpos('\s\+\d\+\s', 'Wne')
+  call cursor(pos[0], pos[1] + 1)
 
   return 1
 endfu
 
 fu! s:is_entry() abort dict
-  return getline(line('.')) =~# s:file_entry_pattern
+  return getline(line('.')) =~# s:entry_pattern
 endfu
 
 fu! s:is_filename() abort dict
@@ -1078,8 +1088,8 @@ fu! esearch#out#win#finish(bufnr) abort
   endif
 
   call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
-        \ len(esearch.request.data),
-        \ esearch#util#pluralize('line', len(esearch.request.data)),
+        \ len(esearch.request.data) - esearch.separators_count,
+        \ esearch#util#pluralize('line', len(esearch.request.data) - esearch.separators_count),
         \ esearch.files_count,
         \ esearch#util#pluralize('file', b:esearch.files_count),
         \))
@@ -1275,8 +1285,8 @@ fu! s:handle_insert__inline(event) abort
 
   if line1 == 1
     let text = printf(s:finished_header,
-          \ len(b:esearch.request.data),
-          \ esearch#util#pluralize('line', len(b:esearch.request.data)),
+          \ len(b:esearch.request.data) - b:esearch.separators_count,
+          \ esearch#util#pluralize('line', len(b:esearch.request.data) - b:esearch.separators_count),
           \ b:esearch.files_count,
           \ esearch#util#pluralize('file', b:esearch.files_count),
           \ )
@@ -1340,8 +1350,8 @@ fu! s:handle_normal__inline(event) abort
 
   if line1 == 1
     call setline(line1, printf(s:finished_header,
-          \ len(b:esearch.request.data),
-          \ esearch#util#pluralize('line', len(b:esearch.request.data)),
+          \ len(b:esearch.request.data) - b:esearch.separators_count,
+          \ esearch#util#pluralize('line', len(b:esearch.request.data) - b:esearch.separators_count),
           \ b:esearch.files_count,
           \ esearch#util#pluralize('file', b:esearch.files_count),
           \ ))

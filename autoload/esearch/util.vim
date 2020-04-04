@@ -185,11 +185,7 @@ fu! esearch#util#without(key) dict abort
   return filter(copy(self), 'v:key !=# "'.a:key.'"')
 endfu
 
-fu! esearch#util#slice(...) dict abort
-  return filter(copy(self), 'index(a:000, v:key) >= 0')
-endfu
-
-fu! esearch#util#_slice(dict, keys) abort
+fu! esearch#util#slice(dict, keys) abort
   return filter(copy(a:dict), 'index(a:keys, v:key) >= 0')
 endfu
 
@@ -661,7 +657,7 @@ endfu
 fu! esearch#util#is_visual() abort
   " From :h mode()
   " Note that in the future more modes and more specific modes may
-  " be added. It's better not to compare the whole string but only
+  " be added. It's better not to compare the full string but only
   " the leading character(s).
   return mode() =~? "^[vS\<C-v>]"
 endfu
@@ -692,7 +688,7 @@ endfu
 fu! esearch#util#slice_factory(keys) abort
   let private_scope = {}
   exe    " fu! l:private_scope.slice(dict) abort\n"
-     \ . '   return esearch#util#_slice(a:dict,'.string(a:keys).")\n"
+     \ . '   return esearch#util#slice(a:dict,'.string(a:keys).")\n"
      \ . ' endfu'
   return private_scope.slice
 endfu

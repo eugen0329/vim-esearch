@@ -52,7 +52,7 @@ cursor in split, vertical split and in tab accordingly. Use <kbd>Shift</kbd>
 along with <kbd>s</kbd>, <kbd>v</kbd> and <kbd>t</kbd> buttons to open a file silently. Press <kbd>Shift-r</kbd> to reload
 currrent results.
 
-To switch between case-sensitive/insensitive, whole-word-match and regex/literal pattern in command
+To switch between case-sensitive/insensitive, full-word-match and regex/literal pattern in command
 line use <kbd>Ctrl-o</kbd><kbd>Ctrl-r</kbd>, <kbd>Ctrl-o</kbd><kbd>Ctrl-s</kbd> or <kbd>Ctrl-o</kbd><kbd>Ctrl-w</kbd> (mnemonics is set **O**ption: **R**egex,
 case **S**esnsitive, **W**ord regex).
 
@@ -138,7 +138,7 @@ mapping are listed as an example here):
 
     call esearch#cmdline#map('<C-o><C-r>', 'toggle-regex')
     call esearch#cmdline#map('<C-o><C-s>', 'toggle-case')
-    call esearch#cmdline#map('<C-o><C-w>', 'toggle-word')
+    call esearch#cmdline#map('<C-o><C-w>', 'toggle-textobj')
     call esearch#cmdline#map('<C-o><C-h>', 'cmdline-help')
 ```
 

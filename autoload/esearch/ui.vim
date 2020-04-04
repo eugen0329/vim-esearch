@@ -37,6 +37,12 @@ fu! s:Component.keypress(event) abort dict
   return s:null
 endfu
 
+fu! s:Component.component_will_mount() abort dict
+endfu
+
+fu! s:Component.component_will_unmount() abort dict
+endfu
+
 let s:Component.default_props = {}
 
 fu! esearch#ui#context() abort
@@ -67,6 +73,14 @@ fu! esearch#ui#render(component) abort
   for [color, text] in tokens
     call s:Message.echon(color, text)
   endfor
+endfu
+
+fu! esearch#ui#flush() abort
+  if has('nvim')
+    mode
+  else
+    redraw!
+  endif
 endfu
 
 fu! esearch#ui#to_string(component) abort

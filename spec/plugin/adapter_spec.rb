@@ -49,7 +49,7 @@ describe 'esearch#adapter', :adapters do
         end
       end
 
-      context 'ugly names' do
+      describe 'ugly names' do
         let!(:test_directory) { directory(files).persist! }
 
         it_behaves_like 'search specifying custom paths',
@@ -104,7 +104,97 @@ describe 'esearch#adapter', :adapters do
         end
       end
 
-      context 'globbing' do
+      describe 'context height' do
+        let(:before_lines) { 0 }
+        let(:after_lines) { 0 }
+        let(:context_lines) { 0 }
+        before do
+          esearch.configure(
+            adapter:      adapter,
+            out:          'win',
+            backend:      'system',
+            regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
+            use:          [],
+            root_markers: [],
+            before:       before_lines,
+            after:        after_lines,
+            context:      context_lines
+          )
+          esearch.configuration.adapter_bin = adapter_bin if adapter_bin
+          esearch.configuration.submit!
+        end
+        let!(:test_directory) { directory(files).persist! }
+        let(:search_string) { 'line3' }
+        let(:path) { 'file.txt' }
+        let(:line) { 3 }
+        let(:files) do
+          [file("line1\nline2\n#{search_string}\nline4\nline5", path)]
+        end
+        before { editor.cd! test_directory }
+        after { esearch.cleanup! }
+
+        before do
+          esearch.search!(search_string)
+
+          expect(esearch)
+            .to  have_search_started
+            .and have_search_finished
+            .and have_not_reported_errors
+            .and have_search_highlight(path, 3, 1..(search_string.length + 1))
+        end
+
+        context "when 'before' is set" do
+          let(:before_lines) { 1 }
+
+          it do
+            expect(esearch)
+              .to have_outputted_results(count: 2)
+              .and have_search_highlight(path, 3, 1..(search_string.length + 1))
+              .and have_outputted_result_from_file_in_line(path, line)
+              .and have_outputted_result_from_file_in_line(path, line - 1)
+          end
+        end
+
+        context "when 'after' is set" do
+          let(:after_lines) { 2 }
+
+          it do
+            expect(esearch)
+              .to have_outputted_results(count: 3)
+              .and have_outputted_result_from_file_in_line(path, line)
+              .and have_outputted_result_from_file_in_line(path, line + 1)
+              .and have_outputted_result_from_file_in_line(path, line + 2)
+          end
+        end
+
+        context "when 'before' and 'after' are set" do
+          let(:after_lines) { 1 }
+          let(:before_lines) { 2 }
+
+          it do
+            expect(esearch)
+              .to have_outputted_results(count: 4)
+              .and have_outputted_result_from_file_in_line(path, line)
+              .and have_outputted_result_from_file_in_line(path, line + 1)
+              .and have_outputted_result_from_file_in_line(path, line - 1)
+              .and have_outputted_result_from_file_in_line(path, line - 2)
+          end
+        end
+
+        context "when 'context' is set" do
+          let(:context_lines) { 1 }
+
+          it do
+            expect(esearch)
+              .to have_outputted_results(count: 3)
+              .and have_outputted_result_from_file_in_line(path, line)
+              .and have_outputted_result_from_file_in_line(path, line - 1)
+              .and have_outputted_result_from_file_in_line(path, line + 1)
+          end
+        end
+      end
+
+      describe 'globbing' do
         context 'single *' do
           it_behaves_like 'search specifying custom paths',
             paths_string:   '*.txt',
@@ -141,11 +231,11 @@ describe 'esearch#adapter', :adapters do
     include_examples 'adapter testing examples', 'rg', Configuration.rg_path
   end
 
-  describe '#nvim', :neovim do
-    around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
+  # describe '#nvim', :neovim do
+  #   around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
-    include_examples 'all adapters testing examples'
-  end
+  #   include_examples 'all adapters testing examples'
+  # end
 
   describe '#vim' do
     include_examples 'all adapters testing examples'

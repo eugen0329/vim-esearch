@@ -16,140 +16,202 @@ describe 'esearch#cmdline menu', :commandline do
     # +clientserver implimentation particularities
 
     describe 'change options using hotkeys' do
-      shared_examples 'it sets options using hotkey' do |hotkey, options|
-        it "sets #{options} using hotkey #{hotkey}" do
+      shared_examples 'it sets options using hotkey' do |hotkeys, options|
+        it "sets #{options} using hotkey(s) #{hotkeys}" do
           expect {
             editor.send_keys(*open_input_keys, *open_menu_keys)
-            editor.send_keys(hotkey, close_menu_key, 'search str', :enter)
+            editor.send_keys_separately(*hotkeys, close_menu_key, 'search str', :enter)
           }.to set_global_options(options)
-            .and start_search_with_options(options)
-            .and finish_search_for('search str')
+            .and start_stubbed_search_with_options(options)
+            .and finish_stubbed_search_for('search str')
         end
       end
 
       context 'default mappings' do
         context 'when enabling options' do
-          before { esearch.configure!(adapter: 'ag', bound: 'disabled', case: 'ignore', regex: 'literal') }
+          before { esearch.configure!(adapter: 'ag', textobj: 0, case: 'ignore', regex: 'literal') }
 
-          include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'sensitive'
-          include_examples 'it sets options using hotkey', 's',       'case'  => 'sensitive'
+          # > s      toggle case match
+          #   r      toggle regexp match
+          #   t      toggle textobj match
+          #   p      edit [path]
+          #   aA     adjust after (0)
+          #   bB     adjust before (0)
+          #   cC     adjust context (1)
 
-          include_examples 'it sets options using hotkey', '\\<C-b>', 'bound'  => 'word'
-          include_examples 'it sets options using hotkey', 'b',       'bound'  => 'word'
+          context 'when using own keys' do
+            include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'sensitive'
+            include_examples 'it sets options using hotkey', 's',       'case'  => 'sensitive'
 
-          include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'pcre'
-          include_examples 'it sets options using hotkey', 'r',       'regex' => 'pcre'
+            include_examples 'it sets options using hotkey', '\\<C-t>', 'textobj'  => 'word'
+            include_examples 'it sets options using hotkey', 't',       'textobj'  => 'word'
+
+            include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'pcre'
+            include_examples 'it sets options using hotkey', 'r',       'regex' => 'pcre'
+          end
+
+          context 'when using <CR>' do
+            CR = '\\<CR>'
+            C_J = '\\<C-j>'
+            C_K = '\\<C-k>'
+
+            include_examples 'it sets options using hotkey', [CR],             'case'    => 'sensitive'
+            include_examples 'it sets options using hotkey', ['j'] * 1 + [CR], 'regex'   => 'pcre'
+            include_examples 'it sets options using hotkey', ['j'] * 2 + [CR], 'textobj' => 'word'
+            include_examples 'it sets options using hotkey', [C_J] * 1 + [CR], 'regex'   => 'pcre'
+            include_examples 'it sets options using hotkey', [C_J] * 2 + [CR], 'textobj' => 'word'
+
+            context 'when wrapping around the end' do
+              include_examples 'it sets options using hotkey', [C_J] * 7 + [CR], 'case'    => 'sensitive'
+              include_examples 'it sets options using hotkey', ['k'] * 7 + [CR], 'case'    => 'sensitive'
+              include_examples 'it sets options using hotkey', ['k'] * 6 + [CR], 'regex'   => 'pcre'
+              include_examples 'it sets options using hotkey', ['k'] * 5 + [CR], 'textobj' => 'word'
+              include_examples 'it sets options using hotkey', [C_K] * 7 + [CR], 'case'    => 'sensitive'
+              include_examples 'it sets options using hotkey', [C_K] * 6 + [CR], 'regex'   => 'pcre'
+              include_examples 'it sets options using hotkey', [C_K] * 5 + [CR], 'textobj' => 'word'
+            end
+          end
         end
 
         context 'when disabling options' do
-          before { esearch.configure!(adapter: 'ag', bound: 'word', regex: 'pcre') }
+          before { esearch.configure!(adapter: 'ag', textobj: 'word', regex: 'pcre') }
 
-          include_examples 'it sets options using hotkey', '\\<C-b>', 'bound'  => 'disabled'
-          include_examples 'it sets options using hotkey', 'b',       'bound'  => 'disabled'
+          context 'when using own keys' do
+            include_examples 'it sets options using hotkey', '\\<C-t>', 'textobj'  => 'none'
+            include_examples 'it sets options using hotkey', 't',       'textobj'  => 'none'
 
-          include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'literal'
-          include_examples 'it sets options using hotkey', 'r',       'regex' => 'literal'
+            include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'literal'
+            include_examples 'it sets options using hotkey', 'r',       'regex' => 'literal'
+          end
         end
 
-        context 'when cycling' do
+        context 'when cycling options' do
           before { esearch.configure!(adapter: 'ag', case: 'sensitive') }
-          include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'smart'
-          include_examples 'it sets options using hotkey', 's',       'case'  => 'smart'
-        end
-      end
-    end
 
-    describe 'change options by moving the menu selection' do
-      shared_context 'opened menu testing' do
-        before do
-          esearch.configuration.submit!(overwrite: true)
-          editor.command('call esearch#util_testing#spy_echo()')
-          editor.send_keys(*open_input_keys, *open_menu_keys)
-        end
-        after { editor.command('call esearch#util_testing#unspy_echo()') }
-      end
-
-      shared_examples 'it locates "regex" menu items by pressing' do |keys:|
-        context "when pressing #{keys}" do
-          include_context 'opened menu testing'
-
-          it 'locates "regex" menu entry' do
-            expect {
-              editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter)
-            }.to change { menu_items }
-              .from(match_array([
-                start_with('> s '),
-                start_with('  r '),
-                start_with('  b '),
-                start_with('  p ')
-              ])).to(match_array([
-                start_with('  s '),
-                start_with('> r '),
-                start_with('  b '),
-                start_with('  p ')
-              ]))
-              .and set_global_options('regex' => 'pcre')
-              .and start_search_with_options('regex' => 'pcre')
+          context 'when using own keys' do
+            include_examples 'it sets options using hotkey', '\\<C-s>', 'case' => 'smart'
+            include_examples 'it sets options using hotkey', 's',       'case' => 'smart'
           end
         end
-      end
 
-      shared_examples 'it locates "bound" menu items by pressing' do |keys:|
-        context "when pressing #{keys}" do
-          include_context 'opened menu testing'
+        context 'when incrementing' do
+          before { esearch.configure!(adapter: 'ag', after: 0, before: 0, context: 0) }
 
-          it 'locates "bound" menu entry' do
-            expect { editor.send_keys_separately(*keys, :enter, close_menu_key, 'search string', :enter) }
-              .to change { menu_items }
-              .from(match_array([
-                start_with('> s '),
-                start_with('  r '),
-                start_with('  b '),
-                start_with('  p ')
-              ])).to(match_array([
-                start_with('  s '),
-                start_with('  r '),
-                start_with('> b '),
-                start_with('  p ')
-              ]))
-              .and set_global_options('bound' => 'word')
-              .and start_search_with_options('bound' => 'word')
+          context 'when using own key' do
+            include_examples 'it sets options using hotkey', 'a'.chars,  'after'   => 1
+            include_examples 'it sets options using hotkey', 'b'.chars,  'before'  => 1
+            include_examples 'it sets options using hotkey', 'c'.chars,  'context' => 1
+            include_examples 'it sets options using hotkey', 'aa'.chars, 'after'   => 2
+            include_examples 'it sets options using hotkey', 'bb'.chars, 'before'  => 2
+            include_examples 'it sets options using hotkey', 'cc'.chars, 'context' => 2
+          end
+
+          context 'when using +' do
+            include_examples 'it sets options using hotkey', 'kkk+'.chars,  'after'   => 1
+            include_examples 'it sets options using hotkey', 'kk+'.chars,   'before'  => 1
+            include_examples 'it sets options using hotkey', 'k+'.chars,    'context' => 1
+            include_examples 'it sets options using hotkey', 'kkk++'.chars, 'after'   => 2
+            include_examples 'it sets options using hotkey', 'kk++'.chars,  'before'  => 2
+            include_examples 'it sets options using hotkey', 'k++'.chars,   'context' => 2
+          end
+
+          context 'when usgin <C-a>' do
+            C_A = '\\<C-a>'
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 1, 'after'   => 1
+            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_A] * 1, 'before'  => 1
+            include_examples 'it sets options using hotkey', 'k'.chars   + [C_A] * 1, 'context' => 1
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 2, 'after'   => 2
+            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_A] * 2, 'before'  => 2
+            include_examples 'it sets options using hotkey', 'k'.chars   + [C_A] * 2, 'context' => 2
           end
         end
-      end
 
-      shared_examples 'it locates "case" menu items by pressing' do |keys:|
-        context "when pressing #{keys}" do
-          include_context 'opened menu testing'
+        context 'when decrementing' do
+          before { esearch.configure!(adapter: 'ag', after: 2, before: 2, context: 2) }
 
-          it 'locates "case" menu entry' do
-            expect {
-              editor.send_keys(*keys)
-              editor.send_keys(:enter, close_menu_key, 'search string', :enter)
-            }.to set_global_options('case' => 'sensitive')
-              .and start_search_with_options('case' => 'sensitive')
+          context 'when using own key' do
+            include_examples 'it sets options using hotkey', 'A'.chars,  'after'   => 1
+            include_examples 'it sets options using hotkey', 'B'.chars,  'before'  => 1
+            include_examples 'it sets options using hotkey', 'C'.chars,  'context' => 1
+            include_examples 'it sets options using hotkey', 'AA'.chars, 'after'   => 0
+            include_examples 'it sets options using hotkey', 'BB'.chars, 'before'  => 0
+            include_examples 'it sets options using hotkey', 'CC'.chars, 'context' => 0
+          end
+
+          context 'when using -' do
+            include_examples 'it sets options using hotkey', 'kkk-'.chars,  'after'   => 1
+            include_examples 'it sets options using hotkey', 'kk-'.chars,   'before'  => 1
+            include_examples 'it sets options using hotkey', 'k-'.chars,    'context' => 1
+            include_examples 'it sets options using hotkey', 'kkk--'.chars, 'after'   => 0
+            include_examples 'it sets options using hotkey', 'kk--'.chars,  'before'  => 0
+            include_examples 'it sets options using hotkey', 'k--'.chars,   'context' => 0
+          end
+
+          context 'when usgin <C-x>' do
+            C_X = '\\<C-x>'
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 1, 'after'   => 1
+            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_X] * 1, 'before'  => 1
+            include_examples 'it sets options using hotkey', 'k'.chars   + [C_X] * 1, 'context' => 1
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 2, 'after'   => 0
+            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_X] * 2, 'before'  => 0
+            include_examples 'it sets options using hotkey', 'k'.chars   + [C_X] * 2, 'context' => 0
           end
         end
-      end
 
-      context 'default hotkeys' do
-        ## Menu outlook is:
-        # > s       toggle case sensitive match
-        #   r       toggle regexp match
-        #   b       toggle bound match
-        #   p       edit paths
+        context 'when setting numeric' do
+          before { esearch.configure!(adapter: 'ag', after: 0, before: 0, context: 0) }
 
-        include_examples 'it locates "regex" menu items by pressing', keys: ['j']
-        include_examples 'it locates "regex" menu items by pressing', keys: ['\\<C-j>']
+          include_examples 'it sets options using hotkey', 'kkk7'.chars, 'after'   => 7
+          include_examples 'it sets options using hotkey', 'kk8'.chars,  'before'  => 8
+          include_examples 'it sets options using hotkey', 'k9'.chars,   'context' => 9
+          include_examples 'it sets options using hotkey', 'kkk71'.chars, 'after'   => 71
+          include_examples 'it sets options using hotkey', 'kk82'.chars,  'before'  => 82
+          include_examples 'it sets options using hotkey', 'k93'.chars,   'context' => 93
+        end
 
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['kk']
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['jj']
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['\\<C-k>\\<C-k>']
-        include_examples 'it locates "bound" menu items by pressing',  keys: ['\\<C-j>\\<C-j>']
+        context 'when deleting numeric' do
+          BS = '\\<BS>'
+          DEL = '\\<DEL>'
 
-        include_examples 'it locates "case" menu items by pressing',  keys: []
-        include_examples 'it locates "case" menu items by pressing',  keys: ['jjjj']
-        include_examples 'it locates "case" menu items by pressing',  keys: ['kkkk']
+          before { esearch.configure!(adapter: 'ag', after: 71, before: 82, context: 93) }
+
+          context 'when against non-zero' do
+            context 'when deleting the rightmost char' do
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 1,  'after'   => 7
+              include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 1,  'before'  => 8
+              include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 1,  'context' => 9
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 2,  'after'   => 0
+              include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 2,  'before'  => 0
+              include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 2,  'context' => 0
+            end
+
+            context 'when nullifying the value' do
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [DEL] * 1, 'after'   => 0
+              include_examples 'it sets options using hotkey', 'kk'.chars  + [DEL] * 1, 'before'  => 0
+              include_examples 'it sets options using hotkey', 'k'.chars   + [DEL] * 1, 'context' => 0
+            end
+          end
+
+          context 'when against zero' do
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 3,  'after'   => 0
+            include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 3,  'before'  => 0
+            include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 3,  'context' => 0
+
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [DEL] * 2, 'after'   => 0
+            include_examples 'it sets options using hotkey', 'kk'.chars  + [DEL] * 2, 'before'  => 0
+            include_examples 'it sets options using hotkey', 'k'.chars   + [DEL] * 2, 'context' => 0
+          end
+        end
+
+        context 'when jumping to menu entries by pressing their own keys' do
+          before { esearch.configure!(adapter: 'ag', after: 0, before: 0, context: 0) }
+
+          # Only context width options are tested as the feature is only
+          # useful for them.
+          include_examples 'it sets options using hotkey', 'A7'.chars, 'after'   => 7
+          include_examples 'it sets options using hotkey', 'B8'.chars, 'before'  => 8
+          include_examples 'it sets options using hotkey', 'C9'.chars, 'context' => 9
+        end
       end
     end
 

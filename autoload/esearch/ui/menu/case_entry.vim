@@ -3,8 +3,8 @@ let s:List      = vital#esearch#import('Data.List')
 let s:CaseEntry = esearch#ui#component()
 
 fu! s:CaseEntry.render() abort dict
-  let hint = s:String.pad_right(self.props.keys[0], 8, ' ')
-  let hint .= 'toggle case match'
+  let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
+  let hint .= 'case match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.case[self.props.case].option
   let option = join(filter([self.props.case, option], '!empty(v:val)'), ': ')
@@ -16,6 +16,8 @@ endfu
 fu! s:CaseEntry.keypress(event) abort dict
   if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
     call self.props.dispatch({'type': 'NEXT_CASE'})
+    let stop_propagation = 1
+    return stop_propagation
   endif
 endfu
 

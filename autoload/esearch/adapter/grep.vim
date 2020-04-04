@@ -2,7 +2,7 @@ fu! esearch#adapter#grep#new() abort
   return copy(s:Grep)
 endfu
 
-let s:Grep = {}
+let s:Grep = esearch#adapter#base#import()
 
 if exists('g:esearch#adapter#grep#bin')
   " TODO warn deprecated
@@ -14,8 +14,8 @@ if exists('g:esearch#adapter#grep#options')
   " TODO warn deprecated
   let s:Grep.options = g:esearch#adapter#grep#options
 else
-" -I: Process a binary file as if it did not contain matching data
-  let s:Grep.options = '-I'
+  " -I: don't match binary files
+  let s:Grep.options = '-I '
 endif
 
 " Short options are used as they are supported more often than long ones
@@ -33,9 +33,9 @@ let s:Grep.spec = {
       \     'extended': {'icon': 'E', 'option': '-E'},
       \     'pcre':     {'icon': 'P', 'option': '-P'},
       \   },
-      \   '_bound': ['disabled', 'word'],
-      \   'bound': {
-      \     'disabled': {'icon': '',  'option': ''},
+      \   '_textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '-w'},
       \     'line':     {'icon': 'l', 'option': '-x'},
       \   },
@@ -45,17 +45,6 @@ let s:Grep.spec = {
       \     'sensitive': {'icon': 's', 'option': ''},
       \   }
       \ }
-
-fu! s:Grep.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.bound[a:esearch.bound].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
-endfu
 
 fu! s:Grep.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors
