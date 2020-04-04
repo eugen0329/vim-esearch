@@ -5,10 +5,10 @@ let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-cnoremap <Plug>(esearch-toggle-regex) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-toggle-case)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-toggle-word)  <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-open-menu)    <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
+cnoremap <Plug>(esearch-toggle-regex)   <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
+cnoremap <Plug>(esearch-toggle-case)    <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
+cnoremap <Plug>(esearch-toggle-textobj) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
+cnoremap <Plug>(esearch-open-menu)      <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
 let s:self = s:null
 let s:SearchInputController = esearch#ui#component()

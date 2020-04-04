@@ -98,12 +98,12 @@ describe 'esearch#cmdline menu', :commandline do
           before { esearch.configure!(adapter: 'ag', after: 0, before: 0, context: 0) }
 
           context 'when using own key' do
-            include_examples 'it sets options using hotkey', 'A'.chars,  'after'   => 1
-            include_examples 'it sets options using hotkey', 'B'.chars,  'before'  => 1
-            include_examples 'it sets options using hotkey', 'C'.chars,  'context' => 1
-            include_examples 'it sets options using hotkey', 'AA'.chars, 'after'   => 2
-            include_examples 'it sets options using hotkey', 'BB'.chars, 'before'  => 2
-            include_examples 'it sets options using hotkey', 'CC'.chars, 'context' => 2
+            include_examples 'it sets options using hotkey', 'a'.chars,  'after'   => 1
+            include_examples 'it sets options using hotkey', 'b'.chars,  'before'  => 1
+            include_examples 'it sets options using hotkey', 'c'.chars,  'context' => 1
+            include_examples 'it sets options using hotkey', 'aa'.chars, 'after'   => 2
+            include_examples 'it sets options using hotkey', 'bb'.chars, 'before'  => 2
+            include_examples 'it sets options using hotkey', 'cc'.chars, 'context' => 2
           end
 
           context 'when using +' do
@@ -130,12 +130,12 @@ describe 'esearch#cmdline menu', :commandline do
           before { esearch.configure!(adapter: 'ag', after: 2, before: 2, context: 2) }
 
           context 'when using own key' do
-            include_examples 'it sets options using hotkey', 'a'.chars,  'after'   => 1
-            include_examples 'it sets options using hotkey', 'b'.chars,  'before'  => 1
-            include_examples 'it sets options using hotkey', 'c'.chars,  'context' => 1
-            include_examples 'it sets options using hotkey', 'aa'.chars, 'after'   => 0
-            include_examples 'it sets options using hotkey', 'bb'.chars, 'before'  => 0
-            include_examples 'it sets options using hotkey', 'cc'.chars, 'context' => 0
+            include_examples 'it sets options using hotkey', 'A'.chars,  'after'   => 1
+            include_examples 'it sets options using hotkey', 'B'.chars,  'before'  => 1
+            include_examples 'it sets options using hotkey', 'C'.chars,  'context' => 1
+            include_examples 'it sets options using hotkey', 'AA'.chars, 'after'   => 0
+            include_examples 'it sets options using hotkey', 'BB'.chars, 'before'  => 0
+            include_examples 'it sets options using hotkey', 'CC'.chars, 'context' => 0
           end
 
           context 'when using -' do
@@ -177,12 +177,12 @@ describe 'esearch#cmdline menu', :commandline do
 
           context 'when against non-zero' do
             context 'when deleting the rightmost char' do
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 1,  'after'   => 7
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 1,  'before'  => 8
-            include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 1,  'context' => 9
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 2,  'after'   => 0
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 2,  'before'  => 0
-            include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 2,  'context' => 0
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 1,  'after'   => 7
+              include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 1,  'before'  => 8
+              include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 1,  'context' => 9
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 2,  'after'   => 0
+              include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 2,  'before'  => 0
+              include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 2,  'context' => 0
             end
 
             context 'when nullifying the value' do
@@ -208,9 +208,9 @@ describe 'esearch#cmdline menu', :commandline do
 
           # Only context width options are tested as the feature is only
           # useful for them.
-          include_examples 'it sets options using hotkey', 'a7'.chars, 'after'   => 7
-          include_examples 'it sets options using hotkey', 'b8'.chars, 'before'  => 8
-          include_examples 'it sets options using hotkey', 'c9'.chars, 'context' => 9
+          include_examples 'it sets options using hotkey', 'A7'.chars, 'after'   => 7
+          include_examples 'it sets options using hotkey', 'B8'.chars, 'before'  => 8
+          include_examples 'it sets options using hotkey', 'C9'.chars, 'context' => 9
         end
       end
     end

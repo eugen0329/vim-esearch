@@ -138,7 +138,7 @@ mapping are listed as an example here):
 
     call esearch#cmdline#map('<C-o><C-r>', 'toggle-regex')
     call esearch#cmdline#map('<C-o><C-s>', 'toggle-case')
-    call esearch#cmdline#map('<C-o><C-w>', 'toggle-word')
+    call esearch#cmdline#map('<C-o><C-w>', 'toggle-textobj')
     call esearch#cmdline#map('<C-o><C-h>', 'cmdline-help')
 ```
 

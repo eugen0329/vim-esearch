@@ -1,10 +1,10 @@
-let s:String    = vital#esearch#import('Data.String')
-let s:List      = vital#esearch#import('Data.List')
+let s:String       = vital#esearch#import('Data.String')
+let s:List         = vital#esearch#import('Data.List')
 let s:TextobjEntry = esearch#ui#component()
 
 fu! s:TextobjEntry.render() abort dict
   let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
-  let hint .= 'textobj textobj match'
+  let hint .= 'textobj match'
   let result = [['NONE', hint]]
   let option = self.props.current_adapter.spec.textobj[self.props.textobj].option
   let option = join(filter([self.props.textobj, option], '!empty(v:val)'), ': ')

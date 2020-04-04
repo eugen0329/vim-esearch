@@ -13,7 +13,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   if empty(a:esearch.paths)
-    let joined_paths = ''
+    let joined_paths = '.'
   else
     let joined_paths = esearch#shell#fnamesescape_and_join(a:esearch.paths, a:esearch.metadata)
   endif
@@ -24,7 +24,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
   if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
 
   return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
+        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
 fu! s:Base.is_success(request) abort

@@ -5,7 +5,7 @@ let g:esearch#cmdline#mappings = {
       \ '<C-o>':      '<Plug>(esearch-open-menu)',
       \ '<C-r><C-r>': '<Plug>(esearch-toggle-regex)',
       \ '<C-s><C-s>': '<Plug>(esearch-toggle-case)',
-      \ '<C-t><C-t>': '<Plug>(esearch-toggle-word)',
+      \ '<C-t><C-t>': '<Plug>(esearch-toggle-textobj)',
       \}
 
 if !exists('g:esearch#cmdline#dir_icon')
@@ -112,14 +112,6 @@ fu! s:reducer(state, action) abort
     let settable = {}
     let settable[a:action.name] = a:action.value
     return extend(copy(a:state), settable)
-  elseif a:action.type ==# 'INCREMENT'
-    let incrementable = {}
-    let incrementable[a:action.name] = a:state[a:action.name] + 1
-    return extend(copy(a:state), incrementable)
-  elseif a:action.type ==# 'DECREMENT'
-    let decrementable = {}
-    let decrementable[a:action.name] = max([0, a:state[a:action.name] - 1])
-    return extend(copy(a:state), decrementable)
   elseif a:action.type ==# 'SET_CMDPOS'
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
   elseif a:action.type ==# 'SET_PATHS'

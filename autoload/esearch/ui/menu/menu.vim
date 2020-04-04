@@ -28,9 +28,9 @@ fu! s:Menu.new(props) abort dict
         \   s:RegexEntry.new({'i':   1, 'keys': s:regex_keys}),
         \   s:TextobjEntry.new({'i': 2, 'keys':  s:textobj_keys}),
         \   s:PathEntry.new({'i':    3, 'keys':  s:path_keys}),
-        \   s:UnsignedIntEntry.new({'i': 4, '-': 'a', '+': 'A', 'name': 'after',   'option': '-A', 'value': a:props.after}),
-        \   s:UnsignedIntEntry.new({'i': 5, '-': 'b', '+': 'B', 'name': 'before',  'option': '-B', 'value': a:props.before}),
-        \   s:UnsignedIntEntry.new({'i': 6, '-': 'c', '+': 'C', 'name': 'context', 'option': '-C', 'value': a:props.context}),
+        \   s:UnsignedIntEntry.new({'i': 4, '-': 'A', '+': 'a', 'hint': 'lines after',  'option': '-A', 'name': 'after',   'value': a:props.after}),
+        \   s:UnsignedIntEntry.new({'i': 5, '-': 'B', '+': 'b', 'hint': 'lines before', 'option': '-B', 'name': 'before',  'value': a:props.before}),
+        \   s:UnsignedIntEntry.new({'i': 6, '-': 'C', '+': 'c', 'hint': 'lines around', 'option': '-C', 'name': 'context', 'value': a:props.context}),
         \ ]
   let instance.height = len(instance.items) + 1 " + height of the search input below
   let instance.prompt = s:SearchPrompt.new()

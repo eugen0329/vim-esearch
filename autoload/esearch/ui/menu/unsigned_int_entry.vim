@@ -3,8 +3,8 @@ let s:List             = vital#esearch#import('Data.List')
 let s:UnsignedIntEntry = esearch#ui#component()
 
 fu! s:UnsignedIntEntry.render() abort dict
-  let hint = s:String.pad_right(self.props['-'] . self.props['+'], 7, ' ')
-  let hint .= self.props.name
+  let hint = s:String.pad_right(self.props['+'] . '/' . self.props['-'], 7, ' ')
+  let hint .= 'more/less ' . self.props.hint
   let result = [['NONE', hint]]
   if self.props.value ==# 0
     let result += [['Comment', ' (none)']]
@@ -44,11 +44,13 @@ fu! s:UnsignedIntEntry.keypress(event) abort dict
 endfu
 
 fu! s:UnsignedIntEntry.decrement() abort dict
-  call self.props.dispatch({'type': 'DECREMENT', 'name': self.props.name})
+  let value = max([0, self.props.value - 1])
+  call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': value})
 endfu
 
 fu! s:UnsignedIntEntry.increment() abort dict
-  call self.props.dispatch({'type': 'INCREMENT', 'name': self.props.name})
+  let value = self.props.value + 1
+  call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': value})
 endfu
 
 " Decimal shift right
