@@ -10,6 +10,13 @@ module Helpers::Output
       .and have_results_in_files(filenames)
   end
 
+  matcher :have_outputted_results do |count:|
+    match do |esearch|
+      @actual = esearch.output.entries.to_a.count
+      @actual == count
+    end
+  end
+
   matcher :have_not_reported_errors do
     match(&:has_not_reported_errors?)
 
