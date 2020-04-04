@@ -2,7 +2,7 @@ fu! esearch#adapter#ack#new() abort
   return copy(s:Ack)
 endfu
 
-let s:Ack = {}
+let s:Ack = esearch#adapter#base#import()
 if exists('g:esearch#adapter#ack#bin')
   let s:Ack.bin = g:esearch#adapter#ack#bin
 else
@@ -33,21 +33,6 @@ let s:Ack.spec = {
       \     'smart':     {'icon': 'S', 'option': '--smart-case'},
       \   }
       \ }
-
-fu! s:Ack.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.textobj[a:esearch.textobj].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-  let context = ''
-  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
-  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
-  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
-endfu
 
 fu! s:Ack.is_success(request) abort
   " later versions behaves like grep (0 - at least one matched line, 1 - no

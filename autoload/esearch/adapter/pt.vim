@@ -2,7 +2,7 @@ fu! esearch#adapter#pt#new() abort
   return copy(s:Pt)
 endfu
 
-let s:Pt = {}
+let s:Pt = esearch#adapter#base#import()
 if exists('g:esearch#adapter#pt#bin')
   " TODO warn deprecated
   let s:Pt.bin = g:esearch#adapter#pt#bin
@@ -35,21 +35,6 @@ let s:Pt.spec = {
       \     'smart':     {'icon': 'S', 'option': '--smart-case'},
       \   }
       \ }
-
-fu! s:Pt.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.textobj[a:esearch.textobj].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-  let context = ''
-  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
-  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
-  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
-endfu
 
 fu! s:Pt.is_success(request) abort
   " https://github.com/monochromegane/the_platinum_searcher/issues/150

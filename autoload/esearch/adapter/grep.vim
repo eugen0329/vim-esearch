@@ -2,7 +2,7 @@ fu! esearch#adapter#grep#new() abort
   return copy(s:Grep)
 endfu
 
-let s:Grep = {}
+let s:Grep = esearch#adapter#base#import()
 
 if exists('g:esearch#adapter#grep#bin')
   " TODO warn deprecated
@@ -45,21 +45,6 @@ let s:Grep.spec = {
       \     'sensitive': {'icon': 's', 'option': ''},
       \   }
       \ }
-
-fu! s:Grep.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.textobj[a:esearch.textobj].option
-  let w = self.spec.case[a:esearch.case].option
-
-  let joined_paths = esearch#adapter#ag_like#joined_paths(a:esearch)
-  let context = ''
-  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
-  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
-  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
-
-  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . (empty(joined_paths) ? '.' : joined_paths)
-endfu
 
 fu! s:Grep.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors

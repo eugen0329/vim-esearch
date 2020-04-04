@@ -3,5 +3,5 @@ fu! esearch#adapter#ag_like#joined_paths(esearch) abort
     return ''
   endif
 
-  return esearch#shell#fnamesescape_and_join(a:esearch.paths, a:esearch.metadata)
+  return 
 endfu
