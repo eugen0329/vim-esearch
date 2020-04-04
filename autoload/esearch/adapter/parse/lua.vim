@@ -51,7 +51,7 @@ function parse_line(line)
   -- try to find the first readable filename
   local filename_end = 1
   while true do
-    filename_end, _ = line:find('[:%-]%d[:%-]', filename_end + 1)
+    filename_end, _ = line:find('[:%-]%d+[:%-]', filename_end + 1)
 
     if filename_end == nil then
       return
@@ -165,6 +165,7 @@ function fnameescape(path)
   return vim.funcref('fnameescape')(path)
 end
 
+-- parse lines in format filename[-:]line_number[-:]text
 function parse_lines(data)
   local parsed = vim.list()
   local separators_count = 0

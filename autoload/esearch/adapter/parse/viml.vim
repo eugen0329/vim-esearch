@@ -15,6 +15,7 @@ fu! esearch#adapter#parse#viml#legacy_funcref() abort
   return function('esearch#adapter#parse#viml#legacy')
 endfu
 
+" Parse lines in format filename[-:]line_number[-:]text
 " The method isn't split into smallar submethods to prevent redundant calls as
 " it's expected to consume thousands of lines per second.
 fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
