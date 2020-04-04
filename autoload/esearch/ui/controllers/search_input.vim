@@ -41,6 +41,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
     endif
 
     call self.props.dispatch({'type': 'SET_DID_INITIAL'})
+    redraw!
   endif
 
   return s:true
@@ -63,8 +64,13 @@ fu! s:SearchInputController.render_input() abort
 endfu
 
 fu! s:SearchInputController.input() abort dict
-  return input(esearch#ui#to_string(s:SearchPrompt.new())
-        \ , self.cmdline, 'customlist,esearch#completion#buffer_words')
+  call inputsave()
+  try
+    return input(esearch#ui#to_string(s:SearchPrompt.new())
+          \ , self.cmdline, 'customlist,esearch#completion#buffer_words')
+  finally
+    call inputrestore()
+  endtry
 endfu
 
 fu! s:SearchInputController.restore_cmdpos_chars() abort
