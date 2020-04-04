@@ -25,15 +25,15 @@ describe 'esearch#cmdline input', :commandline do
             expect {
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys[..-2])
-            }.not_to start_search
+            }.not_to start_stubbed_search
 
             expect(editor)
               .to have_commandline_cursor_location(expected_input)
               .or not_to_be_in_commandline
 
             expect { editor.send_keys(keys.last) }
-              .to start_search
-              .and finish_search_for(expected_input.tr('|', ''))
+              .to start_stubbed_search
+              .and finish_stubbed_search_for(expected_input.tr('|', ''))
           end
         end
       end
@@ -46,7 +46,7 @@ describe 'esearch#cmdline input', :commandline do
             expect {
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
-            }.not_to start_search
+            }.not_to start_stubbed_search
 
             expect(editor)
               .to  be_in_commandline
@@ -63,7 +63,7 @@ describe 'esearch#cmdline input', :commandline do
             expect {
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
-            }.not_to start_search
+            }.not_to start_stubbed_search
           end
         end
       end

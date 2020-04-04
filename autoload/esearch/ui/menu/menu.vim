@@ -1,10 +1,10 @@
-let s:List               = vital#esearch#import('Data.List')
-let s:PathEntry          = esearch#ui#menu#path_entry#import()
-let s:CaseEntry          = esearch#ui#menu#case_entry#import()
-let s:RegexEntry         = esearch#ui#menu#regex_entry#import()
-let s:TextobjEntry       = esearch#ui#menu#textobj_entry#import()
-let s:IncrementableEntry = esearch#ui#menu#incrementable_entry#import()
-let s:SearchPrompt       = esearch#ui#prompt#search#import()
+let s:List             = vital#esearch#import('Data.List')
+let s:PathEntry        = esearch#ui#menu#path_entry#import()
+let s:CaseEntry        = esearch#ui#menu#case_entry#import()
+let s:RegexEntry       = esearch#ui#menu#regex_entry#import()
+let s:TextobjEntry     = esearch#ui#menu#textobj_entry#import()
+let s:UnsignedIntEntry = esearch#ui#menu#unsigned_int_entry#import()
+let s:SearchPrompt     = esearch#ui#prompt#search#import()
 
 let s:Menu = esearch#ui#component()
 
@@ -15,25 +15,24 @@ let s:path_keys          = ['p', "\<C-p>"]
 let s:after_keys         = ['a', 'A']
 let s:before_keys        = ['b', 'B']
 let s:context_keys       = ['c', 'C']
-let s:incrementable_keys = ["\<C-a>", "\<C-x>"]
+let s:unsigned_int_keys = ["\<C-a>", "\<C-x>"]
 
 let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys
-      \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", "\<Del>", "\<BS>", '+', '-'] + s:incrementable_keys
+      \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", "\<Del>", "\<BS>", '+', '-'] + s:unsigned_int_keys
       \ + map(range(0, 9), 'string(v:val)')
 
 fu! s:Menu.new(props) abort dict
   let instance = extend(copy(self), {'props': a:props})
-
   let instance.items = [
         \   s:CaseEntry.new({'i':    0, 'keys':  s:case_keys}),
         \   s:RegexEntry.new({'i':   1, 'keys': s:regex_keys}),
         \   s:TextobjEntry.new({'i': 2, 'keys':  s:textobj_keys}),
         \   s:PathEntry.new({'i':    3, 'keys':  s:path_keys}),
-        \   s:IncrementableEntry.new({'i': 4, '-': 'a', '+': 'A', 'name': 'after',   'option': '-A', 'value': a:props.after}),
-        \   s:IncrementableEntry.new({'i': 5, '-': 'b', '+': 'B', 'name': 'before',  'option': '-B', 'value': a:props.before}),
-        \   s:IncrementableEntry.new({'i': 6, '-': 'c', '+': 'C', 'name': 'context', 'option': '-C', 'value': a:props.context}),
+        \   s:UnsignedIntEntry.new({'i': 4, '-': 'a', '+': 'A', 'name': 'after',   'option': '-A', 'value': a:props.after}),
+        \   s:UnsignedIntEntry.new({'i': 5, '-': 'b', '+': 'B', 'name': 'before',  'option': '-B', 'value': a:props.before}),
+        \   s:UnsignedIntEntry.new({'i': 6, '-': 'c', '+': 'C', 'name': 'context', 'option': '-C', 'value': a:props.context}),
         \ ]
-  let instance.height = len(instance.items) + 1 " + height
+  let instance.height = len(instance.items) + 1 " + height of the search input below
   let instance.prompt = s:SearchPrompt.new()
 
   return instance

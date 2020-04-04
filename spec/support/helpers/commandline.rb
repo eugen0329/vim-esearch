@@ -27,22 +27,8 @@ module Helpers::Commandline
     keys.gsub('\\\\', '\\')
   end
 
-  def output_spy_calls
+  def stubbed_output_calls
     esearch.output.calls_history
-  end
-
-  def menu_items
-    esearch
-      .output
-      .echo_calls_history[..-2]
-      .last(7)
-      .map { |s| s.gsub(/pattern [>\w]{3} /, '') } # TODO
-  end
-
-  def without_location_mark(location_string)
-    raise ArgumentError unless location_string.include?('')
-
-    location_string.tr('|', '')
   end
 
   def locate_cursor_with_arrows(location_string)
@@ -54,7 +40,7 @@ module Helpers::Commandline
   shared_context 'run preparatory search to enable prefilling' do |search_string|
     before do
       expect { editor.send_keys(*open_input_keys, search_string, :enter) }
-        .to start_search & finish_search_for(search_string)
+        .to start_stubbed_search & finish_stubbed_search_for(search_string)
     end
   end
 
@@ -128,7 +114,7 @@ module Helpers::Commandline
     end
   end
 
-  matcher :finish_search_for do |string|
+  matcher :finish_stubbed_search_for do |string|
     attr_reader :expected, :actual
 
     diffable
@@ -145,7 +131,7 @@ module Helpers::Commandline
     end
   end
 
-  matcher :start_search_with_options do |options|
+  matcher :start_stubbed_search_with_options do |options|
     attr_reader :expected, :actual
 
     supports_block_expectations
@@ -155,7 +141,7 @@ module Helpers::Commandline
       actual.call
 
       @expected = include(options)
-      @actual = output_spy_calls.last
+      @actual = stubbed_output_calls.last
       values_match?(@expected, @actual)
     end
   end
@@ -182,36 +168,21 @@ module Helpers::Commandline
     end
   end
 
-  matcher :start_search_with_previous_input do |previous_search_string|
-    supports_block_expectations
-
-    match do |block|
-      @matcher = not_to_change do
-        [output_spy_calls.last.dig('exp', 'pcre'),
-         output_spy_calls.last.dig('exp', 'literal')]
-      end.from([previous_search_string, previous_search_string])
-      @matcher.matches?(block)
-    end
-
-    description { @matcher&.description }
-    failure_message { @matcher&.failure_message }
-  end
-
-  # NOTE: #start_search internally use timeout (like other gems like capybara
+  # NOTE: #start_stubbed_search internally use timeout (like other gems like capybara
   # do), so using it with #not_to will lead to extra delays avoiding of which
   # can cause false positives
 
-  matcher :start_search do |_previous_search_string, timeout: 1|
+  matcher :start_stubbed_search do |_previous_search_string, timeout: 1|
     supports_block_expectations
 
     match do |block|
-      @was = output_spy_calls.last
+      @was = stubbed_output_calls.last
       block.call
 
       editor.with_ignore_cache do
         became_truthy_within?(timeout) do
-          @actual = output_spy_calls.last
-          @was != output_spy_calls.last
+          @actual = stubbed_output_calls.last
+          @was != stubbed_output_calls.last
         end
       end
     end
@@ -220,6 +191,5 @@ module Helpers::Commandline
       "expected not to start search, but was changed from \n#{@was.pretty_inspect} to \n#{@actual.pretty_inspect}"
     end
   end
-  define_negated_matcher :not_to_start_search, :start_search
 end
 # rubocop:enable Metrics/ModuleLength
