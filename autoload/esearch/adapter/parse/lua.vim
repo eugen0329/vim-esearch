@@ -18,11 +18,12 @@ endif
 
 lua << EOF
 function parse_line(line)
-  local offset = 1
   local filename = ''
 
+  -- At the moment only git adapter outputs lines that wrapped in "" when special
+  -- characters are encountered
   if line:sub(1, 1) == '"' then
-    local filename, line, text = code(line):match('"(.-)"[-:](%d+)[-:](.*)')
+    local filename, line, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
     if filename == nil then
       return
     end
@@ -47,21 +48,22 @@ function parse_line(line)
     end
   end
 
+  -- try to find the first readable filename
+  local filename_end = 1
   while true do
-    local _, idx = line:find('[-:]', offset)
+    filename_end, _ = line:find('[:%-]%d[:%-]', filename_end + 1)
 
-    if idx == nil then
+    if filename_end == nil then
       return
     end
 
-    filename = line:sub(1, idx - 1)
-    offset = idx + 1
+    filename = line:sub(1, filename_end - 1)
     if filereadable(filename) then
       break
     end
   end
 
-  local line, text = line:match('(%d+)[-:](.*)', offset)
+  local line, text = line:match('(%d+)[:%-](.*)', filename_end)
   if line == nil or text == nil then
     return
   end
@@ -119,7 +121,8 @@ function parse_lines(data)
     if line:len() == 0 or line == '--' then
       separators_count = separators_count + 1
     else
-      local filename, lnum, text = string.match(line, '([^:-]+)[:-](%d+)[:-](.*)')
+      -- Heuristic to try the fastest matching with a fallback to the comprehensive algorithm
+      local filename, lnum, text = line:match('(.-)[:%-](%d+)[:%-](.*)')
       if filename == nil or text == nil or not filereadable(filename) then
         filename, lnum, text = parse_line(line)
       end
@@ -174,8 +177,8 @@ function parse_lines(data)
     if line:len() == 0 or line == '--' then
       separators_count = separators_count + 1
     else
-      -- local filename, lnum, text = parse_line(line)
-      local filename, lnum, text = string.match(line, '([^:]+):(%d+):(.*)')
+      -- Heuristic to try the fastest matching with a fallback to the comprehensive algorithm
+      local filename, lnum, text = line:match('(.-)[:%-](%d+)[:%-](.*)')
       if filename == nil or text == nil or not filereadable(filename) then
         filename, lnum, text = parse_line(line)
       end

@@ -64,13 +64,10 @@ fu! s:SearchInputController.render_input() abort
 endfu
 
 fu! s:SearchInputController.input() abort dict
-  call inputsave()
-  try
-    return input(esearch#ui#to_string(s:SearchPrompt.new())
-          \ , self.cmdline, 'customlist,esearch#completion#buffer_words')
-  finally
-    call inputrestore()
-  endtry
+  " NOTE that it's impossible to properly retype keys (see SelectionController
+  " for details) when inputsave() and inputrestore() are used.
+  return input(esearch#ui#to_string(s:SearchPrompt.new())
+        \ , self.cmdline, 'customlist,esearch#completion#buffer_words')
 endfu
 
 fu! s:SearchInputController.restore_cmdpos_chars() abort
