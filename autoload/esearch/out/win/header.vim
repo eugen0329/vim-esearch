@@ -67,7 +67,7 @@ endfu
 fu! esearch#out#win#header#finished_render() abort dict
   return printf(s:finished_header,
         \ len(self.request.data) - self.separators_count,
-        \ s:lines_word(self),
+        \ esearch#util#pluralize('line', len(self.request.data) - self.separators_count),
         \ self.files_count,
         \ esearch#util#pluralize('file', self.files_count),
         \ )
