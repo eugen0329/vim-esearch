@@ -41,7 +41,7 @@ fu! esearch#out#win#header#in_progress() abort dict
   if self.request.finished
     let self.header_text = function('esearch#out#win#header#finished_backend')
     let self.header_format =
-          \  'Matches in '.self.precision_hint.'%3d line(s), '
+          \  'Matches in '.self.precision_hint.'%3d ' . s:lines_word(self) . ', '
           \. '%3d%-'.s:spinner_max_frame_len.'s file(s)'
     return self.header_text()
   endif
@@ -67,8 +67,16 @@ endfu
 fu! esearch#out#win#header#finished_render() abort dict
   return printf(s:finished_header,
         \ len(self.request.data) - self.separators_count,
-        \ esearch#util#pluralize('line', len(self.request.data) - self.separators_count),
+        \ s:lines_word(self),
         \ self.files_count,
         \ esearch#util#pluralize('file', self.files_count),
         \ )
+endfu
+
+fu! s:lines_word(esearch) abort
+  if !empty(a:esearch.precision_hint)
+    return 'line(s)'
+  endif
+
+  return esearch#util#pluralize('line', len(a:esearch.request.data) - a:esearch.separators_count)
 endfu
