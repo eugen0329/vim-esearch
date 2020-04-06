@@ -27,6 +27,11 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
 endfu
 
+" '' and '--' separators are outputted when context height options are given
+fu! s:Base.outputs_separators(esearch) abort
+  return a:esearch.context != 0 || a:esearch.before != 0 || a:esearch.after != 0
+endfu
+
 fu! s:Base.is_success(request) abort
   throw 'NotImplemented'
 endfu

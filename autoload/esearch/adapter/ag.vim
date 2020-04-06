@@ -15,7 +15,7 @@ if exists('g:esearch#adapter#ag#options')
 else
   let s:Ag.options = '--follow'
 endif
-let s:Ag.mandatory_options = '--nogroup --nocolor --noheading'
+let s:Ag.mandatory_options = '--nogroup --nocolor --noheading --nobreak'
 let s:Ag.spec = {
       \   '_regex': ['literal', 'pcre'],
       \   'regex': {
