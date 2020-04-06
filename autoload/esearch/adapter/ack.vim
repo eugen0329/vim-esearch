@@ -14,7 +14,7 @@ if exists('g:esearch#adapter#ack#options')
 else
   let s:Ack.options = '--follow'
 endif
-let s:Ack.mandatory_options = '--nogroup --nocolor --noheading --with-filename'
+let s:Ack.mandatory_options = '--nogroup --nocolor --noheading --with-filename --nobreak'
 let s:Ack.spec = {
       \   '_regex': ['literal', 'pcre'],
       \   'regex': {

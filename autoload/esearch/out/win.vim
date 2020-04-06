@@ -27,24 +27,6 @@ let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
 let s:entry_pattern = '^\s\+\d\+\s\+.*'
 let s:filename_pattern = '^[^ ]' " '\%>2l'
 let s:lines_map_padding = 0 " to index with line numbers which begin from 1
-if g:esearch#has#unicode
-  let s:spinner = g:esearch#unicode#spinner
-else
-  let s:spinner = ['.', '..', '...']
-endif
-
-if g:esearch#has#unicode
-  let s:le = g:esearch#unicode#le
-else
-  let s:le = '<='
-endif
-
-let s:spinner_frames_size = len(s:spinner)
-let s:spinner_slowdown = 2
-let s:spinner_max_frame_size = max(map(copy(s:spinner), 'strchars(v:val)'))
-let s:request_finished_header = 'Matches in '.s:le.'%3d line(s), %3d%-'.s:spinner_max_frame_size.'s file(s)'
-let s:header = 'Matches in '.s:le.'%d%-'.s:spinner_max_frame_size.'sline(s), %d%-'.s:spinner_max_frame_size.'s file(s)'
-let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let s:linenr_format = ' %3d '
 let s:t_func = type(function('tr'))
@@ -188,29 +170,6 @@ fu! esearch#out#win#init(opts) abort
     call s:cleanup()
   end
 
-  setl modifiable
-  exe '1,$d_'
-  call esearch#util#setline(bufnr('%'), 1, printf(s:header, 0, '', 0, ''))
-  setl undolevels=-1 " Disable undo
-  setl nomodifiable
-  setl nobackup
-  setl noswapfile
-  setl nonumber
-  setl norelativenumber
-  setl nospell
-  setl nowrap
-  setl synmaxcol=400
-  setl nolist " prevent listing traling spaces on blank lines
-  setl nomodeline
-  let &buflisted = g:esearch#out#win#buflisted
-  setl foldcolumn=0
-  setl buftype=nofile
-  setl bufhidden=hide
-  setl foldlevel=2
-  setl foldmethod=syntax
-  setl foldtext=esearch#out#win#foldtext()
-  syntax sync minlines=100
-
   let b:esearch = extend(a:opts, {
         \ 'bufnr':                    bufnr('%'),
         \ 'last_update_at':           reltime(),
@@ -234,7 +193,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                   [],
         \ 'context_syntax_regions':   {},
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
-        \ 'header_text':              function('s:header_text'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
         \ 'preview_enter':            function('<SID>preview_enter'),
@@ -256,11 +214,22 @@ fu! esearch#out#win#init(opts) abort
         \ 'is_blank':                 function('<SID>is_blank'),
         \})
 
+  call esearch#out#win#header#init(b:esearch)
+
   let b:esearch = extend(a:opts, {
         \ 'windows_opened_once': {},
         \ 'opened_once_manager': s:BufferManager.new(),
         \ 'opened_manager':      s:BufferManager.new(),
         \}, 'keep')
+
+  setl modifiable
+  exe '1,$d_'
+  call esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())
+  setl nomodifiable undolevels=-1 nobackup noswapfile nonumber norelativenumber
+  setl nospell nowrap synmaxcol=400 nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide
+  setl foldmethod=marker foldtext=esearch#out#win#foldtext()
+  let &buflisted = g:esearch#out#win#buflisted
+  syntax sync minlines=100
 
   if b:esearch.request.async
     call s:init_update_events(b:esearch)
@@ -558,35 +527,12 @@ fu! esearch#out#win#update(bufnr, ...) abort
     endif
   endif
 
-  let spinner = s:spinner[esearch.tick / s:spinner_slowdown % s:spinner_frames_size]
-  if request.finished
-    call esearch#util#setline(a:bufnr, 1, printf(s:request_finished_header,
-          \ len(esearch.request.data) - esearch.separators_count,
-          \ esearch.files_count,
-          \ spinner
-          \ ))
-  else
-    call esearch#util#setline(a:bufnr, 1, printf(s:header,
-          \ len(esearch.request.data)  - esearch.separators_count,
-          \ spinner,
-          \ esearch.files_count,
-          \ spinner
-          \ ))
-  endif
+  call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod', 0)
   let esearch.last_update_at = reltime()
   let esearch.tick += 1
-endfu
-
-fu! s:header_text() abort dict
-  return printf(s:finished_header,
-        \ len(self.request.data) - self.separators_count,
-        \ esearch#util#pluralize('line', len(self.request.data) - self.separators_count),
-        \ self.files_count,
-        \ esearch#util#pluralize('file', self.files_count),
-        \ )
 endfu
 
 fu! s:new_context(id, filename, begin) abort
@@ -731,10 +677,7 @@ fu! s:load_syntax(esearch, context) abort
   " escape(..., '^$.*[]\') is used as matching should be literal
   let start = escape(fnameescape(a:context.filename), '/^$.*[]\')
   exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
-        \ region.name,
-        \ start,
-        \ region.name,
-        \ )
+        \ region.name, start, region.name)
 
   let len = a:context.end - a:context.begin
   if a:esearch.max_lines_found < len
@@ -871,10 +814,7 @@ fu! s:ctx_view() abort dict
   let line = self.line_in_file()
   let state = esearch#out#win#_state(self)
   let linenr = printf(s:linenr_format, state.line_numbers_map[line('.')])
-  return {
-        \ 'lnum': line,
-        \ 'col': max([0, col('.') - strlen(linenr) - 1])
-        \ }
+  return { 'lnum': line,  'col': max([0, col('.') - strlen(linenr) - 1]) }
 endfu
 
 fu! s:line_in_file() abort dict
@@ -943,27 +883,6 @@ fu! esearch#out#win#_state(esearch) abort
   else
     return a:esearch.undotree.head.state
   endif
-endfu
-
-fu! esearch#out#win#foldtext() abort
-  let filename = getline(v:foldstart)
-  let last_line = getline(v:foldend)
-  let entries_count = v:foldend - v:foldstart - (empty(last_line) ? 1 : 0)
-
-  let winwidth = winwidth(0) - &foldcolumn - (&number ? strwidth(string(line('$'))) + 1 : 0)
-  let lines_count_str = entries_count . ' line(s)'
-
-  let expansion = repeat('-', winwidth - strwidth(filename.lines_count_str))
-
-  return filename . expansion . lines_count_str
-endfu
-
-fu! esearch#out#win#foldexpr() abort
-  let line = getline(v:lnum)
-  if line =~# s:entry_pattern || line =~# s:filename_pattern
-    return 1
-  endif
-  return s:blank_line_fold
 endfu
 
 fu! s:result_line() abort
@@ -1086,12 +1005,8 @@ fu! esearch#out#win#finish(bufnr) abort
     call esearch#stderr#finish(esearch)
   endif
 
-  call esearch#util#setline(a:bufnr, 1, printf(s:finished_header,
-        \ len(esearch.request.data) - esearch.separators_count,
-        \ esearch#util#pluralize('line', len(esearch.request.data) - esearch.separators_count),
-        \ esearch.files_count,
-        \ esearch#util#pluralize('file', b:esearch.files_count),
-        \))
+  let esearch.header_text = function('esearch#out#win#header#finished_render')
+  call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod',   0)
@@ -1283,13 +1198,7 @@ fu! s:handle_insert__inline(event) abort
   let cursorpos = []
 
   if line1 == 1
-    let text = printf(s:finished_header,
-          \ len(b:esearch.request.data) - b:esearch.separators_count,
-          \ esearch#util#pluralize('line', len(b:esearch.request.data) - b:esearch.separators_count),
-          \ b:esearch.files_count,
-          \ esearch#util#pluralize('file', b:esearch.files_count),
-          \ )
-    call setline(line1, text)
+    call setline(line1, b:esearch.header_text())
   elseif line1 == 2 || line1 == context.end && context.end != line('$')
     let text = ''
     call setline(line1, text)
@@ -1348,12 +1257,7 @@ fu! s:handle_normal__inline(event) abort
   let linenr = printf(' %3d ', state.line_numbers_map[line1])
 
   if line1 == 1
-    call setline(line1, printf(s:finished_header,
-          \ len(b:esearch.request.data) - b:esearch.separators_count,
-          \ esearch#util#pluralize('line', len(b:esearch.request.data) - b:esearch.separators_count),
-          \ b:esearch.files_count,
-          \ esearch#util#pluralize('file', b:esearch.files_count),
-          \ ))
+    call setline(line1, b:esearch.header_text())
   elseif line1 == context.begin
     " it's a filename, restoring
     call setline(line1, context.filename)

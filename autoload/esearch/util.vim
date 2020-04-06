@@ -693,18 +693,14 @@ fu! esearch#util#slice_factory(keys) abort
   return private_scope.slice
 endfu
 
-" tim pope
 fu! esearch#util#pluralize(word, count) abort
   let word = a:word
 
-  if a:count % 10 == 1
+  if a:count == 1 || empty(word)
     return word
   endif
 
-  if empty(word)
-    return word
-  endif
-
+  " tim pope
   let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
   let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
   let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')

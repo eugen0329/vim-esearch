@@ -25,7 +25,7 @@ fu! esearch#backend#vimproc#init(cwd, adapter, cmd) abort
         \ 'adapter': a:adapter,
         \ 'command': a:cmd,
         \ 'cwd': a:cwd,
-        \ 'data': [],
+        \ 'data':   [],
         \ 'errors': [],
         \ 'async': 1,
         \ 'status': 0,

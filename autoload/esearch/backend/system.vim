@@ -3,6 +3,7 @@ fu! esearch#backend#system#init(cwd, adapter, cmd) abort
         \ 'command': a:cmd,
         \ 'cwd':     a:cwd,
         \ 'adapter':  a:adapter,
+        \ 'data':   [],
         \ 'errors': [],
         \ 'async': 0,
         \ 'status': 0,
