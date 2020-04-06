@@ -695,9 +695,8 @@ endfu
 
 fu! esearch#util#pluralize(word, count) abort
   let word = a:word
-  let suffix = a:count % 100
 
-  if suffix % 10 == 1 && suffix != 11 || empty(word)
+  if a:count == 1 || empty(word)
     return word
   endif
 
