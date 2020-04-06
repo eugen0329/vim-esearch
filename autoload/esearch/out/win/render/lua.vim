@@ -36,6 +36,7 @@ if g:esearch#has#nvim_lua
 
     let a:esearch.files_count = files_count
     let a:esearch.separators_count += separators_count
+    let a:esearch.contexts[-1] = contexts[0]
     call extend(a:esearch.contexts, contexts[1:])
     call extend(a:esearch.ctx_ids_map, ctx_ids_map)
     call extend(a:esearch.line_numbers_map, line_numbers_map)
@@ -141,7 +142,7 @@ function esearch_out_win_render_nvim(data, path, last_context, files_count, high
 
     linenr_text = string.format(' %3d ', parsed[i]['lnum'])
 
-    lines[#lines + 1] = linenr_text .. (text)
+    lines[#lines + 1] = linenr_text .. text
     ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']
     line_numbers_map[#line_numbers_map + 1] = parsed[i]['lnum']
     contexts[#contexts]['lines'][parsed[i]['lnum']] = text

@@ -215,7 +215,7 @@ endfu
 fu! s:identify_visual_block() abort
   let [from, to] = b:__states[-2:-1]
 
-  let [col1, col2] = sort([to.selection1[1], to.selection2[1]], 'n')
+  let [col1, col2] = sort([to.selection1[1], to.selection2[1]], 'N')
   let line1 = to.selection1[0]
   let line2 = to.selection2[0]
 

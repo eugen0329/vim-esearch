@@ -629,13 +629,12 @@ endfu
 
 " TODO is heavily required to be tested
 fu! s:blocking_highlight_viewport(esearch) abort
-  if !a:esearch.highlights_enabled
+  if !a:esearch.highlights_enabled || line('$') < 3
     return
   endif
 
-  let last_line = line('$')
-  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
-  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
+  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
+  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
 
   let state = esearch#out#win#_state(a:esearch)
   for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]

@@ -438,7 +438,7 @@ fu! s:apply_recovery(state) abort dict
   call esearch#util#safe_undojoin()
 
   if !empty(self.delete_lines)
-    for line in reverse(sort(self.delete_lines, 'n'))
+    for line in reverse(sort(self.delete_lines, 'N'))
       call deletebufline(b:esearch.bufnr, line)
     endfor
   endif

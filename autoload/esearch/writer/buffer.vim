@@ -100,7 +100,7 @@ fu! s:replace_lines(modified) abort dict
 endfu
 
 fu! s:delete_lines(deleted) abort dict
-  let lines_to_delete = reverse(sort(a:deleted, 'n'))
+  let lines_to_delete = reverse(sort(a:deleted, 'N'))
 
   for line in lines_to_delete
     call deletebufline(bufnr('%'), line)
