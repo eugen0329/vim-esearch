@@ -18,8 +18,8 @@ fu! esearch#highlight#define() abort
   let esearch_match = extend(esearch#util#get_highlight('MoreMsg'), {
         \   'ctermbg': get(cursorline, 'ctermbg', 239),
         \   'guibg':   get(cursorline, 'guibg',   '#005FFF'),
-        \   'cterm':  'bold',
-        \   'gui':    'bold',
+        \   'cterm':  'bold,underline',
+        \   'gui':    'bold,underline',
         \ })
   call esearch#util#set_highlight('esearchMatch', esearch_match, {'default': 1})
 

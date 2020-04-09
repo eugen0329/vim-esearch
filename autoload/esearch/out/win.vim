@@ -177,7 +177,6 @@ fu! esearch#out#win#init(opts) abort
         \ 'separators_count':         0,
         \ 'mode':                     'normal',
         \ 'viewport_highlight_timer': -1,
-        \ 'match_highlight_timer':    -1,
         \ 'updates_timer':            -1,
         \ 'update_with_timer_start':  0,
         \ 'max_lines_found':          0,
@@ -212,6 +211,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'split_preview':            function('<SID>split_preview'),
         \ 'last_split_preview':       {},
         \ 'is_blank':                 function('<SID>is_blank'),
+        \ 'skip':                     0,
         \})
 
   call esearch#out#win#header#init(b:esearch)
@@ -235,7 +235,7 @@ fu! esearch#out#win#init(opts) abort
     call s:init_update_events(b:esearch)
   endif
 
-  augroup ESearchWinHighlights
+  aug esearch_win_highlights
     au! * <buffer>
     if g:esearch_out_win_highlight_cursor_line_number
       au CursorMoved,CursorMovedI <buffer> call s:highlight_cursor_line_number()
@@ -243,7 +243,7 @@ fu! esearch#out#win#init(opts) abort
     if g:esearch#out#win#context_syntax_highlight
       au CursorMoved <buffer> call s:highlight_viewport()
     endif
-  augroup END
+  aug END
 
   " setup blank context for header
   call esearch#out#win#add_context(b:esearch.contexts, '', 1)
@@ -272,9 +272,9 @@ fu! esearch#out#win#init(opts) abort
   call s:init_mappings()
   call s:init_commands()
 
-  augroup esearch_win_event
+  aug esearch_win_event
     silent doau User esearch_win_event
-  augroup END
+  aug END
   silent doau User esearch_win_init_post
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
@@ -291,30 +291,17 @@ fu! s:open(...) abort dict
 endfu
 
 if has('nvim')
-fu! s:highlight_cursor_line_number() abort
-  if has_key(b:, 'esearch_linenr_id')
-    call nvim_buf_clear_namespace(0, b:esearch_linenr_id, 0, -1)
-  else
-    let b:esearch_linenr_id = nvim_create_namespace('esearchLineNr')
-  endif
-
-  lua << EOF
-    local current_line = vim.api.nvim_get_current_line()
-    local _, last_column = current_line:find('^%s+%d+%s')
-    if last_column ~= nil then
-      vim.api.nvim_buf_add_highlight(0, vim.api.nvim_eval('b:esearch_linenr_id'),
-        'esearchCursorLineNr', vim.api.nvim_win_get_cursor(0)[1] - 1, 0, last_column)
-    end
-EOF
-endfu
+  fu! s:highlight_cursor_line_number() abort
+    call luaeval('esearch.highlight.cursor_linenr()')
+  endfu
 else
-fu! s:highlight_cursor_line_number() abort
-  if has_key(b:, 'esearch_linenr_id')
-    call esearch#util#safe_matchdelete(b:esearch_linenr_id)
-  endif
-  let b:esearch_linenr_id = matchadd('esearchCursorLineNr',
-        \ '^\s\+\d\+\s\%' . line('.') . 'l', -1)
-endfu
+  fu! s:highlight_cursor_line_number() abort
+    if has_key(b:, 'esearch_linenr_id')
+      call esearch#util#safe_matchdelete(b:esearch_linenr_id)
+    endif
+    let b:esearch_linenr_id = matchadd('esearchCursorLineNr',
+          \ '^\s\+\d\+\s\%' . line('.') . 'l', -1)
+  endfu
 endif
 
 " Is used to prevent problems with asynchronous code
@@ -361,9 +348,9 @@ fu! s:cleanup() abort
   if has_key(b:esearch, 'viewport_highlight_timer')
     call timer_stop(b:esearch.viewport_highlight_timer)
   endif
-  augroup ESearchModifiable
+  aug ESearchModifiable
     au! * <buffer>
-  augroup END
+  aug END
 
   call esearch#option#reset()
   call esearch#util#safe_matchdelete(
@@ -376,7 +363,7 @@ fu! s:init_update_events(esearch) abort
   if g:esearch_win_update_using_timer && exists('*timer_start')
     let a:esearch.update_with_timer_start = 1
 
-    augroup ESearchWinUpdates
+    aug ESearchWinUpdates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
 
@@ -392,14 +379,14 @@ fu! s:init_update_events(esearch) abort
             \ g:esearch_win_updates_timer_wait_time,
             \ function('s:update_by_timer_callback', [a:esearch, bufnr('%')]),
             \ {'repeat': -1})
-    augroup END
+    aug END
   else
     let a:esearch.update_with_timer_start = 0
 
-    augroup ESearchWinUpdates
+    aug ESearchWinUpdates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
-    augroup END
+    aug END
     for [func_name, event] in items(a:esearch.request.events)
       let a:esearch.request.events[func_name] = function('esearch#out#win#' . func_name, [bufnr('%')])
     endfor
@@ -428,11 +415,11 @@ fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
 endfu
 
 fu! s:unload_update_events(esearch) abort
-  augroup ESearchWinUpdates
+  aug ESearchWinUpdates
     for func_name in keys(a:esearch.request.events)
       let a:esearch.request.events[func_name] = s:null
     endfor
-  augroup END
+  aug END
   exe printf('au! ESearchWinUpdates * <buffer=%d>', a:esearch.bufnr)
 endfu
 
@@ -638,9 +625,9 @@ fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
       exe 'syn clear esearchContext_' . name
     endfor
   endif
-  augroup ESearchWinHighlights
+  aug esearch_win_highlights
     au! * <buffer>
-  augroup END
+  aug END
   syntax sync clear
   syntax sync maxlines=1
   call clearmatches()
@@ -1033,12 +1020,12 @@ fu! esearch#out#win#edit() abort
   setl noswapfile
 
   set buftype=acwrite
-  augroup ESearchModifiable
+  aug ESearchModifiable
     au! * <buffer>
     au BufWriteCmd <buffer> call s:write()
     " TODO
     au BufHidden,BufLeave <buffer> set nomodified
-  augroup END
+  aug END
 
   let b:esearch.undotree = esearch#undotree#new({
         \ 'ctx_ids_map': b:esearch.ctx_ids_map,

@@ -11,22 +11,25 @@
 " ANSI escape sequences.
 fu! esearch#out#win#matches#init_highlight(esearch) abort
   if g:esearch_out_win_highlight_matches ==# 'viewport'
-    augroup ESearchWinHighlights
-      let a:esearch.matches_namespace_id = nvim_create_namespace('esearchMatchesNS')
-      au CursorMoved <buffer> let b:esearch.match_highlight_timer = esearch#debounce#_trailing(
-            \ function('s:highlight_matches_callback', [b:esearch]),
-            \ g:esearch_win_matches_highlight_debounce_wait,
-            \ b:esearch.match_highlight_timer)
-    augroup END
-    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=update_matches_highlights_cb})')
     let a:esearch.last_hl_range = [0,0]
-  elseif g:esearch_out_win_highlight_matches ==# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
+    let a:esearch.matches_ns = luaeval('esearch.highlight.MATCHES_NS')
+    let Callback = function('s:highlight_matches_callback', [a:esearch])
+    let a:esearch.hl_matches = esearch#debounce(Callback, g:esearch_win_matches_highlight_debounce_wait)
+
+    aug esearch_win_highlights
+      au CursorMoved <buffer> call b:esearch.hl_matches.apply()
+    aug END
+    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=esearch.highlight.matches_cb})')
+    return
+  endif
+
+  if g:esearch_out_win_highlight_matches ==# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
     let a:esearch.matches_highlight_id = matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
   endif
 endfu
 
-fu! s:highlight_matches_callback(esearch, callback) abort
-  if !exists('b:esearch') || b:esearch.id != a:esearch.id
+fu! s:highlight_matches_callback(esearch) abort
+  if !a:esearch.is_current()
     return
   endif
 
@@ -66,21 +69,8 @@ fu! s:highlight_matches_callback(esearch, callback) abort
     if begin < 0 | let line += 1 | continue | endif
     let matchend = matchend(text, exp, begin)
 
-    call nvim_buf_add_highlight(0, a:esearch.matches_namespace_id, 'esearchMatch', line - 1, begin, matchend)
+    call nvim_buf_add_highlight(0, a:esearch.matches_ns, 'esearchMatch', line - 1, begin, matchend)
     let highlighted_lines_map[ctx_id][linenr] = 1
     let line += 1
   endfor
 endfu
-
-if !esearch#has#nvim_lua
-  finish
-endif
-
-lua << EOF
-function update_matches_highlights_cb(_, bufnr, ct, from, old_to, to, _old_byte_size)
-  if to == old_to then
-    local namespace = vim.api.nvim_get_namespaces()['esearchMatchesNS']
-    vim.api.nvim_buf_clear_namespace(0, namespace, from, to)
-  end
-end
-EOF

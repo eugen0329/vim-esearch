@@ -47,15 +47,14 @@ if g:esearch#has#nvim_lua
   endfu
 
   fu! esearch#out#win#render#lua#init_nvim_syntax(esearch) abort
-    call luaeval('highlight_linenrs_in_range(0,1)')
+    call luaeval('esearch.highlight.linenrs_range(0,0,1)')
     let a:esearch.lines_changed_callback_enabled = 0
   endfu
 
   fu! esearch#out#win#render#lua#nvim_syntax_attach_callback(esearch) abort
     if b:esearch.lines_changed_callback_enabled | return | endif
-
     let a:esearch.lines_changed_callback_enabled = 1
-    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=update_linenrs_highlights_cb})')
+    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=esearch.highlight.ui_cb})')
   endfu
 else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
@@ -152,40 +151,12 @@ function esearch_out_win_render_nvim(data, path, last_context, files_count, high
 
   vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
   if vim.api.nvim_eval('g:esearch_out_win_nvim_lua_syntax') == 1 then
-    highlight_linenrs_in_range(start, -1)
+    esearch.highlight.linenrs_range(0, start, -1)
   end
 
   return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count}
 end
 
-function update_linenrs_highlights_cb(_, bufnr, ct, from, old_to, to, _old_byte_size)
-  if vim.api.nvim_call_function('exists', {'b:esearch'}) == 0 then
-    return true
-  end
-
-  if to > old_to then -- if lines are added
-    highlight_linenrs_in_range(from, to)
-  end
-end
-
-function highlight_linenrs_in_range(from, to)
-  local lines = vim.api.nvim_buf_get_lines(0, from, to, false)
-
-  for i, text in ipairs(lines) do
-    if i == 0 then
-      vim.api.nvim_buf_add_highlight(0, -1, 'esearchHeader', 0, 0, -1)
-    elseif text:len() == 0 then
-      -- noop
-    elseif text:sub(1,1) == ' ' then
-      pos1, pos2 =  text:find('%s+%d+%s')
-      if pos2 ~= nil then
-        vim.api.nvim_buf_add_highlight(0, -1, 'esearchLineNr', i + from - 1 , 0, pos2)
-      end
-    else
-      vim.api.nvim_buf_add_highlight(0, -1, 'esearchFilename', i + from - 1 , 0, -1)
-    end
-  end
-end
 EOF
 
 else
