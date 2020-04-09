@@ -72,10 +72,8 @@ endif
 
 if g:esearch#has#nvim_lua
 lua << EOF
-filereadable_cache = {}
-
 function esearch_out_win_render_nvim(data, path, last_context, files_count, highlights_enabled)
-  local parsed, separators_count = parse_lines(data)
+  local parsed, separators_count = esearch.parse.lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
   local ctx_ids_map = {}
@@ -112,7 +110,7 @@ function esearch_out_win_render_nvim(data, path, last_context, files_count, high
       line_numbers_map[#line_numbers_map + 1] = 0
       line = line + 1
 
-      lines[#lines + 1] = fnameescape(filename)
+      lines[#lines + 1] = esearch.util.fnameescape(filename)
       id = contexts[#contexts]['id'] + 1
       contexts[#contexts + 1] = {
         ['id']            = id,
@@ -162,13 +160,13 @@ EOF
 else
 
 lua << EOF
-function esearch_out_win_render_vim(data, path, esearch)
-  local parsed, separators_count = parse_lines(data)
-  local contexts                 = esearch['contexts']
-  local line_numbers_map         = esearch['line_numbers_map']
-  local ctx_ids_map              = esearch['ctx_ids_map']
-  local files_count              = esearch['files_count']
-  local context_by_name          = esearch['context_by_name']
+function esearch_out_win_render_vim(data, path, besearch)
+  local parsed, separators_count = esearch.parse.lines(data)
+  local contexts                 = besearch['contexts']
+  local line_numbers_map         = besearch['line_numbers_map']
+  local ctx_ids_map              = besearch['ctx_ids_map']
+  local files_count              = besearch['files_count']
+  local context_by_name          = besearch['context_by_name']
   local esearch_win_disable_context_highlights_on_files_count =
     vim.eval('g:esearch_win_disable_context_highlights_on_files_count')
   local unload_context_syntax_on_line_length =
@@ -190,9 +188,9 @@ function esearch_out_win_render_vim(data, path, esearch)
     if filename ~= contexts[#contexts - 1]['filename'] then
       contexts[#contexts - 1]['end'] = line
 
-      if esearch['highlights_enabled'] == 1 and
+      if besearch['highlights_enabled'] == 1 and
           #contexts > esearch_win_disable_context_highlights_on_files_count then
-        esearch['highlights_enabled'] = false
+        besearch['highlights_enabled'] = false
         vim.eval('esearch#out#win#unload_highlights()')
       end
 
@@ -201,7 +199,7 @@ function esearch_out_win_render_vim(data, path, esearch)
       line_numbers_map:add(false)
       line = line + 1
 
-      b:insert(fnameescape(filename))
+      b:insert(esearch.util.fnameescape(filename))
       contexts:add(vim.dict({
         ['id']            = tostring(tonumber(contexts[#contexts - 1]['id']) + 1),
         ['begin']         = tostring(line),
@@ -221,7 +219,7 @@ function esearch_out_win_render_vim(data, path, esearch)
 
     if text:len() > unload_context_syntax_on_line_length then
       if text:len() > unload_global_syntax_on_line_length then
-        vim.eval('esearch#out#win#_blocking_unload_syntaxes(b:esearch)')
+        vim.eval('esearch#out#win#_blocking_unload_syntaxes(b:besearch)')
       else
         contexts[#contexts - 1]['syntax_loaded'] = true
       end
