@@ -31,8 +31,4 @@ local function parse_lines(data)
   return parsed, separators_count
 end
 
-local parse = {
-  lines = parse_lines,
-}
-
-return parse
+return { lines = parse_lines }

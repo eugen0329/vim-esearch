@@ -1,12 +1,15 @@
 local highlight 
 
-local function ui_cb(event_name, bufnr, changedtick, line_start, old_line_end, line_end, old_byte_size)
-  local start = line_start - 1
-  if line_start == 0 then start = 0 end
+local ATTACHED_UI      = {}
+local ATTACHED_MATCHES = {}
+
+local function ui_cb(event_name, bufnr, changedtick, from, old_to, to, old_byte_size)
+  local start = from - 1
+  if from == 0 then start = 0 end
 
   vim.schedule((function()
-    vim.api.nvim_buf_clear_namespace(bufnr, highlight.UI_NS, line_start, line_end)
-    highlight.linenrs_range(bufnr, start, line_end)
+    vim.api.nvim_buf_clear_namespace(bufnr, highlight.UI_NS, from, to)
+    highlight.linenrs_range(bufnr, start, to)
   end))
 end
 
@@ -16,20 +19,44 @@ local function matches_cb(_, bufnr, ct, from, old_to, to, _old_byte_size)
   end
 end
 
-local function linenrs_range(bufnr, line_start, line_end)
-  local lines = vim.api.nvim_buf_get_lines(bufnr, line_start, line_end, false)
+local function buf_attach_matches()
+  local bufnr = vim.api.nvim_get_current_buf()
+  if not ATTACHED_MATCHES[bufnr] then
+    ATTACHED_MATCHES[bufnr] = true
+    vim.api.nvim_buf_attach(0, false, {on_lines=matches_cb, on_detach=detach_matches_cb})
+  end
+end
+
+local function detach_matches_cb(bufnr)
+  ATTACHED_MATCHES[bufnr] = nil
+end
+
+local function buf_attach_ui()
+  local bufnr = vim.api.nvim_get_current_buf()
+  if not ATTACHED_UI[bufnr] then
+    ATTACHED_UI[bufnr] = true
+    vim.api.nvim_buf_attach(0, false, {on_lines=ui_cb, on_detach=detach_ui_cb})
+  end
+end
+
+local function detach_ui_cb(bufnr)
+  ATTACHED_UI[bufnr] = nil
+end
+
+local function linenrs_range(bufnr, from, to)
+  local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
   for i, text in ipairs(lines) do
-    if i == 1 and line_start < 1 then
+    if i == 1 and from < 1 then
       vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchHeader', 0, 0, -1)
     elseif text:len() == 0 then
       -- noop
     elseif text:sub(1,1) == ' ' then
       pos1, pos2 =  text:find('^%s+%d+%s')
       if pos2 ~= nil then
-        vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchLineNr', line_start + i - 1 , 0, pos2)
+        vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
       end
     else
-      vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchFilename', line_start + i - 1, 0, -1)
+      vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchFilename', from + i - 1, 0, -1)
     end
   end
 end
@@ -53,14 +80,16 @@ local function cursor_linenr()
 end
 
 highlight = {
-  UI_NS            = vim.api.nvim_create_namespace('esearch_highlights'),
-  MATCHES_NS       = vim.api.nvim_create_namespace('esearch_matches'),
-  CURSOR_LINENR_NS = vim.api.nvim_create_namespace('esearch_cursor_linenr'),
-  ui_cb            = ui_cb,
-  matches_cb       = matches_cb,
-  linenrs_range    = linenrs_range,
-  header           = header,
-  cursor_linenr    = cursor_linenr,
+  UI_NS              = vim.api.nvim_create_namespace('esearch_highlights'),
+  MATCHES_NS         = vim.api.nvim_create_namespace('esearch_matches'),
+  CURSOR_LINENR_NS   = vim.api.nvim_create_namespace('esearch_cursor_linenr'),
+  ATTACHED_UI        = ATTACHED_UI,
+  ATTACHED_MATCHES   = ATTACHED_MATCHES,
+  buf_attach_ui      = buf_attach_ui,
+  buf_attach_matches = buf_attach_matches,
+  linenrs_range      = linenrs_range,
+  header             = header,
+  cursor_linenr      = cursor_linenr,
 }
 
 return highlight

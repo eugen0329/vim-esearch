@@ -9,17 +9,17 @@
 " Another option is to obtain the locations using adapter colorized output, but
 " it cause uncontrolled freeze on backend callbacks due to redundant text with
 " ANSI escape sequences.
-fu! esearch#out#win#matches#init_highlight(esearch) abort
+fu! esearch#out#win#highlight#matches#init(esearch) abort
   if g:esearch_out_win_highlight_matches ==# 'viewport'
     let a:esearch.last_hl_range = [0,0]
     let a:esearch.matches_ns = luaeval('esearch.highlight.MATCHES_NS')
-    let Callback = function('s:highlight_matches_callback', [a:esearch])
+    let Callback = function('s:highlight_viewport_cb', [a:esearch])
     let a:esearch.hl_matches = esearch#debounce(Callback, g:esearch_win_matches_highlight_debounce_wait)
 
     aug esearch_win_highlights
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()
     aug END
-    call luaeval('vim.api.nvim_buf_attach(0, false, {on_lines=esearch.highlight.matches_cb})')
+    call luaeval('esearch.highlight.buf_attach_matches()')
     return
   endif
 
@@ -28,7 +28,7 @@ fu! esearch#out#win#matches#init_highlight(esearch) abort
   endif
 endfu
 
-fu! s:highlight_matches_callback(esearch) abort
+fu! s:highlight_viewport_cb(esearch) abort
   if !a:esearch.is_current()
     return
   endif

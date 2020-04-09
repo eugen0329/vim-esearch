@@ -2,7 +2,7 @@ let g:esearch#has#debounce = has('timers')
 let g:esearch#has#windows = has('win32')
 let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')
 let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#has#nvim_add_highlight
-let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight
+let g:esearch#has#nvim_lua_syntax = has('nvim') && exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight
 let g:esearch#has#unicode = has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 let g:esearch#has#preview = has('nvim') && exists('*nvim_open_win')
 let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')

@@ -15,15 +15,3 @@ else
     return luaeval('esearch.parse.lines(_A[0])', [a:data[a:from : a:to]])
   endfu
 endif
-
-lua << EOF
-EOF
-
-if g:esearch#has#nvim_lua
-lua << EOF
-
-EOF
-else
-lua << EOF
-EOF
-endif

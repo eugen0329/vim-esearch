@@ -89,72 +89,6 @@ endif
 if !exists('g:unload_global_syntax_on_line_length')
   let g:unload_global_syntax_on_line_length = 30000
 endif
-
-let s:context_syntaxes = {
-      \ 'c':               'es_ctx_c',
-      \ 'cpp':             'es_ctx_c',
-      \ 'xs':              'es_ctx_c',
-      \ 'cmod':            'es_ctx_c',
-      \ 'rpcgen':          'es_ctx_c',
-      \ 'haskell':         'es_ctx_haskell',
-      \ 'lhaskell':        'es_ctx_haskell',
-      \ 'agda':            'es_ctx_haskell',
-      \ 'sh':              'es_ctx_sh',
-      \ 'bash':            'es_ctx_sh',
-      \ 'zsh':             'es_ctx_sh',
-      \ 'bats':            'es_ctx_sh',
-      \ 'javascript':      'es_ctx_javascript',
-      \ 'javascriptreact': 'es_ctx_javascriptreact',
-      \ 'typescript':      'es_ctx_typescript',
-      \ 'typescriptreact': 'es_ctx_typescriptreact',
-      \ 'coffee':          'es_ctx_javascript',
-      \ 'litcoffee':       'es_ctx_javascript',
-      \ 'php':             'es_ctx_php',
-      \ 'phtml':           'es_ctx_php',
-      \ 'go':              'es_ctx_go',
-      \ 'ruby':            'es_ctx_ruby',
-      \ 'racc':            'es_ctx_ruby',
-      \ 'xml':             'es_ctx_xml',
-      \ 'svg':             'es_ctx_xml',
-      \ 'ant':             'es_ctx_xml',
-      \ 'papp':            'es_ctx_xml',
-      \ 'html':            'es_ctx_html',
-      \ 'xhtml':           'es_ctx_html',
-      \ 'haml':            'es_ctx_html',
-      \ 'htmlcheetah':     'es_ctx_html',
-      \ 'wml':             'es_ctx_html',
-      \ 'jsp':             'es_ctx_html',
-      \ 'template':        'es_ctx_html',
-      \ 'htmldjango':      'es_ctx_html',
-      \ 'htmlm4':          'es_ctx_html',
-      \ 'vue':             'es_ctx_html',
-      \ 'java':            'es_ctx_java',
-      \ 'python':          'es_ctx_python',
-      \ 'kivy':            'es_ctx_python',
-      \ 'pyrex':           'es_ctx_python',
-      \ 'json':            'es_ctx_json',
-      \ 'yaml':            'es_ctx_yaml',
-      \ 'liquid':          'es_ctx_yaml',
-      \ 'toml':            'es_ctx_toml',
-      \ 'dockerfile':      'es_ctx_dockerfile',
-      \ 'css':             'es_ctx_css',
-      \ 'scss':            'es_ctx_css',
-      \ 'sass':            'es_ctx_css',
-      \ 'less':            'es_ctx_css',
-      \ 'hcl':             'es_ctx_hcl',
-      \ 'groovy':          'es_ctx_groovy',
-      \ 'vim':             'es_ctx_vim',
-      \ 'Jenkinsfile':     'es_ctx_groovy',
-      \ 'scala':           'es_ctx_scala',
-      \ 'lisp':            'es_ctx_lisp',
-      \ 'clojure':         'es_ctx_lisp',
-      \ 'rust':            'es_ctx_generic',
-      \ 'swift':           'es_ctx_generic',
-      \ 'elixir':          'es_ctx_generic',
-      \ 'erlang':          'es_ctx_generic',
-      \ 'fortran':         'es_ctx_generic',
-      \}
-
 if !has_key(g:, 'esearch#out#win#open')
   let g:esearch#out#win#open = 'tabnew'
 endif
@@ -176,12 +110,10 @@ fu! esearch#out#win#init(opts) abort
         \ 'files_count':              0,
         \ 'separators_count':         0,
         \ 'mode':                     'normal',
-        \ 'viewport_highlight_timer': -1,
         \ 'updates_timer':            -1,
         \ 'update_with_timer_start':  0,
         \ 'max_lines_found':          0,
         \ 'ignore_batches':           0,
-        \ 'highlight_viewport':       0,
         \ 'tick':                     0,
         \ 'line_numbers_map':         [],
         \ 'highlighted_lines_map':    {},
@@ -235,16 +167,6 @@ fu! esearch#out#win#init(opts) abort
     call s:init_update_events(b:esearch)
   endif
 
-  aug esearch_win_highlights
-    au! * <buffer>
-    if g:esearch_out_win_highlight_cursor_line_number
-      au CursorMoved,CursorMovedI <buffer> call s:highlight_cursor_line_number()
-    endif
-    if g:esearch#out#win#context_syntax_highlight
-      au CursorMoved <buffer> call s:highlight_viewport()
-    endif
-  aug END
-
   " setup blank context for header
   call esearch#out#win#add_context(b:esearch.contexts, '', 1)
   let header_context = b:esearch.contexts[0]
@@ -262,9 +184,16 @@ fu! esearch#out#win#init(opts) abort
 
   " Highlights should be set after setting the filetype as all the definitions
   " are inside syntax/esearch.vim
-  call esearch#out#win#matches#init_highlight(b:esearch)
+  call esearch#out#win#highlight#uninit()
+  if g:esearch_out_win_highlight_cursor_line_number
+    call esearch#out#win#highlight#cursor_linenr#init(b:esearch)
+  endif
+  if g:esearch#out#win#context_syntax_highlight
+    call esearch#out#win#highlight#ctx_syntaxes#init(b:esearch)
+  endif
+  call esearch#out#win#highlight#matches#init(b:esearch)
   if g:esearch_out_win_nvim_lua_syntax
-    call esearch#out#win#render#lua#init_nvim_syntax(b:esearch)
+    call luaeval('esearch.highlight.header()')
   endif
 
   " Some plugins set mappings on filetype, so they should be set after.
@@ -289,20 +218,6 @@ fu! s:open(...) abort dict
   " it'd cause preblems with esearch#debounce#... methods
   return call('esearch#out#win#open#do', a:000, self)
 endfu
-
-if has('nvim')
-  fu! s:highlight_cursor_line_number() abort
-    call luaeval('esearch.highlight.cursor_linenr()')
-  endfu
-else
-  fu! s:highlight_cursor_line_number() abort
-    if has_key(b:, 'esearch_linenr_id')
-      call esearch#util#safe_matchdelete(b:esearch_linenr_id)
-    endif
-    let b:esearch_linenr_id = matchadd('esearchCursorLineNr',
-          \ '^\s\+\d\+\s\%' . line('.') . 'l', -1)
-  endfu
-endif
 
 " Is used to prevent problems with asynchronous code
 fu! s:is_current() abort dict
@@ -539,59 +454,6 @@ fu! esearch#out#win#add_context(contexts, filename, begin) abort
   call add(a:contexts, s:new_context(id, a:filename, a:begin))
 endfu
 
-fu! s:highlight_viewport() abort
-  if g:esearch_win_context_syntax_async && g:esearch#has#debounce
-    let b:esearch.viewport_highlight_timer = esearch#debounce#_trailing(
-          \ function('s:highlight_viewport_callback', [b:esearch]),
-          \ g:esearch_win_highlight_debounce_wait,
-          \ b:esearch.viewport_highlight_timer)
-  else
-    call s:blocking_highlight_viewport(b:esearch)
-  endif
-endfu
-
-fu! s:highlight_viewport_callback(esearch, timer) abort
-  let a:esearch.viewport_highlight_timer = -1
-
-  if !exists('b:esearch') || b:esearch.id != a:esearch.id
-    return
-  endif
-
-  call s:blocking_highlight_viewport(a:esearch)
-endfu
-
-" TODO is heavily required to be tested
-fu! s:blocking_highlight_viewport(esearch) abort
-  if !a:esearch.highlights_enabled || line('$') < 3
-    return
-  endif
-
-  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
-  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
-
-  let state = esearch#out#win#_state(a:esearch)
-  for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]
-    if !context.syntax_loaded
-      call s:load_syntax(a:esearch, context)
-    endif
-  endfor
-  call s:set_syntax_sync(a:esearch)
-endfu
-
-fu! s:set_syntax_sync(esearch) abort
-  if !a:esearch.highlights_enabled
-        \ || a:esearch['max_lines_found'] < 1
-    return
-  endif
-
-  "" for some reason it clears other properties which doesn't related to sync
-  "" like syn iskeyword etc.
-  " syntax sync clear
-  exe 'syntax sync minlines='.min([
-        \ float2nr(a:esearch['max_lines_found']),
-        \ g:esearch#out#win#context_syntax_max_lines,
-        \ ])
-endfu
 
 fu! esearch#out#win#unload_highlights() abort
   let b:esearch.highlights_enabled = 0
@@ -633,62 +495,6 @@ fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
   call clearmatches()
 
   let a:esearch.context_syntax_regions = {}
-endfu
-
-fu! s:load_syntax(esearch, context) abort
-  if empty(a:context.filetype)
-    let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
-  endif
-
-  if !has_key(s:context_syntaxes, a:context.filetype)
-    let a:context.syntax_loaded = -1
-    return
-  endif
-  let syntax_name = s:context_syntaxes[a:context.filetype]
-
-  if !has_key(a:esearch.context_syntax_regions, syntax_name)
-    let region = {
-          \ 'cluster': s:include_syntax_cluster(syntax_name),
-          \ 'name':    syntax_name,
-          \ }
-    let a:esearch.context_syntax_regions[syntax_name] = region
-    exe printf('syntax region %s start="^ " end="^$" contained contains=esearchLineNr,%s',
-          \ region.name,
-          \ region.cluster)
-  else
-    let region = a:esearch.context_syntax_regions[syntax_name]
-  endif
-
-  " fnameescape() is used as listed filenames are escaped
-  " escape(..., '/') as the filename pattern is enclosed in //
-  " escape(..., '^$.*[]\') is used as matching should be literal
-  let start = escape(fnameescape(a:context.filename), '/^$.*[]\')
-  exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
-        \ region.name, start, region.name)
-
-  let len = a:context.end - a:context.begin
-  if a:esearch.max_lines_found < len
-    let a:esearch.max_lines_found = len
-  endif
-  let a:context.syntax_loaded = 1
-endfu
-
-fu! s:include_syntax_cluster(ft) abort
-  let cluster_name = '@' . toupper(a:ft)
-
-  if exists('b:current_syntax')
-    let syntax_save = b:current_syntax
-    unlet b:current_syntax
-  endif
-
-  exe 'syntax include' cluster_name 'syntax/' . a:ft . '.vim'
-
-  if exists('syntax_save')
-    let b:current_syntax = syntax_save
-  elseif exists('b:current_syntax')
-    unlet b:current_syntax
-  endif
-  return cluster_name
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
@@ -1001,7 +807,7 @@ fu! esearch#out#win#finish(bufnr) abort
   call esearch#out#win#edit()
 
   if g:esearch_out_win_nvim_lua_syntax
-    call esearch#out#win#render#lua#nvim_syntax_attach_callback(b:esearch)
+    call luaeval('esearch.highlight.buf_attach_ui()')
   endif
 endfu
 

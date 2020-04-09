@@ -453,7 +453,7 @@ fu! s:apply_recovery(state) abort dict
   endif
 
   if g:esearch_out_win_nvim_lua_syntax && self.extended_line1 <= 2
-    call luaeval('esearch.highlight.linenrs_range(0,0,1)')
+    call luaeval('esearch.highlight.header()')
   endif
 
   call remove(a:state.line_numbers_map, self.extended_line1, self.extended_line2)
