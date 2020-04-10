@@ -3,11 +3,10 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 let s:sign_name  = 'esearchEmphasizeSign'
 let s:sign_group = 'esearchEmphasizeSigns'
-let s:sign_id    = 502012 " TODO: investigate what is the scope of id's
-" should be big enought to overrule the less important signs in terms of
-" previews like linters etc.
+let s:sign_id    = 502012117
+" Prio should be big enought to overrule the less important signs at the moment
+" of previewing like from linters etc.
 let s:priority   = 1000
-
 
 fu! esearch#emphasize#sign(win_handle, line, text) abort
   return s:SignEmphasis.new(a:win_handle, a:line, a:text)

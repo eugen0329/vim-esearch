@@ -48,9 +48,10 @@ fu! esearch#preview#open(filename, line, ...) abort
         \ 'line':     a:line,
         \ }
   let win_vars = {'&foldenable': s:false}
-  if g:esearch#env isnot# 0
-    let win_vars['&winhighlight'] = 'Normal:NormalFloat'
-  endif
+  " TODO uncomment back before the release
+  " if g:esearch#env isnot# 0
+  let win_vars['&winhighlight'] = 'Normal:NormalFloat'
+  " endif
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let enter = get(opts, 'enter', s:false)
@@ -74,8 +75,8 @@ endfu
 fu! esearch#preview#reset() abort
   " Sometimes emphasis remains when using tabclose command. We need to try
   " cleaning it up no matter the window opened or not.
-  if has_key(g:esearch#preview#last, 'win')
-    " call g:esearch#preview#last.win.clear_emphasis()
+  if g:esearch#preview#last isnot# s:null
+    call g:esearch#preview#last.win.clear_emphasis()
   endif
   " If #close() is used on every listed event, it can cause a bug where previewed
   " buffer loose it's content on existing swaps, so this method is defined to handle this

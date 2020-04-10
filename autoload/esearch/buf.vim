@@ -7,7 +7,6 @@ endfu
 " :h file-pattern
 fu! esearch#buf#pattern(filename) abort
   let filename = a:filename
-  " let filename = escape(a:filename, '%#')
   " fnamemodify changes /foor/./bar => /foo/bar in paths, but it's not working
   " when the filename is missing (edge case, but can be considered as TODO)
   let filename = resolve(fnamemodify(filename, ':p'))

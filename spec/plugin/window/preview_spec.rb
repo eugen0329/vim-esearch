@@ -172,6 +172,29 @@ describe 'esearch#preview' do
         end
       end
 
+      describe 'opening with closing the tab' do
+        context 'when the file is closed' do
+          include_context 'verify test files content is not modified after a testcase'
+
+          before do
+            editor.command! 'call esearch#out#win#map("e", {es-> es.open("tabclose | tabedit")})'
+          end
+
+          it 'resets emphasis and window local options' do
+            expect { editor.send_keys 'p' }
+              .to stay_in_buffer
+              .and change { windows.count }.by(-1)
+
+            expect { editor.send_keys 'e' }
+              .to start_editing(ctx1.absolute_path)
+              .and change { windows.count }
+              .by(1)
+            expect(editor.echo(func('sign_getplaced'))).to be_blank
+            expect(window_highlights).to all eq(default_highlight)
+          end
+        end
+      end
+
       describe 'closing' do
         include_context 'start search'
         include_context "open preview and verify it's correctness"
