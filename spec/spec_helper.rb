@@ -90,9 +90,9 @@ RSpec.configure do |c|
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 
-  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
+  # c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.filter_run_excluding(:neovim)
-  c.filter_run_excluding(:osx_only) unless Configuration.osx?
+  # c.filter_run_excluding(:osx_only) unless Configuration.osx?
   c.filter_run_excluding(:multibyte_commandline) # TODO
 
   c.define_derived_metadata(file_path: %r{/spec/plugin/window/}) do |metadata|

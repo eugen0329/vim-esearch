@@ -1,9 +1,9 @@
-let s:Buffer   = vital#esearch#import('Vim.Buffer')
-let s:Message  = vital#esearch#import('Vim.Message')
-let s:Prelude  = vital#esearch#import('Prelude')
-let s:List     = vital#esearch#import('Data.List')
+let s:Buffer  = vital#esearch#import('Vim.Buffer')
+let s:Message = vital#esearch#import('Vim.Message')
+let s:Prelude = vital#esearch#import('Prelude')
+let s:List    = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
+     \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 let g:esearch#preview#close_on = [
       \ 'QuitPre',
@@ -72,10 +72,14 @@ fu! esearch#preview#is_open() abort
 endfu
 
 fu! esearch#preview#reset() abort
+  " Sometimes emphasis remains when using tabclose command. We need to try
+  " cleaning it up no matter the window opened or not.
+  if has_key(g:esearch#preview#last, 'win')
+    " call g:esearch#preview#last.win.clear_emphasis()
+  endif
   " If #close() is used on every listed event, it can cause a bug where previewed
-  " buffer loose it's content on open, so this method is defined to handle this
+  " buffer loose it's content on existing swaps, so this method is defined to handle this
   if esearch#preview#is_open()
-    call g:esearch#preview#win.clear_emphasis()
     let guard = g:esearch#preview#win.guard
     if !empty(guard) | call guard.restore() | endif
   endif
@@ -128,7 +132,8 @@ fu! s:Preview.open() abort dict
     call self.win.init_leaved_autoclose_events()
   catch
     call esearch#preview#close()
-    call s:Message.echomsg('ErrorMsg', v:exception)
+    let g:asd = v:exception . (g:esearch#env is 0 ? '' : v:throwpoint)
+    call s:Message.echomsg('ErrorMsg', v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
     return s:false
   finally
     noau keepj call current_win.restore()
@@ -181,7 +186,7 @@ fu! s:RegularBuffer.new(filename, ...) abort dict
 
   let reuse_existing = get(a:000, 0, s:true)
   if reuse_existing && bufexists(a:filename)
-    let instance.id = bufnr('^'.a:filename.'$')
+    let instance.id = esearch#buf#find(a:filename)
     let instance.bufwinid = bufwinid(instance.id)
   else
     let instance.id = nvim_create_buf(1, 0)
@@ -303,7 +308,6 @@ fu! s:RegularBuffer.edit() abort dict
   augroup esearch_prevew_make_regular
     au!
     au BufWinEnter,BufEnter <buffer> ++once call esearch#preview#reset()
-          " \ | au! esearch_prevew_make_regular *
   augroup END
 
   return s:true
@@ -513,6 +517,8 @@ fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
     au!
     exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
     exe 'au ' . g:esearch#preview#reset_on . ' * ++once call esearch#preview#reset()'
+    " Prevent options inheritance
+    au TabNewEntered * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
 
     " We cannot close the preview when entering cmdwin, so the only option is to
     " reinitialize the events.
