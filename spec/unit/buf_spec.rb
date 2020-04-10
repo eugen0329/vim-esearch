@@ -8,7 +8,7 @@ describe 'esearch#buf' do
 
   describe 'esearch#buf#find' do
     context 'when filename contains special characters' do
-      let(:filename) { "asd" }
+      let(:filename) { 'asd' }
       let(:filename) { "%#$^\\$\\^{}\\{\\}#{'\\' * 3}{1,2\\},\\n{}[foo][bar[]]\\[\\]?\\?*\\*.\\. \\ %#\\%\\#" }
 
       let(:files) { [file('', filename.gsub('\\', '\\\\\\\\'))] }
