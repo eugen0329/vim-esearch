@@ -104,11 +104,11 @@ fu! esearch#opts#init_lazy_global_config() abort
     let g:esearch = esearch#opts#new(global_esearch)
     if empty(g:esearch) | return 1 | endif
     let g:esearch.__lazy_loaded = 1
-    if has("nvim")
+    if has('nvim')
       lua << EOF
       esearch = require'esearch/neovim'
 EOF
-    elseif has("lua")
+    elseif has('lua')
       lua << EOF
       package.path = package.path .. ';'.. vim.eval("s:root")..'/lua/?.lua'
       esearch = require'esearch/vim'
