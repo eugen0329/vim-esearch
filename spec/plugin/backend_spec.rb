@@ -82,7 +82,6 @@ describe 'esearch#backend', :backend do
         KnownIssues.mark_example_pending_if_known_issue(self) do
           expect(esearch).to have_search_started
 
-          require 'pry'; binding.pry
           expect(esearch)
             .to  have_search_finished
             .and have_not_reported_errors
