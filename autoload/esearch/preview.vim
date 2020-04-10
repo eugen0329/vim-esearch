@@ -133,7 +133,6 @@ fu! s:Preview.open() abort dict
     call self.win.init_leaved_autoclose_events()
   catch
     call esearch#preview#close()
-    let g:asd = v:exception . (g:esearch#env is 0 ? '' : v:throwpoint)
     call s:Message.echomsg('ErrorMsg', v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
     return s:false
   finally
