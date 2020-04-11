@@ -13,7 +13,7 @@ env:
   DOCKER_BUILD=0
   PARALLEL_SPLIT_TEST_PROCESSES=2
 
-rvm: 2.7.0     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
+rvm: 2.7.1     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:

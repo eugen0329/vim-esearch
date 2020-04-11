@@ -468,7 +468,7 @@ fu! s:find_or_create_buf(bufname, opencmd) abort
     let escaped = substitute(escaped, '/', '\\\\/', 'g')
   endif
 
-  let bufnr = bufnr('^'.escaped_for_bufnr.'$')
+  let bufnr = esearch#buf#find(escaped_for_bufnr)
   if bufnr == bufnr('%') " if current buffer
     return 0
   elseif bufnr > 0 " if buffer exists
