@@ -14,10 +14,12 @@ fu! s:Trailing.new(callback, wait, ...) abort dict
   return instance
 endfu
 
+fu! s:Trailing.cancel(...) abort dict
+  call timer_stop(self._timer)
+endfu
+
 fu! s:Trailing.apply(...) abort dict
-  if self._timer >= 0
-    call timer_stop(self._timer)
-  endif
+  call timer_stop(self._timer)
 
   " A separate variable is required, as otherwise the closure won't work
   let args = a:000

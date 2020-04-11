@@ -50,19 +50,6 @@ fu! esearch#util#qfbufnr() abort
   return -1
 endfu
 
-fu! esearch#util#bufloc(bufnr) abort
-  for tabnr in range(1, tabpagenr('$'))
-    let buflist = tabpagebuflist(tabnr)
-    if index(buflist, a:bufnr) >= 0
-      for winnr in range(1, tabpagewinnr(tabnr, '$'))
-        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
-      endfor
-    endif
-  endfor
-
-  return []
-endf
-
 fu! esearch#util#flatten(list) abort
   let flatten = []
   for elem in a:list
@@ -583,7 +570,7 @@ fu! esearch#util#safe_undojoin() abort
 endfu
 
 fu! esearch#util#safe_matchdelete(id) abort
-  if a:id < 0 | return | endif
+  if a:id < 1 | return | endif " E802
 
   try
     call matchdelete(a:id)
@@ -708,3 +695,19 @@ fu! esearch#util#pluralize(word, count) abort
   let word .= 's'
   return word
 endfu
+
+if g:esearch#has#nomodeline
+  fu! esearch#util#doautocmd(expr) abort
+    exe 'silent doau <nomodeline> ' . a:expr
+  endfu
+else
+  fu! esearch#util#doautocmd(expr) abort
+    let original_modelines = &modelines
+    try
+      set modelines=0
+      exe 'silent doau ' . a:expr
+    finally
+      let &modelines = original_modelines
+    endtry
+  endfu
+endif

@@ -8,6 +8,7 @@ let g:esearch#has#preview = has('nvim') && exists('*nvim_open_win')
 let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')
 let g:esearch#has#nvim_winid = exists('*nvim_set_current_win') && exists('*nvim_get_current_win')
 let g:esearch#has#vim8_types = exists('v:true') && exists('v:false') && exists('v:null')
+let g:esearch#has#nomodeline = has('patch-7.3.438')
 
 " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
 let g:esearch#has#vim8_calls_close_cb_last = has('patch-7.4.1787')

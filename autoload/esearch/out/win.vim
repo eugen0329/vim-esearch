@@ -7,6 +7,7 @@ let s:String        = vital#esearch#import('Data.String')
 let s:Filepath      = vital#esearch#import('System.Filepath')
 let s:Message       = vital#esearch#import('Vim.Message')
 let s:BufferManager = vital#esearch#import('Vim.BufferManager')
+let s:Buffer        = vital#esearch#import('Vim.Buffer')
 
 let g:esearch#out#win#mappings = [
       \ {'lhs': 't',       'rhs': 'tab',                'default': 1},
@@ -96,13 +97,13 @@ if !has_key(g:, 'esearch#out#win#buflisted')
   let g:esearch#out#win#buflisted = 0
 endif
 
+let g:esearch#out#win#buffers = s:BufferManager.new()
+
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
-  silent doau User esearch_win_init_pre
+  call esearch#util#doautocmd('User esearch_win_init_pre')
 
-  if has_key(b:, 'esearch')
-    call s:cleanup()
-  end
+  call s:cleanup()
 
   let b:esearch = extend(a:opts, {
         \ 'bufnr':                    bufnr('%'),
@@ -184,14 +185,13 @@ fu! esearch#out#win#init(opts) abort
 
   " Highlights should be set after setting the filetype as all the definitions
   " are inside syntax/esearch.vim
-  call esearch#out#win#highlight#uninit()
-  if g:esearch_out_win_highlight_cursor_line_number
-    call esearch#out#win#highlight#cursor_linenr#init(b:esearch)
-  endif
+  call esearch#out#win#highlight#matches#init(b:esearch)
   if g:esearch#out#win#context_syntax_highlight
     call esearch#out#win#highlight#ctx_syntaxes#init(b:esearch)
   endif
-  call esearch#out#win#highlight#matches#init(b:esearch)
+  if g:esearch_out_win_highlight_cursor_line_number
+    call esearch#out#win#highlight#cursor_linenr#init(b:esearch)
+  endif
   if g:esearch_out_win_nvim_lua_syntax
     call luaeval('esearch.highlight.header()')
   endif
@@ -202,9 +202,9 @@ fu! esearch#out#win#init(opts) abort
   call s:init_commands()
 
   aug esearch_win_event
-    silent doau User esearch_win_event
+    call esearch#util#doautocmd('User esearch_win_event')
   aug END
-  silent doau User esearch_win_init_post
+  call esearch#util#doautocmd('User esearch_win_init_post')
 
   call esearch#backend#{b:esearch.backend}#run(b:esearch.request)
 
@@ -254,31 +254,37 @@ fu! s:split_preview(...) abort dict
 endfu
 
 fu! s:cleanup() abort
-  au!  esearch_win_event * <buffer>
-  call esearch#changes#unlisten_for_current_buffer()
-  call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
-  if has_key(b:esearch, 'updates_timer')
-    call timer_stop(b:esearch.updates_timer)
+  if exists('b:esearch')
+    call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
+    if has_key(b:esearch, 'updates_timer')
+      call timer_stop(b:esearch.updates_timer)
+    endif
+    call esearch#out#win#highlight#matches#uninit(b:esearch)
+    call esearch#out#win#highlight#ctx_syntaxes#uninit(b:esearch)
+    call esearch#out#win#highlight#cursor_linenr#uninit(b:esearch)
   endif
-  if has_key(b:esearch, 'viewport_highlight_timer')
-    call timer_stop(b:esearch.viewport_highlight_timer)
-  endif
-  aug ESearchModifiable
-    au! * <buffer>
-  aug END
 
   call esearch#option#reset()
-  call esearch#util#safe_matchdelete(
-        \ get(b:esearch, 'matches_highlight_id', -1))
-  silent doau User esearch_win_uninit_post
+  aug esearch_win_highlights
+    au! * <buffer>
+  aug END
+  aug esearch_win_event
+    au! * <buffer>
+  aug END
+  aug esearch_win_modifiable
+    au! * <buffer>
+  aug END
+  call esearch#changes#unlisten_for_current_buffer()
+
+  call esearch#util#doautocmd('User esearch_win_uninit_post')
 endfu
 
 " TODO refactoring
 fu! s:init_update_events(esearch) abort
-  if g:esearch_win_update_using_timer && exists('*timer_start')
+  if g:esearch_win_update_using_timer && has('timers')
     let a:esearch.update_with_timer_start = 1
 
-    aug ESearchWinUpdates
+    aug esearch_win_updates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
 
@@ -298,7 +304,7 @@ fu! s:init_update_events(esearch) abort
   else
     let a:esearch.update_with_timer_start = 0
 
-    aug ESearchWinUpdates
+    aug esearch_win_updates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
     aug END
@@ -330,12 +336,12 @@ fu! s:update_by_backend_callbacks_until_1st_batch_is_rendered(bufnr) abort
 endfu
 
 fu! s:unload_update_events(esearch) abort
-  aug ESearchWinUpdates
+  aug esearch_win_updates
     for func_name in keys(a:esearch.request.events)
       let a:esearch.request.events[func_name] = s:null
     endfor
   aug END
-  exe printf('au! ESearchWinUpdates * <buffer=%d>', a:esearch.bufnr)
+  exe printf('au! esearch_win_updates * <buffer=%d>', a:esearch.bufnr)
 endfu
 
 fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
@@ -357,34 +363,28 @@ fu! s:update_by_timer_callback(esearch, bufnr, timer) abort
   endif
 endfu
 
-" TODO
-fu! s:find_or_create_buf(bufname, opencmd) abort
-  let escaped = s:escape_title(a:bufname)
-  let escaped_for_bufnr = substitute(escape(a:bufname, '*?\{}[]'), '["]', '\\\\\0', 'g')
+" TODO customizability
+fu! s:find_or_create_buf(bufname, opener) abort
+  let escaped = a:bufname
 
-  if g:esearch#has#unicode
-    let escaped = substitute(escaped, '/', "\u2215", 'g')
-    let escaped_for_bufnr = substitute(escaped_for_bufnr, '/', "\u2215", 'g')
-  else
-    let escaped_for_bufnr = substitute(escaped_for_bufnr, '/', '\\\\/', 'g')
-    let escaped = substitute(escaped, '/', '\\\\/', 'g')
-  endif
+  let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#division_slash : '{slash}'
+  let escaped = substitute(escaped, '/', safe_slash, 'g')
 
-  let bufnr = esearch#buf#find(escaped_for_bufnr)
-  if bufnr == bufnr('%') " if current buffer
-    return 0
-  elseif bufnr > 0 " if buffer exists
-    let buf_loc = esearch#util#bufloc(bufnr)
-    if empty(buf_loc)
-      silent exe 'bw ' . bufnr
-      silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
-    else
-      silent exe 'tabn ' . buf_loc[0]
-      exe buf_loc[1].'winc w'
-    endif
-  else " if buffer doesn't exist
-    silent exe join(filter([a:opencmd, 'file '.escaped], '!empty(v:val)'), '|')
+  let bufnr = esearch#buf#find(escaped)
+  " Noop if the buffer is current
+  if bufnr == bufnr('%') | return | endif
+  " Open if doesn't exist
+  if bufnr == -1
+    return s:Buffer.open(escaped, {'opener': a:opener})
   endif
+  let [tabnr, winnr] = esearch#buf#location(bufnr)
+  " Open if closed
+  if empty(winnr)
+    return s:Buffer.open(escaped, {'opener': a:opener})
+  endif
+  " Locate if opened
+  silent exe 'tabnext ' . tabnr
+  exe winnr . 'wincmd w'
 endfu
 
 fu! s:escape_title(title) abort
@@ -473,10 +473,6 @@ fu! esearch#out#win#unload_highlights() abort
 endfu
 
 fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
-  if a:esearch.viewport_highlight_timer >= 0
-    call timer_stop(a:esearch.viewport_highlight_timer)
-  endif
-
   echomsg 'esearch: some highlights are disabled to prevent slowdowns'
 
   if g:esearch_out_win_nvim_lua_syntax
@@ -764,7 +760,7 @@ endfu
 fu! esearch#out#win#schedule_finish(bufnr) abort
   if a:bufnr != bufnr('%')
     " Bind event to finish the search as soon as the buffer is entered
-    aug ESearchWinUpdates
+    aug esearch_win_updates
       exe printf('au BufEnter <buffer=%d> ++once call esearch#out#win#finish(%d)', a:bufnr, a:bufnr)
     aug END
     return 1
@@ -779,14 +775,14 @@ fu! esearch#out#win#finish(bufnr) abort
     return 1
   endif
 
-  silent doau User esearch_win_finish_pre
+  call esearch#util#doautocmd('User esearch_win_finish_pre')
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   call esearch#out#win#update(a:bufnr, 1)
   let esearch.contexts[-1].end = line('$')
 
   if esearch.request.async
-    exe printf('au! ESearchWinUpdates * <buffer=%s>', string(a:bufnr))
+    exe printf('au! esearch_win_updates * <buffer=%s>', string(a:bufnr))
   endif
 
   if has_key(esearch, 'updates_timer')
@@ -826,7 +822,7 @@ fu! esearch#out#win#edit() abort
   setl noswapfile
 
   set buftype=acwrite
-  aug ESearchModifiable
+  aug esearch_win_modifiable
     au! * <buffer>
     au BufWriteCmd <buffer> call s:write()
     " TODO

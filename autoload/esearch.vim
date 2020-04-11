@@ -1,5 +1,5 @@
 fu! esearch#init(...) abort
-  silent doau User eseach_init_pre
+  call esearch#util#doautocmd('User eseach_init_pre')
 
   if esearch#opts#init_lazy_global_config() != 0
     return 0
@@ -106,8 +106,7 @@ endfu
 
 fu! s:title(esearch, pattern) abort
   let format = s:title_format(a:esearch)
-  let modifiers = ''
-  let modifiers .= a:esearch.case ==# 'ignore' ? 'i' : ''
+  let modifiers  = a:esearch.case ==# 'ignore' ? 'i' : ''
   let modifiers .= a:esearch.textobj ==# 'word' ? 'w' : ''
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
@@ -128,12 +127,12 @@ endfu
 
 " Results bufname format builder
 fu! s:title_format(esearch) abort
-  if a:esearch.regex
+  if a:esearch.is_regex()
     if g:esearch#has#unicode
-      " Since we can't use '/' in filenames
-      return "Search  \u2215%s\u2215%s"
+      let slash = g:esearch#unicode#division_slash
+      return printf('Search  %s%%s%s%%s', slash, slash)
     else
-      return 'Search %%r{%s}%s'
+      return 'Search r"%s"%s'
     endif
   else
     return 'Search `%s`%s'

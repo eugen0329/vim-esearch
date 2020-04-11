@@ -72,6 +72,11 @@ fu! esearch#out#win#highlight#ctx_syntaxes#init(esearch) abort
   aug END
 endfu
 
+fu! esearch#out#win#highlight#ctx_syntaxes#uninit(esearch) abort
+  call a:esearch.hl_ctx_syntaxes.cancel()
+  syntax sync clear
+endfu
+
 fu! s:highlight_viewport_cb(esearch) abort
   if !a:esearch.highlights_enabled || line('$') < 3 || !a:esearch.is_current()
     return
@@ -83,13 +88,13 @@ fu! s:highlight_viewport_cb(esearch) abort
   let state = esearch#out#win#_state(a:esearch)
   for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]
     if !context.syntax_loaded
-      call s:define_context_syntax_region(a:esearch, context)
+      call s:define_context_filetype_syntax_region(a:esearch, context)
     endif
   endfor
-  call s:set_syntax_sync(a:esearch)
+  call s:update_syntax_sync(a:esearch)
 endfu
 
-fu! s:set_syntax_sync(esearch) abort
+fu! s:update_syntax_sync(esearch) abort
   if !a:esearch.highlights_enabled
         \ || a:esearch['max_lines_found'] < 1
     return
@@ -103,7 +108,7 @@ fu! s:set_syntax_sync(esearch) abort
         \ g:esearch#out#win#context_syntax_max_lines])
 endfu
 
-fu! s:define_context_syntax_region(esearch, context) abort
+fu! s:define_context_filetype_syntax_region(esearch, context) abort
   if empty(a:context.filetype)
     let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
   endif

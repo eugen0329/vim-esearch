@@ -31,13 +31,13 @@ endif
 "   to not leave garbage evens after the search.
 
 fu! esearch#option#make_local_to_buffer(option_name, value, prevent_leaks_on_events) abort
-  augroup ESearchOption
+  aug esearch_option
     au! * <buffer>
     execute printf('au BufEnter <buffer> call s:set(%s, %s)',
           \ string(a:option_name), string(a:value))
     execute printf('au BufLeave,BufUnload <buffer> call s:restore(%s)',
           \ string(a:option_name))
-  augroup END
+  aug END
 
   if !empty(a:prevent_leaks_on_events)
     call s:set_events_to_ensure_option_restored(
@@ -48,12 +48,12 @@ fu! esearch#option#make_local_to_buffer(option_name, value, prevent_leaks_on_eve
 endfu
 
 fu! esearch#option#reset() abort
-  augroup ESearchOption
+  aug esearch_option
     au! * <buffer>
-  augroup END
-  augroup ESearchEnsureGlobalOptionNotLeaked
+  aug END
+  aug esearch_ensure_global_option_not_leaked
     au!
-  augroup END
+  aug END
 
   for saved in keys(s:saved_global_options)
     call s:restore(saved)
@@ -67,7 +67,7 @@ fu! s:ensure_restored(option_name, bufnr, prevent_leaks_on_events) abort
 
   call s:restore(a:option_name)
 
-  augroup ESearchEnsureGlobalOptionNotLeaked
+  aug esearch_ensure_global_option_not_leaked
     au!
     if bufexists(a:bufnr)
       " Once the leak is prevented, we have to set the event back. Semantically,
@@ -76,11 +76,11 @@ fu! s:ensure_restored(option_name, bufnr, prevent_leaks_on_events) abort
       execute printf('au BufEnter,CursorMoved <buffer=%d> ++once call s:set_events_to_ensure_option_restored(%s, %d, %s)',
             \ a:bufnr, string(a:option_name), string(a:bufnr), string(a:prevent_leaks_on_events))
     endif
-  augroup END
+  aug END
 endfu
 
 fu! s:set_events_to_ensure_option_restored(option_name, bufnr, prevent_leaks_on_events) abort
-  augroup ESearchEnsureGlobalOptionNotLeaked
+  aug esearch_ensure_global_option_not_leaked
     au!
     execute printf('au %s * call s:ensure_restored(%s, %d, %s)',
         \ a:prevent_leaks_on_events,
@@ -88,7 +88,7 @@ fu! s:set_events_to_ensure_option_restored(option_name, bufnr, prevent_leaks_on_
         \ a:bufnr,
         \ string(a:prevent_leaks_on_events),
         \ )
-  augroup END
+  aug END
 endfu
 
 fu! s:set(option_name, value) abort

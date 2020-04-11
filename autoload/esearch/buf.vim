@@ -40,3 +40,16 @@ fu! esearch#buf#pattern(filename) abort
   let filename = substitute(filename, '[{}]', '?', 'g')
   return filename
 endfu
+
+fu! esearch#buf#location(bufnr) abort
+  for tabnr in range(1, tabpagenr('$'))
+    let buflist = tabpagebuflist(tabnr)
+    if index(buflist, a:bufnr) >= 0
+      for winnr in range(1, tabpagewinnr(tabnr, '$'))
+        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
+      endfor
+    endif
+  endfor
+
+  return [0, 0]
+endf

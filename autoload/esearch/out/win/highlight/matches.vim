@@ -24,7 +24,16 @@ fu! esearch#out#win#highlight#matches#init(esearch) abort
   endif
 
   if g:esearch_out_win_highlight_matches ==# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
-    let a:esearch.matches_highlight_id = matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
+    let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
+  endif
+endfu
+
+fu! esearch#out#win#highlight#matches#uninit(esearch) abort
+  if has_key(a:esearch, 'hl_matches')
+    call a:esearch.hl_matches.cancel()
+  endif
+  if has_key(a:esearch, 'matches_hl_id')
+    call esearch#util#safe_matchdelete(a:esearch.matches_hl_id)
   endif
 endfu
 
