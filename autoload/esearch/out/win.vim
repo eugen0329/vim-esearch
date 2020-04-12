@@ -825,8 +825,6 @@ fu! esearch#out#win#edit() abort
   aug esearch_win_modifiable
     au! * <buffer>
     au BufWriteCmd <buffer> call s:write()
-    " TODO
-    au BufHidden,BufLeave <buffer> set nomodified
   aug END
 
   let b:esearch.undotree = esearch#undotree#new({
