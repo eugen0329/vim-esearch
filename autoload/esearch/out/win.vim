@@ -715,7 +715,7 @@ fu! esearch#out#win#finish(bufnr) abort
   call setbufvar(a:bufnr, '&ma', 0)
   call setbufvar(a:bufnr, '&mod',   0)
 
-  call esearch#out#win#edit()
+  call esearch#out#win#modifiable#edit()
 
   if g:esearch_out_win_nvim_lua_syntax
     call luaeval('esearch.appearance.buf_attach_ui()')
@@ -731,95 +731,30 @@ fu! esearch#out#win#_is_render_finished() dict abort
   return self.cursor == len(self.data)
 endfu
 
-fu! esearch#out#win#edit() abort
-  let b:esearch.mode = 'edit'
-  let v:errors = []
-  setl modifiable
-  setl undolevels=1000
-  setl noautoindent nosmartindent " problems with insert
-  setl formatoptions=
-  setl noswapfile
-
-  set buftype=acwrite
-  aug esearch_win_modifiable
-    au! * <buffer>
-    au BufWriteCmd <buffer> call s:write()
-  aug END
-
-  let b:esearch.undotree = esearch#undotree#new({
-        \ 'ctx_ids_map': b:esearch.ctx_ids_map,
-        \ 'line_numbers_map': b:esearch.line_numbers_map,
-        \ })
-  call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
-  call esearch#changes#add_observer(function('esearch#out#win#handle_changes'))
-
-  call esearch#option#make_local_to_buffer('backspace', 'indent,start', 'InsertEnter')
-  set nomodified
-
-  call esearch#compat#visual_multi#init()
-  call esearch#compat#multiple_cursors#init()
-endfu
-
-fu! s:write() abort
-  let parsed = esearch#out#win#parse#entire()
-  if has_key(parsed, 'error')
-    throw parsed.error
-  endif
-
-  let diff = esearch#out#win#diff#do(parsed.contexts, b:esearch.contexts[1:])
-
-  if diff.statistics.files == 0
-    echo 'Nothing to save'
-    return
-  endi
-
-  let lines_stats = []
-  let changes_count = 0
-  if diff.statistics.modified > 0
-    let changes_count += diff.statistics.modified
-    let lines_stats += [diff.statistics.modified . ' modified']
-  endif
-  if diff.statistics.deleted > 0
-    let changes_count += diff.statistics.deleted
-    let lines_stats += [diff.statistics.deleted . ' deleted']
-  endif
-  let files_stats_text = printf(' %s %s %d %s',
-        \ (len(lines_stats) > 1 ? 'lines' : esearch#util#pluralize('line', changes_count)),
-        \ (diff.statistics.files > 1 ? 'across' : 'inside'),
-        \ diff.statistics.files,
-        \ esearch#util#pluralize('file', diff.statistics.files),
-        \ )
-  let message = 'Write changes? (' . join(lines_stats, ', ') . files_stats_text . ')'
-
-  if esearch#ui#confirm#show(message, ['Yes', 'No']) == 1
-    call esearch#writer#buffer#write(diff, b:esearch)
-  endif
-endfu
-
 fu! esearch#out#win#handle_changes(event) abort
   if a:event.id =~# '^n-motion' || a:event.id =~# '^n-change'
         \  || a:event.id =~# '^v-delete' || a:event.id =~# '^V-line-delete'
         \  || a:event.id =~# '^V-line-change'
-    call esearch#out#win#delete_multiline#handle(a:event)
+    call esearch#out#win#modifiable#delete_multiline#handle(a:event)
   elseif a:event.id =~# 'undo'
-    call s:handle_undo_traversal(a:event)
+    call esearch#out#win#modifiable#undo#handle(a:event)
   elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-gn'
         \ || a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
-    let debug = s:handle_normal__inline(a:event)
+    let debug = esearch#out#win#modifiable#normal#inline#handle(a:event)
   elseif a:event.id =~# 'i-inline'
-    let debug = s:handle_insert__inline(a:event)
+    let debug = esearch#out#win#modifiable#insert#inline#handle(a:event)
   elseif  a:event.id =~# 'i-delete-newline'
-    let debug = s:handle_insert__delete_newlines(a:event)
+    let debug = esearch#out#win#modifiable#insert#delete_newlines#handle(a:event)
   elseif  a:event.id =~# 'blockwise-visual'
-    call esearch#out#win#blockwise_visual#handle(a:event)
+    call esearch#out#win#modifiable#blockwise_visual#handle(a:event)
   elseif  a:event.id =~# 'i-add-newline'
-    call s:handle_insert__add_newlines(a:event)
+    call esearch#out#win#modifiable#insert#add_newlines#handle(a:event)
   elseif a:event.id =~# 'join'
-    call esearch#out#win#unsupported#handle(a:event)
+    call esearch#out#win#modifiable#unsupported#handle(a:event)
   elseif a:event.id =~# 'cmdline'
-    call esearch#out#win#cmdline#handle(a:event)
+    call esearch#out#win#modifiable#cmdline#handle(a:event)
   else
-    call esearch#out#win#unsupported#handle(a:event)
+    call esearch#out#win#modifiable#unsupported#handle(a:event)
   endif
 
   if g:esearch#env isnot 0
@@ -828,158 +763,4 @@ fu! esearch#out#win#handle_changes(event) abort
     let a:event.errors = len(v:errors)
     " call esearch#debug#log(a:event,  len(v:errors))
   endif
-endfu
-
-fu! s:handle_undo_traversal(event) abort
-  call b:esearch.undotree.checkout(a:event.changenr, a:event.kind)
-  call esearch#changes#rewrite_last_state({
-        \ 'changenr': changenr(),
-        \ })
-endfu
-
-fu! s:handle_insert__add_newlines(event) abort
-  " using recorded original text is the only way to safely recover line1
-  " contents as splitting line1 and line2 by col1 and col2 and joining them back
-  " is unreliable when pasting huge amount of newlines or when using 3d party plugins
-  call setline(a:event.line1, a:event.original_text)
-  call deletebufline(bufnr('%'), a:event.line1 + 1, a:event.line2)
-  call cursor(a:event.line1, a:event.col1)
-  call esearch#changes#undo_state()
-  if mode() ==# 'i'
-    doau CursorMovedI
-  else
-    doau CursorMoved
-  endif
-endfu
-
-fu! s:handle_insert__delete_newlines(event) abort
-  let [line1, line2, col1, col2] = [a:event.line1, a:event.line2, a:event.col1, a:event.col2]
-
-  if a:event.id ==# 'i-delete-newline-right'
-    let text = getline(line1)
-
-    if col1 < 2 " current line was blank
-      call setline(line1, '')
-      call append(line1, text)
-    else
-      call setline(line1, text[0: max([0, col1 - 2])])
-      call append(line1, text[ col1 - 1 :])
-    endif
-
-    call esearch#changes#rewrite_last_state({
-          \ 'current_line': text[ : max([0, col1 - 2]) ],
-          \ 'line':         line1,
-          \ 'size':         line('$'),
-          \ })
-  else
-    let text = getline(line1)
-    if col1 < 2 " previous line was blank
-      call setline(line1, '')
-    else
-      call setline(line1, text[0: col1 - 2])
-    endif
-    call append(line1, text[ col1 - 1 :])
-    call cursor(line2, 1)
-    call esearch#changes#rewrite_last_state({
-          \ 'current_line': text[ col1 - 1 :],
-          \ 'line':         line2,
-          \ 'size':         line('$'),
-          \ 'col':          1,
-          \ })
-    if mode() ==# 'i'
-      doau CursorMovedI
-    else
-      doau CursorMoved
-    endif
-  endif
-  call b:esearch.undotree.synchronize()
-endfu
-
-fu! s:handle_insert__inline(event) abort
-  let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
-  let state   = deepcopy(b:esearch.undotree.head.state)
-  let context = esearch#out#win#repo#ctx#new(b:esearch, state).by_line(line1)
-  let text    = getline(line1)
-  let linenr  = printf(' %3d ', state.line_numbers_map[line1])
-  let cursorpos = []
-
-  if line1 == 1
-    call setline(line1, b:esearch.header_text())
-  elseif line1 == 2 || line1 == context.end && context.end != line('$')
-    let text = ''
-    call setline(line1, text)
-  elseif line1 == context.begin
-    let text = context.filename
-    call setline(line1, text)
-  elseif line1 > 2 && col1 < strlen(linenr) + 1
-    " VIRTUAL UI WITH LINE NUMBERS IS AFFECTED:
-
-    if a:event.id ==# 'i-inline-add'
-      " Recovered text:
-      "   - take   linenr
-      "   - concat with extracted chars inserted within a virtual ui
-      "   - concat with the rest of the text with removed leftovers from
-      "   virtual ui and inserted chars
-      let text = linenr
-            \ . text[col1 - 1 : col2 - 1]
-            \ . text[strlen(linenr) + (col2 - col1 + 1) :]
-      let cursorpos = [line1, strlen(linenr) + strlen(text[col1 - 1 : col2 - 1]) + 1]
-    elseif a:event.id =~# 'i-inline-delete'
-      " Recovered text:
-      "   - take   linenr
-      "   - concat with original text except linenr and deleted part on the beginning
-      let text = linenr . a:event.original_text[ max([col2, strlen(linenr)]) : ]
-      let cursorpos = [line1, strlen(linenr) + 1]
-    else
-      throw 'Unexpected' . string(a:event)
-    endif
-
-    call setline(line1, text)
-  endif
-
-  if !empty(cursorpos)
-    call esearch#changes#rewrite_last_state({
-          \ 'line': cursorpos[0],
-          \ 'col':  cursorpos[1],
-          \ })
-    call cursor(cursorpos)
-    if mode() ==# 'i'
-      doau CursorMovedI
-    else
-      doau CursorMoved
-    endif
-  endif
-  call esearch#changes#rewrite_last_state({ 'current_line': text })
-  call b:esearch.undotree.synchronize()
-endfu
-
-fu! s:handle_normal__inline(event) abort
-  " TODO will be refactored
-  let [line1, col1, col2] = [a:event.line1, a:event.col1, a:event.col2]
-  let state = b:esearch.undotree.head.state
-  let context = esearch#out#win#repo#ctx#new(b:esearch, state).by_line(line1)
-
-  let text = getline(line1)
-  let linenr = printf(' %3d ', state.line_numbers_map[line1])
-
-  if line1 == 1
-    call setline(line1, b:esearch.header_text())
-  elseif line1 == context.begin
-    " it's a filename, restoring
-    call setline(line1, context.filename)
-  elseif line1 > 2 && col1 < strlen(linenr) + 1
-    " VIRTUAL UI WITH LINE NUMBERS IS AFFECTED:
-
-    if col2 < strlen(linenr) + 1 " deletion happened within linenr, the text is untouched
-      " recover linenr and remove leading previous linenr leftover
-      let text = linenr . text[strlen(linenr) - (col2 - col1 + 1) :]
-    else " deletion starts within linenr, ends within the text
-      " recover linenr and remove leading previous linenr leftover
-      let text = linenr . text[ col1 - 1 :]
-    endif
-    " let text = linenr . text[ [col1, col2, strlen(linenr)] :]
-    call setline(line1, text)
-  endif
-
-  call b:esearch.undotree.synchronize()
 endfu

@@ -56,4 +56,3 @@ fu! s:preview_zoom() abort dict
     return self.preview()
   endif
 endfu
-

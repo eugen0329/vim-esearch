@@ -3,6 +3,8 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:separator = ''
 let s:linenr_format = ' %3d '
 
+" Shared for visual and normal
+
 " Handles deletion between line1:col1 and line2:col2.
 " Does recovery of virtual ui elements:
 "   - header with files and matched lines count
@@ -10,7 +12,7 @@ let s:linenr_format = ' %3d '
 "   - file names
 "   - context separators
 
-fu! esearch#out#win#delete_multiline#handle(event) abort
+fu! esearch#out#win#modifiable#delete_multiline#handle(event) abort
   let state = deepcopy(b:esearch.undotree.head.state)
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let rebuilder = s:Rebuilder(a:event)

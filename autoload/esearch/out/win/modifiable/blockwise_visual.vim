@@ -4,7 +4,7 @@ let s:linenr_format = ' %3d '
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#out#win#blockwise_visual#handle(event) abort
+fu! esearch#out#win#modifiable#blockwise_visual#handle(event) abort
   let state = b:esearch.undotree.head.state
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let ctx = contexts.by_line(a:event.line1)

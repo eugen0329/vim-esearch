@@ -7,13 +7,13 @@ let s:linenr_format = ' %3d '
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#out#win#cmdline#handle(event) abort
+fu! esearch#out#win#modifiable#cmdline#handle(event) abort
   let substitute = s:parse_substitute(a:event.cmdline)
   if !empty(substitute)
     return s:safely_replay_substitute(a:event, substitute)
   endif
 
-  call esearch#out#win#unsupported#handle(a:event)
+  call esearch#out#win#modifiable#unsupported#handle(a:event)
 endfu
 
 fu! s:safely_replay_substitute(event, command) abort
@@ -22,7 +22,7 @@ fu! s:safely_replay_substitute(event, command) abort
   endif
   if s:is_size_changed(a:event)
     call s:Message.echo('ErrorMsg', 'Multiline :substitute is not allowed')
-    return esearch#out#win#unsupported#handle(a:event)
+    return esearch#out#win#modifiable#unsupported#handle(a:event)
   endif
 
   let original_pattern = a:command.get_pattern()
