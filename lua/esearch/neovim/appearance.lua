@@ -86,12 +86,12 @@ end
 local function annotate(contexts)
   for i, ctx in pairs(contexts) do
     if ctx['id'] > 0 then
-      highlight.set_context_size_annotation(ctx['begin'], ctx['end'] - ctx['begin'] - 1)
+      highlight.set_context_len_annotation(ctx['begin'], ctx['end'] - ctx['begin'] - 1)
     end
   end
 end
 
-local function set_context_size_annotation(line, size)
+local function set_context_len_annotation(line, size)
   if size == 1 then
     vim.api.nvim_buf_set_virtual_text(0, highlight.ANNOTATIONS_NS, line, {{'(' .. size .. ' line)', 'Comment'}}, {})
   else
@@ -133,7 +133,7 @@ highlight = {
   header                      = header,
   annotate                    = annotate,
   cursor_linenr               = cursor_linenr,
-  set_context_size_annotation = set_context_size_annotation,
+  set_context_len_annotation = set_context_len_annotation,
   buf_attach_annotations      = buf_attach_annotations
 }
 

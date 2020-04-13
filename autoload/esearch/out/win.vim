@@ -772,8 +772,10 @@ fu! esearch#out#win#finish(bufnr) abort
   call esearch#out#win#update(a:bufnr, 1)
   " TODO
   let esearch.contexts[-1].end = line('$')
-  call luaeval('esearch.appearance.set_context_size_annotation(_A[1], _A[2])',
-        \ [esearch.contexts[-1].begin, len(esearch.contexts[-1].lines)])
+  if g:esearch_win_results_len_annotations
+    call luaeval('esearch.appearance.set_context_len_annotation(_A[1], _A[2])',
+          \ [esearch.contexts[-1].begin, len(esearch.contexts[-1].lines)])
+  endif
 
   if esearch.request.async
     exe printf('au! esearch_win_updates * <buffer=%s>', string(a:bufnr))

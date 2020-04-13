@@ -106,8 +106,12 @@ endfu
 
 fu! s:title(esearch, pattern) abort
   let format = s:title_format(a:esearch)
-  let modifiers  = a:esearch.case ==# 'ignore' ? 'i' : ''
-  let modifiers .= a:esearch.textobj ==# 'word' ? 'w' : ''
+  let modifiers  = get(a:esearch.current_adapter.spec.case, a:esearch.case, {'icon': ''}).icon
+  let regex_icon = get(a:esearch.current_adapter.spec.regex, a:esearch.regex, {'icon': ''}).icon
+  if regex_icon !=# 'r'
+    let modifiers .=regex_icon
+  endif
+  let modifiers .= get(a:esearch.current_adapter.spec.textobj, a:esearch.textobj, {'icon': ''}).icon
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 
@@ -132,10 +136,10 @@ fu! s:title_format(esearch) abort
       let slash = g:esearch#unicode#division_slash
       return printf('Search  %s%%s%s%%s', slash, slash)
     else
-      return 'Search r"%s"%s'
+      return "Search r'%s'%s"
     endif
   else
-    return 'Search `%s`%s'
+    return "Search '%s'%s"
   endif
 endfu
 
