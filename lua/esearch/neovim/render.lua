@@ -1,7 +1,7 @@
 local parse = require'esearch/neovim/parse'
 local util  = require'esearch/util'
 
-local function apply(data, path, last_context, files_count, highlights_enabled)
+local function render(data, path, last_context, files_count, highlights_enabled)
   local parsed, separators_count = parse.lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
@@ -31,7 +31,7 @@ local function apply(data, path, last_context, files_count, highlights_enabled)
       if highlights_enabled == 1 and
           contexts[#contexts]['id'] > esearch_win_disable_context_highlights_on_files_count then
         highlights_enabled = false
-        vim.api.nvim_call_function('esearch#out#win#unload_highlights', {})
+        vim.api.nvim_eval('esearch#out#win#stop_highlights()')
       end
 
       lines[#lines + 1] = ''
@@ -60,7 +60,7 @@ local function apply(data, path, last_context, files_count, highlights_enabled)
 
     if text:len() > unload_context_syntax_on_line_length then
       if text:len() > unload_global_syntax_on_line_length then
-        vim.api.nvim_eval('esearch#out#win#_blocking_unload_syntaxes(b:esearch)')
+        vim.api.nvim_eval('esearch#out#win#stop_highlights()')
       else
         contexts[#contexts]['syntax_loaded'] = -1
       end
@@ -78,10 +78,11 @@ local function apply(data, path, last_context, files_count, highlights_enabled)
 
   vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
   if vim.api.nvim_eval('g:esearch_out_win_nvim_lua_syntax') == 1 then
+    esearch.highlight.header()
     esearch.highlight.linenrs_range(0, start, -1)
   end
 
-  return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count}
+  return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count, highlights_enabled}
 end
 
-return { apply = apply }
+return { render = render }

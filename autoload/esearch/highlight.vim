@@ -10,6 +10,7 @@ endfu
 
 fu! esearch#highlight#define() abort
   hi def link esearchHeader       Title
+  hi def link esearchStatistics   Number
   hi def link esearchFilename     Directory
   hi def link esearchLineNr       LineNr
   hi def link esearchCursorLineNr CursorLineNr

@@ -16,7 +16,7 @@ fu! esearch#out#win#highlight#matches#init(esearch) abort
     let Callback = function('s:highlight_viewport_cb', [a:esearch])
     let a:esearch.hl_matches = esearch#debounce(Callback, g:esearch_win_matches_highlight_debounce_wait)
 
-    aug esearch_win_highlights
+    aug esearch_win_hl_matches
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()
     aug END
     call luaeval('esearch.highlight.buf_attach_matches()')
@@ -30,11 +30,19 @@ endfu
 
 fu! esearch#out#win#highlight#matches#uninit(esearch) abort
   if has_key(a:esearch, 'hl_matches')
+    aug esearch_win_hl_matches
+      au! * <buffer>
+    aug END
     call a:esearch.hl_matches.cancel()
   endif
+
   if has_key(a:esearch, 'matches_hl_id')
     call esearch#util#safe_matchdelete(a:esearch.matches_hl_id)
   endif
+endfu
+
+fu! esearch#out#win#highlight#matches#soft_stop(esearch) abort
+  call esearch#out#win#highlight#matches#uninit(a:esearch)
 endfu
 
 fu! s:highlight_viewport_cb(esearch) abort

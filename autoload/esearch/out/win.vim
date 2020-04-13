@@ -56,7 +56,7 @@ if !exists('g:esearch_out_win_highlight_matches')
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
   let g:esearch_win_disable_context_highlights_on_files_count =
-        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 100 : 200)
+        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 800 : 200)
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -97,7 +97,7 @@ if !has_key(g:, 'esearch#out#win#buflisted')
   let g:esearch#out#win#buflisted = 0
 endif
 
-let g:esearch#out#win#buffers = s:BufferManager.new()
+let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(opts) abort
   call s:find_or_create_buf(a:opts.title, g:esearch#out#win#open)
@@ -183,14 +183,23 @@ fu! esearch#out#win#init(opts) abort
 
   setl ft=esearch
 
-  " Highlights should be set after setting the filetype as all the definitions
-  " are inside syntax/esearch.vim
-  call esearch#out#win#highlight#matches#init(b:esearch)
-  if g:esearch#out#win#context_syntax_highlight
-    call esearch#out#win#highlight#ctx_syntaxes#init(b:esearch)
-  endif
-  if g:esearch_out_win_highlight_cursor_line_number
-    call esearch#out#win#highlight#cursor_linenr#init(b:esearch)
+
+  " Prevent from blinking of stopped highlights on reload etc.
+  if g:esearch#out#win#searches_with_stopped_highlights.has(b:esearch.request.command)
+    let b:esearch.highlights_enabled = 0
+    if g:esearch_out_win_highlight_matches ==# 'viewport'
+      call esearch#out#win#highlight#matches#init(b:esearch)
+    endif
+  else
+    " Highlights should be set after setting the filetype as all the definitions
+    " are inside syntax/esearch.vim
+    call esearch#out#win#highlight#matches#init(b:esearch)
+    if g:esearch#out#win#context_syntax_highlight
+      call esearch#out#win#highlight#ctx_syntaxes#init(b:esearch)
+    endif
+    if g:esearch_out_win_highlight_cursor_line_number
+      call esearch#out#win#highlight#cursor_linenr#init(b:esearch)
+    endif
   endif
   if g:esearch_out_win_nvim_lua_syntax
     call luaeval('esearch.highlight.header()')
@@ -265,9 +274,6 @@ fu! s:cleanup() abort
   endif
 
   call esearch#option#reset()
-  aug esearch_win_highlights
-    au! * <buffer>
-  aug END
   aug esearch_win_event
     au! * <buffer>
   aug END
@@ -455,42 +461,15 @@ fu! esearch#out#win#add_context(contexts, filename, begin) abort
 endfu
 
 
-fu! esearch#out#win#unload_highlights() abort
-  let b:esearch.highlights_enabled = 0
-
-  " disable highlights of matching braces (3d party plugin)
-  " au! parenmatch *
-  let b:parenmatch = 0 " another way if parenmatch group name will become outdate
-
-  if s:Promise.is_available()
-    return s:Promise
-          \.new({resolve -> timer_start(0, resolve)})
-          \.then({-> esearch#out#win#_blocking_unload_syntaxes(b:esearch)})
-          \.catch({reason -> execute('echoerr reason')})
-  endif
-
-  return esearch#out#win#_blocking_unload_syntaxes(b:esearch)
-endfu
-
-fu! esearch#out#win#_blocking_unload_syntaxes(esearch) abort
+fu! esearch#out#win#stop_highlights() abort
   echomsg 'esearch: some highlights are disabled to prevent slowdowns'
 
-  if g:esearch_out_win_nvim_lua_syntax
-    syn clear
-  else
-    for name in map(values(a:esearch.context_syntax_regions), 'v:val.name')
-      exe 'syn clear ' . name
-      exe 'syn clear esearchContext_' . name
-    endfor
+  call esearch#out#win#highlight#cursor_linenr#soft_stop(b:esearch)
+  call esearch#out#win#highlight#ctx_syntaxes#soft_stop(b:esearch)
+  if g:esearch_out_win_highlight_matches !=# 'viewport'
+    call esearch#out#win#highlight#matches#soft_stop(b:esearch)
   endif
-  aug esearch_win_highlights
-    au! * <buffer>
-  aug END
-  syntax sync clear
-  syntax sync maxlines=1
-  call clearmatches()
-
-  let a:esearch.context_syntax_regions = {}
+  call g:esearch#out#win#searches_with_stopped_highlights.set(b:esearch.request.command, 1)
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
@@ -531,6 +510,9 @@ fu! s:init_mappings() abort
   if g:esearch#has#preview
     nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
     nnoremap <silent><buffer> p     :<C-U>call b:esearch.preview_zoom()<CR>
+  else
+    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.split_preview('vnew', {'stay': 0})<CR>
+    nnoremap <silent><buffer> p     :<C-U>call b:esearch.split_preview('vnew')<CR>
   endif
 
   for i in range(0, len(g:esearch#out#win#mappings) - 1)

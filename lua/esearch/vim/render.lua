@@ -1,7 +1,7 @@
 local parse = require'esearch/vim/parse'
 local util  = require'esearch/util'
 
-function apply(data, path, esearch)
+function render(data, path, esearch)
   local parsed, separators_count = parse.lines(data)
   local contexts                 = esearch['contexts']
   local line_numbers_map         = esearch['line_numbers_map']
@@ -32,7 +32,7 @@ function apply(data, path, esearch)
       if esearch['highlights_enabled'] == 1 and
           #contexts > esearch_win_disable_context_highlights_on_files_count then
         esearch['highlights_enabled'] = false
-        vim.eval('esearch#out#win#unload_highlights()')
+        vim.eval('esearch#out#win#stop_highlights()')
       end
 
       b:insert('')
@@ -60,7 +60,7 @@ function apply(data, path, esearch)
 
     if text:len() > unload_context_syntax_on_line_length then
       if text:len() > unload_global_syntax_on_line_length then
-        vim.eval('esearch#out#win#_blocking_unload_syntaxes(b:esearch)')
+        vim.eval('esearch#out#win#stop_highlights()')
       else
         contexts[#contexts - 1]['syntax_loaded'] = true
       end
@@ -76,4 +76,4 @@ function apply(data, path, esearch)
   return tostring(files_count)
 end
 
-return { apply = apply }
+return { render = render }

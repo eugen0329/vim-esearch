@@ -48,8 +48,12 @@ local function linenrs_range(bufnr, from, to)
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then
       vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchHeader', 0, 0, -1)
+      local pos1, pos2 =  text:find('%d+')
+      vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
+      pos1, pos2 =  text:find('%d+', pos2 + 1)
+      vim.api.nvim_buf_add_highlight(bufnr, highlight.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
     elseif text:len() == 0 then
-      -- noop
+      -- separators are not highlighted
     elseif text:sub(1,1) == ' ' then
       pos1, pos2 =  text:find('^%s+%d+%s')
       if pos2 ~= nil then
@@ -62,7 +66,10 @@ local function linenrs_range(bufnr, from, to)
 end
 
 local function header()
-  return highlight.linenrs_range(0, 0, 1)
+  vim.schedule((function()
+    vim.api.nvim_buf_clear_namespace(0, highlight.UI_NS, 0, 1)
+    highlight.linenrs_range(0, 0, 1)
+  end))
 end
 
 local function cursor_linenr()

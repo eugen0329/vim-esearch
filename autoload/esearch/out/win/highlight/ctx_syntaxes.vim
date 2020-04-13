@@ -67,14 +67,42 @@ fu! esearch#out#win#highlight#ctx_syntaxes#init(esearch) abort
   let Callback = function('s:highlight_viewport_cb', [a:esearch])
   let a:esearch.hl_ctx_syntaxes = esearch#debounce(Callback, g:esearch_win_highlight_debounce_wait)
 
-  aug esearch_win_highlights
+  aug esearch_win_hl_ctx_syntaxes
     au CursorMoved <buffer> call b:esearch.hl_ctx_syntaxes.apply()
   aug END
 endfu
 
 fu! esearch#out#win#highlight#ctx_syntaxes#uninit(esearch) abort
-  call a:esearch.hl_ctx_syntaxes.cancel()
+  aug esearch_win_hl_ctx_syntaxes
+    au! * <buffer>
+  aug END
+  if has_key(a:esearch, 'hl_ctx_syntaxes')
+    call a:esearch.hl_ctx_syntaxes.cancel()
+  endif
   syntax sync clear
+  syntax clear
+  let a:esearch.context_syntax_regions = {}
+endfu
+
+fu! esearch#out#win#highlight#ctx_syntaxes#soft_stop(esearch) abort
+  aug esearch_win_hl_ctx_syntaxes
+    au! * <buffer>
+  aug END
+  if has_key(a:esearch, 'hl_ctx_syntaxes')
+    call a:esearch.hl_ctx_syntaxes.cancel()
+  endif
+
+  if g:esearch_out_win_nvim_lua_syntax
+    syn clear
+  else
+    for name in map(values(a:esearch.context_syntax_regions), 'v:val.name')
+      exe 'syn clear ' . name
+      exe 'syn clear esearchContext_' . name
+    endfor
+  endif
+  let a:esearch.context_syntax_regions = {}
+  syntax sync clear
+  syntax sync maxlines=1
 endfu
 
 fu! s:highlight_viewport_cb(esearch) abort
