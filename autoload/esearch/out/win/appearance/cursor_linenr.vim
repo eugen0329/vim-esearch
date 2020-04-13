@@ -1,6 +1,6 @@
-fu! esearch#out#win#highlight#cursor_linenr#init(esearch) abort
+fu! esearch#out#win#appearance#cursor_linenr#init(esearch) abort
   if has('nvim')
-    let a:esearch.linenr_ns_id = luaeval('esearch.highlight.CURSOR_LINENR_NS')
+    let a:esearch.linenr_ns_id = luaeval('esearch.appearance.CURSOR_LINENR_NS')
   else
     let a:esearch.linenr_hl_id = 0
   endif
@@ -10,7 +10,7 @@ fu! esearch#out#win#highlight#cursor_linenr#init(esearch) abort
   aug END
 endfu
 
-fu! esearch#out#win#highlight#cursor_linenr#uninit(esearch) abort
+fu! esearch#out#win#appearance#cursor_linenr#uninit(esearch) abort
   aug esearch_win_hl_cursor_linenr
     au! * <buffer>
   aug END
@@ -23,13 +23,13 @@ fu! esearch#out#win#highlight#cursor_linenr#uninit(esearch) abort
   endif
 endfu
 
-fu! esearch#out#win#highlight#cursor_linenr#soft_stop(esearch) abort
-  call esearch#out#win#highlight#cursor_linenr#uninit(a:esearch)
+fu! esearch#out#win#appearance#cursor_linenr#soft_stop(esearch) abort
+  call esearch#out#win#appearance#cursor_linenr#uninit(a:esearch)
 endfu
 
 if has('nvim')
   fu! s:highlight_cursor_line_number() abort
-    call luaeval('esearch.highlight.cursor_linenr()')
+    call luaeval('esearch.appearance.cursor_linenr()')
   endfu
 else
   fu! s:highlight_cursor_line_number() abort

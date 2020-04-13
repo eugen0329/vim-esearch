@@ -1,4 +1,4 @@
-let g:esearch#out#win#highlight#ctx_syntaxes#map = {
+let g:esearch#out#win#appearance#ctx_syntaxes#map = {
       \ 'c':               'es_ctx_c',
       \ 'cpp':             'es_ctx_c',
       \ 'xs':              'es_ctx_c',
@@ -63,7 +63,7 @@ let g:esearch#out#win#highlight#ctx_syntaxes#map = {
       \ 'fortran':         'es_ctx_generic',
       \}
 
-fu! esearch#out#win#highlight#ctx_syntaxes#init(esearch) abort
+fu! esearch#out#win#appearance#ctx_syntaxes#init(esearch) abort
   let Callback = function('s:highlight_viewport_cb', [a:esearch])
   let a:esearch.hl_ctx_syntaxes = esearch#debounce(Callback, g:esearch_win_highlight_debounce_wait)
 
@@ -72,7 +72,7 @@ fu! esearch#out#win#highlight#ctx_syntaxes#init(esearch) abort
   aug END
 endfu
 
-fu! esearch#out#win#highlight#ctx_syntaxes#uninit(esearch) abort
+fu! esearch#out#win#appearance#ctx_syntaxes#uninit(esearch) abort
   aug esearch_win_hl_ctx_syntaxes
     au! * <buffer>
   aug END
@@ -84,7 +84,7 @@ fu! esearch#out#win#highlight#ctx_syntaxes#uninit(esearch) abort
   let a:esearch.context_syntax_regions = {}
 endfu
 
-fu! esearch#out#win#highlight#ctx_syntaxes#soft_stop(esearch) abort
+fu! esearch#out#win#appearance#ctx_syntaxes#soft_stop(esearch) abort
   aug esearch_win_hl_ctx_syntaxes
     au! * <buffer>
   aug END
@@ -141,11 +141,11 @@ fu! s:define_context_filetype_syntax_region(esearch, context) abort
     let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
   endif
 
-  if !has_key(g:esearch#out#win#highlight#ctx_syntaxes#map, a:context.filetype)
+  if !has_key(g:esearch#out#win#appearance#ctx_syntaxes#map, a:context.filetype)
     let a:context.syntax_loaded = -1
     return
   endif
-  let syntax_name = g:esearch#out#win#highlight#ctx_syntaxes#map[a:context.filetype]
+  let syntax_name = g:esearch#out#win#appearance#ctx_syntaxes#map[a:context.filetype]
 
   if !has_key(a:esearch.context_syntax_regions, syntax_name)
     let region = {

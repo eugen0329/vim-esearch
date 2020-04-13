@@ -49,7 +49,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       endif
 
       if len(text) > g:unload_context_syntax_on_line_length
-        if len(text) > g:unload_global_syntax_on_line_length
+        if len(text) > g:unload_global_syntax_on_line_length && a:esearch.highlights_enabled
           call esearch#out#win#stop_highlights()
         else
           let a:esearch.contexts[-1].syntax_loaded = -1

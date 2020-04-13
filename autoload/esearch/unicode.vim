@@ -1,6 +1,8 @@
 let g:esearch#unicode#ellipsis = '⦚'
 if exists('g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol')
   let g:esearch#unicode#dir_icon = g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol
+elseif has('osx')
+  let g:esearch#unicode#dir_icon = '📂 '
 else
   let g:esearch#unicode#dir_icon = '🗀 '
 endif

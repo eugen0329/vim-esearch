@@ -9,17 +9,17 @@
 " Another option is to obtain the locations using adapter colorized output, but
 " it cause uncontrolled freeze on backend callbacks due to redundant text with
 " ANSI escape sequences.
-fu! esearch#out#win#highlight#matches#init(esearch) abort
+fu! esearch#out#win#appearance#matches#init(esearch) abort
   if g:esearch_out_win_highlight_matches ==# 'viewport'
     let a:esearch.last_hl_range = [0,0]
-    let a:esearch.matches_ns = luaeval('esearch.highlight.MATCHES_NS')
+    let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
     let Callback = function('s:highlight_viewport_cb', [a:esearch])
     let a:esearch.hl_matches = esearch#debounce(Callback, g:esearch_win_matches_highlight_debounce_wait)
 
     aug esearch_win_hl_matches
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()
     aug END
-    call luaeval('esearch.highlight.buf_attach_matches()')
+    call luaeval('esearch.appearance.buf_attach_matches()')
     return
   endif
 
@@ -28,7 +28,7 @@ fu! esearch#out#win#highlight#matches#init(esearch) abort
   endif
 endfu
 
-fu! esearch#out#win#highlight#matches#uninit(esearch) abort
+fu! esearch#out#win#appearance#matches#uninit(esearch) abort
   if has_key(a:esearch, 'hl_matches')
     aug esearch_win_hl_matches
       au! * <buffer>
@@ -41,8 +41,8 @@ fu! esearch#out#win#highlight#matches#uninit(esearch) abort
   endif
 endfu
 
-fu! esearch#out#win#highlight#matches#soft_stop(esearch) abort
-  call esearch#out#win#highlight#matches#uninit(a:esearch)
+fu! esearch#out#win#appearance#matches#soft_stop(esearch) abort
+  call esearch#out#win#appearance#matches#uninit(a:esearch)
 endfu
 
 fu! s:highlight_viewport_cb(esearch) abort

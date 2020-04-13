@@ -96,6 +96,9 @@ endif
 if !has_key(g:, 'esearch#out#win#buflisted')
   let g:esearch#out#win#buflisted = 0
 endif
+if !has_key(g:, 'esearch_win_results_len_annotations')
+  let g:esearch_win_results_len_annotations = has('nvim')
+endif
 
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
@@ -125,6 +128,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                   [],
         \ 'context_syntax_regions':   {},
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
+        \ 'ctx_len':                  function('<SID>ctx_len'),
         \ 'open':                     function('<SID>open'),
         \ 'preview':                  function('<SID>preview'),
         \ 'preview_enter':            function('<SID>preview_enter'),
@@ -188,21 +192,21 @@ fu! esearch#out#win#init(opts) abort
   if g:esearch#out#win#searches_with_stopped_highlights.has(b:esearch.request.command)
     let b:esearch.highlights_enabled = 0
     if g:esearch_out_win_highlight_matches ==# 'viewport'
-      call esearch#out#win#highlight#matches#init(b:esearch)
+      call esearch#out#win#appearance#matches#init(b:esearch)
     endif
   else
     " Highlights should be set after setting the filetype as all the definitions
     " are inside syntax/esearch.vim
-    call esearch#out#win#highlight#matches#init(b:esearch)
+    call esearch#out#win#appearance#matches#init(b:esearch)
     if g:esearch#out#win#context_syntax_highlight
-      call esearch#out#win#highlight#ctx_syntaxes#init(b:esearch)
+      call esearch#out#win#appearance#ctx_syntaxes#init(b:esearch)
     endif
     if g:esearch_out_win_highlight_cursor_line_number
-      call esearch#out#win#highlight#cursor_linenr#init(b:esearch)
+      call esearch#out#win#appearance#cursor_linenr#init(b:esearch)
     endif
   endif
   if g:esearch_out_win_nvim_lua_syntax
-    call luaeval('esearch.highlight.header()')
+    call luaeval('esearch.appearance.header()')
   endif
 
   " Some plugins set mappings on filetype, so they should be set after.
@@ -226,6 +230,10 @@ fu! s:open(...) abort dict
   " As autoload functions cannot handle dict as s:... functions do. Otherwise
   " it'd cause preblems with esearch#debounce#... methods
   return call('esearch#out#win#open#do', a:000, self)
+endfu
+
+fu! s:ctx_len() abort dict
+  return len(self.contexts[self.ctx_ids_map[line('.')]].lines)
 endfu
 
 " Is used to prevent problems with asynchronous code
@@ -268,9 +276,9 @@ fu! s:cleanup() abort
     if has_key(b:esearch, 'updates_timer')
       call timer_stop(b:esearch.updates_timer)
     endif
-    call esearch#out#win#highlight#matches#uninit(b:esearch)
-    call esearch#out#win#highlight#ctx_syntaxes#uninit(b:esearch)
-    call esearch#out#win#highlight#cursor_linenr#uninit(b:esearch)
+    call esearch#out#win#appearance#matches#uninit(b:esearch)
+    call esearch#out#win#appearance#ctx_syntaxes#uninit(b:esearch)
+    call esearch#out#win#appearance#cursor_linenr#uninit(b:esearch)
   endif
 
   call esearch#option#reset()
@@ -464,10 +472,10 @@ endfu
 fu! esearch#out#win#stop_highlights() abort
   echomsg 'esearch: some highlights are disabled to prevent slowdowns'
 
-  call esearch#out#win#highlight#cursor_linenr#soft_stop(b:esearch)
-  call esearch#out#win#highlight#ctx_syntaxes#soft_stop(b:esearch)
+  call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)
+  call esearch#out#win#appearance#ctx_syntaxes#soft_stop(b:esearch)
   if g:esearch_out_win_highlight_matches !=# 'viewport'
-    call esearch#out#win#highlight#matches#soft_stop(b:esearch)
+    call esearch#out#win#appearance#matches#soft_stop(b:esearch)
   endif
   call g:esearch#out#win#searches_with_stopped_highlights.set(b:esearch.request.command, 1)
 endfu
@@ -761,7 +769,10 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch = getbufvar(a:bufnr, 'esearch')
 
   call esearch#out#win#update(a:bufnr, 1)
+  " TODO
   let esearch.contexts[-1].end = line('$')
+  call luaeval('esearch.appearance.set_context_size_annotation(_A[1], _A[2])',
+        \ [esearch.contexts[-1].begin, len(esearch.contexts[-1].lines)])
 
   if esearch.request.async
     exe printf('au! esearch_win_updates * <buffer=%s>', string(a:bufnr))
@@ -785,7 +796,11 @@ fu! esearch#out#win#finish(bufnr) abort
   call esearch#out#win#edit()
 
   if g:esearch_out_win_nvim_lua_syntax
-    call luaeval('esearch.highlight.buf_attach_ui()')
+    call luaeval('esearch.appearance.buf_attach_ui()')
+  endif
+
+  if g:esearch_win_results_len_annotations
+    call esearch#out#win#appearance#annotations#init(esearch)
   endif
 endfu
 
