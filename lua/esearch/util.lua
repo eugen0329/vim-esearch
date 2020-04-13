@@ -1,8 +1,5 @@
 local M = {}
 
-local fnameescape
-local filereadable
-
 if vim.fn then
   -- neovim
   function M.fnameescape(path)
@@ -84,7 +81,7 @@ function M.parse_line(line, cache)
       ['\033'] = string.char(27)
     }
     filename = filename:gsub('\\(.)', controls)
-    if filereadable(filename, cache) then
+    if M.filereadable(filename, cache) then
       return filename, line, text
     end
   end
@@ -99,7 +96,7 @@ function M.parse_line(line, cache)
     end
 
     filename = line:sub(1, filename_end - 1)
-    if filereadable(filename, cache) then
+    if M.filereadable(filename, cache) then
       break
     end
   end

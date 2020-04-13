@@ -410,8 +410,7 @@ fu! esearch#out#win#update(bufnr, ...) abort
 
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
-  call setbufvar(a:bufnr, '&ma', 0)
-  call setbufvar(a:bufnr, '&mod', 0)
+  call setbufvar(a:bufnr, '&modifiable', 0)
   let esearch.last_update_at = reltime()
   let esearch.tick += 1
 endfu
@@ -712,9 +711,7 @@ fu! esearch#out#win#finish(bufnr) abort
   let esearch.header_text = function('esearch#out#win#header#finished_render')
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
-  call setbufvar(a:bufnr, '&ma', 0)
-  call setbufvar(a:bufnr, '&mod',   0)
-
+  call setbufvar(a:bufnr, '&modified',   0)
   call esearch#out#win#modifiable#edit()
 
   if g:esearch_out_win_nvim_lua_syntax

@@ -222,7 +222,7 @@ class Editor
 
   def locate_buffer!(name)
     location = with_ignore_cache do
-      echo func('esearch#util#bufloc', func('bufnr', "^#{name}"))
+      echo func('esearch#buf#location', func('esearch#buf#find', name))
     end
 
     raise MissingBufferError if location.blank?
