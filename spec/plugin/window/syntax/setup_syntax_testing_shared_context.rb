@@ -34,8 +34,9 @@ RSpec.shared_context 'setup syntax testing' do
   end
 
   it 'keeps header highligh untouched' do
-    is_expected.to have_highligh_aliases(
-      '\%1l.*' => %w[esearchHeader Title]
+    is_expected.to have_highlight_aliases(
+      '\%1l[^0-9]*' => %w[esearchHeader Title],
+      '\%1l[0-9]*'  => %w[esearchStatistics Number]
     )
   end
 end

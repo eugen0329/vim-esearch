@@ -1,7 +1,9 @@
 local parse = require'esearch/neovim/parse'
 local util  = require'esearch/util'
 
-local function render(data, path, last_context, files_count, highlights_enabled)
+local M = {}
+
+function M.render(data, path, last_context, files_count, highlights_enabled)
   local parsed, separators_count = parse.lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
@@ -82,7 +84,7 @@ local function render(data, path, last_context, files_count, highlights_enabled)
   vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
   if vim.api.nvim_eval('g:esearch_out_win_nvim_lua_syntax') == 1 then
     esearch.appearance.header()
-    esearch.appearance.linenrs_range(0, start, -1)
+    esearch.appearance.highlight_ui(0, start, -1)
   end
   if esearch_win_results_len_annotations == 1 then
     esearch.appearance.annotate(contexts)
@@ -91,4 +93,4 @@ local function render(data, path, last_context, files_count, highlights_enabled)
   return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count, highlights_enabled}
 end
 
-return { render = render }
+return M

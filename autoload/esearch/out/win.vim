@@ -128,13 +128,7 @@ fu! esearch#out#win#init(opts) abort
         \ 'errors':                   [],
         \ 'context_syntax_regions':   {},
         \ 'highlights_enabled':       g:esearch#out#win#context_syntax_highlight,
-        \ 'ctx_len':                  function('<SID>ctx_len'),
         \ 'open':                     function('<SID>open'),
-        \ 'preview':                  function('<SID>preview'),
-        \ 'preview_enter':            function('<SID>preview_enter'),
-        \ 'preview_zoom':             function('<SID>preview_zoom'),
-        \ 'preview_close':            function('esearch#preview#close'),
-        \ 'is_preview_open':          function('esearch#preview#is_open'),
         \ 'filename':                 function('<SID>filename'),
         \ 'unescaped_filename':       function('<SID>unescaped_filename'),
         \ 'filetype':                 function('<SID>filetype'),
@@ -145,11 +139,11 @@ fu! esearch#out#win#init(opts) abort
         \ 'jump2entry':               function('<SID>jump2entry'),
         \ 'jump2filename':            function('<SID>jump2filename'),
         \ 'is_current':               function('<SID>is_current'),
-        \ 'split_preview':            function('<SID>split_preview'),
-        \ 'last_split_preview':       {},
         \ 'is_blank':                 function('<SID>is_blank'),
         \ 'skip':                     0,
         \})
+  let b:esearch = extend(a:opts, esearch#out#win#preview#floating#import())
+  let b:esearch = extend(a:opts, esearch#out#win#preview#split#import())
 
   call esearch#out#win#header#init(b:esearch)
 
@@ -186,7 +180,6 @@ fu! esearch#out#win#init(opts) abort
         \})
 
   setl ft=esearch
-
 
   " Prevent from blinking of stopped highlights on reload etc.
   if g:esearch#out#win#searches_with_stopped_highlights.has(b:esearch.request.command)
@@ -232,10 +225,6 @@ fu! s:open(...) abort dict
   return call('esearch#out#win#open#do', a:000, self)
 endfu
 
-fu! s:ctx_len() abort dict
-  return len(self.contexts[self.ctx_ids_map[line('.')]].lines)
-endfu
-
 " Is used to prevent problems with asynchronous code
 fu! s:is_current() abort dict
   return get(b:, 'esearch', {}) ==# self
@@ -244,30 +233,6 @@ endfu
 fu! s:is_blank() abort dict
   " if only a header ctx
   if len(self.contexts) < 2 | return s:true | endif
-endfu
-
-" A wrapper around regular open
-fu! s:split_preview(...) abort dict
-  if !self.is_current() | return | endif
-
-  let last = self.last_split_preview
-  let current = {
-        \ 'filename':     self.filename(),
-        \ 'line_in_file': self.line_in_file(),
-        \ }
-  let self.last_split_preview = current
-
-  if last ==# current
-    " Open once to prevent redundant jumps that could also cause reappearing swap
-    " handling prompt
-    return 0
-  endif
-
-  return self.open(get(a:000, 0, 'vnew'), extend({
-        \ 'stay': 1,
-        \ 'once': 1,
-        \ 'let!': {'&l:foldenable': 0},
-        \ }, get(a:000, 1, {})))
 endfu
 
 fu! s:cleanup() abort
@@ -541,52 +506,6 @@ endfu
 
 fu! s:invoke_mapping_callback(i) abort
   call g:esearch#out#win#mappings[a:i].rhs(b:esearch)
-endfu
-
-fu! s:preview_zoom() abort dict
-  if self.is_preview_open()
-    let height = g:esearch#preview#last.win.shape.height * 2
-    let confirmation_prompt_height = 2 " prevent overlapping the text
-    let height = esearch#util#clip(height, 0, &lines - confirmation_prompt_height)
-
-    if g:esearch#preview#last.win.shape.height !=# height
-      let g:esearch#preview#last.win.shape.height = height
-      call g:esearch#preview#last.win.reshape()
-    endif
-  else
-    return self.preview()
-  endif
-endfu
-
-fu! s:preview_enter(...) abort dict
-  if !self.is_current() || self.is_blank() | return | endif
-
-  if esearch#preview#is_open()
-    " Reuse the opened preview options
-    let opts = empty(g:esearch#preview#last) ? {} : g:esearch#preview#last.opts
-    " Overwrite height and width as it could be zoomed
-    let opts.width = g:esearch#preview#win.shape.width
-    let opts.height = g:esearch#preview#win.shape.height
-  else
-    let opts = {}
-  endif
-  let opts = extend(copy(opts), copy(get(a:000, 0, {})))
-  let opts.enter = s:true
-  let view = self.ctx_view()
-
-  if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
-    return
-  endif
-
- " Is used to jump to the corresponding line and column where user was within
- " the search window. View column will correspond to the column inside the file.
-  call winrestview(view)
-endfu
-
-fu! s:preview(...) abort dict
-  if !self.is_current() | return | endif
-  return call(function('esearch#preview#open'),
-        \ [self.unescaped_filename(), self.line_in_file()] + a:000)
 endfu
 
 " Returns dict that can be forwarded into builtin winrestview()

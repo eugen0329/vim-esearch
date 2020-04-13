@@ -1,18 +1,19 @@
-local util
+local M = {}
 
 local fnameescape
 local filereadable
 
-if vim.funcref == nil then
-  function fnameescape(path)
-    return vim.api.nvim_call_function('fnameescape', {path})
+if vim.fn then
+  -- neovim
+  function M.fnameescape(path)
+    return vim.fn.fnameescape(path)
   end
 
-  function filereadable(path, cache)
+  function M.filereadable(path, cache)
     if cache[path] then
       return true
     end
-    local result = vim.api.nvim_call_function('filereadable', {path})
+    local result = vim.fn.filereadable(path)
 
     if result == 1 then
       cache[path] = true;
@@ -23,11 +24,12 @@ if vim.funcref == nil then
     end
   end
 else
-  function fnameescape(path)
+  -- vim
+  function M.fnameescape(path)
     return vim.funcref('fnameescape')(path)
   end
 
-  function filereadable(path, cache)
+  function M.filereadable(path, cache)
     if cache[path] then
       return true
     end
@@ -43,7 +45,6 @@ else
   end
 end
 
-
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting
 local function code(s)
   return (string.gsub(s, "\\([\\\"])", function (x)
@@ -57,7 +58,7 @@ local function decode(s)
           end))
 end
 
-function parse_line(line, cache)
+function M.parse_line(line, cache)
   local filename = ''
 
   -- At the moment only git adapter outputs lines that wrapped in "" when special
@@ -111,11 +112,4 @@ function parse_line(line, cache)
   return filename, line, text
 end
 
-
-util = {
-  parse_line   = parse_line,
-  filereadable = filereadable,
-  fnameescape  = fnameescape,
-}
-
-return util
+return M

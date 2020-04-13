@@ -1,6 +1,8 @@
 local util = require'esearch/util'
 
-local function parse_lines(data)
+local M = {}
+
+function M.lines(data)
   local parsed = {}
   local separators_count = 0
   -- must be invalidated across calls to prevent using stale file presence information
@@ -31,4 +33,4 @@ local function parse_lines(data)
   return parsed, separators_count
 end
 
-return { lines = parse_lines }
+return M

@@ -1,7 +1,9 @@
 local util = require'esearch/util'
 
+local M = {}
+
 -- parse lines in format filename[-:]line_number[-:]text
-function parse_lines(data)
+function M.lines(data)
   local parsed = vim.list()
   local separators_count = 0
   -- must be invalidated across calls to prevent using stale file presence information
@@ -32,4 +34,4 @@ function parse_lines(data)
   return parsed, separators_count
 end
 
-return { lines = parse_lines }
+return M

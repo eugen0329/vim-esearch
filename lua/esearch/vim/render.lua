@@ -1,7 +1,9 @@
 local parse = require'esearch/vim/parse'
 local util  = require'esearch/util'
 
-function render(data, path, esearch)
+local M = {}
+
+function M.render(data, path, esearch)
   local parsed, separators_count = parse.lines(data)
   local contexts                 = esearch['contexts']
   local line_numbers_map         = esearch['line_numbers_map']
@@ -77,4 +79,4 @@ function render(data, path, esearch)
   return tostring(files_count)
 end
 
-return { render = render }
+return M
