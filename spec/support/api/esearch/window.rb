@@ -42,7 +42,7 @@ class API::ESearch::Window
     # Both a valid. The only difference is that vim escapes > and + only when
     # they are leading
     filename_variations = [editor.escape_regexp(editor.escape_filename(relative_path)),
-                           editor.escape_regexp(editor.escape_filename('./' + relative_path))]
+                           editor.escape_regexp(editor.escape_filename('./' + relative_path)),]
     editor.syntax_aliases_at([filename_variations.join('\|')]) ==
       [%w[esearchFilename Directory]]
   end
@@ -57,7 +57,7 @@ class API::ESearch::Window
 
     expected_match = [entry.line_in_window,
                       padding + column.begin,
-                      padding + column.end]
+                      padding + column.end,]
 
     editor.matches_for('esearchMatch') == [expected_match]
   end
@@ -134,7 +134,7 @@ class API::ESearch::Window
       # Both a valid. The only difference is that vim escapes > and + only when
       # they are leading
       path_variations = [Pathname(editor.escape_filename('./' + relative_path)).cleanpath,
-                         Pathname(editor.escape_filename(relative_path)).cleanpath]
+                         Pathname(editor.escape_filename(relative_path)).cleanpath,]
 
       path_variations.include?(entry_path) && entry.line_in_file == line_in_file
     end

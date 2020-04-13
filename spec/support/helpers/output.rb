@@ -22,7 +22,7 @@ module Helpers::Output
 
     failure_message do |esearch|
       ['expected to have_not_reported_errors,',
-       "got output:\n\t#{esearch.output.errors.to_a.join("\n")}"].join(' ')
+       "got output:\n\t#{esearch.output.errors.to_a.join("\n")}",].join(' ')
     end
   end
 

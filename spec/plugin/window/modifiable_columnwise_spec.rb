@@ -57,7 +57,7 @@ describe 'Modify linewise', :window do
         let(:joined_text) do
           [entry1.line_number_text,
            entry1.text_before(anchor1),
-           entry2.text_after(anchor2)].join
+           entry2.text_after(anchor2),].join
         end
 
         shared_examples 'modify in mode' do |motion|

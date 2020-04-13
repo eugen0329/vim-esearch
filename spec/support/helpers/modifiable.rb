@@ -47,7 +47,7 @@ module Helpers::Modifiable
     let(:contexts) do
       [Context.new('context1.txt', 1.upto(5).map { |i| "aa#{i}" }),
        Context.new('context2.txt', 1.upto(5).map { |i| "bb#{i}" }),
-       Context.new('context3.txt', 1.upto(5).map { |i| "cc#{i}" })]
+       Context.new('context3.txt', 1.upto(5).map { |i| "cc#{i}" }),]
     end
     let(:sample_context) { contexts.sample }
     let(:sample_line_number) { sample_context.line_numbers.sample }

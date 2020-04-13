@@ -23,7 +23,7 @@ module VimrunnerNeovim
     REMOTE_EXPR_METHOD_NAMES = {
       prepend_with_escape_press:                           :remote_expr_prepended_with_escape_press,
       fallback_to_prepending_with_escape_press_on_timeout: :remote_expr_with_fallback_on_timeout,
-      default:                                             :remote_expr_default
+      default:                                             :remote_expr_default,
     }.freeze
     class_attribute :remote_expr_execution_mode,
                     default: :prepend_with_escape_press
@@ -173,7 +173,7 @@ module VimrunnerNeovim
 
     def env
       {
-        'NVIM_LOG_FILE' => nvim_log_file
+        'NVIM_LOG_FILE' => nvim_log_file,
       }
     end
 

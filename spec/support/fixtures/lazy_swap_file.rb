@@ -23,7 +23,7 @@ class Fixtures::LazySwapFile
   def path
     Pathname([
       lazy_file.path.dirname.to_s,
-      [lazy_file.path.basename.to_s, '.swp'].join
+      [lazy_file.path.basename.to_s, '.swp'].join,
     ].join('/'))
   end
 

@@ -41,7 +41,7 @@ class Editor
     'i'    => :insert,
     'v'    => :visual,
     'V'    => :linewise_visual,
-    "\x16" => :blockwise_visual
+    "\x16" => :blockwise_visual,
   }.freeze
 
   def mode
@@ -434,7 +434,7 @@ class Editor
     up:        '\\<Up>',
     down:      '\\<Down>',
     end:       '\\<End>',
-    paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}"
+    paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}",
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

@@ -26,7 +26,7 @@ module Helpers::Changes
         'line1' => from.begin,
         'line2' => to.begin,
         'col1'  => from.end,
-        'col2'  => to.end
+        'col2'  => to.end,
       }.compact
       @actual = event.slice(*@expected.keys)
 

@@ -104,11 +104,11 @@ module Helpers::Commandline
     match do |editor|
       @expected = {
         commandline_cursor_location: editor.commandline_cursor_location,
-        commandline_content:         editor.commandline_content
+        commandline_content:         editor.commandline_content,
       }
       @actual = {
         commandline_cursor_location: location_string.index('|') + 1,
-        commandline_content:         location_string.tr('|', '')
+        commandline_content:         location_string.tr('|', ''),
       }
       values_match?(@expected, @actual)
     end
@@ -125,7 +125,7 @@ module Helpers::Commandline
 
       @actual =
         [esearch.output.calls_history.last&.dig('exp', 'pcre'),
-         esearch.output.calls_history.last&.dig('exp', 'literal')]
+         esearch.output.calls_history.last&.dig('exp', 'literal'),]
       @expected = [string, string]
       values_match?(@expected, @actual)
     end

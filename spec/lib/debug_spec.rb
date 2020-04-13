@@ -119,7 +119,7 @@ describe Debug do
       {
         '$PWD'        => Configuration.root,
         'getcwd()'    => test_directory.path,
-        'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s }
+        'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s },
       }
     end
 

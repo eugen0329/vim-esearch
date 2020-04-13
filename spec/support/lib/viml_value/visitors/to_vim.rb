@@ -13,7 +13,7 @@ class VimlValue::Visitors::ToVim
     Numeric                               => :visit_numeric,
     NilClass                              => :visit_nil,
     TrueClass                             => :visit_true,
-    FalseClass                            => :visit_false
+    FalseClass                            => :visit_false,
   }.freeze
 
   def accept(object)
