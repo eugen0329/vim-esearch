@@ -32,7 +32,7 @@ function render(data, path, esearch)
       if esearch['highlights_enabled'] == 1 and
           #contexts > esearch_win_disable_context_highlights_on_files_count then
         esearch['highlights_enabled'] = false
-        vim.eval('esearch#out#win#stop_highlights()')
+        vim.eval('esearch#out#win#stop_highlights("too many lines")')
       end
 
       b:insert('')
@@ -60,7 +60,8 @@ function render(data, path, esearch)
 
     if text:len() > unload_context_syntax_on_line_length then
       if text:len() > unload_global_syntax_on_line_length and esearch['highlights_enabled'] then
-        vim.eval('esearch#out#win#stop_highlights()')
+        esearch['highlights_enabled'] = false
+        vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
         contexts[#contexts - 1]['syntax_loaded'] = true
       end

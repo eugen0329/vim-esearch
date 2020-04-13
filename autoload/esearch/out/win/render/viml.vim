@@ -30,7 +30,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
 
         if a:esearch.highlights_enabled &&
               \ a:esearch.contexts[-1].id > g:esearch_win_disable_context_highlights_on_files_count
-          call esearch#out#win#unload_highlights()
+          call esearch#out#win#stop_highlights('too many lines')
         end
 
         call add(lines, '')
@@ -50,7 +50,8 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
 
       if len(text) > g:unload_context_syntax_on_line_length
         if len(text) > g:unload_global_syntax_on_line_length && a:esearch.highlights_enabled
-          call esearch#out#win#stop_highlights()
+          let a:esearch.highlights_enabled = 1
+          call esearch#out#win#stop_highlights('too long line encountered')
         else
           let a:esearch.contexts[-1].syntax_loaded = -1
         end

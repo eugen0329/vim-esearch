@@ -468,9 +468,10 @@ fu! esearch#out#win#add_context(contexts, filename, begin) abort
   call add(a:contexts, s:new_context(id, a:filename, a:begin))
 endfu
 
-
-fu! esearch#out#win#stop_highlights() abort
-  echomsg 'esearch: some highlights are disabled to prevent slowdowns'
+fu! esearch#out#win#stop_highlights(reason) abort
+  if g:esearch#out#win#context_syntax_highlight || g:esearch_out_win_highlight_matches !=# 'viewport'
+    echomsg 'esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')'
+  endif
 
   call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)
   call esearch#out#win#appearance#ctx_syntaxes#soft_stop(b:esearch)

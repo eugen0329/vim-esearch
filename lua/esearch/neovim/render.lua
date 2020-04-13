@@ -33,7 +33,7 @@ local function render(data, path, last_context, files_count, highlights_enabled)
       if highlights_enabled == 1 and
           contexts[#contexts]['id'] > esearch_win_disable_context_highlights_on_files_count then
         highlights_enabled = false
-        vim.api.nvim_eval('esearch#out#win#stop_highlights()')
+        vim.api.nvim_eval('esearch#out#win#stop_highlights("too many lines")')
       end
 
       lines[#lines + 1] = ''
@@ -62,7 +62,8 @@ local function render(data, path, last_context, files_count, highlights_enabled)
 
     if text:len() > unload_context_syntax_on_line_length then
       if text:len() > unload_global_syntax_on_line_length and highlights_enabled == 1 then
-        vim.api.nvim_eval('esearch#out#win#stop_highlights()')
+        highlights_enabled = false
+        vim.api.nvim_eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
         contexts[#contexts]['syntax_loaded'] = -1
       end
