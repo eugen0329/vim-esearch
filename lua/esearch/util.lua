@@ -1,16 +1,32 @@
 local M = {}
 
 if vim.fn then
-  -- neovim
+  -- neovim >= 0.5
   function M.fnameescape(path)
     return vim.fn.fnameescape(path)
   end
 
   function M.filereadable(path, cache)
-    if cache[path] then
-      return true
-    end
+    if cache[path] then return true end
     local result = vim.fn.filereadable(path)
+
+    if result == 1 then
+      cache[path] = true;
+      return true
+    else
+      cache[path] = false;
+      return false
+    end
+  end
+elseif vim.api then
+  -- neovim < 0.5
+  function M.fnameescape(path)
+    return vim.api.nvim_call_function('fnameescape', {path})
+  end
+
+  function M.filereadable(path, cache)
+    if cache[path] then return true end
+    local result = vim.api.nvim_call_function('filereadable', {path})
 
     if result == 1 then
       cache[path] = true;
@@ -53,18 +69,6 @@ function M.split_lines(str)
 
   return lines
 end
-
--- function M.split_lines(data, str)
---   -- local lines = vim.list()
---   for s in str:gmatch("[^\r\n]+") do
---     if s:len() > 0 then
---       data:add(s)
---       -- lines:add(s)
---     end
---   end
-
---   return lines
--- end
 
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting
 local function code(s)

@@ -65,6 +65,7 @@ let g:esearch#out#win#appearance#ctx_syntaxes#map = {
 
 fu! esearch#out#win#appearance#ctx_syntaxes#init(esearch) abort
   let Callback = function('s:highlight_viewport_cb', [a:esearch])
+  let a:esearch.hl_ctx_syntaxes_loaded = 1
   let a:esearch.hl_ctx_syntaxes = esearch#debounce(Callback, g:esearch_win_highlight_debounce_wait)
   let a:esearch.context_syntax_regions = {}
   let a:esearch.max_lines_found = 0
@@ -107,18 +108,29 @@ fu! esearch#out#win#appearance#ctx_syntaxes#soft_stop(esearch) abort
   syntax sync maxlines=1
 endfu
 
+" Can be used to highlight 
+fu! esearch#out#win#appearance#ctx_syntaxes#apply_to_viewport_without_margins(esearch) abort
+  if !get(a:esearch, 'hl_ctx_syntaxes_loaded', 0) | return | endif
+  let begin = esearch#util#clip(line('w0'), 3, line('$'))
+  let end   = esearch#util#clip(line('w$'), 3, line('$'))
+  return s:highlight_viewport(a:esearch, begin, end)
+endfu
+
 fu! s:highlight_viewport_cb(esearch) abort
+  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
+  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
+  return s:highlight_viewport(a:esearch, begin, end)
+endfu
+
+fu! s:highlight_viewport(esearch, begin, end) abort
   if !a:esearch.highlights_enabled || line('$') < 3 || !a:esearch.is_current()
     return
   endif
 
-  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
-  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
-
   let state = esearch#out#win#_state(a:esearch)
-  for context in b:esearch.contexts[state.ctx_ids_map[begin] : state.ctx_ids_map[end]]
-    if !context.syntax_loaded
-      call s:define_context_filetype_syntax_region(a:esearch, context)
+  for ctx in b:esearch.contexts[state.ctx_ids_map[a:begin] : state.ctx_ids_map[a:end]]
+    if !ctx.syntax_loaded
+      call s:define_context_filetype_syntax_region(a:esearch, ctx)
     endif
   endfor
   call s:update_syntax_sync(a:esearch)
@@ -138,16 +150,16 @@ fu! s:update_syntax_sync(esearch) abort
         \ g:esearch#out#win#context_syntax_max_lines])
 endfu
 
-fu! s:define_context_filetype_syntax_region(esearch, context) abort
-  if empty(a:context.filetype)
-    let a:context.filetype = esearch#ftdetect#fast(a:context.filename)
+fu! s:define_context_filetype_syntax_region(esearch, ctx) abort
+  if empty(a:ctx.filetype)
+    let a:ctx.filetype = esearch#ftdetect#fast(a:ctx.filename)
   endif
 
-  if !has_key(g:esearch#out#win#appearance#ctx_syntaxes#map, a:context.filetype)
-    let a:context.syntax_loaded = -1
+  if !has_key(g:esearch#out#win#appearance#ctx_syntaxes#map, a:ctx.filetype)
+    let a:ctx.syntax_loaded = -1
     return
   endif
-  let syntax_name = g:esearch#out#win#appearance#ctx_syntaxes#map[a:context.filetype]
+  let syntax_name = g:esearch#out#win#appearance#ctx_syntaxes#map[a:ctx.filetype]
 
   if !has_key(a:esearch.context_syntax_regions, syntax_name)
     let region = {
@@ -165,15 +177,15 @@ fu! s:define_context_filetype_syntax_region(esearch, context) abort
   " fnameescape() is used as listed filenames are escaped
   " escape(..., '/') as the filename pattern is enclosed in //
   " escape(..., '^$.*[]\') is used as matching should be literal
-  let start = escape(fnameescape(a:context.filename), '/^$.*[]\')
+  let start = escape(fnameescape(a:ctx.filename), '/^$.*[]\')
   exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
         \ region.name, start, region.name)
 
-  let len = a:context.end - a:context.begin
+  let len = a:ctx.end - a:ctx.begin
   if a:esearch.max_lines_found < len
     let a:esearch.max_lines_found = len
   endif
-  let a:context.syntax_loaded = 1
+  let a:ctx.syntax_loaded = 1
 endfu
 
 fu! s:include_syntax_cluster(ft) abort

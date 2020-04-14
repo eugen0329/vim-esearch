@@ -93,7 +93,7 @@ endfu
 
 " Is used to prevent problems with asynchronous code
 fu! s:is_current() abort dict
-  return get(b:, 'esearch', {}) ==# self
+  return get(b:, 'esearch', {'id': -1}).id == self.id
 endfu
 
 fu! s:is_blank() abort dict

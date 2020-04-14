@@ -46,7 +46,7 @@ fu! esearch#backend#vimproc#init(cwd, adapter, cmd) abort
   return request
 endfu
 
-fu! s:is_consumed(timeout) abort dict
+fu! s:is_consumed() abort dict
   " Ignore the feature as vimproc backend is a candidate for deprecation
   return 0
 endfu
@@ -103,7 +103,7 @@ fu! s:_on_cursor_moved(request_id) abort
     let request.finished = 1
   endif
 
-  if s:completed(request)
+  if s:consumed(request)
     call s:finish(request, a:request_id)
   endif
 endfu
@@ -139,7 +139,7 @@ fu! s:_on_cursor_hold(request_id) abort
     let request.finished = 1
   endif
 
-  if s:completed(request)
+  if s:consumed(request)
     call s:finish(request, a:request_id)
   elseif !empty(events.trigger_key_press)
     call events.trigger_key_press()
@@ -152,17 +152,14 @@ fu! s:read_data(request) abort
   let request.data += data
 endfu
 
-fu! s:completed(request) abort
-  return a:request.pipe.stdout.eof
-        \ && (!has_key(a:request, 'out_finish') || a:request.out_finish())
+fu! s:consumed(request) abort
+  return a:request.pipe.stdout.eof && len(a:request.data) == a:request.cursor
 endfu
 
 fu! esearch#backend#vimproc#abort(bufnr) abort
   " FIXME unify with out#qflist
-  let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {}))
-  if empty(esearch)
-    return -1
-  endif
+  let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  if empty(esearch.request) || esearch.request.aborted | return | endif
 
   let esearch.request.aborted = 1
   return esearch.request.pipe.kill(g:vimproc#SIGKILL)
@@ -179,11 +176,3 @@ fu! esearch#backend#vimproc#init_events() abort
   au BufUnload <buffer>
         \ call esearch#backend#vimproc#abort(str2nr(expand('<abuf>')))
 endfu
-
-function! esearch#backend#vimproc#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-function! esearch#backend#vimproc#scope() abort
-  return s:
-endfunction
-nnoremap <SID>  <SID>

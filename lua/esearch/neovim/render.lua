@@ -8,7 +8,7 @@ function M.render(data, path, last_context, files_count, highlights_enabled)
   local contexts = {last_context}
   local line_numbers_map = {}
   local ctx_ids_map = {}
-  local context_by_name = {}
+  local ctx_by_name = {}
   local esearch_win_disable_context_highlights_on_files_count =
     vim.api.nvim_get_var('esearch_win_disable_context_highlights_on_files_count')
   local unload_context_syntax_on_line_length =
@@ -54,7 +54,7 @@ function M.render(data, path, last_context, files_count, highlights_enabled)
         ['syntax_loaded'] = 0,
         ['lines']         = {},
         }
-      context_by_name[filename] = contexts[#contexts]
+      ctx_by_name[filename] = contexts[#contexts]
       ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']
       line_numbers_map[#line_numbers_map + 1] = 0
       files_count = files_count + 1
@@ -88,7 +88,7 @@ function M.render(data, path, last_context, files_count, highlights_enabled)
     esearch.appearance.annotate(contexts)
   end
 
-  return {files_count, contexts, ctx_ids_map, line_numbers_map, context_by_name, separators_count, highlights_enabled}
+  return {files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, highlights_enabled}
 end
 
 return M

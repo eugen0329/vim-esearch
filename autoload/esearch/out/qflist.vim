@@ -25,11 +25,6 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'title':            ':'.a:opts.title,
         \})
 
-  call extend(g:esearch_qf.request, {
-        \ 'cursor':     0,
-        \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
-        \})
-
   if g:esearch_qf.request.async
     let w:quickfix_title = g:esearch_qf.title
   else
@@ -132,11 +127,6 @@ fu! esearch#out#qflist#finish() abort
   endif
 
   silent doau User ESearchOutputFinishQFList
-endfu
-
-" For some reasons s:_is_render_finished fails in Travis
-fu! esearch#out#qflist#_is_render_finished() dict abort
-  return self.cursor == len(self.data)
 endfu
 
 fu! s:init_commands() abort

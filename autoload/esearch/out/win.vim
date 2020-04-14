@@ -1,8 +1,8 @@
-let s:Guard = vital#esearch#import('Vim.Guard')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 let s:Buffer = vital#esearch#import('Vim.Buffer')
 
+" TODO notify c-n and c-p are not used anymore
 let g:esearch#out#win#mappings = [
       \ {'lhs': 't',       'rhs': 'tab',                'default': 1},
       \ {'lhs': 'T',       'rhs': 'tab-silent',         'default': 1},
@@ -12,8 +12,8 @@ let g:esearch#out#win#mappings = [
       \ {'lhs': 'S',       'rhs': 'vsplit-once-silent', 'default': 1},
       \ {'lhs': 'R',       'rhs': 'reload',             'default': 1},
       \ {'lhs': '<Enter>', 'rhs': 'open',               'default': 1},
-      \ {'lhs': '<C-n>',   'rhs': 'next',               'default': 1},
-      \ {'lhs': '<C-p>',   'rhs': 'prev',               'default': 1},
+      \ {'lhs': 'J',       'rhs': 'next',               'default': 1},
+      \ {'lhs': 'K',       'rhs': 'prev',               'default': 1},
       \ {'lhs': '}',       'rhs': 'next-file',          'default': 1},
       \ {'lhs': '{',       'rhs': 'prev-file',          'default': 1},
       \ ]
@@ -83,7 +83,7 @@ if !has_key(g:, 'esearch#out#win#buflisted')
   let g:esearch#out#win#buflisted = 0
 endif
 if !has_key(g:, 'esearch_win_results_len_annotations')
-  let g:esearch_win_results_len_annotations = has('nvim')
+  let g:esearch_win_results_len_annotations = g:esearch#has#virtual_text
 endif
 
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
@@ -96,6 +96,7 @@ fu! esearch#out#win#init(esearch) abort
   let b:esearch = extend(a:esearch, {
         \ 'bufnr':                 bufnr('%'),
         \ 'mode':                  'normal',
+        \ 'reload':                function('<SID>reload'),
         \ 'highlights_enabled':    g:esearch#out#win#context_syntax_highlight,
         \})
 
@@ -114,9 +115,7 @@ fu! esearch#out#win#init(esearch) abort
   call s:init_commands()
 
   call extend(b:esearch.request, {
-        \ 'bufnr':       bufnr('%'),
-        \ 'cursor':      0,
-        \ 'out_finish':  function('esearch#out#win#_is_render_finished')
+        \ 'bufnr':      bufnr('%'),
         \})
 
   setl filetype=esearch
@@ -147,14 +146,21 @@ fu! esearch#out#win#init(esearch) abort
   aug END
   call esearch#util#doautocmd('User esearch_win_init_post')
 
-  if !b:esearch.request.async || (b:esearch.request.is_consumed(30) && len(b:esearch.request.data) <= b:esearch.batch_size)
+  if esearch#out#win#update#can_finish_early(b:esearch)
     call esearch#out#win#update#finish(bufnr('%'))
   endif
+  " If there are any results ready and if the traits are initialized - try
+  " to add the highlights prematurely without waiting for debouncing callback
+  " firing. Premature highlights are more lightweight as they highlight
+  " only the visiable part of viewport without it's margins (they will be
+  " highlighted later using debounced callbacks).
+  call esearch#out#win#appearance#matches#apply_to_viewport_without_margins(b:esearch)
+  call esearch#out#win#appearance#ctx_syntaxes#apply_to_viewport_without_margins(b:esearch)
 endfu
 
 fu! s:cleanup() abort
   if exists('b:esearch')
-    call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
+    call esearch#backend#{b:esearch.backend}#abort(b:esearch.bufnr)
     call esearch#out#win#modifiable#uninit(b:esearch)
     call esearch#out#win#update#uninit(b:esearch)
     call esearch#out#win#appearance#matches#uninit(b:esearch)
@@ -238,7 +244,7 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-next)               :<C-U>cal b:esearch.jump2entry('v', v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)          :<C-U>cal b:esearch.jump2filename('^', v:count1)<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-next-file)          :<C-U>cal b:esearch.jump2filename('v', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal esearch#init(b:esearch)<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal b:esearch.reload()<CR>
 
   if g:esearch#has#preview
     nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
@@ -259,8 +265,15 @@ fu! s:init_mappings() abort
             \ . ' <Plug>(esearch-win-' . g:esearch#out#win#mappings[i].rhs . ')'
     endif
   endfor
-  " TODO handle start via mappings
-  " exe 'nmap <buffer> m :<C-U>sil cal esearch#out#win#edit()<CR>'
+endfu
+
+fu! s:reload() abort dict
+  call esearch#backend#{self.backend}#abort(self.bufnr)
+  let self.contexts = []
+  let self.ctx_ids_map = []
+  let self.ctx_by_name = {}
+  let self.undotree = {}
+  return esearch#init(self)
 endfu
 
 fu! s:invoke_mapping_callback(i) abort
@@ -277,9 +290,4 @@ fu! esearch#out#win#_state(esearch) abort
   else
     return a:esearch.undotree.head.state
   endif
-endfu
-
-" For some reasons s:_is_render_finished fails in Travis
-fu! esearch#out#win#_is_render_finished() dict abort
-  return self.cursor == len(self.data)
 endfu

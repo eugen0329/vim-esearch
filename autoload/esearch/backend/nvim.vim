@@ -46,6 +46,7 @@ fu! esearch#backend#nvim#run(request) abort
   try
     let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.job_id = job_id
+    let a:request.start_at = reltime()
     call jobclose(job_id, 'stdin')
     let s:jobs[job_id] = { 'data': [], 'request': a:request }
   finally
@@ -53,8 +54,9 @@ fu! esearch#backend#nvim#run(request) abort
   endtry
 endfu
 
-fu! s:is_consumed(timeout) abort dict
-  return jobwait([self.job_id], a:timeout)[0] ==# -1 && self.finished
+fu! s:is_consumed() abort dict
+  let timeout = max([g:esearch.early_finish_timeout - float2nr(reltimefloat(reltime(self.start_at)) * 1000), 1])
+  return jobwait([self.job_id], timeout)[0] ==# -1 && self.finished
 endfu
 
 " TODO encoding
@@ -117,9 +119,10 @@ endfu
 fu! esearch#backend#nvim#abort(bufnr) abort
   " FIXME unify with out#qflist
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  if empty(esearch.request) || esearch.request.aborted | return | endif
   let esearch.request.aborted = 1
 
-  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
+  if has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
     try
       call jobstop(esearch.request.job_id)
     catch /E900:/
@@ -127,11 +130,3 @@ fu! esearch#backend#nvim#abort(bufnr) abort
     endtry
   endif
 endfu
-
-function! esearch#backend#nvim#_context() abort
-  return s:
-endfunction
-function! esearch#backend#nvim#_sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

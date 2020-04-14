@@ -10,7 +10,8 @@
 " it cause uncontrolled freeze on backend callbacks due to redundant text with
 " ANSI escape sequences.
 fu! esearch#out#win#appearance#matches#init(esearch) abort
-  if g:esearch_out_win_highlight_matches ==# 'viewport'
+  if g:esearch_out_win_highlight_matches is# 'viewport'
+    let a:esearch.hl_strategy = 'viewport'
     let a:esearch.last_hl_range = [0,0]
     let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
     let a:esearch.lines_with_hl_matches = {}
@@ -24,9 +25,13 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
     return
   endif
 
-  if g:esearch_out_win_highlight_matches ==# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
+  if g:esearch_out_win_highlight_matches is# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
+    let a:esearch.hl_strategy = 'matchadd'
     let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
+    return
   endif
+
+  let a:esearch.hl_strategy = ''
 endfu
 
 fu! esearch#out#win#appearance#matches#uninit(esearch) abort
@@ -35,15 +40,19 @@ fu! esearch#out#win#appearance#matches#uninit(esearch) abort
       au! * <buffer>
     aug END
     call a:esearch.hl_matches.cancel()
-  endif
-
-  if has_key(a:esearch, 'matches_hl_id')
+  elseif has_key(a:esearch, 'matches_hl_id')
     call esearch#util#safe_matchdelete(a:esearch.matches_hl_id)
   endif
 endfu
 
 fu! esearch#out#win#appearance#matches#soft_stop(esearch) abort
   call esearch#out#win#appearance#matches#uninit(a:esearch)
+endfu
+
+fu! esearch#out#win#appearance#matches#apply_to_viewport_without_margins(esearch) abort
+  if get(a:esearch, 'hl_strategy') is# 'viewport'
+    call s:highlight_viewport(a:esearch, line('w0'), line('w$'))
+  endif
 endfu
 
 fu! s:highlight_viewport_cb(esearch) abort
@@ -53,23 +62,25 @@ fu! s:highlight_viewport_cb(esearch) abort
 
   let [top, bottom] = [ line('w0'), line('w$') ]
   let last_hl_range = a:esearch.last_hl_range
-
   if last_hl_range[0] <= top && bottom <= last_hl_range[1]
     return
   endif
 
+  let top    = esearch#util#clip(top - g:esearch_win_viewport_highlight_extend_by, 1, line('$'))
+  let bottom = esearch#util#clip(bottom + g:esearch_win_viewport_highlight_extend_by, 1, line('$'))
+  call s:highlight_viewport(a:esearch, top, bottom)
+endfu
+
+fu! s:highlight_viewport(esearch, top, bottom) abort
   let exp = a:esearch.exp.vim
   let state = esearch#out#win#_state(a:esearch)
   let line_numbers_map = state.line_numbers_map
   let ctx_ids_map = state.ctx_ids_map
   let lines_with_hl_matches = a:esearch.lines_with_hl_matches
+  let a:esearch.last_hl_range = [a:top, a:bottom]
 
-  let last_line = line('$')
-  let line = esearch#util#clip(top - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
-  let end  = esearch#util#clip(bottom + g:esearch_win_viewport_highlight_extend_by, 1, last_line)
-  let a:esearch.last_hl_range = [line, end]
-
-  for text in nvim_buf_get_lines(0, line - 1, end, 0)
+  let line = a:top
+  for text in nvim_buf_get_lines(0, line - 1, a:bottom, 0)
     let linenr =  line_numbers_map[line]
     let ctx_id = ctx_ids_map[line]
 

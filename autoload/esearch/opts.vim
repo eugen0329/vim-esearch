@@ -51,6 +51,7 @@ fu! esearch#opts#new(opts) abort
         \ 'after':            0,
         \ 'before':           0,
         \ 'context':          0,
+        \ 'early_finish_timeout': 50,
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
         \ 'root_markers':     ['.git', '.hg', '.svn', '.bzr', '_darcs'],

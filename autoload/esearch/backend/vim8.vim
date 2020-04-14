@@ -60,6 +60,7 @@ fu! esearch#backend#vim8#run(request) abort
   let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let a:request.job_id = job_start(a:request.jobstart_args.command, a:request.jobstart_args.opts)
+    let a:request.start_at = reltime()
   finally
     call original_cwd.restore()
   endtry
@@ -76,24 +77,23 @@ fu! s:stdout(job_id, job, data) abort
 endfu
 
 " Adapted from vital-Whisky
-fu! s:is_consumed(timeout) abort dict
+fu! s:is_consumed() abort dict
+  let timeout = g:esearch.early_finish_timeout / 1000.0 - reltimefloat(reltime(self.start_at))
+  if timeout < 0.0 | return | endif
   let stopped = 0
-  let timeout = a:timeout / 1000.0
+
   let start_time = reltime()
   let job = self.job_id
-  try
-    while timeout == 0 || timeout > reltimefloat(reltime(start_time))
-      let status = job_status(job)
-      if status !=# 'run'
-        let stopped = 1
-        break
-      endif
-      sleep 1m
-    endwhile
-  catch /^Vim:Interrupt$/
-    let stopped = 1
-  endtry
-  return stopped && self.finished
+
+  while timeout == 0 || timeout > reltimefloat(reltime(start_time))
+    let status = job_status(job)
+    if status !=# 'run'
+      return self.finished
+    endif
+    sleep 1m
+  endwhile
+
+  return self.finished
 endfu
 
 fu! s:stderr(job_id, job, data) abort
@@ -155,9 +155,7 @@ endfu
 fu! esearch#backend#vim8#abort(bufnr) abort
   " FIXME unify with out#qflist
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
-  if empty(esearch)
-    return -1
-  endif
+  if empty(esearch.request) || esearch.request.aborted | return | endif
   let esearch.request.aborted = 1
 
   if has_key(esearch.request, 'timer_id')
@@ -169,11 +167,3 @@ fu! esearch#backend#vim8#abort(bufnr) abort
     call job_stop(esearch.request.job_id, 'kill')
   endif
 endfu
-
-function! esearch#backend#vim8#_context() abort
-  return s:
-endfunction
-function! esearch#backend#vim8#_sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

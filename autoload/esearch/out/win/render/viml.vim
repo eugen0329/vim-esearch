@@ -41,7 +41,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
 
         call add(lines, fnameescape(filename))
         call esearch#out#win#render#add_context(a:esearch.contexts, filename, line)
-        let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
+        let a:esearch.ctx_by_name[filename] = a:esearch.contexts[-1]
         call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
         call add(a:esearch.line_numbers_map, 0)
         let a:esearch.files_count += 1

@@ -3,12 +3,12 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 fu! esearch#out#win#render#init(esearch) abort
   call extend(a:esearch, {
-        \ 'contexts': [],
-        \ 'files_count':           0,
-        \ 'separators_count':      0,
-        \ 'line_numbers_map':      [],
-        \ 'context_by_name':       {},
-        \ 'ctx_ids_map':           [],
+        \ 'contexts':         [],
+        \ 'files_count':      0,
+        \ 'separators_count': 0,
+        \ 'line_numbers_map': [],
+        \ 'ctx_by_name':      {},
+        \ 'ctx_ids_map':      [],
         \})
 
   setl undolevels=-1 noswapfile nonumber norelativenumber nospell nowrap synmaxcol=400

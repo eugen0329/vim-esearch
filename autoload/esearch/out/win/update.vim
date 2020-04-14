@@ -53,6 +53,10 @@ fu! esearch#out#win#update#uninit(esearch) abort
   endif
 endfu
 
+fu! esearch#out#win#update#can_finish_early(esearch) abort
+  return !a:esearch.request.async || (a:esearch.request.is_consumed() && len(a:esearch.request.data) <= a:esearch.batch_size)
+endfu
+
 " Is used to render the first batch as soon as possible before the first timer
 " callback invokation. Is called on stdout event from a backend and is undloaded
 " when the first batch is rendered. Will render <= 2 * batch_size entries
@@ -183,6 +187,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
 
   let esearch.header_text = function('esearch#out#win#header#finished_render')
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
+
   call setbufvar(a:bufnr, '&modified',   0)
 
   call esearch#out#win#modifiable#init()

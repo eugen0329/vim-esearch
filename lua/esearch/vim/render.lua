@@ -9,7 +9,7 @@ function M.render(data, path, esearch)
   local line_numbers_map         = esearch['line_numbers_map']
   local ctx_ids_map              = esearch['ctx_ids_map']
   local files_count              = esearch['files_count']
-  local context_by_name          = esearch['context_by_name']
+  local ctx_by_name              = esearch['ctx_by_name']
   local esearch_win_disable_context_highlights_on_files_count =
     vim.eval('g:esearch_win_disable_context_highlights_on_files_count')
   local unload_context_syntax_on_line_length =
@@ -52,7 +52,7 @@ function M.render(data, path, esearch)
         ['syntax_loaded'] = false,
         ['lines']         = vim.dict(),
         }))
-      context_by_name[filename] = contexts[#contexts - 1]
+      ctx_by_name[filename] = contexts[#contexts - 1]
       ctx_ids_map:add(contexts[#contexts - 1]['id'])
       line_numbers_map:add(false)
       files_count = files_count + 1
