@@ -97,7 +97,6 @@ describe 'Writing in modifiable mode', :window do
         it_behaves_like 'it modifies buffer',
           motion:         -> { editor.send_keys 'dd' },
           expected_lines: -> { ctx.content[1..] + added_lines }
-
       end
 
       context 'when changing a ctx' do

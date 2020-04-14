@@ -12,5 +12,3 @@ fu! esearch#out#win#modifiable#insert#add_newlines#handle(event) abort
     doau CursorMoved
   endif
 endfu
-
-

@@ -46,7 +46,7 @@ fu! esearch#out#win#header#in_progress() abort dict
     return self.header_text()
   endif
 
-  let spinner = s:spinner[self.tick / s:spinner_slowdown % s:spinner_fram_len]
+  let spinner = s:spinner[len(self.request.data) / s:spinner_slowdown % s:spinner_fram_len]
   return printf(self.header_format,
         \ len(self.request.data)  - self.separators_count,
         \ spinner,
@@ -56,7 +56,7 @@ fu! esearch#out#win#header#in_progress() abort dict
 endfu
 
 fu! esearch#out#win#header#finished_backend() abort dict
-  let spinner = s:spinner[self.tick / s:spinner_slowdown % s:spinner_fram_len]
+  let spinner = s:spinner[len(self.request.data) / s:spinner_slowdown % s:spinner_fram_len]
   return printf(self.header_format,
         \ len(self.request.data) - self.separators_count,
         \ self.files_count,

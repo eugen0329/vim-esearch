@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
+require 'pathname'
+
 class VimlValue::Visitors::ToVim
   CLASS_VISIT_METHODS = {
     Enumerable                            => :visit_enumerable,
     Hash                                  => :visit_hash,
     Symbol                                => :visit_string_like,
     String                                => :visit_string_like,
+    Pathname                              => :visit_string_like,
     VimlValue::Types::Funcref             => :visit_funcref,
     VimlValue::Types::None                => :visit_none,
     VimlValue::Serializable::FunctionCall => :visit_function_call,

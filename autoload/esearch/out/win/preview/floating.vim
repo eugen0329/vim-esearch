@@ -1,14 +1,14 @@
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#out#win#preview#floating#import() abort
-  return {
+fu! esearch#out#win#preview#floating#init(esearch) abort
+  call extend(a:esearch, {
         \ 'preview':         function('<SID>preview'),
         \ 'preview_enter':   function('<SID>preview_enter'),
         \ 'preview_zoom':    function('<SID>preview_zoom'),
         \ 'preview_close':   function('esearch#preview#close'),
         \ 'is_preview_open': function('esearch#preview#is_open'),
-        \ }
+        \ })
 endfu
 
 fu! s:preview_enter(...) abort dict

@@ -1,4 +1,5 @@
-let s:linenr_format = ' %3d %s'
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
   let original_cwd = esearch#util#lcd(a:esearch.cwd)
@@ -39,7 +40,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
         let line += 1
 
         call add(lines, fnameescape(filename))
-        call esearch#out#win#add_context(a:esearch.contexts, filename, line)
+        call esearch#out#win#render#add_context(a:esearch.contexts, filename, line)
         let a:esearch.context_by_name[filename] = a:esearch.contexts[-1]
         call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
         call add(a:esearch.line_numbers_map, 0)
@@ -57,7 +58,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
         end
       end
 
-      call add(lines, printf(s:linenr_format, parsed[i].lnum, text))
+      call add(lines, printf(g:esearch#out#win#entry_format, parsed[i].lnum, text))
       call add(a:esearch.line_numbers_map, parsed[i].lnum)
       call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
       let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text

@@ -1,11 +1,11 @@
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#out#win#preview#split#import() abort
-  return {
+fu! esearch#out#win#preview#split#init(esearch) abort
+  call extend(a:esearch, {
         \ 'split_preview':      function('<SID>split_preview'),
         \ 'last_split_preview': {},
-        \ }
+        \ })
 endfu
 
 " A wrapper around regular open
@@ -31,4 +31,3 @@ fu! s:split_preview(...) abort dict
         \ 'let!': {'&l:foldenable': 0},
         \ }, get(a:000, 1, {})))
 endfu
-

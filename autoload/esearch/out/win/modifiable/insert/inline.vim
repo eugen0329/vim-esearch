@@ -55,4 +55,3 @@ fu! esearch#out#win#modifiable#insert#inline#handle(event) abort
   call esearch#changes#rewrite_last_state({ 'current_line': text })
   call b:esearch.undotree.synchronize()
 endfu
-

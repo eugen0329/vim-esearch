@@ -1,5 +1,5 @@
 let s:separator = ''
-let s:linenr_format = ' %3d '
+let g:esearch#out#win#linenr_format = ' %3d '
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -29,7 +29,7 @@ fu! esearch#out#win#modifiable#blockwise_visual#handle(event) abort
         call setline(line, s:separator)
       else
         let line_in_file = state.line_numbers_map[line]
-        let linenr = printf(s:linenr_format, line_in_file)
+        let linenr = printf(g:esearch#out#win#linenr_format, line_in_file)
         if strlen(linenr) + 1 <= a:event.col1
           continue
         endif

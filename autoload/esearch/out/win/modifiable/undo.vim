@@ -4,4 +4,3 @@ fu! esearch#out#win#modifiable#undo#handle(event) abort
         \ 'changenr': changenr(),
         \ })
 endfu
-

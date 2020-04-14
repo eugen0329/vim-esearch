@@ -21,22 +21,22 @@ fu! s:split_to_keys(lhs) abort "{{{2
   return split(a:lhs, '\(<[^<>]\+>\|.\)\zs')
 endfu
 
-fu! esearch#mappings#restorable(mode, pairs, ...) abort
-  return s:Guard.store(a:mode, a:pairs, get(a:000, 0, {}))
+fu! esearch#mappings#restorable(mode, maps, ...) abort
+  return s:Guard.store(a:mode, a:maps, get(a:000, 0, {}))
 endfu
 
 let s:Guard = {}
 
-fu! s:Guard.store(mode, pairs, dict) abort dict
+fu! s:Guard.store(mode, maps, dict) abort dict
   let instance = copy(self)
   let instance.mode = a:mode
   let instance.dict = a:dict
-  let instance.pairs = copy(a:pairs)
+  let instance.maps = copy(a:maps)
 
   let [is_abbr, is_dict] = [0, 1]
-  let instance.mapargs = map(keys(a:pairs), 'maparg(v:val, a:mode, is_abbr, is_dict)')
+  let instance.mapargs = map(keys(a:maps), 'maparg(v:val, a:mode, is_abbr, is_dict)')
 
-  for [lhs, rhs] in items(a:pairs)
+  for [lhs, rhs] in items(a:maps)
     call s:Mapping.execute_map_command(a:mode, a:dict, lhs, rhs)
   endfor
 
@@ -45,7 +45,7 @@ endfu
 
 " VITAL + eskk
 fu! s:Guard.restore() abort dict
-  for lhs in keys(self.pairs)
+  for lhs in keys(self.maps)
     call s:Mapping.execute_unmap_command(self.mode, self.dict, lhs)
   endfor
 

@@ -8,4 +8,6 @@ else
 endif
 let g:esearch#unicode#spinner = [' ◜ ', '  ◝', '  ◞', ' ◟ ']
 let g:esearch#unicode#less_or_equal = '≤'
-let g:esearch#unicode#division_slash = '∕'
+let g:esearch#unicode#slash = '∕'
+let g:esearch#unicode#quote_right = '›'
+let g:esearch#unicode#quote_left = '‹'

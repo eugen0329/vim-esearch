@@ -71,9 +71,7 @@ function M.render(data, path, last_context, files_count, highlights_enabled)
       end
     end
 
-    linenr_text = string.format(' %3d ', parsed[i]['lnum'])
-
-    lines[#lines + 1] = linenr_text .. text
+    lines[#lines + 1] = string.format(' %3d %s', parsed[i]['lnum'], text)
     ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']
     line_numbers_map[#line_numbers_map + 1] = parsed[i]['lnum']
     contexts[#contexts]['lines'][parsed[i]['lnum']] = text
@@ -83,7 +81,7 @@ function M.render(data, path, last_context, files_count, highlights_enabled)
 
   vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
   if vim.api.nvim_eval('g:esearch_out_win_nvim_lua_syntax') == 1 then
-    esearch.appearance.header()
+    esearch.appearance.highlight_header()
     esearch.appearance.highlight_ui(0, start, -1)
   end
   if esearch_win_results_len_annotations == 1 then

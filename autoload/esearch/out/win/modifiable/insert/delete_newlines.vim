@@ -40,4 +40,3 @@ fu! esearch#out#win#modifiable#insert#delete_newlines#handle(event) abort
   endif
   call b:esearch.undotree.synchronize()
 endfu
-

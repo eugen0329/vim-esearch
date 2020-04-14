@@ -13,6 +13,7 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
   if g:esearch_out_win_highlight_matches ==# 'viewport'
     let a:esearch.last_hl_range = [0,0]
     let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
+    let a:esearch.lines_with_hl_matches = {}
     let Callback = function('s:highlight_viewport_cb', [a:esearch])
     let a:esearch.hl_matches = esearch#debounce(Callback, g:esearch_win_matches_highlight_debounce_wait)
 
@@ -61,7 +62,7 @@ fu! s:highlight_viewport_cb(esearch) abort
   let state = esearch#out#win#_state(a:esearch)
   let line_numbers_map = state.line_numbers_map
   let ctx_ids_map = state.ctx_ids_map
-  let highlighted_lines_map = a:esearch.highlighted_lines_map
+  let lines_with_hl_matches = a:esearch.lines_with_hl_matches
 
   let last_line = line('$')
   let line = esearch#util#clip(top - g:esearch_win_viewport_highlight_extend_by, 1, last_line)
@@ -75,9 +76,9 @@ fu! s:highlight_viewport_cb(esearch) abort
     if linenr ==# 0
       let line += 1
       continue
-    elseif !has_key(highlighted_lines_map, ctx_id)
-      let highlighted_lines_map[ctx_id] = {}
-    elseif has_key(highlighted_lines_map[ctx_id], linenr)
+    elseif !has_key(lines_with_hl_matches, ctx_id)
+      let lines_with_hl_matches[ctx_id] = {}
+    elseif has_key(lines_with_hl_matches[ctx_id], linenr)
       let line += 1
       continue
     endif
@@ -87,7 +88,7 @@ fu! s:highlight_viewport_cb(esearch) abort
     let matchend = matchend(text, exp, begin)
 
     call nvim_buf_add_highlight(0, a:esearch.matches_ns, 'esearchMatch', line - 1, begin, matchend)
-    let highlighted_lines_map[ctx_id][linenr] = 1
+    let lines_with_hl_matches[ctx_id][linenr] = 1
     let line += 1
   endfor
 endfu

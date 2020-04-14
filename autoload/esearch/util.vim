@@ -1,5 +1,4 @@
 let s:Prelude   = vital#esearch#import('Prelude')
-let s:Highlight = vital#esearch#import('Vim.Highlight')
 let s:Message   = vital#esearch#import('Vim.Message')
 let s:Filepath  = vital#esearch#import('System.Filepath')
 
@@ -208,23 +207,6 @@ endfu
 fu! esearch#util#stringify(key, ...) dict abort
   let option_index = g:esearch[a:key]
   return self[a:key]['s'][option_index]
-endfu
-
-fu! esearch#util#copy_highlight(from, to, options) abort
-  let new_highlight = {'name': a:from, 'attrs': s:Highlight.get(a:to).attrs}
-
-  call s:Highlight.set(new_highlight, a:options)
-endfu
-
-fu! esearch#util#set_highlight(name, attributes, options) abort
-  let attributes = filter(a:attributes, '!empty(v:val)')
-  let new_highlight = {'name': a:name, 'attrs': attributes}
-
-  call s:Highlight.set(new_highlight, a:options)
-endfu
-
-fu! esearch#util#get_highlight(hightlight_name) abort
-  return s:Highlight.get(a:hightlight_name).attrs
 endfu
 
 fu! esearch#util#stringify_mapping(map) abort
@@ -646,7 +628,7 @@ fu! esearch#util#is_visual() abort
   " Note that in the future more modes and more specific modes may
   " be added. It's better not to compare the full string but only
   " the leading character(s).
-  return mode() =~? "^[vS\<C-v>]"
+  return mode()[0] =~? "[vs\<C-v>]"
 endfu
 
 fu! esearch#util#lcd(path) abort

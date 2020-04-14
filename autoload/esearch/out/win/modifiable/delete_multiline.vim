@@ -1,7 +1,7 @@
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 let s:separator = ''
-let s:linenr_format = ' %3d '
+let g:esearch#out#win#linenr_format = ' %3d '
 
 " Shared for visual and normal
 
@@ -111,7 +111,7 @@ fu! s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state) abort
       let line = a:rebuilder.line1
     endif
     let line_in_file = a:state.line_numbers_map[line]
-    let linenr  = printf(s:linenr_format, line_in_file)
+    let linenr  = printf(g:esearch#out#win#linenr_format, line_in_file)
     call a:rebuilder.recover(a:top_ctx, line_in_file, linenr)
     let a:rebuilder.cursor = [line, strlen(linenr) + 1]
   endif
@@ -139,7 +139,7 @@ fu! s:handle_change(top_ctx, bottom_ctx, rebuilder, state) abort
       let line = a:rebuilder.line1
     endif
     let line_in_file = a:state.line_numbers_map[line]
-    let linenr  = printf(s:linenr_format, line_in_file)
+    let linenr  = printf(g:esearch#out#win#linenr_format, line_in_file)
     call a:rebuilder.recover(a:top_ctx, line_in_file, linenr)
     let a:rebuilder.cursor = [line, strlen(linenr) + 1]
   endif
@@ -164,7 +164,7 @@ fu! s:handle_columnwise_change_cursor(top_ctx, bottom_ctx, rebuilder, state) abo
   if a:rebuilder.line1 <= a:top_ctx.begin
     let line = a:top_ctx.begin + 1
     let line_in_file = a:state.line_numbers_map[line]
-    let linenr  = printf(s:linenr_format, line_in_file)
+    let linenr  = printf(g:esearch#out#win#linenr_format, line_in_file)
     let col = strlen(linenr) + 1
   else
     let line = a:rebuilder.line1
@@ -223,7 +223,7 @@ fu! s:handle_top_ctx_columnwise(ctx, state, rebuilder) abort
 
     let text = getline(a:rebuilder.line1)
     let line_in_file = a:state.line_numbers_map[a:rebuilder.line1]
-    let linenr1  = printf(s:linenr_format, line_in_file)
+    let linenr1  = printf(g:esearch#out#win#linenr_format, line_in_file)
     let recovered = linenr1
 
     if a:rebuilder.col1 >= 2
@@ -247,7 +247,7 @@ fu! s:handle_bottom_ctx_columnwise(ctx, state, rebuilder) abort
     " merged doesn't make sense as these lines are from different files with
     " possibly different filetypes
     let line_in_file   = a:state.line_numbers_map[a:rebuilder.line2]
-    let linenr2 = printf(s:linenr_format, line_in_file)
+    let linenr2 = printf(g:esearch#out#win#linenr_format, line_in_file)
     let text   = getline(a:rebuilder.line1)
 
     let is_col2_within_linenr = a:rebuilder.col2 < strlen(linenr2) + 1
@@ -286,8 +286,8 @@ fu! s:handle_columnwise_with_joining_lines(ctx, state, rebuilder) abort
       " two parts: remained 1st line text without linenr and remained 2nd line
       " text without possible linenr
       let line_in_file = a:state.line_numbers_map[a:rebuilder.line1]
-      let linenr = printf(s:linenr_format, line_in_file)
-      let linenr2 = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line2])
+      let linenr = printf(g:esearch#out#win#linenr_format, line_in_file)
+      let linenr2 = printf(g:esearch#out#win#linenr_format, a:state.line_numbers_map[a:rebuilder.line2])
 
       if a:rebuilder.col1 < strlen(linenr) + 1
         " if deletion starts from linenr virtual ui - everything from the
@@ -309,14 +309,14 @@ fu! s:handle_columnwise_with_joining_lines(ctx, state, rebuilder) abort
       " TODO consider to combine smh with handling across multiple contexts as
       " the result for the bottom ctx is literally the same
       let line_in_file = a:state.line_numbers_map[a:rebuilder.line2]
-      let linenr = printf(s:linenr_format, line_in_file)
+      let linenr = printf(g:esearch#out#win#linenr_format, line_in_file)
       let recovered = linenr[: max([0, a:rebuilder.col2 - 2])] . text[a:rebuilder.col1 - 1 :]
     else " deletion from filename to an entry.
       " Recovering the last affected entry text and line number virtual
       " interface. Filename leftover will be deleted during linewise
       " checks
       let line_in_file = a:state.line_numbers_map[a:rebuilder.line2]
-      let linenr = printf(s:linenr_format, line_in_file)
+      let linenr = printf(g:esearch#out#win#linenr_format, line_in_file)
       let recovered = linenr . text[a:rebuilder.col1 - 1 :]
     endif
 
@@ -324,7 +324,7 @@ fu! s:handle_columnwise_with_joining_lines(ctx, state, rebuilder) abort
   elseif s:is_columnwise_begin(a:rebuilder)
         " \ && a:ctx.begin + 1 <= a:rebuilder.line1 " if filename line is not affected:
     let line_in_file  = a:state.line_numbers_map[a:rebuilder.line1]
-    let linenr  = printf(s:linenr_format, line_in_file)
+    let linenr  = printf(g:esearch#out#win#linenr_format, line_in_file)
     if a:rebuilder.col1 > strlen(linenr) + 1
       let text = getline(a:rebuilder.line1)
       call a:rebuilder.recover(a:ctx, line_in_file, text[: a:rebuilder.col1 - 2])
@@ -455,7 +455,7 @@ fu! s:apply_recovery(state) abort dict
   endif
 
   if g:esearch_out_win_nvim_lua_syntax && self.extended_line1 <= 2
-    call luaeval('esearch.appearance.header()')
+    call luaeval('esearch.appearance.highlight_header()')
   endif
 
   call remove(a:state.line_numbers_map, self.extended_line1, self.extended_line2)
@@ -505,7 +505,7 @@ fu! s:is_all_entries_removed(ctx, rebuilder, state) abort
 
     " If deletion region is strictly above the first entry
     " or it is on the first entry and col1 is within line numbers virtual ui
-    let linenr  = printf(s:linenr_format, a:state.line_numbers_map[a:rebuilder.line1])
+    let linenr  = printf(g:esearch#out#win#linenr_format, a:state.line_numbers_map[a:rebuilder.line1])
     let until_begin = a:rebuilder.line1 <= a:ctx.begin
           \ || a:rebuilder.line1 == a:ctx.begin + 1 && a:rebuilder.col1 <= strlen(linenr) + 1
 

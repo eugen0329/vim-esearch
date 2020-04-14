@@ -225,7 +225,7 @@ class Editor
       echo func('esearch#buf#location', func('esearch#buf#find', name))
     end
 
-    raise MissingBufferError if location.blank?
+    raise MissingBufferError if location == [0, 0]
 
     command! <<~VIML
       tabn #{location[0]}

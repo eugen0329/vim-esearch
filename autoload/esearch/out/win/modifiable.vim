@@ -1,4 +1,4 @@
-fu! esearch#out#win#modifiable#edit() abort
+fu! esearch#out#win#modifiable#init() abort
   let b:esearch.mode = 'edit'
   let v:errors = []
   setl modifiable
@@ -10,7 +10,7 @@ fu! esearch#out#win#modifiable#edit() abort
   set buftype=acwrite
   aug esearch_win_modifiable
     au! * <buffer>
-    au BufWriteCmd <buffer> call esearch#out#win#modifiable#write()
+    au BufWriteCmd <buffer> call s:write()
   aug END
 
   let b:esearch.undotree = esearch#undotree#new({
@@ -18,7 +18,7 @@ fu! esearch#out#win#modifiable#edit() abort
         \ 'line_numbers_map': b:esearch.line_numbers_map,
         \ })
   call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
-  call esearch#changes#add_observer(function('esearch#out#win#handle_changes'))
+  call esearch#changes#add_observer(function('<SID>handle'))
 
   call esearch#option#make_local_to_buffer('backspace', 'indent,start', 'InsertEnter')
   set nomodified
@@ -27,7 +27,15 @@ fu! esearch#out#win#modifiable#edit() abort
   call esearch#compat#multiple_cursors#init()
 endfu
 
-fu! esearch#out#win#modifiable#write() abort
+fu! esearch#out#win#modifiable#uninit(esearch) abort
+  call esearch#option#reset()
+  aug esearch_win_modifiable
+    au! * <buffer>
+  aug END
+  call esearch#changes#unlisten_for_current_buffer()
+endfu
+
+fu! s:write() abort
   let parsed = esearch#out#win#parse#entire()
   if has_key(parsed, 'error')
     throw parsed.error
@@ -60,5 +68,39 @@ fu! esearch#out#win#modifiable#write() abort
 
   if esearch#ui#confirm#show(message, ['Yes', 'No']) == 1
     call esearch#writer#buffer#write(diff, b:esearch)
+  endif
+endfu
+
+fu! s:handle(event) abort
+  if a:event.id =~# '^n-motion' || a:event.id =~# '^n-change'
+        \  || a:event.id =~# '^v-delete' || a:event.id =~# '^V-line-delete'
+        \  || a:event.id =~# '^V-line-change'
+    call esearch#out#win#modifiable#delete_multiline#handle(a:event)
+  elseif a:event.id =~# 'undo'
+    call esearch#out#win#modifiable#undo#handle(a:event)
+  elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-gn'
+        \ || a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
+    let debug = esearch#out#win#modifiable#normal#inline#handle(a:event)
+  elseif a:event.id =~# 'i-inline'
+    let debug = esearch#out#win#modifiable#insert#inline#handle(a:event)
+  elseif  a:event.id =~# 'i-delete-newline'
+    let debug = esearch#out#win#modifiable#insert#delete_newlines#handle(a:event)
+  elseif  a:event.id =~# 'blockwise-visual'
+    call esearch#out#win#modifiable#blockwise_visual#handle(a:event)
+  elseif  a:event.id =~# 'i-add-newline'
+    call esearch#out#win#modifiable#insert#add_newlines#handle(a:event)
+  elseif a:event.id =~# 'join'
+    call esearch#out#win#modifiable#unsupported#handle(a:event)
+  elseif a:event.id =~# 'cmdline'
+    call esearch#out#win#modifiable#cmdline#handle(a:event)
+  else
+    call esearch#out#win#modifiable#unsupported#handle(a:event)
+  endif
+
+  if g:esearch#env isnot 0
+    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
+    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
+    let a:event.errors = len(v:errors)
+    " call esearch#debug#log(a:event,  len(v:errors))
   endif
 endfu

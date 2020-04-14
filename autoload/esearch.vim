@@ -42,6 +42,7 @@ fu! esearch#init(...) abort
   let command = esearch.current_adapter.command(esearch, pattern, Escape)
   let esearch.request = esearch#backend#{esearch.backend}#init(
         \ esearch.cwd, esearch.adapter, command)
+  call esearch#backend#{esearch.backend}#run(esearch.request)
   let esearch.parse = esearch#adapter#parse#funcref()
 
   let esearch.title = s:title(esearch, pattern)
@@ -115,6 +116,23 @@ fu! s:title(esearch, pattern) abort
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 
+" Results bufname format builder
+fu! s:title_format(esearch) abort
+  if a:esearch.is_regex()
+    if g:esearch#has#unicode
+      return printf('Search %s%%s%s%%s', g:esearch#unicode#slash, g:esearch#unicode#slash)
+    else
+      return "Search r'%s'%s"
+    endif
+  else
+    if g:esearch#has#unicode
+      return printf('Search %s%%s%s%%s', g:esearch#unicode#quote_left, g:esearch#unicode#quote_right)
+    else
+      return 'Search <%s>%s'
+    endif
+  endif
+endfu
+
 fu! esearch#_mappings() abort
   if !exists('s:mappings')
     let s:mappings = [
@@ -127,20 +145,6 @@ endfu
 
 fu! esearch#map(map, plug) abort
   call esearch#util#add_map(esearch#_mappings(), a:map, printf('<Plug>(%s)', a:plug))
-endfu
-
-" Results bufname format builder
-fu! s:title_format(esearch) abort
-  if a:esearch.is_regex()
-    if g:esearch#has#unicode
-      let slash = g:esearch#unicode#division_slash
-      return printf('Search  %s%%s%s%%s', slash, slash)
-    else
-      return "Search r'%s'%s"
-    endif
-  else
-    return "Search '%s'%s"
-  endif
 endfu
 
 fu! esearch#debounce(...) abort

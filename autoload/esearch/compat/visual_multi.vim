@@ -1,7 +1,5 @@
-let s:Vital         = vital#esearch#new()
-let s:List          = s:Vital.import('Data.List')
-let s:Message       = s:Vital.import('Vim.Message')
-let s:linenr_format = ' %3d '
+let s:List    = vital#esearch#import('Data.List')
+let s:Message = vital#esearch#import('Vim.Message')
 let s:textobjects_whitelist = 'w()[]{}<>|''`"'
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -248,7 +246,7 @@ fu! s:remove_cursors_overlapping_interface(offset_from_linenr) abort
     if cursor.l == ctx.begin || (cursor.l == ctx.end && cursor.l != line('$'))
       call add(removable_indexes, i)
     else
-      let linenr = printf(s:linenr_format, state.line_numbers_map[cursor.l])
+      let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[cursor.l])
       if cursor._a <= strlen(linenr) + a:offset_from_linenr
         call add(removable_indexes, i)
       endif
@@ -282,7 +280,7 @@ fu! s:regions_overlapping_interface(offset_from_linenr) abort
     if region.l == contexts.by_line(region.l).begin
       call add(regions, region)
     else
-      let linenr = printf(s:linenr_format, state.line_numbers_map[region.l])
+      let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[region.l])
       if region.a <= strlen(linenr) + a:offset_from_linenr
         call add(regions, region)
       endif
@@ -309,7 +307,7 @@ fu! s:CtrlW(orig) abort
     let line = cursor.L
     let col = cursor._a
     let text = getline(line)
-    let linenr = printf(s:linenr_format, state.line_numbers_map[line])
+    let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[line])
     if col <= strlen(linenr) + 1 || text[strlen(linenr): col - 2] =~# '^\s\+$'
       return ''
     endif
@@ -345,7 +343,7 @@ fu! s:vm_icmds_x(cmd) abort
   for r in s:R()
 
     """""" modified block start
-    let linenr = printf(s:linenr_format, state.line_numbers_map[r.l])
+    let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[r.l])
     if r.a <= strlen(linenr) + s:offset_from_linenr || r.l == s:contexts.by_line(r.l).begin
       continue
     endif

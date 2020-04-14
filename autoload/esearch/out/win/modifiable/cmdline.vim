@@ -1,8 +1,7 @@
-let s:Vital   = vital#esearch#new()
-let s:String  = s:Vital.import('Data.String')
-let s:List  = s:Vital.import('Data.List')
-let s:Message  = s:Vital.import('Vim.Message')
-let s:linenr_format = ' %3d '
+let s:String  = vital#esearch#import('Data.String')
+let s:List    = vital#esearch#import('Data.List')
+let s:Message = vital#esearch#import('Vim.Message')
+let g:esearch#out#win#linenr_format = ' %3d '
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -73,7 +72,7 @@ fu! s:replay_confirmable(event, command, original_pattern) abort
       " don't replay changes on top of contexts boundaries (as they contain only
       " the virtual ui)
     else
-      let linenr = printf(s:linenr_format, state.line_numbers_map[line])
+      let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[line])
 
       if s:String.starts_with(modified_text, linenr)
         call setline(line, modified_text) " LineNr isn't corrupted, can be safely replayed

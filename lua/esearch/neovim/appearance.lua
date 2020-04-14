@@ -104,7 +104,7 @@ function M.set_context_len_annotation(line, size)
   end
 end
 
-function M.header()
+function M.highlight_header()
   local bufnr = vim.api.nvim_get_current_buf()
 
   vim.schedule(function()
