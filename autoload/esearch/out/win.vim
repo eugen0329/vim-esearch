@@ -147,19 +147,20 @@ fu! esearch#out#win#init(esearch) abort
   aug END
   call esearch#util#doautocmd('User esearch_win_init_post')
 
-  if !b:esearch.request.async || b:esearch.request.is_consumed(has('nvim') ? 20 : 40)
+  if !b:esearch.request.async || (b:esearch.request.is_consumed(30) && len(b:esearch.request.data) <= b:esearch.batch_size)
     call esearch#out#win#update#finish(bufnr('%'))
   endif
 endfu
 
 fu! s:cleanup() abort
   if exists('b:esearch')
-    call esearch#out#win#modifiable#uninit(b:esearch)
     call esearch#backend#{b:esearch.backend}#abort(bufnr('%'))
+    call esearch#out#win#modifiable#uninit(b:esearch)
     call esearch#out#win#update#uninit(b:esearch)
     call esearch#out#win#appearance#matches#uninit(b:esearch)
     call esearch#out#win#appearance#ctx_syntaxes#uninit(b:esearch)
     call esearch#out#win#appearance#cursor_linenr#uninit(b:esearch)
+    call esearch#out#win#appearance#annotations#uninit(b:esearch)
   endif
   aug esearch_win_event
     au! * <buffer>

@@ -30,8 +30,6 @@ fu! esearch#out#qflist#init(opts) abort
         \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
         \})
 
-  call esearch#backend#{g:esearch_qf.backend}#run(g:esearch_qf.request)
-
   if g:esearch_qf.request.async
     let w:quickfix_title = g:esearch_qf.title
   else

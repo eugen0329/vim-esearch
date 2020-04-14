@@ -36,7 +36,6 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'ticks': g:esearch#backend#vim8#ticks,
         \ 'backend':  'vim8',
         \ 'adapter':  a:adapter,
-        \ 'intermediate':  '',
         \ 'command':  a:command,
         \ 'is_consumed': function('<SID>is_consumed'),
         \ 'cwd':      a:cwd,
@@ -69,17 +68,7 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
-  let data = split(a:data, "\n", 1)
-
-  if !empty(request.intermediate) && !empty(data)
-    let data[0] = request.intermediate . data[0]
-    let request.intermediate = ''
-  endif
-  if !empty(data) && data[-1] !~# '\r$'
-    let request.intermediate = remove(data, -1)
-  endif
-
-  let request.data += data
+  let request.data += filter(split(a:data, "\n", 1), "'' !=# v:val")
   if !empty(request.events.update) && request.tick % request.ticks == 1 && !request.aborted
     call request.events.update()
   endif

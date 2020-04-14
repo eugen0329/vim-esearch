@@ -66,6 +66,10 @@ function M.buf_attach_annotations()
   end
 end
 
+function M.buf_clear_annotations()
+  vim.api.nvim_buf_clear_namespace(0, M.ANNOTATIONS_NS, 0, -1)
+end
+
 function M.highlight_ui(bufnr, from, to)
   local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
   for i, text in ipairs(lines) do

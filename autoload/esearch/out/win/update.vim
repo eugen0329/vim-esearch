@@ -191,9 +191,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
     call luaeval('esearch.appearance.buf_attach_ui()')
   endif
 
-  if g:esearch_win_results_len_annotations
-    call esearch#out#win#appearance#annotations#init(esearch)
-  endif
+  call esearch#out#win#appearance#annotations#init(esearch)
 endfu
 
 fu! esearch#out#win#update#trigger_key_press(...) abort

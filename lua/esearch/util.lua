@@ -42,6 +42,30 @@ else
   end
 end
 
+function M.split_lines(str)
+    local lines = vim.list()
+
+  for s in str:gmatch("[^\r\n]+") do
+    if s:len() > 0 then
+      lines:add(s)
+    end
+  end
+
+  return lines
+end
+
+-- function M.split_lines(data, str)
+--   -- local lines = vim.list()
+--   for s in str:gmatch("[^\r\n]+") do
+--     if s:len() > 0 then
+--       data:add(s)
+--       -- lines:add(s)
+--     end
+--   end
+
+--   return lines
+-- end
+
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting
 local function code(s)
   return (string.gsub(s, "\\([\\\"])", function (x)
