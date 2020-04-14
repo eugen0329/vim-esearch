@@ -14,13 +14,13 @@ module Helpers::WindowSyntaxContext
     [VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES,
      VIM_REGEXP_WORD_START,
      text,
-     VIM_REGEXP_WORD_END].join
+     VIM_REGEXP_WORD_END,].join
   end
 
   def char(text)
     [
       VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES,
-      editor.escape_regexp(text)
+      editor.escape_regexp(text),
     ].join
   end
 
@@ -35,7 +35,7 @@ module Helpers::WindowSyntaxContext
     [VIM_REGEXP_AVOID_MATCHING_FIRST_3_LINES, vim_regexp].join
   end
 
-  matcher :have_highligh_aliases do |expected, timeout: 5|
+  matcher :have_highlight_aliases do |expected, timeout: 5|
     diffable
 
     match do

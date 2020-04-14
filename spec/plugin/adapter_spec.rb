@@ -63,7 +63,7 @@ describe 'esearch#adapter', :adapters do
             'with\\ ws/file.e',
             'with\\\\backslash/file.e',
             "with\\'squote/file.e",
-            'with\\"dquote/file.e'
+            'with\\"dquote/file.e',
           ],
           files:          [
             file('any content', 'with ws/file.e'),
@@ -73,13 +73,13 @@ describe 'esearch#adapter', :adapters do
             file('any content', 'with\\ws/file.e'),
             file('any content', 'withws/file.e'),
             file('any content', 'with backslash/file.e'),
-            file('any content', 'other/file.e')
+            file('any content', 'other/file.e'),
           ]
 
         context 'when searching using prefilled directories' do
           let(:files) do
             [file('any content', '*.txt'),
-             file('any content', 'b c.json')]
+             file('any content', 'b c.json'),]
           end
           let!(:test_directory) { directory(files).persist! }
           let(:names) { files.map { |f| editor.escape_filename(f.relative_path) } }
@@ -203,7 +203,7 @@ describe 'esearch#adapter', :adapters do
               file('any content', 'a.txt'),
               file('any content', 'b.txt'),
               file('any content', '*.txt'),
-              file('any content', 'c.json')
+              file('any content', 'c.json'),
             ]
         end
 
@@ -215,7 +215,7 @@ describe 'esearch#adapter', :adapters do
               file('any content', 'a.txt'),
               file('any content', 'b.txt'),
               file('any content', '*.txt'),
-              file('any content', 'c.json')
+              file('any content', 'c.json'),
             ]
         end
       end

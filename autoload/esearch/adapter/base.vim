@@ -13,7 +13,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
   let w = self.spec.case[a:esearch.case].option
 
   if empty(a:esearch.paths)
-    let joined_paths = '.'
+    let joined_paths = self.pwd()
   else
     let joined_paths = esearch#shell#fnamesescape_and_join(a:esearch.paths, a:esearch.metadata)
   endif
@@ -25,6 +25,11 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
 
   return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
         \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
+endfu
+
+fu! s:Base.pwd() abort dict
+  " Some adapters require pwd to set explicitly (like grep) using '.'. For others it cause unwanted './' prefix.
+  return ''
 endfu
 
 " '' and '--' separators are outputted when context height options are given

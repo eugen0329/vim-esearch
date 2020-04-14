@@ -1,5 +1,4 @@
 let s:jobs = {}
-let s:incrementable_internal_id = 0
 
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
@@ -9,7 +8,6 @@ let s:NVIM_JOB_IS_INVALID = -3
 
 fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   let request = {
-        \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
         \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
         \   'opts': {
@@ -27,9 +25,11 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
         \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'intermediate': '',
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'errors':     [],
         \ 'finished': 0,
         \ 'status': 0,
+        \ 'cursor': 0,
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
@@ -37,8 +37,6 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
         \   'update': 0
         \ }
         \}
-
-  let s:incrementable_internal_id += 1
 
   return request
 endfu
@@ -48,11 +46,17 @@ fu! esearch#backend#nvim#run(request) abort
   try
     let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.job_id = job_id
+    let a:request.start_at = reltime()
     call jobclose(job_id, 'stdin')
     let s:jobs[job_id] = { 'data': [], 'request': a:request }
   finally
     call original_cwd.restore()
   endtry
+endfu
+
+fu! s:is_consumed() abort dict
+  let timeout = max([g:esearch.early_finish_timeout - float2nr(reltimefloat(reltime(self.start_at)) * 1000), 1])
+  return jobwait([self.job_id], timeout)[0] ==# -1 && self.finished
 endfu
 
 " TODO encoding
@@ -115,9 +119,10 @@ endfu
 fu! esearch#backend#nvim#abort(bufnr) abort
   " FIXME unify with out#qflist
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  if empty(esearch.request) || esearch.request.aborted | return | endif
   let esearch.request.aborted = 1
 
-  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
+  if has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
     try
       call jobstop(esearch.request.job_id)
     catch /E900:/
@@ -125,11 +130,3 @@ fu! esearch#backend#nvim#abort(bufnr) abort
     endtry
   endif
 endfu
-
-function! esearch#backend#nvim#_context() abort
-  return s:
-endfunction
-function! esearch#backend#nvim#_sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

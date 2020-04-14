@@ -28,7 +28,7 @@ end
 
 ActiveSupport::Dependencies.autoload_paths += [
   Configuration.root.join('spec/support'),
-  Configuration.root.join('spec/support/lib')
+  Configuration.root.join('spec/support/lib'),
 ]
 require 'support/client'
 require 'support/server'

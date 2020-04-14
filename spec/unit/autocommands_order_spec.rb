@@ -8,7 +8,7 @@ describe '' do
 
   let(:files) do
     [file('', 'from.txt'),
-     file('', 'to.txt')]
+     file('', 'to.txt'),]
   end
   let!(:test_directory) { directory(files).persist! }
 
@@ -30,7 +30,7 @@ describe '' do
     editor.command! [
       'augroup AutocmdsTest',
       'au!',
-      'augroup END'
+      'augroup END',
     ].join('|')
     available_events.each do |a|
       editor.command! "au AutocmdsTest #{a} * call add(g:_order, [expand('%'), '#{a}'])"
@@ -57,7 +57,7 @@ describe '' do
                                   [files.last.to_s,  'BufRead'],
                                   [files.last.to_s,  'BufReadPost'],
                                   [files.last.to_s,  'BufEnter'],
-                                  [files.last.to_s,  'BufWinEnter']])
+                                  [files.last.to_s,  'BufWinEnter'],])
   end
 
   it "doesn't run autocommands when noautocmd edit is used" do
@@ -75,6 +75,6 @@ describe '' do
                                   [files.last.to_s, 'Syntax'],
                                   [files.last.to_s, 'FileType'],
                                   [files.last.to_s, 'BufRead'],
-                                  [files.last.to_s, 'BufReadPost']])
+                                  [files.last.to_s, 'BufReadPost'],])
   end
 end

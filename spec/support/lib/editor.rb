@@ -41,7 +41,7 @@ class Editor
     'i'    => :insert,
     'v'    => :visual,
     'V'    => :linewise_visual,
-    "\x16" => :blockwise_visual
+    "\x16" => :blockwise_visual,
   }.freeze
 
   def mode
@@ -222,10 +222,10 @@ class Editor
 
   def locate_buffer!(name)
     location = with_ignore_cache do
-      echo func('esearch#util#bufloc', func('bufnr', "^#{name}"))
+      echo func('esearch#buf#location', func('esearch#buf#find', name))
     end
 
-    raise MissingBufferError if location.blank?
+    raise MissingBufferError if location == [0, 0]
 
     command! <<~VIML
       tabn #{location[0]}
@@ -434,7 +434,7 @@ class Editor
     up:        '\\<Up>',
     down:      '\\<Down>',
     end:       '\\<End>',
-    paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}"
+    paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}",
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

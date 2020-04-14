@@ -38,7 +38,7 @@ describe 'esearch window context syntax', :window do
     # or comments) are not groupped and scattered across source_file to cause as
     # more potential errors as possible
     it do
-      is_expected.to have_highligh_aliases(
+      is_expected.to have_highlight_aliases(
         region('<div', at: ..1)                 => %w[es_htmlTag Function],
         region('<div', at: 1..)                 => %w[es_htmlTagName Statement],
         region('</div', at: ..2)                => %w[es_htmlEndTag Identifier],

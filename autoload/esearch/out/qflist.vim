@@ -22,19 +22,8 @@ fu! esearch#out#qflist#init(opts) abort
 
   let g:esearch_qf = extend(a:opts, {
         \ 'ignore_batches':   0,
-        \ 'separators_count': 0,
         \ 'title':            ':'.a:opts.title,
-        \ 'broken_results':   [],
-        \ 'errors':           [],
-        \ 'data':             [],
         \})
-
-  call extend(g:esearch_qf.request, {
-        \ 'cursor':     0,
-        \ 'out_finish':   function('esearch#out#qflist#_is_render_finished')
-        \})
-
-  call esearch#backend#{g:esearch_qf.backend}#run(g:esearch_qf.request)
 
   if g:esearch_qf.request.async
     let w:quickfix_title = g:esearch_qf.title
@@ -87,8 +76,7 @@ fu! esearch#out#qflist#update() abort
 
     let original_cwd = esearch#util#lcd(esearch.cwd)
     try
-      let [parsed, separators_count] = esearch.parse(data, from, to)
-      let esearch.separators_count += separators_count
+      let [parsed, _separators_count] = esearch.parse(data, from, to)
       if esearch#util#qftype(bufnr('%')) ==# 'qf'
         let curpos = getcurpos()[1:]
         noau call setqflist(parsed, 'a')
@@ -139,11 +127,6 @@ fu! esearch#out#qflist#finish() abort
   endif
 
   silent doau User ESearchOutputFinishQFList
-endfu
-
-" For some reasons s:_is_render_finished fails in Travis
-fu! esearch#out#qflist#_is_render_finished() dict abort
-  return self.cursor == len(self.data)
 endfu
 
 fu! s:init_commands() abort

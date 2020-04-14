@@ -270,16 +270,16 @@ describe 'esearch#backend', :backend do
           context 'compatibility with syntax', :compatibility_regexps do
             include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3..5, other_files: [
               file("1\n2_3\n4",    '1.txt'),
-              file("a\n\nbb\nccc", '2.txt')
+              file("a\n\nbb\nccc", '2.txt'),
             ]
             include_context 'finds 1 entry of', /a{2}/,  in: "a\n__aa_a_", line: 2, column: 3..5
             include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_",    line: 2, column: 3..5, other_files: [
               file("1\n2_3\n4",    '1.txt'),
-              file("a\n\nbb\nccc", '2.txt')
+              file("a\n\nbb\nccc", '2.txt'),
             ]
             include_context 'finds 1 entry of', /(?<=the)cat/, in: "\nthecat", line: 2, column: 4..7, other_files: [
               file("\n___cat", '1.txt'),
-              file("\n_hecat", '2.txt')
+              file("\n_hecat", '2.txt'),
             ]
             include_context 'finds 1 entry of', /(?<name>\d)+5/,  in: "\n__345", line: 2, column: 3..6
             include_context 'finds 1 entry of', '(?P<name>\d)+5', in: "\n__345", line: 2, column: 3..6

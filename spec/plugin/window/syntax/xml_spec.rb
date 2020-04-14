@@ -55,7 +55,7 @@ describe 'esearch window context syntax', :window do
     # or comments) are not groupped and scattered across source_file to cause as
     # more potential errors as possible
     it do
-      is_expected.to have_highligh_aliases(
+      is_expected.to have_highlight_aliases(
         region('<?')                     => %w[es_xmlProcessingDelim Comment],
         region('?>')                     => %w[es_xmlProcessingDelim Comment],
         region('<?\zsxml')               => %w[es_xmlProcessingAttrib Type],

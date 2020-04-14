@@ -12,7 +12,7 @@ describe 'esearch#out#win#open' do
 
   let(:contexts) do
     [Context.new('file1.txt', "111\n222"),
-     Context.new('file2.txt', "333\n444")]
+     Context.new('file2.txt', "333\n444"),]
   end
   let(:files) do
     contexts.map { |c| c.file = file(c.content, c.name) }

@@ -6,10 +6,9 @@ endfu
 
 " :h file-pattern
 fu! esearch#buf#pattern(filename) abort
-  let filename = a:filename
-  " fnamemodify changes /foor/./bar => /foo/bar in paths, but it's not working
-  " when the filename is missing (edge case, but can be considered as TODO)
-  let filename = resolve(fnamemodify(filename, ':p'))
+  " Normalize the path (remove redundant path components like in foo/./bar) and
+  " resolve links
+  let filename = resolve(a:filename)
 
   " From :h file-pattern
   " Note that for all systems the '/' character is used for path separator (even
@@ -33,10 +32,22 @@ fu! esearch#buf#pattern(filename) abort
   "   \	special meaning like in a |pattern|
   "   [ch]	matches 'c' or 'h'
   "   [^ch]   match any character but 'c' and 'h'
-
   " Special file-pattern characters must be escaped: [ escapes to [[], not \[.
   let filename = escape(filename, '?*[],\')
   " replacing with \{ and \} or [{] and [}] doesn't work
   let filename = substitute(filename, '[{}]', '?', 'g')
-  return filename
+  return '^' . filename . '$'
 endfu
+
+fu! esearch#buf#location(bufnr) abort
+  for tabnr in range(1, tabpagenr('$'))
+    let buflist = tabpagebuflist(tabnr)
+    if index(buflist, a:bufnr) >= 0
+      for winnr in range(1, tabpagewinnr(tabnr, '$'))
+        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
+      endfor
+    endif
+  endfor
+
+  return [0, 0]
+endf

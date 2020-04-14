@@ -1,19 +1,18 @@
-let s:Vital   = vital#esearch#new()
-let s:String  = s:Vital.import('Data.String')
-let s:List  = s:Vital.import('Data.List')
-let s:Message  = s:Vital.import('Vim.Message')
-let s:linenr_format = ' %3d '
+let s:String  = vital#esearch#import('Data.String')
+let s:List    = vital#esearch#import('Data.List')
+let s:Message = vital#esearch#import('Vim.Message')
+let g:esearch#out#win#linenr_format = ' %3d '
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#out#win#cmdline#handle(event) abort
+fu! esearch#out#win#modifiable#cmdline#handle(event) abort
   let substitute = s:parse_substitute(a:event.cmdline)
   if !empty(substitute)
     return s:safely_replay_substitute(a:event, substitute)
   endif
 
-  call esearch#out#win#unsupported#handle(a:event)
+  call esearch#out#win#modifiable#unsupported#handle(a:event)
 endfu
 
 fu! s:safely_replay_substitute(event, command) abort
@@ -22,7 +21,7 @@ fu! s:safely_replay_substitute(event, command) abort
   endif
   if s:is_size_changed(a:event)
     call s:Message.echo('ErrorMsg', 'Multiline :substitute is not allowed')
-    return esearch#out#win#unsupported#handle(a:event)
+    return esearch#out#win#modifiable#unsupported#handle(a:event)
   endif
 
   let original_pattern = a:command.get_pattern()
@@ -73,7 +72,7 @@ fu! s:replay_confirmable(event, command, original_pattern) abort
       " don't replay changes on top of contexts boundaries (as they contain only
       " the virtual ui)
     else
-      let linenr = printf(s:linenr_format, state.line_numbers_map[line])
+      let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[line])
 
       if s:String.starts_with(modified_text, linenr)
         call setline(line, modified_text) " LineNr isn't corrupted, can be safely replayed

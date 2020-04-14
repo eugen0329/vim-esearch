@@ -18,6 +18,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   let id = s:id.next()
   let request = {
         \ 'internal_job_id': id,
+        \ 'job_id': -1,
         \ 'old_cursor': '',
         \ 'jobstart_args': {
         \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
@@ -35,8 +36,8 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'ticks': g:esearch#backend#vim8#ticks,
         \ 'backend':  'vim8',
         \ 'adapter':  a:adapter,
-        \ 'intermediate':  '',
         \ 'command':  a:command,
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'errors':     [],
@@ -44,6 +45,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'status': 0,
         \ 'async': 1,
         \ 'aborted': 0,
+        \ 'cursor': 0,
         \ 'events': {
         \   'schedule_finish': 0,
         \   'update': 0
@@ -58,6 +60,7 @@ fu! esearch#backend#vim8#run(request) abort
   let original_cwd = esearch#util#lcd(a:request.cwd)
   try
     let a:request.job_id = job_start(a:request.jobstart_args.command, a:request.jobstart_args.opts)
+    let a:request.start_at = reltime()
   finally
     call original_cwd.restore()
   endtry
@@ -66,21 +69,31 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
-  let data = split(a:data, "\n", 1)
-
-  if !empty(request.intermediate) && !empty(data)
-    let data[0] = request.intermediate . data[0]
-    let request.intermediate = ''
-  endif
-  if !empty(data) && data[-1] !~# '\r$'
-    let request.intermediate = remove(data, -1)
-  endif
-
-  let request.data += filter(data, "'' !=# v:val")
-  if !request.aborted && request.tick % request.ticks == 1 && !empty(request.events.update)
+  let request.data += filter(split(a:data, "\n", 1), "'' !=# v:val")
+  if !empty(request.events.update) && request.tick % request.ticks == 1 && !request.aborted
     call request.events.update()
   endif
   let request.tick = request.tick + 1
+endfu
+
+" Adapted from vital-Whisky
+fu! s:is_consumed() abort dict
+  let timeout = g:esearch.early_finish_timeout / 1000.0 - reltimefloat(reltime(self.start_at))
+  if timeout < 0.0 | return | endif
+  let stopped = 0
+
+  let start_time = reltime()
+  let job = self.job_id
+
+  while timeout == 0 || timeout > reltimefloat(reltime(start_time))
+    let status = job_status(job)
+    if status !=# 'run'
+      return self.finished
+    endif
+    sleep 1m
+  endwhile
+
+  return self.finished
 endfu
 
 fu! s:stderr(job_id, job, data) abort
@@ -142,9 +155,7 @@ endfu
 fu! esearch#backend#vim8#abort(bufnr) abort
   " FIXME unify with out#qflist
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
-  if empty(esearch)
-    return -1
-  endif
+  if empty(esearch.request) || esearch.request.aborted | return | endif
   let esearch.request.aborted = 1
 
   if has_key(esearch.request, 'timer_id')
@@ -156,11 +167,3 @@ fu! esearch#backend#vim8#abort(bufnr) abort
     call job_stop(esearch.request.job_id, 'kill')
   endif
 endfu
-
-function! esearch#backend#vim8#_context() abort
-  return s:
-endfunction
-function! esearch#backend#vim8#_sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

@@ -5,8 +5,7 @@ else
   let s:less_or_equal = '<='
   let s:spinner = ['.', '..', '...']
 endif
-let s:spinner_fram_len = len(s:spinner)
-let s:spinner_slowdown = 2
+let s:spinner_frames_count = len(s:spinner)
 let s:spinner_max_frame_len = max(map(copy(s:spinner), 'strchars(v:val)'))
 let s:finished_header = 'Matches in %d %s, %d %s. Finished.'
 
@@ -46,7 +45,7 @@ fu! esearch#out#win#header#in_progress() abort dict
     return self.header_text()
   endif
 
-  let spinner = s:spinner[self.tick / s:spinner_slowdown % s:spinner_fram_len]
+  let spinner = s:spinner[self.request.cursor / self.batch_size % s:spinner_frames_count]
   return printf(self.header_format,
         \ len(self.request.data)  - self.separators_count,
         \ spinner,
@@ -56,7 +55,7 @@ fu! esearch#out#win#header#in_progress() abort dict
 endfu
 
 fu! esearch#out#win#header#finished_backend() abort dict
-  let spinner = s:spinner[self.tick / s:spinner_slowdown % s:spinner_fram_len]
+  let spinner = s:spinner[self.request.cursor / self.batch_size % s:spinner_frames_count]
   return printf(self.header_format,
         \ len(self.request.data) - self.separators_count,
         \ self.files_count,

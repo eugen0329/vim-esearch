@@ -73,6 +73,12 @@ Layout/HashAlignment:
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
 
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
 ### Parser specs
 # use %q|| instead of %q() to simplify escaping testing
 Style/PercentQLiterals:

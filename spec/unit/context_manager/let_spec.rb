@@ -26,7 +26,7 @@ describe 'esearch#option' do
         '&directory'   => '1-option',
         '$GLOBAL_VAR'  => '1-GLOBAL_VAR',
         '@/'           => '1-register1',
-        '@='           => '1-register2'
+        '@='           => '1-register2',
       }
     end
     let(:updated_variables) do
@@ -46,7 +46,7 @@ describe 'esearch#option' do
         '&directory'   => '2-option',
         '$GLOBAL_VAR'  => '2-GLOBAL_VAR',
         '@/'           => '2-register1',
-        '@='           => '2-register2'
+        '@='           => '2-register2',
       }
     end
     let(:variables) { original_variables.keys.map { |k| var(k) } }

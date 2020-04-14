@@ -22,7 +22,7 @@ let g:esearch#preview#silent_open_eventignore =
 
 let g:esearch#preview#buffers     = {}
 let g:esearch#preview#win         = s:null
-let g:esearch#preview#last        = s:null
+let g:esearch#preview#last        = {}
 let g:esearch#preview#cache       = esearch#cache#lru#new(20)
 
 fu! esearch#preview#open(filename, line, ...) abort
@@ -75,7 +75,7 @@ endfu
 fu! esearch#preview#reset() abort
   " Sometimes emphasis remains when using tabclose command. We need to try
   " cleaning it up no matter the window opened or not.
-  if g:esearch#preview#last isnot# s:null
+  if has_key(g:esearch#preview#last, 'win')
     call g:esearch#preview#last.win.clear_emphasis()
   endif
   " If #close() is used on every listed event, it can cause a bug where previewed
@@ -261,7 +261,7 @@ fu! s:RegularBuffer.edit() abort dict
   " suppressed on displaying and appeared on entering.
 
   " If the buffer has a filename equal to the previewed filename
-  if expand('%:p') ==# self.filename
+  if expand('%:p') ==# simplify(self.filename)
     let win_ids = win_findbuf(self.id)
     let is_hidden = empty(win_ids) || win_ids ==# [g:esearch#preview#win.id]
 

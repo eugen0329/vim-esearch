@@ -29,13 +29,14 @@ RSpec.shared_context 'setup syntax testing' do
     editor.cleanup!
   end
 
-  it 'keeps line numbers highligh untouched' do
+  it 'keeps line numbers highlight untouched' do
     expect(source_file.content).to have_line_numbers_highlight(%w[esearchLineNr LineNr])
   end
 
-  it 'keeps header highligh untouched' do
-    is_expected.to have_highligh_aliases(
-      '\%1l.*' => %w[esearchHeader Title]
+  it 'keeps header highlight untouched' do
+    is_expected.to have_highlight_aliases(
+      '\%1l[^0-9]*' => %w[esearchHeader Title],
+      '\%1l[0-9]*'  => %w[esearchStatistics Number]
     )
   end
 end

@@ -141,7 +141,7 @@ module Helpers::Modifiable::Columnwise
     name_anchors = {
       begin:  anchor_begin,
       middle: anchor_middle,
-      end:    anchor_end
+      end:    anchor_end,
     }
     name = "#{anchor_begin}#{filler * 2}#{anchor_middle}#{filler * 2}#{anchor_end}"
 
@@ -150,7 +150,7 @@ module Helpers::Modifiable::Columnwise
       anchors = {
         begin:  anchor_begin,
         middle: anchor_middle,
-        end:    anchor_end
+        end:    anchor_end,
       }
 
       content = "#{anchor_begin}#{filler * 2}#{anchor_middle}#{filler * 2}#{anchor_end}"

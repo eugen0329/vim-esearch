@@ -48,7 +48,7 @@ describe 'esearch window context syntax', :window do
     # or comments) are not groupped and scattered across source_file to cause as
     # more potential errors as possible
     it do
-      is_expected.to have_highligh_aliases(
+      is_expected.to have_highlight_aliases(
         word('true')                         => %w[es_tomlBoolean Boolean],
         word('false')                        => %w[es_tomlBoolean Boolean],
 

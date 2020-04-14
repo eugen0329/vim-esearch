@@ -130,7 +130,7 @@ describe VimlValue::Lexer do
           .to be_tokenized_as([tok(:FUNCREF, nil, 0..8),
                                tok('(',      '(',  8..9),
                                tok(:STRING,  'tr', 9..13),
-                               tok(')',      ')',  13..14)])
+                               tok(')',      ')',  13..14),])
       end
     end
 

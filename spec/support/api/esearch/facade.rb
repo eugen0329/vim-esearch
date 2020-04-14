@@ -10,7 +10,7 @@ class API::ESearch::Facade
   OUTPUTS = {
     win:     API::ESearch::Window,
     qflist:  API::ESearch::QuickFix,
-    stubbed: API::ESearch::StubbedOutput
+    stubbed: API::ESearch::StubbedOutput,
   }.with_indifferent_access
 
   delegate :search!, to: :core

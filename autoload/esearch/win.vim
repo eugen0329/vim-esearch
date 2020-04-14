@@ -1,6 +1,6 @@
 let s:window_id  = esearch#itertools#count()
 
-" Utility functions to work with wondows. Includes:
+" Utility functions to work with windows. Includes:
 " - normalized windows api
 " - guards to set/reset windows configs without enter
 
@@ -65,8 +65,8 @@ endfu
 """""""""""""""""""""""""""""""""""""""
 
 if g:esearch#has#nvim_winid
-  " Neovim mehtods are used instead of cross-editor win_gotoid() etc. to allow
-  " working with non-focusable neoivim floating windows.
+  " Neovim methods are used instead of cross-editor win_gotoid() etc. to allow
+  " working with non-focusable neovim floating windows.
 
   fu! esearch#win#exists(handle) abort
     return nvim_win_is_valid(a:handle)
@@ -137,7 +137,7 @@ else
   endfu
 
   fu! esearch#win#trace() abort
-    " ViewTracer works by matching window vars, so using counter prevents from
+    " Neovim works by matching window vars, so using counter prevents from
     " matching different windows with the same variables defined.
     let w:esearch = s:window_id.next()
     return s:ViewTracer.trace_window()

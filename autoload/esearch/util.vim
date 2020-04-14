@@ -1,5 +1,4 @@
 let s:Prelude   = vital#esearch#import('Prelude')
-let s:Highlight = vital#esearch#import('Vim.Highlight')
 let s:Message   = vital#esearch#import('Vim.Message')
 let s:Filepath  = vital#esearch#import('System.Filepath')
 
@@ -49,19 +48,6 @@ fu! esearch#util#qfbufnr() abort
   endfor
   return -1
 endfu
-
-fu! esearch#util#bufloc(bufnr) abort
-  for tabnr in range(1, tabpagenr('$'))
-    let buflist = tabpagebuflist(tabnr)
-    if index(buflist, a:bufnr) >= 0
-      for winnr in range(1, tabpagewinnr(tabnr, '$'))
-        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
-      endfor
-    endif
-  endfor
-
-  return []
-endf
 
 fu! esearch#util#flatten(list) abort
   let flatten = []
@@ -221,23 +207,6 @@ endfu
 fu! esearch#util#stringify(key, ...) dict abort
   let option_index = g:esearch[a:key]
   return self[a:key]['s'][option_index]
-endfu
-
-fu! esearch#util#copy_highlight(from, to, options) abort
-  let new_highlight = {'name': a:from, 'attrs': s:Highlight.get(a:to).attrs}
-
-  call s:Highlight.set(new_highlight, a:options)
-endfu
-
-fu! esearch#util#set_highlight(name, attributes, options) abort
-  let attributes = filter(a:attributes, '!empty(v:val)')
-  let new_highlight = {'name': a:name, 'attrs': attributes}
-
-  call s:Highlight.set(new_highlight, a:options)
-endfu
-
-fu! esearch#util#get_highlight(hightlight_name) abort
-  return s:Highlight.get(a:hightlight_name).attrs
 endfu
 
 fu! esearch#util#stringify_mapping(map) abort
@@ -583,7 +552,7 @@ fu! esearch#util#safe_undojoin() abort
 endfu
 
 fu! esearch#util#safe_matchdelete(id) abort
-  if a:id < 0 | return | endif
+  if a:id < 1 | return | endif " E802
 
   try
     call matchdelete(a:id)
@@ -659,7 +628,7 @@ fu! esearch#util#is_visual() abort
   " Note that in the future more modes and more specific modes may
   " be added. It's better not to compare the full string but only
   " the leading character(s).
-  return mode() =~? "^[vS\<C-v>]"
+  return mode()[0] =~? "[vs\<C-v>]"
 endfu
 
 fu! esearch#util#lcd(path) abort
@@ -708,3 +677,19 @@ fu! esearch#util#pluralize(word, count) abort
   let word .= 's'
   return word
 endfu
+
+if g:esearch#has#nomodeline
+  fu! esearch#util#doautocmd(expr) abort
+    exe 'silent doau <nomodeline> ' . a:expr
+  endfu
+else
+  fu! esearch#util#doautocmd(expr) abort
+    let original_modelines = &modelines
+    try
+      set modelines=0
+      exe 'silent doau ' . a:expr
+    finally
+      let &modelines = original_modelines
+    endtry
+  endfu
+endif

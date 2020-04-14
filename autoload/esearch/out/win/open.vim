@@ -1,10 +1,19 @@
-let s:Message    = vital#esearch#import('Vim.Message')
-let s:Filepath   = vital#esearch#import('System.Filepath')
-
+let s:Message       = vital#esearch#import('Vim.Message')
+let s:Filepath      = vital#esearch#import('System.Filepath')
+let s:BufferManager = vital#esearch#import('Vim.BufferManager')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#out#win#open#do(opener, ...) abort dict
+fu! esearch#out#win#open#init(esearch) abort
+  call extend(a:esearch, {
+        \ 'windows_opened_once': {},
+        \ 'opened_once_manager': s:BufferManager.new(),
+        \ 'opened_manager':      s:BufferManager.new(),
+        \ 'open':                function('<SID>open'),
+        \}, 'keep')
+endfu
+
+fu! s:open(opener, ...) abort dict
   if !self.is_current() || self.is_blank() | return | endif
   let filename = self.filename()
   if empty(filename) | return | endif

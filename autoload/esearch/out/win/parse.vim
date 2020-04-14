@@ -1,5 +1,4 @@
-let s:Vital   = vital#esearch#new()
-let s:String  = s:Vital.import('Data.String')
+let s:String = vital#esearch#import('Data.String')
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()

@@ -20,7 +20,7 @@ describe 'esearch#preview' do
     let(:search_string) { 'n' }
     let(:contexts) do
       [Context.new('a.c', ['int'] * 100),
-       Context.new('b.c', ['int'] * 100)]
+       Context.new('b.c', ['int'] * 100),]
     end
     let(:files) do
       contexts.map { |c| c.file = file(c.content, c.name) }

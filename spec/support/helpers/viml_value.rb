@@ -34,7 +34,7 @@ module Helpers::VimlValue
     def failure_message
       ["to return#{human_readable(@expected)}",
        "after processing #{@actual.inspect},",
-       "got #{@processed.inspect}"].join(' ')
+       "got #{@processed.inspect}",].join(' ')
     end
 
     # helps to expand messages for be_kind_of matchers etc.
@@ -65,7 +65,7 @@ module Helpers::VimlValue
 
     def failure_message
       ["#{human_readable_name} #{@exception}",
-       "but #{@processed.inspect} was returned"].join(' ')
+       "but #{@processed.inspect} was returned",].join(' ')
     end
 
     def human_readable_name
