@@ -1,5 +1,4 @@
 let s:jobs = {}
-let s:incrementable_internal_id = 0
 
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
@@ -9,7 +8,6 @@ let s:NVIM_JOB_IS_INVALID = -3
 
 fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   let request = {
-        \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
         \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
         \   'opts': {
@@ -27,9 +25,11 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
         \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'intermediate': '',
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'errors':     [],
         \ 'finished': 0,
         \ 'status': 0,
+        \ 'cursor': 0,
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
@@ -37,8 +37,6 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
         \   'update': 0
         \ }
         \}
-
-  let s:incrementable_internal_id += 1
 
   return request
 endfu
@@ -53,6 +51,10 @@ fu! esearch#backend#nvim#run(request) abort
   finally
     call original_cwd.restore()
   endtry
+endfu
+
+fu! s:is_consumed(timeout) abort dict
+  return jobwait([self.job_id], a:timeout)[0] ==# -1 && self.finished
 endfu
 
 " TODO encoding

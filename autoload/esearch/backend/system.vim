@@ -5,12 +5,18 @@ fu! esearch#backend#system#init(cwd, adapter, cmd) abort
         \ 'adapter':  a:adapter,
         \ 'data':   [],
         \ 'errors': [],
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'async': 0,
+        \ 'cursor': 0,
         \ 'status': 0,
-        \ 'finished': 1
+        \ 'finished': 0
         \}
 
   return request
+endfu
+
+fu! s:is_consumed(timeout) abort dict
+  return self.finished
 endfu
 
 fu! esearch#backend#system#run(request) abort
@@ -18,6 +24,7 @@ fu! esearch#backend#system#run(request) abort
   try
     let a:request.data = split(system(a:request.command), "\n")
     let a:request.status = v:shell_error
+    let a:request.finished = 1
 
     if a:request.status !=# 0
       let a:request.errors = a:request.data

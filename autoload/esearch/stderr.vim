@@ -7,6 +7,7 @@ fu! esearch#stderr#incremental(adapter, errors) abort
   let prefix = a:adapter . ': '
 
   for error in a:errors
+    redraw
     call s:Message.echomsg('ErrorMsg',  prefix . error)
   endfor
 endfu
@@ -33,6 +34,5 @@ fu! esearch#stderr#finish(esearch) abort
           \ a:esearch.request.status,
           \ )
   endif
-
   call s:Message.echomsg('ErrorMsg', message)
 endfu

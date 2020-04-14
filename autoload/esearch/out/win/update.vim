@@ -4,10 +4,12 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 " TODO refactoring
 fu! esearch#out#win#update#init(esearch) abort
   " TODO consider to drop ignore batches
+  let a:esearch.ignore_batches = 0
+  if !a:esearch.request.async | return | endif
+
   call extend(a:esearch, {
         \ 'last_update_at':          reltime(),
         \ 'updates_timer':           -1,
-        \ 'ignore_batches':          0,
         \ 'update_with_timer_start': 0,
         \})
 
@@ -108,7 +110,7 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = get(a:000, 0, esearch.ignore_batches)
   let request = esearch.request
-  let data = esearch.request.data
+  let data = request.data
   let data_size = len(data)
 
   call setbufvar(a:bufnr, '&ma', 1)

@@ -20,15 +20,16 @@ let s:incrementable_internal_id = 0
 fu! esearch#backend#vimproc#init(cwd, adapter, cmd) abort
   let request = {
         \ 'internal_id': s:incrementable_internal_id,
-        \ 'format': '%f:%l:%c:%m,%f:%l:%m',
         \ 'backend': 'vimproc',
         \ 'adapter': a:adapter,
         \ 'command': a:cmd,
         \ 'cwd': a:cwd,
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'data':   [],
         \ 'errors': [],
         \ 'async': 1,
         \ 'status': 0,
+        \ 'cursor': 0,
         \ 'finished': 0,
         \ 'aborted': 0,
         \ '_last_update_time':   esearch#util#timenow(),
@@ -43,6 +44,11 @@ fu! esearch#backend#vimproc#init(cwd, adapter, cmd) abort
   let s:incrementable_internal_id += 1
 
   return request
+endfu
+
+fu! s:is_consumed(timeout) abort dict
+  " Ignore the feature as vimproc backend is a candidate for deprecation
+  return 0
 endfu
 
 fu! esearch#backend#vimproc#run(request) abort

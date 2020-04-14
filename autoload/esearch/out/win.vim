@@ -1,7 +1,7 @@
 let s:Guard = vital#esearch#import('Vim.Guard')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-let s:Buffer        = vital#esearch#import('Vim.Buffer')
+let s:Buffer = vital#esearch#import('Vim.Buffer')
 
 let g:esearch#out#win#mappings = [
       \ {'lhs': 't',       'rhs': 'tab',                'default': 1},
@@ -105,10 +105,8 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#out#win#header#init(b:esearch)
   call esearch#out#win#view_data#init(b:esearch)
   call esearch#out#win#jumps#init(b:esearch)
-  if b:esearch.request.async
-    call esearch#out#win#update#init(b:esearch)
-  endif
   call esearch#out#win#render#init(b:esearch)
+  call esearch#out#win#update#init(b:esearch)
 
   " Some plugins set mappings on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
@@ -149,11 +147,10 @@ fu! esearch#out#win#init(esearch) abort
   aug END
   call esearch#util#doautocmd('User esearch_win_init_post')
 
-  if !b:esearch.request.async || b:esearch.request.finished
-    call esearch#out#win#finish(bufnr('%'))
+  if !b:esearch.request.async || b:esearch.request.is_consumed(has('nvim') ? 20 : 40)
+    call esearch#out#win#update#finish(bufnr('%'))
   endif
 endfu
-let g:asd = 0
 
 fu! s:cleanup() abort
   if exists('b:esearch')
@@ -182,12 +179,12 @@ fu! s:find_or_create_buf(bufname, opener) abort
   if bufnr == bufnr('%') | return | endif
   " Open if doesn't exist
   if bufnr == -1
-    return s:Buffer.open(escaped, {'opener': a:opener})
+    silent return s:Buffer.open(escaped, {'opener': a:opener})
   endif
   let [tabnr, winnr] = esearch#buf#location(bufnr)
   " Open if closed
   if empty(winnr)
-    return s:Buffer.open(escaped, {'opener': a:opener})
+    silent return s:Buffer.open(escaped, {'opener': a:opener})
   endif
   " Locate if opened
   silent exe 'tabnext ' . tabnr

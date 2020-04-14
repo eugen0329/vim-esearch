@@ -61,7 +61,7 @@ function M.render(data, path, esearch)
     end
 
     if text:len() > unload_context_syntax_on_line_length then
-      if text:len() > unload_global_syntax_on_line_length and esearch['highlights_enabled'] then
+      if text:len() > unload_global_syntax_on_line_length and esearch['highlights_enabled'] == 1 then
         esearch['highlights_enabled'] = false
         vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else

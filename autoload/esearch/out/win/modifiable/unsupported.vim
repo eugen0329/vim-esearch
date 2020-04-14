@@ -1,4 +1,5 @@
 fu! esearch#out#win#modifiable#unsupported#handle(event) abort
+  setl modifiable
   try
     call esearch#changes#lock()
     call b:esearch.undotree.mark_block_as_corrupted()

@@ -18,6 +18,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   let id = s:id.next()
   let request = {
         \ 'internal_job_id': id,
+        \ 'job_id': -1,
         \ 'old_cursor': '',
         \ 'jobstart_args': {
         \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
@@ -37,6 +38,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'adapter':  a:adapter,
         \ 'intermediate':  '',
         \ 'command':  a:command,
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'cwd':      a:cwd,
         \ 'data':     [],
         \ 'errors':     [],
@@ -44,6 +46,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'status': 0,
         \ 'async': 1,
         \ 'aborted': 0,
+        \ 'cursor': 0,
         \ 'events': {
         \   'schedule_finish': 0,
         \   'update': 0
@@ -76,11 +79,32 @@ fu! s:stdout(job_id, job, data) abort
     let request.intermediate = remove(data, -1)
   endif
 
-  let request.data += filter(data, "'' !=# v:val")
-  if !request.aborted && request.tick % request.ticks == 1 && !empty(request.events.update)
+  let request.data += data
+  if !empty(request.events.update) && request.tick % request.ticks == 1 && !request.aborted
     call request.events.update()
   endif
   let request.tick = request.tick + 1
+endfu
+
+" Adapted from vital-Whisky
+fu! s:is_consumed(timeout) abort dict
+  let stopped = 0
+  let timeout = a:timeout / 1000.0
+  let start_time = reltime()
+  let job = self.job_id
+  try
+    while timeout == 0 || timeout > reltimefloat(reltime(start_time))
+      let status = job_status(job)
+      if status !=# 'run'
+        let stopped = 1
+        break
+      endif
+      sleep 1m
+    endwhile
+  catch /^Vim:Interrupt$/
+    let stopped = 1
+  endtry
+  return stopped && self.finished
 endfu
 
 fu! s:stderr(job_id, job, data) abort
