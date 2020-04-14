@@ -81,7 +81,7 @@ module Helpers::Modifiable
         set backspace=indent,eol,start
         cd #{test_directory}
         call esearch#init({'exp': {'pcre': '^'}})
-        call esearch#out#win#modifiable#edit()
+        call esearch#out#win#modifiable#init()
         call feedkeys("\\<C-\\>\\<C-n>")
       SETUP
     end
