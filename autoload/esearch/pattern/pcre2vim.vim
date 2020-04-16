@@ -1,17 +1,48 @@
-let s:Vital        = vital#esearch#new()
-let s:LexerModule  = s:Vital.import('Text.Lexer')
-let s:ParserModule = s:Vital.import('Text.Parser')
+let s:LexerModule  = vital#esearch#import('Text.Lexer')
+let s:ParserModule = vital#esearch#import('Text.Parser')
 
-fu! esearch#regex#pcre2vim#convert(string, ...) abort
+fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
-    let parsed = s:PCRE2Vim.new(a:string).parse()
-  catch /^PCRE2Vim:/
+    let tokens = s:PCRE2Vim.new(a:string).convert()
+  catch /^PCRE2Vim:.*/
+    if g:esearch#env isnot# 0
+      echomsg v:exception . ' at ' . v:throwpoint
+    endif
     return ''
   endtry
-  return join(parsed, '')
+
+  let converted = join(tokens, '')
+
+  try
+    " Simple validation to ensure that the pattern is converted correctly
+    call match('', '.*' . converted)
+  catch
+    if g:esearch#env isnot# 0
+      echomsg v:exception . ' at ' . v:throwpoint
+    endif
+    return ''
+  endtry
+
+  return converted
 endfu
 
-" https://www.regular-expressions.info/modifiers.html
+let s:PCRE2Vim = {
+      \ 'case_sensitive':       1,
+      \ 'contexts':             [],
+      \ 'cant_exclude':         {},
+      \ '_debug_tokens':        [],
+      \ 'result':               [],
+      \ 'p':                    0,
+      \ }
+
+fu s:PCRE2Vim.new(text) abort dict
+  let lexer = s:LexerModule.lexer(s:rules).exec(a:text)
+  let instance = extend(s:ParserModule.parser().exec(lexer), deepcopy(self))
+  let instance.text = a:text
+  return instance
+endfu
+
+" https:/\p{/www.regular-expressions.info/modifiers.html
 let s:modifiers_set = '[\-bcdeimnpqstwx]\+'
 let s:match_modifiers_span = printf('(?%s:', s:modifiers_set)
 let s:match_modifiers      = printf('(?%s)', s:modifiers_set)
@@ -42,28 +73,11 @@ let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
 let s:match_bracketed_escape = '\%(\\[xou]{\x\{,4}}\)'
 
-let s:PCRE2Vim = {
-      \ 'case_sensitive':       1,
-      \ 'contexts':             [],
-      \ '_debug_tokens':        [],
-      \ 'result':               [],
-      \ 'p':                    0,
-      \ }
-
-fu s:PCRE2Vim.new(text) abort dict
-  let lexer = s:LexerModule.lexer(s:rules).exec(a:text)
-  let instance = extend(s:ParserModule.parser().exec(lexer), deepcopy(self))
-  let instance.text = a:text
-  return instance
-endfu
-
 let s:rules = [
       \  ['POSIX_BRACKET_EXP',        s:match_posix_bracket_exp                ],
       \  ['CLASS_START',              '\['                                     ],
       \  ['NCLASS_START',             '\[\^'                                   ],
       \  ['CLASS_END',                '\]'                                     ],
-      \  ['ESCAPED_CLASS_START',      '\\\['                                   ],
-      \  ['ESCAPED_CLASS_END',        '\\\]'                                   ],
       \  ['MODIFIER',                 s:match_modifiers                        ],
       \  ['MODIFIER_SPAN',            s:match_modifiers_span                   ],
       \  ['POSITIVE_LOOKBEHIND',      '(?<='                                   ],
@@ -76,23 +90,24 @@ let s:rules = [
       \  ['BRANCH_RESET_START',       '(?|'                                    ],
       \  ['GROUP_START',              '('                                      ],
       \  ['GROUP_END',                ')'                                      ],
-      \  ['SUBJECT_START',            '\\A'                                    ],
-      \  ['SUBJECT_END',              '\\[zZ]'                                 ],
+      \  ['SUBJECT_BOUNDARY',         '\\[AzZ]'                                ],
       \  ['RANGE_QUANTIFER',          s:match_range_quantifier                 ],
       \  ['QUANTIFIER',               '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
-      \  ['DOUBLE_SLASH',             '\\\\'                                   ],
-      \  ['WORD_BOUNDARY',            '\\b'                                    ],
+      \  ['WORD_BOUNDARY',            '\\[Bb]'                                 ],
       \  ['TOBEESCAPED',              '[|~]'                                   ],
       \  ['TOBEUNESCAPED',            '\\[&{%<>()?+|=@_]'                      ],
+      \  ['PROPERTY',                 '\\[Pp]{\w\+}'                           ],
       \  ['BRACKETED_ESCAPE',         s:match_bracketed_escape                 ],
-      \  ['DOT',                      '\.'                                     ],
       \  ['ESCAPED_ANY',              '\\.'                                    ],
       \  ['ANy',                      '.'                                      ],
       \]
 
-let s:subject_start = '^'
-let s:subject_end   = '$'
-" NOTE: possessive are converted to greedy. https://github.com/vim/vim/issues/4638
+let s:pcre2vim_subject_boundary = {
+      \ '\A': '^',
+      \ '\z': '$',
+      \ '\Z': '$',
+      \}
+" NOTE: possessive are converted to greedy. https:/\p{/github.com/vim/vim/issues/4638
 let s:pcre2vim_quantifier = {
       \ '*':  '*',
       \ '+':  '\+',
@@ -132,66 +147,64 @@ fu! s:PCRE2Vim.push_context(label) abort dict
   let self.contexts += [{ 'label': a:label, 'start': self.p }]
 endfu
 
-fu! s:split_modifiers(modifiers)
-  return split(a:modifiers, '-\=\w\zs')
-endfu
-
 fu! s:PCRE2Vim.parse_class() abort dict
+  let result = [self.advance().matched_text]
+
   while ! self.end()
     if self.next_is(['SIMPLE_RANGE'])
-      let self.result += [self.advance().matched_text]
+      let result += [self.advance().matched_text]
     elseif self.next_is(['CLASS_START'])
-      call self.fail('unexpected CLASS_START')
+      let result += [self.advance().matched_text]
+      " let self.result += result
+      " call self.throw('unexpected CLASS_START')
     elseif self.next_is(['BRACKETED_ESCAPE'])
-      let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
+      let result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
+    elseif self.next_is(['PROPERTY'])
+      call self.throw('properties are not supported')
     elseif self.next_is(['TOBEUNESCAPED'])
       call self.advance()
-      let self.result += [self.token.matched_text[1:]]
+      let result += [self.token.matched_text[1:]]
     elseif self.next_is(['POSIX_BRACKET_EXP'])
       call self.advance()
       let text = self.token.matched_text
       if text ==# '[:word:]'
-        let self.result += [s:metachar2class_content['\w']]
+        let result += [s:metachar2class_content['\w']]
       elseif text ==# '[:ascii:]'
-        let self.result += ['\x00-\x7F']
+        let result += ['\x00-\x7F']
       else
-        let self.result += [self.token.matched_text]
+        let result += [self.token.matched_text]
       endif
     elseif self.next_is(['ESCAPED_ANY'])
       call self.advance()
       let text = self.token.matched_text
-      if has_key(s:metachar2class_content, text)
-        let self.result += [s:metachar2class_content[text]]
-      else
-        let self.result += [text]
-      endif
+      let result += [get(s:metachar2class_content, text, text)]
     elseif self.next_is(['CLASS_END'])
       call self.advance()
       if self.contexts[-1].label ==# 'CLASS'
-        call self.pop_context()
-        let self.result += [']']
-        return self.result
+        return result + [']']
       else
-        call self.fail('unexpected context' . string(self.contexts))
+        let self.result += result
+        call self.throw('unexpected context' . string(self.contexts))
       endif
     else
-      let self.result += [self.advance().matched_text]
+      let result += [self.advance().matched_text]
     endif
   endwhile
 
-  return self.fail('unexpected EOF (CLASS_END expected)')
+  let self.result += result
+  call self.throw('unexpected EOF (CLASS_END expected)')
 endfu
 
 fu! s:PCRE2Vim.set_global_modifiers(matched_text) abort dict
   " Only case insensitive match modifier is supported.
   " There are some false positives are possible if a pattern heavily relies on
   " case matching.
-  if self.case_sensitive && a:matched_text =~# '[^-]i'
+  if self.case_sensitive && a:matched_text =~#  '[^-]i'
     let self.result += ['\c']
   endif
 endfu
 
-fu! s:PCRE2Vim.parse() abort dict
+fu! s:PCRE2Vim.convert() abort dict
   while ! self.end()
     if self.next_is(['POSITIVE_LOOKBEHIND', 'POSITIVE_LOOKAHEAD', 'NEGATIVE_LOOKAHEAD', 'NEGATIVE_LOOKBEHIND', 'ATOMIC_GROUP'])
       call self.advance()
@@ -207,13 +220,16 @@ fu! s:PCRE2Vim.parse() abort dict
     elseif self.next_is(['RANGE_QUANTIFER'])
       call self.advance()
       let range = matchstr(self.token.matched_text, s:capture_range_quantifier)
-      if self.token.matched_text =~# '?$'
+      if self.token.matched_text =~#  '?$'
         let self.result += ['\{-'.range.'}']
       else
         let self.result += ['\{'.range.'}']
       endif
     elseif self.next_is(['BRACKETED_ESCAPE'])
       let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
+    elseif self.next_is(['PROPERTY'])
+      call self.advance()
+      let self.result += ['.']
     elseif self.next_is(['TOBEESCAPED'])
       call self.advance()
       let self.result += ['\'.self.token.matched_text]
@@ -221,14 +237,13 @@ fu! s:PCRE2Vim.parse() abort dict
       call self.advance()
       let self.result += [self.token.matched_text[1:]]
     elseif self.next_is(['WORD_BOUNDARY'])
-      let self.result += ['\%(\<\|\>\)']
-      call self.advance()
-    elseif self.next_is(['SUBJECT_START'])
-      call self.advance()
-      let self.result += [s:subject_start]
-    elseif self.next_is(['SUBJECT_END'])
-      call self.advance()
-      let self.result += [s:subject_end]
+      if self.advance().matched_text ==# '\b'
+        let self.result += ['\%(\<\|\>\)']
+      else " ==# '\B'
+        let self.result += ['\%(\w\)\@<=\%(\w\)\@='] " lookahead + lookbehind
+      endif
+    elseif self.next_is(['SUBJECT_BOUNDARY'])
+      let self.result += [s:pcre2vim_subject_boundary[self.advance().matched_text]]
     elseif self.next_is(['NONCAPTURING_GROUP_START'])
       call self.advance()
       let self.result += ['\%(']
@@ -247,21 +262,14 @@ fu! s:PCRE2Vim.parse() abort dict
       let self.result += ['\(']
       call self.push_context('GROUP_START')
     elseif self.next_is(['NCLASS_START', 'CLASS_START'])
-      let self.result += [self.advance().matched_text]
       call self.push_context('CLASS')
-      call self.parse_class()
+      let self.result += self.parse_class()
+      call self.pop_context()
     elseif self.next_is(['QUANTIFIER'])
       let self.result += [s:pcre2vim_quantifier[self.advance().matched_text]]
-    elseif self.next_is(['DOUBLE_SLASH'])
-      " is it a hack?
-      call self.advance()
-      let self.result += ['\\']
-    elseif self.next_is(['DOT'])
-      call self.advance()
-      let self.result += ['.']
     elseif self.next_is(['GROUP_END'])
       call self.advance()
-      if empty(self.contexts) | call self.fail('Unexpected group end') | endif
+      if empty(self.contexts) | call self.throw('unexpected group end') | endif
 
       if has_key(s:vim_group_close, self.contexts[-1].label)
         let self.result += [s:vim_group_close[self.contexts[-1].label]]
@@ -276,7 +284,7 @@ fu! s:PCRE2Vim.parse() abort dict
     endif
   endwhile
   if !empty(self.contexts)
-    call self.fail('Unmatched group found')
+    call self.throw('unmatched group found')
   endif
 
   return self.result
@@ -299,8 +307,8 @@ fu! s:PCRE2Vim.warn(msg) abort dict
   echomsg a:msg
 endfu
 
-fu! s:PCRE2Vim.fail(msg) abort dict
-  throw 'PCRE2Vim:' . a:msg . '. Token: ' . string(self.token) . ' at ' . string(self.p)
+fu! s:PCRE2Vim.throw(msg) abort dict
+  throw 'PCRE2Vim: ' . a:msg . '. Token: ' . string(self.token) . ' at ' . string(self.p)
 endfu
 
 fu! s:PCRE2Vim.advance() abort dict

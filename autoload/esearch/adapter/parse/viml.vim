@@ -21,7 +21,7 @@ endfu
 fu! esearch#adapter#parse#viml#legacy(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let results = []
-  let pattern = self.exp.vim
+  let pattern = self.pattern.vim
   let separators_count = 0
 
   let i = a:from

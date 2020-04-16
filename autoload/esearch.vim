@@ -9,18 +9,20 @@ fu! esearch#init(...) abort
   let g:esearch.last_id += 1
   let esearch.id = g:esearch.last_id
 
-  call esearch#ftdetect#async_prewarm_cache()
-
-  if has_key(esearch, 'exp')
-    let esearch.exp = esearch#regex#new(esearch.exp)
-  else
-    let esearch.exp  = esearch#source#pick_exp(esearch.use, esearch)
-    let esearch      = esearch#cmdline#read(esearch)
-    let esearch.exp  = esearch#regex#finalize(esearch.exp, esearch)
+  if !has_key(esearch, 'pattern')
+    let pattern_type = esearch.is_regex() ? 'pcre' : 'literal'
+    let esearch.cmdline = esearch#source#pick_exp(esearch.use, esearch)[pattern_type]
+    let esearch = esearch#cmdline#read(esearch)
+    if empty(esearch.cmdline) | return | endif
+    let esearch.pattern = esearch#pattern#new(
+          \ esearch.cmdline,
+          \ esearch.is_regex(),
+          \ esearch.case,
+          \ esearch.textobj)
   endif
 
   " TODO add 'remember' option to handle memoization below
-  let g:esearch.last_search     = esearch.exp
+  let g:esearch.last_pattern     = esearch.cmdline
   let g:esearch.case            = esearch.case
   let g:esearch.textobj         = esearch.textobj
   let g:esearch.regex           = esearch.regex
@@ -32,17 +34,13 @@ fu! esearch#init(...) abort
   let g:esearch.adapters        = esearch.adapters
   let g:esearch.current_adapter = esearch.current_adapter
 
-  if empty(esearch.exp)
-    return 1
-  endif
-
   let Escape = function('esearch#backend#'.esearch.backend.'#escape_cmd')
-  let pattern = esearch.pattern()
-  " let command = esearch#adapter#{esearch.adapter}#cmd(esearch, pattern, Escape)
+  let pattern = esearch.pattern.str()
   let command = esearch.current_adapter.command(esearch, pattern, Escape)
   let esearch.request = esearch#backend#{esearch.backend}#init(
         \ esearch.cwd, esearch.adapter, command)
   call esearch#backend#{esearch.backend}#run(esearch.request)
+  call esearch#ftdetect#async_prewarm_cache()
   let esearch.parse = esearch#adapter#parse#funcref()
 
   let esearch.title = s:title(esearch, pattern)
@@ -55,9 +53,9 @@ fu! s:new(esearch) abort
         \ 'paths':      [],
         \ 'metadata':   [],
         \ 'glob':       0,
+        \ 'cmdline':    0,
         \ 'visualmode': 0,
         \ 'is_regex':   function('<SID>is_regex'),
-        \ 'pattern':    function('<SID>pattern'),
         \}, 'keep')
 
   if has_key(esearch.adapters, esearch.adapter)
@@ -99,10 +97,6 @@ endfu
 
 fu! s:is_regex() abort dict
   return self.regex !=# 'literal'
-endfu
-
-fu! s:pattern() abort dict
-  return self.is_regex() ? self.exp.pcre : self.exp.literal
 endfu
 
 fu! s:title(esearch, pattern) abort

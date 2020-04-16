@@ -58,7 +58,7 @@ fu! esearch#opts#new(opts) abort
         \ 'invert':           function('<SID>invert'),
         \ 'slice':            function('esearch#util#slice'),
         \ 'errors':           [],
-        \ 'use':              ['visual', 'hlsearch', 'current', 'last'],
+        \ 'use':              ['visual', 'current', 'hlsearch', 'last'],
         \}, 'keep')
 
   return opts

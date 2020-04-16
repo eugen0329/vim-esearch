@@ -48,24 +48,7 @@ if !exists('g:esearch#cmdline#select_initial')
 endif
 
 fu! esearch#cmdline#read(esearch) abort
-  let esearch = s:app(a:esearch)
-
-  if empty(esearch.cmdline)
-    let esearch.exp = {}
-    return esearch
-  endif
-
-  if esearch.is_regex()
-    let esearch.exp.literal = esearch.cmdline
-    let esearch.exp.pcre = esearch.cmdline
-    let esearch.exp.vim = esearch#regex#pcre2vim(esearch.cmdline)
-  else
-    let esearch.exp.literal = esearch.cmdline
-    let esearch.exp.pcre = esearch.cmdline
-    let esearch.exp.vim = '\M'.escape(esearch.cmdline, '\$^')
-  endif
-
-  return esearch
+  return s:app(a:esearch)
 endfu
 
 fu! esearch#cmdline#map(lhs, rhs) abort
@@ -94,7 +77,6 @@ fu! s:initial_state(esearch) abort
   let initial_state.location = 'search_input'
   let initial_state.did_initial = 0
   let initial_state.cursor = 0
-  let initial_state.cmdline = initial_state.pattern()
   let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
   return initial_state
 endfu

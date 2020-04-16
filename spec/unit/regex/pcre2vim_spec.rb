@@ -11,7 +11,7 @@ describe 'esearch#buf' do
     context 'when filename contains special characters' do
       subject(:convert) do
         lambda do |input|
-          editor.echo(func('esearch#regex#pcre2vim#convert', input))
+          editor.echo(func('esearch#pattern#pcre2vim#convert', input))
         end
       end
 
@@ -20,11 +20,15 @@ describe 'esearch#buf' do
 
       describe 'class []' do
         # https://www.pcre.org/current/doc/html/pcre2syntax.html#SEC8
-        it { expect(convert.call('[]')).to   eq('[]') }
-        it { expect(convert.call('[\[]')).to eq('[\[]') }
-        it { expect(convert.call('[\]]')).to eq('[\]]') }
-        it { expect(convert.call('[a]')).to eq('[a]') }
-        it { expect(convert.call('[^a]')).to eq('[^a]') }
+        # NOTE: must be terminated, but can have unmatched closing bracket
+        it { expect(convert.call('[]')).to    eq('[]')    }
+        it { expect(convert.call('[\[]')).to  eq('[\[]')  }
+        it { expect(convert.call('[[]')).to   eq('[[]')   }
+        it { expect(convert.call('[[]]')).to  eq('[[]]')  }
+        it { expect(convert.call('[[]]]')).to eq('[[]]]') }
+        it { expect(convert.call('[\]]')).to  eq('[\]]')  }
+        it { expect(convert.call('[a]')).to   eq('[a]')   }
+        it { expect(convert.call('[^a]')).to  eq('[^a]')  }
         it { expect(convert.call('[a-z]')).to eq('[a-z]') }
         it { expect(convert.call('[*+|]')).to eq('[*+|]') }
 
@@ -223,9 +227,13 @@ describe 'esearch#buf' do
       # https://www.pcre.org/current/doc/html/pcre2syntax.html#SEC10
       describe 'anchors' do
         describe 'word boundaries' do
-          it { expect(convert.call('a\b')).to   eq('a\%(\<\|\>\)')            }
-          it { expect(convert.call('\ba')).to   eq('\%(\<\|\>\)a')            }
-          it { expect(convert.call('\ba\b')).to eq('\%(\<\|\>\)a\%(\<\|\>\)') }
+          it { expect(convert.call('a\b')).to   eq('a\%(\<\|\>\)')                                }
+          it { expect(convert.call('\ba')).to   eq('\%(\<\|\>\)a')                                }
+          it { expect(convert.call('\ba\b')).to eq('\%(\<\|\>\)a\%(\<\|\>\)')                     }
+
+          it { expect(convert.call('a\B')).to   eq('a\%(\w\)\@<=\%(\w\)\@=')                      }
+          it { expect(convert.call('\Ba')).to   eq('\%(\w\)\@<=\%(\w\)\@=a')                      }
+          it { expect(convert.call('\Ba\B')).to eq('\%(\w\)\@<=\%(\w\)\@=a\%(\w\)\@<=\%(\w\)\@=') }
         end
 
         describe 'subject boundaries' do

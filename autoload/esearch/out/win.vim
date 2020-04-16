@@ -180,6 +180,8 @@ fu! s:find_or_create_buf(bufname, opener) abort
 
   let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
   let escaped = substitute(escaped, '/', safe_slash, 'g')
+  let escaped = substitute(escaped, '\n', '\\n', 'g') " for vital's .opene()
+  let escaped = substitute(escaped, '\r', '\\r', 'g') " for vital's .opene()
 
   let bufnr = esearch#buf#find(escaped)
   " Noop if the buffer is current

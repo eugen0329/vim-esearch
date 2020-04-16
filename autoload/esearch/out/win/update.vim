@@ -57,9 +57,9 @@ endfu
 " When checking for an ability to finish early it's important to allow loading more
 " data than during early update, as is_consumed() is done using jobwait, that can
 " cause unwanted idle when early_update_limit is exceeded, but the backend
-" isn't stopped.
+" is still working.
 fu! esearch#out#win#update#can_finish_early(esearch) abort
-  if !a:esearch.request.async | return 1 | endif
+  if !a:esearch.request.async | return | endif
 
   let original_early_update_limit = a:esearch.early_update_limit
   let a:esearch.early_update_limit *= 1000
@@ -77,7 +77,7 @@ endfu
 " (usually much less than 2x).
 fu! s:early_update_backend_cb(bufnr) abort
   if a:bufnr != bufnr('%')
-    return 1
+    return
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
@@ -98,7 +98,7 @@ fu! s:update_timer_cb(esearch, bufnr, timer) abort
   " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
   if elapsed < g:esearch_win_updates_timer_wait_time
-    return 0
+    return
   endif
 
   call esearch#out#win#update#update(a:esearch.bufnr)
@@ -123,7 +123,7 @@ endfu
 fu! esearch#out#win#update#update(bufnr, ...) abort
   " prevent updates when outside of the window
   if a:bufnr != bufnr('%')
-    return 0
+    return
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
   let ignore_batches = get(a:000, 0, esearch.ignore_batches)
@@ -158,21 +158,21 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
 endfu
 
 fu! esearch#out#win#update#schedule_finish(bufnr) abort
-  if a:bufnr != bufnr('%')
+  if a:bufnr == bufnr('%')
+    call esearch#out#win#update#finish(a:bufnr)
+  else
     " Bind event to finish the search as soon as the buffer is entered
     aug esearch_win_updates
       exe printf('au BufEnter <buffer=%d> ++once call esearch#out#win#update#finish(%d)', a:bufnr, a:bufnr)
     aug END
-    return 1
-  else
-    call esearch#out#win#update#finish(a:bufnr)
+    return
   endif
 endfu
 
 fu! esearch#out#win#update#finish(bufnr) abort
   " prevent updates when outside of the buffer
   if a:bufnr != bufnr('%')
-    return 1
+    return
   endif
 
   call esearch#util#doautocmd('User esearch_win_finish_pre')

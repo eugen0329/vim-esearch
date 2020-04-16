@@ -25,9 +25,12 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
     return
   endif
 
-  if g:esearch_out_win_highlight_matches is# 'matchadd' && has_key(a:esearch.exp, 'vim_match')
+  if g:esearch_out_win_highlight_matches is# 'matchadd'
+    if !has_key(a:esearch.pattern, 'win_match')
+      let a:esearch.pattern.win_match = s:matchadd_pattern(a:esearch)
+    endif
     let a:esearch.hl_strategy = 'matchadd'
-    let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.exp.vim_match, -1)
+    let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.pattern.win_match, -1)
     return
   endif
 
@@ -72,7 +75,7 @@ fu! s:highlight_viewport_cb(esearch) abort
 endfu
 
 fu! s:highlight_viewport(esearch, top, bottom) abort
-  let exp = a:esearch.exp.vim
+  let pattern = a:esearch.pattern.vim
   let state = esearch#out#win#_state(a:esearch)
   let line_numbers_map = state.line_numbers_map
   let ctx_ids_map = state.ctx_ids_map
@@ -94,12 +97,21 @@ fu! s:highlight_viewport(esearch, top, bottom) abort
       continue
     endif
 
-    let begin = match(text, exp, max([strlen(linenr), 3]) + 2)
+    let begin = match(text, pattern, max([strlen(linenr), 3]) + 2)
     if begin < 0 | let line += 1 | continue | endif
-    let matchend = matchend(text, exp, begin)
+    let matchend = matchend(text, pattern, begin)
 
     call nvim_buf_add_highlight(0, a:esearch.matches_ns, 'esearchMatch', line - 1, begin, matchend)
     let lines_with_hl_matches[ctx_id][linenr] = 1
     let line += 1
   endfor
+endfu
+
+fu! s:matchadd_pattern(esearch) abort
+  " To avoid matching pseudo LineNr
+  if a:esearch.pattern.vim[0] ==# '^'
+    return '\%>1l\%(\s\+\d\+\s\)\@<='.a:esearch.pattern.vim[1:-1]
+  endif
+
+  return '\%>1l\%(\s\+\d\+\s.*\)\@<='.a:esearch.pattern.vim
 endfu
