@@ -6,7 +6,6 @@ describe 'esearch#buf' do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
 
-  # TODO: character properties (\p{Alnum} etc.)
   describe 'esearch#buf#find' do
     context 'when filename contains special characters' do
       subject(:convert) do
@@ -70,7 +69,7 @@ describe 'esearch#buf' do
         end
       end
 
-      describe 'Bracketed escapes' do
+      describe 'bracketed escapes' do
         it { expect(convert.call('[\x00]')).to eq('[\x00]') }
         it { expect(convert.call('[\xABCD]')).to eq('[\xABCD]') }
         it { expect(convert.call('[\x{00}]')).to eq('[\x00]') }

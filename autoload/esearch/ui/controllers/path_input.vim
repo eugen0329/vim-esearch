@@ -15,7 +15,7 @@ fu! s:PathInputController.render() abort dict
     let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
 
     if error isnot 0
-      call s:Message.echon('ErrorMsg', " can't parse paths: " . error, 0)
+      call s:Message.echon('ErrorMsg', " can't parse paths: " . error)
       call getchar()
       redraw!
     else

@@ -9,7 +9,16 @@ fu! esearch#init(...) abort
   let g:esearch.last_id += 1
   let esearch.id = g:esearch.last_id
 
-  if !has_key(esearch, 'pattern')
+  if has_key(esearch, 'pattern')
+    if type(esearch.pattern) ==# type('')
+      " Preprocess pattern
+      let esearch.pattern = esearch#pattern#new(
+            \ esearch.pattern,
+            \ esearch.is_regex(),
+            \ esearch.case,
+            \ esearch.textobj)
+    endif
+  else
     let pattern_type = esearch.is_regex() ? 'pcre' : 'literal'
     let esearch.cmdline = esearch#source#pick_exp(esearch.use, esearch)[pattern_type]
     let esearch = esearch#cmdline#read(esearch)

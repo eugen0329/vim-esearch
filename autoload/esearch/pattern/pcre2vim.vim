@@ -1,13 +1,18 @@
-let s:Lexer  = vital#esearch#import('Text.Lexer')
-let s:Parser = vital#esearch#import('Text.Parser')
+let s:Message = esearch#message#import()
+let s:Lexer   = vital#esearch#import('Text.Lexer')
+let s:Parser  = vital#esearch#import('Text.Parser')
+
+" NOTE: is not intended to be a general purpose converter as some of atoms are
+" suppressed for using in #out#win
 
 fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
     let tokens = s:PCRE2Vim.new(a:string).convert()
-  catch /^PCRE2Vim:.*/
-    if g:esearch#env isnot# 0
-      echomsg v:exception . ' at ' . v:throwpoint
-    endif
+  catch /^PCRE2Vim:/
+    call s:Message.warn(printf("Can't convert %s to vim regex dialect to highlight matches (reason: %s)",
+          \ string(a:string),
+          \ substitute(v:exception, '^PCRE2Vim: ', '', ''),
+          \ ))
     return ''
   endtry
 
@@ -28,6 +33,7 @@ endfu
 
 let s:PCRE2Vim = {
       \ 'case_sensitive': 1,
+      \ 'token':          'NULL',
       \ 'contexts':       [],
       \ 'result':         [],
       \ 'p':              0,
@@ -151,8 +157,6 @@ fu! s:PCRE2Vim.parse_class() abort dict
       let result += [self.advance().matched_text]
     elseif self.next_is(['CLASS_START'])
       let result += [self.advance().matched_text]
-      " let self.result += result
-      " call self.throw('unexpected CLASS_START')
     elseif self.next_is(['BRACKETED_ESCAPE'])
       let result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
     elseif self.next_is(['PROPERTY'])
@@ -188,7 +192,7 @@ fu! s:PCRE2Vim.parse_class() abort dict
   endwhile
 
   let self.result += result
-  call self.throw('unexpected EOF (CLASS_END expected)')
+  call self.throw('unexpected EOF (CLASS_END is missing)')
 endfu
 
 fu! s:PCRE2Vim.set_global_modifiers(matched_text) abort dict
@@ -224,8 +228,7 @@ fu! s:PCRE2Vim.convert() abort dict
     elseif self.next_is(['BRACKETED_ESCAPE'])
       let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
     elseif self.next_is(['PROPERTY'])
-      call self.advance()
-      let self.result += ['.']
+      call self.throw('properties are not supported')
     elseif self.next_is(['TOBEESCAPED'])
       call self.advance()
       let self.result += ['\'.self.token.matched_text]
@@ -279,8 +282,9 @@ fu! s:PCRE2Vim.convert() abort dict
       let self.result += [self.advance().matched_text]
     endif
   endwhile
+
   if !empty(self.contexts)
-    call self.throw('unmatched group found')
+    call self.throw('unexpected EOF (GROUP_END is missing)')
   endif
 
   return self.result
@@ -290,9 +294,15 @@ fu! s:PCRE2Vim.warn(msg) abort dict
   echomsg a:msg
 endfu
 
-fu! s:PCRE2Vim.throw(msg) abort dict
-  throw 'PCRE2Vim: ' . a:msg . '. Token: ' . string(self.token) . ' at ' . string(self.p)
-endfu
+if g:esearch#env is# 0
+  fu! s:PCRE2Vim.throw(msg) abort dict
+    throw 'PCRE2Vim: ' . a:msg . ', at col ' . string(self.p)
+  endfu
+else
+  fu! s:PCRE2Vim.throw(msg) abort dict
+    throw 'PCRE2Vim: ' . a:msg . '. Token: ' . string(self.token) . ', at col ' . string(self.p)
+  endfu
+endif
 
 fu! s:PCRE2Vim.advance() abort dict
   let self.token = self.consume()
