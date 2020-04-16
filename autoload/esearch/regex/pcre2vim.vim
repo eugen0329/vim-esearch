@@ -23,7 +23,6 @@ fu s:PCRE2Vim.new(text) abort dict
   return instance
 endfu
 
-" let s:dotall = '\_.'
 let s:dotall = '.'
 let s:pcre2vim_modifier = {
       \ 'i':  '\c',
@@ -31,10 +30,16 @@ let s:pcre2vim_modifier = {
       \ 'm':  '',
       \ '-m': '',
       \ }
+let s:pcre2vim_lazy_quantifier = {
+      \ '??': '\{-,1}',
+      \ '*?': '\{-}',
+      \ '+?': '\{-1,}',
+      \ }
 
 " TODO ESCAPED_CLASS_START and ESCAPED_CLASS_END are actually hacks
 let s:rules = [
       \ [ 'POSIX_BRACKET_EXP',        '\[:\%(alnum\|alpha\|blank\|cntrl\|digit\|graph\|lower\|print\|punct\|space\|upper\|xdigit\|return\|tab\|escape\|backspace\|word\|ascii\):\]'],
+      \ [ 'HEX',                      '\%(\\x\x\{2}\|\\x\x\{4}\|\\x{\x\{2}}\|\\x{\x\{4}}\)'  ],
       \ [ 'CLASS_START',              '\['                         ],
       \ [ 'NCLASS_START',             '\[\^'                       ],
       \ [ 'CLASS_END',                '\]'                         ],
@@ -54,8 +59,8 @@ let s:rules = [
       \ [ 'GROUP_END',                ')'                          ],
       \ [ 'SUBJECT_START',            '\\A'                        ],
       \ [ 'SUBJECT_END',              '\\z'                        ],
-      \ [ 'RANGE_QUANTIFER',          '{\%(-\=\d*,\=\d*\)}?\='     ],
-      \ [ 'LAZY_QUANTIFIER',          '??'                         ],
+      \ [ 'RANGE_QUANTIFER',          '{\%(-\|-\=\d\+,\=\d*\)}?\=' ],
+      \ [ 'LAZY_QUANTIFIER',          '\%(??\|\*?\|+?\)'           ],
       \ [ 'GREEDY_QUANTIFIER',        '?'                          ],
       \ [ 'DOUBLE_SLASH',             '\\\\'                       ],
       \ [ 'WORD_BOUNDARY',            '\\b'                        ],
@@ -85,10 +90,6 @@ let s:metachar2class_content = {
       \ '\v': '',
       \ '\f': '',
       \ '\r': '', 
-      \ '\-': '\-',
-      \ '\/': '\/',
-      \ '\.': '\.',
-      \ '\*': '\*',
       \ }
 
 fu! s:PCRE2Vim.pop_context() abort dict
@@ -122,6 +123,8 @@ fu! s:PCRE2Vim.parse_class() abort dict
       let self.result += [self.advance().matched_text]
     elseif self.next_is(['CLASS_START'])
       call self.fail('unexpected CLASS_START')
+    elseif self.next_is(['HEX'])
+      let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
     elseif self.next_is(['TOBEUNESCAPED'])
       call self.advance()
       let self.result += [self.token.matched_text[1:]]
@@ -140,8 +143,7 @@ fu! s:PCRE2Vim.parse_class() abort dict
       let t = self.token.matched_text
       if has_key(s:metachar2class_content, t)
         let self.result += [s:metachar2class_content[t]]
-      else
-        call self.warn('unknown escape encountered: ' . t)
+        " call self.warn('unknown escape encountered: ' . t)
       endif
     elseif self.next_is(['CLASS_END'])
       call self.advance()
@@ -200,6 +202,8 @@ fu! s:PCRE2Vim.parse() abort dict
       else
         let self.result += ['\{'.join(m[1:3], '').'}']
       endif
+    elseif self.next_is(['HEX'])
+      let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
     elseif self.next_is(['TOBEESCAPED'])
       call self.advance()
       let self.result += ['\'.self.token.matched_text]
@@ -242,8 +246,7 @@ fu! s:PCRE2Vim.parse() abort dict
       call self.push_context('CLASS', [])
       call self.parse_class()
     elseif self.next_is(['LAZY_QUANTIFIER'])
-      call self.advance()
-      let self.result += ['\{-,1}']
+      let self.result += [s:pcre2vim_lazy_quantifier[self.advance().matched_text]]
     elseif self.next_is(['DOUBLE_SLASH'])
       " is it a hack?
       call self.advance()
@@ -316,10 +319,7 @@ fu! s:PCRE2Vim.warn(msg) abort dict
 endfu
 
 fu! s:PCRE2Vim.fail(msg) abort dict
-  throw 'Parser:' . a:msg . ' ' . string(self.token)
-        \ . ' at ' . string(self.p)
-        \ . ' within ' . string(get(self.contexts, -1, 'no-context'))
-        \ . ' tokens: ' . string(join(self._tokens, "\n"))
+  throw 'Parser:' . a:msg . '. Token: ' . string(self.token) . ' at ' . string(self.p)
 endfu
 
 fu! s:PCRE2Vim.advance() abort dict

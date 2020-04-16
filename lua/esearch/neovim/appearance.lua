@@ -108,7 +108,9 @@ function M.set_context_len_annotation(line, size)
   end
 end
 
-function M.highlight_header()
+function M.highlight_header(instant)
+  if instant then  M.highlight_ui(bufnr, 0, 1) end -- to prevent blinking on reload
+
   local bufnr = vim.api.nvim_get_current_buf()
 
   vim.schedule(function()

@@ -94,10 +94,10 @@ fu! esearch#out#win#init(esearch) abort
   call s:cleanup()
 
   let b:esearch = extend(a:esearch, {
-        \ 'bufnr':                 bufnr('%'),
-        \ 'mode':                  'normal',
-        \ 'reload':                function('<SID>reload'),
-        \ 'highlights_enabled':    g:esearch#out#win#context_syntax_highlight,
+        \ 'bufnr':              bufnr('%'),
+        \ 'mode':               'normal',
+        \ 'reload':             function('<SID>reload'),
+        \ 'highlights_enabled': g:esearch#out#win#context_syntax_highlight,
         \})
 
   call esearch#out#win#open#init(b:esearch)
@@ -138,7 +138,7 @@ fu! esearch#out#win#init(esearch) abort
     endif
   endif
   if g:esearch_out_win_nvim_lua_syntax
-    call luaeval('esearch.appearance.highlight_header()')
+    call luaeval('esearch.appearance.highlight_header(true)')
   endif
 
   aug esearch_win_event

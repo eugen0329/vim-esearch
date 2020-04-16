@@ -41,6 +41,13 @@ describe 'esearch#buf' do
             it { expect(convert.call('[\r]')).to eq('[]') }
           end
 
+          describe 'hex' do
+            it { expect(convert.call('[\x00]')).to eq('[\x00]') }
+            it { expect(convert.call('[\xABCD]')).to eq('[\xABCD]') }
+            it { expect(convert.call('[\x{00}]')).to eq('[\x00]') }
+            it { expect(convert.call('[\x{ABCD}]')).to eq('[\xABCD]') }
+          end
+
           describe 'POSIX char classes' do
             # https://www.regular-expressions.info/posixbrackets.html
             it { expect(convert.call('[[:alnum:]]')).to     eq('[[:alnum:]]') }
@@ -224,18 +231,23 @@ describe 'esearch#buf' do
 
       describe 'quantifiers' do
         # https://www.rexegg.com/regex-quantifiers.html#cheat_sheet
+        # :h perl patterns
+        # Capability                   in Vimspeak in Perlspeak
+        # ----------------------------------------------------------------
+        # conservative quantifiers     \{-n,m}     *?, +?, ??, {}?
         context 'when zero or more *' do
-          it { expect(convert.call('a*')).to eq('a*') }
+          it { expect(convert.call('a*')).to eq('a*') } # docile
           it { expect(convert.call('a\*')).to eq('a\*') }
 
-          # TODO: a*?
+          it { expect(convert.call('a*?')).to eq('a\{-}') } # lazy
           # TODO: a*+
         end
 
         context 'when once or more +' do
           it { expect(convert.call('a+')).to eq('a\+') }
           it { expect(convert.call('a\+')).to eq('a+') }
-          # TODO: a+?
+
+          it { expect(convert.call('a+?')).to eq('a\{-1,}') } # lazy
           # TODO: a++
         end
 
@@ -253,11 +265,6 @@ describe 'esearch#buf' do
         end
 
         context 'when zero or once {n,m}' do
-          # :h perl patterns
-          # Capability                   in Vimspeak in Perlspeak
-          # ----------------------------------------------------------------
-          # conservative quantifiers     \{-n,m}     *?, +?, ??, {}?
-
           # From :h /multi
 
           # \{n,m}    n to m as many as possible
@@ -275,7 +282,8 @@ describe 'esearch#buf' do
           # https://docs.microsoft.com/en-us/dotnet/standard/base-types/quantifiers-in-regular-expressions
           # https://www.regular-expressions.info/refrepeat.html
           context 'when fixed' do
-            it { expect(convert.call('a{}')).to eq('a\{}') }
+            it { expect(convert.call('a{}')).to eq('a{}') } # for some engines ti's a bug, but pcre2 considers it literal {}
+            it { expect(convert.call('a{}')).to eq('a{}') } # for some engines ti's a bug, but pcre2 considers it literal {}
             it { expect(convert.call('a{3}')).to eq('a\{3}') }
             it { expect(convert.call('a{3}?')).to eq('a\{-3}') }
           end
@@ -290,6 +298,7 @@ describe 'esearch#buf' do
             it { expect(convert.call('a{1,2}?')).to eq('a\{-1,2}') }
             it { expect(convert.call('a{1,}?')).to  eq('a\{-1,}') }
             it { expect(convert.call('a{,2}?')).to  eq('a\{-,2}') }
+            it { expect(convert.call('a{,}?')).to  eq('a\{-,}') }
           end
 
           context 'when possessive' do

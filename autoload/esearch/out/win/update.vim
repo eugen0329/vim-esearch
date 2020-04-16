@@ -22,10 +22,11 @@ fu! esearch#out#win#update#init(esearch) abort
       call esearch#backend#{a:esearch.backend}#init_events()
 
       if a:esearch.backend !=# 'vimproc'
+        let a:esearch.early_update_limit = a:esearch.batch_size
         " TODO
         for [func_name, event] in items(a:esearch.request.events)
           let a:esearch.request.events[func_name] =
-                \ function('s:update_until_1st_batch_is_rendered_backend_cb', [bufnr('%')])
+                \ function('s:early_update_backend_cb', [bufnr('%')])
         endfor
       endif
 
@@ -53,21 +54,34 @@ fu! esearch#out#win#update#uninit(esearch) abort
   endif
 endfu
 
+" When checking for an ability to finish early it's important to allow loading more
+" data than during early update, as is_consumed() is done using jobwait, that can
+" cause unwanted idle when early_update_limit is exceeded, but the backend
+" isn't stopped.
 fu! esearch#out#win#update#can_finish_early(esearch) abort
-  return !a:esearch.request.async || (a:esearch.request.is_consumed() && len(a:esearch.request.data) <= a:esearch.batch_size)
+  if !a:esearch.request.async | return 1 | endif
+
+  let original_early_update_limit = a:esearch.early_update_limit
+  let a:esearch.early_update_limit *= 1000
+  try
+    return a:esearch.request.is_consumed()
+          \ && (len(a:esearch.request.data) - a:esearch.request.cursor) <= a:esearch.final_batch_size
+  finally
+    let a:esearch.early_update_limit = original_early_update_limit
+  endtry
 endfu
 
 " Is used to render the first batch as soon as possible before the first timer
 " callback invokation. Is called on stdout event from a backend and is undloaded
 " when the first batch is rendered. Will render <= 2 * batch_size entries
 " (usually much less than 2x).
-fu! s:update_until_1st_batch_is_rendered_backend_cb(bufnr) abort
+fu! s:early_update_backend_cb(bufnr) abort
   if a:bufnr != bufnr('%')
     return 1
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  if esearch.request.cursor < esearch.batch_size
+  if esearch.request.cursor < esearch.early_update_limit
     call esearch#out#win#update#update(a:bufnr)
 
     if esearch.request.finished && len(esearch.request.data) == esearch.request.cursor
