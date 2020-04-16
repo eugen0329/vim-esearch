@@ -3,13 +3,47 @@ let s:LexerModule  = s:Vital.import('Text.Lexer')
 let s:ParserModule = s:Vital.import('Text.Parser')
 
 fu! esearch#regex#pcre2vim#convert(string, ...) abort
-  let parsed = s:PCRE2Vim.new(a:string).parse()
+  try
+    let parsed = s:PCRE2Vim.new(a:string).parse()
+  catch /^PCRE2Vim:/
+    return ''
+  endtry
   return join(parsed, '')
 endfu
 
+" https://www.regular-expressions.info/modifiers.html
+let s:modifiers_set = '[\-bcdeimnpqstwx]\+'
+let s:match_modifiers_span = printf('(?%s:', s:modifiers_set)
+let s:match_modifiers      = printf('(?%s)', s:modifiers_set)
+unlet s:modifiers_set
+let s:match_posix_bracket_exp = join([
+      \ 'alnum',
+      \ 'alpha',
+      \ 'blank',
+      \ 'cntrl',
+      \ 'digit',
+      \ 'graph',
+      \ 'lower',
+      \ 'print',
+      \ 'punct',
+      \ 'space',
+      \ 'upper',
+      \ 'xdigit',
+      \ 'return',
+      \ 'tab',
+      \ 'escape',
+      \ 'backspace',
+      \ 'word',
+      \ 'ascii',
+      \ ], '\|')
+let s:match_posix_bracket_exp = printf('\[:\%(%s\):\]', s:match_posix_bracket_exp)
+let s:match_range_quantifier   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
+let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
+" Very rough match
+let s:match_bracketed_escape = '\%(\\[xou]{\x\{,4}}\)'
+
 let s:PCRE2Vim = {
-      \ 'global_context':       { 'modifiers': [] },
-      \ 'global_modifiers':     [],
+      \ 'case_sensitive':       1,
       \ 'contexts':             [],
       \ '_debug_tokens':        [],
       \ 'result':               [],
@@ -23,54 +57,53 @@ fu s:PCRE2Vim.new(text) abort dict
   return instance
 endfu
 
-let s:dotall = '.'
-let s:pcre2vim_modifier = {
-      \ 'i':  '\c',
-      \ '-i': '\C',
-      \ 'm':  '',
-      \ '-m': '',
-      \ }
-let s:pcre2vim_lazy_quantifier = {
-      \ '??': '\{-,1}',
+let s:rules = [
+      \  ['POSIX_BRACKET_EXP',        s:match_posix_bracket_exp                ],
+      \  ['CLASS_START',              '\['                                     ],
+      \  ['NCLASS_START',             '\[\^'                                   ],
+      \  ['CLASS_END',                '\]'                                     ],
+      \  ['ESCAPED_CLASS_START',      '\\\['                                   ],
+      \  ['ESCAPED_CLASS_END',        '\\\]'                                   ],
+      \  ['MODIFIER',                 s:match_modifiers                        ],
+      \  ['MODIFIER_SPAN',            s:match_modifiers_span                   ],
+      \  ['POSITIVE_LOOKBEHIND',      '(?<='                                   ],
+      \  ['NEGATIVE_LOOKBEHIND',      '(?<!'                                   ],
+      \  ['POSITIVE_LOOKAHEAD',       '(?='                                    ],
+      \  ['NEGATIVE_LOOKAHEAD',       '(?!'                                    ],
+      \  ['ATOMIC_GROUP',             '(?>'                                    ],
+      \  ['NONCAPTURING_GROUP_START', '(?:'                                    ],
+      \  ['NAMED_GROUP_START',        '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
+      \  ['BRANCH_RESET_START',       '(?|'                                    ],
+      \  ['GROUP_START',              '('                                      ],
+      \  ['GROUP_END',                ')'                                      ],
+      \  ['SUBJECT_START',            '\\A'                                    ],
+      \  ['SUBJECT_END',              '\\[zZ]'                                 ],
+      \  ['RANGE_QUANTIFER',          s:match_range_quantifier                 ],
+      \  ['QUANTIFIER',               '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
+      \  ['DOUBLE_SLASH',             '\\\\'                                   ],
+      \  ['WORD_BOUNDARY',            '\\b'                                    ],
+      \  ['TOBEESCAPED',              '[|~]'                                   ],
+      \  ['TOBEUNESCAPED',            '\\[&{%<>()?+|=@_]'                      ],
+      \  ['BRACKETED_ESCAPE',         s:match_bracketed_escape                 ],
+      \  ['DOT',                      '\.'                                     ],
+      \  ['ESCAPED_ANY',              '\\.'                                    ],
+      \  ['ANy',                      '.'                                      ],
+      \]
+
+let s:subject_start = '^'
+let s:subject_end   = '$'
+" NOTE: possessive are converted to greedy. https://github.com/vim/vim/issues/4638
+let s:pcre2vim_quantifier = {
+      \ '*':  '*',
+      \ '+':  '\+',
+      \ '*+': '*',
+      \ '++': '\+',
+      \ '?':  '\=',
+      \ '?+': '\=',
       \ '*?': '\{-}',
       \ '+?': '\{-1,}',
+      \ '??': '\{-,1}',
       \ }
-
-" TODO ESCAPED_CLASS_START and ESCAPED_CLASS_END are actually hacks
-let s:rules = [
-      \ [ 'POSIX_BRACKET_EXP',        '\[:\%(alnum\|alpha\|blank\|cntrl\|digit\|graph\|lower\|print\|punct\|space\|upper\|xdigit\|return\|tab\|escape\|backspace\|word\|ascii\):\]'],
-      \ [ 'HEX',                      '\%(\\x\x\{2}\|\\x\x\{4}\|\\x{\x\{2}}\|\\x{\x\{4}}\)'  ],
-      \ [ 'CLASS_START',              '\['                         ],
-      \ [ 'NCLASS_START',             '\[\^'                       ],
-      \ [ 'CLASS_END',                '\]'                         ],
-      \ [ 'ESCAPED_CLASS_START',      '\\\['                       ],
-      \ [ 'ESCAPED_CLASS_END',        '\\\]'                       ],
-      \ [ 'MODIFIER',                 '(?[mi\-]\+)'                ],
-      \ [ 'MODIFIER_SPAN',            '(?[mi\-]\+:'                ],
-      \ [ 'POSITIVE_LOOKBEHIND',      '(?<='                       ],
-      \ [ 'NEGATIVE_LOOKBEHIND',      '(?<!'                       ],
-      \ [ 'POSITIVE_LOOKAHEAD',       '(?='                        ],
-      \ [ 'NEGATIVE_LOOKAHEAD',       '(?!'                        ],
-      \ [ 'ATOMIC_GROUP',             '(?>'                        ],
-      \ [ 'NONCAPTURING_GROUP_START', '(?:'                        ],
-      \ [ 'NAMED_GROUP_START',        '(?\%(P\=<\w\+>\|''\w\+''\)' ],
-      \ [ 'BRANCH_RESET_START',       '(?|'                        ],
-      \ [ 'GROUP_START',              '('                          ],
-      \ [ 'GROUP_END',                ')'                          ],
-      \ [ 'SUBJECT_START',            '\\A'                        ],
-      \ [ 'SUBJECT_END',              '\\z'                        ],
-      \ [ 'RANGE_QUANTIFER',          '{\%(-\|-\=\d\+,\=\d*\)}?\=' ],
-      \ [ 'LAZY_QUANTIFIER',          '\%(??\|\*?\|+?\)'           ],
-      \ [ 'GREEDY_QUANTIFIER',        '?'                          ],
-      \ [ 'DOUBLE_SLASH',             '\\\\'                       ],
-      \ [ 'WORD_BOUNDARY',            '\\b'                        ],
-      \ [ 'TOBEESCAPED',              '[+|~]'                      ],
-      \ [ 'TOBEUNESCAPED',            '\\[()?+|]'                  ],
-      \ [ 'DOT',                      '\.'                         ],
-      \ [ 'ESCAPED_ANY',              '\\.'                        ],
-      \ [ 'ANy',                      '.'                          ],
-      \                                                            ]
-
 let s:vim_group_close = {
       \ 'POSITIVE_LOOKBEHIND': '\)\@<=',
       \ 'NEGATIVE_LOOKBEHIND': '\)\@<!',
@@ -79,7 +112,6 @@ let s:vim_group_close = {
       \ 'GROUP_START':         '\)',
       \ 'ATOMIC_GROUP':        '\)\@>',
       \}
-
 let s:metachar2class_content = {
       \ '\s': ' \t',
       \ '\w': '0-9a-zA-Z_',
@@ -96,25 +128,12 @@ fu! s:PCRE2Vim.pop_context() abort dict
   call remove(self.contexts, -1)
 endfu
 
-fu! s:PCRE2Vim.push_context(label, modifiers) abort dict
-  let self.contexts += [{ 'label': a:label, 'modifiers': a:modifiers, 'start': self.p }]
+fu! s:PCRE2Vim.push_context(label) abort dict
+  let self.contexts += [{ 'label': a:label, 'start': self.p }]
 endfu
 
-fu! s:PCRE2Vim.current_modifiers() abort dict
-  let current_modifiers = deepcopy(self.global_modifiers)
-  if !empty(self.contexts)
-    let current_modifiers = s:merge_modifiers(current_modifiers, self.contexts[-1].modifiers)
-  endif
-  return current_modifiers
-endfu
-
-fu! s:PCRE2Vim.active_modifier(name) abort dict
-  let is_present_globally = index(self.global_modifiers, a:name) >= 0
-  if empty(self.contexts)
-    return is_present_globally
-  else
-    return is_present_globally || index(self.contexts[-1].modifiers, a:name) >= 0
-  endif
+fu! s:split_modifiers(modifiers)
+  return split(a:modifiers, '-\=\w\zs')
 endfu
 
 fu! s:PCRE2Vim.parse_class() abort dict
@@ -123,27 +142,28 @@ fu! s:PCRE2Vim.parse_class() abort dict
       let self.result += [self.advance().matched_text]
     elseif self.next_is(['CLASS_START'])
       call self.fail('unexpected CLASS_START')
-    elseif self.next_is(['HEX'])
+    elseif self.next_is(['BRACKETED_ESCAPE'])
       let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
     elseif self.next_is(['TOBEUNESCAPED'])
       call self.advance()
       let self.result += [self.token.matched_text[1:]]
     elseif self.next_is(['POSIX_BRACKET_EXP'])
       call self.advance()
-      let t = self.token.matched_text
-      if t ==# '[:word:]'
+      let text = self.token.matched_text
+      if text ==# '[:word:]'
         let self.result += [s:metachar2class_content['\w']]
-      elseif t ==# '[:ascii:]'
+      elseif text ==# '[:ascii:]'
         let self.result += ['\x00-\x7F']
       else
         let self.result += [self.token.matched_text]
       endif
     elseif self.next_is(['ESCAPED_ANY'])
       call self.advance()
-      let t = self.token.matched_text
-      if has_key(s:metachar2class_content, t)
-        let self.result += [s:metachar2class_content[t]]
-        " call self.warn('unknown escape encountered: ' . t)
+      let text = self.token.matched_text
+      if has_key(s:metachar2class_content, text)
+        let self.result += [s:metachar2class_content[text]]
+      else
+        let self.result += [text]
       endif
     elseif self.next_is(['CLASS_END'])
       call self.advance()
@@ -162,24 +182,13 @@ fu! s:PCRE2Vim.parse_class() abort dict
   return self.fail('unexpected EOF (CLASS_END expected)')
 endfu
 
-fu! s:split_modifiers(modifiers)
-  return split(a:modifiers, '-\=\w\zs')
-endfu
-
-fu! s:merge_modifiers(mergeable, merged) abort
-  let result = []
-  let [mergeable, merged] = [deepcopy(a:mergeable), deepcopy(a:merged)]
-
-  for m2 in merged
-    if m2[0] ==# '-' && index(mergeable, m2[1]) >=0
-      call remove(mergeable, m2[1])
-      continue
-    endif
-
-    call add(mergeable, m2)
-  endfor
-  call uniq(mergeable)
-  return mergeable
+fu! s:PCRE2Vim.set_global_modifiers(matched_text) abort dict
+  " Only case insensitive match modifier is supported.
+  " There are some false positives are possible if a pattern heavily relies on
+  " case matching.
+  if self.case_sensitive && a:matched_text =~# '[^-]i'
+    let self.result += ['\c']
+  endif
 endfu
 
 fu! s:PCRE2Vim.parse() abort dict
@@ -187,22 +196,23 @@ fu! s:PCRE2Vim.parse() abort dict
     if self.next_is(['POSITIVE_LOOKBEHIND', 'POSITIVE_LOOKAHEAD', 'NEGATIVE_LOOKAHEAD', 'NEGATIVE_LOOKBEHIND', 'ATOMIC_GROUP'])
       call self.advance()
       let self.result += ['\%(']
-      call self.push_context(self.token.label, [])
-
+      call self.push_context(self.token.label)
     elseif self.next_is(['MODIFIER_SPAN'])
       call self.advance()
-      let modifier = matchstr(self.token.matched_text, '(?\zs\%([mi]\|-[mi]\)\ze:')
-      let self.result += [s:pcre2vim_modifier[modifier]]
-      call self.push_context('MODIFIER_SPAN', s:merge_modifiers(self.current_modifiers(), [modifier]))
+      call self.set_global_modifiers(self.token.matched_text)
+      call self.push_context('MODIFIER_SPAN')
+    elseif self.next_is(['MODIFIER'])
+      call self.advance()
+      call self.set_global_modifiers(self.token.matched_text)
     elseif self.next_is(['RANGE_QUANTIFER'])
       call self.advance()
-      let m = matchlist(self.token.matched_text, '{\(\d*\)\(,\)\=\(\d*\)}\(?\=\)')[0:4]
+      let range = matchstr(self.token.matched_text, s:capture_range_quantifier)
       if self.token.matched_text =~# '?$'
-        let self.result += ['\{-'.join(m[1:3], '').'}']
+        let self.result += ['\{-'.range.'}']
       else
-        let self.result += ['\{'.join(m[1:3], '').'}']
+        let self.result += ['\{'.range.'}']
       endif
-    elseif self.next_is(['HEX'])
+    elseif self.next_is(['BRACKETED_ESCAPE'])
       let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
     elseif self.next_is(['TOBEESCAPED'])
       call self.advance()
@@ -215,57 +225,43 @@ fu! s:PCRE2Vim.parse() abort dict
       call self.advance()
     elseif self.next_is(['SUBJECT_START'])
       call self.advance()
-      let self.result += ['\%^']
-    elseif self.next_is(['MODIFIER'])
-      call self.advance()
-      let modifiers = matchstr(self.token.matched_text, '(?\zs\([im]\|-[im]\)\+\ze)')
-      call self.set_global_modifiers([modifiers])
-      let self.result += [s:pcre2vim_modifier[modifiers]]
+      let self.result += [s:subject_start]
     elseif self.next_is(['SUBJECT_END'])
       call self.advance()
-      let self.result += ['\%$']
+      let self.result += [s:subject_end]
     elseif self.next_is(['NONCAPTURING_GROUP_START'])
       call self.advance()
       let self.result += ['\%(']
-      call self.push_context('GROUP_START', [])
+      call self.push_context('GROUP_START')
     elseif self.next_is(['NAMED_GROUP_START'])
       call self.advance()
       let self.result += ['\(']
-      call self.push_context('GROUP_START', [])
+      call self.push_context('GROUP_START')
     elseif self.next_is(['BRANCH_RESET_START'])
       call self.advance()
       call self.warn('branch reset is not supported in vim')
       let self.result += ['\(']
-      call self.push_context('GROUP_START', [])
+      call self.push_context('GROUP_START')
     elseif self.next_is(['GROUP_START'])
       call self.advance()
       let self.result += ['\(']
-      call self.push_context('GROUP_START', [])
+      call self.push_context('GROUP_START')
     elseif self.next_is(['NCLASS_START', 'CLASS_START'])
       let self.result += [self.advance().matched_text]
-      call self.push_context('CLASS', [])
+      call self.push_context('CLASS')
       call self.parse_class()
-    elseif self.next_is(['LAZY_QUANTIFIER'])
-      let self.result += [s:pcre2vim_lazy_quantifier[self.advance().matched_text]]
+    elseif self.next_is(['QUANTIFIER'])
+      let self.result += [s:pcre2vim_quantifier[self.advance().matched_text]]
     elseif self.next_is(['DOUBLE_SLASH'])
       " is it a hack?
       call self.advance()
       let self.result += ['\\']
-    elseif self.next_is(['GREEDY_QUANTIFIER'])
-      call self.advance()
-      let self.result += ['\=']
     elseif self.next_is(['DOT'])
       call self.advance()
-
-      if self.active_modifier('m')
-        let self.result += [s:dotall]
-      else
-        let self.result += ['.']
-      endif
+      let self.result += ['.']
     elseif self.next_is(['GROUP_END'])
-      if empty(self.contexts)
-        call self.fail('Unexpected group ending')
-      endif
+      call self.advance()
+      if empty(self.contexts) | call self.fail('Unexpected group end') | endif
 
       if has_key(s:vim_group_close, self.contexts[-1].label)
         let self.result += [s:vim_group_close[self.contexts[-1].label]]
@@ -274,8 +270,6 @@ fu! s:PCRE2Vim.parse() abort dict
       else
         throw 'Unknown group ending encountered: ' . string(self.contexts[-1].label)
       endif
-
-      call self.advance()
       call self.pop_context()
     else
       let self.result += [self.advance().matched_text]
@@ -301,25 +295,12 @@ fu! s:PCRE2Vim.debug() abort dict
   return join(output, "\n")
 endfu
 
-fu! s:PCRE2Vim.set_global_modifiers(modifiers) abort dict
-  for m in a:modifiers
-    if m[0] ==# '-'
-      if index(self.global_modifiers, m[1]) >=0
-        " TODO Warning
-        call remove(self.global_modifiers, index(self.global_modifiers, m[1]))
-      endif
-    else
-      let self.global_modifiers = s:merge_modifiers(self.global_modifiers, [ m ])
-    endif
-  endfor
-endfu
-
 fu! s:PCRE2Vim.warn(msg) abort dict
   echomsg a:msg
 endfu
 
 fu! s:PCRE2Vim.fail(msg) abort dict
-  throw 'Parser:' . a:msg . '. Token: ' . string(self.token) . ' at ' . string(self.p)
+  throw 'PCRE2Vim:' . a:msg . '. Token: ' . string(self.token) . ' at ' . string(self.p)
 endfu
 
 fu! s:PCRE2Vim.advance() abort dict

@@ -41,13 +41,6 @@ describe 'esearch#buf' do
             it { expect(convert.call('[\r]')).to eq('[]') }
           end
 
-          describe 'hex' do
-            it { expect(convert.call('[\x00]')).to eq('[\x00]') }
-            it { expect(convert.call('[\xABCD]')).to eq('[\xABCD]') }
-            it { expect(convert.call('[\x{00}]')).to eq('[\x00]') }
-            it { expect(convert.call('[\x{ABCD}]')).to eq('[\xABCD]') }
-          end
-
           describe 'POSIX char classes' do
             # https://www.regular-expressions.info/posixbrackets.html
             it { expect(convert.call('[[:alnum:]]')).to     eq('[[:alnum:]]') }
@@ -73,12 +66,36 @@ describe 'esearch#buf' do
         end
       end
 
+      describe 'Bracketed escapes' do
+        it { expect(convert.call('[\x00]')).to eq('[\x00]') }
+        it { expect(convert.call('[\xABCD]')).to eq('[\xABCD]') }
+        it { expect(convert.call('[\x{00}]')).to eq('[\x00]') }
+        it { expect(convert.call('[\x{ABCD}]')).to eq('[\xABCD]') }
+
+        it { expect(convert.call('[\u00]')).to eq('[\u00]') }
+        it { expect(convert.call('[\uABCD]')).to eq('[\uABCD]') }
+        it { expect(convert.call('[\u{00}]')).to eq('[\u00]') }
+        it { expect(convert.call('[\u{ABCD}]')).to eq('[\uABCD]') }
+
+        it { expect(convert.call('[\o00]')).to eq('[\o00]') }
+        it { expect(convert.call('[\o1234]')).to eq('[\o1234]') }
+        it { expect(convert.call('[\o{00}]')).to eq('[\o00]') }
+        it { expect(convert.call('[\o{1234}]')).to eq('[\o1234]') }
+
+        # Note supported:
+        # \N{U+hh..} character with Unicode code point hh.. (Unicode mode only)
+      end
+
       describe 'groupping ()' do
         context 'when capturing' do
-          it { expect(convert.call('(a)')).to eq('\(a\)') }
-          it { expect(convert.call('(a)')).to eq('\(a\)') }
-          it { expect(convert.call('(a|b)')).to eq('\(a\|b\)') }
-          it { expect(convert.call('(a|b)')).to eq('\(a\|b\)') }
+          it { expect(convert.call('(a)')).to     eq('\(a\)')    }
+          it { expect(convert.call('(a)')).to     eq('\(a\)')    }
+          it { expect(convert.call('(a|b)')).to   eq('\(a\|b\)') }
+          it { expect(convert.call('(a|b)')).to   eq('\(a\|b\)') }
+          it { expect(convert.call('((a))')).to   eq('\(\(a\)\)')    }
+          it { expect(convert.call('((a))')).to   eq('\(\(a\)\)')    }
+          it { expect(convert.call('((a|b))')).to eq('\(\(a\|b\)\)') }
+          it { expect(convert.call('((a|b))')).to eq('\(\(a\|b\)\)') }
 
           it { expect(convert.call('(a)\(')).to eq('\(a\)(') }
           it { expect(convert.call('(a)\)')).to eq('\(a\))') }
@@ -113,8 +130,6 @@ describe 'esearch#buf' do
           # :h perl patterns
           # Capability                   in Vimspeak in Perlspeak
           # ----------------------------------------------------------------
-          # force case insensitivity     \c          (?i)
-          # force case sensitivity       \C          (?-i)
           # 0-width match                atom\@=     (?=atom)
           # 0-width non-match            atom\@!     (?!atom)
           # 0-width preceding match      atom\@<=    (?<=atom)
@@ -140,7 +155,6 @@ describe 'esearch#buf' do
               it { expect(convert.call('(?<!\d) \w')).to eq('\%(\d\)\@<! \w') } # matches "a" in "a 2 b"
             end
           end
-
           #  call assert_equal('\%(the\)\@>cat',    Parse('(?>the)cat')) " atomic
           #  call assert_equal((Parse('(?<=ab(?<!cd))')), '\%(ab\%(cd\)\@<!\)\@<=')
         end
@@ -149,20 +163,11 @@ describe 'esearch#buf' do
       describe 'modifiers' do
         # https://www.regular-expressions.info/tcl.html
         describe 'case' do
-          # :h perl patterns
-          # Capability                   in Vimspeak in Perlspeak
-          # ----------------------------------------------------------------
-          # force case insensitivity     \c          (?i)
-          # force case sensitivity       \C          (?-i)
-
-          # When "\c" appears anywhere in the pattern, the whole pattern is handled like
-          # 'ignorecase' is on.  The actual value of 'ignorecase' and 'smartcase' is
-          # ignored.
-          # Thus, case spans aren't supported.
+          # NOTE: that case spans are not supported as \c is global
           it { expect(convert.call('(?i)')).to eq('\c') }
-          it { expect(convert.call('(?-i)')).to eq('\C') }
+          it { expect(convert.call('(?-i)')).to eq('') }
           it { expect(convert.call('(?i:abc)')).to eq('\cabc') }
-          it { expect(convert.call('(?-i:abc)')).to eq('\Cabc') }
+          it { expect(convert.call('(?-i:abc)')).to eq('abc') }
         end
 
         describe 'newline-sensitivity' do
@@ -171,40 +176,47 @@ describe 'esearch#buf' do
           it { expect(convert.call('a(?m).c(?-m).')).to    eq('a.c.')  }
           it { expect(convert.call('a(?m:.c).')).to        eq('a.c.')  }
           it { expect(convert.call('a(?m:(?-m:.c).).')).to eq('a.c..') }
-          #  \_. Matches any single character or end-of-line.
-          #  " Careful: "\_.*" matches all text to the end of the buffer!
-          # it { expect(convert.call('(?m)')).to             eq('')        }
-          # it { expect(convert.call('(?m).')).to            eq('\_.')     }
-          # it { expect(convert.call('a(?m).c(?-m).')).to    eq('a\_.c.')  }
-          # it { expect(convert.call('a(?m:.c).')).to        eq('a\_.c.')  }
-          # it { expect(convert.call('a(?m:(?-m:.c).).')).to eq('a.c\_..') }
         end
       end
 
-      describe 'other special chars' do
-        # Examples:
-        # after:    \v      \m      \M      \V              matches    ~
-        #                 'magic' 'nomagic'
-        #           $       $        $      \$   matches    end-of-line
-        #           .       .        \.     \.   matches    any        character
-        #           *       *        \*     \*   any        number     of the previous atom
-        #           ~       ~        \~     \~   latest     substitute string
-        #           ()      \(\)     \(\)   \(\) grouping   into       an atom
-        #           |       \|       \|     \|   separating alternatives
-        #           \a      \a       \a     \a   alphabetic character
-        #           \\      \\       \\     \\   literal    backslash
-        #           \.      \.       .      .    literal    dot
-        #           \{      {        {      {    literal    '{'
-        #           a       a        a      a    literal    'a'
+      describe 'special chars' do
+        it { expect(convert.call('|')).to eq('\|') }
+        it { expect(convert.call('\|')).to eq('|') }
 
-        # "" \& - branching (same as \|)
-        #   " Note that using "\&" works the same as using "\@=": "foo\&.." is the
-        #   " same as "\(foo\)\@=..".  But using "\&" is easier, you don't need the
-        #   " braces.
-        it { expect(convert.call('|')).to  eq('\|') }
-        it { expect(convert.call('~')).to  eq('\~') }
-        it { expect(convert.call('\\')).to eq('\\') }
-        it { expect(convert.call('|')).to  eq('\|') }
+        it { expect(convert.call('~')).to   eq('\~') }
+        it { expect(convert.call('\~')).to  eq('\~') }
+
+        it { expect(convert.call('\\\\')).to  eq('\\\\') }
+        it { expect(convert.call('\\')).to    eq('\\') }
+
+        it { expect(convert.call('\\%')).to eq('%') }
+        it { expect(convert.call('%')).to eq('%') }
+
+        it { expect(convert.call('\<')).to eq('<') }
+        it { expect(convert.call('<')).to eq('<') }
+
+        it { expect(convert.call('\>')).to eq('>') }
+        it { expect(convert.call('>')).to eq('>') }
+
+        it { expect(convert.call('\(')).to  eq('(') }
+        it { expect(convert.call('\)')).to  eq(')') }
+        it { expect(convert.call('()')).to  eq('\(\)') }
+
+        it { expect(convert.call('\[')).to  eq('\[') }
+        it { expect(convert.call('\]')).to  eq('\]') }
+        it { expect(convert.call('[]')).to  eq('[]') }
+
+        it { expect(convert.call('\=')).to  eq('=') }
+        it { expect(convert.call('=')).to eq('=') }
+
+        it { expect(convert.call('\@')).to eq('@') }
+        it { expect(convert.call('@')).to eq('@') }
+
+        it { expect(convert.call('\_.')).to eq('_.') }
+        it { expect(convert.call('_.')).to eq('_.') }
+
+        it { expect(convert.call('\&')).to   eq('&') }
+        it { expect(convert.call('&')).to    eq('&') }
       end
 
       # https://www.rexegg.com/regex-anchors.html
@@ -218,14 +230,16 @@ describe 'esearch#buf' do
 
         describe 'subject boundaries' do
           it { expect(convert.call('^')).to  eq('^') }
-          it { expect(convert.call('\A')).to eq('\%^') } # TODO
+          it { expect(convert.call('\A')).to eq('^') }
           it { expect(convert.call('$')).to  eq('$') }
-          it { expect(convert.call('\z')).to eq('\%$') } # TODO
+          it { expect(convert.call('\z')).to eq('$') }
+          it { expect(convert.call('\Z')).to eq('$') }
+          it { expect(convert.call('\zs')).to eq('$s') }
+          it { expect(convert.call('\ze')).to eq('$e') }
         end
 
         # TODO
         # \B     matches when not at a word boundary
-        # \z     matches only at the end of the subject
         # \G     matches at the first matching position in the subject
       end
 
@@ -236,43 +250,86 @@ describe 'esearch#buf' do
         # ----------------------------------------------------------------
         # conservative quantifiers     \{-n,m}     *?, +?, ??, {}?
         context 'when zero or more *' do
-          it { expect(convert.call('a*')).to eq('a*') } # docile
-          it { expect(convert.call('a\*')).to eq('a\*') }
+          context 'when greedy' do
+            it { expect(convert.call('a*')).to eq('a*') }
+            it { expect(convert.call('(a)*')).to eq('\(a\)*') }
+          end
 
-          it { expect(convert.call('a*?')).to eq('a\{-}') } # lazy
-          # TODO: a*+
+          context 'when lazy' do
+            it { expect(convert.call('a*?')).to eq('a\{-}') }
+            it { expect(convert.call('(a)*?')).to eq('\(a\)\{-}') }
+          end
+
+          context 'when possessive' do
+            it { expect(convert.call('a*+')).to eq('a*') }
+            it { expect(convert.call('(a)*+')).to eq('\(a\)*') }
+          end
+
+          context 'when converted to literal' do
+            it { expect(convert.call('a\*')).to eq('a\*') }
+            it { expect(convert.call('a*\?')).to eq('a*?') }
+            it { expect(convert.call('a\*?')).to eq('a\*\=') }
+          end
         end
 
         context 'when once or more +' do
-          it { expect(convert.call('a+')).to eq('a\+') }
-          it { expect(convert.call('a\+')).to eq('a+') }
+          context 'when greedy' do
+            it { expect(convert.call('a+')).to eq('a\+') }
+            it { expect(convert.call('(a)+')).to eq('\(a\)\+') }
+          end
 
-          it { expect(convert.call('a+?')).to eq('a\{-1,}') } # lazy
-          # TODO: a++
+          context 'when lazy' do
+            it { expect(convert.call('a+?')).to eq('a\{-1,}') }
+            it { expect(convert.call('(a)+?')).to eq('\(a\)\{-1,}') }
+          end
+
+          context 'when possessive' do
+            # Converted to greedy
+            it { expect(convert.call('a++')).to eq('a\+') }
+            it { expect(convert.call('(a)++')).to eq('\(a\)\+') }
+          end
+
+          context 'when converted to literal' do
+            it { expect(convert.call('a\+')).to  eq('a+')   }
+            it { expect(convert.call('a\+?')).to eq('a+\=') }
+            it { expect(convert.call('a+\?')).to eq('a\+?') }
+            it { expect(convert.call('a\++')).to eq('a+\+') }
+            it { expect(convert.call('a+\+')).to eq('a\++') }
+          end
         end
 
         context 'when zero or once ?' do
-          # cats?1  searches cats1, then cat1
-          # cats??1 searches cat1, then cats1
-          it { expect(convert.call('a?')).to   eq('a\=')     } # greedy
-          it { expect(convert.call('a??')).to  eq('a\{-,1}') } # lazy
+          context 'when greedy' do
+            it { expect(convert.call('a?')).to   eq('a\=') }
+            it { expect(convert.call('(a)?')).to eq('\(a\)\=') }
+          end
 
-          it { expect(convert.call('(a)?')).to   eq('\(a\)\=')     }
-          it { expect(convert.call('(a)??')).to  eq('\(a\)\{-,1}') }
+          context 'when lazy' do
+            it { expect(convert.call('a??')).to eq('a\{-,1}') }
+            it { expect(convert.call('(a)??')).to eq('\(a\)\{-,1}') }
+          end
 
-          it { expect(convert.call('a?\?')).to   eq('a\=?')     }
-          it { expect(convert.call('a\??')).to   eq('a?\=')     }
+          context 'when possessive' do
+            it { expect(convert.call('a?+')).to eq('a\=') }
+            it { expect(convert.call('(a)?+')).to eq('\(a\)\=') }
+          end
+
+          context 'when converted to literal' do
+            it { expect(convert.call('a\?')).to  eq('a?')   }
+            it { expect(convert.call('a\??')).to eq('a?\=') }
+            it { expect(convert.call('a?\?')).to eq('a\=?') }
+            it { expect(convert.call('a\??')).to eq('a?\=') }
+            it { expect(convert.call('a\?\?')).to eq('a??') }
+          end
         end
 
         context 'when zero or once {n,m}' do
           # From :h /multi
-
           # \{n,m}    n to m as many as possible
           # \{n}      n exactly
           # \{n,}     at least n  as many as possible
           # \{,m}     0 to m as many as possible
           # \{}       0 or more as many as possible (same as *)
-
           # \{-n,m}   n to m as few as possible
           # \{-n}     n exactly
           # \{-n,}    at least n  as few as possible
@@ -281,28 +338,42 @@ describe 'esearch#buf' do
 
           # https://docs.microsoft.com/en-us/dotnet/standard/base-types/quantifiers-in-regular-expressions
           # https://www.regular-expressions.info/refrepeat.html
-          context 'when fixed' do
-            it { expect(convert.call('a{}')).to eq('a{}') } # for some engines ti's a bug, but pcre2 considers it literal {}
-            it { expect(convert.call('a{}')).to eq('a{}') } # for some engines ti's a bug, but pcre2 considers it literal {}
-            it { expect(convert.call('a{3}')).to eq('a\{3}') }
-            it { expect(convert.call('a{3}?')).to eq('a\{-3}') }
-          end
-
           context 'when greedy' do
-            it { expect(convert.call('a{1,2}')).to  eq('a\{1,2}')  }
-            it { expect(convert.call('a{1,}')).to   eq('a\{1,}')   }
-            it { expect(convert.call('a{,2}')).to   eq('a\{,2}')   }
+            it { expect(convert.call('a{1,2}')).to eq('a\{1,2}') }
+            it { expect(convert.call('a{1,}')).to  eq('a\{1,}')  }
+            it { expect(convert.call('a{3}')).to   eq('a\{3}')   }
+
+            it { expect(convert.call('(a){1,2}')).to eq('\(a\)\{1,2}') }
+            it { expect(convert.call('(a){1,}')).to  eq('\(a\)\{1,}')  }
+            it { expect(convert.call('(a){3}')).to   eq('\(a\)\{3}')   }
           end
 
           context 'when lazy' do
-            it { expect(convert.call('a{1,2}?')).to eq('a\{-1,2}') }
-            it { expect(convert.call('a{1,}?')).to  eq('a\{-1,}') }
-            it { expect(convert.call('a{,2}?')).to  eq('a\{-,2}') }
-            it { expect(convert.call('a{,}?')).to  eq('a\{-,}') }
+            it { expect(convert.call('(a){1,2}?')).to eq('\(a\)\{-1,2}') }
+            it { expect(convert.call('(a){1,}?')).to  eq('\(a\)\{-1,}')  }
+            it { expect(convert.call('(a){3}?')).to   eq('\(a\)\{-3}')   }
           end
 
           context 'when possessive' do
-            # TODO: a{1,2}+
+            # Converted to greedy
+            it { expect(convert.call('(a){1,2}+')).to eq('\(a\)\{1,2}') }
+            it { expect(convert.call('(a){1,}+')).to  eq('\(a\)\{1,}')  }
+            it { expect(convert.call('(a){3}+')).to   eq('\(a\)\{3}')   }
+          end
+
+          context 'when converted to literal' do
+            it { expect(convert.call('a{,2}')).to  eq('a{,2}')   }
+            it { expect(convert.call('a{,2}+')).to eq('a{,2}\+') }
+            it { expect(convert.call('a{,2}?')).to eq('a{,2}\=') }
+            it { expect(convert.call('a{,}?')).to  eq('a{,}\=')  }
+            it { expect(convert.call('\{}')).to    eq('{}')      }
+            it { expect(convert.call('\{')).to     eq('{')       }
+            it { expect(convert.call('\{\}')).to   eq('{\}')     }
+            it { expect(convert.call('a{}')).to    eq('a{}')     }
+            it { expect(convert.call('a{,}')).to   eq('a{,}')    }
+            it { expect(convert.call('a{-}')).to   eq('a{-}')    }
+            it { expect(convert.call('a{')).to     eq('a{')      }
+            it { expect(convert.call('a}')).to     eq('a}')      }
           end
         end
       end
