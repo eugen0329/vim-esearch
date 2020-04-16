@@ -59,7 +59,7 @@ endfu
 " cause unwanted idle when early_update_limit is exceeded, but the backend
 " is still working.
 fu! esearch#out#win#update#can_finish_early(esearch) abort
-  if !a:esearch.request.async | return | endif
+  if !a:esearch.request.async | return 1 | endif
 
   let original_early_update_limit = a:esearch.early_update_limit
   let a:esearch.early_update_limit *= 1000
@@ -93,7 +93,7 @@ fu! s:early_update_backend_cb(bufnr) abort
 endfu
 
 fu! s:update_timer_cb(esearch, bufnr, timer) abort
-  " Timer counts time only from the begin, not from the return, so we have to
+  " Timer counts time only from the beginning, not from the return, so we have to
   " ensure it manually
   " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000

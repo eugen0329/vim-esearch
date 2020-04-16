@@ -22,7 +22,7 @@ fu! esearch#init(...) abort
   endif
 
   " TODO add 'remember' option to handle memoization below
-  let g:esearch.last_pattern     = esearch.cmdline
+  let g:esearch.last_pattern    = esearch.pattern
   let g:esearch.case            = esearch.case
   let g:esearch.textobj         = esearch.textobj
   let g:esearch.regex           = esearch.regex

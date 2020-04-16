@@ -1,5 +1,5 @@
-let s:LexerModule  = vital#esearch#import('Text.Lexer')
-let s:ParserModule = vital#esearch#import('Text.Parser')
+let s:Lexer  = vital#esearch#import('Text.Lexer')
+let s:Parser = vital#esearch#import('Text.Parser')
 
 fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
@@ -27,17 +27,15 @@ fu! esearch#pattern#pcre2vim#convert(string, ...) abort
 endfu
 
 let s:PCRE2Vim = {
-      \ 'case_sensitive':       1,
-      \ 'contexts':             [],
-      \ 'cant_exclude':         {},
-      \ '_debug_tokens':        [],
-      \ 'result':               [],
-      \ 'p':                    0,
+      \ 'case_sensitive': 1,
+      \ 'contexts':       [],
+      \ 'result':         [],
+      \ 'p':              0,
       \ }
 
-fu s:PCRE2Vim.new(text) abort dict
-  let lexer = s:LexerModule.lexer(s:rules).exec(a:text)
-  let instance = extend(s:ParserModule.parser().exec(lexer), deepcopy(self))
+fu! s:PCRE2Vim.new(text) abort dict
+  let lexer = s:Lexer.lexer(s:rules).exec(a:text)
+  let instance = extend(s:Parser.parser().exec(lexer), deepcopy(self))
   let instance.text = a:text
   return instance
 endfu
@@ -72,7 +70,6 @@ let s:match_range_quantifier   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
 let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
 let s:match_bracketed_escape = '\%(\\[xou]{\x\{,4}}\)'
-
 let s:rules = [
       \  ['POSIX_BRACKET_EXP',        s:match_posix_bracket_exp                ],
       \  ['CLASS_START',              '\['                                     ],
@@ -101,7 +98,6 @@ let s:rules = [
       \  ['ESCAPED_ANY',              '\\.'                                    ],
       \  ['ANy',                      '.'                                      ],
       \]
-
 let s:pcre2vim_subject_boundary = {
       \ '\A': '^',
       \ '\z': '$',
@@ -290,19 +286,6 @@ fu! s:PCRE2Vim.convert() abort dict
   return self.result
 endfu
 
-fu! s:PCRE2Vim.debug() abort dict
-  let output = []
-  for t in self._debug_tokens
-
-    let location = self.text[max([0, t.p - 5]) : min([len(self.text), t.p + 5])]
-    call add(output,
-          \ printf('%15s | %3d | %30s | %4s | %10s', t.context.label, t.p, t.token.label, t.token.matched_text, string(location))
-          \ )
-  endfor
-
-  return join(output, "\n")
-endfu
-
 fu! s:PCRE2Vim.warn(msg) abort dict
   echomsg a:msg
 endfu
@@ -314,8 +297,5 @@ endfu
 fu! s:PCRE2Vim.advance() abort dict
   let self.token = self.consume()
   let self.p  += strchars(self.token.matched_text)
-  if g:esearch#env isnot 0
-    let self._debug_tokens += [{'token': deepcopy(self.token), 'p': self.p, 'context': get(self.contexts, -1, {'label': 'none'}) }]
-  endif
   return self.token
 endfu

@@ -13,14 +13,13 @@ fu! esearch#out#win#header#init(esearch) abort
   let a:esearch.header_text = function('esearch#out#win#header#in_progress')
   let a:esearch.header_tick = 0
 
-  " If context heights are given - consumed lines count is imprecise as they
-  " contain separators ('--' or '')
+  " If context heights are given (-A, -B, -C) - consumed lines count are
+  " imprecise as they contain separators ('--' or '')
   if a:esearch.current_adapter.outputs_separators(a:esearch)
     let a:esearch.precision_hint = s:less_or_equal
   else
     let a:esearch.precision_hint = ''
   endif
-    let a:esearch.header_start_at = reltime()
 
   let a:esearch.header_format =
         \  'Matches in ' . a:esearch.precision_hint

@@ -76,7 +76,8 @@ function M.highlight_ui(bufnr, from, to)
     if i == 1 and from < 1 then
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
       local pos1, pos2 =  text:find('%d+')
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
+      -- 2 subtracted to capture less-than-or-equl-to sign
+      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
       pos1, pos2 =  text:find('%d+', pos2 + 1)
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
     elseif text:len() == 0 then

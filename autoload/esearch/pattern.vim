@@ -13,11 +13,11 @@ fu! esearch#pattern#new(string, is_regex, case, textobj) abort
   endif
 
   if a:case ==# 'ignore'
-    let pattern.vim = '\c'.pattern.vim
+    let pattern.vim = pattern.vim.'\c'
   elseif a:case ==# 'sensitive'
-    let pattern.vim = '\C'.pattern.vim
+    let pattern.vim = pattern.vim.'\C'
   elseif a:case ==# 'smart'
-    let pattern.vim = (pattern.vim =~# '\u' ? '\C' : '\c') . pattern.vim
+    let pattern.vim = pattern.vim . (pattern.vim =~# '\u' ? '\C' : '\c')
   elseif g:esearch#env isnot# 0
     echoerr 'Unknown case option ' . a:case
   endif
