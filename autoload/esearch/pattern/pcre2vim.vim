@@ -5,6 +5,8 @@ let s:Parser  = vital#esearch#import('Text.Parser')
 " NOTE: is not intended to be a general purpose converter as some of atoms are
 " suppressed for using in #out#win
 
+" TODO rewrite viatal parser and lexer to have moe performance
+
 fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
     let tokens = s:PCRE2Vim.new(a:string).convert()
@@ -48,10 +50,11 @@ endfu
 
 " https:/\p{/www.regular-expressions.info/modifiers.html
 let s:modifiers_set = '[\-bcdeimnpqstwx]\+'
-let s:match_modifiers_span = printf('(?%s:', s:modifiers_set)
-let s:match_modifiers      = printf('(?%s)', s:modifiers_set)
+let s:modifiers_span_pattern = printf('(?%s:', s:modifiers_set)
+let s:modifiers_pattern      = printf('(?%s)', s:modifiers_set)
 unlet s:modifiers_set
-let s:match_posix_bracket_exp = join([
+let s:comment_pattern = '(?#\%('.g:esearch#pattern#even_count_of_escapes.'\\)\|[^)]\)*)'
+let s:posix_named_set_pattern = join([
       \ 'alnum',
       \ 'alpha',
       \ 'blank',
@@ -71,44 +74,72 @@ let s:match_posix_bracket_exp = join([
       \ 'word',
       \ 'ascii',
       \ ], '\|')
-let s:match_posix_bracket_exp = printf('\[:\%(%s\):\]', s:match_posix_bracket_exp)
-let s:match_range_quantifier   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
+let s:posix_named_set_pattern = printf('\[:\%(%s\):\]', s:posix_named_set_pattern)
+let s:range_quantifier_pattern   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
 let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
-let s:match_bracketed_escape = '\%(\\[xou]{\x\{,4}}\)'
+let s:bracketed_escape_pattern = '\%(\\[xou]{\x\+}\)'
+let s:POSIX_NAMED_SET   = 1
+let s:CLASS_START       = 2
+let s:CLASS_END         = 3
+let s:MODIFIER          = 4
+let s:MODIFIER_SPAN     = 5
+let s:COMMENT           = 6
+let s:NAMED_GROUP_START = 7
+let s:GROUP_START       = 8
+let s:GROUP_END         = 9
+let s:RANGE_QUANTIFER   = 10
+let s:QUANTIFIER        = 11
+let s:PROPERTY          = 12
+let s:BRACKETED_ESCAPE  = 13
+let s:ESCAPED_ANY       = 14
+let s:ANY               = 15
 let s:rules = [
-      \  ['POSIX_BRACKET_EXP',        s:match_posix_bracket_exp                ],
-      \  ['CLASS_START',              '\['                                     ],
-      \  ['NCLASS_START',             '\[\^'                                   ],
-      \  ['CLASS_END',                '\]'                                     ],
-      \  ['MODIFIER',                 s:match_modifiers                        ],
-      \  ['MODIFIER_SPAN',            s:match_modifiers_span                   ],
-      \  ['POSITIVE_LOOKBEHIND',      '(?<='                                   ],
-      \  ['NEGATIVE_LOOKBEHIND',      '(?<!'                                   ],
-      \  ['POSITIVE_LOOKAHEAD',       '(?='                                    ],
-      \  ['NEGATIVE_LOOKAHEAD',       '(?!'                                    ],
-      \  ['ATOMIC_GROUP',             '(?>'                                    ],
-      \  ['NONCAPTURING_GROUP_START', '(?:'                                    ],
-      \  ['NAMED_GROUP_START',        '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
-      \  ['BRANCH_RESET_START',       '(?|'                                    ],
-      \  ['GROUP_START',              '('                                      ],
-      \  ['GROUP_END',                ')'                                      ],
-      \  ['SUBJECT_BOUNDARY',         '\\[AzZ]'                                ],
-      \  ['RANGE_QUANTIFER',          s:match_range_quantifier                 ],
-      \  ['QUANTIFIER',               '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
-      \  ['WORD_BOUNDARY',            '\\[Bb]'                                 ],
-      \  ['TOBEESCAPED',              '[|~]'                                   ],
-      \  ['TOBEUNESCAPED',            '\\[&{%<>()?+|=@_]'                      ],
-      \  ['PROPERTY',                 '\\[Pp]{\w\+}'                           ],
-      \  ['BRACKETED_ESCAPE',         s:match_bracketed_escape                 ],
-      \  ['ESCAPED_ANY',              '\\.'                                    ],
-      \  ['ANy',                      '.'                                      ],
+      \  [s:POSIX_NAMED_SET,          s:posix_named_set_pattern                ],
+      \  [s:CLASS_START,              '\[\^\='                                 ],
+      \  [s:CLASS_END,                '\]'                                     ],
+      \  [s:MODIFIER,                 s:modifiers_pattern                      ],
+      \  [s:MODIFIER_SPAN,            s:modifiers_span_pattern                 ],
+      \  [s:COMMENT,                  s:comment_pattern                        ],
+      \  [s:NAMED_GROUP_START,        '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
+      \  [s:GROUP_START,              '(\%(?<=\|?<!\|?=\|?!\|?>\|?:\|?|\)\='   ],
+      \  [s:GROUP_END,                ')'                                      ],
+      \  [s:RANGE_QUANTIFER,          s:range_quantifier_pattern               ],
+      \  [s:QUANTIFIER,               '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
+      \  [s:PROPERTY,                 '\\[Pp]{\w\+}'                           ],
+      \  [s:BRACKETED_ESCAPE,         s:bracketed_escape_pattern               ],
+      \  [s:ESCAPED_ANY,              '\\.'                                    ],
+      \  [s:ANY,                      '.'                                      ],
       \]
-let s:pcre2vim_subject_boundary = {
+
+let s:pcre2vim_escape = {
+      \ '|': '\|',
+      \ '~': '\~',
+      \}
+let s:pcre2vim_unescape_regular = {
+      \ '\&': '&',
+      \ '\{': '{',
+      \ '\%': '%',
+      \ '\<': '<',
+      \ '\>': '>',
+      \ '\(': '(',
+      \ '\)': ')',
+      \ '\?': '?',
+      \ '\+': '+',
+      \ '\|': '|',
+      \ '\=': '=',
+      \ '\@': '@',
+      \ '\_': '_',
+      \}
+let s:pcre2vim_expand_escaped = extend({
       \ '\A': '^',
       \ '\z': '$',
       \ '\Z': '$',
-      \}
+      \ '\G': '',
+      \ '\b': '\%(\<\|\>\)',
+      \ '\B': '\%(\w\)\@<=\%(\w\)\@=',
+      \ '\K': '',
+      \ }, s:pcre2vim_unescape_regular)
 " NOTE: possessive are converted to greedy. https:/\p{/github.com/vim/vim/issues/4638
 let s:pcre2vim_quantifier = {
       \ '*':  '*',
@@ -121,13 +152,25 @@ let s:pcre2vim_quantifier = {
       \ '+?': '\{-1,}',
       \ '??': '\{-,1}',
       \ }
-let s:vim_group_close = {
-      \ 'POSITIVE_LOOKBEHIND': '\)\@<=',
-      \ 'NEGATIVE_LOOKBEHIND': '\)\@<!',
-      \ 'POSITIVE_LOOKAHEAD':  '\)\@=',
-      \ 'NEGATIVE_LOOKAHEAD':  '\)\@!',
-      \ 'GROUP_START':         '\)',
-      \ 'ATOMIC_GROUP':        '\)\@>',
+let s:pcre2vim_group_start = {
+      \ '(?<=': '\%(',
+      \ '(?<!': '\%(',
+      \ '(?=':  '\%(',
+      \ '(?!':  '\%(',
+      \ '(?>':  '\%(',
+      \ '(?:':  '\%(',
+      \ '(?|':  '\(',
+      \ '(':    '\(',
+      \ }
+let s:pcre2vim_group_end = {
+      \ '(?<=': '\)\@<=',
+      \ '(?<!': '\)\@<!',
+      \ '(?=':  '\)\@=',
+      \ '(?!':  '\)\@!',
+      \ '(?>':  '\)\@>',
+      \ '(?:':  '\)',
+      \ '(?|':  '\)',
+      \ '(':    '\)',
       \}
 let s:metachar2class_content = {
       \ '\s': ' \t',
@@ -138,7 +181,12 @@ let s:metachar2class_content = {
       \ '\n': '',
       \ '\v': '',
       \ '\f': '',
-      \ '\r': '', 
+      \ '\r': '',
+      \ '\o': '\o',
+      \ '\u': '\u',
+      \ '\x': '\x',
+      \ '\]': '\]',
+      \ '\[': '\[',
       \ }
 
 fu! s:PCRE2Vim.pop_context() abort dict
@@ -153,18 +201,13 @@ fu! s:PCRE2Vim.parse_class() abort dict
   let result = [self.advance().matched_text]
 
   while ! self.end()
-    if self.next_is(['SIMPLE_RANGE'])
+    if self.next_is([s:CLASS_START])
       let result += [self.advance().matched_text]
-    elseif self.next_is(['CLASS_START'])
-      let result += [self.advance().matched_text]
-    elseif self.next_is(['BRACKETED_ESCAPE'])
+    elseif self.next_is([s:BRACKETED_ESCAPE])
       let result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
-    elseif self.next_is(['PROPERTY'])
+    elseif self.next_is([s:PROPERTY])
       call self.throw('properties are not supported')
-    elseif self.next_is(['TOBEUNESCAPED'])
-      call self.advance()
-      let result += [self.token.matched_text[1:]]
-    elseif self.next_is(['POSIX_BRACKET_EXP'])
+    elseif self.next_is([s:POSIX_NAMED_SET])
       let text = self.advance().matched_text
       if text ==# '[:word:]'
         let result += [s:metachar2class_content['\w']]
@@ -173,17 +216,17 @@ fu! s:PCRE2Vim.parse_class() abort dict
       else
         let result += [self.token.matched_text]
       endif
-    elseif self.next_is(['ESCAPED_ANY'])
+    elseif self.next_is([s:ESCAPED_ANY])
       let text = self.advance().matched_text
-      let result += [get(s:metachar2class_content, text, text)]
-    elseif self.next_is(['CLASS_END'])
+      let result += [get(s:metachar2class_content, text, text[1:])]
+    elseif self.next_is([s:CLASS_END])
       call self.advance()
-      if self.contexts[-1].label ==# 'CLASS'
+      if self.contexts[-1].label ==# s:CLASS_START
         return result + [']']
-      else
-        let self.result += result
-        call self.throw('unexpected context' . string(self.contexts))
       endif
+
+      let self.result += result
+      call self.throw('unexpected context' . string(self.contexts))
     else
       let result += [self.advance().matched_text]
     endif
@@ -204,18 +247,18 @@ endfu
 
 fu! s:PCRE2Vim.convert() abort dict
   while ! self.end()
-    if self.next_is(['POSITIVE_LOOKBEHIND', 'POSITIVE_LOOKAHEAD', 'NEGATIVE_LOOKAHEAD', 'NEGATIVE_LOOKBEHIND', 'ATOMIC_GROUP'])
+    if self.next_is([s:GROUP_START])
       call self.advance()
-      let self.result += ['\%(']
-      call self.push_context(self.token.label)
-    elseif self.next_is(['MODIFIER_SPAN'])
-      call self.advance()
-      call self.set_global_modifiers(self.token.matched_text)
-      call self.push_context('MODIFIER_SPAN')
-    elseif self.next_is(['MODIFIER'])
+      let self.result += [s:pcre2vim_group_start[self.token.matched_text]]
+      call self.push_context(self.token.matched_text)
+    elseif self.next_is([s:MODIFIER_SPAN])
       call self.advance()
       call self.set_global_modifiers(self.token.matched_text)
-    elseif self.next_is(['RANGE_QUANTIFER'])
+      call self.push_context(s:MODIFIER_SPAN)
+    elseif self.next_is([s:MODIFIER])
+      call self.advance()
+      call self.set_global_modifiers(self.token.matched_text)
+    elseif self.next_is([s:RANGE_QUANTIFER])
       call self.advance()
       let range = matchstr(self.token.matched_text, s:capture_range_quantifier)
       if self.token.matched_text =~#  '?$'
@@ -223,59 +266,40 @@ fu! s:PCRE2Vim.convert() abort dict
       else
         let self.result += ['\{'.range.'}']
       endif
-    elseif self.next_is(['BRACKETED_ESCAPE'])
+    elseif self.next_is([s:BRACKETED_ESCAPE])
       let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
-    elseif self.next_is(['PROPERTY'])
+    elseif self.next_is([s:PROPERTY])
       call self.throw('properties are not supported')
-    elseif self.next_is(['TOBEESCAPED'])
-      call self.advance()
-      let self.result += ['\'.self.token.matched_text]
-    elseif self.next_is(['TOBEUNESCAPED'])
-      call self.advance()
-      let self.result += [self.token.matched_text[1:]]
-    elseif self.next_is(['WORD_BOUNDARY'])
-      if self.advance().matched_text ==# '\b'
-        let self.result += ['\%(\<\|\>\)']
-      else " ==# '\B'
-        let self.result += ['\%(\w\)\@<=\%(\w\)\@='] " lookahead + lookbehind
-      endif
-    elseif self.next_is(['SUBJECT_BOUNDARY'])
-      let self.result += [s:pcre2vim_subject_boundary[self.advance().matched_text]]
-    elseif self.next_is(['NONCAPTURING_GROUP_START'])
-      call self.advance()
-      let self.result += ['\%(']
-      call self.push_context('GROUP_START')
-    elseif self.next_is(['NAMED_GROUP_START'])
+    elseif self.next_is([s:NAMED_GROUP_START])
       call self.advance()
       let self.result += ['\(']
-      call self.push_context('GROUP_START')
-    elseif self.next_is(['BRANCH_RESET_START'])
+      call self.push_context('(')
+    elseif self.next_is([s:COMMENT])
       call self.advance()
-      call self.warn('branch reset is not supported in vim')
-      let self.result += ['\(']
-      call self.push_context('GROUP_START')
-    elseif self.next_is(['GROUP_START'])
-      call self.advance()
-      let self.result += ['\(']
-      call self.push_context('GROUP_START')
-    elseif self.next_is(['NCLASS_START', 'CLASS_START'])
-      call self.push_context('CLASS')
+    elseif self.next_is([s:CLASS_START])
+      call self.push_context(s:CLASS_START)
       let self.result += self.parse_class()
       call self.pop_context()
-    elseif self.next_is(['QUANTIFIER'])
+    elseif self.next_is([s:QUANTIFIER])
       let self.result += [s:pcre2vim_quantifier[self.advance().matched_text]]
-    elseif self.next_is(['GROUP_END'])
+    elseif self.next_is([s:GROUP_END])
       call self.advance()
       if empty(self.contexts) | call self.throw('unexpected group end') | endif
 
-      if has_key(s:vim_group_close, self.contexts[-1].label)
-        let self.result += [s:vim_group_close[self.contexts[-1].label]]
-      elseif self.contexts[-1].label ==# 'MODIFIER_SPAN'
+      if has_key(s:pcre2vim_group_end, self.contexts[-1].label)
+        let self.result += [s:pcre2vim_group_end[self.contexts[-1].label]]
+      elseif self.contexts[-1].label ==# s:MODIFIER_SPAN
         " just pop the context
       else
         throw 'Unknown group ending encountered: ' . string(self.contexts[-1].label)
       endif
       call self.pop_context()
+    elseif self.next_is([s:ESCAPED_ANY])
+      call self.advance()
+      let self.result += [get(s:pcre2vim_expand_escaped, self.token.matched_text, self.token.matched_text)]
+    elseif self.next_is([s:ANY])
+      call self.advance()
+      let self.result += [get(s:pcre2vim_escape, self.token.matched_text, self.token.matched_text)]
     else
       let self.result += [self.advance().matched_text]
     endif

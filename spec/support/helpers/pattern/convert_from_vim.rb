@@ -42,5 +42,3 @@ module Helpers::Pattern::ConvertFromVim
     it { expect(convert.call('\\%>300v')).to eq('')    }
   end
 end
-
-

@@ -14,8 +14,10 @@ describe 'esearch#pattern' do
         end
       end
 
-      # TODO: ESCAPED CHARACTERS
-      # https://www.pcre.org/current/doc/html/pcre2syntax.html#SEC3
+      # TODO
+      # implement named captures substitution via translating them to \1,2,..
+      # implement negation within groups [\W\S]
+      # implement negative posix named sets [:^xxx:]
 
       describe 'class []' do
         # https://www.pcre.org/current/doc/html/pcre2syntax.html#SEC8
@@ -90,6 +92,13 @@ describe 'esearch#pattern' do
       end
 
       describe 'groupping ()' do
+        context 'when comment' do
+          it { expect(convert.call('a(?#bbb)c')).to    eq('ac') }
+          it { expect(convert.call('a(?#bbb\))c')).to  eq('ac') }
+          it { expect(convert.call('a(?#)c')).to       eq('ac') }
+          it { expect(convert.call('a(?#b\\\\b)c')).to eq('ac') }
+        end
+
         context 'when capturing' do
           it { expect(convert.call('(a)')).to     eq('\(a\)')    }
           it { expect(convert.call('(a)')).to     eq('\(a\)')    }
@@ -116,7 +125,7 @@ describe 'esearch#pattern' do
           it { expect(convert.call('(?:a|b)')).to eq('\%(a\|b\)') }
         end
 
-        context 'when named' do
+        context 'when named captures' do
           # https://www.pcre.org/original/doc/html/pcrepattern.html#SEC16
           it { expect(convert.call('(?<name>a)')).to eq('\(a\)') }  # pcre
           it { expect(convert.call("(?'name'a)")).to eq('\(a\)') }  # perl
@@ -225,29 +234,24 @@ describe 'esearch#pattern' do
       # https://www.rexegg.com/regex-anchors.html
       # https://www.pcre.org/current/doc/html/pcre2syntax.html#SEC10
       describe 'anchors' do
-        describe 'word boundaries' do
-          it { expect(convert.call('a\b')).to   eq('a\%(\<\|\>\)')                                }
-          it { expect(convert.call('\ba')).to   eq('\%(\<\|\>\)a')                                }
-          it { expect(convert.call('\ba\b')).to eq('\%(\<\|\>\)a\%(\<\|\>\)')                     }
+        it { expect(convert.call('a\b')).to   eq('a\%(\<\|\>\)')                                }
+        it { expect(convert.call('\ba')).to   eq('\%(\<\|\>\)a')                                }
+        it { expect(convert.call('\ba\b')).to eq('\%(\<\|\>\)a\%(\<\|\>\)')                     }
 
-          it { expect(convert.call('a\B')).to   eq('a\%(\w\)\@<=\%(\w\)\@=')                      }
-          it { expect(convert.call('\Ba')).to   eq('\%(\w\)\@<=\%(\w\)\@=a')                      }
-          it { expect(convert.call('\Ba\B')).to eq('\%(\w\)\@<=\%(\w\)\@=a\%(\w\)\@<=\%(\w\)\@=') }
-        end
+        it { expect(convert.call('a\B')).to   eq('a\%(\w\)\@<=\%(\w\)\@=')                      }
+        it { expect(convert.call('\Ba')).to   eq('\%(\w\)\@<=\%(\w\)\@=a')                      }
+        it { expect(convert.call('\Ba\B')).to eq('\%(\w\)\@<=\%(\w\)\@=a\%(\w\)\@<=\%(\w\)\@=') }
 
-        describe 'subject boundaries' do
-          it { expect(convert.call('^')).to  eq('^') }
-          it { expect(convert.call('\A')).to eq('^') }
-          it { expect(convert.call('$')).to  eq('$') }
-          it { expect(convert.call('\z')).to eq('$') }
-          it { expect(convert.call('\Z')).to eq('$') }
-          it { expect(convert.call('\zs')).to eq('$s') }
-          it { expect(convert.call('\ze')).to eq('$e') }
-        end
-
-        # TODO
-        # \B     matches when not at a word boundary
-        # \G     matches at the first matching position in the subject
+        it { expect(convert.call('^')).to  eq('^') }
+        it { expect(convert.call('\A')).to eq('^') }
+        it { expect(convert.call('$')).to  eq('$') }
+        it { expect(convert.call('\z')).to eq('$') }
+        it { expect(convert.call('\Z')).to eq('$') }
+        it { expect(convert.call('\zs')).to eq('$s') }
+        it { expect(convert.call('\ze')).to eq('$e') }
+        # works as ^ only on the first iteration.
+        it { expect(convert.call('\G')).to eq('') }
+        it { expect(convert.call('\K')).to eq('') }
       end
 
       describe 'quantifiers' do
