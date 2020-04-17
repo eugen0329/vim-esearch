@@ -124,8 +124,8 @@ module Helpers::Commandline
       block.call
 
       @actual =
-        [esearch.output.calls_history.last&.dig('exp', 'pcre'),
-         esearch.output.calls_history.last&.dig('exp', 'literal'),]
+        [esearch.output.calls_history.last&.dig('pattern', 'pcre'),
+         esearch.output.calls_history.last&.dig('pattern', 'literal'),]
       @expected = [string, string]
       values_match?(@expected, @actual)
     end

@@ -14,14 +14,11 @@ describe 'esearch#buf' do
       let(:files) { [file('', filename.gsub('\\', '\\\\\\\\'))] }
       let!(:test_directory) { directory(files).persist! }
 
-      before do
-        editor.cd! test_directory
-        pending 'TODO'
-      end
+      before { editor.cd! test_directory }
 
       context 'when listed' do
         before do
-          editor.edit! files.first.to_s.gsub(/[#%]/, '\\\\\0')
+          editor.command! "edit `=#{VimlValue.dump(filename)}`"
         end
 
         it { expect(editor.echo(func('esearch#buf#find', filename))).to be > 0 }
@@ -29,7 +26,7 @@ describe 'esearch#buf' do
 
       context 'when hidden' do
         before do
-          editor.edit! files.first.to_s.gsub(/[#%]/, '\\\\\0')
+          editor.command! "edit `=#{VimlValue.dump(filename)}`"
           editor.command! 'enew'
         end
 

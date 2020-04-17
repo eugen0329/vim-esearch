@@ -1,8 +1,15 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-fu! esearch#buf#find(filename) abort
-  return bufnr(esearch#buf#pattern(a:filename))
-endfu
+if g:esearch#has#bufadd
+  fu! esearch#buf#find(filename) abort
+    if !bufexists(a:filename) | return -1 | endif
+    return bufadd(a:filename)
+  endfu
+else
+  fu! esearch#buf#find(filename) abort
+    return bufnr(esearch#buf#pattern(a:filename))
+  endfu
+endif
 
 " :h file-pattern
 fu! esearch#buf#pattern(filename) abort
@@ -17,21 +24,21 @@ fu! esearch#buf#pattern(filename) abort
   let filename = s:Filepath.to_slash(filename)
 
   " From :h file-pattern:
-  "   *	matches any sequence of characters; Unusual: includes path separators
-  "   ?	matches any single character
-  "   \?	matches a '?'
-  "   .	matches a '.'
-  "   ~	matches a '~'
-  "   ,	separates patterns
-  "   \,	matches a ','
-  "   { }	like \( \) in a |pattern|
-  "   ,	inside { }: like \| in a |pattern|
-  "   \}	literal }
-  "   \{	literal {
+  "   *          matches any sequence of characters; Unusual: includes path separators
+  "   ?          matches any single character
+  "   \?         matches a '?'
+  "   .          matches a '.'
+  "   ~          matches a '~'
+  "   ,          separates patterns
+  "   \,         matches a ','
+  "   { }        like \( \) in a |pattern|
+  "   ,          inside { }: like \| in a |pattern|
+  "   \}         literal }
+  "   \{         literal {
   "   \\\{n,m\}  like \{n,m} in a |pattern|
-  "   \	special meaning like in a |pattern|
-  "   [ch]	matches 'c' or 'h'
-  "   [^ch]   match any character but 'c' and 'h'
+  "   \          special meaning like in a |pattern|
+  "   [ch]       matches 'c' or 'h'
+  "   [^ch]      match any character but 'c' and 'h'
   " Special file-pattern characters must be escaped: [ escapes to [[], not \[.
   let filename = escape(filename, '?*[],\')
   " replacing with \{ and \} or [{] and [}] doesn't work

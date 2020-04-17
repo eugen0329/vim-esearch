@@ -1,72 +1,53 @@
-fu! esearch#source#pick_exp(use, opts) abort
+fu! esearch#source#pick_exp(use, esearch) abort
   let use = type(a:use) == type('') ? [a:use] : a:use
 
   for name in use
-    let exp = esearch#source#{name}(a:opts)
-    if !empty(exp) | return deepcopy(exp) | endif
+    let pattern = esearch#source#{name}(a:esearch)
+    if !empty(pattern) | return pattern | endif
   endfor
 
-  return esearch#regex#new()
+  return {'literal': '', 'pcre': ''}
 endfu
 
-fu! esearch#source#visual(opts) abort
-  if get(a:opts, 'visualmode', 0)
+fu! esearch#source#visual(esearch) abort
+  if get(a:esearch, 'visualmode', 0)
     let visual = esearch#util#visual_selection()
-    return esearch#regex#new({'vim': visual, 'pcre': visual, 'literal': visual})
-  else
-    return 0
+    return {'pcre': visual, 'literal': visual}
   endif
 endfu
 
-fu! esearch#source#hlsearch(...) abort
-  if get(v:, 'hlsearch', 0)
-    let vexp = getreg('/')
-    return esearch#regex#new({
-          \  'vim': vexp,
-          \  'pcre': esearch#regex#vim2pcre(vexp),
-          \  'literal': esearch#regex#vim_sanitize(vexp)
-          \ })
-  else
-    return 0
-  endif
+fu! esearch#source#hlsearch(esearch) abort
+  let str = getreg('/')
+  if empty(str) | return | endif
+
+  return {
+        \  'pcre':    esearch#pattern#vim2pcre#convert(str),
+        \  'literal': esearch#pattern#vim2literal#convert(str)
+        \ }
 endfu
 
-fu! esearch#source#last(...) abort
-  if exists('g:esearch')
-    return get(g:esearch, 'last_search', 0)
-  else
-    return 0
-  endif
+fu! esearch#source#last(esearch) abort
+  return get(g:esearch, 'last_pattern', 0)
 endfu
 
-fu! esearch#source#current(...) abort
-  if exists('b:esearch')
-    return get(b:esearch, 'exp', 0)
-  else
-    return 0
-  endif
+fu! esearch#source#current(esearch) abort
+  if exists('b:esearch') | return get(b:esearch, 'pattern', 0) | endif
 endfu
 
-fu! esearch#source#filename(...) abort
-  let w = expand('%')
+fu! esearch#source#cword(esearch) abort
+  return {'literal': expand('<cword>'), 'pcre': expand('<cword>')}
 endfu
-
-fu! esearch#source#cword(...) abort
-  let w = expand('<cword>')
-  return esearch#regex#new({'vim': w, 'pcre': w, 'literal': w})
-endfu
-fu! esearch#source#word_under_cursor(...) abort
-  return call('esearch#source#cword', a:000)
+fu! esearch#source#word_under_cursor(esearch) abort
+  return {'literal': expand('<cword>'), 'pcre': expand('<cword>')}
 endfu
 
 fu! esearch#source#clipboard() abort
-  return getreg('"')
+  return {'literal': getreg('"'), 'pcre': getreg('"')}
 endfu
 
 fu! esearch#source#system_clipboard() abort
-  return getreg('+')
+  return {'literal': getreg('+'), 'pcre': getreg('+')}
 endfu
-
 fu! esearch#source#system_selection_clipboard() abort
-  return getreg('+')
+  return {'literal': getreg('+'), 'pcre': getreg('+')}
 endfu

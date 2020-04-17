@@ -80,7 +80,7 @@ module Helpers::Modifiable
         let g:esearch_win_disable_context_highlights_on_files_count = 0
         set backspace=indent,eol,start
         cd #{test_directory}
-        call esearch#init({'exp': {'pcre': '^'}})
+        call esearch#init({'pattern': '^'})
         call esearch#out#win#modifiable#init()
         call feedkeys("\\<C-\\>\\<C-n>")
       SETUP

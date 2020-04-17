@@ -1,6 +1,5 @@
-let s:Vital        = vital#esearch#new()
-let s:LexerModule  = s:Vital.import('Text.Lexer')
-let s:ParserModule = s:Vital.import('Text.Parser')
+let s:Lexer  = vital#esearch#import('Text.Lexer')
+let s:Parser = vital#esearch#import('Text.Parser')
 
 if !exists('g:esearch_shell_force_escaping_for')
   let g:esearch_shell_force_escaping_for = '^]@()}'
@@ -24,8 +23,8 @@ endif
 " which can be expanded by the shell.
 fu! esearch#shell#split(string, ...) abort
   let options = empty(a:000) ? s:default_options : extend(deepcopy(a:1), s:default_options)
-  let lexer = s:LexerModule.lexer(s:rules).exec(a:string)
-  let parser = s:ParserModule.parser().exec(lexer)
+  let lexer = s:Lexer.lexer(s:rules).exec(a:string)
+  let parser = s:Parser.parser().exec(lexer)
   call extend(parser, s:parser_methods)
   call extend(parser, options)
 

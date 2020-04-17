@@ -6,23 +6,46 @@ fu! esearch#out#win#jumps#init(esearch) abort
 endfu
 
 fu! s:jump2filename(direction, count) abort dict
-  let pattern = g:esearch#out#win#filename_pattern . '\%>2l'
+  let filename_pattern = g:esearch#out#win#filename_pattern . '\%>2l'
   let times = a:count
 
+  " When jumping down from the header context, it locates the second filenme
   if a:direction ==# 'v'
+    if line('.') <= 2
+      call search(filename_pattern, 'W')
+    endif
     while times > 0
-      if !search(pattern, 'W') && !self.is_filename()
-        call search(pattern,  'Wbe')
+      if !search(filename_pattern, 'W') && !self.is_filename()
+        " if no filenames forward (the cursor is within the last ctx) - jump to
+        " the last filename
+        call search(filename_pattern,  'Wbe')
+        break
       endif
       let times -= 1
     endwhile
   else
-    while times > 0
-      if !search(pattern,  'Wbe') && !self.is_filename()
-        call search(pattern, 'W')
+    " When jumping up from the header context, it locates the first filename below
+    if line('.') <= 2
+      call search(filename_pattern, 'W')
+    else
+      norm! 0
+
+      " if no filenames forward (the cursor is within the last ctx) - jump to
+      " the filename before the last ctx
+      if !self.is_filename() && !search(filename_pattern,  'Wn')
+        call search(filename_pattern,  'Wbe')
       endif
-      let times -= 1
-    endwhile
+
+      while times > 0
+        if !search(filename_pattern,  'Wbe') && !self.is_filename()
+          " if no filenames backward (the cursor is within the first ctx) - jump to
+          " the first filename
+          call search(filename_pattern, 'W')
+          break
+        endif
+        let times -= 1
+      endwhile
+    endif
   endif
 
   return 1

@@ -23,7 +23,6 @@ function! s:_list2dict(list) abort
   if s:Prelude.is_list(a:list)
     if len(a:list) < 2 | call s:_exception('too few arguments.') | endif
     if 2 < len(a:list) | call s:_exception('too many arguments.') | endif
-    if ! s:Prelude.is_string(a:list[0]) | call s:_exception('element of list is not string.') | endif
     if ! s:Prelude.is_string(a:list[1]) | call s:_exception('element of list is not string.') | endif
     let tkn = { 'label' : a:list[0], 'regex' : a:list[1] }
     return tkn

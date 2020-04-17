@@ -34,5 +34,6 @@ fu! esearch#stderr#finish(esearch) abort
           \ a:esearch.request.status,
           \ )
   endif
+  redraw
   call s:Message.echomsg('ErrorMsg', message)
 endfu
