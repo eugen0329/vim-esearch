@@ -16,7 +16,7 @@ describe 'esearch#pattern' do
 
       # TODO
       # implement named captures substitution via translating them to \1,2,..
-      # implement negation within groups [\W\S]
+      # implement negation within classes [\W\S]
       # implement negative posix named sets [:^xxx:]
 
       describe 'class []' do

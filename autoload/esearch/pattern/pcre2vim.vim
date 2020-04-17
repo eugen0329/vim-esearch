@@ -5,8 +5,6 @@ let s:Parser  = vital#esearch#import('Text.Parser')
 " NOTE: is not intended to be a general purpose converter as some of atoms are
 " suppressed for using in #out#win
 
-" TODO rewrite viatal parser and lexer to have moe performance
-
 fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
     let tokens = s:PCRE2Vim.new(a:string).convert()
@@ -109,7 +107,7 @@ let s:rules = [
       \  [s:PROPERTY,                 '\\[Pp]{\w\+}'                           ],
       \  [s:BRACKETED_ESCAPE,         s:bracketed_escape_pattern               ],
       \  [s:ESCAPED_ANY,              '\\.'                                    ],
-      \  [s:ANY,                      '.'                                      ],
+      \  [s:ANY,                      '\%([[:alnum:][:blank:]''"/\-]\+\|.\)'   ],
       \]
 
 let s:pcre2vim_escape = {
@@ -247,41 +245,22 @@ endfu
 
 fu! s:PCRE2Vim.convert() abort dict
   while ! self.end()
-    if self.next_is([s:GROUP_START])
+    if self.next_is([s:ANY])
       call self.advance()
-      let self.result += [s:pcre2vim_group_start[self.token.matched_text]]
-      call self.push_context(self.token.matched_text)
-    elseif self.next_is([s:MODIFIER_SPAN])
+      let self.result += [get(s:pcre2vim_escape, self.token.matched_text, self.token.matched_text)]
+    elseif self.next_is([s:QUANTIFIER])
+      let self.result += [s:pcre2vim_quantifier[self.advance().matched_text]]
+    elseif self.next_is([s:ESCAPED_ANY])
       call self.advance()
-      call self.set_global_modifiers(self.token.matched_text)
-      call self.push_context(s:MODIFIER_SPAN)
-    elseif self.next_is([s:MODIFIER])
-      call self.advance()
-      call self.set_global_modifiers(self.token.matched_text)
-    elseif self.next_is([s:RANGE_QUANTIFER])
-      call self.advance()
-      let range = matchstr(self.token.matched_text, s:capture_range_quantifier)
-      if self.token.matched_text =~#  '?$'
-        let self.result += ['\{-'.range.'}']
-      else
-        let self.result += ['\{'.range.'}']
-      endif
-    elseif self.next_is([s:BRACKETED_ESCAPE])
-      let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
-    elseif self.next_is([s:PROPERTY])
-      call self.throw('properties are not supported')
-    elseif self.next_is([s:NAMED_GROUP_START])
-      call self.advance()
-      let self.result += ['\(']
-      call self.push_context('(')
-    elseif self.next_is([s:COMMENT])
-      call self.advance()
+      let self.result += [get(s:pcre2vim_expand_escaped, self.token.matched_text, self.token.matched_text)]
     elseif self.next_is([s:CLASS_START])
       call self.push_context(s:CLASS_START)
       let self.result += self.parse_class()
       call self.pop_context()
-    elseif self.next_is([s:QUANTIFIER])
-      let self.result += [s:pcre2vim_quantifier[self.advance().matched_text]]
+    elseif self.next_is([s:GROUP_START])
+      call self.advance()
+      let self.result += [s:pcre2vim_group_start[self.token.matched_text]]
+      call self.push_context(self.token.matched_text)
     elseif self.next_is([s:GROUP_END])
       call self.advance()
       if empty(self.contexts) | call self.throw('unexpected group end') | endif
@@ -294,12 +273,31 @@ fu! s:PCRE2Vim.convert() abort dict
         throw 'Unknown group ending encountered: ' . string(self.contexts[-1].label)
       endif
       call self.pop_context()
-    elseif self.next_is([s:ESCAPED_ANY])
+    elseif self.next_is([s:RANGE_QUANTIFER])
       call self.advance()
-      let self.result += [get(s:pcre2vim_expand_escaped, self.token.matched_text, self.token.matched_text)]
-    elseif self.next_is([s:ANY])
+      let range = matchstr(self.token.matched_text, s:capture_range_quantifier)
+      if self.token.matched_text =~#  '?$'
+        let self.result += ['\{-'.range.'}']
+      else
+        let self.result += ['\{'.range.'}']
+      endif
+    elseif self.next_is([s:BRACKETED_ESCAPE])
+      let self.result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
+    elseif self.next_is([s:MODIFIER])
       call self.advance()
-      let self.result += [get(s:pcre2vim_escape, self.token.matched_text, self.token.matched_text)]
+      call self.set_global_modifiers(self.token.matched_text)
+    elseif self.next_is([s:MODIFIER_SPAN])
+      call self.advance()
+      call self.set_global_modifiers(self.token.matched_text)
+      call self.push_context(s:MODIFIER_SPAN)
+    elseif self.next_is([s:NAMED_GROUP_START])
+      call self.advance()
+      let self.result += ['\(']
+      call self.push_context('(')
+    elseif self.next_is([s:COMMENT])
+      call self.advance()
+    elseif self.next_is([s:PROPERTY])
+      call self.throw('properties are not supported')
     else
       let self.result += [self.advance().matched_text]
     endif
