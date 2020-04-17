@@ -9,7 +9,7 @@ fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
     let tokens = s:PCRE2Vim.new(a:string).convert()
   catch /^PCRE2Vim:/
-    call s:Message.warn(printf("Can't convert %s to vim regex dialect to highlight matches (reason: %s)",
+    call s:Message.warn(printf("Can't convert %s to vim regex dialect for matches highlight (reason: %s)",
           \ string(a:string),
           \ substitute(v:exception, '^PCRE2Vim: ', '', ''),
           \ ))
@@ -165,8 +165,7 @@ fu! s:PCRE2Vim.parse_class() abort dict
       call self.advance()
       let result += [self.token.matched_text[1:]]
     elseif self.next_is(['POSIX_BRACKET_EXP'])
-      call self.advance()
-      let text = self.token.matched_text
+      let text = self.advance().matched_text
       if text ==# '[:word:]'
         let result += [s:metachar2class_content['\w']]
       elseif text ==# '[:ascii:]'
@@ -175,8 +174,7 @@ fu! s:PCRE2Vim.parse_class() abort dict
         let result += [self.token.matched_text]
       endif
     elseif self.next_is(['ESCAPED_ANY'])
-      call self.advance()
-      let text = self.token.matched_text
+      let text = self.advance().matched_text
       let result += [get(s:metachar2class_content, text, text)]
     elseif self.next_is(['CLASS_END'])
       call self.advance()

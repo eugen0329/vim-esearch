@@ -29,12 +29,18 @@ describe 'esearch window context syntax', :window do
         ulimit
         umask
         wait
+        declare
+        local
+        export
+        set
+        unset
 
         'string'
         "string"
         'escaped quote\\'
         "escaped quote\\"
         "string\\n"
+        "$PWD"
 
         $deref
         $1
@@ -84,7 +90,14 @@ describe 'esearch window context syntax', :window do
         word('ulimit')                => %w[es_shStatement Statement],
         word('umask')                 => %w[es_shStatement Statement],
         word('wait')                  => %w[es_shStatement Statement],
+        word('declare')               => %w[es_shSetList Identifier],
+        word('local')                 => %w[es_shSetList Identifier],
+        word('export')                => %w[es_shSetList Identifier],
+        word('set')                   => %w[es_shSetList Identifier],
+        word('unset')                 => %w[es_shSetList Identifier],
 
+        region('"\zs\$PWD\ze"')       => %w[es_shDerefSimple PreProc],
+        region('"')                   => %w[es_shDoubleQuote String],
         region('"string"')            => %w[es_shDoubleQuote String],
         region('"escaped quote\\\\"') => %w[es_shDoubleQuote String],
         region('"string\\\\n"')       => %w[es_shDoubleQuote String],

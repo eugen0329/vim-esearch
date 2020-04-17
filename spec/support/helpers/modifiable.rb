@@ -84,7 +84,6 @@ module Helpers::Modifiable
         call esearch#out#win#modifiable#init()
         call feedkeys("\\<C-\\>\\<C-n>")
       SETUP
-      require 'pry'; binding.pry
     end
 
     after do

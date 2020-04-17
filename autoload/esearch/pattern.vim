@@ -1,3 +1,5 @@
+let g:esearch#pattern#even_count_of_escapes =  '\%(\\\)\@<!\%(\\\\\)*'
+
 fu! esearch#pattern#new(string, is_regex, case, textobj) abort
   let pattern = {
         \ 'is_regex': a:is_regex,

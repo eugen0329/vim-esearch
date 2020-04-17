@@ -85,6 +85,16 @@ describe 'esearch#cmdline input', :commandline do
               keys:            ['\\<C-w>'],
               prefilled_input: 'was',
               expected_input:  '|'
+
+            include_examples 'it changes commandline state to',
+              keys:            ['\\<C-h>'],
+              prefilled_input: 'was',
+              expected_input:  '|'
+
+            include_examples 'it changes commandline state to',
+              keys:            ['\\<C-u>'],
+              prefilled_input: 'was',
+              expected_input:  '|'
           end
 
           context 'defined by user' do

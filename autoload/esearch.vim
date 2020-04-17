@@ -5,13 +5,17 @@ fu! esearch#init(...) abort
     return 0
   endif
 
-  let esearch = s:new(a:0 ? a:1 : {})
+  let esearch = s:new(get(a:000, 0, {}))
   let g:esearch.last_id += 1
   let esearch.id = g:esearch.last_id
 
+  " Must be called before the commandline start to do prewarming while user
+  " inputting the string
+  call esearch#ftdetect#async_prewarm_cache()
+
   if has_key(esearch, 'pattern')
     if type(esearch.pattern) ==# type('')
-      " Preprocess pattern
+      " Preprocess the pattern
       let esearch.pattern = esearch#pattern#new(
             \ esearch.pattern,
             \ esearch.is_regex(),
@@ -49,7 +53,6 @@ fu! esearch#init(...) abort
   let esearch.request = esearch#backend#{esearch.backend}#init(
         \ esearch.cwd, esearch.adapter, command)
   call esearch#backend#{esearch.backend}#run(esearch.request)
-  call esearch#ftdetect#async_prewarm_cache()
   let esearch.parse = esearch#adapter#parse#funcref()
 
   let esearch.title = s:title(esearch, pattern)

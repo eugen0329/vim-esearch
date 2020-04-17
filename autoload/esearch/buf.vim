@@ -1,8 +1,15 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-fu! esearch#buf#find(filename) abort
-  return bufnr(esearch#buf#pattern(a:filename))
-endfu
+if g:esearch#has#bufadd
+  fu! esearch#buf#find(filename) abort
+    if !bufexists(a:filename) | return -1 | endif
+    return bufadd(a:filename)
+  endfu
+else
+  fu! esearch#buf#find(filename) abort
+    return bufnr(esearch#buf#pattern(a:filename))
+  endfu
+endif
 
 " :h file-pattern
 fu! esearch#buf#pattern(filename) abort

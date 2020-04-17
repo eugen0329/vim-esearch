@@ -1,6 +1,7 @@
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-let s:Buffer = vital#esearch#import('Vim.Buffer')
+let s:Filepath = vital#esearch#import('System.Filepath')
+let s:Buffer   = vital#esearch#import('Vim.Buffer')
 
 " TODO notify c-n and c-p are not used anymore
 let g:esearch#out#win#mappings = [
@@ -89,7 +90,7 @@ endif
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort
-  call s:find_or_create_buf(a:esearch.title, g:esearch#out#win#open)
+  call s:find_or_create_buf(a:esearch, g:esearch#out#win#open)
   call esearch#util#doautocmd('User esearch_win_init_pre')
   call s:cleanup()
 
@@ -175,13 +176,15 @@ fu! s:cleanup() abort
 endfu
 
 " TODO customizability
-fu! s:find_or_create_buf(bufname, opener) abort
-  let escaped = a:bufname
+fu! s:find_or_create_buf(esearch, opener) abort
+  let escaped = a:esearch.title
 
   let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
   let escaped = substitute(escaped, '/', safe_slash, 'g')
   let escaped = substitute(escaped, '\n', '\\n', 'g') " for vital's .open()
   let escaped = substitute(escaped, '\r', '\\r', 'g') " for vital's .open()
+  " scope search windows to search cwd instead of global cwd
+  let escaped = s:Filepath.join(a:esearch.cwd, escaped)
 
   let bufnr = esearch#buf#find(escaped)
   " Noop if the buffer is current

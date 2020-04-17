@@ -2,11 +2,11 @@
 
 require 'spec_helper'
 
-describe 'esearch#buf' do
+describe 'esearch#pattern' do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
 
-  describe 'esearch#buf#find' do
+  describe 'esearch#pattern#pcre2vim#convert' do
     context 'when filename contains special characters' do
       subject(:convert) do
         lambda do |input|

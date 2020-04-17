@@ -21,7 +21,16 @@ if !exists('g:esearch#cmdline#clear_selection_chars')
         \ "\<Del>",
         \ "\<Bs>",
         \ "\<C-w>",
+        \ "\<C-h>",
+        \ "\<C-u>",
         \ ]
+  if g:esearch#has#meta_key
+    let g:esearch#cmdline#clear_selection_chars += [
+          \ "\<M-d>",
+          \ "\<M-BS>",
+          \ "\<M-C-h>",
+          \ ]
+  endif
 endif
 if !exists('g:esearch#cmdline#start_search_chars')
   let g:esearch#cmdline#start_search_chars = [

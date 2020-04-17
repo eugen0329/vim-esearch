@@ -41,13 +41,15 @@ fu! s:SearchInputController.render_initial_selection() abort dict
     endif
 
     call self.props.dispatch({'type': 'SET_DID_INITIAL'})
-    redraw!
   endif
 
   return s:true
 endfu
 
 fu! s:SearchInputController.render_input() abort
+  " redraw is required here to clear possible output leftovers from multiline
+  " calls
+  redraw
   call esearch#ui#render(s:PathTitlePrompt.new())
 
   let self.cmdline .= self.restore_cmdpos_chars()

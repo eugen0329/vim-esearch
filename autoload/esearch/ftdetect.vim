@@ -88,9 +88,7 @@ fu! esearch#ftdetect#fast(filename) abort
 endfu
 
 fu! esearch#ftdetect#async_prewarm_cache() abort
-  if s:Promise.is_available() && empty(g:esearch#ftdetect#pattern2ft)
-    " TODO split captured command lines by chunks and process during multiple calls
-    " of blocking_make_cache, otherwise this call doesn't make sense
+  if empty(g:esearch#ftdetect#pattern2ft) && s:Promise.is_available()
     let s:prewarm = s:Promise
           \.new({resolve -> timer_start(0, resolve)})
           \.then({-> s:blocking_make_cache()})
@@ -118,8 +116,9 @@ fu! s:blocking_make_cache() abort
       " Plain setfiletype
       let filetype = definitions[2]
     elseif definitions[1] ==# 'call' && definitions[2] =~# '^s:\%(StarSetf\|setf\)('
-      " Filetypes set with additional check for g:ft_ignore_pat. Can be safely
-      " grabbed as the required checks are already provided
+      " Filetypes specifying using methods with additional check for
+      " g:ft_ignore_pat inside. Can be safely grabbed as the required checks are
+      " already provided.
       let filetype = matchstr(definitions[2], 's:\%(StarSetf\|setf\)([''"]\zs\w\+\ze[''"])'  )
     else
       " If-elses or method calls to run against files content. Skip
