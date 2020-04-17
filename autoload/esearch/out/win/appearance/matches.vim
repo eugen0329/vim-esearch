@@ -110,8 +110,8 @@ endfu
 fu! s:matchadd_pattern(esearch) abort
   " To avoid matching pseudo LineNr
   if a:esearch.pattern.vim[0] ==# '^'
-    return '\%>1l\%(\s\+\d\+\s\)\@<='.a:esearch.pattern.vim[1:-1]
+    return '\%>3l\%(\s\+\d\+\s\)\@<='.a:esearch.pattern.vim[1:-1]
   endif
 
-  return '\%>1l\%(\s\+\d\+\s.*\)\@<='.a:esearch.pattern.vim
+  return '\%>3l\%(\s\+\d\+\s.*\)\@<='.a:esearch.pattern.vim
 endfu
