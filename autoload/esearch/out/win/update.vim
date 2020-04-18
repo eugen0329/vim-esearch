@@ -6,6 +6,7 @@ fu! esearch#out#win#update#init(esearch) abort
   " TODO consider to drop ignore batches
   let a:esearch.ignore_batches = 0
   if !a:esearch.request.async | return | endif
+  let a:esearch.early_update_limit = a:esearch.batch_size
 
   call extend(a:esearch, {
         \ 'last_update_at': reltime(),
@@ -19,7 +20,6 @@ fu! esearch#out#win#update#init(esearch) abort
       call esearch#backend#{a:esearch.backend}#init_events()
 
       if a:esearch.backend !=# 'vimproc'
-        let a:esearch.early_update_limit = a:esearch.batch_size
         " TODO
         for [func_name, event] in items(a:esearch.request.events)
           let a:esearch.request.events[func_name] =

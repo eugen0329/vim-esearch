@@ -31,7 +31,7 @@ describe 'esearch#util' do
     end
 
     context 'ascii alphabet' do
-      ('a'..'z').sample(5).each do |char|
+      ('a'..'z').to_a.sample(5).each do |char|
         include_examples 'it recognizes with all escapes except Shift-*', char
         include_examples 'recognize as a regular char', char
       end

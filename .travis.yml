@@ -121,8 +121,6 @@ jobs:
     - name: 'Acceptance tests of window output 4'
       script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_linewise_spec.rb
       os: linux
-
-    # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
       os: linux
@@ -145,25 +143,19 @@ jobs:
     - name: 'Acceptance tests of adapter'
       script: bundle exec rake RSPEC_OPTS='--tag adapters'
       os: linux
-
     - name: 'Acceptance tests of commandline'
       script: bundle exec rake RSPEC_OPTS='--tag commandline'
       os: linux
-
-      # Although travis has less cores than 4, it's better for splitting as
-      # groups with even execution time cannot be precisely determined using files size
     - name: 'Unit tests'
       script: bundle exec parallel_test spec/unit -n 2 --group-by filesize --type rspec
       os: linux
-
-    # Linters TODO merge into a single build
-    - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-      env: LINT=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1 VIML_DIRECTORIES='autoload/esearch/ autoload/esearch.vim nerdtree_plugin plugin syntax'
+    - name: 'Linters'
+      env: LINT=1
       script:
+        - luacheck lua/
+        - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
         - bundle exec rubocop --display-cop-names
         - spec/support/docker/shellcheck
-        - "vint $VIML_DIRECTORIES"
-        - luacheck lua/
       os: linux
       language: python
       python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
