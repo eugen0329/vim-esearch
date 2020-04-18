@@ -10,7 +10,7 @@ fu! s:PathInputController.render() abort dict
   while 1
     let user_input_in_shell_format = input('[path] > ',
           \ user_input_in_shell_format,
-          \'customlist,esearch#ui#controllers#path_input#_complete_files')
+          \'customlist,esearch#ui#complete#paths#do')
 
     let [paths, metadata, error] = esearch#shell#split(user_input_in_shell_format)
 
@@ -33,10 +33,6 @@ fu! s:map_state_to_props(state) abort dict
         \ 'metadata': get(a:state, 'metadata', []),
         \ 'cwd':      a:state.cwd,
         \ }
-endfu
-
-fu! esearch#ui#controllers#path_input#_complete_files(A,L,P) abort
-  return esearch#completion#complete_files(s:self.props.cwd, a:A, a:L, a:P)
 endfu
 
 fu! esearch#ui#controllers#path_input#import() abort
