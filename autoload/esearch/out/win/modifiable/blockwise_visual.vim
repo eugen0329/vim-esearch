@@ -23,7 +23,7 @@ fu! esearch#out#win#modifiable#blockwise_visual#handle(event) abort
   if ctx isnot# s:null
     for line in range(line1, line2)
       if ctx.begin ==# line
-        call setline(ctx.begin, ctx.filename)
+        call setline(ctx.begin, fnameescape(ctx.filename))
       elseif ctx.end ==# line && ctx.id !=# state.ctx_ids_map[-1]
         let ctx = contexts.by_line(line + 1)
         call setline(line, s:separator)
