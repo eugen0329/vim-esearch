@@ -5,9 +5,14 @@ fu! esearch#init(...) abort
     return 0
   endif
 
+
   let esearch = s:new(get(a:000, 0, {}))
   let g:esearch.last_id += 1
   let esearch.id = g:esearch.last_id
+
+  if esearch.nerdtree_plugin && &filetype ==# 'nerdtree'
+    let esearch = esearch#compat#nerdtree#opts(esearch)
+  endif
 
   " Must be called before the commandline start to do prewarming while user
   " inputting the string
