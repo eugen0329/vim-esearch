@@ -8,7 +8,7 @@ local M = {
     ATTACHED_ANNOTATIONS = {},
 }
 
-local function matches_cb(event_name, bufnr, changedtick, from, old_to, to, old_byte_size)
+local function matches_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to == old_to then
     vim.api.nvim_buf_clear_namespace(0, M.MATCHES_NS, from, to)
   end
@@ -26,7 +26,7 @@ function M.buf_attach_matches()
   end
 end
 
-local function ui_cb(event_name, bufnr, changedtick, from, old_to, to, old_byte_size)
+local function ui_cb(_event_name, bufnr, _changedtick, from, _old_to, to, _old_byte_size)
   local start = from - 1
   if from == 0 then start = 0 end
 
@@ -48,7 +48,7 @@ function M.buf_attach_ui()
   end
 end
 
-local function annotations_cb(event_name, bufnr, changedtick, from, old_to, to, old_byte_size)
+local function annotations_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to < old_to then -- if lines are removed
     vim.api.nvim_buf_clear_namespace(0, M.ANNOTATIONS_NS, from, to + 1)
   end
@@ -80,10 +80,10 @@ function M.highlight_ui(bufnr, from, to)
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
       pos1, pos2 =  text:find('%d+', pos2 + 1)
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
-    elseif text:len() == 0 then
+    elseif text:len() == 0 then -- luacheck: ignore
       -- separators are not highlighted
     elseif text:sub(1,1) == ' ' then
-      pos1, pos2 =  text:find('^%s+%d+%s')
+      local _, pos2 =  text:find('^%s+%d+%s')
       if pos2 ~= nil then
         vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
       end
@@ -94,7 +94,7 @@ function M.highlight_ui(bufnr, from, to)
 end
 
 function M.annotate(contexts)
-  for i, ctx in pairs(contexts) do
+  for _, ctx in pairs(contexts) do
     if ctx['id'] > 0 then
       M.set_context_len_annotation(ctx['begin'], ctx['end'] - ctx['begin'] - 1)
     end
@@ -110,7 +110,7 @@ function M.set_context_len_annotation(line, size)
 end
 
 function M.highlight_header(instant)
-  if instant then  M.highlight_ui(bufnr, 0, 1) end -- to prevent blinking on reload
+  if instant then  M.highlight_ui(0, 0, 1) end -- to prevent blinking on reload
 
   local bufnr = vim.api.nvim_get_current_buf()
 

@@ -84,16 +84,14 @@ local function decode(s)
 end
 
 function M.parse_line(line, cache)
-  local filename = ''
-
   -- At the moment only git adapter outputs lines that wrapped in "" when special
   -- characters are encountered
   if line:sub(1, 1) == '"' then
-    local filename, line, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
+    local filename, line_number, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
     if filename == nil then
       return
     end
-    filename, line, text = decode(filename), decode(line), decode(text)
+    filename, line, text = decode(filename), decode(line_number), decode(text)
 
     local controls = {
       a      = '\a',
@@ -110,12 +108,13 @@ function M.parse_line(line, cache)
     }
     filename = filename:gsub('\\(.)', controls)
     if M.filereadable(filename, cache) then
-      return filename, line, text
+      return filename, line_number, text
     end
   end
 
+  local filename
   -- try to find the first readable filename
-  local filename_end = 1
+  local filename_end, _ = 1, 0
   while true do
     filename_end, _ = line:find('[:%-]%d+[:%-]', filename_end + 1)
 
@@ -129,12 +128,12 @@ function M.parse_line(line, cache)
     end
   end
 
-  local line, text = line:match('(%d+)[:%-](.*)', filename_end)
-  if line == nil or text == nil then
+  local line_number, text = line:match('(%d+)[:%-](.*)', filename_end)
+  if line_number == nil or text == nil then
     return
   end
 
-  return filename, line, text
+  return filename, line_number, text
 end
 
 return M

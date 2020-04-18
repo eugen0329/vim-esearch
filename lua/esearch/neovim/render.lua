@@ -3,7 +3,7 @@ local util  = require'esearch/util'
 
 local M = {}
 
-function M.render(data, path, last_context, files_count, highlights_enabled)
+function M.render(data, last_context, files_count, highlights_enabled)
   local parsed, separators_count = parse.lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
@@ -44,9 +44,8 @@ function M.render(data, path, last_context, files_count, highlights_enabled)
       line = line + 1
 
       lines[#lines + 1] = util.fnameescape(filename)
-      id = contexts[#contexts]['id'] + 1
       contexts[#contexts + 1] = {
-        ['id']            = id,
+        ['id']            = contexts[#contexts]['id'] + 1,
         ['begin']         = line,
         ['end']           = 0,
         ['filename']      = filename,

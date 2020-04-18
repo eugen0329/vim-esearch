@@ -7,7 +7,7 @@ function M.lines(data)
   local parsed = vim.list()
   local separators_count = 0
   -- must be invalidated across calls to prevent using stale file presence information
-  cache = {}
+  local cache = {}
 
   for i = 0, #data - 1 do
     local line = data[i]

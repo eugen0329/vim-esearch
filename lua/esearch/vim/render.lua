@@ -3,8 +3,8 @@ local util  = require'esearch/util'
 
 local M = {}
 
-function M.render(data, path, esearch)
-  local parsed, separators_count = parse.lines(data)
+function M.render(data, esearch)
+  local parsed, _separators_count = parse.lines(data)
   local contexts                 = esearch['contexts']
   local line_numbers_map         = esearch['line_numbers_map']
   local ctx_ids_map              = esearch['ctx_ids_map']
@@ -21,7 +21,6 @@ function M.render(data, path, esearch)
   local line = vim.eval('line("$") + 1')
   local i = 0
   local limit = #parsed
-  local lines = {}
 
   while(i < limit)
   do

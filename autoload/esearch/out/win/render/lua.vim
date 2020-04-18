@@ -24,9 +24,8 @@ if g:esearch#has#nvim_lua
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
       let [files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, highlights_enabled] =
-            \ luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6])',
+            \ luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])',
             \ [a:data[a:from : a:to],
-            \ get(a:esearch.paths, 0, ''),
             \ a:esearch.contexts[-1],
             \ a:esearch.files_count,
             \ a:esearch.highlights_enabled])
@@ -53,9 +52,8 @@ else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let a:esearch['files_count'] = luaeval('esearch.render(_A[0], _A[1], _A[2], _A[3], _A[4])',
+      let a:esearch['files_count'] = luaeval('esearch.render(_A[0], _A[1], _A[2], _A[3])',
             \ [a:data[a:from : a:to],
-            \ get(b:esearch.paths, 0, ''),
             \ a:esearch])
     finally
       call cwd.restore()

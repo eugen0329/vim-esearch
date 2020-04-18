@@ -104,7 +104,7 @@ fu! esearch#opts#init_lazy_global_config() abort
 EOF
     elseif has('lua')
       lua << EOF
-      package.path = package.path .. ';'.. vim.eval("s:root")..'/lua/?.lua'
+      package.path = package.path .. ';' .. vim.eval("s:root") .. '/lua/?.lua'
       esearch = require'esearch/vim'
 EOF
     endif
