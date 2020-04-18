@@ -175,9 +175,9 @@ fu! s:define_context_filetype_syntax_region(esearch, ctx) abort
   endif
 
   " fnameescape() is used as listed filenames are escaped
-  " escape(..., '/') as the filename pattern is enclosed in //
-  " escape(..., '^$.[]\') is used as matching must be literal
-  let start = escape(fnameescape(a:ctx.filename), '/^$.[]\')
+  " escape(..., '/...) as the filename pattern is enclosed in //
+  " escape(..., ...^$.[\') is used as matching must be literal
+  let start = escape(fnameescape(a:ctx.filename), '/^$.[\')
   exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
         \ region.name, start, region.name)
 

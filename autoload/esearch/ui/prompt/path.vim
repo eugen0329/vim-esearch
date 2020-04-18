@@ -1,8 +1,8 @@
-let s:Filepath   = vital#esearch#import('System.Filepath')
 let s:Message    = esearch#message#import()
 let s:PathPrompt = esearch#ui#component()
 
 fu! s:PathPrompt.render() abort dict
+  let cwd = self.props.cwd
   let paths = self.props.paths
   let end = len(paths) - 1
   let result = []
@@ -10,10 +10,9 @@ fu! s:PathPrompt.render() abort dict
 
   for i in range(0, end)
     let path = paths[i]
-
-    if isdirectory(path.str)
+    if isdirectory(esearch#util#abspath(cwd, path.str))
       let result += [['Directory', dir_icon . esearch#shell#escape(path)]]
-    elseif empty(paths) || empty(path.metachars)
+    elseif empty(path.metachars)
       let result += [[self.props.normal_highlight, esearch#shell#escape(path)]]
     else
       let result += self.highlight_special_chars(path)

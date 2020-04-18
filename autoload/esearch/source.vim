@@ -17,6 +17,8 @@ fu! esearch#source#visual(esearch) abort
 endfu
 
 fu! esearch#source#hlsearch(esearch) abort
+  if !get(v:, 'hlsearch', 0) | return | endif
+
   let str = getreg('/')
   if empty(str) | return | endif
 

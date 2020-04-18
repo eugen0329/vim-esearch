@@ -13,7 +13,7 @@ fu! s:PathTitlePrompt.render() abort dict
     else
       return  [
             \   [self.props.normal_highlight, 'In '],
-            \   ['Directory', g:esearch#cmdline#dir_icon . self.props.cwd],
+            \   ['Directory', g:esearch#cmdline#dir_icon . s:Filepath.relpath(self.props.cwd)],
             \ ]
     endif
   endif
@@ -23,12 +23,16 @@ fu! s:PathTitlePrompt.render() abort dict
 endfu
 
 fu! s:PathTitlePrompt.render_in(paths) abort dict
+  let cwd = self.props.cwd
 
   let path_kinds = {}
+
   for path in a:paths
-    if isdirectory(path.str)
+    let path_str = esearch#util#abspath(cwd, path.str)
+
+    if isdirectory(path_str)
       let path_kinds['directory'] = 1
-    elseif !empty(path.metachars) || !filereadable(path.str)
+    elseif !empty(path.metachars) || !filereadable(path_str)
       let path_kinds['path'] = 1
     else
       let path_kinds['file'] = 1

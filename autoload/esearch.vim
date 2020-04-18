@@ -17,7 +17,7 @@ fu! esearch#init(...) abort
   " inputting the string
   call esearch#ftdetect#async_prewarm_cache()
 
-  if has_key(esearch, 'paths') && type(esearch.paths) !=# type([])
+  if has_key(esearch, 'paths')
     let esearch.paths = s:preprocess_paths(esearch.paths)
   endif
 
@@ -70,6 +70,21 @@ fu! s:preprocess_paths(paths) abort
   if type(a:paths) ==# type('')
     return esearch#shell#split(a:paths)
   endif
+
+  if type(a:paths) ==# type([])
+    let preprocessed = []
+
+    for path in a:paths
+      if type(path) ==# type('')
+        let preprocessed += [esearch#shell#path(path)]
+      else
+        let preprocessed += [path]
+      endif
+    endfor
+
+    return preprocessed
+  endif
+
   throw 'Unknown paths type: ' . string(a:paths)
 endfu
 

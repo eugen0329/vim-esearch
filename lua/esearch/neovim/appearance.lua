@@ -95,7 +95,8 @@ end
 
 function M.annotate(contexts)
   for _, ctx in pairs(contexts) do
-    if ctx['id'] > 0 then
+    -- don't annotate the header or not finished contexts
+    if ctx['id'] > 0 and ctx['end'] > 0 then
       M.set_context_len_annotation(ctx['begin'], ctx['end'] - ctx['begin'] - 1)
     end
   end

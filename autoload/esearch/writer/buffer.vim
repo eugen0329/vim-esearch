@@ -25,7 +25,7 @@ fu! s:write() abort dict
   let conflicts = []
 
   for [id, ctx] in items(self.diff.contexts)
-    let path = esearch#util#absolute_path(cwd, ctx.filename)
+    let path = esearch#util#abspath(cwd, ctx.filename)
     exe '$tabnew ' . path
 
     let conflict = self.detect_conflict(ctx, path)

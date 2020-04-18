@@ -150,13 +150,13 @@ jobs:
       script: bundle exec parallel_test spec/unit -n 2 --group-by filesize --type rspec
       os: linux
     - name: 'Linters'
-      env: LINT=1
+      env: LINT=1 INSTALL_PYTHON_VERSION=3.6.1
       script:
         - luacheck lua/
         - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
         - bundle exec rubocop --display-cop-names
         - spec/support/docker/shellcheck
       os: linux
-      language: python
-      python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      # language: python
+      # python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux

@@ -58,18 +58,6 @@ else
   end
 end
 
-function M.split_lines(str)
-    local lines = vim.list()
-
-  for s in str:gmatch("[^\r\n]+") do
-    if s:len() > 0 then
-      lines:add(s)
-    end
-  end
-
-  return lines
-end
-
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting
 local function code(s)
   return (string.gsub(s, "\\([\\\"])", function (x)
@@ -91,7 +79,7 @@ function M.parse_line(line, cache)
     if filename == nil then
       return
     end
-    filename, line, text = decode(filename), decode(line_number), decode(text)
+    filename, line_number, text = decode(filename), decode(line_number), decode(text)
 
     local controls = {
       a      = '\a',

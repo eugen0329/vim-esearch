@@ -1,6 +1,6 @@
-let s:Lexer  = vital#esearch#import('Text.Lexer')
-let s:String = vital#esearch#import('Data.String')
-let s:Parser = vital#esearch#import('Text.Parser')
+let s:Filepath = vital#esearch#import('System.Filepath')
+let s:Lexer    = vital#esearch#import('Text.Lexer')
+let s:Parser   = vital#esearch#import('Text.Parser')
 
 let s:metachars = '()[]{}?*+@!$^|'
 
@@ -137,6 +137,10 @@ endfu
 
 fu! s:path(str, begin, end, metachars) abort
   return {'str': a:str, 'begin': a:begin, 'end': a:end, 'metachars': a:metachars}
+endfu
+
+fu! esearch#shell#path(str) abort
+  return s:path(a:str, 0, 0, [])
 endfu
 
 fu! s:Splitter.advance() abort dict

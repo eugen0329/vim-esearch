@@ -324,7 +324,7 @@ fu! esearch#util#find_root(path, markers) abort
   return start_dir
 endfu
 
-fu! esearch#util#absolute_path(cwd, path) abort
+fu! esearch#util#abspath(cwd, path) abort
   if s:Filepath.is_absolute(a:path)
     return a:path
   endif

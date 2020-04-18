@@ -1,3 +1,5 @@
+scriptencoding utf-8
+
 let g:esearch#unicode#ellipsis = '⦚'
 if exists('g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol')
   let g:esearch#unicode#dir_icon = g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol

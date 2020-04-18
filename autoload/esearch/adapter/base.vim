@@ -31,7 +31,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
         \ self.mandatory_options,
         \ self.options,
         \ context,
-        \ ' -- ',
+        \ '--',
         \ a:escape(a:pattern),
         \ paths,
         \], ' ')
@@ -39,7 +39,9 @@ endfu
 
 fu! s:Base.pwd() abort dict
   " Some adapters require pwd to set explicitly (like grep) using '.'. For
-  " others it cause unwanted './' prefix.
+  " others it cause unwanted './' prefix. Exact path doesn't need to be
+  " specified as it's set using :lcd command and outherwise would cause a full
+  " path to be rendered.
   return ''
 endfu
 
