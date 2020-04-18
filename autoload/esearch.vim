@@ -5,7 +5,6 @@ fu! esearch#init(...) abort
     return 0
   endif
 
-
   let esearch = s:new(get(a:000, 0, {}))
   let g:esearch.last_id += 1
   let esearch.id = g:esearch.last_id
@@ -17,6 +16,10 @@ fu! esearch#init(...) abort
   " Must be called before the commandline start to do prewarming while user
   " inputting the string
   call esearch#ftdetect#async_prewarm_cache()
+
+  if has_key(esearch, 'paths') && type(esearch.paths) !=# type([])
+    let esearch.paths = s:preprocess_paths(esearch.paths)
+  endif
 
   if has_key(esearch, 'pattern')
     if type(esearch.pattern) ==# type('')
@@ -48,7 +51,6 @@ fu! esearch#init(...) abort
   let g:esearch.after           = esearch.after
   let g:esearch.context         = esearch.context
   let g:esearch.paths           = esearch.paths
-  let g:esearch.metadata        = esearch.metadata
   let g:esearch.adapters        = esearch.adapters
   let g:esearch.current_adapter = esearch.current_adapter
 
@@ -64,12 +66,17 @@ fu! esearch#init(...) abort
   call esearch#out#{esearch.out}#init(esearch)
 endfu
 
+fu! s:preprocess_paths(paths) abort
+  if type(a:paths) ==# type('')
+    return esearch#shell#split(a:paths)
+  endif
+  throw 'Unknown paths type: ' . string(a:paths)
+endfu
+
 fu! s:new(esearch) abort
   let esearch = extend(copy(a:esearch), copy(g:esearch), 'keep')
   let esearch = extend(esearch, {
         \ 'paths':      [],
-        \ 'metadata':   [],
-        \ 'glob':       0,
         \ 'cmdline':    0,
         \ 'visualmode': 0,
         \ 'is_regex':   function('<SID>is_regex'),
@@ -101,11 +108,11 @@ fu! s:new(esearch) abort
   endif
 
   if type(get(esearch, 'paths', 0)) ==# type('')
-    let [paths, metadata, error] = esearch#shell#split(esearch.paths)
+    let [paths, error] = esearch#shell#split(esearch.paths)
     if !empty(error)
       echo " can't parse paths: " . error
     else
-      let [esearch.paths, esearch.metadata] = [paths, metadata]
+      let esearch.paths = paths
     endif
   endif
 
@@ -155,7 +162,7 @@ fu! esearch#_mappings() abort
 endfu
 
 fu! esearch#map(map, plug) abort
-  call esearch#util#add_map(esearch#_mappings(), a:map, printf('<Plug>(%s)', a:plug))
+  call esearch#mappings#add(esearch#_mappings(), a:map, printf('<Plug>(%s)', a:plug))
 endfu
 
 fu! esearch#debounce(...) abort

@@ -20,7 +20,7 @@ fu! s:is_consumed() abort dict
 endfu
 
 fu! esearch#backend#system#run(request) abort
-  let original_cwd = esearch#util#lcd(a:request.cwd)
+  let cwd = esearch#win#lcd(a:request.cwd)
   try
     let a:request.data = split(system(a:request.command), "\n")
     let a:request.status = v:shell_error
@@ -32,7 +32,7 @@ fu! esearch#backend#system#run(request) abort
       redraw!
     endif
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 endfu
 

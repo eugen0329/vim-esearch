@@ -55,7 +55,6 @@ fu! esearch#opts#new(opts) abort
         \ 'default_mappings': g:esearch#defaults#default_mappings,
         \ 'nerdtree_plugin':  1,
         \ 'root_markers':     ['.git', '.hg', '.svn', '.bzr', '_darcs'],
-        \ 'invert':           function('<SID>invert'),
         \ 'slice':            function('esearch#util#slice'),
         \ 'errors':           [],
         \ 'use':              ['visual', 'current', 'hlsearch', 'last'],
@@ -80,12 +79,6 @@ fu! esearch#opts#default_adapter() abort
   else
     throw 'No executables found'
   endif
-endfu
-
-fu! s:invert(key) dict abort
-  let option = !self[a:key]
-  let self[a:key] = option
-  return option
 endfu
 
 " TODO

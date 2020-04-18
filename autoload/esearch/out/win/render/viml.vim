@@ -2,7 +2,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
-  let original_cwd = esearch#util#lcd(a:esearch.cwd)
+  let cwd = esearch#win#lcd(a:esearch.cwd)
   try
     let [parsed, separators_count] = a:esearch.parse(a:data, a:from, a:to)
     let a:esearch.separators_count += separators_count
@@ -66,7 +66,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       let i    += 1
     endwhile
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 
   call esearch#util#append_lines(lines)

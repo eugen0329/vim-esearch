@@ -57,12 +57,12 @@ endfu
 
 fu! esearch#backend#vim8#run(request) abort
   let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
-  let original_cwd = esearch#util#lcd(a:request.cwd)
+  let cwd = esearch#win#lcd(a:request.cwd)
   try
     let a:request.job_id = job_start(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.start_at = reltime()
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 endfu
 

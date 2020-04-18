@@ -1,3 +1,4 @@
+let s:Message  = vital#esearch#import('Vim.Message')
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 if g:esearch#has#bufadd
@@ -58,3 +59,34 @@ fu! esearch#buf#location(bufnr) abort
 
   return [0, 0]
 endf
+
+" borrowed from the airline
+fu! esearch#buf#qfbufnr() abort
+  redir => buffers
+  silent ls
+  redir END
+
+  for buf in split(buffers, '\n')
+    if match(buf, '\cQuickfix') > -1
+      return str2nr(matchlist(buf, '\s\(\d\+\)')[1])
+    endif
+  endfor
+  return -1
+endfu
+
+fu! esearch#buf#qftype(bufnr) abort
+  let buffers = s:Message.capture('silent ls')
+
+  let nr = a:bufnr
+  for buf in split(buffers, '\n')
+    if match(buf, '\v^\s*'.nr) > -1
+      if match(buf, '\cQuickfix') > -1
+        return 'qf'
+      elseif match(buf, '\cLocation') > -1
+        return 'loc'
+      else
+        return 'reg'
+      endif
+    endif
+  endfor
+endfu

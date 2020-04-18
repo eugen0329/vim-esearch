@@ -8,6 +8,7 @@ let s:SearchPrompt     = esearch#ui#prompt#search#import()
 
 let s:Menu = esearch#ui#component()
 
+" TODO sharing
 let s:case_keys          = ['s', "\<C-s>"]
 let s:regex_keys         = ['r', "\<C-r>"]
 let s:textobj_keys       = ['t', "\<C-t>"]
@@ -15,7 +16,7 @@ let s:path_keys          = ['p', "\<C-p>"]
 let s:after_keys         = ['a', 'A']
 let s:before_keys        = ['b', 'B']
 let s:context_keys       = ['c', 'C']
-let s:unsigned_int_keys = ["\<C-a>", "\<C-x>"]
+let s:unsigned_int_keys = ["\<C-a>", "\<C-x>", "\<Enter>", "\<Left>", "\<Right>", "\<C-h>"]
 
 let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys
       \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", "\<Del>", "\<BS>", '+', '-'] + s:unsigned_int_keys

@@ -10,15 +10,14 @@ describe 'esearch#shell' do
   context '#split' do
     context 'special' do
       shared_examples 'it detects wildcars location' do |c|
-        it { expect(wildcards_at('ab')).to         eq([[]])     }
-        it { expect(wildcards_at("#{c}ab")).to     eq([[0]])    }
-        it { expect(wildcards_at("#{c}ab#{c}")).to eq([[0, 3]]) }
-        it { expect(wildcards_at("#{c}#{c}ab")).to eq([[0, 1]]) }
-        it { expect(wildcards_at("#{c}ab")).to     eq([[0]])    }
-        it { expect(wildcards_at("a#{c}b")).to     eq([[1]])    }
-        it { expect(wildcards_at("ab#{c}")).to     eq([[2]])    }
-        it { expect(wildcards_at(" #{c}ab")).to    eq([[0]])    }
-        it { expect(wildcards_at(" ab#{c} ")).to   eq([[2]])    }
+        it { expect(metachars_at("#{c}ab")).to     eq([[0]])    }
+        it { expect(metachars_at("#{c}ab#{c}")).to eq([[0, 3]]) }
+        it { expect(metachars_at("#{c}#{c}ab")).to eq([[0, 1]]) }
+        it { expect(metachars_at("#{c}ab")).to     eq([[0]])    }
+        it { expect(metachars_at("a#{c}b")).to     eq([[1]])    }
+        it { expect(metachars_at("ab#{c}")).to     eq([[2]])    }
+        it { expect(metachars_at(" #{c}ab")).to    eq([[0]])    }
+        it { expect(metachars_at(" ab#{c} ")).to   eq([[2]])    }
       end
 
       include_examples 'it detects wildcars location', '?'
@@ -34,6 +33,9 @@ describe 'esearch#shell' do
       include_examples 'it detects wildcars location', '['
       include_examples 'it detects wildcars location', ']'
       include_examples 'it detects wildcars location', '^'
+      include_examples 'it detects wildcars location', '$'
+
+      it { expect(metachars_at('ab')).to eq([[]]) }
     end
 
     context 'single word' do

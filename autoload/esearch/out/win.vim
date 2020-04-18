@@ -43,7 +43,7 @@ if !exists('g:esearch_out_win_highlight_matches')
 endif
 if !exists('g:esearch_win_disable_context_highlights_on_files_count')
   let g:esearch_win_disable_context_highlights_on_files_count =
-        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 11800 : 200)
+        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 800 : 200)
 endif
 if !exists('g:esearch_win_update_using_timer')
   let g:esearch_win_update_using_timer = 1
@@ -217,7 +217,7 @@ fu! esearch#out#win#stop_highlights(reason) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  call esearch#util#add_map(g:esearch#out#win#mappings, a:lhs, a:rhs)
+  call esearch#mapping#add(g:esearch#out#win#mappings, a:lhs, a:rhs)
 endfu
 
 fu! s:init_commands() abort

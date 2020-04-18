@@ -8,15 +8,12 @@ fu! esearch#out#win#update#init(esearch) abort
   if !a:esearch.request.async | return | endif
 
   call extend(a:esearch, {
-        \ 'last_update_at':          reltime(),
-        \ 'updates_timer':           -1,
-        \ 'update_with_timer_start': 0,
+        \ 'last_update_at': reltime(),
+        \ 'updates_timer':  -1,
         \})
 
   " TODO replace with g:esearch.throttle_wait > 0
   if g:esearch_win_update_using_timer && has('timers')
-    let a:esearch.update_with_timer_start = 1
-
     aug esearch_win_updates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
@@ -36,8 +33,6 @@ fu! esearch#out#win#update#init(esearch) abort
             \ {'repeat': -1})
     aug END
   else
-    let a:esearch.update_with_timer_start = 0
-
     aug esearch_win_updates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()

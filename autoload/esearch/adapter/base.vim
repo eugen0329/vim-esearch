@@ -8,14 +8,14 @@ let s:Base = {
       \ 'mandatory_options': 'NotImplemented'}
 
 fu! s:Base.command(esearch, pattern, escape) abort dict
-  let r = self.spec.regex[a:esearch.regex].option
-  let c = self.spec.textobj[a:esearch.textobj].option
-  let w = self.spec.case[a:esearch.case].option
+  let regex = self.spec.regex[a:esearch.regex].option
+  let case = self.spec.textobj[a:esearch.textobj].option
+  let textobj = self.spec.case[a:esearch.case].option
 
   if empty(a:esearch.paths)
-    let joined_paths = self.pwd()
+    let paths = self.pwd()
   else
-    let joined_paths = esearch#shell#fnamesescape_and_join(a:esearch.paths, a:esearch.metadata)
+    let paths = join(map(copy(a:esearch.paths), 'esearch#shell#escape(v:val)'), ' ')
   endif
 
   let context = ''
@@ -23,12 +23,23 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
   if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
   if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
 
-  return join([self.bin, r, c, w, self.mandatory_options, self.options, context], ' ')
-        \ . ' -- ' .  a:escape(a:pattern) . ' ' . joined_paths
+  return join([
+        \ self.bin,
+        \ regex,
+        \ case,
+        \ textobj,
+        \ self.mandatory_options,
+        \ self.options,
+        \ context,
+        \ ' -- ',
+        \ a:escape(a:pattern),
+        \ paths,
+        \], ' ')
 endfu
 
 fu! s:Base.pwd() abort dict
-  " Some adapters require pwd to set explicitly (like grep) using '.'. For others it cause unwanted './' prefix.
+  " Some adapters require pwd to set explicitly (like grep) using '.'. For
+  " others it cause unwanted './' prefix.
   return ''
 endfu
 

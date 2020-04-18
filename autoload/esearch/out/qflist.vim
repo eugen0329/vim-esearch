@@ -46,7 +46,7 @@ fu! esearch#out#qflist#setup_autocmds(opts) abort
     " We need to handle quickfix bufhidden=wipe behavior
     if !exists('#ESearchQFListAutocmds#FileType')
       au FileType qf
-            \ if exists('g:esearch_qf') && !g:esearch_qf.request.finished && esearch#util#qftype(bufnr('%')) ==# 'qf' |
+            \ if exists('g:esearch_qf') && !g:esearch_qf.request.finished && esearch#buf#qftype(bufnr('%')) ==# 'qf' |
             \   call esearch#out#qflist#setup_autocmds(g:esearch_qf) |
             \ endif
     endif
@@ -74,10 +74,10 @@ fu! esearch#out#qflist#update() abort
       let request.cursor += esearch.batch_size
     endif
 
-    let original_cwd = esearch#util#lcd(esearch.cwd)
+    let cwd = esearch#win#lcd(esearch.cwd)
     try
       let [parsed, _separators_count] = esearch.parse(data, from, to)
-      if esearch#util#qftype(bufnr('%')) ==# 'qf'
+      if esearch#buf#qftype(bufnr('%')) ==# 'qf'
         let curpos = getcurpos()[1:]
         noau call setqflist(parsed, 'a')
         call cursor(curpos)
@@ -85,7 +85,7 @@ fu! esearch#out#qflist#update() abort
         noau call setqflist(parsed, 'a')
       endif
     finally
-      call original_cwd.restore()
+      call cwd.restore()
     endtry
   endif
 endfu
@@ -107,10 +107,10 @@ fu! esearch#out#qflist#finish() abort
 
   let esearch.title = esearch.title . '. Finished.'
 
-  if esearch#util#qftype(bufnr('%')) ==# 'qf'
+  if esearch#buf#qftype(bufnr('%')) ==# 'qf'
     let w:quickfix_title = esearch.title
   else
-    let bufnr = esearch#util#qfbufnr()
+    let bufnr = esearch#buf#qfbufnr()
     if bufnr !=# -1
       for tabnr in range(1, tabpagenr('$'))
         let buflist = tabpagebuflist(tabnr)

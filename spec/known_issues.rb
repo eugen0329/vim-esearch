@@ -57,7 +57,7 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
 
   # Git have different way to escape globs:
   #   `ag *.txt`,       `ag \*.txt`       - a wildcard and a regular string
-  #   `git grep *.txt`, `git grep \*.txt` - both wildcards
+  #   `git grep *.txt`, `git grep \*.txt` - both metachars
   pending! 'globbing escaped *', /expected to have results.*got.*\[.+\]/m, adapter: :git
 
   # Ack cannot work with files named ~

@@ -42,7 +42,7 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
 endfu
 
 fu! esearch#backend#nvim#run(request) abort
-  let original_cwd = esearch#util#lcd(a:request.cwd)
+  let cwd = esearch#win#lcd(a:request.cwd)
   try
     let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.job_id = job_id
@@ -50,7 +50,7 @@ fu! esearch#backend#nvim#run(request) abort
     call jobclose(job_id, 'stdin')
     let s:jobs[job_id] = { 'data': [], 'request': a:request }
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 endfu
 
