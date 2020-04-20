@@ -39,12 +39,16 @@ endfu
 
 fu! s:spell_pattern(arglead) abort
   let spell_pattern = a:arglead
-  let spell_suggested = esearch#let#restorable({'&spell_suggested': 1})
+  let spell = esearch#let#restorable({'&spellsuggest': 1, '&spell': 1})
   try
-    return substitute(spell_pattern, '\k\+', '\=s:spell_suggests(submatch(0))', 'g')
+    return substitute(spell_pattern, '\h\k*', '\=s:spell_suggestions(submatch(0))', 'g')
   finally
-    call spell_suggested.restore()
+    call spell.restore()
   endtry
+endfu
+
+fu! s:spell_suggestions(word) abort
+  return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfu
 
 fu! s:fuzzy_pattern(arglead) abort
@@ -60,8 +64,4 @@ fu! s:buffer_words(min_len) abort
     call filter(words, 'a:min_len <= strlen(v:val)')
   endif
   return words
-endfu
-
-fu! s:spell_suggests(word) abort
-  return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfu

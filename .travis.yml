@@ -152,7 +152,7 @@ jobs:
     - name: 'Unit tests'
       script: bundle exec parallel_test spec/unit -n 2 --group-by filesize --type rspec
       os: linux
-    - name: 'Linters'
+    - name: 'Linters (luacheck, rubocop, vint, shellcheck)'
       env: LINT=1 INSTALL_PYTHON_VERSION=3.6.1
       script:
         - luacheck lua/

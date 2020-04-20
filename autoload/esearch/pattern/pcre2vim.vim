@@ -72,7 +72,7 @@ let s:posix_named_set_pattern = join([
       \ 'word',
       \ 'ascii',
       \ ], '\|')
-let s:posix_named_set_pattern = printf('\[:\%(%s\):\]', s:posix_named_set_pattern)
+let s:posix_named_set_pattern = printf('\[:\%%(%s\):\]', s:posix_named_set_pattern)
 let s:range_quantifier_pattern   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
 let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
@@ -186,6 +186,10 @@ let s:metachar2class_content = {
       \ '\]': '\]',
       \ '\[': '\[',
       \ }
+let s:posix_set2class_content = {
+      \ '[:word:]':  s:metachar2class_content['\w'],
+      \ '[:ascii:]': '\x00-\x7F',
+      \ }
 
 fu! s:PCRE2Vim.pop_context() abort dict
   call remove(self.contexts, -1)
@@ -207,13 +211,7 @@ fu! s:PCRE2Vim.parse_class() abort dict
       call self.throw('properties are not supported')
     elseif self.next_is([s:POSIX_NAMED_SET])
       let text = self.advance().matched_text
-      if text ==# '[:word:]'
-        let result += [s:metachar2class_content['\w']]
-      elseif text ==# '[:ascii:]'
-        let result += ['\x00-\x7F']
-      else
-        let result += [self.token.matched_text]
-      endif
+      let result += get(s:posix_set2class_content, text, text)
     elseif self.next_is([s:ESCAPED_ANY])
       let text = self.advance().matched_text
       let result += [get(s:metachar2class_content, text, text[1:])]
@@ -308,10 +306,6 @@ fu! s:PCRE2Vim.convert() abort dict
   endif
 
   return self.result
-endfu
-
-fu! s:PCRE2Vim.warn(msg) abort dict
-  echomsg a:msg
 endfu
 
 if g:esearch#env is# 0
