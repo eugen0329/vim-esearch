@@ -26,13 +26,32 @@ function M.buf_attach_matches()
   end
 end
 
-local function ui_cb(_event_name, bufnr, _changedtick, from, _old_to, to, _old_byte_size)
-  local start = from - 1
-  if from == 0 then start = 0 end
+function M.highlight_ui(bufnr, from, to)
+  local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
+  for i, text in ipairs(lines) do
+    if i == 1 and from < 1 then
+      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
+      local pos1, pos2 =  text:find('%d+')
+      -- 2 subtracted to capture less-than-or-equl-to sign
+      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
+      pos1, pos2 =  text:find('%d+', pos2 + 1)
+      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
+    elseif text:len() == 0 then -- luacheck: ignore
+      -- separators are not highlighted
+    elseif text:sub(1,1) == ' ' then
+      local _, pos2 =  text:find('^%s+%d+%s')
+      if pos2 ~= nil then
+        vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
+      end
+    else
+      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchFilename', from + i - 1, 0, -1)
+    end
+  end
+end
 
+local function ui_cb(_event_name, bufnr, _changedtick, from, _old_to, to, _old_byte_size)
   vim.schedule(function()
-    vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, from, to)
-    M.highlight_ui(bufnr, start, to)
+    M.highlight_ui(bufnr, from, to)
   end)
 end
 
@@ -68,29 +87,6 @@ end
 
 function M.buf_clear_annotations()
   vim.api.nvim_buf_clear_namespace(0, M.ANNOTATIONS_NS, 0, -1)
-end
-
-function M.highlight_ui(bufnr, from, to)
-  local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
-  for i, text in ipairs(lines) do
-    if i == 1 and from < 1 then
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
-      local pos1, pos2 =  text:find('%d+')
-      -- 2 subtracted to capture less-than-or-equl-to sign
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
-      pos1, pos2 =  text:find('%d+', pos2 + 1)
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
-    elseif text:len() == 0 then -- luacheck: ignore
-      -- separators are not highlighted
-    elseif text:sub(1,1) == ' ' then
-      local _, pos2 =  text:find('^%s+%d+%s')
-      if pos2 ~= nil then
-        vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
-      end
-    else
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchFilename', from + i - 1, 0, -1)
-    end
-  end
 end
 
 function M.annotate(contexts)
