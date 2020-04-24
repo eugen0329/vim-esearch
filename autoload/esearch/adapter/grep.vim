@@ -26,20 +26,20 @@ endif
 " -x: Line regexp
 let s:Grep.mandatory_options = '-H -R -n'
 let s:Grep.spec = {
-      \   '_regex': ['literal', 'basic'],
+      \   'bool2regex': ['literal', 'basic'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '-F'},
       \     'basic':    {'icon': 'G', 'option': '-G'},
       \     'extended': {'icon': 'E', 'option': '-E'},
       \     'pcre':     {'icon': 'P', 'option': '-P'},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '-w'},
       \     'line':     {'icon': 'l', 'option': '-x'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '-i'},
       \     'sensitive': {'icon': 's', 'option': ''},

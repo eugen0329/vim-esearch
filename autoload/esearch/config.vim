@@ -1,103 +1,98 @@
-fu! s:default(var, default) abort
-  if exists(a:var) | return | endif
-  let {a:var} = a:default
-endfu
-call s:default('g:esearch_win_highlight_debounce_wait',                   100)
-call s:default('g:esearch_win_highlight_viewport_margin',                 100)
-call s:default('g:esearch_win_matches_highlight_debounce_wait',           100)
-call s:default('g:esearch_out_win_highlight_matches',                     (g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd'))
-call s:default('g:esearch_win_disable_context_highlights_on_files_count', (g:esearch_out_win_highlight_matches ==# 'viewport' ? 800 : 200))
-call s:default('g:esearch_win_update_using_timer',                        1)
-call s:default('g:esearch#out#win#context_syntax_highlight',              1)
-call s:default('g:esearch#out#win#context_syntax_max_lines',              500)
-call s:default('g:esearch_win_updates_timer_wait_time',                   100)
-call s:default('g:esearch_out_win_highlight_cursor_line_number',          g:esearch#has#virtual_cursor_linenr_highlight)
-call s:default('g:esearch_out_win_render_using_lua',                      g:esearch#has#lua)
-call s:default('g:esearch_out_win_nvim_lua_syntax',                       g:esearch_out_win_render_using_lua && g:esearch#has#nvim_lua_syntax)
-call s:default('g:unload_context_syntax_on_line_length',                  500)
-call s:default('g:unload_global_syntax_on_line_length',                   30000)
-call s:default('g:esearch#out#win#open',                                  'tabnew')
-call s:default('g:esearch#out#win#buflisted',                             0)
-call s:default('g:esearch_win_results_len_annotations',                   g:esearch#has#virtual_text)
-
-fu! esearch#config#init() abort
+fu! esearch#config#eager() abort
   if !exists('g:esearch')
     let g:esearch = {}
   endif
 
   if !get(g:esearch, 'lazy_loaded', 0)
-    let g:esearch = esearch#config#new(g:esearch)
+    call esearch#config#init(g:esearch)
     call s:init_lua()
     let g:esearch.lazy_loaded = 1
   endif
-
-  return 0
 endfu
 
-fu! esearch#config#new(opts) abort
-  let opts = copy(a:opts)
+fu! esearch#config#init(esearch) abort
+  let esearch = a:esearch
+  " root_markers are made to correspond g:ctrlp_root_markers default value
+  let esearch = extend(esearch, {
+        \ 'last_id':                               0,
+        \ 'out':                                   'win',
+        \ 'regex':                                 'literal',
+        \ 'textobj':                               'none',
+        \ 'adapters':                              {},
+        \ 'after':                                 0,
+        \ 'before':                                0,
+        \ 'context':                               0,
+        \ 'early_finish_wait':                     50,
+        \ 'default_mappings':                      1,
+        \ 'nerdtree_plugin':                       1,
+        \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
+        \ 'slice':                                 function('esearch#util#slice'),
+        \ 'errors':                                [],
+        \ 'use':                                   ['visual', 'current', 'hlsearch', 'last'],
+        \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
+        \ 'win_update_throttle_wait':              g:esearch#has#throttle ? 100 : 0,
+        \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
+        \ 'win_viewport_off_screen_margins':       &lines > 100 ? &lines : 100,
+        \ 'win_matches_highlight_debounce_wait':   100,
+        \ 'win_matches_highlight_strategy':        g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd',
+        \ 'win_contexts_syntax':                   1,
+        \ 'win_contexts_syntax_debounce_wait':     100,
+        \ 'win_contexts_syntax_sync_minlines':     500,
+        \ 'win_context_syntax_clear_on_line_len':  800,
+        \ 'win_contexts_syntax_clear_on_line_len': 30000,
+        \ 'win_context_len_annotations':           g:esearch#has#virtual_text,
+        \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
+        \ 'win_let':                               {'&l:buflisted': get(g:, 'esearch#out#win#buflisted', 0)},
+        \ 'win_new':                               function('esearch#out#win#goto_or_open'),
+        \}, 'keep')
+  let esearch = extend(esearch, {
+        \ 'win_ui_nvim_syntax':                       g:esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
+        \ 'win_contexts_syntax_clear_on_files_count': g:esearch.win_matches_highlight_strategy ==# 'viewport' ? 800 : 200,
+        \}, 'keep')
 
-  if !has_key(opts, 'backend')
-    if g:esearch#has#nvim_jobs
-      let opts.backend = 'nvim'
-    elseif g:esearch#has#vim8_jobs
-      let opts.backend = 'vim8'
-    elseif g:esearch#has#vimproc()
-      let opts.backend = 'vimproc'
-    else
-      let opts.backend = 'system'
-    endif
+  if !has_key(esearch, 'backend')
+    let esearch.backend = esearch#config#default_backend()
   endif
 
-  if !has_key(opts, 'adapter')
-    let opts.adapter = esearch#config#default_adapter()
-  endif
-
-  if g:esearch#has#nvim_lua
-    let batch_size = 5000
-    let final_batch_size = 15000
-  elseif g:esearch#has#vim_lua
-    let batch_size = 2500
-    let final_batch_size = 5000
-  else
-    let batch_size = 1000
-    let final_batch_size = 4000
+  if !has_key(esearch, 'adapter')
+    let esearch.adapter = esearch#config#default_adapter()
   endif
 
   " pt implicitly matches using regexp when ignore-case mode is enabled. Setting
   " case mode to 'sensitive' makes pt adapter more predictable and slightly
   " more similar to the default behavior of other adapters.
-  if !has_key(opts, 'case')
-    if opts.adapter ==# 'pt'
-      let opts.case = 'sensitive'
+  if !has_key(esearch, 'case')
+    if esearch.adapter ==# 'pt'
+      let esearch.case = 'sensitive'
     else
-      let opts.case = 'ignore'
+      let esearch.case = 'ignore'
     endif
   endif
 
-  " root_markers are made to correspond g:ctrlp_root_markers default value
-  let opts = extend(opts, {
-        \ 'last_id':          0,
-        \ 'out':              'win',
-        \ 'regex':            'literal',
-        \ 'textobj':          'none',
-        \ 'adapters':         {},
-        \ 'batch_size':       batch_size,
-        \ 'final_batch_size': final_batch_size,
-        \ 'context_width':    { 'left': 60, 'right': 60 },
-        \ 'after':            0,
-        \ 'before':           0,
-        \ 'context':          0,
-        \ 'early_finish_timeout': 50,
-        \ 'default_mappings': 1,
-        \ 'nerdtree_plugin':  1,
-        \ 'root_markers':     ['.git', '.hg', '.svn', '.bzr', '_darcs'],
-        \ 'slice':            function('esearch#util#slice'),
-        \ 'errors':           [],
-        \ 'use':              ['visual', 'current', 'hlsearch', 'last'],
-        \}, 'keep')
+  if g:esearch#has#nvim_lua
+    let esearch.batch_size = 5000
+    let esearch.final_batch_size = 15000
+  elseif g:esearch#has#vim_lua
+    let esearch.batch_size = 2500
+    let esearch.final_batch_size = 5000
+  else
+    let esearch.batch_size = 1000
+    let esearch.final_batch_size = 4000
+  endif
 
-  return opts
+  return esearch
+endfu
+
+fu! esearch#config#default_backend() abort
+  if g:esearch#has#nvim_jobs
+    return 'nvim'
+  elseif g:esearch#has#vim8_jobs
+    return 'vim8'
+  elseif g:esearch#has#vimproc()
+    return 'vimproc'
+  else
+    return 'system'
+  endif
 endfu
 
 fu! esearch#config#default_adapter() abort
@@ -114,7 +109,7 @@ fu! esearch#config#default_adapter() abort
   elseif executable('grep')
     return 'grep'
   else
-    throw 'No executables found'
+    throw 'No adapter executables found'
   endif
 endfu
 

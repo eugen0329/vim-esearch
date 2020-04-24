@@ -55,7 +55,7 @@ fu! esearch#backend#nvim#exec(request) abort
 endfu
 
 fu! s:is_consumed() abort dict
-  let timeout = max([g:esearch.early_finish_timeout - float2nr(reltimefloat(reltime(self.start_at)) * 1000), 1])
+  let timeout = max([g:esearch.early_finish_wait - float2nr(reltimefloat(reltime(self.start_at)) * 1000), 1])
   return jobwait([self.job_id], timeout)[0] ==# -1 && self.finished
 endfu
 

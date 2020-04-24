@@ -10,13 +10,13 @@
 " it cause uncontrolled freeze on backend callbacks due to redundant text with
 " ANSI escape sequences.
 fu! esearch#out#win#appearance#matches#init(esearch) abort
-  if g:esearch_out_win_highlight_matches is# 'viewport'
+  if a:esearch.win_matches_highlight_strategy is# 'viewport'
     let a:esearch.hl_strategy = 'viewport'
     let a:esearch.last_hl_range = [0,0]
     let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
     let a:esearch.lines_with_hl_matches = {}
     let Callback = function('s:highlight_viewport_cb', [a:esearch])
-    let a:esearch.hl_matches = esearch#debounce(Callback, g:esearch_win_matches_highlight_debounce_wait)
+    let a:esearch.hl_matches = esearch#debounce(Callback, a:esearch.win_matches_highlight_debounce_wait)
 
     aug esearch_win_hl_matches
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()
@@ -25,7 +25,7 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
     return
   endif
 
-  if g:esearch_out_win_highlight_matches is# 'matchadd'
+  if a:esearch.win_matches_highlight_strategy is# 'matchadd'
     if !has_key(a:esearch.pattern, 'win_match')
       let a:esearch.pattern.win_match = s:matchadd_pattern(a:esearch)
     endif
@@ -69,8 +69,8 @@ fu! s:highlight_viewport_cb(esearch) abort
     return
   endif
 
-  let top    = esearch#util#clip(top - g:esearch_win_highlight_viewport_margin, 1, line('$'))
-  let bottom = esearch#util#clip(bottom + g:esearch_win_highlight_viewport_margin, 1, line('$'))
+  let top    = esearch#util#clip(top - a:esearch.win_viewport_off_screen_margins, 1, line('$'))
+  let bottom = esearch#util#clip(bottom + a:esearch.win_viewport_off_screen_margins, 1, line('$'))
   call s:highlight_viewport(a:esearch, top, bottom)
 endfu
 

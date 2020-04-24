@@ -21,19 +21,19 @@ endif
 " -I - don't search binary files
 let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
 let s:Git.spec = {
-      \   '_regex': ['literal', 'basic'],
+      \   'bool2regex': ['literal', 'basic'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '--fixed-strings'},
       \     'basic':    {'icon': 'G', 'option': '--basic-regexp'},
       \     'extended': {'icon': 'E', 'option': '--extended-regexp'},
       \     'pcre':     {'icon': 'P', 'option': '--perl-regexp'},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': ''},

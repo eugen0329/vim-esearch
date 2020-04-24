@@ -78,7 +78,7 @@ endfu
 
 " Adapted from vital-Whisky
 fu! s:is_consumed() abort dict
-  let timeout = g:esearch.early_finish_timeout / 1000.0 - reltimefloat(reltime(self.start_at))
+  let timeout = g:esearch.early_finish_wait / 1000.0 - reltimefloat(reltime(self.start_at))
   if timeout < 0.0 | return | endif
   let stopped = 0
 

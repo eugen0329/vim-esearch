@@ -9,13 +9,12 @@ fu! s:title(esearch, pattern) abort
   let modifiers  = get(a:esearch.current_adapter.spec.case, a:esearch.case, {'icon': ''}).icon
   let regex_icon = get(a:esearch.current_adapter.spec.regex, a:esearch.regex, {'icon': ''}).icon
   if regex_icon !=# 'r'
-    let modifiers .=regex_icon
+    let modifiers .= regex_icon
   endif
   let modifiers .= get(a:esearch.current_adapter.spec.textobj, a:esearch.textobj, {'icon': ''}).icon
   return printf(format, substitute(a:pattern, '%', '%%', 'g'), modifiers)
 endfu
 
-" Results bufname format builder
 fu! s:title_format(esearch) abort
   if a:esearch.is_regex()
     if g:esearch#has#unicode

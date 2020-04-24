@@ -220,9 +220,9 @@ class Editor
       .map { |path| Pathname(path).cleanpath.expand_path.to_s }
   end
 
-  def locate_buffer!(name)
+  def enter_buffer!(name)
     location = with_ignore_cache do
-      echo func('esearch#buf#location', func('esearch#buf#find', name))
+      echo func('esearch#buf#tabwin', func('esearch#buf#find', name))
     end
 
     raise MissingBufferError if location == [0, 0]

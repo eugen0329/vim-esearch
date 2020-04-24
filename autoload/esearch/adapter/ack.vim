@@ -16,17 +16,17 @@ else
 endif
 let s:Ack.mandatory_options = '--nogroup --nocolor --noheading --with-filename --nobreak'
 let s:Ack.spec = {
-      \   '_regex': ['literal', 'pcre'],
+      \   'bool2regex': ['literal', 'pcre'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--literal'},
       \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':      {'icon': '',  'option': ''},
       \     'word':      {'icon': 'w', 'option': '--word-regexp'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': '--no-smart-case'},

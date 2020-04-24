@@ -18,17 +18,17 @@ endif
 let s:Pt.mandatory_options = '--nogroup --nocolor'
 " https://github.com/google/re2/wiki/Syntax
 let s:Pt.spec = {
-      \   '_regex': ['literal', 're2'],
+      \   'bool2regex': ['literal', 're2'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': ''},
       \     're2':       {'icon': 'r', 'option': '-e'},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': ''},

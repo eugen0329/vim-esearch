@@ -454,7 +454,7 @@ fu! s:apply_recovery(state) abort dict
     endif
   endif
 
-  if g:esearch_out_win_nvim_lua_syntax && self.extended_line1 <= 2
+  if b:esearch.win_ui_nvim_syntax && self.extended_line1 <= 2
     call luaeval('esearch.appearance.highlight_header()')
   endif
 

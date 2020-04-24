@@ -1,7 +1,3 @@
-if !g:esearch#has#lua
-  finish
-endif
-
 fu! esearch#adapter#parse#lua#funcref() abort
   return function('esearch#adapter#parse#lua#parse')
 endfu

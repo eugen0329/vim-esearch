@@ -1,3 +1,4 @@
+let s:Buffer   = vital#esearch#import('Vim.Buffer')
 let s:Message  = esearch#message#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
@@ -47,7 +48,7 @@ fu! esearch#buf#pattern(filename) abort
   return '^' . filename . '$'
 endfu
 
-fu! esearch#buf#location(bufnr) abort
+fu! esearch#buf#tabwin(bufnr) abort
   for tabnr in range(1, tabpagenr('$'))
     let buflist = tabpagebuflist(tabnr)
     if index(buflist, a:bufnr) >= 0
@@ -59,6 +60,32 @@ fu! esearch#buf#location(bufnr) abort
 
   return [0, 0]
 endf
+
+fu! esearch#buf#goto_or_open(filename, opener, ...) abort
+  let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
+  let bufnr = esearch#buf#find(a:filename)
+
+  " Noop if the buffer is current
+  if bufnr == bufnr('%') | return 1 | endif
+  " Open if doesn't exist
+  if bufnr == -1
+    silent return s:Buffer.open(a:filename, options)
+  endif
+  let [tabnr, winnr] = esearch#buf#tabwin(bufnr)
+  " Open if closed
+  if empty(winnr)
+    silent return s:Buffer.open(a:filename, options)
+  endif
+  " Locate if opened
+  silent exe 'tabnext ' . tabnr
+  exe winnr . 'wincmd w'
+  return 1
+endfu
+
+fu! esearch#buf#open(filename, opener, ...) abort
+  let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
+  return s:Buffer.open(a:filename, options)
+endfu
 
 " borrowed from the airline
 fu! esearch#buf#qfbufnr() abort

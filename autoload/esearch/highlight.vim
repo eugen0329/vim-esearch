@@ -26,7 +26,7 @@ fu! esearch#highlight#define() abort
         \ })
   call s:set('esearchMatch', esearch_match, {'default': 1})
 
-  " legacy names support
+  " DEPRECATE legacy names support
   if hlexists('esearchLnum')
     call s:copy('esearchLineNr', 'esearchLnum', {'force': 1})
   endif

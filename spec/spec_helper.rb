@@ -147,4 +147,3 @@ def load_runtime!(vim)
   # vim.add_plugin(Configuration.plugins_dir.join('vim-colors-solarized'))
   vim
 end
-comon/gtm_script

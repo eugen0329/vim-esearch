@@ -21,19 +21,19 @@ let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-fi
 " Crate stands for regexp lib from crete packages registry. Is default as
 " pcre is only supported in later versions
 let s:Rg.spec = {
-      \   '_regex': ['literal', 'crate'],
+      \   'bool2regex': ['literal', 'crate'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
       \     'crate':     {'icon': 'r', 'option': ''},
       \     'pcre':      {'icon': 'P', 'option': '--pcre2'},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \     'line':     {'icon': 'l', 'option': '--line-regexp'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': '--case-sensitive'},

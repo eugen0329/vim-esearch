@@ -2,7 +2,7 @@ if exists('b:current_syntax')
   finish
 endif
 
-if !g:esearch_out_win_nvim_lua_syntax
+if !g:esearch.win_ui_nvim_syntax
   syn match esearchLineNr   '^\s\+\d\+\s'
   syn match esearchFilename '^[^ ].*$'
   syn match esearchHeader   '\%1l.*' contains=esearchStatistics

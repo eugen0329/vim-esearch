@@ -17,17 +17,17 @@ else
 endif
 let s:Ag.mandatory_options = '--nogroup --nocolor --noheading --nobreak'
 let s:Ag.spec = {
-      \   '_regex': ['literal', 'pcre'],
+      \   'bool2regex': ['literal', 'pcre'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
       \     'pcre':      {'icon': 'r', 'option': ''},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':      {'icon': '',  'option': ''},
       \     'word':      {'icon': 'w', 'option': '--word-regexp'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': '--case-sensitive'},

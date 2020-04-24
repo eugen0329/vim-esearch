@@ -1,7 +1,6 @@
 fu! esearch#init(...) abort
   call esearch#util#doautocmd('User eseach_init_pre')
-
-  call esearch#config#init()
+  call esearch#config#eager()
 
   let esearch = extend(copy(get(a:, 1, {})), copy(g:esearch), 'keep')
   let esearch = esearch#middleware#id#apply(esearch)

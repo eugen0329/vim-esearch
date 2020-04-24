@@ -11,9 +11,15 @@ fu! esearch#out#win#render#init(esearch) abort
         \ 'ctx_ids_map':      [],
         \})
 
+  if a:esearch.win_render_strategy ==# 'lua'
+    let a:esearch.render = function('esearch#out#win#render#lua#do')
+  else
+    let a:esearch.render = function('esearch#out#win#render#viml#do')
+  endif
+
   setl undolevels=-1 noswapfile nonumber norelativenumber nospell nowrap synmaxcol=400
   setl nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide foldmethod=marker
-  let &buflisted = g:esearch#out#win#buflisted
+  call esearch#let#generic(a:esearch.win_let)
 
   " setup blank context for header
   call esearch#out#win#render#add_context(a:esearch.contexts, '', 1)
@@ -22,7 +28,7 @@ fu! esearch#out#win#render#init(esearch) abort
   let a:esearch.ctx_ids_map += [header_context.id, header_context.id]
   let a:esearch.line_numbers_map += [0, 0]
   setl modifiable
-  1,$delete_
+  silent 1,$delete_
   call esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())
   setl nomodifiable
 endfu
