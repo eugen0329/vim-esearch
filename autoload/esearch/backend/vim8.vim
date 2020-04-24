@@ -55,7 +55,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   return request
 endfu
 
-fu! esearch#backend#vim8#run(request) abort
+fu! esearch#backend#vim8#exec(request) abort
   let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
   let cwd = esearch#win#lcd(a:request.cwd)
   try

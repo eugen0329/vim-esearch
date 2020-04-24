@@ -117,8 +117,8 @@ fu! esearch#out#win#appearance#ctx_syntaxes#apply_to_viewport_without_margins(es
 endfu
 
 fu! s:highlight_viewport_cb(esearch) abort
-  let begin = esearch#util#clip(line('w0') - g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
-  let end   = esearch#util#clip(line('w$') + g:esearch_win_viewport_highlight_extend_by, 3, line('$'))
+  let begin = esearch#util#clip(line('w0') - g:esearch_win_highlight_viewport_margin, 3, line('$'))
+  let end   = esearch#util#clip(line('w$') + g:esearch_win_highlight_viewport_margin, 3, line('$'))
   return s:highlight_viewport(a:esearch, begin, end)
 endfu
 

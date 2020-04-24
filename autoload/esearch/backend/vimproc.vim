@@ -51,7 +51,7 @@ fu! s:is_consumed() abort dict
   return 0
 endfu
 
-fu! esearch#backend#vimproc#run(request) abort
+fu! esearch#backend#vimproc#exec(request) abort
   let cwd = esearch#win#lcd(a:request.cwd)
   try
     let pipe = vimproc#popen3(

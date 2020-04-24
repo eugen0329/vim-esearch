@@ -25,68 +25,6 @@ let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let g:esearch#out#win#linenr_format = ' %3d '
 let g:esearch#out#win#entry_format = ' %3d %s'
 
-if !exists('g:esearch_win_highlight_debounce_wait')
-  let g:esearch_win_highlight_debounce_wait = 100
-endif
-if !exists('g:esearch_win_context_syntax_async')
-  let g:esearch_win_context_syntax_async = 1
-endif
-if !exists('g:esearch_win_viewport_highlight_extend_by')
-  let g:esearch_win_viewport_highlight_extend_by = 100
-endif
-if !exists('g:esearch_win_matches_highlight_debounce_wait')
-  let g:esearch_win_matches_highlight_debounce_wait = 50
-endif
-if !exists('g:esearch_out_win_highlight_matches')
-  let g:esearch_out_win_highlight_matches =
-        \ (g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd')
-endif
-if !exists('g:esearch_win_disable_context_highlights_on_files_count')
-  let g:esearch_win_disable_context_highlights_on_files_count =
-        \ (g:esearch_out_win_highlight_matches ==# 'viewport' ? 800 : 200)
-endif
-if !exists('g:esearch_win_update_using_timer')
-  let g:esearch_win_update_using_timer = 1
-endif
-if !exists('g:esearch_win_ellipsize_results')
-  " TODO editing is not working with ellipsized results
-  let g:esearch_win_ellipsize_results = 0
-endif
-if !exists('g:esearch_win_updates_timer_wait_time')
-  let g:esearch_win_updates_timer_wait_time = 100
-endif
-if !exists('g:esearch#out#win#context_syntax_highlight')
-  let g:esearch#out#win#context_syntax_highlight = 1
-endif
-if !exists('g:esearch#out#win#context_syntax_max_lines')
-  let g:esearch#out#win#context_syntax_max_lines = 500
-endif
-if !exists('g:esearch_out_win_highlight_cursor_line_number')
-  let g:esearch_out_win_highlight_cursor_line_number =
-        \ g:esearch#has#virtual_cursor_linenr_highlight
-endif
-if !exists('g:esearch_out_win_render_using_lua')
-  let g:esearch_out_win_render_using_lua = g:esearch#has#lua
-endif
-if !exists('g:esearch_out_win_nvim_lua_syntax')
-  let g:esearch_out_win_nvim_lua_syntax = g:esearch_out_win_render_using_lua && g:esearch#has#nvim_lua_syntax
-endif
-if !exists('g:unload_context_syntax_on_line_length')
-  let g:unload_context_syntax_on_line_length = 500
-endif
-if !exists('g:unload_global_syntax_on_line_length')
-  let g:unload_global_syntax_on_line_length = 30000
-endif
-if !has_key(g:, 'esearch#out#win#open')
-  let g:esearch#out#win#open = 'tabnew'
-endif
-if !has_key(g:, 'esearch#out#win#buflisted')
-  let g:esearch#out#win#buflisted = 0
-endif
-if !has_key(g:, 'esearch_win_results_len_annotations')
-  let g:esearch_win_results_len_annotations = g:esearch#has#virtual_text
-endif
-
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort

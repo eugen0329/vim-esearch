@@ -19,7 +19,7 @@ fu! s:is_consumed() abort dict
   return self.finished
 endfu
 
-fu! esearch#backend#system#run(request) abort
+fu! esearch#backend#system#exec(request) abort
   let cwd = esearch#win#lcd(a:request.cwd)
   try
     let a:request.data = split(system(a:request.command), "\n")

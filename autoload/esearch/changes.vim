@@ -37,7 +37,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   call s:record_state_change('n')
   call s:record_state_change('n')
 
-  augroup ESearchChanges
+  aug esearch_changes
     au! * <buffer>
     au InsertEnter                           <buffer> call s:record_insert_enter('i')
     au CursorMoved                           <buffer> call s:record_state_change('n')
@@ -45,7 +45,7 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
     au TextChanged,TextChangedI,TextChangedP <buffer> call s:identify_text_change(v:event)
 
     au InsertLeave <buffer> call timer_start(0, function('s:handle_insert_leave'))
-  augroup END
+  aug END
 endfu
 
 fu! s:handle_insert_leave(timer) abort
@@ -106,9 +106,9 @@ endfu
 " @vimlint(EVL103, 0, a:reject)
 
 fu! esearch#changes#unlisten_for_current_buffer() abort
-  augroup ESearchChanges
+  aug esearch_changes
     au! * <buffer>
-  augroup END
+  aug END
 endfu
 
 fu! esearch#changes#rewrite_last_state(attributes) abort

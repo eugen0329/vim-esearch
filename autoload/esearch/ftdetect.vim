@@ -1,4 +1,4 @@
-let s:Message  = vital#esearch#import('Vim.Message')
+let s:Message  = esearch#message#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:Promise  = vital#esearch#import('Async.Promise')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,

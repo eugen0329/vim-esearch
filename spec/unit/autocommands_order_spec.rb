@@ -28,17 +28,17 @@ describe '' do
     editor.edit! files.first
     editor.command! 'let g:_order = []'
     editor.command! [
-      'augroup AutocmdsTest',
+      'aug autocommands_test',
       'au!',
-      'augroup END',
+      'aug END',
     ].join('|')
     available_events.each do |a|
-      editor.command! "au AutocmdsTest #{a} * call add(g:_order, [expand('%'), '#{a}'])"
+      editor.command! "au autocommands_test #{a} * call add(g:_order, [expand('%'), '#{a}'])"
     end
   end
 
   after do
-    editor.command! 'au! AutocmdsTest | let g:_order = []'
+    editor.command! 'au! autocommands_test | let g:_order = []'
     editor.cleanup!
   end
 

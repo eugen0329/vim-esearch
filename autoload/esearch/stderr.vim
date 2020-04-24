@@ -1,4 +1,4 @@
-let s:Message = vital#esearch#import('Vim.Message')
+let s:Message = esearch#message#import()
 let s:String  = vital#esearch#import('Data.String')
 
 " Handle stderr from backends

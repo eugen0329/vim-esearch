@@ -41,7 +41,7 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   return request
 endfu
 
-fu! esearch#backend#nvim#run(request) abort
+fu! esearch#backend#nvim#exec(request) abort
   let cwd = esearch#win#lcd(a:request.cwd)
   try
     let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)

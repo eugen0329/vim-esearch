@@ -1,6 +1,6 @@
 let s:String  = vital#esearch#import('Data.String')
 let s:List    = vital#esearch#import('Data.List')
-let s:Message = vital#esearch#import('Vim.Message')
+let s:Message = esearch#message#import()
 let g:esearch#out#win#linenr_format = ' %3d '
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,

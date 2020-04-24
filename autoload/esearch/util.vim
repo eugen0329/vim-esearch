@@ -1,4 +1,3 @@
-let s:Prelude  = vital#esearch#import('Prelude')
 let s:List     = vital#esearch#import('Data.List')
 let s:Filepath = vital#esearch#import('System.Filepath')
 
@@ -289,39 +288,6 @@ fu! esearch#util#safe_matchdelete(id) abort
     call matchdelete(a:id)
   catch /E803:/
   endtry
-endfu
-
-" TODO coverage
-fu! esearch#util#find_root(path, markers) abort
-  " Partially based on vital's prelude path2project-root internals
-  let start_dir = s:Prelude.path2directory(a:path)
-  " TODO rewrite to return start_dir when ticket with fixing cwd handling is
-  " ready
-  if empty(a:markers) | return a:path | endif
-
-  let dir = start_dir
-  let max_depth = 50
-  let depth = 0
-
-  while depth < max_depth
-    for marker in a:markers
-      let file = globpath(dir, marker, 1)
-
-      if file !=# ''
-        return s:Prelude.substitute_path_separator(fnamemodify(file, ':h'))
-      endif
-    endfor
-
-    let dir_upwards = fnamemodify(dir, ':h')
-    " if it's fs root - use start_dir
-    if dir_upwards == dir
-      return start_dir
-    endif
-    let dir = dir_upwards
-    let depth += 1
-  endwhile
-
-  return start_dir
 endfu
 
 fu! esearch#util#abspath(cwd, path) abort

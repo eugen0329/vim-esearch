@@ -69,8 +69,8 @@ fu! s:highlight_viewport_cb(esearch) abort
     return
   endif
 
-  let top    = esearch#util#clip(top - g:esearch_win_viewport_highlight_extend_by, 1, line('$'))
-  let bottom = esearch#util#clip(bottom + g:esearch_win_viewport_highlight_extend_by, 1, line('$'))
+  let top    = esearch#util#clip(top - g:esearch_win_highlight_viewport_margin, 1, line('$'))
+  let bottom = esearch#util#clip(bottom + g:esearch_win_highlight_viewport_margin, 1, line('$'))
   call s:highlight_viewport(a:esearch, top, bottom)
 endfu
 

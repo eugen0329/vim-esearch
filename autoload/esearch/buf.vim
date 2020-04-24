@@ -1,4 +1,4 @@
-let s:Message  = vital#esearch#import('Vim.Message')
+let s:Message  = esearch#message#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 if g:esearch#has#bufadd

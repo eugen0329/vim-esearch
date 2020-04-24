@@ -9,14 +9,14 @@ fu! esearch#out#qflist#init(opts) abort
   if a:opts.request.async
     call esearch#out#qflist#setup_autocmds(a:opts)
   endif
-  augroup ESearchQFListNameHack
+  aug ESearchQFListNameHack
     " TODO improve
     au!
     au FileType qf
           \ if exists('w:quickfix_title') && exists('g:esearch_qf') && g:esearch_qf.title =~# w:quickfix_title |
           \   let w:quickfix_title = g:esearch_qf.title |
           \ endif
-  augroup END
+  aug END
 
   call s:init_commands()
 
@@ -33,7 +33,7 @@ fu! esearch#out#qflist#init(opts) abort
 endfu
 
 fu! esearch#out#qflist#setup_autocmds(opts) abort
-  augroup ESearchQFListAutocmds
+  aug ESearchQFListAutocmds
     au! * <buffer>
     for [func_name, Event] in items(a:opts.request.events)
       let a:opts.request.events[func_name] = function('esearch#out#qflist#' . func_name)
@@ -50,7 +50,7 @@ fu! esearch#out#qflist#setup_autocmds(opts) abort
             \   call esearch#out#qflist#setup_autocmds(g:esearch_qf) |
             \ endif
     endif
-  augroup END
+  aug END
 endfu
 
 fu! esearch#out#qflist#trigger_key_press(...) abort

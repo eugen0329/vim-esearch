@@ -13,18 +13,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
 
     while i < limit
       let filename = parsed[i].filename
-
-      if g:esearch_win_ellipsize_results
-        let text = esearch#util#ellipsize(
-              \ parsed[i].text,
-              \ parsed[i].col,
-              \ a:esearch.context_width.left,
-              \ a:esearch.context_width.right,
-              \ g:esearch#util#ellipsis)
-      else
-
-        let text = parsed[i].text
-      endif
+      let text = parsed[i].text
 
       if filename !=# a:esearch.contexts[-1].filename
         let a:esearch.contexts[-1].end = line

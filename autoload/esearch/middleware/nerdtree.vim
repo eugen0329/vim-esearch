@@ -1,6 +1,10 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-fu! esearch#compat#nerdtree#opts(esearch) abort
+fu! esearch#middleware#nerdtree#apply(esearch) abort
+  if !a:esearch.nerdtree_plugin || &filetype !=# 'nerdtree'
+    return a:esearch
+  endif
+
   let cwd = esearch#win#lcd(a:esearch.cwd)
   try
     if get(a:esearch, 'visualmode', 0)

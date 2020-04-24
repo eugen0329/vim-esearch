@@ -4,10 +4,10 @@ let s:Highlight = vital#esearch#import('Vim.Highlight')
 " $MYVIMRC
 
 fu! esearch#highlight#init() abort
-  augroup esearch#highlight
+  aug esearch_highlight
     au!
     au ColorScheme * call esearch#highlight#define()
-  augroup END
+  aug END
 endfu
 
 fu! esearch#highlight#define() abort

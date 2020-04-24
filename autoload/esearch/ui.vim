@@ -75,6 +75,11 @@ fu! esearch#ui#render(component) abort
   endfor
 endfu
 
+
+fu! esearch#ui#clear() abort
+  redraw | echo ''
+endfu
+
 fu! esearch#ui#flush() abort
   if has('nvim')
     mode
