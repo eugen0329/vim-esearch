@@ -3,16 +3,9 @@ fu! esearch#init(...) abort
   call esearch#config#eager()
 
   let esearch = extend(copy(get(a:, 1, {})), copy(g:esearch), 'keep')
-  let esearch = esearch#middleware#id#apply(esearch)
-  let esearch = esearch#middleware#adapter#apply(esearch)
-  let esearch = esearch#middleware#cwd#apply(esearch)
-  let esearch = esearch#middleware#paths#apply(esearch)
-  let esearch = esearch#middleware#nerdtree#apply(esearch)
-  let esearch = esearch#middleware#prewarm#apply(esearch)
-  let esearch = esearch#middleware#pattern#apply(esearch)
-  let esearch = esearch#middleware#remember#apply(esearch)
-  let esearch = esearch#middleware#exec#apply(esearch)
-  let esearch = esearch#middleware#title#apply(esearch)
+  for Middleware in esearch.middleware
+    let esearch = Middleware(esearch)
+  endfor
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu

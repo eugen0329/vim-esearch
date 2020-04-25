@@ -8,10 +8,6 @@ fu! esearch#middleware#adapter#apply(esearch) abort
   if type(a:esearch.case) !=# type('')
     let a:esearch.case = a:esearch.current_adapter.spec.bool2case[!!a:esearch.case]
   endif
-  if has_key(a:esearch, 'word')
-    " TODO warn deprecated
-    let a:esearch.textobj = a:esearch.current_adapter.spec.bool2textobj[!!a:esearch.word]
-  endif
   if type(a:esearch.textobj) !=# type('')
     let a:esearch.textobj = a:esearch.current_adapter.spec.bool2textobj[!!a:esearch.textobj]
   endif

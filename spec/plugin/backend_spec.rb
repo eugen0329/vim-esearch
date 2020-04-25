@@ -347,7 +347,7 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#system', :system do
-    before { esearch.configure(win_render_strategy: 'viml') }
+    before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
     include_context 'a backend',   'system'
     include_context 'a backend 2', 'system'
@@ -355,14 +355,12 @@ describe 'esearch#backend', :backend do
 
   describe '#vimproc', :vimproc, backend: :vimproc do
     before(:context) do
-      esearch.configure(win_render_strategy: 'viml')
+      esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml')
       editor.command <<~VIML
         let g:esearch#backend#vimproc#updatetime = 30
         let g:esearch#backend#vimproc#read_timeout = 30
-        let g:esearch.update_with_timer = 0
       VIML
     end
-    after(:context) { editor.press! ':let g:esearch.update_with_timer = 1<Enter>' }
 
     include_context 'a backend', 'vimproc'
     include_context 'a backend 2', 'vimproc'
@@ -386,14 +384,14 @@ describe 'esearch#backend', :backend do
     it_behaves_like 'an abortable backend', 'vim8'
 
     context 'when rendering with lua', render: :lua do
-      before { esearch.configure(win_render_strategy: 'lua') }
+      before { esearch.configure(win_render_strategy: 'lua', parse_strategy: 'lua') }
 
       include_context 'a backend', 'vim8'
       include_context 'a backend 2', 'vim8'
     end
 
     context 'when rendering with viml', render: :viml do
-      before { esearch.configure(win_render_strategy: 'viml') }
+      before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
       include_context 'a backend', 'vim8'
       include_context 'a backend 2', 'vim8'

@@ -7,12 +7,22 @@ fu! esearch#config#eager() abort
     call esearch#config#init(g:esearch)
     call s:init_lua()
     let g:esearch.lazy_loaded = 1
+    call esearch#util#doautocmd('User eseach_config_eager_post')
   endif
 endfu
 
 fu! esearch#config#init(esearch) abort
   let esearch = a:esearch
   " root_markers are made to correspond g:ctrlp_root_markers default value
+
+  if !has_key(esearch, 'backend')
+    let esearch.backend = esearch#config#default_backend()
+  endif
+
+  if !has_key(esearch, 'adapter')
+    let esearch.adapter = esearch#config#default_adapter()
+  endif
+
   let esearch = extend(esearch, {
         \ 'last_id':                               0,
         \ 'out':                                   'win',
@@ -30,7 +40,7 @@ fu! esearch#config#init(esearch) abort
         \ 'errors':                                [],
         \ 'use':                                   ['visual', 'current', 'hlsearch', 'last'],
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
-        \ 'win_update_throttle_wait':              g:esearch#has#throttle ? 100 : 0,
+        \ 'win_update_throttle_wait':              g:esearch#has#throttle && esearch.backend !=# 'vimproc' ? 100 : 0,
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_viewport_off_screen_margins':       &lines > 100 ? &lines : 100,
         \ 'win_matches_highlight_debounce_wait':   100,
@@ -42,20 +52,31 @@ fu! esearch#config#init(esearch) abort
         \ 'win_contexts_syntax_clear_on_line_len': 30000,
         \ 'win_context_len_annotations':           g:esearch#has#virtual_text,
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
-        \ 'win_let':                               {'&l:buflisted': get(g:, 'esearch#out#win#buflisted', 0)},
+        \ 'win_let':                               {'&l:buflisted': 0},
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
+        \ 'deprecations_loaded':                   0,
+        \ 'pending_deprecations':          [],
         \}, 'keep')
   let esearch = extend(esearch, {
-        \ 'win_ui_nvim_syntax':                       g:esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
-        \ 'win_contexts_syntax_clear_on_files_count': g:esearch.win_matches_highlight_strategy ==# 'viewport' ? 800 : 200,
+        \ 'win_ui_nvim_syntax':                       esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
+        \ 'win_contexts_syntax_clear_on_files_count': esearch.win_matches_highlight_strategy ==# 'viewport' ? 800 : 200,
         \}, 'keep')
 
-  if !has_key(esearch, 'backend')
-    let esearch.backend = esearch#config#default_backend()
-  endif
-
-  if !has_key(esearch, 'adapter')
-    let esearch.adapter = esearch#config#default_adapter()
+  if !has_key(esearch, 'middleware')
+    let esearch.middleware = [
+          \ function('esearch#middleware#deprecations#apply'),
+          \ function('esearch#middleware#id#apply'),
+          \ function('esearch#middleware#adapter#apply'),
+          \ function('esearch#middleware#cwd#apply'),
+          \ function('esearch#middleware#paths#apply'),
+          \ function('esearch#middleware#nerdtree#apply'),
+          \ function('esearch#middleware#prewarm#apply'),
+          \ function('esearch#middleware#pattern#apply'),
+          \ function('esearch#middleware#remember#apply'),
+          \ function('esearch#middleware#exec#apply'),
+          \ function('esearch#middleware#title#apply'),
+          \ function('esearch#middleware#warnings#apply'),
+          \]
   endif
 
   " pt implicitly matches using regexp when ignore-case mode is enabled. Setting
@@ -114,7 +135,7 @@ fu! esearch#config#default_adapter() abort
 endfu
 
 let s:root = expand( '<sfile>:p:h:h:h')
-fu! s:init_lua()
+fu! s:init_lua() abort
   if g:esearch#has#nvim_lua
     lua << EOF
     esearch = require'esearch/neovim'
