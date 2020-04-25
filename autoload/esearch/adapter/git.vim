@@ -40,6 +40,12 @@ let s:Git.spec = {
       \   }
       \ }
 
+let s:Git.spec.filetypes = ''
+
+fu! s:Git.filetypes2args(filetypes) abort dict
+  return ''
+endfu
+
 fu! s:Git.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors
   return a:request.status == 0 || a:request.status == 1

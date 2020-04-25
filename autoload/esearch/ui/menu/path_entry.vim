@@ -4,10 +4,12 @@ let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:PathEntry  = esearch#ui#component()
 
 fu! s:PathEntry.render() abort dict
-  let text = s:String.pad_right(self.props.keys[0], 7, ' ') . 'edit [path]'
-  let result = [['NONE', text]]
+  let icon = empty(self.props.paths) ? ['Comment', '[./]'] : ['Directory', '[./]']
+  let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' search only in paths']]
 
-  if !empty(self.props.paths)
+  if empty(self.props.paths)
+    let result += [['Comment', ' (none)']]
+  else
     let result += [['Comment', ' (']]
     let result += s:PathPrompt.new({'normal_highlight': 'Comment'}).render()
     let result += [['Comment', ')']]

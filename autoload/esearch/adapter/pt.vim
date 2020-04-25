@@ -35,6 +35,11 @@ let s:Pt.spec = {
       \     'smart':     {'icon': 'S', 'option': '--smart-case'},
       \   }
       \ }
+let s:Pt.spec.filetypes = ''
+
+fu! s:Pt.filetypes2args(filetypes) abort dict
+  return ''
+endfu
 
 fu! s:Pt.pwd() abort dict
   return '.'

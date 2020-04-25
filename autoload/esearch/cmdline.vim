@@ -107,6 +107,8 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
   elseif a:action.type ==# 'SET_PATHS'
     return extend(copy(a:state), {'paths': a:action.paths})
+  elseif a:action.type ==# 'SET_FILETYPES'
+    return extend(copy(a:state), {'filetypes': a:action.filetypes})
   elseif a:action.type ==# 'SET_DID_INITIAL'
     return extend(copy(a:state), {'did_initial': 1})
   elseif a:action.type ==# 'SET_CMDLINE'

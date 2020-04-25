@@ -31,10 +31,15 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
         \ self.mandatory_options,
         \ self.options,
         \ context,
+        \ self.filetypes2args(a:esearch.filetypes),
         \ '--',
         \ a:escape(a:pattern),
         \ paths,
         \], ' ')
+endfu
+
+fu! s:Base.filetypes2args(filetypes) abort dict
+  return substitute(a:filetypes, '\<', '--\1', 'g')
 endfu
 
 fu! s:Base.pwd() abort dict

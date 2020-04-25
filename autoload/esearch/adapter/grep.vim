@@ -46,6 +46,12 @@ let s:Grep.spec = {
       \   }
       \ }
 
+let s:Grep.spec.filetypes = ''
+
+fu! s:Grep.filetypes2args(filetypes) abort dict
+  return ''
+endfu
+
 fu! s:Grep.pwd() abort dict
   return '.'
 endfu

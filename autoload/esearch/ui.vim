@@ -29,7 +29,7 @@ fu! s:Component.new(...) abort dict
   return extend(copy(self), {'props': props})
 endfu
 
-fu! s:Component.context() abort dict
+fu! s:Component.__context__() abort dict
   return s:current_context
 endfu
 
@@ -104,14 +104,16 @@ fu! esearch#ui#connect(component, ...) abort
         \ })
 
   fu! wrapped.new(...) abort
-    let props = self.map_state_to_props(self.context().store.state)
-    call extend(props, {'dispatch': self.context().store.dispatch})
-    return self.component
-          \.new(extend(props, get(a:000, 0, {})))
+    let props = self.map_state_to_props(self.__context__().store.state)
+    call extend(props, {'dispatch': self.__context__().store.dispatch})
+    return self.component.new(extend(props, get(a:, 1, {})))
   endfu
 
-  fu! wrapped.render() abort
-  endfu
+  " if !has_key(wrapped, 'render')
+    fu! wrapped.render() abort dict
+      return self.component.render()
+    endfu
+  " endif
 
   return wrapped
 endfu

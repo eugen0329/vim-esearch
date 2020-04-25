@@ -16,7 +16,7 @@ endfu
 
 fu! s:Count.next() abort dict
   let self._value += 1
-  return self._value
+  return self._value - 1
 endfu
 
 let s:Cycle = {}

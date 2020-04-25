@@ -22,6 +22,10 @@ module Helpers::Commandline
     ['p']
   end
 
+  def open_filetypes_input_keys
+    ['f']
+  end
+
   def inputted_keys(keys)
     # TODO
     keys.gsub('\\\\', '\\')

@@ -7,7 +7,7 @@ fu! s:PathInputController.render() abort dict
 
   redraw!
   while 1
-    let user_input_in_shell_format = input('[path] > ',
+    let user_input_in_shell_format = input('[paths] > ',
           \ user_input_in_shell_format,
           \'customlist,esearch#ui#complete#paths#do')
 

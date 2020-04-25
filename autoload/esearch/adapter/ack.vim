@@ -34,6 +34,9 @@ let s:Ack.spec = {
       \   }
       \ }
 
+" ack --help-types
+let s:Ack.spec.filetypes = split('actionscript ada asm asp aspx batch cc cfmx clojure cmake coffeescript cpp csharp css dart delphi elisp elixir erlang fortran go groovy gsp haskell hh hpp html jade java js json jsp kotlin less lisp lua make markdown matlab objc objcpp ocaml perl perltest php plone pod python rake rr rst ruby rust sass scala scheme shell smalltalk smarty sql stylus svg swift tcl tex ts ttml vb verilog vhdl vim xml yaml')
+
 fu! s:Ack.is_success(request) abort
   " later versions behaves like grep (0 - at least one matched line, 1 - no
   " lines matched)

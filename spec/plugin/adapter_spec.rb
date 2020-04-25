@@ -18,7 +18,7 @@ describe 'esearch#adapter', :adapters do
 
   include_context 'report editor state on error'
 
-  shared_examples 'adapter testing examples' do |adapter, adapter_bin|
+  shared_examples 'adapter paths testing examples' do |adapter, adapter_bin|
     describe "##{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure(
@@ -44,7 +44,7 @@ describe 'esearch#adapter', :adapters do
           editor.send_keys(*open_paths_input_keys, paths_string, :enter, close_menu_key, :enter)
 
           KnownIssues.mark_example_pending_if_known_issue(self) do
-            expect(esearch).to finish_search_in_files(expected_names)
+            expect(esearch).to found_results_in_files(expected_names)
           end
         end
       end
@@ -89,7 +89,7 @@ describe 'esearch#adapter', :adapters do
             editor.cd! test_directory
             editor.send_keys(*open_input_keys, '.*', *open_menu_keys)
             editor.send_keys(*open_paths_input_keys, paths_string, :enter, close_menu_key, :enter)
-            expect(esearch).to finish_search_in_files(names) # fail fast
+            expect(esearch).to found_results_in_files(names) # fail fast
             editor.close_current_window!
           end
 
@@ -99,7 +99,7 @@ describe 'esearch#adapter', :adapters do
             expect(editor).to have_commandline_content(inputted_keys(paths_string))
             editor.send_keys(:enter, close_menu_key, :enter)
 
-            expect(esearch).to finish_search_in_files(names)
+            expect(esearch).to found_results_in_files(names)
           end
         end
       end
@@ -222,22 +222,58 @@ describe 'esearch#adapter', :adapters do
     end
   end
 
-  shared_examples 'all adapters testing examples' do
-    include_examples 'adapter testing examples', 'ag'
-    include_examples 'adapter testing examples', 'ack'
-    include_examples 'adapter testing examples', 'git'
-    include_examples 'adapter testing examples', 'grep'
-    include_examples 'adapter testing examples', 'pt', Configuration.pt_path
-    include_examples 'adapter testing examples', 'rg', Configuration.rg_path
+  shared_examples 'adapter filetypes testing examples' do |adapter, adapter_bin|
+    before do
+      esearch.configure(
+        adapter:      adapter,
+        out:          'win',
+        backend:      'system',
+        regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
+        prefill:      [],
+        root_markers: []
+      )
+      esearch.configuration.adapter_bin = adapter_bin if adapter_bin
+      esearch.configuration.submit!
+      editor.cd! test_directory
+    end
+    after { esearch.cleanup! }
+    let!(:test_directory) { directory(files).persist! }
+    let(:files) { [file('a', 'file.vim'), file('a', 'file.c')] }
+
+    it do
+      editor.send_keys(*open_input_keys, '.*', *open_menu_keys)
+      editor.send_keys(*open_filetypes_input_keys, 'vim', :enter, close_menu_key, :enter)
+
+      KnownIssues.mark_example_pending_if_known_issue(self) do
+        expect(esearch).to found_results_in_files(['file.vim'])
+      end
+    end
+  end
+
+  shared_examples '[path] testing examples' do
+    include_examples 'adapter paths testing examples', 'ag'
+    include_examples 'adapter paths testing examples', 'ack'
+    include_examples 'adapter paths testing examples', 'git'
+    include_examples 'adapter paths testing examples', 'grep'
+    include_examples 'adapter paths testing examples', 'pt', Configuration.pt_path
+    include_examples 'adapter paths testing examples', 'rg', Configuration.rg_path
+  end
+
+  shared_examples '[filetypes] testing examples' do
+    include_examples 'adapter filetypes testing examples', 'ag'
+    include_examples 'adapter filetypes testing examples', 'ack'
+    include_examples 'adapter filetypes testing examples', 'rg', Configuration.rg_path
   end
 
   # describe '#nvim', :neovim do
   #   around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 
-  #   include_examples 'all adapters testing examples'
+  #   include_examples '[path] testing examples'
+  #   include_examples '[filetypes] testing examples'
   # end
 
   describe '#vim' do
-    include_examples 'all adapters testing examples'
+    include_examples '[path] testing examples'
+    include_examples '[filetypes] testing examples'
   end
 end
