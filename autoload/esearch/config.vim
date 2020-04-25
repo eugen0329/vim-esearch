@@ -39,7 +39,7 @@ fu! esearch#config#init(esearch) abort
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'slice':                                 function('esearch#util#slice'),
         \ 'errors':                                [],
-        \ 'use':                                   ['visual', 'current', 'hlsearch', 'last'],
+        \ 'prefill':                               ['visual', 'current', 'hlsearch', 'last'],
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_update_throttle_wait':              g:esearch#has#throttle && esearch.backend !=# 'vimproc' ? 100 : 0,
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',

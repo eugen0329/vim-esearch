@@ -18,6 +18,11 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['g:esearch#out#win#open, see :help g:esearch.win_new for details']
   endif
 
+  if has_key(a:esearch, 'use')
+    let a:esearch.prefill = type(a:esearch.use) == type('') ? [a:esearch.use] : a:esearch.use
+    let g:esearch.pending_deprecations += ['g:esearch.use. Please, use g:esearch.prefill list instead']
+  endif
+
   if has_key(a:esearch, 'word')
     let a:esearch.textobj = a:esearch.word
     let g:esearch.pending_deprecations += ['g:esearch.word, see :help g:esearch.textobj for details']

@@ -26,7 +26,7 @@ describe 'esearch#adapter', :adapters do
           out:          'win',
           backend:      'system',
           regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
-          use:          [],
+          prefill:      [],
           root_markers: []
         )
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
@@ -114,7 +114,7 @@ describe 'esearch#adapter', :adapters do
             out:          'win',
             backend:      'system',
             regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
-            use:          [],
+            prefill:      [],
             root_markers: [],
             before:       before_lines,
             after:        after_lines,

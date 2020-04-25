@@ -6,7 +6,7 @@ describe 'esearch#cmdline input', :commandline do
   include Helpers::Commandline
 
   shared_examples 'commandline input testing examples' do
-    before { esearch.configure(out: 'stubbed', backend: 'system', use: 'last', root_markers: []) }
+    before { esearch.configure(out: 'stubbed', backend: 'system', prefill: ['last'], root_markers: []) }
     after do
       esearch.cleanup!
       esearch.output.reset_calls_history!
