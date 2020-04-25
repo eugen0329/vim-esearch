@@ -12,18 +12,17 @@ fu! esearch#config#eager() abort
 endfu
 
 fu! esearch#config#init(esearch) abort
-  let esearch = a:esearch
-  " root_markers are made to correspond g:ctrlp_root_markers default value
+  let g:esearch = a:esearch
 
-  if !has_key(esearch, 'backend')
-    let esearch.backend = esearch#config#default_backend()
+  if !has_key(g:esearch, 'backend')
+    let g:esearch.backend = esearch#config#default_backend()
   endif
 
-  if !has_key(esearch, 'adapter')
-    let esearch.adapter = esearch#config#default_adapter()
+  if !has_key(g:esearch, 'adapter')
+    let g:esearch.adapter = esearch#config#default_adapter()
   endif
 
-  let esearch = extend(esearch, {
+  let g:esearch = extend(g:esearch, {
         \ 'last_id':                               0,
         \ 'out':                                   'win',
         \ 'regex':                                 'literal',
@@ -43,7 +42,7 @@ fu! esearch#config#init(esearch) abort
         \ 'errors':                                [],
         \ 'prefill':                               ['visual', 'current', 'hlsearch', 'last'],
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
-        \ 'win_update_throttle_wait':              g:esearch#has#throttle && esearch.backend !=# 'vimproc' ? 100 : 0,
+        \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_viewport_off_screen_margins':       &lines > 100 ? &lines : 100,
         \ 'win_matches_highlight_debounce_wait':   100,
@@ -60,13 +59,13 @@ fu! esearch#config#init(esearch) abort
         \ 'deprecations_loaded':                   0,
         \ 'pending_deprecations':                  [],
         \}, 'keep')
-  let esearch = extend(esearch, {
-        \ 'win_ui_nvim_syntax':                       esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
-        \ 'win_contexts_syntax_clear_on_files_count': esearch.win_matches_highlight_strategy ==# 'viewport' ? 800 : 200,
+  let g:esearch = extend(g:esearch, {
+        \ 'win_ui_nvim_syntax':                       g:esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
+        \ 'win_contexts_syntax_clear_on_files_count': g:esearch.win_matches_highlight_strategy ==# 'viewport' ? 800 : 200,
         \}, 'keep')
 
-  if !has_key(esearch, 'middleware')
-    let esearch.middleware = [
+  if !has_key(g:esearch, 'middleware')
+    let g:esearch.middleware = [
           \ function('esearch#middleware#deprecations#apply'),
           \ function('esearch#middleware#id#apply'),
           \ function('esearch#middleware#adapter#apply'),
@@ -85,26 +84,26 @@ fu! esearch#config#init(esearch) abort
   " pt implicitly matches using regexp when ignore-case mode is enabled. Setting
   " case mode to 'sensitive' makes pt adapter more predictable and slightly
   " more similar to the default behavior of other adapters.
-  if !has_key(esearch, 'case')
-    if esearch.adapter ==# 'pt'
-      let esearch.case = 'sensitive'
+  if !has_key(g:esearch, 'case')
+    if g:esearch.adapter ==# 'pt'
+      let g:esearch.case = 'sensitive'
     else
-      let esearch.case = 'ignore'
+      let g:esearch.case = 'ignore'
     endif
   endif
 
   if g:esearch#has#nvim_lua
-    let esearch.batch_size = 5000
-    let esearch.final_batch_size = 15000
+    let g:esearch.batch_size = 5000
+    let g:esearch.final_batch_size = 15000
   elseif g:esearch#has#vim_lua
-    let esearch.batch_size = 2500
-    let esearch.final_batch_size = 5000
+    let g:esearch.batch_size = 2500
+    let g:esearch.final_batch_size = 5000
   else
-    let esearch.batch_size = 1000
-    let esearch.final_batch_size = 4000
+    let g:esearch.batch_size = 1000
+    let g:esearch.final_batch_size = 4000
   endif
 
-  return esearch
+  return g:esearch
 endfu
 
 fu! esearch#config#default_backend() abort

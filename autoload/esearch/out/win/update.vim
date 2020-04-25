@@ -192,14 +192,13 @@ fu! esearch#out#win#update#finish(bufnr) abort
   let esearch.header_text = function('esearch#out#win#header#finished_render')
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
-  call setbufvar(a:bufnr, '&modified',   0)
+  call setbufvar(a:bufnr, '&modified', 0)
 
   call esearch#out#win#modifiable#init()
 
   if esearch.win_ui_nvim_syntax
     call luaeval('esearch.appearance.buf_attach_ui()')
   endif
-
   call esearch#out#win#appearance#annotations#init(esearch)
 endfu
 

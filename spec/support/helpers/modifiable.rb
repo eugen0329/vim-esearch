@@ -77,18 +77,17 @@ module Helpers::Modifiable
         call extend(g:esearch.adapters, {#{esearch.configuration.adapter.dump}: {}}, 'keep')
         call extend(g:esearch.adapters[#{esearch.configuration.adapter.dump}], {'bin': '#{path}'})
 
-        let g:esearch.win_contexts_syntax_clear_on_files_count = 0
+        let g:esearch.win_contexts_syntax = 0
         set backspace=indent,eol,start
         cd #{test_directory}
         call esearch#init({'pattern': '^'})
         call esearch#out#win#modifiable#init()
-        call feedkeys("\\<C-\\>\\<C-n>")
+        call feedkeys("\\<C-\\>\\<C-n>lh")
       SETUP
     end
 
     after do
       editor.command <<~TEARDOWN
-        let g:esearch.win_contexts_syntax_clear_on_files_count = 100
         call clever_f#reset()
       TEARDOWN
 

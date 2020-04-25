@@ -11,11 +11,7 @@ fu! s:AfterEntry.new(props) abort dict
   let instance.entry.props.hint = 'lines after'
   let instance.entry.props.value = a:props.after
   let instance.entry.props.i = a:props.i
-  if g:esearch#has#unicode
-    let down = g:esearch#unicode#down
-  else
-    let down = '^'
-  endif
+  let down = g:esearch#has#unicode ? g:esearch#unicode#down : 'v'
   let instance.entry.props.icon = '['.down.']'
 
   return instance

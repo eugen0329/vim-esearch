@@ -39,7 +39,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
 endfu
 
 fu! s:Base.filetypes2args(filetypes) abort dict
-  return substitute(a:filetypes, '\<', '--\1', 'g')
+  return substitute(a:filetypes, '\<', '--', 'g')
 endfu
 
 fu! s:Base.pwd() abort dict

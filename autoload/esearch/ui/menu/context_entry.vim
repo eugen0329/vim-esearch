@@ -11,11 +11,7 @@ fu! s:ContextEntry.new(props) abort dict
   let instance.entry.props.hint = 'lines around'
   let instance.entry.props.value = a:props.context
   let instance.entry.props.i = a:props.i
-  if g:esearch#has#unicode
-    let updown = g:esearch#unicode#updown
-  else
-    let updown = '^'
-  endif
+  let updown = g:esearch#has#unicode ? g:esearch#unicode#updown : '^v'
   let instance.entry.props.icon = '['.updown.']'
 
   return instance

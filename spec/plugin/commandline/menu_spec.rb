@@ -107,22 +107,22 @@ describe 'esearch#cmdline menu', :commandline do
           end
 
           context 'when using +' do
-            include_examples 'it sets options using hotkey', 'kkk+'.chars,  'after'   => 1
-            include_examples 'it sets options using hotkey', 'kk+'.chars,   'before'  => 1
-            include_examples 'it sets options using hotkey', 'k+'.chars,    'context' => 1
-            include_examples 'it sets options using hotkey', 'kkk++'.chars, 'after'   => 2
-            include_examples 'it sets options using hotkey', 'kk++'.chars,  'before'  => 2
-            include_examples 'it sets options using hotkey', 'k++'.chars,   'context' => 2
+            include_examples 'it sets options using hotkey', 'kk+'.chars, 'after' => 1
+            include_examples 'it sets options using hotkey', 'kkk+'.chars, 'before' => 1
+            include_examples 'it sets options using hotkey', 'k+'.chars, 'context' => 1
+            include_examples 'it sets options using hotkey', 'kk++'.chars, 'after' => 2
+            include_examples 'it sets options using hotkey', 'kkk++'.chars, 'before' => 2
+            include_examples 'it sets options using hotkey', 'k++'.chars, 'context' => 2
           end
 
           context 'when usgin <C-a>' do
             C_A = '\\<C-a>'
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 1, 'after'   => 1
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_A] * 1, 'before'  => 1
-            include_examples 'it sets options using hotkey', 'k'.chars   + [C_A] * 1, 'context' => 1
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 2, 'after'   => 2
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_A] * 2, 'before'  => 2
-            include_examples 'it sets options using hotkey', 'k'.chars   + [C_A] * 2, 'context' => 2
+            include_examples 'it sets options using hotkey', 'kk'.chars + [C_A] * 1, 'after' => 1
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 1, 'before' => 1
+            include_examples 'it sets options using hotkey', 'k'.chars + [C_A] * 1, 'context' => 1
+            include_examples 'it sets options using hotkey', 'kk'.chars + [C_A] * 2, 'after' => 2
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 2, 'before' => 2
+            include_examples 'it sets options using hotkey', 'k'.chars + [C_A] * 2, 'context' => 2
           end
         end
 
@@ -139,34 +139,34 @@ describe 'esearch#cmdline menu', :commandline do
           end
 
           context 'when using -' do
-            include_examples 'it sets options using hotkey', 'kkk-'.chars,  'after'   => 1
-            include_examples 'it sets options using hotkey', 'kk-'.chars,   'before'  => 1
-            include_examples 'it sets options using hotkey', 'k-'.chars,    'context' => 1
-            include_examples 'it sets options using hotkey', 'kkk--'.chars, 'after'   => 0
-            include_examples 'it sets options using hotkey', 'kk--'.chars,  'before'  => 0
-            include_examples 'it sets options using hotkey', 'k--'.chars,   'context' => 0
+            include_examples 'it sets options using hotkey', 'kk-'.chars, 'after' => 1
+            include_examples 'it sets options using hotkey', 'kkk-'.chars, 'before' => 1
+            include_examples 'it sets options using hotkey', 'k-'.chars, 'context' => 1
+            include_examples 'it sets options using hotkey', 'kk--'.chars, 'after' => 0
+            include_examples 'it sets options using hotkey', 'kkk--'.chars, 'before' => 0
+            include_examples 'it sets options using hotkey', 'k--'.chars, 'context' => 0
           end
 
           context 'when usgin <C-x>' do
             C_X = '\\<C-x>'
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 1, 'after'   => 1
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_X] * 1, 'before'  => 1
-            include_examples 'it sets options using hotkey', 'k'.chars   + [C_X] * 1, 'context' => 1
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 2, 'after'   => 0
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [C_X] * 2, 'before'  => 0
-            include_examples 'it sets options using hotkey', 'k'.chars   + [C_X] * 2, 'context' => 0
+            include_examples 'it sets options using hotkey', 'kk'.chars + [C_X] * 1, 'after' => 1
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 1, 'before' => 1
+            include_examples 'it sets options using hotkey', 'k'.chars + [C_X] * 1, 'context' => 1
+            include_examples 'it sets options using hotkey', 'kk'.chars + [C_X] * 2, 'after' => 0
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 2, 'before' => 0
+            include_examples 'it sets options using hotkey', 'k'.chars + [C_X] * 2, 'context' => 0
           end
         end
 
         context 'when setting numeric' do
           before { esearch.configure!(adapter: 'ag', after: 0, before: 0, context: 0) }
 
-          include_examples 'it sets options using hotkey', 'kkk7'.chars, 'after'   => 7
-          include_examples 'it sets options using hotkey', 'kk8'.chars,  'before'  => 8
+          include_examples 'it sets options using hotkey', 'kk7'.chars, 'after' => 7
+          include_examples 'it sets options using hotkey', 'kkk8'.chars, 'before' => 8
           include_examples 'it sets options using hotkey', 'k9'.chars,   'context' => 9
-          include_examples 'it sets options using hotkey', 'kkk71'.chars, 'after'   => 71
-          include_examples 'it sets options using hotkey', 'kk82'.chars,  'before'  => 82
-          include_examples 'it sets options using hotkey', 'k93'.chars,   'context' => 93
+          include_examples 'it sets options using hotkey', 'kk71'.chars, 'after'   => 71
+          include_examples 'it sets options using hotkey', 'kkk82'.chars, 'before' => 82
+          include_examples 'it sets options using hotkey', 'k93'.chars, 'context' => 93
         end
 
         context 'when deleting numeric' do
@@ -177,29 +177,29 @@ describe 'esearch#cmdline menu', :commandline do
 
           context 'when against non-zero' do
             context 'when deleting the rightmost char' do
-              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 1,  'after'   => 7
-              include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 1,  'before'  => 8
-              include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 1,  'context' => 9
-              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 2,  'after'   => 0
-              include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 2,  'before'  => 0
-              include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 2,  'context' => 0
+              include_examples 'it sets options using hotkey', 'kk'.chars + [BS] * 1, 'after' => 7
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 1, 'before' => 8
+              include_examples 'it sets options using hotkey', 'k'.chars + [BS] * 1, 'context' => 9
+              include_examples 'it sets options using hotkey', 'kk'.chars + [BS] * 2, 'after' => 0
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 2, 'before' => 0
+              include_examples 'it sets options using hotkey', 'k'.chars + [BS] * 2, 'context' => 0
             end
 
             context 'when nullifying the value' do
-              include_examples 'it sets options using hotkey', 'kkk'.chars + [DEL] * 1, 'after'   => 0
-              include_examples 'it sets options using hotkey', 'kk'.chars  + [DEL] * 1, 'before'  => 0
-              include_examples 'it sets options using hotkey', 'k'.chars   + [DEL] * 1, 'context' => 0
+              include_examples 'it sets options using hotkey', 'kk'.chars + [DEL] * 1, 'after' => 0
+              include_examples 'it sets options using hotkey', 'kkk'.chars + [DEL] * 1, 'before' => 0
+              include_examples 'it sets options using hotkey', 'k'.chars + [DEL] * 1, 'context' => 0
             end
           end
 
           context 'when against zero' do
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 3,  'after'   => 0
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [BS] * 3,  'before'  => 0
-            include_examples 'it sets options using hotkey', 'k'.chars   + [BS] * 3,  'context' => 0
+            include_examples 'it sets options using hotkey', 'kk'.chars + [BS] * 3, 'after' => 0
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [BS] * 3, 'before' => 0
+            include_examples 'it sets options using hotkey', 'k'.chars + [BS] * 3, 'context' => 0
 
-            include_examples 'it sets options using hotkey', 'kkk'.chars + [DEL] * 2, 'after'   => 0
-            include_examples 'it sets options using hotkey', 'kk'.chars  + [DEL] * 2, 'before'  => 0
-            include_examples 'it sets options using hotkey', 'k'.chars   + [DEL] * 2, 'context' => 0
+            include_examples 'it sets options using hotkey', 'kk'.chars + [DEL] * 2, 'after' => 0
+            include_examples 'it sets options using hotkey', 'kkk'.chars + [DEL] * 2, 'before' => 0
+            include_examples 'it sets options using hotkey', 'k'.chars + [DEL] * 2, 'context' => 0
           end
         end
 
@@ -288,11 +288,11 @@ describe 'esearch#cmdline menu', :commandline do
     end
   end
 
-  context 'neovim', :neovim do
-    around(:context) { |e| use_nvim(&e) }
+  # context 'neovim', :neovim do
+  #   around(:context) { |e| use_nvim(&e) }
 
-    include_examples 'commandline menu testing examples'
-  end
+  #   include_examples 'commandline menu testing examples'
+  # end
 
   context 'vim' do
     include_examples 'commandline menu testing examples'

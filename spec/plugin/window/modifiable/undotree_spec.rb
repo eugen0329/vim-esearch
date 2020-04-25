@@ -181,7 +181,7 @@ describe 'Undoing in modifiable mode', :window do
       expect(editor.changenr - 1).not_to eq(original_changenr)
     end
 
-    context 'when :undo to not synchronized' do
+    context 'when :undo to a not synchronized block' do
       # *   3. replaying substitute here
       # | * 2. silent undo back; 4. undo #{editor.changenr-1} to this block
       # |/

@@ -109,11 +109,9 @@ fu! esearch#ui#connect(component, ...) abort
     return self.component.new(extend(props, get(a:, 1, {})))
   endfu
 
-  " if !has_key(wrapped, 'render')
-    fu! wrapped.render() abort dict
-      return self.component.render()
-    endfu
-  " endif
+  fu! wrapped.render() abort dict
+    return self.component.render()
+  endfu
 
   return wrapped
 endfu

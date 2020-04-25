@@ -11,11 +11,7 @@ fu! s:BeforeEntry.new(props) abort dict
   let instance.entry.props.hint = 'lines before'
   let instance.entry.props.value = a:props.before
   let instance.entry.props.i = a:props.i
-  if g:esearch#has#unicode
-    let up = g:esearch#unicode#up
-  else
-    let up = '^'
-  endif
+  let up = g:esearch#has#unicode ? g:esearch#unicode#up : 'v'
   let instance.entry.props.icon = '['.up.']'
 
   return instance
@@ -34,5 +30,3 @@ let s:map_state_to_props = esearch#util#slice_factory(['before'])
 fu! esearch#ui#menu#before_entry#import() abort
   return esearch#ui#connect(s:BeforeEntry, s:map_state_to_props)
 endfu
-
-

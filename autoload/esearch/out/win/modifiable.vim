@@ -8,7 +8,7 @@ fu! esearch#out#win#modifiable#init() abort
   setl noswapfile
 
   set buftype=acwrite
-  aug esearch_win_modifiable
+  aug ESearchWinModifiable
     au! * <buffer>
     au BufWriteCmd <buffer> call s:write()
   aug END
@@ -29,7 +29,7 @@ endfu
 
 fu! esearch#out#win#modifiable#uninit(esearch) abort
   call esearch#option#reset()
-  aug esearch_win_modifiable
+  aug ESearchWinModifiable
     au! * <buffer>
   aug END
   call esearch#changes#unlisten_for_current_buffer()

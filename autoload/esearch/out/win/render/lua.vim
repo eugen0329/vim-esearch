@@ -20,7 +20,7 @@ endif
 "   int, while neovim does
 
 if g:esearch#has#nvim_lua
-  fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort dict
+  fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
       let [files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, highlights_enabled] =
@@ -46,7 +46,7 @@ if g:esearch#has#nvim_lua
     endif
   endfu
 else
-  fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort dict
+  fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
       let a:esearch.files_count = luaeval('esearch.render(_A[0], _A[1], _A[2], _A[3])',
