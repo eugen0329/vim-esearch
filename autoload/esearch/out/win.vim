@@ -122,6 +122,7 @@ fu! esearch#out#win#goto_or_open(esearch) abort dict
   " If the window is empty and the only within the tab - reuse it
   if winnr('$') == 1
         \ && empty(&filetype)
+        \ && empty(&buftype)
         \ && empty(bufname('%'))
         \ && !&modified
     call esearch#buf#open(bufname, 'edit')

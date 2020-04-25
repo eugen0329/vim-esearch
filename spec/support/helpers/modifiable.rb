@@ -73,7 +73,7 @@ module Helpers::Modifiable
       # TODO: reduce duplication with configuration#adapter=()
       path = "#{Configuration.root}/spec/support/scripts/sort_search_results.sh ag"
       editor.command! <<~SETUP
-        call esearch#config#init()
+        call esearch#config#eager()
         call extend(g:esearch.adapters, {#{esearch.configuration.adapter.dump}: {}}, 'keep')
         call extend(g:esearch.adapters[#{esearch.configuration.adapter.dump}], {'bin': '#{path}'})
 

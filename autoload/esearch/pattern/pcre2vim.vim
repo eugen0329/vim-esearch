@@ -78,8 +78,8 @@ let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
 let s:bracketed_escape_pattern = '\%(\\[xou]{\x\+}\)'
 let s:POSIX_NAMED_SET   = 1
-let s:CLASS_START       = 2
-let s:CLASS_END         = 3
+let s:SET_START         = 2
+let s:SET_END           = 3
 let s:MODIFIER          = 4
 let s:MODIFIER_SPAN     = 5
 let s:COMMENT           = 6
@@ -93,21 +93,21 @@ let s:BRACKETED_ESCAPE  = 13
 let s:ESCAPED_ANY       = 14
 let s:ANY               = 15
 let s:rules = [
-      \  [s:POSIX_NAMED_SET,          s:posix_named_set_pattern                ],
-      \  [s:CLASS_START,              '\[\^\='                                 ],
-      \  [s:CLASS_END,                '\]'                                     ],
-      \  [s:MODIFIER,                 s:modifiers_pattern                      ],
-      \  [s:MODIFIER_SPAN,            s:modifiers_span_pattern                 ],
-      \  [s:COMMENT,                  s:comment_pattern                        ],
-      \  [s:NAMED_GROUP_START,        '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
-      \  [s:GROUP_START,              '(\%(?<=\|?<!\|?=\|?!\|?>\|?:\|?|\)\='   ],
-      \  [s:GROUP_END,                ')'                                      ],
-      \  [s:RANGE_QUANTIFER,          s:range_quantifier_pattern               ],
-      \  [s:QUANTIFIER,               '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
-      \  [s:PROPERTY,                 '\\[Pp]{\w\+}'                           ],
-      \  [s:BRACKETED_ESCAPE,         s:bracketed_escape_pattern               ],
-      \  [s:ESCAPED_ANY,              '\\.'                                    ],
-      \  [s:ANY,                      '\%([[:alnum:][:blank:]''"/\-]\+\|.\)'   ],
+      \  [s:POSIX_NAMED_SET,   s:posix_named_set_pattern                ],
+      \  [s:SET_START,         '\[\^\='                                 ],
+      \  [s:SET_END,           '\]'                                     ],
+      \  [s:MODIFIER,          s:modifiers_pattern                      ],
+      \  [s:MODIFIER_SPAN,     s:modifiers_span_pattern                 ],
+      \  [s:COMMENT,           s:comment_pattern                        ],
+      \  [s:NAMED_GROUP_START, '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
+      \  [s:GROUP_START,       '(\%(?<=\|?<!\|?=\|?!\|?>\|?:\|?|\)\='   ],
+      \  [s:GROUP_END,         ')'                                      ],
+      \  [s:RANGE_QUANTIFER,   s:range_quantifier_pattern               ],
+      \  [s:QUANTIFIER,        '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
+      \  [s:PROPERTY,          '\\[Pp]{\w\+}'                           ],
+      \  [s:BRACKETED_ESCAPE,  s:bracketed_escape_pattern               ],
+      \  [s:ESCAPED_ANY,       '\\.'                                    ],
+      \  [s:ANY,               '\%([[:alnum:][:blank:]''"/\-]\+\|.\)'   ],
       \]
 
 let s:pcre2vim_escape = {
@@ -199,11 +199,11 @@ fu! s:PCRE2Vim.push_context(label) abort dict
   let self.contexts += [{ 'label': a:label, 'start': self.p }]
 endfu
 
-fu! s:PCRE2Vim.parse_class() abort dict
+fu! s:PCRE2Vim.parse_set() abort dict
   let result = [self.advance().matched_text]
 
   while ! self.end()
-    if self.next_is([s:CLASS_START])
+    if self.next_is([s:SET_START])
       let result += [self.advance().matched_text]
     elseif self.next_is([s:BRACKETED_ESCAPE])
       let result += [substitute(self.advance().matched_text, '[{}]', '', 'g')]
@@ -211,13 +211,13 @@ fu! s:PCRE2Vim.parse_class() abort dict
       call self.throw('properties are not supported')
     elseif self.next_is([s:POSIX_NAMED_SET])
       let text = self.advance().matched_text
-      let result += get(s:posix_set2class_content, text, text)
+      let result += [get(s:posix_set2class_content, text, text)]
     elseif self.next_is([s:ESCAPED_ANY])
       let text = self.advance().matched_text
       let result += [get(s:metachar2class_content, text, text[1:])]
-    elseif self.next_is([s:CLASS_END])
+    elseif self.next_is([s:SET_END])
       call self.advance()
-      if self.contexts[-1].label ==# s:CLASS_START
+      if self.contexts[-1].label ==# s:SET_START
         return result + [']']
       endif
 
@@ -229,7 +229,7 @@ fu! s:PCRE2Vim.parse_class() abort dict
   endwhile
 
   let self.result += result
-  call self.throw('unexpected EOF (CLASS_END is missing)')
+  call self.throw('unexpected EOF (SET_END is missing)')
 endfu
 
 fu! s:PCRE2Vim.set_global_modifiers(matched_text) abort dict
@@ -251,9 +251,9 @@ fu! s:PCRE2Vim.convert() abort dict
     elseif self.next_is([s:ESCAPED_ANY])
       call self.advance()
       let self.result += [get(s:pcre2vim_expand_escaped, self.token.matched_text, self.token.matched_text)]
-    elseif self.next_is([s:CLASS_START])
-      call self.push_context(s:CLASS_START)
-      let self.result += self.parse_class()
+    elseif self.next_is([s:SET_START])
+      call self.push_context(s:SET_START)
+      let self.result += self.parse_set()
       call self.pop_context()
     elseif self.next_is([s:GROUP_START])
       call self.advance()

@@ -29,6 +29,7 @@ fu! esearch#config#init(esearch) abort
         \ 'regex':                                 'literal',
         \ 'textobj':                               'none',
         \ 'adapters':                              {},
+        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'after', 'context', 'paths', 'adapters', 'current_adapter'],
         \ 'after':                                 0,
         \ 'before':                                0,
         \ 'context':                               0,
@@ -55,7 +56,7 @@ fu! esearch#config#init(esearch) abort
         \ 'win_let':                               {'&l:buflisted': 0},
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
         \ 'deprecations_loaded':                   0,
-        \ 'pending_deprecations':          [],
+        \ 'pending_deprecations':                  [],
         \}, 'keep')
   let esearch = extend(esearch, {
         \ 'win_ui_nvim_syntax':                       esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,

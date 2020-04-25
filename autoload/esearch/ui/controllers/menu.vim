@@ -50,7 +50,7 @@ fu! s:MenuController.component_will_mount() abort dict
         \ '&more': 0,
         \ '&t_ve': '',
         \ '&showtabline': 0})
-  call esearch#ui#flush()
+  call esearch#ui#hard_clear()
 endfu
 
 fu! s:MenuController.component_will_unmount() abort dict

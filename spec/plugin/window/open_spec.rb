@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'esearch#win#open' do
+describe 'esearch#out#win#open' do
   include Helpers::FileSystem
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers

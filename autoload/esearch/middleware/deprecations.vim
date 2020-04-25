@@ -4,6 +4,11 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     return a:esearch
   endif
 
+  if exists('g:esearch#out#win#context_syntax_highlight')
+    let a:esearch.win_contexts_syntax = g:esearch#out#win#context_syntax_highlight
+    let g:esearch.pending_deprecations += ['g:esearch#out#win#context_syntax_highlight. Please, rename to g:esearch.win_contexts_syntax']
+  endif
+
   if exists('g:esearch#out#win#buflisted')
     call extend(g:esearch.win_let, {'&l:buflisted': g:esearch#out#win#buflisted})
     let g:esearch.pending_deprecations += ['g:esearch#out#win#buflisted, see :help g:esearch.win_let for details']

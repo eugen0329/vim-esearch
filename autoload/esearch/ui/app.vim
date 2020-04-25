@@ -20,7 +20,7 @@ fu! s:App.render() abort dict
   elseif self.store.state.location ==# 'search_input'
     call self.route('search_input', s:SearchInputController.new())
   elseif self.store.state.location ==# 'exit'
-    call esearch#ui#clear()
+    call esearch#ui#soft_clear()
     return 0
   else
     throw 'Unknown location'

@@ -3,9 +3,13 @@ fu! esearch#init(...) abort
   call esearch#config#eager()
 
   let esearch = extend(copy(get(a:, 1, {})), copy(g:esearch), 'keep')
-  for Middleware in esearch.middleware
-    let esearch = Middleware(esearch)
-  endfor
+  try
+    for Middleware in esearch.middleware
+      let esearch = Middleware(esearch)
+    endfor
+  catch /^Cancel$/
+    return
+  endtry
 
   call esearch#out#{esearch.out}#init(esearch)
 endfu

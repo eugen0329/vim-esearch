@@ -20,12 +20,13 @@ fu! esearch#middleware#pattern#apply(esearch) abort
     let pattern_type = esearch.is_regex() ? 'pcre' : 'literal'
     let esearch.cmdline = esearch#source#pick_exp(esearch.use, esearch)[pattern_type]
     let esearch = esearch#cmdline#read(esearch)
-    if empty(esearch.cmdline) | return | endif
+    if empty(esearch.cmdline) | throw 'Cancel' | endif
     let esearch.pattern = esearch#pattern#new(
           \ esearch.cmdline,
           \ esearch.is_regex(),
           \ esearch.case,
           \ esearch.textobj)
+    let g:esearch.last_pattern = esearch.pattern
   endif
 
   return esearch
