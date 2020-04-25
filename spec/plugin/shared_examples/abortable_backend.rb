@@ -25,6 +25,7 @@ RSpec.shared_examples 'an abortable backend' do |backend|
     esearch.configuration.submit!
     e.run
     esearch.configuration.adapter_bin = adapter
+    editor.cleanup!
   end
 
   around do |e|
