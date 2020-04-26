@@ -17,7 +17,7 @@ fu! esearch#middleware#warnings#apply(esearch) abort
           \ g:esearch.pending_deprecations[-1],
           \ len(g:esearch.pending_deprecations) - 1))
   endif
-  let a:esearch.pending_deprecations = []
+  let g:esearch.pending_deprecations = []
 
   return a:esearch
 endfu

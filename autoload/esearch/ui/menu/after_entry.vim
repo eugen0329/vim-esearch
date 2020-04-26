@@ -12,7 +12,7 @@ fu! s:AfterEntry.new(props) abort dict
   let instance.entry.props.value = a:props.after
   let instance.entry.props.i = a:props.i
   let down = g:esearch#has#unicode ? g:esearch#unicode#down : 'v'
-  let instance.entry.props.icon = '['.down.']'
+  let instance.entry.props.icon = '[ '.down.']'
 
   return instance
 endfu

@@ -12,7 +12,7 @@ fu! s:BeforeEntry.new(props) abort dict
   let instance.entry.props.value = a:props.before
   let instance.entry.props.i = a:props.i
   let up = g:esearch#has#unicode ? g:esearch#unicode#up : 'v'
-  let instance.entry.props.icon = '['.up.']'
+  let instance.entry.props.icon = '['.up.' ]'
 
   return instance
 endfu

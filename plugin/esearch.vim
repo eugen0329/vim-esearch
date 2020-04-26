@@ -1,7 +1,7 @@
 if exists('g:loaded_esearch')
   finish
 endif
-let g:loaded_esearch = '0.0.1'
+let g:loaded_esearch = '0.1.0'
 
 noremap  <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
 xnoremap <silent><Plug>(esearch) :<C-u>call esearch#init({'visualmode': 1})<CR>
