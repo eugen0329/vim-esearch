@@ -16,7 +16,7 @@ let g:esearch#adapter#parse#viml#controls = {
       \ }
 
 " Parse lines in format filename[-:]line_number[-:]text
-" The method isn't split into smallar submethods to prevent redundant calls as
+" The method isn't split into smaller submethods to prevent redundant calls as
 " it's expected to consume thousands of lines per second.
 fu! esearch#adapter#parse#viml#parse(data, from, to) abort dict
   if empty(a:data) | return [] | endif

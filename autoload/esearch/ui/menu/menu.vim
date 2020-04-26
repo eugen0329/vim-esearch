@@ -36,7 +36,7 @@ fu! s:Menu.new(props) abort dict
         \   s:RegexEntry.new({'i':    i.next(), 'keys': s:regex_keys}),
         \   s:TextobjEntry.new({'i':  i.next(), 'keys':  s:textobj_keys}),
         \ ]
-  if !empty(a:props.current_adapter.spec.filetypes)
+  if !empty(a:props.current_adapter.filetypes)
     let instance.items += [
           \   s:FiletypeEntry.new({'i': i.next(), 'keys': s:filetype_keys}),
           \ ]

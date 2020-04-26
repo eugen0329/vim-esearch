@@ -25,7 +25,7 @@ endif
 " -H: Print the file name for each match.
 " -x: Line regexp
 let s:Grep.mandatory_options = '-H -R -n'
-let s:Grep.spec = {
+call extend(s:Grep, {
       \   'bool2regex': ['literal', 'basic'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '-F'},
@@ -44,9 +44,9 @@ let s:Grep.spec = {
       \     'ignore':    {'icon':  '', 'option': '-i'},
       \     'sensitive': {'icon': 's', 'option': ''},
       \   }
-      \ }
+      \ })
 
-let s:Grep.spec.filetypes = ''
+let s:Grep.filetypes = ''
 
 fu! s:Grep.filetypes2args(filetypes) abort dict
   return ''

@@ -13,7 +13,7 @@ fu! s:FiletypeInputController.render() abort dict
 endfu
 
 fu! esearch#ui#controllers#filetype_input#complete(arglead, cmdline, curpos) abort
-  return esearch#ui#complete#filetypes#do(s:current_adapter.spec.filetypes, a:arglead, a:cmdline, a:curpos)
+  return esearch#ui#complete#filetypes#do(s:current_adapter.filetypes, a:arglead, a:cmdline, a:curpos)
 endfu
 
 let s:map_state_to_props = esearch#util#slice_factory(['filetypes', 'current_adapter'])

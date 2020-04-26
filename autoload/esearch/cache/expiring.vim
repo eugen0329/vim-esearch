@@ -1,5 +1,3 @@
-let s:OrderedSet = vital#esearch#import('Data.OrderedSet')
-
 fu! esearch#cache#expiring#new(opts) abort
   return s:Expiring.new(a:opts)
 endfu

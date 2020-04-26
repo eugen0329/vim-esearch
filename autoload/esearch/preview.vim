@@ -458,7 +458,7 @@ fu! s:FloatingWindow.reshape() abort dict
     call self.enter()
   endif
 
-  " allow the window be smallar than winheight
+  " allow the window be smaller than winheight
   let winminheight = esearch#let#restorable({'&winminheight': 1})
 
   try

@@ -1,7 +1,7 @@
 let s:Textobj = esearch#ui#component()
 
 fu! s:Textobj.render() abort dict
-  let icon = self.props.current_adapter.spec.textobj[self.props.textobj].icon
+  let icon = self.props.current_adapter.textobj[self.props.textobj].icon
   return [['NONE', empty(icon) ? '>' : icon]]
 endfu
 

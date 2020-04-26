@@ -20,7 +20,7 @@ endif
 " -H - show filenames
 " -I - don't search binary files
 let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
-let s:Git.spec = {
+call extend(s:Git, {
       \   'bool2regex': ['literal', 'basic'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '--fixed-strings'},
@@ -38,9 +38,9 @@ let s:Git.spec = {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': ''},
       \   }
-      \ }
+      \ })
 
-let s:Git.spec.filetypes = ''
+let s:Git.filetypes = ''
 
 fu! s:Git.filetypes2args(filetypes) abort dict
   return ''

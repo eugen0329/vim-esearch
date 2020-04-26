@@ -17,7 +17,7 @@ else
   endfu
 endif
 
-fu! esearch#util#ellipsize_right(text, max_len, ellipsis) abort
+fu! esearch#util#ellipsize_end(text, max_len, ellipsis) abort
   if strchars(a:text) < a:max_len
     return a:text
   endif

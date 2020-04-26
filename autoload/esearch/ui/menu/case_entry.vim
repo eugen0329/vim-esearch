@@ -7,7 +7,7 @@ fu! s:CaseEntry.render() abort dict
         \ self.props.case ==# 'sensitive' ? ['Constant', '[Cs]'] :  ['String', '[Sc]']
 
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' case match']]
-  let option = self.props.current_adapter.spec.case[self.props.case].option
+  let option = self.props.current_adapter.case[self.props.case].option
   let option = join(filter([self.props.case, option], '!empty(v:val)'), ': ')
   let result += [['Comment', ' (' . option  . ')']]
 

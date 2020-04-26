@@ -8,9 +8,9 @@ let s:Base = {
       \ 'mandatory_options': 'NotImplemented'}
 
 fu! s:Base.command(esearch, pattern, escape) abort dict
-  let regex = self.spec.regex[a:esearch.regex].option
-  let case = self.spec.textobj[a:esearch.textobj].option
-  let textobj = self.spec.case[a:esearch.case].option
+  let regex = self.regex[a:esearch.regex].option
+  let case = self.textobj[a:esearch.textobj].option
+  let textobj = self.case[a:esearch.case].option
 
   if empty(a:esearch.paths)
     let paths = self.pwd()
