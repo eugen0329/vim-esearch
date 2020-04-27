@@ -21,7 +21,7 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 - High performance:
   - Fully async functioning using neovim/vim8 jobs api.
   - Fast lua-based rendering (up to 40k lines in less than a second).
-  - Viewport only highlights.
+  - Viewport-only highlights.
   - Adaptive disabling of certain highlights on a large number of lines.
 - In-place modifying and saving changes into files.
 - Filetype-dependent syntax highlights for better navigation.
@@ -66,18 +66,18 @@ Modify or delete the results right inside the search window and type
 `:write<CR>` to save your changes into files.
 
 Press `p` to open a preview window. Use multiple `p` to zoom it and capital `P`
-to enter thre preview for express changes (without moving to a separate split window).
+to enter the preview for express changes (without moving to a separate split window).
 
 ### Basic configuration
 
 Configurations are scoped in `g:esearch` dictionary to make them easier to
 review and to not create mess within the global namespace. Play around with
-configurations below if you wan't to alter the default behavior.
+configurations below if you want to alter the default behavior.
 
 ```vim
 let g:esearch = {}
 
-" Use regexp matching with the smart case mode by default and avoid matching textobjects.
+" Use regexp matching with the smart case mode by default and avoid matching text objects.
 let g:esearch.regex = 1
 let g:esearch.textobj = 0
 let g:esearch.case = 'smart'
@@ -115,10 +115,10 @@ behavior per request.
 nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<CR>
 
 " Search in vendor lib directories. Remember only 'regex' and 'case' modes if
-" changed during a request.
+" they are changed during a request.
 nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<CR>
 
-" Search in UI files using an explicitl cwd. NOTE `set shell=bash\ -O\ globstar`
+" Search in UI files using an explicitly cwd. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
 nnoremap <leader>fu :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<CR>
 " if one of ag, rg or ack is available
@@ -139,7 +139,7 @@ function! s:custom_esearch_config() abort
   let b:preview = esearch#debounce(b:esearch.split_preview, 100)
   autocmd CursorMoved <buffer> call b:preview.apply('split')
 
-  " Override the default vertical split mapping to open a split only once and
+  " Override the default vertical split mapping to open a split once and
   " reuse it for later `s` presses. The search window will remain focused
   nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {'once': 1, 'stay': 1})<CR>
   " Yank a hovered absolute path
@@ -164,7 +164,7 @@ ignore files. To skip `node_modules` try `echo node_modules >> ~/.ignore`.
 
 Run `git config --global core.precomposeunicode true && git config --global core.quotePath false` in your shell to prevent outputting unicode chars like `\312`.
 
-3. Some regexps features like look-arounds are not supported.
+3. Some regexps features like lookaround are not supported.
 
 Use ag, ack or rg (after version 0.11) to access the PCRE syntax. Git and grep
 are also support them, but sometimes require to be installed with the
@@ -173,7 +173,7 @@ corresponding flag.
 4. Filetype-specific syntax highlights are missing or different than those within opened files.
 
 The plugin uses separate syntax definitions to make the window more lightweight.
-If it's misleading for you, please, disable them usgin `let g:esearch.win_contexts_syntax = 0` or open a PR to add or improve the existing syntax files.
+If it's misleading for you, please, disable them using `let g:esearch.win_contexts_syntax = 0` or open a PR to add or improve the existing syntax files.
 
 5. The search window is slow.
 
@@ -181,17 +181,14 @@ If it's sluggish during updates, try to increase `let g:esearch.win_update_throt
 
 6. Pt adapter case-insensitive mode implicitly enables regex matching mode.
 
-
 Ignore case option in `pt` works by
 [building a regex](https://github.com/monochromegane/the_platinum_searcher/blob/37ed028fc79f30d4de56682e26a789999ae2d561/pattern.go#L19)
-so you shuld use case sensitive mode to match literally or switch to another adapter
+so you should use case sensitive mode to match literally or switch to another adapter
 like `ag` or `rg`.
 
 ### Acknowledgements
 
-Special thanks to the contributors, issue reporters and other plugin authors
-(arpeggio.vim, incsearch.vim etc.) whose code has helped to develop various
-aspects of the plugin.
+Special thanks to the contributors, issue reporters and other plugin authors (arpeggio.vim, incsearch.vim etc.) whose code has helped to develop some aspects of the plugin.
 
 ### Licence
 

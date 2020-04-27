@@ -6,13 +6,15 @@ let s:String  = s:Vital.import('Data.String')
 let s:unknown = -1
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""
-" EXTREMELY EXPERIMENTAL. MOST PARTS WILL BE REWRITTEN
+" EXTREMELY EXPERIMENTAL. 95% PARTS WILL BE REWRITTEN
 """""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+" TODO:
+" Handle normal mode changes using reimplemented operators
+" Handle commandline commands abortion using v:abort
 
 " NOTES:
 "   - v:operator ==# 'J' is working only for visual mode. In normal it's not set
-
 fu! esearch#changes#listen_for_current_buffer(...) abort
   let b:__states = []
   if g:esearch#env isnot# 0

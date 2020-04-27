@@ -30,6 +30,7 @@ function M.highlight_ui(bufnr, from, to)
   local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then
+      vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, 0, 1)
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
       local pos1, pos2 =  text:find('%d+')
       -- 2 subtracted to capture less-than-or-equl-to sign
@@ -112,7 +113,6 @@ function M.highlight_header(instant)
   local bufnr = vim.api.nvim_get_current_buf()
 
   vim.schedule(function()
-    vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, 0, 1)
     M.highlight_ui(bufnr, 0, 1)
   end)
 end
