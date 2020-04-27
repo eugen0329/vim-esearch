@@ -48,8 +48,7 @@ fu! s:MenuController.component_will_mount() abort dict
         \ '&cmdheight': self.menu.height,
         \ '&lazyredraw': 0,
         \ '&more': 0,
-        \ '&t_ve': '',
-        \ '&showtabline': 0})
+        \ '&t_ve': ''})
   call esearch#ui#hard_clear()
 endfu
 

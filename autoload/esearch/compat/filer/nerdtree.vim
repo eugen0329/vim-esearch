@@ -4,7 +4,7 @@ endfu
 
 let s:NERDTree = copy(esearch#compat#filer#base#import())
 
-fu! s:NERDTree.nearest_directory_path()
+fu! s:NERDTree.nearest_directory_path() abort
   let path = g:NERDTreeFileNode.GetSelected().path
   if !path.isDirectory
     let path =  path.getParent()
@@ -13,6 +13,6 @@ fu! s:NERDTree.nearest_directory_path()
   return path.str({'escape': 0})
 endfu
 
-fu! s:NERDTree.path_under_cursor()
+fu! s:NERDTree.path_under_cursor() abort
   return g:NERDTreeFileNode.GetSelected().path.str({'escape': 0})
 endfu

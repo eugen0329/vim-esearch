@@ -6,7 +6,7 @@ endfu
 
 let s:NETRanger = copy(esearch#compat#filer#base#import())
 
-fu! s:NETRanger.nearest_directory_path()
+fu! s:NETRanger.nearest_directory_path() abort
   let path = netranger#cur_node_path()
 
   if isdirectory(path)
@@ -16,7 +16,7 @@ fu! s:NETRanger.nearest_directory_path()
   return s:Filepath.dirname(path)
 endfu
 
-fu! s:NETRanger.path_under_cursor()
+fu! s:NETRanger.path_under_cursor() abort
   return netranger#cur_node_path()
 endfu
 

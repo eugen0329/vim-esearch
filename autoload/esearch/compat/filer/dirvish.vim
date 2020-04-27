@@ -6,7 +6,7 @@ endfu
 
 let s:Dirvish = copy(esearch#compat#filer#base#import())
 
-fu! s:Dirvish.nearest_directory_path()
+fu! s:Dirvish.nearest_directory_path() abort
   let path = getline('.')
 
   if isdirectory(path)
@@ -16,7 +16,7 @@ fu! s:Dirvish.nearest_directory_path()
   return s:Filepath.dirname(path)
 endfu
 
-fu! s:Dirvish.path_under_cursor()
+fu! s:Dirvish.path_under_cursor() abort
   return getline('.')
 endfu
 
