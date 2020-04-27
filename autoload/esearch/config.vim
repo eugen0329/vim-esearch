@@ -36,9 +36,7 @@ fu! esearch#config#init(esearch) abort
         \ 'context':                               0,
         \ 'early_finish_wait':                     50,
         \ 'default_mappings':                      1,
-        \ 'nerdtree_plugin':                       1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
-        \ 'slice':                                 function('esearch#util#slice'),
         \ 'errors':                                [],
         \ 'prefill':                               ['visual', 'current', 'hlsearch', 'last'],
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
@@ -71,7 +69,7 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#adapter#apply'),
           \ function('esearch#middleware#cwd#apply'),
           \ function('esearch#middleware#paths#apply'),
-          \ function('esearch#middleware#nerdtree#apply'),
+          \ function('esearch#middleware#filer#apply'),
           \ function('esearch#middleware#prewarm#apply'),
           \ function('esearch#middleware#pattern#apply'),
           \ function('esearch#middleware#remember#apply'),
@@ -118,16 +116,19 @@ fu! esearch#config#default_backend() abort
   endif
 endfu
 
+" RG is probably the fastest. Ack doesn't have side effects like enabling regexp mode
+" when case == 'sensitive' is used and it supports filetypes matching. Git
+" searches only in the tracked files. --untracked options seems not working.
 fu! esearch#config#default_adapter() abort
   if executable('rg')
     return 'rg'
   elseif executable('ag')
     return 'ag'
-  elseif executable('pt')
-    return 'pt'
   elseif executable('ack')
     return 'ack'
-  elseif !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error
+  elseif executable('pt')
+    return 'pt'
+  elseif !g:esearch#has#windows && !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error
     return 'git'
   elseif executable('grep')
     return 'grep'

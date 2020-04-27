@@ -7,16 +7,7 @@ fu! esearch#middleware#pattern#apply(esearch) abort
         \ 'is_regex':   function('<SID>is_regex'),
         \}, 'keep')
 
-  if has_key(esearch, 'pattern')
-    if type(esearch.pattern) ==# type('')
-      " Preprocess the pattern
-      let esearch.pattern = esearch#pattern#new(
-            \ esearch.pattern,
-            \ esearch.is_regex(),
-            \ esearch.case,
-            \ esearch.textobj)
-    endif
-  else
+  if empty(get(esearch, 'pattern'))
     let pattern_type = esearch.is_regex() ? 'pcre' : 'literal'
     let esearch.cmdline = esearch#prefill#try(esearch)[pattern_type]
     let esearch = esearch#cmdline#read(esearch)
@@ -27,6 +18,15 @@ fu! esearch#middleware#pattern#apply(esearch) abort
           \ esearch.case,
           \ esearch.textobj)
     let g:esearch.last_pattern = esearch.pattern
+  else
+    if type(esearch.pattern) ==# type('')
+      " Preprocess the pattern
+      let esearch.pattern = esearch#pattern#new(
+            \ esearch.pattern,
+            \ esearch.is_regex(),
+            \ esearch.case,
+            \ esearch.textobj)
+    endif
   endif
 
   return esearch

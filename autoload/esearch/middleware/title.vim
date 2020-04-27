@@ -13,7 +13,7 @@ endfu
 
 fu! s:title(esearch, pattern) abort
   let format = s:format(a:esearch)
-  let [id, pattern] = s:informative_part(a:esearch, a:pattern)
+  let [id, pattern] = s:informative_parts(a:esearch, a:pattern)
   let pattern = substitute(pattern, '%', '%%', 'g') " escape for using in the statusline
   let modifiers = s:modifiers(a:esearch)
 
@@ -40,7 +40,7 @@ endfu
 "   Search <pattern>modifiers
 " For long patterns:
 "   Search #id <ellipsized_pattern>modifiers
-fu! s:informative_part(esearch, pattern)
+fu! s:informative_parts(esearch, pattern)
   let max_len = min([s:max_len, &columns / 2])
 
   if strlen(a:pattern) < max_len
