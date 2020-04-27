@@ -48,10 +48,7 @@ fu! esearch#preview#open(filename, line, ...) abort
         \ 'line':     a:line,
         \ }
   let win_vars = {'&foldenable': s:false}
-  " TODO uncomment back before the release
-  " if g:esearch#env isnot# 0
-  let win_vars['&winhighlight'] = 'Normal:NormalFloat'
-  " endif
+  let win_vars['&winhighlight'] = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat'
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let enter = get(opts, 'enter', s:false)

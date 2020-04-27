@@ -1,3 +1,5 @@
+" A module to collect one checks in a single place and also make them overridable
+let g:esearch#has#nvim = has('nvim')
 let g:esearch#has#vms = has('vms')
 let g:esearch#has#windows = has('win32')
 let g:esearch#has#shell_glob = !has('win32')
