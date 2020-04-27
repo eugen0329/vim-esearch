@@ -19,3 +19,7 @@ endfu
 fu! s:Dirvish.path_under_cursor()
   return getline('.')
 endfu
+
+fu! s:Dirvish.paths_in_range(begin, end) abort
+  return getline(a:begin, a:end)
+endfu
