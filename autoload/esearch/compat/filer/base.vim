@@ -1,3 +1,5 @@
+let s:Filepath = vital#esearch#import('System.Filepath')
+
 fu! esearch#compat#filer#base#import() abort
   return s:Base
 endfu
@@ -19,4 +21,14 @@ fu! s:Base.paths_in_range(begin, end) abort
   endtry
 
   return paths
+endfu
+
+fu! s:Base.nearest_directory_path() abort
+  let path = self.path_under_cursor()
+
+  if isdirectory(path)
+    return path
+  endif
+
+  return s:Filepath.dirname(path)
 endfu

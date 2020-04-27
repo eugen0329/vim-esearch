@@ -116,9 +116,10 @@ fu! esearch#config#default_backend() abort
   endif
 endfu
 
-" RG is probably the fastest. Ack doesn't have side effects like enabling regexp mode
-" when case == 'sensitive' is used and it supports filetypes matching. Git
-" searches only in the tracked files. --untracked options seems not working.
+" RG is probably the fastest. Unlike pt, Ack doesn't have side effects like
+" enabling regexp mode when case == 'sensitive' is used and it supports
+" filetypes matching. Git searches only in the tracked files. --untracked
+" options seems not working.
 fu! esearch#config#default_adapter() abort
   if executable('rg')
     return 'rg'
