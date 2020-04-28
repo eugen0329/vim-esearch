@@ -1,5 +1,5 @@
 let s:List    = vital#esearch#import('Data.List')
-let s:Message = vital#esearch#import('Vim.Message')
+let s:Message = esearch#message#import()
 let s:textobjects_whitelist = 'w()[]{}<>|''`"'
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -28,10 +28,10 @@ fu! s:on_start() abort
   endif
   let b:esearch_visual_multi_loaded = 1
 
-  augroup ESearchVisualMulti
+  aug esearch_visual_multi
     au! * <buffer>
     au TextChangedP,TextChangedI <buffer> call s:remove_cursors_overlapping_interface(0)
-  augroup END
+  aug END
 
   " NOTE that all the commented code lines below are left intentionally to
   " keep track on what is in TODO status and what is reviewed and is not

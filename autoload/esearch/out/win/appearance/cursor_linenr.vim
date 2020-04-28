@@ -12,7 +12,7 @@ if has('nvim')
       au BufLeave <buffer> call s:clear_cursor_line_number()
     aug END
   endfu
-  
+
   fu! esearch#out#win#appearance#cursor_linenr#uninit(esearch) abort
     aug esearch_win_hl_cursor_linenr
       au! * <buffer>

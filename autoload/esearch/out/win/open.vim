@@ -1,4 +1,4 @@
-let s:Message       = vital#esearch#import('Vim.Message')
+let s:Message       = esearch#message#import()
 let s:Filepath      = vital#esearch#import('System.Filepath')
 let s:BufferManager = vital#esearch#import('Vim.BufferManager')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -18,7 +18,7 @@ fu! s:open(opener, ...) abort dict
   let filename = self.filename()
   if empty(filename) | return | endif
 
-  let opts            = get(a:000, 0, {})
+  let opts            = get(a:, 1, {})
   let stay            = get(opts, 'stay', 0)    " stay in the current window
   let once            = get(opts, 'once', 0)    " open only a single window
   let restorable_vars = get(opts, 'let', {})    " assign vars/opts/regs per functoin execution

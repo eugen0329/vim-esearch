@@ -21,4 +21,4 @@ all=(
 
 # echo "Running shellcheck for file(s):"
 # printf '%s\n' "${all[@]}"
-shellcheck -e SC2039 --external-sources "${@:-${all[@]}}"
+shellcheck --external-sources "${@:-${all[@]}}"

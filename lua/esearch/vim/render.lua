@@ -3,25 +3,24 @@ local util  = require'esearch/util'
 
 local M = {}
 
-function M.render(data, path, esearch)
-  local parsed, separators_count = parse.lines(data)
+function M.render(data, esearch)
+  local parsed, _separators_count = parse.lines(data)
   local contexts                 = esearch['contexts']
   local line_numbers_map         = esearch['line_numbers_map']
   local ctx_ids_map              = esearch['ctx_ids_map']
   local files_count              = esearch['files_count']
   local ctx_by_name              = esearch['ctx_by_name']
-  local esearch_win_disable_context_highlights_on_files_count =
-    vim.eval('g:esearch_win_disable_context_highlights_on_files_count')
-  local unload_context_syntax_on_line_length =
-    vim.eval('g:unload_context_syntax_on_line_length')
-  local unload_global_syntax_on_line_length =
-    vim.eval('g:unload_global_syntax_on_line_length')
+  local esearch_win_contexts_syntax_clear_on_files_count =
+    vim.eval('g:esearch.win_contexts_syntax_clear_on_files_count')
+  local esearch_win_context_syntax_max_line_len =
+    vim.eval('g:esearch.win_context_syntax_clear_on_line_len')
+  local esearch_win_contexts_syntax_clear_on_line_len =
+    vim.eval('g:esearch.win_contexts_syntax_clear_on_line_len')
 
   local b = vim.buffer()
   local line = vim.eval('line("$") + 1')
   local i = 0
   local limit = #parsed
-  local lines = {}
 
   while(i < limit)
   do
@@ -32,7 +31,7 @@ function M.render(data, path, esearch)
       contexts[#contexts - 1]['end'] = line
 
       if esearch['highlights_enabled'] == 1 and
-          #contexts > esearch_win_disable_context_highlights_on_files_count then
+          #contexts > esearch_win_contexts_syntax_clear_on_files_count then
         esearch['highlights_enabled'] = false
         vim.eval('esearch#out#win#stop_highlights("too many lines")')
       end
@@ -60,8 +59,8 @@ function M.render(data, path, esearch)
       contexts[#contexts - 1]['filename'] = filename
     end
 
-    if text:len() > unload_context_syntax_on_line_length then
-      if text:len() > unload_global_syntax_on_line_length and esearch['highlights_enabled'] == 1 then
+    if text:len() > esearch_win_context_syntax_max_line_len then
+      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and esearch['highlights_enabled'] == 1 then
         esearch['highlights_enabled'] = false
         vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else

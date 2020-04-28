@@ -106,7 +106,9 @@ fu! s:reducer(state, action) abort
   elseif a:action.type ==# 'SET_CMDPOS'
     return extend(copy(a:state), {'cmdpos': a:action.cmdpos})
   elseif a:action.type ==# 'SET_PATHS'
-    return extend(copy(a:state), {'paths': a:action.paths, 'metadata': a:action.metadata})
+    return extend(copy(a:state), {'paths': a:action.paths})
+  elseif a:action.type ==# 'SET_FILETYPES'
+    return extend(copy(a:state), {'filetypes': a:action.filetypes})
   elseif a:action.type ==# 'SET_DID_INITIAL'
     return extend(copy(a:state), {'did_initial': 1})
   elseif a:action.type ==# 'SET_CMDLINE'
@@ -119,7 +121,7 @@ fu! s:reducer(state, action) abort
 endfu
 
 fu! s:cycle_mode(state, mode_name) abort
-  let kinds = keys(a:state.current_adapter.spec[a:mode_name])
+  let kinds = keys(a:state.current_adapter[a:mode_name])
   let i = index(kinds, a:state[a:mode_name])
 
   if i >= len(kinds) - 1

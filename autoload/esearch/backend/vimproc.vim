@@ -51,8 +51,8 @@ fu! s:is_consumed() abort dict
   return 0
 endfu
 
-fu! esearch#backend#vimproc#run(request) abort
-  let original_cwd = esearch#util#lcd(a:request.cwd)
+fu! esearch#backend#vimproc#exec(request) abort
+  let cwd = esearch#win#lcd(a:request.cwd)
   try
     let pipe = vimproc#popen3(
           \ vimproc#util#iconv(a:request.command, &encoding, 'char'), 1)
@@ -67,7 +67,7 @@ fu! esearch#backend#vimproc#run(request) abort
       exe 'au CursorHold  * call s:_on_cursor_hold('. a:request.internal_id.')'
     aug END
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 endfu
 

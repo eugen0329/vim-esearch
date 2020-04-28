@@ -31,7 +31,7 @@ describe 'esearch#util' do
     end
 
     context 'ascii alphabet' do
-      ('a'..'z').each do |char|
+      ('a'..'z').to_a.sample(5).each do |char|
         include_examples 'it recognizes with all escapes except Shift-*', char
         include_examples 'recognize as a regular char', char
       end
@@ -42,13 +42,13 @@ describe 'esearch#util' do
       context 'with escaping', :neovim, :multibyte do
         around { |e| use_nvim(&e) }
 
-        ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).each do |char|
+        ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).sample(5).each do |char|
           include_examples 'it recognizes with all escapes except Shift-*', char
         end
       end
 
       context 'regular' do
-        ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).each do |char|
+        ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).sample(5).each do |char|
           include_examples 'recognize as a regular char', char
         end
       end

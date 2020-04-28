@@ -1,157 +1,195 @@
-# Vim ESearch
+# vim-esearch
 
 [![Build Status](https://travis-ci.org/eugen0329/vim-esearch.svg?branch=master)](https://travis-ci.org/eugen0329/vim-esearch)
 
-NeoVim/Vim plugin performing project-wide async search and replace, similar to
-SublimeText, Atom et al.
+Neovim/Vim plugin for **e**asy async **search** and replace across multiple files.
 
 ![ESearch Demo gif](https://raw.githubusercontent.com/eugen0329/vim-esearch/master/.github/demo.gif)
 
----
-1. [Features](#features)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Customization](#customization)  
-4.1. [General Configs](#general-configs)  
-4.2. [Mappings](#mappings)  
-4.3. [Colors](#colors)  
+1. [Features overview](#features-overview)
+2. [Install](#install)
+3. [Quick start](#quick-start)
+4. [Basic configuration](#basic-configuration)
+5. [API](#api)
+6. [Troubleshooting](#troubleshooting)
+7. [Acknowledgements](#acknowledgements)
+8. [Licence](#licence)
 
----
+### Features overview
 
-### Features
-* Builtin support for superfast engines like
-[ag](https://github.com/ggreer/the_silver_searcher#installing) (_The Silver Searcher_),
-[ack](http://beyondgrep.com/install/),
-[pt](https://github.com/monochromegane/the_platinum_searcher#installation) (_The Platinum Searcher_),
-[rg](https://github.com/BurntSushi/ripgrep#installation) (_ripgrep_),
-[git-grep](https://git-scm.com/docs/git-grep) along with the
-native \*nix util [grep](http://linux.die.net/man/1/grep).
-* Advanced pattern input prompt with fuzzy- and spell suggestion-driven completion.
-* Live updating of results as in Emacs, SublimeText and similar (requires [Vim 8](http://vimhelp.appspot.com/eval.txt.html#Job) / [NeoVim](https://neovim.io/doc/user/job_control.html) job control or [vimproc](https://github.com/Shougo/vimproc.vim#install) to be installed).
-* Special esearch window or [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) list, habitual for all, can be used as an output target.
-* Search-and-Replace feature with the same syntax as builtin [:substitute](https://neovim.io/doc/user/change.html#:substitute) command (Example `:1,5ESubstitute/from/to/gc`).
-* Collaborates with [nerdtree](https://github.com/scrooloose/nerdtree#intro) to provide search in a specific directory.
+- Simplicity (no dependencies, pattern are auto-escaped).
+- High performance:
+  - Fully async functioning using neovim/vim8 jobs api.
+  - Fast lua-based rendering (up to 40k lines in less than a second).
+  - Viewport position-based highlights (neovim only).
+  - Adaptive disabling of certain highlights on a large number of lines.
+- In-place modifying and saving changes into files.
+- Filetype-dependent syntax highlights for better navigation.
+- Input prompt interface instead of using the commandline:
+  - Search patterns can be pasted as is (try [this pattern](https://gist.github.com/gruber/8891611) with regex mode enabled by pressing `<c-r><c-r>` within the prompt).
+  - Pcre-to-vim regex translation to highlight matches.
+- 2 preview modes using both neovim floating windows or plain split windows.
+- Interactions are done via API methods, that can be modified or reused to personalize the workflow.
+- Third party plugins integration:
+  - vim-visual-multi (multiple cursors plugin) is guarded from editing filenames and line numbers.
+  - Most of file browsers (nerdtree, dirvish, netranger, defx) can be used to specify search paths.
 
-## Installation
+### Install
 
-In your [~/.config/nvim/init.vim](https://neovim.io/doc/user/starting.html#vimrc) or  [~/.vimrc](http://vimdoc.sourceforge.net/htmldoc/starting.html#.vimrc) :
+Add one of the following lines depending on your plugin manager:
 ```vim
+call   minpac#add('eugen0329/vim-esearch')
+call   dein#add('eugen0329/vim-esearch')
+Plug   'eugen0329/vim-esearch'
 Plugin 'eugen0329/vim-esearch'
 ```
 
-**NOTE**
-Plugin command (which comes with [Vundle](https://github.com/VundleVim/Vundle.vim)) can be replaced with 
-another command of the plugin manager you use ([Plug](https://github.com/junegunn/vim-plug#installation),
-[NeoBundle](https://github.com/Shougo/neobundle.vim#1-install-neobundle) etc.)
+Optional: install [ag](https://github.com/ggreer/the_silver_searcher#installing)
+or [rg](https://github.com/BurntSushi/ripgrep#installation) for faster searching
+and extra features.
 
-## Usage
+### Quick start
 
-Type <kbd>\<leader></kbd><kbd>f</kbd><kbd>f</kbd> and insert a search pattern (usually [\<leader>](https://neovim.io/doc/user/map.html#mapleader) is <kbd>\\</kbd>).
-Use <kbd>s</kbd>, <kbd>v</kbd> and <kbd>t</kbd> buttons to open file under the
-cursor in split, vertical split and in tab accordingly. Use <kbd>Shift</kbd>
-along with <kbd>s</kbd>, <kbd>v</kbd> and <kbd>t</kbd> buttons to open a file silently. Press <kbd>Shift-r</kbd> to reload
-currrent results.
+Type `<leader>ff` keys (leader is `\` unless redefined) to open the prompt. Use
+`<c-r><c-r>`, `<c-s><c-s>` and `<c-t><c-t>` within the prompt to cycle through
+regex, case sensitive and text-objects matching modes or use `<c-o>` to open
+a menu to set searching paths, filetypes or other configs.
 
-To switch between case-sensitive/insensitive, full-word-match and regex/literal pattern in command
-line use <kbd>Ctrl-o</kbd><kbd>Ctrl-r</kbd>, <kbd>Ctrl-o</kbd><kbd>Ctrl-s</kbd> or <kbd>Ctrl-o</kbd><kbd>Ctrl-w</kbd> (mnemonics is set **O**ption: **R**egex,
-case **S**esnsitive, **W**ord regex).
+Within the search window use `J` and `K` to jump between entries or `{` and `}`
+to jump between filenames. Use `R` to reload the results.
 
-## Customization
+To open a line in a file press `<Enter>` (open in the current window), `o` (open in a split),
+`s` (split vertically) or `t` to open in a new tab. Use the keys with shift
+pressed (`O`, `S` and `T`) to open staying in the search window.
 
-### General Configs
+Modify or delete the results right inside the search window and type
+`:write<CR>` to save your changes into files.
 
-Global ESearch configuration example:
+Press `p` to open a preview window. Use multiple `p` to zoom it and capital `P`
+to enter the preview for express changes (without moving to a separate split window).
 
-```vim
-let g:esearch = {
-  \ 'adapter':          'ag',
-  \ 'backend':          'vimproc',
-  \ 'out':              'win',
-  \ 'batch_size':       300,
-  \ 'use':              ['visual', 'hlsearch', 'last'],
-  \ 'default_mappings': 1,
-  \}
-```
+### Basic configuration
 
-* __'adapter'__<br>
-  Adapter is a system-wide executable, which is used to dispatch your search
-  request. Currently available adapters are `'ag'`, `'ack'`, `'pt'`, 'rg', `'git'` and `'grep'`.
-* __'backend'__<br>
-  Backend is a strategy, which is used to collaborate with an adapter. Currently available:
-  async backends - `'nvim'`, `'vimproc'`, `'vim8'`, and vim builtin system() func call based backend
-  `'system'`<br>
-  _NOTE_ `'nvim'` and `'vimproc'` requires [NeoVim](https://github.com/neovim/neovim#readme) and  [vimproc](https://github.com/Shougo/vimproc.vim#install) respectively.
-* __'out'__<br>
-  Results output target: `'win'` - ESearch window (see [demo](#vim-esearch)) or `'qflist'` - [quickfix](https://neovim.io/doc/user/quickfix.html#quickfix) window
-* __'batch_size'__<br>
-  So not to hang your vim while updating results, ESearch uses batches. Thus,
-  `'batch_size'` refers to the number of result lines can be processed at one time
-* __'use'__<br>
-  With this option you can specify the initial search request string, which will be
-  picked from a specific source. Order is relevant for priorities of this sources usage. To always start with an empty input - set this option to `[]`. Sources are:
-    * `'visual'`<br>
-      Selected text. Only available from the visual mode.
-    * `'hlsearch'`<br>
-      Current search (with /) highlight
-    * `'last'`<br>
-      Previously used ESearch pattern
-    * `'clipboard'`<br>
-      Text yanked with <kbd>y</kbd>, deleted with <kbd>s</kbd>, <kbd>l</kbd> etc.<br>
-    * `'system_clipboard'`<br>
-      Text you copied with <kbd>Ctrl-c</kbd> or cut with <kbd>Ctrl-x</kbd>.<br>
-    * `'system_selection_clipboard'`<br>
-      Text selected with mouse or other similar method (only works on Linux).<br>
-    * `'word_under_cursor'`<br>
-      A word under the cursor.<br>
-* __'default_mappings'__<br>
-  Allows you to disable default mappings. If set to `0`, no default mappings will
-  be added.
-
-### Mappings
-In `~/.config/nvim/init.vim` / `~/.vimrc`:
-
-Use the following functions to redefine default mappings (**NOTE** default
-mapping are listed as an example here):
+Configurations are scoped in `g:esearch` dictionary to make them easier to
+review and to not create mess within the global namespace. Play around with
+configurations below if you want to alter the default behavior.
 
 ```vim
-    " Start esearch prompt autofilled with one of g:esearch.use initial patterns
-    call esearch#map('<leader>ff', 'esearch')
-    " Start esearch autofilled with a word under the cursor
-    call esearch#map('<leader>fw', 'esearch-word-under-cursor')
+let g:esearch = {}
 
-    call esearch#out#win#map('t',       'tab')
-    call esearch#out#win#map('i',       'split')
-    call esearch#out#win#map('s',       'vsplit')
-    call esearch#out#win#map('<Enter>', 'open')
-    call esearch#out#win#map('o',       'open')
+" Use regex matching with the smart case mode by default and avoid matching text objects.
+let g:esearch.regex = 1
+let g:esearch.textobj = 0
+let g:esearch.case = 'smart'
 
-    "    Open silently (keep focus on the results window)
-    call esearch#out#win#map('T', 'tab-silent')
-    call esearch#out#win#map('I', 'split-silent')
-    call esearch#out#win#map('S', 'vsplit-silent')
+" Set the initial pattern content using visual (if in a visual mode), currently
+" highlighted search (if v:hlsearch is true) or the last searched pattern.
+let g:esearch.prefill = ['visual', 'hlsearch', 'last']
 
-    "    Move cursor with snapping
-    call esearch#out#win#map('<C-n>', 'next')
-    call esearch#out#win#map('<C-j>', 'next-file')
-    call esearch#out#win#map('<C-p>', 'prev')
-    call esearch#out#win#map('<C-k>', 'prev-file')
+" Override the default files and directories to determine your project root. Set
+" to blank to always use the current working directory.
+let g:esearch.root_markers = ['.git', 'Makefile', 'node_modules']
 
-    call esearch#cmdline#map('<C-o><C-r>', 'toggle-regex')
-    call esearch#cmdline#map('<C-o><C-s>', 'toggle-case')
-    call esearch#cmdline#map('<C-o><C-w>', 'toggle-textobj')
-    call esearch#cmdline#map('<C-o><C-h>', 'cmdline-help')
+" Prevent esearch from mapping any default hotkeys.
+let g:esearch.default_mappings = 0
+
+" Open the window in a vertical split and reuse it for all searches.
+let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }
+
+" Redefine the default highlights (see :help highlight for syntax details)
+highlight link esearchHeader     Title
+highlight link esearchStatistics Number
+highlight link esearchFilename   Label
+highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#FFFFFF'
 ```
 
-### Colors
+### API
 
-To redefine results match highlight use:
+Use `esearch#init({options}})` function to start a search. Specify `{options}`
+dictionary using the same keys as in the global config to customize the
+behavior per request.
 
 ```vim
-hi esearchMatch ctermfg=black ctermbg=white guifg=#000000 guibg=#E6E6FA
+" Search for debugger entries across the project without starting the prompt.
+" Remember is set to 0 to prevent saving configs history for later searches.
+nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<CR>
+
+" Search in vendor lib directories. Remember only 'regex' and 'case' modes if
+" they are changed during a request.
+nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<CR>
+
+" Search in UI files using an explicitly cwd. NOTE `set shell=bash\ -O\ globstar`
+" is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
+nnoremap <leader>fu :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<CR>
+" if one of ag, rg or ack is available
+nnoremap <leader>fu :call esearch#init({'filetypes': 'js css html', 'cwd': '~/other-dir'})<CR>
 ```
 
-### Known issues
-* Ignore case option in `pt` works by
+Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on reloads, so no `augroup` inside is required.
+
+```vim
+autocmd User esearch_win_event call s:custom_esearch_config()
+
+function! s:custom_esearch_config() abort
+  setlocal nobuflisted    " don't show the buffer in the buffers list
+  setlocal bufhidden=hide " don't unload the buffer to be able to use <c-o> jumps
+
+  " Show the preview automatically and update it after 100ms timeout. Change
+  " 'split' to 'vsplit' to open the preview vertically
+  let b:preview = esearch#debounce(b:esearch.split_preview, 100)
+  autocmd CursorMoved <buffer> call b:preview.apply('split')
+
+  " Override the default vertical split mapping to open a split once and
+  " reuse it for later `s` presses. The search window will remain focused
+  nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {'once': 1, 'stay': 1})<CR>
+  " Yank a hovered absolute path
+  nnoremap <silent><buffer> yy :let @" = b:esearch.filename()\|let @+ = @"<CR>
+  " Use a custom command to open a file in a tab
+  nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
+
+  " Populate the quickfix list using the current pattern
+  nnoremap <silent><buffer> <leader>fq
+    \ :call esearch#init({'pattern': b:esearch.pattern, 'out': 'qflist', 'remember': 0})<CR>
+endfunction
+```
+
+### Troubleshooting
+
+1. Avoid searching in `log/`, `node_modules/`, `dist/` and similar folders.
+
+The preferred approach is to use `.agignore` for ag, `.rgignore` or similar
+ignore files. To skip `node_modules` try `echo node_modules >> ~/.ignore`.
+
+2. Git adapter have problems when searching in filenames with non-ASCII names.
+
+Run `git config --global core.precomposeunicode true && git config --global core.quotePath false` in your shell to prevent outputting unicode chars like `\312`.
+
+3. Some regex features like lookaround are not supported.
+
+Use ag, ack or rg (after version 0.11) to access the PCRE syntax. Git and grep
+are also support them, but sometimes require to be installed with the
+corresponding flag.
+
+4. Filetype-specific syntax highlights are missing or different than those within opened files.
+
+The plugin uses separate syntax definitions to make the window more lightweight.
+If it's misleading for you, please, disable them using `let g:esearch.win_contexts_syntax = 0` or open a PR to add or improve the existing syntax files. Highlights can also be cleared automatically if there are too many lines or if there's a long line encountered.
+
+5. The search window is slow.
+
+If it's sluggish during updates, try to increase `let g:esearch.win_update_throttle_wait = 200` value (100 is the default). If it's still slow after the search has finished, try to use `let g:esearch.win_contexts_syntax = 0` or consider to use neovim, as it has position-based highlights comparing to regex-based syntax matches and parses/renders results faster. Also, make sure that `echo esearch#has#lua` outputs 1.
+
+6. Pt adapter case-insensitive mode implicitly enables regex matching mode.
+
+Ignore case option in `pt` works by
 [building a regex](https://github.com/monochromegane/the_platinum_searcher/blob/37ed028fc79f30d4de56682e26a789999ae2d561/pattern.go#L19)
-so as a result you have implicit regexp matching here and have to escape special
-characters or switch to case sensitive mode.
+so you should use case sensitive mode to match literally or switch to another adapter
+like `ag` or `rg`.
+
+### Acknowledgements
+
+Special thanks to contributors, issue reporters and other plugin authors (arpeggio.vim, incsearch.vim etc.) whose code has helped to develop some aspects of the plugin.
+
+### Licence
+
+MIT

@@ -1,7 +1,14 @@
+" A module to collect one checks in a single place and also make them overridable
+let g:esearch#has#nvim = has('nvim')
+let g:esearch#has#vms = has('vms')
+let g:esearch#has#windows = has('win32')
+let g:esearch#has#shell_glob = !has('win32')
+let g:esearch#has#timers = has('timers')
 let g:esearch#has#debounce = has('timers')
+let g:esearch#has#throttle = has('timers')
 let g:esearch#has#bufadd = exists('*bufadd')
 let g:esearch#has#meta_key = has('nvim') || has('gui_running')
-let g:esearch#has#windows = has('win32')
+let g:esearch#has#gui_colors = has('gui_running') || has('termguicolors') && &termguicolors || has('nvim') && $NVIM_TUI_ENABLE_TRUE_COLOR " from papercolors
 let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')
 let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#has#nvim_add_highlight
 let g:esearch#has#nvim_lua_syntax = has('nvim') && exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight

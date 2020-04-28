@@ -16,7 +16,7 @@ describe 'Writing in modifiable mode', :window do
   let(:contexts) { [ctx, untouched_ctx] }
 
   after do
-    expect { editor.locate_buffer! untouched_ctx.file.path }
+    expect { editor.enter_buffer! untouched_ctx.file.path }
       .to raise_error(Editor::MissingBufferError)
   end
 
@@ -46,7 +46,7 @@ describe 'Writing in modifiable mode', :window do
           expect { write_with_confirmation }
             .to not_change { untouched_ctx.file.readlines }
 
-          editor.locate_buffer! ctx.file.path
+          editor.enter_buffer! ctx.file.path
           expect(editor.lines.to_a).to eq(modified_file_lines)
           expect(editor).not_to be_modified
         end
@@ -81,7 +81,7 @@ describe 'Writing in modifiable mode', :window do
           expect { write_with_confirmation }
             .to not_change { untouched_ctx.file.readlines }
 
-          editor.locate_buffer! ctx.file.path
+          editor.enter_buffer! ctx.file.path
           expect(editor.lines.to_a).to eq(instance_exec(&expected_lines))
           expect(editor).to be_modified
         end
@@ -115,7 +115,7 @@ describe 'Writing in modifiable mode', :window do
         expect { write_with_confirmation }
           .to not_change { untouched_ctx.file.readlines }
 
-        editor.locate_buffer! ctx.file.path
+        editor.enter_buffer! ctx.file.path
         expect(editor.lines.to_a).to eq(instance_exec(&expected_lines))
         expect(editor).to be_modified
       end

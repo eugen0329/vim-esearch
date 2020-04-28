@@ -6,23 +6,19 @@ fu! esearch#out#win#update#init(esearch) abort
   " TODO consider to drop ignore batches
   let a:esearch.ignore_batches = 0
   if !a:esearch.request.async | return | endif
+  let a:esearch.early_update_limit = a:esearch.batch_size
 
   call extend(a:esearch, {
-        \ 'last_update_at':          reltime(),
-        \ 'updates_timer':           -1,
-        \ 'update_with_timer_start': 0,
+        \ 'last_update_at': reltime(),
+        \ 'updates_timer':  -1,
         \})
 
-  " TODO replace with g:esearch.throttle_wait > 0
-  if g:esearch_win_update_using_timer && has('timers')
-    let a:esearch.update_with_timer_start = 1
-
+  if a:esearch.win_update_throttle_wait > 0 && g:esearch#has#timers
     aug esearch_win_updates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
 
       if a:esearch.backend !=# 'vimproc'
-        let a:esearch.early_update_limit = a:esearch.batch_size
         " TODO
         for [func_name, event] in items(a:esearch.request.events)
           let a:esearch.request.events[func_name] =
@@ -31,13 +27,11 @@ fu! esearch#out#win#update#init(esearch) abort
       endif
 
       let a:esearch.updates_timer = timer_start(
-            \ g:esearch_win_updates_timer_wait_time,
+            \ a:esearch.win_update_throttle_wait,
             \ function('s:update_timer_cb', [a:esearch, bufnr('%')]),
             \ {'repeat': -1})
     aug END
   else
-    let a:esearch.update_with_timer_start = 0
-
     aug esearch_win_updates
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
@@ -97,7 +91,7 @@ fu! s:update_timer_cb(esearch, bufnr, timer) abort
   " ensure it manually
   " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
-  if elapsed < g:esearch_win_updates_timer_wait_time
+  if elapsed < a:esearch.win_update_throttle_wait
     return
   endif
 
@@ -144,11 +138,7 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
       let request.cursor += esearch.batch_size
     endif
 
-    if g:esearch_out_win_render_using_lua
-      call esearch#out#win#render#lua#do(a:bufnr, data, from, to, esearch)
-    else
-      call esearch#out#win#render#viml#do(a:bufnr, data, from, to, esearch)
-    endif
+    call esearch.render(a:bufnr, data, from, to, esearch)
   endif
 
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
@@ -181,7 +171,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
   call esearch#out#win#update#update(a:bufnr, 1)
   " TODO
   let esearch.contexts[-1].end = line('$')
-  if g:esearch_win_results_len_annotations
+  if esearch.win_context_len_annotations
     call luaeval('esearch.appearance.set_context_len_annotation(_A[1], _A[2])',
           \ [esearch.contexts[-1].begin, len(esearch.contexts[-1].lines)])
   endif
@@ -202,14 +192,13 @@ fu! esearch#out#win#update#finish(bufnr) abort
   let esearch.header_text = function('esearch#out#win#header#finished_render')
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
-  call setbufvar(a:bufnr, '&modified',   0)
+  call setbufvar(a:bufnr, '&modified', 0)
 
   call esearch#out#win#modifiable#init()
 
-  if g:esearch_out_win_nvim_lua_syntax
+  if esearch.win_ui_nvim_syntax
     call luaeval('esearch.appearance.buf_attach_ui()')
   endif
-
   call esearch#out#win#appearance#annotations#init(esearch)
 endfu
 

@@ -12,7 +12,7 @@ fu! esearch#out#win#modifiable#insert#inline#handle(event) abort
     let text = ''
     call setline(line1, text)
   elseif line1 == context.begin
-    let text = context.filename
+    let text = fnameescape(context.filename)
     call setline(line1, text)
   elseif line1 > 2 && col1 < strlen(linenr) + 1
     " VIRTUAL UI WITH LINE NUMBERS IS AFFECTED:

@@ -1,7 +1,7 @@
 let s:Case = esearch#ui#component()
 
 fu! s:Case.render() abort dict
-  let icon = self.props.current_adapter.spec.case[self.props.case].icon
+  let icon = self.props.current_adapter.case[self.props.case].icon
   return [['NONE', empty(icon) ? '>' : icon]]
 endfu
 

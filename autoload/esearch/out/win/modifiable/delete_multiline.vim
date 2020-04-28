@@ -81,7 +81,7 @@ fu! s:handle_columnwise_within_1_ctx(ctx, rebuilder, state) abort
     endif
   else
     if s:is_filename_removed(a:ctx, a:rebuilder)
-      call a:rebuilder.recover(a:ctx, s:null, a:ctx.filename)
+      call a:rebuilder.recover(a:ctx, s:null, fnameescape(a:ctx.filename))
     endif
     call s:handle_columnwise_with_joining_lines(a:ctx, a:state, a:rebuilder)
     if s:is_separator_removed(a:ctx, a:rebuilder, a:state)
@@ -93,7 +93,7 @@ endfu
 
 fu! s:handle_change_within_1_ctx(top_ctx, bottom_ctx, rebuilder, state) abort
   if s:is_filename_removed(a:bottom_ctx, a:rebuilder)
-    call a:rebuilder.recover(a:bottom_ctx, s:null, a:bottom_ctx.filename)
+    call a:rebuilder.recover(a:bottom_ctx, s:null, fnameescape(a:bottom_ctx.filename))
   endif
 
   if a:rebuilder.line2 < 4
@@ -127,7 +127,7 @@ fu! s:handle_change(top_ctx, bottom_ctx, rebuilder, state) abort
   endif
 
   if s:is_filename_removed(a:top_ctx, a:rebuilder)
-    call a:rebuilder.recover(a:top_ctx, s:null, a:top_ctx.filename)
+    call a:rebuilder.recover(a:top_ctx, s:null, fnameescape(a:top_ctx.filename))
   endif
 
   if a:top_ctx.end == a:rebuilder.line1
@@ -155,7 +155,7 @@ fu! s:handle_change(top_ctx, bottom_ctx, rebuilder, state) abort
     endif
   else
     if s:is_filename_removed(a:bottom_ctx, a:rebuilder)
-      call a:rebuilder.recover(a:bottom_ctx, s:null, a:bottom_ctx.filename)
+      call a:rebuilder.recover(a:bottom_ctx, s:null, fnameescape(a:bottom_ctx.filename))
     endif
   endif
 endfu
@@ -209,7 +209,7 @@ fu! s:handle_bottom_ctx(ctx, state, rebuilder) abort
     endif
   else
     if s:is_filename_removed(a:ctx, a:rebuilder)
-      call a:rebuilder.recover(a:ctx, s:null, a:ctx.filename)
+      call a:rebuilder.recover(a:ctx, s:null, fnameescape(a:ctx.filename))
     endif
   endif
 endfu
@@ -454,7 +454,7 @@ fu! s:apply_recovery(state) abort dict
     endif
   endif
 
-  if g:esearch_out_win_nvim_lua_syntax && self.extended_line1 <= 2
+  if b:esearch.win_ui_nvim_syntax && self.extended_line1 <= 2
     call luaeval('esearch.appearance.highlight_header()')
   endif
 

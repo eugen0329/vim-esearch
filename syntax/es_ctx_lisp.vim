@@ -9,7 +9,7 @@ if exists('g:lisp_isk')
 elseif v:version > 704 || (v:version == 704 && has('patch-7.4.1142'))
  syn iskeyword 38,42,43,45,47-58,60-62,64-90,97-122,_
 else
- setl isk=38,42,43,45,47-58,60-62,64-90,97-122,_
+ setl iskeyword=38,42,43,45,47-58,60-62,64-90,97-122,_
 endif
 
 " Can it be made more lightweight?

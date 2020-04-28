@@ -3,10 +3,10 @@ let s:List         = vital#esearch#import('Data.List')
 let s:TextobjEntry = esearch#ui#component()
 
 fu! s:TextobjEntry.render() abort dict
-  let hint = s:String.pad_right(self.props.keys[0], 7, ' ')
-  let hint .= 'textobj match'
-  let result = [['NONE', hint]]
-  let option = self.props.current_adapter.spec.textobj[self.props.textobj].option
+  let icon = self.props.textobj ==# 'none' ? ['Comment', '[""]'] :
+        \ self.props.textobj ==# 'word' ? ['Keyword', '[\b]'] : ['String', '[^$]']
+  let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' textobj match']]
+  let option = self.props.current_adapter.textobj[self.props.textobj].option
   let option = join(filter([self.props.textobj, option], '!empty(v:val)'), ': ')
   let result += [['Comment', ' (' . option  . ')']]
 

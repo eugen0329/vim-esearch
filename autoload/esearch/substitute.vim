@@ -161,7 +161,7 @@ fu! s:statistics(opened_files, unresolved_swapfiles) abort
   let unresolved_swapfiles = a:unresolved_swapfiles
   if !empty(a:unresolved_swapfiles)
     echo ''
-    call esearch#util#hlecho([['Title', 'The following files has unresolved swapfiles'], ['Normal']])
+    echo 'The following files has unresolved swapfiles'
     for name in unresolved_swapfiles
       echo "\t".name
     endfor

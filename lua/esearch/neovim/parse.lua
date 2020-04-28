@@ -2,6 +2,7 @@ local util = require'esearch/util'
 
 local M = {}
 
+-- parse lines in format filename[-:]line_number[-:]text
 function M.lines(data)
   local parsed = {}
   local separators_count = 0

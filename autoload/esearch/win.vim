@@ -55,6 +55,31 @@ endfu
 
 """""""""""""""""""""""""""""""""""""""
 
+fu! esearch#win#lcd(path) abort
+  return s:DirectoryGuard.store(a:path)
+endfu
+
+let s:DirectoryGuard = {'cwd': ''}
+
+fu! s:DirectoryGuard.store(path) abort dict
+  let instance = copy(self)
+
+  if !empty(a:path)
+    let instance.cwd = getcwd()
+    exe 'lcd ' . a:path
+  endif
+
+  return instance
+endfu
+
+fu! s:DirectoryGuard.restore() abort dict
+  if !empty(self.cwd)
+    exe 'lcd ' . self.cwd
+  endif
+endfu
+
+"""""""""""""""""""""""""""""""""""""""
+
 fu! esearch#win#let_restorable(handle, variables) abort
   return esearch#let#restorable(
         \ a:variables,

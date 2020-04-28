@@ -1,5 +1,5 @@
 let s:Buffer  = vital#esearch#import('Vim.Buffer')
-let s:Message = vital#esearch#import('Vim.Message')
+let s:Message = esearch#message#import()
 let s:Prelude = vital#esearch#import('Prelude')
 let s:List    = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -48,10 +48,7 @@ fu! esearch#preview#open(filename, line, ...) abort
         \ 'line':     a:line,
         \ }
   let win_vars = {'&foldenable': s:false}
-  " TODO uncomment back before the release
-  " if g:esearch#env isnot# 0
-  let win_vars['&winhighlight'] = 'Normal:NormalFloat'
-  " endif
+  let win_vars['&winhighlight'] = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat'
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let enter = get(opts, 'enter', s:false)
@@ -282,10 +279,10 @@ fu! s:RegularBuffer.edit() abort dict
   let s:swapname = ''
   let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})
   try
-    augroup esearch_preview_swap_probe
+    aug esearch_preview_swap_probe
       au!
       au SwapExists * ++once let s:swapname = v:swapname | let v:swapchoice = 'q'
-    augroup END
+    aug END
     exe 'keepj edit ' . fnameescape(self.filename)
   finally
     call eventignore.restore()
@@ -305,10 +302,10 @@ fu! s:RegularBuffer.edit() abort dict
   endif
   let self.id = current_buffer_id
 
-  augroup esearch_prevew_make_regular
+  aug esearch_prevew_make_regular
     au!
     au BufWinEnter,BufEnter <buffer> ++once call esearch#preview#reset()
-  augroup END
+  aug END
 
   return s:true
 endfu
@@ -458,7 +455,7 @@ fu! s:FloatingWindow.reshape() abort dict
     call self.enter()
   endif
 
-  " allow the window be smallar than winheight
+  " allow the window be smaller than winheight
   let winminheight = esearch#let#restorable({'&winminheight': 1})
 
   try
@@ -492,7 +489,7 @@ fu! s:FloatingWindow.reshape() abort dict
 endfu
 
 fu! s:FloatingWindow.init_entered_autoclose_events() abort dict
-  augroup esearch_preview_autoclose
+  aug esearch_preview_autoclose
     " Before leaving a window
     au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
     " After entering another window
@@ -507,13 +504,13 @@ fu! s:FloatingWindow.init_entered_autoclose_events() abort dict
     au BufDelete * ++once call esearch#preview#close()
 
     au CmdwinEnter * call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
-  augroup END
+  aug END
 endfu
 
 fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
   let autocommands = join(self.close_on, ',')
 
-  augroup esearch_preview_autoclose
+  aug esearch_preview_autoclose
     au!
     exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
     exe 'au ' . g:esearch#preview#reset_on . ' * ++once call esearch#preview#reset()'
@@ -523,7 +520,7 @@ fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
     " We cannot close the preview when entering cmdwin, so the only option is to
     " reinitialize the events.
     au CmdwinLeave * ++once call g:esearch#preview#win.init_leaved_autoclose_events()
-  augroup END
+  aug END
 endfu
 
 fu! s:FloatingWindow.set_emphasis(emphasis) abort dict

@@ -66,29 +66,28 @@ module Helpers::Modifiable
         out:              'win',
         backend:          'system',
         regex:            1,
-        use:              [],
+        prefill:          [],
         default_mappings: 0,
         root_markers:     []
       )
       # TODO: reduce duplication with configuration#adapter=()
       path = "#{Configuration.root}/spec/support/scripts/sort_search_results.sh ag"
       editor.command! <<~SETUP
-        call esearch#opts#init_lazy_global_config()
+        call esearch#config#eager()
         call extend(g:esearch.adapters, {#{esearch.configuration.adapter.dump}: {}}, 'keep')
         call extend(g:esearch.adapters[#{esearch.configuration.adapter.dump}], {'bin': '#{path}'})
 
-        let g:esearch_win_disable_context_highlights_on_files_count = 0
+        let g:esearch.win_contexts_syntax = 0
         set backspace=indent,eol,start
         cd #{test_directory}
         call esearch#init({'pattern': '^'})
         call esearch#out#win#modifiable#init()
-        call feedkeys("\\<C-\\>\\<C-n>")
+        call feedkeys("\\<C-\\>\\<C-n>lh")
       SETUP
     end
 
     after do
       editor.command <<~TEARDOWN
-        let g:esearch_win_disable_context_highlights_on_files_count = 100
         call clever_f#reset()
       TEARDOWN
 

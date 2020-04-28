@@ -11,7 +11,7 @@ fu! esearch#out#win#modifiable#normal#inline#handle(event) abort
     call setline(line1, b:esearch.header_text())
   elseif line1 == context.begin
     " it's a filename, restoring
-    call setline(line1, context.filename)
+    call setline(line1, fnameescape(context.filename))
   elseif line1 > 2 && col1 < strlen(linenr) + 1
     " VIRTUAL UI WITH LINE NUMBERS IS AFFECTED:
 

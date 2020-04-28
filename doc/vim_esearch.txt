@@ -226,13 +226,8 @@ esearch#out#win#map()                   *esearch#out#win#map()*
   call esearch#out#win#map('<C-p>', 'prev')
   call esearch#out#win#map('<C-k>', 'prev-file')
 <
-g:esearch#out#win#open              *g:esearch#out#win#open*
-  Command which is used to open new ESearch window.
->
-  let g:esearch#out#win#open = 'tabnew'
-<
 
-g:esearch#out#win#context_syntax_highlight    *g:esearch#out#win#context_syntax_highlight*
+g:esearch.win_contexts_syntax    *g:esearch.win_contexts_syntax*
   Highlight code context with appropriate syntax which is determined according
   to |g:esearch#out#win#syntax_regeps|
 
@@ -240,12 +235,12 @@ g:esearch#out#win#context_syntax_highlight    *g:esearch#out#win#context_syntax_
   NOTE You need to use lightweight syntaxes so not to prevent performance
   overhead.
 >
-  let g:esearch#out#win#context_syntax_highlight = 0
+  let g:esearch.win_contexts_syntax = 0
 <
 
 g:esearch#out#win#syntax_regeps    *g:esearch#out#win#syntax_regeps*
   Regular expressions to determine experimental context syntax highlight.
-  See |g:esearch#out#win#context_syntax_highlight|.
+  See |g:esearch.win_contexts_syntax|.
 >
   let g:esearch#out#win#syntax_regeps = {
   \ 'yaml': '\%(yaml\|\.yml\)$',

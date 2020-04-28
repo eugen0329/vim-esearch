@@ -55,14 +55,14 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   return request
 endfu
 
-fu! esearch#backend#vim8#run(request) abort
+fu! esearch#backend#vim8#exec(request) abort
   let s:jobs[a:request.internal_job_id] = { 'data': [], 'request': a:request }
-  let original_cwd = esearch#util#lcd(a:request.cwd)
+  let cwd = esearch#win#lcd(a:request.cwd)
   try
     let a:request.job_id = job_start(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.start_at = reltime()
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 endfu
 
@@ -78,7 +78,7 @@ endfu
 
 " Adapted from vital-Whisky
 fu! s:is_consumed() abort dict
-  let timeout = g:esearch.early_finish_timeout / 1000.0 - reltimefloat(reltime(self.start_at))
+  let timeout = g:esearch.early_finish_wait / 1000.0 - reltimefloat(reltime(self.start_at))
   if timeout < 0.0 | return | endif
   let stopped = 0
 

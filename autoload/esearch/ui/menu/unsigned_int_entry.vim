@@ -3,13 +3,16 @@ let s:List             = vital#esearch#import('Data.List')
 let s:UnsignedIntEntry = esearch#ui#component()
 
 fu! s:UnsignedIntEntry.render() abort dict
-  let hint = s:String.pad_right(self.props['+'] . '/' . self.props['-'], 7, ' ')
-  let hint .= 'more/less ' . self.props.hint
-  let result = [['NONE', hint]]
-  if self.props.value ==# 0
-    let result += [['Comment', ' (none)']]
-  else
+  let keys = s:String.pad_right(self.props['+'] . '/' . self.props['-'], 7, ' ')
+  let hint = ' more/less ' . self.props.hint
+  let icon = s:String.pad_right(self.props.icon, 4, ' ')
+
+  if self.props.value > 0
+    let result = [['None', keys], ['Number', icon], ['NONE', hint]]
     let result += [['Comment', ' (' . self.props.option . ' ' . self.props.value  . ')']]
+  else
+    let result = [['None', keys], ['Comment', icon], ['NONE', hint]]
+    let result += [['Comment', ' (none)']]
   endif
 
   return result
@@ -22,12 +25,12 @@ fu! s:UnsignedIntEntry.keypress(event) abort dict
     call self.decrement()
   elseif self.props['+'] ==# a:event.key
     call self.increment()
-  elseif a:event.target == self
-    if s:List.has(["\<C-x>", '-'], a:event.key)
+  elseif a:event.target.props.i == self.props.i
+    if s:List.has(["\<C-x>", '-', "\<Left>"], a:event.key)
       call self.decrement()
-    elseif s:List.has(["\<C-a>", '+'], a:event.key)
+    elseif s:List.has(["\<C-a>", '+', "\<Enter>", "\<Right>"], a:event.key)
       call self.increment()
-    elseif s:List.has(["\<BS>"], a:event.key)
+    elseif s:List.has(["\<BS>", "\<C-h>"], a:event.key)
       call self.remove_rightmost_char()
     elseif s:List.has(["\<Del>"], a:event.key)
       call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': 0})

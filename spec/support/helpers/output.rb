@@ -3,7 +3,7 @@
 module Helpers::Output
   extend RSpec::Matchers::DSL
 
-  def finish_search_in_files(filenames)
+  def found_results_in_files(filenames)
     have_search_started
       .and have_search_finished
       .and have_not_reported_errors

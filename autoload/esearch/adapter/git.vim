@@ -20,25 +20,31 @@ endif
 " -H - show filenames
 " -I - don't search binary files
 let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
-let s:Git.spec = {
-      \   '_regex': ['literal', 'basic'],
+call extend(s:Git, {
+      \   'bool2regex': ['literal', 'basic'],
       \   'regex': {
       \     'literal':  {'icon': '',  'option': '--fixed-strings'},
       \     'basic':    {'icon': 'G', 'option': '--basic-regexp'},
       \     'extended': {'icon': 'E', 'option': '--extended-regexp'},
       \     'pcre':     {'icon': 'P', 'option': '--perl-regexp'},
       \   },
-      \   '_textobj': ['none', 'word'],
+      \   'bool2textobj': ['none', 'word'],
       \   'textobj': {
       \     'none':     {'icon': '',  'option': ''},
       \     'word':     {'icon': 'w', 'option': '--word-regexp'},
       \   },
-      \   '_case': ['ignore', 'sensitive'],
+      \   'bool2case': ['ignore', 'sensitive'],
       \   'case': {
       \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \     'sensitive': {'icon': 's', 'option': ''},
       \   }
-      \ }
+      \ })
+
+let s:Git.filetypes = ''
+
+fu! s:Git.filetypes2args(filetypes) abort dict
+  return ''
+endfu
 
 fu! s:Git.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors

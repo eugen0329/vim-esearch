@@ -37,7 +37,7 @@ endfunction
 
 " @vimlint(EVL103, 1, a:resolve)
 " @vimlint(EVL103, 1, a:reject)
-function! s:noop(resolve, reject) abort
+function! s:noop(...) abort
 endfunction
 " @vimlint(EVL103, 0, a:resolve)
 " @vimlint(EVL103, 0, a:reject)

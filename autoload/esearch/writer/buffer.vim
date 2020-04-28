@@ -1,4 +1,4 @@
-let s:Message  = vital#esearch#import('Vim.Message')
+let s:Message  = esearch#message#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -25,7 +25,7 @@ fu! s:write() abort dict
   let conflicts = []
 
   for [id, ctx] in items(self.diff.contexts)
-    let path = esearch#util#absolute_path(cwd, ctx.filename)
+    let path = esearch#util#abspath(cwd, ctx.filename)
     exe '$tabnew ' . path
 
     let conflict = self.detect_conflict(ctx, path)

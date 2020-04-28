@@ -1,21 +1,14 @@
 let s:String  = vital#esearch#import('Data.String')
 let s:Mapping = vital#esearch#import('Mapping')
 
-" taken from eskk.vim and arpeggio.vim
+" taken from arpeggio.vim
 fu! esearch#mappings#key2char(key) abort
-  if stridx(a:key, '<') ==# -1    " optimization
-    return a:key
-  endif
-  return join(
-        \   map(
-        \       s:split_to_keys(a:key),
-        \       'v:val =~# "^<.*>$" ? eval(''"\'' . v:val . ''"'') : v:val'
-        \   ),
-        \   ''
-        \)
+  let keys = s:split_to_keys(a:key)
+  call map(keys, 'v:val =~# "^<.*>$" ? eval(''"\'' . v:val . ''"'') : v:val')
+  return join(keys, '')
 endfu
 
-fu! s:split_to_keys(lhs) abort "{{{2
+fu! s:split_to_keys(lhs) abort
   " Assumption: Special keys such as <C-u> are escaped with < and >, i.e.,
   "             a:lhs doesn't directly contain any escape sequences.
   return split(a:lhs, '\(<[^<>]\+>\|.\)\zs')
@@ -65,4 +58,16 @@ fu! s:Guard.restore() abort dict
 
     exe cmd modifiers  maparg.lhs  maparg.rhs
   endfor
+endfu
+
+" TODO deprecate
+fu! esearch#mappings#add(mappings, lhs, rhs) abort
+  for mapping in a:mappings
+    if mapping.rhs == a:rhs && mapping.default == 1
+      call remove(a:mappings, index(a:mappings, mapping))
+      break
+    endif
+  endfor
+
+  call add(a:mappings, {'lhs': a:lhs, 'rhs': a:rhs, 'default': 0})
 endfu

@@ -1,7 +1,7 @@
 let s:Regex = esearch#ui#component()
 
 fu! s:Regex.render() abort dict
-  let icon = self.props.current_adapter.spec.regex[self.props.regex].icon
+  let icon = self.props.current_adapter.regex[self.props.regex].icon
   return [['NONE', empty(icon) ? '>' : icon]]
 endfu
 

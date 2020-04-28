@@ -41,8 +41,8 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   return request
 endfu
 
-fu! esearch#backend#nvim#run(request) abort
-  let original_cwd = esearch#util#lcd(a:request.cwd)
+fu! esearch#backend#nvim#exec(request) abort
+  let cwd = esearch#win#lcd(a:request.cwd)
   try
     let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)
     let a:request.job_id = job_id
@@ -50,12 +50,12 @@ fu! esearch#backend#nvim#run(request) abort
     call jobclose(job_id, 'stdin')
     let s:jobs[job_id] = { 'data': [], 'request': a:request }
   finally
-    call original_cwd.restore()
+    call cwd.restore()
   endtry
 endfu
 
 fu! s:is_consumed() abort dict
-  let timeout = max([g:esearch.early_finish_timeout - float2nr(reltimefloat(reltime(self.start_at)) * 1000), 1])
+  let timeout = max([g:esearch.early_finish_wait - float2nr(reltimefloat(reltime(self.start_at)) * 1000), 1])
   return jobwait([self.job_id], timeout)[0] ==# -1 && self.finished
 endfu
 

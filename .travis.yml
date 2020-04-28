@@ -58,10 +58,13 @@ install:
       pip3 --version
     fi
 
-    [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
-    [ "$LINT_FOR" = ruby ] && bundle install && return
-
     bundle install
+
+    if [ "$LINT" = 1 ]; then
+      pip3 install vim-vint==0.3.21
+      sudo apt-get install -y luarocks
+      sudo luarocks install luacheck
+    fi
 
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
@@ -108,7 +111,9 @@ jobs:
       # Although travis has less cores than 4, it's better for splitting as
       # groups with even execution time cannot be precisely determined using files size
     - name: 'Acceptance tests of window output 1'
-      script: bundle exec parallel_test spec/plugin/window/syntax spec/plugin/window/modifiable -n 2 --group-by filesize --type rspec
+      script:
+        - bundle exec parallel_test spec/plugin/window/syntax -n 2 --group-by filesize --type rspec
+        - bundle exec parallel_test spec/plugin/window/modifiable -n 2 --group-by filesize --type rspec
       os: linux
     - name: 'Acceptance tests of window output 2'
       script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_columnwise/within_single_context_spec.rb ./spec/plugin/compatibility/visual_multi_spec.rb
@@ -119,8 +124,6 @@ jobs:
     - name: 'Acceptance tests of window output 4'
       script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_linewise_spec.rb
       os: linux
-
-    # Linux acceptance
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
       os: linux
@@ -143,35 +146,20 @@ jobs:
     - name: 'Acceptance tests of adapter'
       script: bundle exec rake RSPEC_OPTS='--tag adapters'
       os: linux
-
     - name: 'Acceptance tests of commandline'
       script: bundle exec rake RSPEC_OPTS='--tag commandline'
       os: linux
-
-      # Although travis has less cores than 4, it's better for splitting as
-      # groups with even execution time cannot be precisely determined using files size
     - name: 'Unit tests'
       script: bundle exec parallel_test spec/unit -n 2 --group-by filesize --type rspec
       os: linux
-
-    # Linters TODO merge into a single build
-    - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-      env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
+    - name: 'Linters (luacheck, rubocop, vint, shellcheck)'
+      env: LINT=1 INSTALL_PYTHON_VERSION=3.6.1
       script:
+        - luacheck lua/
+        - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
         - bundle exec rubocop --display-cop-names
         - spec/support/docker/shellcheck
       os: linux
-    - name: 'Viml lint (Vint, VimLint)'
-      env:
-        LINT_FOR=viml
-        SKIP_INSTALL_VIM_DEPENDENCIES=1
-        VIML_DIRECTORIES='autoload/esearch/ autoload/esearch.vim nerdtree_plugin plugin syntax'
-      before_script:
-        - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
-        - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
-      script:
-        - sh "spec/support/scripts/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
-        - "vint $VIML_DIRECTORIES"
-      language: python
-      python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      # language: python
+      # python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux

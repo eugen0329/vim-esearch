@@ -49,7 +49,7 @@ class API::ESearch::Configuration
 
   def adapter
     cache.fetch('adapter') do
-      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'adapter', func('esearch#opts#default_adapter'))
+      editor.echo func('get', func('get', var('g:'), 'esearch', {}), 'adapter', func('esearch#config#default_adapter'))
     end
   end
 

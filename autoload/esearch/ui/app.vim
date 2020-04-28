@@ -1,7 +1,8 @@
-let s:OptionsMenu           = esearch#ui#menu#menu#import()
-let s:MenuController        = esearch#ui#controllers#menu#import()
-let s:PathInputController   = esearch#ui#controllers#path_input#import()
-let s:SearchInputController = esearch#ui#controllers#search_input#import()
+let s:OptionsMenu             = esearch#ui#menu#menu#import()
+let s:MenuController          = esearch#ui#controllers#menu#import()
+let s:PathInputController     = esearch#ui#controllers#path_input#import()
+let s:FiletypeInputController = esearch#ui#controllers#filetype_input#import()
+let s:SearchInputController   = esearch#ui#controllers#search_input#import()
 
 let s:App = esearch#ui#component()
 
@@ -17,9 +18,12 @@ fu! s:App.render() abort dict
     call self.route('menu', s:MenuController.new({'menu_class': s:OptionsMenu}))
   elseif self.store.state.location ==# 'path_input'
     call self.route('path_input', s:PathInputController.new())
+  elseif self.store.state.location ==# 'filetype_input'
+    call self.route('filetype_input', s:FiletypeInputController.new())
   elseif self.store.state.location ==# 'search_input'
     call self.route('search_input', s:SearchInputController.new())
   elseif self.store.state.location ==# 'exit'
+    call esearch#ui#soft_clear()
     return 0
   else
     throw 'Unknown location'

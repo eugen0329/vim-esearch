@@ -2,27 +2,27 @@
 
 module Helpers::Shell
   def split(str)
-    paths, metadata, error = editor.echo(func('esearch#shell#split', str))
+    paths, error = editor.echo(func('esearch#shell#split', str))
     return :error if error != 0
 
-    paths.zip(metadata).map do |path, m|
-      [path, m['start']..m['end']]
+    paths.map do |path|
+      [path['str'], path['begin']..path['end']]
     end
   end
 
-  def wildcards_at(str)
-    _paths, metadata, error = editor.echo(func('esearch#shell#split', str))
+  def metachars_at(str)
+    paths, error = editor.echo(func('esearch#shell#split', str))
     return :error if error != 0
 
-    metadata.map { |word| word['wildcards'] }
+    paths.map { |word| word['metachars'] }
   end
 
   def split_and_escape(str)
-    paths, metadata, error = editor.echo(func('esearch#shell#split', str))
+    paths, error = editor.echo(func('esearch#shell#split', str))
     return :error if error != 0
 
-    paths.zip(metadata).map do |path, meta|
-      editor.echo(func('esearch#shell#fnameescape', path, meta))
+    paths.map do |path|
+      editor.echo(func('esearch#shell#escape', path))
     end
   end
 end
