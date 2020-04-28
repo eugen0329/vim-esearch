@@ -27,13 +27,19 @@ function M.buf_attach_matches()
 end
 
 function M.highlight_ui(bufnr, from, to)
+  vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, from, to)
+
+  -- for some reason when clearing a namespace {from} acts like it's 1-indexed,
+  -- so rehighlighting the previous line is needed.
+  from = from - 1
+  if from  < 0 then from = 0 end
   local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
+
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then
-      vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, 0, 1)
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
       local pos1, pos2 =  text:find('%d+')
-      -- 2 subtracted to capture less-than-or-equl-to sign
+      -- 2 is subtracted to capture less-than-or-equl-to sign
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
       pos1, pos2 =  text:find('%d+', pos2 + 1)
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
