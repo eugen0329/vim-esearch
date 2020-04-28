@@ -27,9 +27,14 @@ fu! s:preview_enter(...) abort dict
   let opts.enter = s:true
   let view = self.ctx_view()
 
-  if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
-    return
-  endif
+  let lazyredraw = esearch#let#restorable({'&lazyredraw': 1})
+  try
+    if !esearch#preview#open(self.unescaped_filename(), self.line_in_file(), opts)
+      return
+    endif
+  finally
+    call lazyredraw.restore()
+  endtry
 
  " Is used to jump to the corresponding line and column where user was within
  " the search window. View column will correspond to the column inside the file.

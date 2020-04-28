@@ -1,7 +1,7 @@
 let s:Highlight = vital#esearch#import('Vim.Highlight')
 let g:esearch#highlight#float_lighter = 0.025
 let g:esearch#highlight#float_darker  = -0.05
-let g:esearch#highlight#match_lighter = 0.15
+let g:esearch#highlight#match_lighter = 0.14
 let g:esearch#highlight#match_darker  = -0.10
 
 fu! esearch#highlight#init() abort

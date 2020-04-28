@@ -157,7 +157,7 @@ endfu
 " Returns a list in format [str1, meta1, ...] to conveniently highlight the
 " metachars
 fu! esearch#shell#split_by_metachars(path) abort
-  if !g:esearch#has#shell_glob | return [a:path.str] | endif
+  if !g:esearch#has#shell_glob | return [fnameescape(a:path.str)] | endif
   let str = a:path.str
 
   let parts = []
