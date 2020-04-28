@@ -9,6 +9,4 @@ if !g:esearch.win_ui_nvim_syntax
   syn match esearchStatistics '\d\+' contained
 endif
 
-call esearch#highlight#define()
-
 let b:current_syntax = 'esearch'

@@ -28,6 +28,14 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['g:esearch.word, see :help g:esearch.textobj for details']
   endif
 
+  if hlexists('esearchLnum')
+    let g:esearch.pending_deprecations += ['highlight esearchLnum. Please, rename to esearchLineNr']
+  endif
+
+  if hlexists('esearchFName')
+    let g:esearch.pending_deprecations += ['highlight esearchFName. Please, rename to esearchFilename']
+  endif
+
   let g:esearch.deprecations_loaded = 1
   return a:esearch
 endfu

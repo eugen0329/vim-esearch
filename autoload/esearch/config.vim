@@ -5,7 +5,8 @@ fu! esearch#config#eager() abort
 
   if !get(g:esearch, 'lazy_loaded', 0)
     call esearch#config#init(g:esearch)
-    call s:init_lua()
+    call s:lua_init()
+    call esearch#highlight#init()
     let g:esearch.lazy_loaded = 1
     call esearch#util#doautocmd('User eseach_config_eager_post')
   endif
@@ -139,7 +140,7 @@ fu! esearch#config#default_adapter() abort
 endfu
 
 let s:root = expand( '<sfile>:p:h:h:h')
-fu! s:init_lua() abort
+fu! s:lua_init() abort
   if g:esearch#has#nvim_lua
     lua << EOF
     esearch = require'esearch/neovim'

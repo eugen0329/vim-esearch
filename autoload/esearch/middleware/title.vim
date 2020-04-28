@@ -40,7 +40,7 @@ endfu
 "   Search <pattern>modifiers
 " For long patterns:
 "   Search #id <ellipsized_pattern>modifiers
-fu! s:informative_parts(esearch, pattern)
+fu! s:informative_parts(esearch, pattern) abort
   let max_len = min([s:max_len, &columns / 2])
 
   if strlen(a:pattern) < max_len
