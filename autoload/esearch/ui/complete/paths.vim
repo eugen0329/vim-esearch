@@ -30,7 +30,7 @@ fu! s:gather_candidates(word, already_listed) abort
 
   let unused_candidates = []
   for candidate in candidates
-    if !s:List.has(a:already_listed, candidate)
+    if !s:List.has(a:already_listed, candidate) || candidate ==# a:word
       let unused_candidates += [candidate]
     endif
   endfor

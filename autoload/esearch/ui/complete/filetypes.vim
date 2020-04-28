@@ -10,7 +10,7 @@ endfu
 fu! s:gather_candidates(filetypes, word, already_listed) abort
   let unused_candidates = []
   for candidate in a:filetypes
-    if !s:List.has(a:already_listed, candidate)
+    if !s:List.has(a:already_listed, candidate) || candidate ==# a:word
       let unused_candidates += [candidate]
     endif
   endfor
