@@ -3,12 +3,12 @@ if exists('g:loaded_esearch')
 endif
 let g:loaded_esearch = '0.1.0'
 
-noremap  <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
-xnoremap <silent><Plug>(esearch) :<C-u>call esearch#init({'visualmode': 1})<CR>
-noremap  <silent><Plug>(esearch-word-under-cursor) :<C-u>call esearch#init({'prefill': ['word_under_cursor']})<CR>
+if !hasmapto('<Plug>(esearch)') && !hasmapto('<Plug>(esearch-operator)') && get(get(g:, 'esearch', {}), 'default_mappings', 1)
+  nmap <leader>ff <Plug>(esearch)
+  map  <leader>f  <Plug>(esearch-operator)
+endif
 
-let s:default_mappings = get(get(g:, 'esearch', {}), 'default_mappings', 1)
-for s:mapping in esearch#_mappings()
-  if !s:default_mappings && s:mapping.default | continue | endif
-  exe 'map ' . s:mapping.lhs . ' ' . s:mapping.rhs
-endfor
+nnoremap <silent><Plug>(esearch)               :<C-u>call esearch#init()<CR>
+xmap     <Plug>(esearch)                       <Plug>(esearch-prefill)
+noremap  <expr><silent><Plug>(esearch-prefill) esearch#util#operator_expr('esearch#opfunc_prefill')
+noremap  <expr><silent><Plug>(esearch-exec)    esearch#util#operator_expr('esearch#opfunc_exec')

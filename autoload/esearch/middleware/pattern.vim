@@ -4,8 +4,7 @@ fu! esearch#middleware#pattern#apply(esearch) abort
   let esearch = a:esearch
 
   let esearch = extend(esearch, {
-        \ 'cmdline':    0,
-        \ 'visualmode': 0,
+        \ 'cmdline': '',
         \ 'is_regex':   function('<SID>is_regex'),
         \}, 'keep')
 

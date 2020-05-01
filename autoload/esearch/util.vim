@@ -69,21 +69,37 @@ fu! esearch#util#timenow() abort
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
-fu! esearch#util#visual_selection() abort
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection ==# 'inclusive' ? 1 : 2)]
-  let lines[0] = lines[0][col1 - 1:]
-  return join(lines, "\n")
+fu! esearch#util#region_text(pos1, pos2, type) abort
+  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+
+  try
+    if index(['v', 'V', "\<C-v>"], a:type) >= 0
+      silent exe 'normal! gvy'
+    elseif a:type ==# 'line'
+      silent exe "normal! '[V']y"
+    else
+      silent exe 'normal! `[v`]y'
+    endif
+
+    return @@
+  finally
+    call options.restore()
+  endtry
+endfu
+
+fu! esearch#util#operator_expr(operatorfunc) abort
+  if mode(1)[:1] ==# 'no'
+    return 'g@'
+  elseif mode() ==# 'n'
+    let &operatorfunc = a:operatorfunc
+    return 'g@'
+  else
+    return ":\<C-u>call ".a:operatorfunc."(visualmode())\<CR>"
+  endif
 endfu
 
 fu! esearch#util#is_visual() abort
-  " From :h mode()
-  " Note that in the future more modes and more specific modes may
-  " be added. It's better not to compare the full string but only
-  " the leading character(s).
-  return mode()[0] =~? "[vs\<C-v>]"
+  return mode() =~? "[vs\<C-v>]"
 endfu
 
 fu! esearch#util#slice(dict, keys) abort

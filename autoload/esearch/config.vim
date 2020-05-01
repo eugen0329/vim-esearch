@@ -39,7 +39,7 @@ fu! esearch#config#init(esearch) abort
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'errors':                                [],
-        \ 'prefill':                               ['visual', 'current', 'hlsearch', 'last'],
+        \ 'prefill':                               ['visual', 'hlsearch', 'current', 'last'],
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
@@ -80,6 +80,27 @@ fu! esearch#config#init(esearch) abort
           \]
   endif
 
+  if g:esearch.default_mappings
+    let g:esearch.win_map = extend([
+          \ {'lhs': 'R',       'rhs': '<Plug>(esearch-win-reload)'},
+          \ {'lhs': 't',       'rhs': '<Plug>(esearch-win-tab)'},
+          \ {'lhs': 'T',       'rhs': '<Plug>(esearch-win-tab-silent)'},
+          \ {'lhs': 'o',       'rhs': '<Plug>(esearch-win-split)'},
+          \ {'lhs': 'O',       'rhs': '<Plug>(esearch-win-split-once-silent)'},
+          \ {'lhs': 's',       'rhs': '<Plug>(esearch-win-vsplit)'},
+          \ {'lhs': 'S',       'rhs': '<Plug>(esearch-win-vsplit-once-silent)'},
+          \ {'lhs': '<Enter>', 'rhs': '<Plug>(esearch-win-open)'},
+          \ {'lhs': 'p',       'rhs': '<Plug>(esearch-win-preview)'},
+          \ {'lhs': 'P',       'rhs': '<Plug>(esearch-win-preview-enter)'},
+          \ {'lhs': 'J',       'rhs': '<Plug>(esearch-win-jump2entry-down)'},
+          \ {'lhs': 'K',       'rhs': '<Plug>(esearch-win-jump2entry-up)'},
+          \ {'lhs': '}',       'rhs': '<Plug>(esearch-win-jump2filename-down)'},
+          \ {'lhs': '{',       'rhs': '<Plug>(esearch-win-jump2filename-up)'},
+          \], get(g:esearch, 'win_map', {}))
+  else
+    let g:esearch.win_map = get(g:esearch, 'win_map', [])
+  endif
+
   " pt implicitly matches using regexp when ignore-case mode is enabled. Setting
   " case mode to 'sensitive' makes pt adapter more predictable and slightly
   " more similar to the default behavior of other adapters.
@@ -117,15 +138,15 @@ fu! esearch#config#default_backend() abort
   endif
 endfu
 
-" RG is probably the fastest. Unlike pt, Ack doesn't have side effects like
-" enabling regexp mode when case == 'sensitive' is used and it supports
-" filetypes matching. Git searches only in the tracked files. --untracked
-" options seems not working.
+" RG is probably the fastest, but has support of pcre only in later versions.
+" Unlike pt, Ack doesn't have side effects like enabling regexp mode when case
+" == 'sensitive' is used and it supports filetypes matching. Git searches only
+" in the tracked files. --untracked options seems not working.
 fu! esearch#config#default_adapter() abort
-  if executable('rg')
-    return 'rg'
-  elseif executable('ag')
+  if executable('ag')
     return 'ag'
+  elseif executable('rg')
+    return 'rg'
   elseif executable('ack')
     return 'ack'
   elseif executable('pt')

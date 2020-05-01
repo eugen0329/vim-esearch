@@ -97,8 +97,8 @@ let g:esearch.default_mappings = 0
 let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }
 
 " Redefine the default highlights (see :help highlight for syntax details)
-highlight link esearchHeader     Title
-highlight link esearchStatistics Number
+highlight      esearchHeader     cterm=bold gui=bold ctermfg=white ctermbg=white
+highlight link esearchStatistics esearchFilename
 highlight link esearchFilename   Label
 highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#FFFFFF'
 ```

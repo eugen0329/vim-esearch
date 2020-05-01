@@ -15,26 +15,27 @@ fu! esearch#middleware#filer#apply(esearch) abort
   let filer = s:filer()
   let cwd = esearch#win#lcd(a:esearch.cwd)
   try
-    if get(a:esearch, 'visualmode', 0)
-      let a:esearch.paths = s:visually_selected_paths(filer)
-      let a:esearch.visualmode = 0
-    else
+    if empty(get(a:esearch, 'region'))
       let path = s:to_esearch_path(filer.nearest_directory_path())
       if s:Filepath.relpath(path.str) ==# s:Filepath.relpath(a:esearch.cwd)
         let a:esearch.paths = []
       else
         let a:esearch.paths = [path]
       endif
+    else
+      let a:esearch.paths = s:paths_in_region(filer, a:esearch.region)
+      call remove(a:esearch, 'region')
     endif
   finally
     call cwd.restore()
   endtry
+  let a:esearch.remember = filter(copy(a:esearch.remember), 'v:val !=# "paths"')
 
   return a:esearch
 endfu
 
-fu! s:visually_selected_paths(filer) abort
-  let paths = a:filer.paths_in_range(getpos("'<")[1], getpos("'>")[1])
+fu! s:paths_in_region(filer, region) abort
+  let paths = a:filer.paths_in_range(getpos(a:region[0])[1], getpos(a:region[1])[1])
   return map(paths, 's:to_esearch_path(v:val)')
 endfu
 

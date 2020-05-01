@@ -72,20 +72,12 @@ fu! s:on_start() abort
   call s:nremap('<Plug>(VM-P-Paste-Vimreg)',     '<SID>unsupported(%s, "Is not supported")')
   " <Plug>(VM-Yank)
 
-  "" Arrow movements, just skip
+  "" Arrow movements, safe to skip
   """""""""""""""""""""""""""""
-  " <Plug>(VM-I-Arrow-w)
-  " <Plug>(VM-I-Arrow-b)
-  " <Plug>(VM-I-Arrow-W
-  " <Plug>(VM-I-Arrow-B)
-  " <Plug>(VM-I-Arrow-e)
-  " <Plug>(VM-I-Arrow-ge)
-  " <Plug>(VM-I-Arrow-E)
-  " <Plug>(VM-I-Arrow-gE)
-  " <Plug>(VM-I-Left-Arrow)
-  " <Plug>(VM-I-Right-Arrow)
-  " <Plug>(VM-I-Up-Arrow)
-  " <Plug>(VM-I-Down-Arrow)
+  " <Plug>(VM-I-Arrow-w) <Plug>(VM-I-Arrow-b) <Plug>(VM-I-Arrow-W
+  " <Plug>(VM-I-Arrow-B) <Plug>(VM-I-Arrow-e) <Plug>(VM-I-Arrow-ge)
+  " <Plug>(VM-I-Arrow-E) <Plug>(VM-I-Arrow-gE) <Plug>(VM-I-Left-Arrow)
+  " <Plug>(VM-I-Right-Arrow) <Plug>(VM-I-Up-Arrow) <Plug>(VM-I-Down-Arrow)
   call s:iremap('<Plug>(VM-I-Return)',      '<SID>unsupported(%s, "Inserting newlines is not supported")')
   call s:iremap('<Plug>(VM-I-BS)',          '<SID>i_delete_char(%s, 1)')
   call s:iremap('<Plug>(VM-I-Paste)',       '<SID>unsupported(%s, "Is not supported")')
@@ -93,49 +85,28 @@ fu! s:on_start() abort
   call s:iremap('<Plug>(VM-I-CtrlU)',       '<SID>CtrlW(%s)')
   call s:iremap('<Plug>(VM-I-CtrlD)',       '<SID>i_delete_char(%s, -2)')
   call s:iremap('<Plug>(VM-I-Del)',         '<SID>i_delete_char(%s, -2)')
-  "" Movements, just skip
-  " <Plug>(VM-I-Arrow-ge)
-  " <Plug>(VM-I-Arrow-E)
-  " <Plug>(VM-I-Arrow-gE)
-  " <Plug>(VM-I-Left-Arrow)
-  " <Plug>(VM-I-Right-Arrow)
-  " <Plug>(VM-I-Up-Arrow)
-  " <Plug>(VM-I-Down-Arrow)
-  " <Plug>(VM-I-Next)
-  " <Plug>(VM-I-Prev)
+  "" Movements, safe to skip
+  " <Plug>(VM-I-Arrow-ge) <Plug>(VM-I-Arrow-E) <Plug>(VM-I-Arrow-gE)
+  " <Plug>(VM-I-Left-Arrow) <Plug>(VM-I-Right-Arrow) <Plug>(VM-I-Up-Arrow)
+  " <Plug>(VM-I-Down-Arrow) <Plug>(VM-I-Next) <Plug>(VM-I-Prev)
   call s:iremap('<Plug>(VM-I-Replace)',     '<SID>unsupported(%s, "Is not supported")')
 
   "" Cursor managing stuff, should be safe..
   """""""""""""""""""""""""""""""""""""""""""
-  " <Plug>(VM-Move-Right)
-  " <Plug>(VM-Move-Left)
-  " <Plug>(VM-Transpose)
-  " <Plug>(VM-Rotate)
-  " <Plug>(VM-Duplicate)
+  " <Plug>(VM-Move-Right) <Plug>(VM-Move-Left) <Plug>(VM-Transpose)
+  " <Plug>(VM-Rotate) <Plug>(VM-Duplicate)
 
   "" Dangerous, but useful. Lets keep unhandled
   """""""""""""""""""""""""""""""""""""""""""""""
-  " <Plug>(VM-Align)
-  " <Plug>(VM-Align-Char)
-  " <Plug>(VM-Align-Regex)
-  " <Plug>(VM-Numbers)
-  " <Plug>(VM-Numbers-Append)
-  " <Plug>(VM-Zero-Numbers)
-  " <Plug>(VM-Zero-Numbers-Append)
-  " <Plug>(VM-Run-Dot)
-  " <Plug>(VM-Surround)
-  " <Plug>(VM-Run-Macro)
-  " <Plug>(VM-Run-Ex)
-  " <Plug>(VM-Run-Last-Ex)
-  " <Plug>(VM-Run-Normal)
-  " <Plug>(VM-Run-Last-Normal)
-  " <Plug>(VM-Run-Visual)
+  " <Plug>(VM-Align) <Plug>(VM-Align-Char) <Plug>(VM-Align-Regex)
+  " <Plug>(VM-Numbers) <Plug>(VM-Numbers-Append) <Plug>(VM-Zero-Numbers)
+  " <Plug>(VM-Zero-Numbers-Append) <Plug>(VM-Run-Dot) <Plug>(VM-Surround)
+  " <Plug>(VM-Run-Macro) <Plug>(VM-Run-Ex) <Plug>(VM-Run-Last-Ex)
+  " <Plug>(VM-Run-Normal) <Plug>(VM-Run-Last-Normal) <Plug>(VM-Run-Visual)
   " <Plug>(VM-Run-Last-Visual)
 
-  ""Cmdline. Seems too useful to disable
-  " <expr> <Plug>(VM-:)
-  " <expr> <Plug>(VM-/)
-  " <expr> <Plug>(VM-?)
+  ""Cmdline. Seem too useful to disable
+  " <expr> <Plug>(VM-:) <expr> <Plug>(VM-/) <expr> <Plug>(VM-?)
 endfu
 
 fu! s:nremap(lhs, rhs) abort
@@ -180,7 +151,7 @@ fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whiteli
     for r in regions | call r.clear() | endfor
   endif
   if g:Vm.extend_mode
-    return feedkeys(esearch#mappings#key2char(a:orig))
+    return feedkeys(esearch#map#key2char(a:orig))
   endif
 
   let [motion, motion_count] = s:sanitized_motion(a:whitelist0, a:whitelist1, a:whitelist2)
@@ -190,7 +161,7 @@ fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whiteli
 
   "" Counts are ignored for now as they can cause multiline changes
   " let multiplied_count = (a:count * motion_count)
-  call feedkeys(esearch#mappings#key2char(a:orig) . motion, 't')
+  call feedkeys(esearch#map#key2char(a:orig) . motion, 't')
 endfu
 
 fu! s:sanitized_motion(whitelist0, whitelist1, whitelist2) abort
@@ -298,7 +269,7 @@ fu! s:without_regions_overlapping_interface(orig, offset_from_linenr) abort
     for r in regions | call r.clear() | endfor
   endif
 
-  call feedkeys(esearch#mappings#key2char(a:orig), 'n')
+  call feedkeys(esearch#map#key2char(a:orig), 'n')
 endfu
 
 fu! s:CtrlW(orig) abort
