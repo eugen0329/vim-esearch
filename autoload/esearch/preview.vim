@@ -29,7 +29,7 @@ fu! esearch#preview#open(filename, line, ...) abort
   let opts = get(a:000, 0, {})
 
   if !filereadable(a:filename) ||
-        \  (esearch#util#is_visual() && !get(opts, 'allow_visual', s:false))
+        \  (esearch#util#is_visual(mode()) && !get(opts, 'allow_visual', s:false))
     return s:false
   endif
 

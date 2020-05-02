@@ -1,12 +1,12 @@
 let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
-let g:esearch#cmdline#mappings = {
-      \ '<C-o>':      '<Plug>(esearch-open-menu)',
-      \ '<C-r><C-r>': '<Plug>(esearch-toggle-regex)',
-      \ '<C-s><C-s>': '<Plug>(esearch-toggle-case)',
-      \ '<C-t><C-t>': '<Plug>(esearch-toggle-textobj)',
-      \}
+let g:esearch#cmdline#mappings = [
+      \ {'lhs': '<C-o>',      'rhs': '<Plug>(esearch-open-menu)'},
+      \ {'lhs': '<C-r><C-r>', 'rhs': '<Plug>(esearch-toggle-regex)'},
+      \ {'lhs': '<C-s><C-s>', 'rhs': '<Plug>(esearch-toggle-case)'},
+      \ {'lhs': '<C-t><C-t>', 'rhs': '<Plug>(esearch-toggle-textobj)'},
+      \]
 
 if !exists('g:esearch#cmdline#dir_icon')
   if g:esearch#has#unicode
@@ -61,7 +61,7 @@ fu! esearch#cmdline#read(esearch) abort
 endfu
 
 fu! esearch#cmdline#map(lhs, rhs) abort
-  let g:esearch#cmdline#mappings[a:lhs] = '<Plug>(esearch-'.a:rhs.')'
+  " TODO deprecate
 endfu
 
 fu! s:app(esearch) abort

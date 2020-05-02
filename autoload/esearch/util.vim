@@ -69,13 +69,13 @@ fu! esearch#util#timenow() abort
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
-fu! esearch#util#region_text(pos1, pos2, type) abort
+fu! esearch#util#region_text(region) abort
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
 
   try
-    if index(['v', 'V', "\<C-v>"], a:type) >= 0
+    if esearch#util#is_visual(a:region.type)
       silent exe 'normal! gvy'
-    elseif a:type ==# 'line'
+    elseif a:region.type ==# 'line'
       silent exe "normal! '[V']y"
     else
       silent exe 'normal! `[v`]y'
@@ -85,6 +85,16 @@ fu! esearch#util#region_text(pos1, pos2, type) abort
   finally
     call options.restore()
   endtry
+endfu
+
+fu! esearch#util#type2region(type) abort
+  if esearch#util#is_visual(a:type)
+    return {'type': a:type, 'begin': "'<", 'end': "'>"}
+  elseif a:type ==# 'line'
+    return {'type': a:type, 'begin': "'[", 'end': "']"}
+  else
+    return {'type': a:type, 'begin': '`[', 'end': '`]'}
+  endif
 endfu
 
 fu! esearch#util#operator_expr(operatorfunc) abort
@@ -98,8 +108,8 @@ fu! esearch#util#operator_expr(operatorfunc) abort
   endif
 endfu
 
-fu! esearch#util#is_visual() abort
-  return mode() =~? "[vs\<C-v>]"
+fu! esearch#util#is_visual(mode) abort
+  return a:mode =~? "^[vs\<C-v>]$"
 endfu
 
 fu! esearch#util#slice(dict, keys) abort

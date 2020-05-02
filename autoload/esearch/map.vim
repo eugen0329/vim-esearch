@@ -1,62 +1,60 @@
 let s:String  = vital#esearch#import('Data.String')
 let s:Mapping = vital#esearch#import('Mapping')
 
-fu! esearch#map#restorable(mode, maps, ...) abort
-  return s:Guard.store(a:mode, a:maps, get(a:, 1, {}))
-endfu
-
-let s:Guard = {}
-
-fu! s:Guard.store(mode, maps, dict) abort dict
-  let instance = copy(self)
-  let instance.mode = a:mode
-  let instance.dict = a:dict
-  let instance.maps = copy(a:maps)
-
-  let [is_abbr, is_dict] = [0, 1]
-  let instance.mapargs = map(keys(a:maps), 'maparg(v:val, a:mode, is_abbr, is_dict)')
-
-  for [lhs, rhs] in items(a:maps)
-    call s:Mapping.execute_map_command(a:mode, a:dict, lhs, rhs)
-  endfor
-
-  return instance
-endfu
-
-fu! s:mapargs(map, modes, is_abbr, is_dict)
-  return map(split(a:modes, '\zs'), 'maparg(a:map, v:val, a:is_abbr, a:is_dict)')
-endfu
-
 fu! esearch#map#set(maparg, defaults) abort
   let maparg = extend(copy(a:defaults), a:maparg)
 
   for mode in split(maparg.mode, '\zs')
     let maparg.mode = mode
-    exec s:maparg2command(maparg)
+    exe esearch#map#maparg2map(maparg)
   endfor
+endfu
+
+fu! esearch#map#restorable(maps, defaults) abort
+  return s:Guard.store(a:maps, a:defaults)
+endfu
+
+let s:Guard = {}
+
+fu! s:Guard.store(mapargs, defaults) abort dict
+  let instance = copy(self)
+  let instance.mapargs = map(copy(a:mapargs), 'extend(copy(a:defaults), v:val)')
+  let [is_abbr, is_dict] = [0, 1]
+  let instance.original_mapargs = map(copy(instance.mapargs),
+        \ 'maparg(v:val.lhs, v:val.mode, is_abbr, is_dict)')
+
+  for maparg in a:mapargs
+    call esearch#map#set(maparg, a:defaults)
+  endfor
+
+  return instance
 endfu
 
 fu! s:Guard.restore() abort dict
-  for lhs in keys(self.maps)
-    call s:Mapping.execute_unmap_command(self.mode, self.dict, lhs)
+  for maparg in self.mapargs
+    exe esearch#map#maparg2unmap(maparg)
   endfor
 
-  for maparg in self.mapargs
-    if !empty(maparg) | exe s:maparg2command(maparg) | endif
+  for maparg in self.original_mapargs
+    if !empty(maparg) | exe esearch#map#maparg2map(maparg) | endif
   endfor
 endfu
 
-fu! s:maparg2command(maparg) abort
+fu! esearch#map#maparg2map(maparg) abort
   let cmd = get(a:maparg, 'noremap') ? 'noremap' : 'map'
   let cmd = a:maparg.mode ==# '!' ? cmd . '!' : a:maparg.mode . cmd
 
   let lhs = substitute(a:maparg.lhs, '\V|', '<Bar>', 'g')
   let rhs = substitute(a:maparg.rhs, '\V|', '<Bar>', 'g')
 
-  exe cmd s:Mapping.options_dict2raw(a:maparg) lhs rhs
+  return join([cmd, s:Mapping.options_dict2raw(a:maparg), lhs, rhs])
 endfu
 
-" TODO deprecate
+fu! esearch#map#maparg2unmap(maparg) abort
+  return s:Mapping.get_unmap_command(a:maparg.mode, a:maparg, a:maparg.lhs)
+endfu
+
+" DEPRECATED
 fu! esearch#map#add(mappings, lhs, rhs) abort
   for mapping in a:mappings
     if mapping.rhs == a:rhs && mapping.default == 1

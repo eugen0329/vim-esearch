@@ -35,7 +35,7 @@ fu! esearch#middleware#filer#apply(esearch) abort
 endfu
 
 fu! s:paths_in_region(filer, region) abort
-  let paths = a:filer.paths_in_range(getpos(a:region[0])[1], getpos(a:region[1])[1])
+  let paths = a:filer.paths_in_range(line(a:region.begin), line(a:region.end))
   return map(paths, 's:to_esearch_path(v:val)')
 endfu
 

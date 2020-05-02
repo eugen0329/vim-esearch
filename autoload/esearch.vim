@@ -15,40 +15,26 @@ fu! esearch#init(...) abort
 endfu
 
 fu! esearch#opfunc_prefill(type) abort
-  if index(['line', 'char', 'block'], a:type) >= 0
-    return esearch#init({'prefill': ['region'], 'region': s:type2region(a:type)})
-  else
-    return esearch#init({'prefill': ['region'], 'region': s:type2region(a:type)})
-  endif
+  return esearch#init({'prefill': ['region'], 'region': esearch#util#type2region(a:type)})
 endfu
 
 fu! esearch#opfunc_exec(type) abort
-  if index(['line', 'char', 'block'], a:type) >= 0
-    return esearch#init({'pattern': esearch#util#region_text("'[", "']", a:type)})
-  else
-    return esearch#init({'pattern': esearch#util#region_text("'<", "'>", a:type)})
-  endif
+  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type))})
 endfu
 
-fu! s:type2region(type) abort
-  if index(['v', 'V', "\<C-v>"], a:type)
-    return ["'<", "'>", a:type]
-  elseif a:type ==# 'line'
-    return ["'[", "']", a:type]
-  else
-    return ['`[', '`]', a:type]
-  endif
-endfu
-
+" DEPRECATED
 fu! esearch#map(lhs, rhs) abort
   let g:esearch = get(g:, 'esearch', {})
   let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
-  let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch)']
 
   if a:rhs ==# 'esearch'
     call esearch#map#set({'lhs': a:lhs, 'rhs': '<Plug>(esearch)', 'mode': ' ', 'silent': 1})
+    let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch)']
   elseif a:rhs ==# 'esearch-word-under-cursor'
+    let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch-operator){textobject}']
     call esearch#map#set({'lhs': a:lhs, 'rhs': '<Plug>(esearch-operator)iw', 'mode': ' ', 'silent': 1})
+  else
+    let g:esearch.pending_deprecations += ['esearch#map, see :help esearch-mappings']
   endif
 endfu
 

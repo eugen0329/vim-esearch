@@ -15,8 +15,9 @@ let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
+  let original_mappings = esearch#map#restorable(g:esearch#cmdline#mappings, {'mode': 'c'})
+
   try
-    let original_mappings = esearch#map#restorable('c', g:esearch#cmdline#mappings)
     return self.render_initial_selection() && self.render_input()
   finally
     call original_mappings.restore()
