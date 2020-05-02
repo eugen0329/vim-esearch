@@ -184,10 +184,10 @@ fu! s:init_mappings() abort
     nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.split_preview('vnew', {'stay': 0})<CR>
   endif
 
-  noremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)    :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
-  noremap <silent><buffer> <Plug>(esearch-win-jump2filename-down)  :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
-  noremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)       :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
-  noremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)     :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
   vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1, 'v')<CR>
   vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
   vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>

@@ -140,14 +140,15 @@ fu! esearch#config#default_backend() abort
 endfu
 
 " RG is probably the fastest, but has support of pcre only in later versions.
+" Ag seems to support only pcre of version 1 yet, which has promblems with unicode.
 " Unlike pt, Ack doesn't have side effects like enabling regexp mode when case
 " == 'sensitive' is used and it supports filetypes matching. Git searches only
 " in the tracked files. --untracked options seems not working.
 fu! esearch#config#default_adapter() abort
-  if executable('ag')
-    return 'ag'
-  elseif executable('rg')
+  if executable('rg')
     return 'rg'
+  elseif executable('ag')
+    return 'ag'
   elseif executable('ack')
     return 'ack'
   elseif executable('pt')
