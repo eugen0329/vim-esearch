@@ -147,7 +147,7 @@ fu! esearch#out#win#map(lhs, rhs) abort
   let g:esearch = extend(g:esearch, {'win_map': []}, 'keep')
   let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
   let g:esearch.pending_deprecations += ['esearch#out#win#map, see :help g:esearch.win_map']
-  let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs)}]
+  let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs), 'mode': 'n'}]
 endfu
 
 fu! s:init_commands() abort
