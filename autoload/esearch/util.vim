@@ -116,113 +116,6 @@ fu! esearch#util#slice(dict, keys) abort
   return filter(copy(a:dict), 'index(a:keys, v:key) >= 0')
 endfu
 
-fu! s:is_key_combination(group, c) abort
-  return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
-endfu
-
-fu! esearch#util#escape_kind(char) abort
-  let printable = strtrans(a:char)
-
-  let super_prefix = strtrans("\<D-a>")[:-2]
-  let meta_prefix = strtrans("\<M-a>")[:-2]
-  let ameta_prefix = strtrans("\<A-a>")[:-2]
-
-  let meta_prefix_re = '^\%('
-        \ . meta_prefix . '\|'
-        \ . super_prefix . '\|'
-        \ . ameta_prefix . '\)'
-
-  let metas = [meta_prefix, ameta_prefix, super_prefix]
-  let shifts = []
-  let controls = []
-
-   let chars = [
-         \ 'Nul',
-         \ 'BS',
-         \ 'Tab',
-         \ 'NL',
-         \ 'FF',
-         \ 'CR',
-         \ 'Return',
-         \ 'Enter',
-         \ 'Esc',
-         \ 'Space',
-         \ 'lt',
-         \ 'Bslash',
-         \ 'Bar',
-         \ 'Del',
-         \ 'CSI',
-         \ 'xCSI',
-         \ 'Up',
-         \ 'Down',
-         \ 'Left',
-         \ 'Right',
-         \ 'Help',
-         \ 'Undo',
-         \ 'Insert',
-         \ 'Home',
-         \ 'End',
-         \ 'PageUp',
-         \ 'PageDown',
-         \ 'kUp',
-         \ 'kDown',
-         \ 'kLeft',
-         \ 'kRight',
-         \ 'kHome',
-         \ 'kEnd',
-         \ 'kOrigin',
-         \ 'kPageUp',
-         \ 'kPageDown',
-         \ 'kDel',
-         \ 'kPlus',
-         \ 'kMinus',
-         \ 'kMultiply',
-         \ 'kDivide',
-         \ 'kPoint',
-         \ 'kComma',
-         \ 'kEqual',
-         \ 'kEnter',
-         \ ]
-
-   for c in chars
-     call add(metas, strtrans(eval('"\<M-'.c.'>"')))
-     call add(metas, strtrans(eval('"\<A-'.c.'>"')))
-     call add(metas, strtrans(eval('"\<D-'.c.'>"')))
-     call add(shifts, strtrans(eval('"\<S-'.c.'>"')))
-     call add(controls, strtrans(eval('"\<C-'.c.'>"')))
-   endfor
-
-   for i in range(0,9)
-     call add(metas, strtrans(eval('"\<M-k'.i.'>"')))
-     call add(metas, strtrans(eval('"\<A-k'.i.'>"')))
-     call add(metas, strtrans(eval('"\<D-k'.i.'>"')))
-     call add(shifts, strtrans(eval('"\<S-k'.i.'>"')))
-     call add(controls, strtrans(eval('"\<C-k'.i.'>"')))
-   endfor
-
-   let fs = []
-   for i in range(1,12)
-     call add(fs, strtrans(eval('"\<F'.i.'>"')))
-     call add(metas, strtrans(eval('"\<M-F'.i.'>"')))
-     call add(metas, strtrans(eval('"\<A-F'.i.'>"')))
-     call add(metas, strtrans(eval('"\<D-F'.i.'>"')))
-     call add(shifts, strtrans(eval('"\<S-F'.i.'>"')))
-     call add(controls, strtrans(eval('"\<C-F'.i.'>"')))
-   endfor
-
-   if printable =~# meta_prefix_re || s:is_key_combination(metas, printable)
-     return 'meta'
-   elseif s:is_key_combination(shifts, printable)
-     return 'shift'
-   elseif a:char =~# '^[[:cntrl:]]' || s:is_key_combination(controls, printable)
-     return 'control'
-   elseif s:is_key_combination(fs, printable)
-      return 'f'
-   endif
-
-  return 0
-endfu
-
 fu! esearch#util#compare_len(first, second) abort
   let a = len(a:first)
   let b = len(a:second)
@@ -273,7 +166,7 @@ if has('nvim')
 else
   fu! esearch#util#getchar() abort
     let char = getchar()
-    if esearch#util#escape_kind(char) isnot 0
+    if esearch#map#escape_kind(char) isnot 0
       return char
     else
       return s:to_char(char)

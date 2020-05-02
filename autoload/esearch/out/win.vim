@@ -51,11 +51,9 @@ fu! esearch#out#win#init(esearch) abort
   call s:init_mappings()
   call s:init_commands()
 
-  call extend(b:esearch.request, {
-        \ 'bufnr':      bufnr('%'),
-        \})
+  let b:esearch.request.bufnr = bufnr('%')
 
-  setl filetype=esearch
+  setfiletype esearch
 
   " Prevent from blinking on reloads if the command is known to have a large
   " output
@@ -79,8 +77,8 @@ fu! esearch#out#win#init(esearch) abort
     call luaeval('esearch.appearance.highlight_header(true)')
   endif
 
-  aug esearch_win_event
-    call esearch#util#doautocmd('User esearch_win_event')
+  aug esearch_win_config
+    call esearch#util#doautocmd('User esearch_win_config')
   aug END
   call esearch#util#doautocmd('User esearch_win_init_post')
 
@@ -106,7 +104,7 @@ fu! s:cleanup() abort
     call esearch#out#win#appearance#cursor_linenr#uninit(b:esearch)
     call esearch#out#win#appearance#annotations#uninit(b:esearch)
   endif
-  aug esearch_win_event
+  aug esearch_win_config
     au! * <buffer>
   aug END
   call esearch#util#doautocmd('User esearch_win_uninit_post')
@@ -178,12 +176,6 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-stay)      :<C-U>cal b:esearch.open('vnew', {'stay': 1})<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-open)             :<C-U>cal b:esearch.open('edit')<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)           :<C-U>cal b:esearch.reload()<CR>
-
-  nnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename('^', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename('v', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry('^', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry('v', v:count1)<CR>
-
   if g:esearch#has#preview
     nnoremap <silent><buffer> <Plug>(esearch-win-preview)          :<C-U>cal b:esearch.preview_zoom()<CR>
     nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.preview_enter()<CR>
@@ -192,8 +184,17 @@ fu! s:init_mappings() abort
     nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.split_preview('vnew', {'stay': 0})<CR>
   endif
 
+  noremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)    :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
+  noremap <silent><buffer> <Plug>(esearch-win-jump2filename-down)  :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
+  noremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)       :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
+  noremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)     :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1, 'v')<CR>
+
   for maparg in b:esearch.win_map
-    call esearch#map#set(maparg, {'mode': ' ', 'buffer': 1, 'silent': 1})
+    call esearch#map#define(maparg, {'mode': ' ', 'buffer': 1, 'silent': 1})
   endfor
 endfu
 

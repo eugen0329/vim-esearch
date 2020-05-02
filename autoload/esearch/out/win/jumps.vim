@@ -5,12 +5,16 @@ fu! esearch#out#win#jumps#init(esearch) abort
         \ })
 endfu
 
-fu! s:jump2filename(direction, count) abort dict
+fu! s:jump2filename(direction, count, ...) abort dict
   let filename_pattern = g:esearch#out#win#filename_pattern . '\%>2l'
   let times = a:count
 
+  if get(a:, 1) is# 'v'
+    norm! gv
+  endif
+
   " When jumping down from the header context, it locates the second filenme
-  if a:direction ==# 'v'
+  if a:direction ==# 1
     if line('.') <= 2
       call search(filename_pattern, 'W')
     endif
@@ -51,9 +55,13 @@ fu! s:jump2filename(direction, count) abort dict
   return 1
 endfu
 
-fu! s:jump2entry(direction, count) abort dict
+fu! s:jump2entry(direction, count, ...) abort dict
   if self.is_blank()
     return 0
+  endif
+
+  if get(a:, 1) is# 'v'
+    norm! gv
   endif
 
   let pattern = g:esearch#out#win#entry_pattern
@@ -61,7 +69,7 @@ fu! s:jump2entry(direction, count) abort dict
 
   " When jumping down from the header context, it locates the second entry as
   " clicking on the header cause opening the first encountered entry below.
-  if a:direction ==# 'v'
+  if a:direction ==# 1
     let pattern .= line('$') <= 4 ? '\%>3l' : '\%>4l'
 
     while times > 0

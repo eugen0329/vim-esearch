@@ -40,6 +40,7 @@ fu! esearch#config#init(esearch) abort
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'errors':                                [],
         \ 'prefill':                               ['visual', 'hlsearch', 'current', 'last'],
+        \ 'select_prefilled':                      1,
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
@@ -82,20 +83,20 @@ fu! esearch#config#init(esearch) abort
 
   if g:esearch.default_mappings
     let g:esearch.win_map = extend([
-          \ {'lhs': 'R',    'rhs': '<Plug>(esearch-win-reload)'},
-          \ {'lhs': 't',    'rhs': '<Plug>(esearch-win-tab)'},
-          \ {'lhs': 'T',    'rhs': '<Plug>(esearch-win-tab-silent)'},
-          \ {'lhs': 'o',    'rhs': '<Plug>(esearch-win-split)'},
-          \ {'lhs': 'O',    'rhs': '<Plug>(esearch-win-split-once-silent)'},
-          \ {'lhs': 's',    'rhs': '<Plug>(esearch-win-vsplit)'},
-          \ {'lhs': 'S',    'rhs': '<Plug>(esearch-win-vsplit-once-silent)'},
-          \ {'lhs': '<CR>', 'rhs': '<Plug>(esearch-win-open)'},
-          \ {'lhs': 'p',    'rhs': '<Plug>(esearch-win-preview)'},
-          \ {'lhs': 'P',    'rhs': '<Plug>(esearch-win-preview-enter)'},
-          \ {'lhs': 'J',    'rhs': '<Plug>(esearch-win-jump2entry-down)'},
-          \ {'lhs': 'K',    'rhs': '<Plug>(esearch-win-jump2entry-up)'},
-          \ {'lhs': '}',    'rhs': '<Plug>(esearch-win-jump2filename-down)'},
-          \ {'lhs': '{',    'rhs': '<Plug>(esearch-win-jump2filename-up)'},
+          \ {'lhs': 'R',    'rhs': '<Plug>(esearch-win-reload)',             'mode': 'n'},
+          \ {'lhs': 't',    'rhs': '<Plug>(esearch-win-tab)',                'mode': 'n'},
+          \ {'lhs': 'T',    'rhs': '<Plug>(esearch-win-tab-silent)',         'mode': 'n'},
+          \ {'lhs': 'o',    'rhs': '<Plug>(esearch-win-split)',              'mode': 'n'},
+          \ {'lhs': 'O',    'rhs': '<Plug>(esearch-win-split-once-silent)',  'mode': 'n'},
+          \ {'lhs': 's',    'rhs': '<Plug>(esearch-win-vsplit)',             'mode': 'n'},
+          \ {'lhs': 'S',    'rhs': '<Plug>(esearch-win-vsplit-once-silent)', 'mode': 'n'},
+          \ {'lhs': '<CR>', 'rhs': '<Plug>(esearch-win-open)',               'mode': 'n'},
+          \ {'lhs': 'p',    'rhs': '<Plug>(esearch-win-preview)',            'mode': 'n'},
+          \ {'lhs': 'P',    'rhs': '<Plug>(esearch-win-preview-enter)',      'mode': 'n'},
+          \ {'lhs': 'J',    'rhs': '<Plug>(esearch-win-jump2entry-down)'                },
+          \ {'lhs': 'K',    'rhs': '<Plug>(esearch-win-jump2entry-up)'                  },
+          \ {'lhs': '}',    'rhs': '<Plug>(esearch-win-jump2filename-down)'             },
+          \ {'lhs': '{',    'rhs': '<Plug>(esearch-win-jump2filename-up)'               },
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])

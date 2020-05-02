@@ -52,10 +52,6 @@ if !exists('g:esearch#cmdline#cancel_selection_chars')
         \ ]
 endif
 
-if !exists('g:esearch#cmdline#select_initial')
-  let g:esearch#cmdline#select_initial = 1
-endif
-
 fu! esearch#cmdline#read(esearch) abort
   return s:app(a:esearch)
 endfu
@@ -84,7 +80,7 @@ endfu
 fu! s:initial_state(esearch) abort
   let initial_state = a:esearch
   let initial_state.location = 'search_input'
-  let initial_state.did_initial = 0
+  let initial_state.did_select_prefilled = 0
   let initial_state.cursor = 0
   let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
   return initial_state
@@ -109,8 +105,8 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'paths': a:action.paths})
   elseif a:action.type ==# 'SET_FILETYPES'
     return extend(copy(a:state), {'filetypes': a:action.filetypes})
-  elseif a:action.type ==# 'SET_DID_INITIAL'
-    return extend(copy(a:state), {'did_initial': 1})
+  elseif a:action.type ==# 'SET_DID_SELECT_PREFILLED'
+    return extend(copy(a:state), {'did_select_prefilled': 1})
   elseif a:action.type ==# 'SET_CMDLINE'
     return extend(copy(a:state), {'cmdline': a:action.cmdline})
   elseif a:action.type ==# 'SET_LOCATION'

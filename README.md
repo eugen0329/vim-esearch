@@ -117,17 +117,22 @@ behavior per request.
 ```vim
 " Search for debugger entries across the project without starting the prompt.
 " Remember is set to 0 to prevent saving configs history for later searches.
-nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<CR>
+nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<cr>
 
 " Search in vendor lib directories. Remember only 'regex' and 'case' modes if
 " they are changed during a request.
-nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<CR>
+nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<cr>
 
 " Search in front-end files using an explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
-nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<CR>
-" if one of ag, rg or ack is available
-nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/other-dir'})<CR>
+nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<cr>
+" or if one of ag, rg or ack is available
+nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
+
+" Use callable prefiller to search go functions. Starting cursor position will be before
+" the closing bracket.
+let g:search_gofunc = {'prefill': [{-> "func (\<Left>"}], 'filetypes': 'go', 'select_prefilled': 0}
+nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
 ```
 
 Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on reloads, so no `augroup` inside is required.
