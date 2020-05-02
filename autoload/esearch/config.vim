@@ -83,20 +83,22 @@ fu! esearch#config#init(esearch) abort
 
   if g:esearch.default_mappings
     let g:esearch.win_map = extend([
-          \ {'lhs': 'R',    'rhs': '<Plug>(esearch-win-reload)',             'mode': 'n'},
-          \ {'lhs': 't',    'rhs': '<Plug>(esearch-win-tab)',                'mode': 'n'},
-          \ {'lhs': 'T',    'rhs': '<Plug>(esearch-win-tab-silent)',         'mode': 'n'},
-          \ {'lhs': 'o',    'rhs': '<Plug>(esearch-win-split)',              'mode': 'n'},
-          \ {'lhs': 'O',    'rhs': '<Plug>(esearch-win-split-once-silent)',  'mode': 'n'},
-          \ {'lhs': 's',    'rhs': '<Plug>(esearch-win-vsplit)',             'mode': 'n'},
-          \ {'lhs': 'S',    'rhs': '<Plug>(esearch-win-vsplit-once-silent)', 'mode': 'n'},
-          \ {'lhs': '<CR>', 'rhs': '<Plug>(esearch-win-open)',               'mode': 'n'},
-          \ {'lhs': 'p',    'rhs': '<Plug>(esearch-win-preview)',            'mode': 'n'},
-          \ {'lhs': 'P',    'rhs': '<Plug>(esearch-win-preview-enter)',      'mode': 'n'},
-          \ {'lhs': 'J',    'rhs': '<Plug>(esearch-win-jump2entry-down)'                },
-          \ {'lhs': 'K',    'rhs': '<Plug>(esearch-win-jump2entry-up)'                  },
-          \ {'lhs': '}',    'rhs': '<Plug>(esearch-win-jump2filename-down)'             },
-          \ {'lhs': '{',    'rhs': '<Plug>(esearch-win-jump2filename-up)'               },
+          \ {'lhs': 'R',    'rhs': '<Plug>(esearch-win-reload)',             'mode': 'n' },
+          \ {'lhs': 't',    'rhs': '<Plug>(esearch-win-tab)',                'mode': 'n' },
+          \ {'lhs': 'T',    'rhs': '<Plug>(esearch-win-tab-silent)',         'mode': 'n' },
+          \ {'lhs': 'o',    'rhs': '<Plug>(esearch-win-split)',              'mode': 'n' },
+          \ {'lhs': 'O',    'rhs': '<Plug>(esearch-win-split-once-silent)',  'mode': 'n' },
+          \ {'lhs': 's',    'rhs': '<Plug>(esearch-win-vsplit)',             'mode': 'n' },
+          \ {'lhs': 'S',    'rhs': '<Plug>(esearch-win-vsplit-once-silent)', 'mode': 'n' },
+          \ {'lhs': '<CR>', 'rhs': '<Plug>(esearch-win-open)',               'mode': 'n' },
+          \ {'lhs': 'p',    'rhs': '<Plug>(esearch-win-preview)',            'mode': 'n' },
+          \ {'lhs': 'P',    'rhs': '<Plug>(esearch-win-preview-enter)',      'mode': 'n' },
+          \ {'lhs': 'J',    'rhs': '<Plug>(esearch-win-jump2entry-down)'                 },
+          \ {'lhs': 'K',    'rhs': '<Plug>(esearch-win-jump2entry-up)'                   },
+          \ {'lhs': '}',    'rhs': '<Plug>(esearch-win-jump2filename-down)'              },
+          \ {'lhs': '{',    'rhs': '<Plug>(esearch-win-jump2filename-up)'                },
+          \ {'lhs': 'im',   'rhs': '<Plug>(textobj-esearch-match-i)',        'mode': 'ov'},
+          \ {'lhs': 'am',   'rhs': '<Plug>(textobj-esearch-match-a)',        'mode': 'ov'},
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])

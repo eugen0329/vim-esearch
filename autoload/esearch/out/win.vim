@@ -45,6 +45,7 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#out#win#jumps#init(b:esearch)
   call esearch#out#win#render#init(b:esearch)
   call esearch#out#win#update#init(b:esearch)
+  call esearch#out#win#textobj#init(b:esearch)
 
   " Some plugins set mappings on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
@@ -192,6 +193,11 @@ fu! s:init_mappings() abort
   vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
   vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>
   vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1, 'v')<CR>
+
+  vnoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
+  onoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
+  vnoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
+  onoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
 
   for maparg in b:esearch.win_map
     call esearch#map#define(maparg, {'mode': ' ', 'buffer': 1, 'silent': 1})
