@@ -15,8 +15,9 @@ let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
+  let original_mappings = esearch#map#restorable(g:esearch#cmdline#mappings, {'mode': 'c'})
+
   try
-    let original_mappings = esearch#mappings#restorable('c', g:esearch#cmdline#mappings)
     return self.render_initial_selection() && self.render_input()
   finally
     call original_mappings.restore()
@@ -24,8 +25,11 @@ fu! s:SearchInputController.render() abort dict
 endfu
 
 fu! s:SearchInputController.render_initial_selection() abort dict
-  if self.props.did_initial
+  if self.props.did_select_prefilled
     let self.cmdline = self.props.cmdline
+  elseif !self.props.select_prefilled
+    let self.cmdline = self.props.cmdline
+    call self.props.dispatch({'type': 'SET_DID_SELECT_PREFILLED'})
   else
     if empty(self.props.cmdline)
       let self.cmdline = ''
@@ -40,7 +44,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
       endif
     endif
 
-    call self.props.dispatch({'type': 'SET_DID_INITIAL'})
+    call self.props.dispatch({'type': 'SET_DID_SELECT_PREFILLED'})
   endif
 
   return s:true
@@ -92,7 +96,7 @@ fu! s:next_mode(event_type) abort dict
   call s:self.props.dispatch({'type': a:event_type})
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'cmdpos', 'did_initial'])
+let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'cmdpos', 'did_select_prefilled', 'select_prefilled'])
 
 fu! esearch#ui#controllers#search_input#import() abort
   return esearch#ui#connect(s:SearchInputController, s:map_state_to_props)

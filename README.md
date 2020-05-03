@@ -75,16 +75,21 @@ review and to not create mess within the global namespace. Play around with
 configurations below if you want to alter the default behavior.
 
 ```vim
+" Use <c-f><c-f> to start the prompt, use <c-f>iw to pre-fill with the current word
+" or other textobject. Try <Plug>(esearch-exec) to start a search instantly.
+nmap <c-f><c-f> <Plug>(esearch)
+map  <c-f>      <Plug>(esearch-prefill)
+
 let g:esearch = {}
 
 " Use regex matching with the smart case mode by default and avoid matching text objects.
-let g:esearch.regex = 1
+let g:esearch.regex   = 1
 let g:esearch.textobj = 0
-let g:esearch.case = 'smart'
+let g:esearch.case    = 'smart'
 
-" Set the initial pattern content using visual (if in a visual mode), currently
-" highlighted search (if v:hlsearch is true) or the last searched pattern.
-let g:esearch.prefill = ['visual', 'hlsearch', 'last']
+" Set the initial pattern content using the highlighted search pattern (if
+" v:hlsearch is true), the last searched pattern or the clipboard content.
+let g:esearch.prefill = ['hlsearch', 'last', 'clipboard']
 
 " Override the default files and directories to determine your project root. Set
 " to blank to always use the current working directory.
@@ -97,8 +102,8 @@ let g:esearch.default_mappings = 0
 let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }
 
 " Redefine the default highlights (see :help highlight for syntax details)
-highlight link esearchHeader     Title
-highlight link esearchStatistics Number
+highlight      esearchHeader     cterm=bold gui=bold ctermfg=white ctermbg=white
+highlight link esearchStatistics esearchFilename
 highlight link esearchFilename   Label
 highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#FFFFFF'
 ```
@@ -112,17 +117,22 @@ behavior per request.
 ```vim
 " Search for debugger entries across the project without starting the prompt.
 " Remember is set to 0 to prevent saving configs history for later searches.
-nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<CR>
+nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<cr>
 
 " Search in vendor lib directories. Remember only 'regex' and 'case' modes if
 " they are changed during a request.
-nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<CR>
+nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<cr>
 
-" Search in UI files using an explicitly cwd. NOTE `set shell=bash\ -O\ globstar`
+" Search in front-end files using an explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
-nnoremap <leader>fu :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<CR>
-" if one of ag, rg or ack is available
-nnoremap <leader>fu :call esearch#init({'filetypes': 'js css html', 'cwd': '~/other-dir'})<CR>
+nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<cr>
+" or if one of ag, rg or ack is available
+nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
+
+" Use callable prefiller to search go functions. Starting cursor position will be before
+" the closing bracket.
+let g:search_gofunc = {'prefill': [{-> "func (\<Left>"}], 'filetypes': 'go', 'select_prefilled': 0}
+nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
 ```
 
 Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on reloads, so no `augroup` inside is required.

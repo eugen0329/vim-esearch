@@ -9,6 +9,10 @@
 " Another option is to obtain the locations using adapter colorized output, but
 " it cause uncontrolled freeze on backend callbacks due to redundant text with
 " ANSI escape sequences.
+
+" idea from incsearch.vim
+nnoremap <Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
+
 fu! esearch#out#win#appearance#matches#init(esearch) abort
   if a:esearch.win_matches_highlight_strategy is# 'viewport'
     let a:esearch.hl_strategy = 'viewport'
@@ -25,12 +29,19 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
     return
   endif
 
+  if !has_key(a:esearch.pattern, 'hl_match')
+    let a:esearch.pattern.hl_match = esearch#out#win#matches#pattern_each(a:esearch)
+  endif
+
+  if a:esearch.win_matches_highlight_strategy is# 'hlsearch'
+    let @/ = a:esearch.pattern.hl_match
+    call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    return
+  endif
+
   if a:esearch.win_matches_highlight_strategy is# 'matchadd'
-    if !has_key(a:esearch.pattern, 'win_match')
-      let a:esearch.pattern.win_match = s:matchadd_pattern(a:esearch)
-    endif
     let a:esearch.hl_strategy = 'matchadd'
-    let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.pattern.win_match, -1)
+    let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.pattern.hl_match, -1)
     return
   endif
 
@@ -105,13 +116,4 @@ fu! s:highlight_viewport(esearch, top, bottom) abort
     let lines_with_hl_matches[ctx_id][linenr] = 1
     let line += 1
   endfor
-endfu
-
-fu! s:matchadd_pattern(esearch) abort
-  " To avoid matching pseudo LineNr
-  if a:esearch.pattern.vim[0] ==# '^'
-    return '\%>3l\%(\s\+\d\+\s\)\@<='.a:esearch.pattern.vim[1:-1]
-  endif
-
-  return '\%>3l\%(\s\+\d\+\s.*\)\@<='.a:esearch.pattern.vim
 endfu

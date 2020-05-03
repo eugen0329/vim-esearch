@@ -69,132 +69,51 @@ fu! esearch#util#timenow() abort
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
-fu! esearch#util#visual_selection() abort
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection ==# 'inclusive' ? 1 : 2)]
-  let lines[0] = lines[0][col1 - 1:]
-  return join(lines, "\n")
+fu! esearch#util#region_text(region) abort
+  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+
+  try
+    if esearch#util#is_visual(a:region.type)
+      silent exe 'normal! gvy'
+    elseif a:region.type ==# 'line'
+      silent exe "normal! '[V']y"
+    else
+      silent exe 'normal! `[v`]y'
+    endif
+
+    return @@
+  finally
+    call options.restore()
+  endtry
 endfu
 
-fu! esearch#util#is_visual() abort
-  " From :h mode()
-  " Note that in the future more modes and more specific modes may
-  " be added. It's better not to compare the full string but only
-  " the leading character(s).
-  return mode()[0] =~? "[vs\<C-v>]"
+fu! esearch#util#type2region(type) abort
+  if esearch#util#is_visual(a:type)
+    return {'type': a:type, 'begin': "'<", 'end': "'>"}
+  elseif a:type ==# 'line'
+    return {'type': a:type, 'begin': "'[", 'end': "']"}
+  else
+    return {'type': a:type, 'begin': '`[', 'end': '`]'}
+  endif
+endfu
+
+fu! esearch#util#operator_expr(operatorfunc) abort
+  if mode(1)[:1] ==# 'no'
+    return 'g@'
+  elseif mode() ==# 'n'
+    let &operatorfunc = a:operatorfunc
+    return 'g@'
+  else
+    return ":\<C-u>call ".a:operatorfunc."(visualmode())\<CR>"
+  endif
+endfu
+
+fu! esearch#util#is_visual(mode) abort
+  return a:mode =~? "^[vs\<C-v>]$"
 endfu
 
 fu! esearch#util#slice(dict, keys) abort
   return filter(copy(a:dict), 'index(a:keys, v:key) >= 0')
-endfu
-
-fu! s:is_key_combination(group, c) abort
-  return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
-endfu
-
-fu! esearch#util#escape_kind(char) abort
-  let printable = strtrans(a:char)
-
-  let super_prefix = strtrans("\<D-a>")[:-2]
-  let meta_prefix = strtrans("\<M-a>")[:-2]
-  let ameta_prefix = strtrans("\<A-a>")[:-2]
-
-  let meta_prefix_re = '^\%('
-        \ . meta_prefix . '\|'
-        \ . super_prefix . '\|'
-        \ . ameta_prefix . '\)'
-
-  let metas = [meta_prefix, ameta_prefix, super_prefix]
-  let shifts = []
-  let controls = []
-
-   let chars = [
-         \ 'Nul',
-         \ 'BS',
-         \ 'Tab',
-         \ 'NL',
-         \ 'FF',
-         \ 'CR',
-         \ 'Return',
-         \ 'Enter',
-         \ 'Esc',
-         \ 'Space',
-         \ 'lt',
-         \ 'Bslash',
-         \ 'Bar',
-         \ 'Del',
-         \ 'CSI',
-         \ 'xCSI',
-         \ 'Up',
-         \ 'Down',
-         \ 'Left',
-         \ 'Right',
-         \ 'Help',
-         \ 'Undo',
-         \ 'Insert',
-         \ 'Home',
-         \ 'End',
-         \ 'PageUp',
-         \ 'PageDown',
-         \ 'kUp',
-         \ 'kDown',
-         \ 'kLeft',
-         \ 'kRight',
-         \ 'kHome',
-         \ 'kEnd',
-         \ 'kOrigin',
-         \ 'kPageUp',
-         \ 'kPageDown',
-         \ 'kDel',
-         \ 'kPlus',
-         \ 'kMinus',
-         \ 'kMultiply',
-         \ 'kDivide',
-         \ 'kPoint',
-         \ 'kComma',
-         \ 'kEqual',
-         \ 'kEnter',
-         \ ]
-
-   for c in chars
-     call add(metas, strtrans(eval('"\<M-'.c.'>"')))
-     call add(metas, strtrans(eval('"\<A-'.c.'>"')))
-     call add(metas, strtrans(eval('"\<D-'.c.'>"')))
-     call add(shifts, strtrans(eval('"\<S-'.c.'>"')))
-     call add(controls, strtrans(eval('"\<C-'.c.'>"')))
-   endfor
-
-   for i in range(0,9)
-     call add(metas, strtrans(eval('"\<M-k'.i.'>"')))
-     call add(metas, strtrans(eval('"\<A-k'.i.'>"')))
-     call add(metas, strtrans(eval('"\<D-k'.i.'>"')))
-     call add(shifts, strtrans(eval('"\<S-k'.i.'>"')))
-     call add(controls, strtrans(eval('"\<C-k'.i.'>"')))
-   endfor
-
-   let fs = []
-   for i in range(1,12)
-     call add(fs, strtrans(eval('"\<F'.i.'>"')))
-     call add(metas, strtrans(eval('"\<M-F'.i.'>"')))
-     call add(metas, strtrans(eval('"\<A-F'.i.'>"')))
-     call add(metas, strtrans(eval('"\<D-F'.i.'>"')))
-     call add(shifts, strtrans(eval('"\<S-F'.i.'>"')))
-     call add(controls, strtrans(eval('"\<C-F'.i.'>"')))
-   endfor
-
-   if printable =~# meta_prefix_re || s:is_key_combination(metas, printable)
-     return 'meta'
-   elseif s:is_key_combination(shifts, printable)
-     return 'shift'
-   elseif a:char =~# '^[[:cntrl:]]' || s:is_key_combination(controls, printable)
-     return 'control'
-   elseif s:is_key_combination(fs, printable)
-      return 'f'
-   endif
-
-  return 0
 endfu
 
 fu! esearch#util#compare_len(first, second) abort
@@ -247,7 +166,7 @@ if has('nvim')
 else
   fu! esearch#util#getchar() abort
     let char = getchar()
-    if esearch#util#escape_kind(char) isnot 0
+    if esearch#map#escape_kind(char) isnot 0
       return char
     else
       return s:to_char(char)

@@ -38,6 +38,10 @@ class API::ESearch::Configuration
     staged_configuration.clear
   end
 
+  def win_map
+    staged_configuration['win_map'] ||= []
+  end
+
   def configure!(options)
     configure(options)
     submit!(overwrite: true)

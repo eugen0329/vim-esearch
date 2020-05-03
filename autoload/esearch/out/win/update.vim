@@ -53,7 +53,7 @@ endfu
 " cause unwanted idle when early_update_limit is exceeded, but the backend
 " is still working.
 fu! esearch#out#win#update#can_finish_early(esearch) abort
-  if !a:esearch.request.async | return 1 | endif
+  if !a:esearch.request.async | return s:true | endif
 
   let original_early_update_limit = a:esearch.early_update_limit
   let a:esearch.early_update_limit *= 1000

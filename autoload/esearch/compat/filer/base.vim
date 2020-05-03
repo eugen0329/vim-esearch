@@ -13,8 +13,7 @@ fu! s:Base.paths_in_range(begin, end) abort
   try
     for line in range(a:begin, a:end)
       call cursor(line, 0)
-      let path = self.path_under_cursor()
-      let paths += [path]
+      let paths += [self.path_under_cursor()]
     endfor
   finally
     call winrestview(view)

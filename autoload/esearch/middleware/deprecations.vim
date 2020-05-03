@@ -23,6 +23,10 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['g:esearch.use. Please, use g:esearch.prefill list instead']
   endif
 
+  if index(a:esearch.prefill, 'visual') >= 0
+    let g:esearch.pending_deprecations += ["'prefill': ['visual', ...], use <Plug>(esearch-prefill) operator mapping instead"]
+  endif
+
   if has_key(a:esearch, 'word')
     let a:esearch.textobj = a:esearch.word
     let g:esearch.pending_deprecations += ['g:esearch.word, see :help g:esearch.textobj for details']

@@ -23,7 +23,6 @@ fu! esearch#highlight#define() abort
   call s:define_matches_highlight()
   if g:esearch#has#nvim | call s:define_float_highlighs() | endif
 
-  " TODO DEPRECATE
   if hlexists('esearchLnum')
     call s:copyhl('esearchLnum', 'esearchLineNr', {'force': 1})
   endif

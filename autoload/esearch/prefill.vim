@@ -1,17 +1,35 @@
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
+
 fu! esearch#prefill#try(esearch) abort
-  for prefiller in a:esearch.prefill
-    let pattern = esearch#prefill#{prefiller}(a:esearch)
-    if !empty(pattern) | return pattern | endif
+  for Prefiller in a:esearch.prefill
+    if type(Prefiller) == s:t_func
+      let pattern = Prefiller(a:esearch)
+    else
+      let pattern = esearch#prefill#{Prefiller}(a:esearch)
+    endif
+
+    if !empty(pattern)
+      if type(pattern) == s:t_string
+        return {'literal': pattern, 'pcre': pattern}
+      else
+        return pattern
+      endif
+    endif
   endfor
 
   return {'literal': '', 'pcre': ''}
 endfu
 
-fu! esearch#prefill#visual(esearch) abort
-  if get(a:esearch, 'visualmode', 0)
-    let visual = esearch#util#visual_selection()
-    return {'pcre': visual, 'literal': visual}
+fu! esearch#prefill#region(esearch) abort
+  if !empty(get(a:esearch, 'region'))
+    let text = esearch#util#region_text(a:esearch.region)
+    return {'pcre': text, 'literal': text}
   endif
+endfu
+
+fu! esearch#prefill#visual(esearch) abort
+  " DEPRECATED
 endfu
 
 fu! esearch#prefill#hlsearch(esearch) abort
@@ -38,18 +56,10 @@ fu! esearch#prefill#cword(esearch) abort
   return {'literal': expand('<cword>'), 'pcre': expand('<cword>')}
 endfu
 
-fu! esearch#prefill#word_under_cursor(esearch) abort
-  return {'literal': expand('<cword>'), 'pcre': expand('<cword>')}
-endfu
-
-fu! esearch#prefill#clipboard() abort
+fu! esearch#prefill#clipboard(esearch) abort
   return {'literal': getreg('"'), 'pcre': getreg('"')}
 endfu
 
-fu! esearch#prefill#system_clipboard() abort
-  return {'literal': getreg('+'), 'pcre': getreg('+')}
-endfu
-
-fu! esearch#prefill#system_selection_clipboard() abort
+fu! esearch#prefill#system_clipboard(esearch) abort
   return {'literal': getreg('+'), 'pcre': getreg('+')}
 endfu

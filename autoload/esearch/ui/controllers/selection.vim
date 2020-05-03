@@ -29,7 +29,7 @@ fu! s:SelectionController.render() abort dict
     let retype = char
   elseif index(g:esearch#cmdline#cancel_selection_chars, char) >= 0
     " no-op
-  elseif esearch#util#escape_kind(char) isnot 0
+  elseif esearch#map#escape_kind(char) isnot 0
     let retype = char
   elseif mapcheck(char, 'c') !=# ''
     let retype = char

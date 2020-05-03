@@ -2,21 +2,20 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-" TODO notify c-n and c-p are not used anymore
-let g:esearch#out#win#mappings = [
-      \ {'lhs': 't',       'rhs': 'tab',                'default': 1},
-      \ {'lhs': 'T',       'rhs': 'tab-silent',         'default': 1},
-      \ {'lhs': 'o',       'rhs': 'split',              'default': 1},
-      \ {'lhs': 'O',       'rhs': 'split-once-silent',  'default': 1},
-      \ {'lhs': 's',       'rhs': 'vsplit',             'default': 1},
-      \ {'lhs': 'S',       'rhs': 'vsplit-once-silent', 'default': 1},
-      \ {'lhs': 'R',       'rhs': 'reload',             'default': 1},
-      \ {'lhs': '<Enter>', 'rhs': 'open',               'default': 1},
-      \ {'lhs': 'J',       'rhs': 'next',               'default': 1},
-      \ {'lhs': 'K',       'rhs': 'prev',               'default': 1},
-      \ {'lhs': '}',       'rhs': 'next-file',          'default': 1},
-      \ {'lhs': '{',       'rhs': 'prev-file',          'default': 1},
-      \ ]
+let g:esearch#out#win#legacy_mappings = {
+      \ 'tab':                '<Plug>(esearch-win-tab)',
+      \ 'tab-silent':         '<Plug>(esearch-win-tab-silent)',
+      \ 'split':              '<Plug>(esearch-win-split)',
+      \ 'split-once-silent':  '<Plug>(esearch-win-split-once-silent)',
+      \ 'vsplit':             '<Plug>(esearch-win-vsplit)',
+      \ 'vsplit-once-silent': '<Plug>(esearch-win-vsplit-once-silent)',
+      \ 'reload':             '<Plug>(esearch-win-reload)',
+      \ 'open':               '<Plug>(esearch-win-open)',
+      \ 'next':               '<Plug>(esearch-win-jump2entry-down)',
+      \ 'prev':               '<Plug>(esearch-win-jump2entry-up)',
+      \ 'next-file':          '<Plug>(esearch-win-jump2filename-down)',
+      \ 'prev-file':          '<Plug>(esearch-win-jump2filename-up)',
+      \}
 
 let g:esearch#out#win#entry_pattern = '^\s\+\d\+\s\+.*'
 let g:esearch#out#win#filename_pattern = '^[^ ]' " '\%>2l'
@@ -46,17 +45,16 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#out#win#jumps#init(b:esearch)
   call esearch#out#win#render#init(b:esearch)
   call esearch#out#win#update#init(b:esearch)
+  call esearch#out#win#textobj#init(b:esearch)
 
   " Some plugins set mappings on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
   call s:init_mappings()
   call s:init_commands()
 
-  call extend(b:esearch.request, {
-        \ 'bufnr':      bufnr('%'),
-        \})
+  let b:esearch.request.bufnr = bufnr('%')
 
-  setl filetype=esearch
+  setfiletype esearch
 
   " Prevent from blinking on reloads if the command is known to have a large
   " output
@@ -80,8 +78,8 @@ fu! esearch#out#win#init(esearch) abort
     call luaeval('esearch.appearance.highlight_header(true)')
   endif
 
-  aug esearch_win_event
-    call esearch#util#doautocmd('User esearch_win_event')
+  aug esearch_win_config
+    call esearch#util#doautocmd('User esearch_win_config')
   aug END
   call esearch#util#doautocmd('User esearch_win_init_post')
 
@@ -107,7 +105,7 @@ fu! s:cleanup() abort
     call esearch#out#win#appearance#cursor_linenr#uninit(b:esearch)
     call esearch#out#win#appearance#annotations#uninit(b:esearch)
   endif
-  aug esearch_win_event
+  aug esearch_win_config
     au! * <buffer>
   aug END
   call esearch#util#doautocmd('User esearch_win_uninit_post')
@@ -146,7 +144,11 @@ fu! esearch#out#win#stop_highlights(reason) abort
 endfu
 
 fu! esearch#out#win#map(lhs, rhs) abort
-  call esearch#mapping#add(g:esearch#out#win#mappings, a:lhs, a:rhs)
+  let g:esearch = get(g:, 'esearch', {})
+  let g:esearch = extend(g:esearch, {'win_map': []}, 'keep')
+  let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
+  let g:esearch.pending_deprecations += ['esearch#out#win#map, see :help g:esearch.win_map']
+  let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs), 'mode': 'n'}]
 endfu
 
 fu! s:init_commands() abort
@@ -163,41 +165,42 @@ fu! s:init_commands() abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-win-tab)                :<C-U>cal b:esearch.open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-win-tab-silent)         :<C-U>cal b:esearch.open('tabnew', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-once)         :<C-U>cal b:esearch.open('new', {'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-once-silent)  :<C-U>cal b:esearch.open('new', {'stay': 1, 'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split)              :<C-U>cal b:esearch.open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-silent)       :<C-U>cal b:esearch.open('new', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once)        :<C-U>cal b:esearch.open('vnew', {'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once-silent) :<C-U>cal b:esearch.open('vnew', {'stay': 1, 'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)             :<C-U>cal b:esearch.open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-silent)      :<C-U>cal b:esearch.open('vnew', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-open)               :<C-U>cal b:esearch.open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-prev)               :<C-U>cal b:esearch.jump2entry('^', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-next)               :<C-U>cal b:esearch.jump2entry('v', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-prev-file)          :<C-U>cal b:esearch.jump2filename('^', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-next-file)          :<C-U>cal b:esearch.jump2filename('v', v:count1)<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-reload)             :<C-U>cal b:esearch.reload()<CR>
-
+  nnoremap <silent><buffer> <Plug>(esearch-win-tab)              :<C-U>cal b:esearch.open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tab-stay)         :<C-U>cal b:esearch.open('tabnew', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-once)       :<C-U>cal b:esearch.open('new', {'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-once-stay)  :<C-U>cal b:esearch.open('new', {'stay': 1, 'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split)            :<C-U>cal b:esearch.open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split-stay)       :<C-U>cal b:esearch.open('new', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once)      :<C-U>cal b:esearch.open('vnew', {'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once-stay) :<C-U>cal b:esearch.open('vnew', {'stay': 1, 'once': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)           :<C-U>cal b:esearch.open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-stay)      :<C-U>cal b:esearch.open('vnew', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-open)             :<C-U>cal b:esearch.open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-reload)           :<C-U>cal b:esearch.reload()<CR>
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.preview_enter()<CR>
-    nnoremap <silent><buffer> p     :<C-U>call b:esearch.preview_zoom()<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview)          :<C-U>cal b:esearch.preview_zoom()<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.preview_enter()<CR>
   else
-    nnoremap <silent><buffer> <S-p> :<C-U>call b:esearch.split_preview('vnew', {'stay': 0})<CR>
-    nnoremap <silent><buffer> p     :<C-U>call b:esearch.split_preview('vnew')<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview)          :<C-U>cal b:esearch.split_preview('vnew')<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.split_preview('vnew', {'stay': 0})<CR>
   endif
 
-  for i in range(0, len(g:esearch#out#win#mappings) - 1)
-    if !g:esearch.default_mappings && g:esearch#out#win#mappings[i].default | continue | endif
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1, 'v')<CR>
 
-    if type(g:esearch#out#win#mappings[i].rhs) ==# s:t_func
-      exe 'nnoremap <buffer><silent> ' . g:esearch#out#win#mappings[i].lhs
-            \ . ' :<C-u>call <SID>invoke_mapping_callback(' . i . ')<CR>'
-    else
-      exe 'nmap <buffer> ' . g:esearch#out#win#mappings[i].lhs
-            \ . ' <Plug>(esearch-win-' . g:esearch#out#win#mappings[i].rhs . ')'
-    endif
+  vnoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
+  onoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
+  vnoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
+  onoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
+
+  for maparg in b:esearch.win_map
+    call esearch#map#define(maparg, {'mode': ' ', 'buffer': 1, 'silent': 1})
   endfor
 endfu
 
@@ -208,10 +211,6 @@ fu! s:reload() abort dict
   let self.ctx_by_name = {}
   let self.undotree = {}
   return esearch#init(self)
-endfu
-
-fu! s:invoke_mapping_callback(i) abort
-  call g:esearch#out#win#mappings[a:i].rhs(b:esearch)
 endfu
 
 fu! esearch#out#win#_state(esearch) abort
