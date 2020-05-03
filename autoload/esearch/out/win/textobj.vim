@@ -12,7 +12,7 @@ fu! esearch#out#win#textobj#match_i(count) abort
   call s:select_match(a:count, 0)
 endfu
 
-fu! s:select_match(count, with_trailing_spaces) abort
+fu! s:select_match(count, is_around) abort
   let i = 0
 
   let [i, begin, end] = s:seek_under_cursor(i, a:count)
@@ -20,13 +20,36 @@ fu! s:select_match(count, with_trailing_spaces) abort
     let [i, begin, end] = s:seek_forward(i, a:count)
   endif
 
-  if begin != [0,0] && end != [0,0]
-    call cursor(begin)
-    if a:with_trailing_spaces
-      let end = searchpos(b:esearch.pattern.seek_match . '\m\s*', 'cneW')
-    endif
+  if begin == [0,0] || end == [0,0]
+    return
+  endif
+
+  if a:is_around
+    call s:select_region_with_trailing_or_leading_spaces(begin, end)
+  else
+    call s:select_region(begin, end)
+  endif
+endfu
+
+fu! s:select_region(begin, end) abort
+  call cursor(a:begin)
+  norm! v
+  call cursor(a:end)
+endfu
+
+" Behaves like {operator}iw textobj, where trailing whitespaces if available or
+" leading otherwise
+fu! s:select_region_with_trailing_or_leading_spaces(begin, end) abort
+  call cursor(a:begin)
+
+  if search(b:esearch.pattern.seek_match . '\%(\S\|$\)', 'ceWn') == line('.')
+    call search('\s\+\%#', 'cbW')
     norm! v
-    call cursor(end)
+    call cursor(a:end)
+  else
+    norm! v
+    call cursor(a:end)
+    call search('\%#.\s\+', 'ceW')
   endif
 endfu
 
@@ -38,7 +61,7 @@ fu! s:seek_forward(i, count) abort
   endwhile
   " let begin = searchpos(b:esearch.pattern.seek_match, 'cnW')
   let begin = getpos('.')[1:2]
-  let end   = searchpos(b:esearch.pattern.seek_match, 'cneW')
+  let end   = searchpos(b:esearch.pattern.seek_match, 'ceWn')
 
   call cursor(line, col)
 
