@@ -3,18 +3,18 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#out#win#legacy_mappings = {
-      \ 'tab':                '<Plug>(esearch-win-tab)',
-      \ 'tab-silent':         '<Plug>(esearch-win-tab-silent)',
-      \ 'split':              '<Plug>(esearch-win-split)',
-      \ 'split-once-silent':  '<Plug>(esearch-win-split-once-silent)',
-      \ 'vsplit':             '<Plug>(esearch-win-vsplit)',
-      \ 'vsplit-once-silent': '<Plug>(esearch-win-vsplit-once-silent)',
-      \ 'reload':             '<Plug>(esearch-win-reload)',
       \ 'open':               '<Plug>(esearch-win-open)',
-      \ 'next':               '<Plug>(esearch-win-jump2entry-down)',
-      \ 'prev':               '<Plug>(esearch-win-jump2entry-up)',
-      \ 'next-file':          '<Plug>(esearch-win-jump2filename-down)',
-      \ 'prev-file':          '<Plug>(esearch-win-jump2filename-up)',
+      \ 'tab':                '<Plug>(esearch-win-tabopen)',
+      \ 'tab-silent':         '<Plug>(esearch-win-tabopen:stay)',
+      \ 'split':              '<Plug>(esearch-win-split)',
+      \ 'split-once-silent':  '<Plug>(esearch-win-split:reuse:stay)',
+      \ 'vsplit':             '<Plug>(esearch-win-vsplit)',
+      \ 'vsplit-once-silent': '<Plug>(esearch-win-vsplit:reuse:stay)',
+      \ 'reload':             '<Plug>(esearch-win-reload)',
+      \ 'next':               '<Plug>(esearch-win-jump:entry:down)',
+      \ 'prev':               '<Plug>(esearch-win-jump:entry:up)',
+      \ 'next-file':          '<Plug>(esearch-win-jump:filename:down)',
+      \ 'prev-file':          '<Plug>(esearch-win-jump:filename:up)',
       \}
 
 let g:esearch#out#win#entry_pattern = '^\s\+\d\+\s\+.*'
@@ -165,34 +165,35 @@ fu! s:init_commands() abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-win-tab)              :<C-U>cal b:esearch.open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-win-tab-stay)         :<C-U>cal b:esearch.open('tabnew', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-once)       :<C-U>cal b:esearch.open('new', {'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-once-stay)  :<C-U>cal b:esearch.open('new', {'stay': 1, 'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split)            :<C-U>cal b:esearch.open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split-stay)       :<C-U>cal b:esearch.open('new', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once)      :<C-U>cal b:esearch.open('vnew', {'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-once-stay) :<C-U>cal b:esearch.open('vnew', {'stay': 1, 'once': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)           :<C-U>cal b:esearch.open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit-stay)      :<C-U>cal b:esearch.open('vnew', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-open)             :<C-U>cal b:esearch.open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-reload)           :<C-U>cal b:esearch.reload()<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-reload)            :<C-U>cal b:esearch.reload()<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-open)              :<C-U>cal b:esearch.open('edit')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tabopen)           :<C-U>cal b:esearch.open('tabnew')<cr>
+  nnoremap <silent><buffer> <Plug>(esearch-win-tabopen:stay)      :<C-U>cal b:esearch.open('tabnew', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split)             :<C-U>cal b:esearch.open('new')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split:stay)        :<C-U>cal b:esearch.open('new', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split:reuse)       :<C-U>cal b:esearch.open('new', {'reuse': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-split:reuse:stay)  :<C-U>cal b:esearch.open('new', {'stay': 1, 'reuse': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)            :<C-U>cal b:esearch.open('vnew')<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit:stay)       :<C-U>cal b:esearch.open('vnew', {'stay': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit:reuse)      :<C-U>cal b:esearch.open('vnew', {'reuse': 1})<CR>
+  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit:reuse:stay) :<C-U>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<CR>
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview)          :<C-U>cal b:esearch.preview_zoom()<CR>
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.preview_enter()<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview)         :<C-U>cal b:esearch.preview_zoom()<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview:enter)   :<C-U>cal b:esearch.preview_enter()<CR>
   else
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview)          :<C-U>cal b:esearch.split_preview('vnew')<CR>
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview-enter)    :<C-U>cal b:esearch.split_preview('vnew', {'stay': 0})<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview)         :<C-U>cal b:esearch.split_preview('vnew')<CR>
+    nnoremap <silent><buffer> <Plug>(esearch-win-preview:enter)   :<C-U>cal b:esearch.split_preview('vnew', {'stay': 0})<CR>
   endif
 
-  noremap  <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
-  noremap  <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
-  noremap  <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
-  noremap  <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1, 'v')<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump2filename-down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump2entry-down)    :<C-U>cal b:esearch.jump2entry(1, v:count1, 'v')<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump:filename:up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump:filename:down) :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump:filename:up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump:filename:down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
+
+  noremap  <silent><buffer> <Plug>(esearch-win-jump:entry:up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
+  noremap  <silent><buffer> <Plug>(esearch-win-jump:entry:down)    :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump:entry:up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>
+  vnoremap <silent><buffer> <Plug>(esearch-win-jump:entry:down)    :<C-U>cal b:esearch.jump2entry(1, v:count1, 'v')<CR>
 
   vnoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
   onoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>

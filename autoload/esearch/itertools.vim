@@ -1,4 +1,4 @@
-" Python-like utility functoins for iteration
+" Python-like utility functions for iteration
 
 fu! esearch#itertools#count() abort
   return s:Count.new()

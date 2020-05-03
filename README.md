@@ -151,7 +151,7 @@ function! s:custom_esearch_config() abort
 
   " Override the default vertical split mapping to open a split once and
   " reuse it for later `s` presses. The search window will remain focused
-  nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {'once': 1, 'stay': 1})<CR>
+  nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {'reuse': 1, 'stay': 1})<CR>
   " Yank a hovered absolute path
   nnoremap <silent><buffer> yy :let @" = b:esearch.filename()\|let @+ = @"<CR>
   " Use a custom command to open a file in a tab

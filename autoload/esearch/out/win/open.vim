@@ -6,10 +6,10 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 fu! esearch#out#win#open#init(esearch) abort
   call extend(a:esearch, {
-        \ 'windows_opened_once': {},
-        \ 'opened_once_manager': s:BufferManager.new(),
-        \ 'opened_manager':      s:BufferManager.new(),
-        \ 'open':                function('<SID>open'),
+        \ 'reusable_windows':         {},
+        \ 'reusable_buffers_manager': s:BufferManager.new(),
+        \ 'opened_buffers_manager':   s:BufferManager.new(),
+        \ 'open':                     function('<SID>open'),
         \}, 'keep')
 endfu
 
@@ -20,8 +20,8 @@ fu! s:open(opener, ...) abort dict
 
   let opts            = get(a:, 1, {})
   let stay            = get(opts, 'stay', 0)    " stay in the current window
-  let once            = get(opts, 'once', 0)    " open only a single window
-  let restorable_vars = get(opts, 'let', {})    " assign vars/opts/regs per functoin execution
+  let reuse           = get(opts, 'reuse', 0)   " open only a single window
+  let restorable_vars = get(opts, 'let', {})    " assign vars/opts/regs per function execution
   let window_vars     = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
   let cmdarg          = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
   let mods            = get(opts, 'mods', '')   " EX: botright
@@ -34,7 +34,7 @@ fu! s:open(opener, ...) abort dict
   let view.topline = str2nr(view.lnum) - (line('.') - line('w0'))
 
   try
-    let Open = once ? function('s:open_once') : function('s:open_new')
+    let Open = reuse ? function('s:open_reusable') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)
     keepjumps call winrestview(view)
     call esearch#let#generic(window_vars)
@@ -53,12 +53,12 @@ endfu
 
 fu! s:open_new(esearch, opener, filename, opts) abort
   let a:opts.opener = s:to_callable(a:opener)
-  call a:esearch.opened_manager.open(a:filename, a:opts)
+  call a:esearch.opened_buffers_manager.open(a:filename, a:opts)
 endfu
 
-fu! s:open_once(esearch, opener, filename, opts) abort
+fu! s:open_reusable(esearch, opener, filename, opts) abort
   let opener_id = s:opener_id(a:opener)
-  let opened_window = get(a:esearch.windows_opened_once, opener_id, s:null)
+  let opened_window = get(a:esearch.reusable_windows, opener_id, s:null)
 
   if !empty(opened_window) && esearch#win#exists(opened_window)
     call esearch#win#enter(opened_window)
@@ -66,14 +66,14 @@ fu! s:open_once(esearch, opener, filename, opts) abort
     " Prevents from asking about existing swap prompt multiple times
     if s:Filepath.abspath(bufname('%')) !=# a:filename
       let a:opts.opener = s:to_callable('edit')
-      unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
+      unsilent call a:esearch.reusable_buffers_manager.open(a:filename, a:opts)
     endif
   else
     let a:opts.opener = s:to_callable(a:opener)
-    unsilent call a:esearch.opened_once_manager.open(a:filename, a:opts)
+    unsilent call a:esearch.reusable_buffers_manager.open(a:filename, a:opts)
   endif
 
-  let a:esearch.windows_opened_once[opener_id] =
+  let a:esearch.reusable_windows[opener_id] =
         \ esearch#win#trace()
 endfu
 

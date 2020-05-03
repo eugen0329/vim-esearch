@@ -26,8 +26,8 @@ fu! s:split_preview(...) abort dict
   endif
 
   return self.open(get(a:000, 0, 'vnew'), extend({
-        \ 'stay': 1,
-        \ 'once': 1,
-        \ 'let!': {'&l:foldenable': 0},
+        \ 'stay':  1,
+        \ 'reuse': 1,
+        \ 'let!':  {'&l:foldenable': 0},
         \ }, get(a:000, 1, {})))
 endfu

@@ -118,7 +118,7 @@ describe 'esearch#out#win#open' do
           before do
             editor.command! <<~VIML.gsub("\n", ' ')
               call esearch#out#win#map('e', { ->
-              b:esearch.open({filename -> execute('vsplit ' . filename)}, {'once': 1, 'stay': 1})
+              b:esearch.open({filename -> execute('vsplit ' . filename)}, {'reuse': 1, 'stay': 1})
               })
             VIML
           end
@@ -187,7 +187,7 @@ describe 'esearch#out#win#open' do
             editor.command! <<~VIML.gsub("\n", ' ')
               call esearch#out#win#map('e', { ->
               b:esearch.open('split',
-              {'cmdarg': '++enc=utf8', 'mods': 'topleft', 'stay': 1, 'once': 1, 'let': {'&eventignore': 'all'}})
+              {'cmdarg': '++enc=utf8', 'mods': 'topleft', 'stay': 1, 'reuse': 1, 'let': {'&eventignore': 'all'}})
               })
             VIML
           end
