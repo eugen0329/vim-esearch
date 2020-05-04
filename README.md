@@ -138,7 +138,7 @@ nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
 Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on reloads, so no `augroup` inside is required.
 
 ```vim
-autocmd User esearch_win_event call s:custom_esearch_config()
+autocmd User esearch_win_config call s:custom_esearch_config()
 
 function! s:custom_esearch_config() abort
   setlocal nobuflisted    " don't show the buffer in the buffers list

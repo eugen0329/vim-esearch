@@ -80,8 +80,8 @@ fu! s:highlight_viewport_cb(esearch) abort
     return
   endif
 
-  let top    = esearch#util#clip(top - a:esearch.win_viewport_off_screen_margins, 1, line('$'))
-  let bottom = esearch#util#clip(bottom + a:esearch.win_viewport_off_screen_margins, 1, line('$'))
+  let top    = esearch#util#clip(top - a:esearch.win_viewport_off_screen_margin, 1, line('$'))
+  let bottom = esearch#util#clip(bottom + a:esearch.win_viewport_off_screen_margin, 1, line('$'))
   call s:highlight_viewport(a:esearch, top, bottom)
 endfu
 
