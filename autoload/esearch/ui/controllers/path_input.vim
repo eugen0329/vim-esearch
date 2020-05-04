@@ -1,4 +1,4 @@
-let s:Message             = esearch#message#import()
+let s:Log             = esearch#log#import()
 let s:PathInputController = esearch#ui#component()
 
 fu! s:PathInputController.render() abort dict
@@ -14,7 +14,7 @@ fu! s:PathInputController.render() abort dict
     let [paths, error] = esearch#shell#split(user_input_in_shell_format)
 
     if error isnot 0
-      call s:Message.echon('ErrorMsg', " can't parse paths: " . error)
+      call s:Log.echon('ErrorMsg', " can't parse paths: " . error)
       call getchar()
       redraw!
     else

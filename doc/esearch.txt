@@ -1,42 +1,30 @@
 *esearch.txt*  NeoVim/Vim plugin performing project-wide async search
 and replace, similar to SublimeText, Atom et al.
 
-CONTENTS                                *vim-esearch-help-contents*
+CONTENTS                                               *vim-esearch-help-contents*
 
-Features overview         |vim-esearch-features|
-Install                   |vim-esearch-install|
-Quick Start               |vim-esearch-quick-start|
-Configuration             |vim-esearch-quick-start|
-  Search window mapping
-  Key mappings              |vim-esearch-key-mappings|
-Customization             |vim-esearch-customization|
-  General                   |vim-esearch-customization-general|
-  Window                    |vim-esearch-customization-window|
-  Cmdline                   |vim-esearch-customization-cmdline|
-About                     |vim-esearch-about|
-
-
-Contents
-Features overview
-Install
-Quick start
-Menu
-Global
-  Mappings
-  Configurations
-Search window
-  Mappings
-  Configurations
-  Preview
-Appearance
-Performance
-API
-  Global functions
-  Local functions
-  Events
-  Usage examples
-Trjubleshooting
-About
+Features overview     |vim-esearch-features|         
+Install               |vim-esearch-install|   
+Quick start           |vim-esearch-quickstart|   
+Global                |vim-esearch-global|   
+  Mappings              |vim-esearch-global-map|   
+  Configurations        |vim-esearch-global-config|   
+Search window         |vim-esearch-win|   
+  Mappings              |vim-esearch-win-map|   
+  Configurations        |vim-esearch-win-config|   
+  Preview               |vim-esearch-win-preview|   
+Commandline           |vim-esearch-cmdline|   
+  Prompt                |vim-esearch-cmdline-prompt|   
+  Menu                  |vim-esearch-cmdline-menu|   
+Appearance            |vim-esearch-appearance|   
+Performance           |vim-esearch-performance|   
+API                   |vim-esearch-api|   
+  Global functions      |vim-esearch-api-global-functions|   
+  Local functions       |vim-esearch-api-local-functions|   
+  Events                |vim-esearch-api-events|   
+  Usage examples        |vim-esearch-api-examples|   
+Troubleshooting       |vim-esearch-troubleshooting|   
+About                 |vim-esearch-about|   
 
 ================================================================================
 FEATURES OVERVIEW                                           *vim-esearch-features*
@@ -80,7 +68,7 @@ features. Otherwise, grep or git-grep will be used.
               [pt]  https://github.com/monochromegane/the_platinum_searcher#user
 
 ================================================================================
-QUICK START                                              *vim-esearch-quick-start*
+QUICK START                                               *vim-esearch-quickstart*
 
 Start searching~
     Type `<leader>ff` keys (`<leader>` is `\` unless redefined) to open the
@@ -111,22 +99,22 @@ Preview~
 ================================================================================
 GLOBAL                                                        *vim-esearch-global*
 
-GLOBAL MAPPIGNS                                           *vim-esearch-global-map*
+GLOBAL MAPPINGS                                           *vim-esearch-global-map*
 
            Map                                 Comment ~
  ------------------------+------------------------------------------------------
- <Plug>(esearch)         | Start the input prompt.
- <Plug>(esearch-prefill) | Operator to start the prompt prefilled by a textobj.
- <Plug>(esearch-exec)    | Operator to start a search for a textobj.
+ <plug>(esearch)         | Start the input prompt.
+ <plug>(esearch-prefill) | Operator to start the prompt pre-filled by a textobj.
+ <plug>(esearch-exec)    | Operator to start a search for a textobj.
  ------------------------+------------------------------------------------------
 
 Example configuration: >
-  nmap <c-f><c-f> <Plug>(esearch)
-  map  <c-f>      <Plug>(esearch-prefill)
-  map  <c-m-f>    <Plug>(esearch-prefill)
+  nmap <c-f><c-f> <plug>(esearch)
+  map  <c-f>      <plug>(esearch-prefill)
+  map  <c-m-f>    <plug>(esearch-prefill)
 <
 Will map `<c-f><c-f>` (double control-f) pressed twice to start the prompt,
-prefilled using one of specified strategies (see |esearch-prefill|). To
+pre-filled using one of specified strategies (see |esearch-prefill|). To
 prefill the prompt with a text in braces like "(text to search)"  `<c-f>i(`
 can be used. To start searching for the current word instantly `<c-m-f>iw` can
 be pressed.
@@ -143,17 +131,21 @@ To configure the plugin you must initialize it first with:
     let g:esearch = {}
 <
 Basic configurations:
-        Key                                 Comment ~
+
+        Property                              Comment~
  ------------------------+------------------------------------------------------
  `.default_mappings`       | Disable all default mappings
  `.regex`                  | To configure regex match modes
  `.case`                   | Configure case matching modes (smart, sensitive etc.)
- `.textobj`                | Configure textobj matchiing modes (word, line etc.)
+ `.textobj`                | Configure textobj matching modes (word, line etc.)
  `.prefill`                | To configure the initial prompt content
  `.root_markers`           | List of filenames to determine a project root
  `.filetypes`              | String with filetypes to search only in them
  `.paths`                  | String with paths to search only
  `.select_prefilled`       | Use selection similar to visual
+ `.adapter`                | Search util adapter name
+ `.bckend`                 | Processing backend name
+ `.out`                    | Output target name
  ------------------------+------------------------------------------------------
 
 g:esearch.default_mappings                            *g:esearch.default_mappings*
@@ -205,19 +197,17 @@ g:esearch.textobj                                              *g:esearch.textob
 
 g:esearch.prefill                                              *g:esearch.prefill*
         Configures a list of strategies to set an initial value of the prompt.
-        Allowed list values: 'clipboard' (prefills with |clipboard| content),
+        Allowed list values: 'clipboard' (pre-fills with |clipboard| content),
         'hlsearch' (currently highlighted pattern searched with `/`), 'last'
         (last pattern search using the plugin), 'cword' (word under the
         cursor), 'current' (if within the search window - use the pattern
         TODO) or funcref.
-        Type: |List| of |String|s
+        Type: |List| of |String| and |Funcref|s
         Default: ["hlsearch", "current", "last"]
         Example: ~
 >
         let g:esearch.prefill = ['hlsearch', 'cword', { -> 'custom text' }]
 <
-
-        Prefill also supports callable prefillers
 
 g:esearch.root_markers                                    *g:esearch.root_markers*
         Tell the plugin what filenames to use to determine the root of your
@@ -253,7 +243,7 @@ g:esearch.paths                                                  *g:esearch.path
         NOTE: to use all globbing features ensure, that |'shell'| option
         contains required options. E.g. for add to your vimrc:
         `set shell=bash\ -O\ globstar -O\ extglob`
-        If you use OSX, install the lastest bash version first using:
+        If you use OSX, install the latest bash version first using:
         `:!brew install bash`
 
 g:esearch.select_prefilled                            *g:esearch.select_prefilled*
@@ -270,7 +260,7 @@ g:esearch.select_prefilled                            *g:esearch.select_prefille
 
 g:esearch.before                                                *g:esearch.before*
 g:esearch.after                                                  *g:esearch.after*
-g:esearch.context                                     *g:esearch.select_prefilled*
+g:esearch.context                                              *g:esearch.context*
         Options to configure a number of lines to insert before, after or
         around the matching line correspondingly.
         Type: |Number|
@@ -281,7 +271,6 @@ g:esearch.context                                     *g:esearch.select_prefille
         let g:esearch.before = 1
         let g:esearch.after = 2
 <
-
 g:esearch.remember                                            *g:esearch.remember*
         Contains a list of values to remember for later search requests.
         Type: |List| of |String|s
@@ -293,24 +282,181 @@ g:esearch.remember                                            *g:esearch.remembe
 >
         let g:esearch.remember = ['case', 'regex', 'filetypes']
 <
+g:esearch.adapter                                              *g:esearch.adapter*
+        Name of a search util to use.
+        Type: |String|
+        Allowed values: `'rg'`, `'ag'`, `'ack'`, `'pt'`, `'git'` or `'grep'`.
+        Default: depends on executables availability.
+        Example:~
+>
+        let g:esearch.adapter = 'grep'
+<
+g:esearch.backend                                              *g:esearch.backend*
+        Name of a processing backend to use.
+        Type: |String|
+        Allowed values: `'nvim'`, `'vim8'`, `'vimproc'`, `'system'`
+        Default: depends on editors features.
+        Example:~
+>
+        let g:esearch.backend = 'system'
+<
+        NOTE Some backends are not synchronous (like system) or
+        pseudo-asynchronous (like vimproc), so it's not recommended to redefine
+        this option.
+
+g:esearch.out                                                      *g:esearch.out*
+        Target name to output results
+        Type: |String|
+        Allowed values: `'win'`, `'qflist'.
+        Default: `'win'`
+        Example:~
+>
+        let g:esearch.out = 'qflist'
+<
+        NOTE Quickfix list output contains far less features as it's vim's
+        builtin feature.
 
 ================================================================================
 SEARCH WINDOW                                                    *vim-esearch-win*
 
+SEARCH WINDOW MAPPINGS                                       *vim-esearch-win-map*
+                                                    *vim-esearch-win-map-defaults*
+
+                 Map                   Default                   Comment~
+ --------------------------------------+------+--------------------------------------------------------------
+<plug>(esearch-win-reload)             |  R   | Reload current search
+<plug>(esearch-win-tabopen)            |  t   | Open a file under the cursor in a tab
+<plug>(esearch-win-tabopen:stay)       |  T   | Open in a tab and stay within the win
+<plug>(esearch-win-split)              |  o   | Open a file under the cursor in a split
+<plug>(esearch-win-split:reuse:stay)   |  O   | Open in a reusable split and stay within the win
+<plug>(esearch-win-vsplit)             |  s   | Open a file under the cursor in a vertical split
+<plug>(esearch-win-vsplit:reuse:stay)  |  S   | Open in a reusable vertical split and stay within the win
+<plug>(esearch-win-open)               | <CR> | Open a file under the cursor in the window
+<plug>(esearch-win-preview)            |  p   | Open the preview window
+<plug>(esearch-win-preview:enter)      |  P   | Open the preview window and enter it
+<plug>(esearch-win-jump:entry:down)    |  J   | Jump down to the next outputted line
+<plug>(esearch-win-jump:entry:up)      |  K   | Jump up to the previous outputted line
+<plug>(esearch-win-jump:filename:down) |  }   | Jump down to the next filename
+<plug>(esearch-win-jump:filename:up)   |  {   | Jump up to the previous filename
+<plug>(textobj-esearch-match-i)        |  im  | Seek forward and operate the next match
+<plug>(textobj-esearch-match-a)        |  am  | Same as above, but capture surrounding whitespaces
+ --------------------------------------+------+--------------------------------------------------------------
+
+Use |g:esearch.win_map| to configure mappings or |esearch_win_config| event.
+
+Example:~
+>
+        let g:esearch = {}
+        let g:esearch.win_map = [
+        \ {'lhs': 'e', 'rhs': '<plug>(esearch-win-vsplit)'},
+        \ {'lhs': 'E', 'rhs': '<plug>(esearch-win-vsplit:stay)'},
+        \]
+<
+See |maparg()| for other keys.
+
+NOTE Options `{..., 'silent': 1, 'buffer': 1}` are added automatically. Don't
+overwrite them to avoid side effects.
+
+<plug>(esearch-win-reload)                            *<plug>(esearch-win-reload)*
+        Reload the current search window.
+
+<plug>(esearch-win-open)                                *<plug>(esearch-win-open)*
+        Open a line in file under the cursor. To return back to the search window
+        |CTRL-O| can be used (builtin vim command to jump to older cursor
+        positions).
+        Example:~
+>
+        let g:esearch.win_map = [
+        \ {'lhs': 'e', 'rhs': '<plug>(esearch-win-open)'}
+        \]
+<
+<plug>(esearch-win-tabopen)                          *<plug>(esearch-win-tabopen)*
+<plug>(esearch-win-tabopen:stay)                *<plug>(esearch-win-tabopen:stay)*
+        Open a line in file under the cursor in a new tab. If `:stay` is used -
+        it doesn't move cursor to the opened file.
+
+<plug>(esearch-win-split)                              *<plug>(esearch-win-split)*
+<plug>(esearch-win-split:stay)                    *<plug>(esearch-win-split:stay)*
+<plug>(esearch-win-split:reuse)                  *<plug>(esearch-win-split:reuse)*
+<plug>(esearch-win-split:reuse:stay)        *<plug>(esearch-win-split:reuse:stay)*
+        Open a line in file under the cursor in a horizontal split. If `:stay`
+        is used - it doesn't move cursor to the opened file. If `:reuse` is
+        used - reuse the opened window for all further opens.
+
+<plug>(esearch-win-vsplit)                            *<plug>(esearch-win-vsplit)*
+<plug>(esearch-win-vsplit:stay)                  *<plug>(esearch-win-vsplit:stay)*
+<plug>(esearch-win-vsplit:reuse)                *<plug>(esearch-win-vsplit:reuse)*
+<plug>(esearch-win-vsplit:reuse:stay)      *<plug>(esearch-win-vsplit:reuse:stay)*
+        Open a line in file under the cursor in a vertical split. If `:stay` is
+        used - it doesn't move cursor to the opened file. If `:reuse` is used -
+        reuse the opened window for all further opens.
+
+<plug>(esearch-win-preview)                          *<plug>(esearch-win-preview)*
+<plug>(esearch-win-preview:enter)              *<plug>(esearch-win-preview:enter)*
+        Open a line in file under the cursor in a preview window. If `:enter` is
+        used - cursor will be moved into the opened window.
+        Example:~
+>
+        let g:esearch.win_map = [
+        \ {'lhs': ']f', 'rhs': '<plug>(esearch-win-jump:filename:up)'}
+        \ {'lhs': '[f', 'rhs': '<plug>(esearch-win-jump:filename:down)'}
+        \]
+<
+        NOTE: floating preview is only supported in neovim TODO VERSION. In
+        vim split window will be used instead.
+
+<plug>(esearch-win-jump:filename:up)        *<plug>(esearch-win-jump:filename:up)*
+<plug>(esearch-win-jump:filename:down)    *<plug>(esearch-win-jump:filename:down)*
+        Move cursor to a filename up or down.
+        Example:~
+>
+        let g:esearch.win_map = [
+        \ {'lhs': ']f', 'rhs': '<plug>(esearch-win-jump:filename:up)'}
+        \ {'lhs': '[f', 'rhs': '<plug>(esearch-win-jump:filename:down)'}
+        \]
+<
+<plug>(esearch-win-jump:entry:up)              *<plug>(esearch-win-jump:entry:up)*
+<plug>(esearch-win-jump:entry:down)          *<plug>(esearch-win-jump:entry:down)*
+        Move cursor to an outputted text line up or down.
+        Example:~
+>
+        let g:esearch.win_map = [
+        \ {'lhs': '<m-j>', 'rhs': '<plug>(esearch-win-jump:entry:up)'}
+        \ {'lhs': '<m-k>', 'rhs': '<plug>(esearch-win-jump:entry:down)'}
+        \]
+<
+<plug>(textobj-esearch-match-i)                  *<plug>(textobj-esearch-match-i)*
+<plug>(textobj-esearch-match-a)                  *<plug>(textobj-esearch-match-a)*
+        Seek a match under the cursor or on any line forward to start
+        operating on it. <plug>(textobj-esearch-match-i) captures on the
+        highlighted region, while <plug>(textobj-esearch-match-a) captures
+        also trailing or leading whitespaces like |aw| text-object do
+        Usage example: press `daw` to delete a match under the cursor with
+        leading or trailing whitespaces or `ciw` to delete it and enter insert
+        mode.
+        Example:~
+>
+        let g:esearch.win_map = [
+        \ {'lhs': 'ie', 'rhs': '<plug>(textobj-esearch-match-i)', 'mode': 'ov'}
+        \ {'lhs': 'ae', 'rhs': '<plug>(textobj-esearch-match-a)', 'mode': 'ov'}
+        \]
+________________________________________________________________________________~
 SEARCH WINDOW CONFIGURATIONS                              *vim-esearch-win-config*
 
 Search window-related configurations are added to |g:esearch| dictionary.
 
-Basic search window configurations:
+Search window configurations:
+
+            Property                              Comment~
  -----------------------------+-------------------------------------------------
  `.win_new`                     | Funcref to open a new window with search results
- `.win_map`                     | List of mapargs to deine window-local mappings
- `.win_contexts_syntax`         | Use filetype-aware sintax highlights
+ `.win_map`                     | List of mapargs to define window-local mappings
+ `.win_contexts_syntax`         | Use filetype-aware syntax highlights
  `.win_context_len_annotations` | Outputted lines count of a context
  `.win_cursor_linenr_highlight` | Funcref to open a new window with search results
  -----------------------------+-------------------------------------------------
 
-g:esearch.win_new (funcref)                                   *g:esearch.remember*
+g:esearch.win_new                                              *g:esearch.win_new*
         Specifies a function to open a new search window
         Type: |Funcref|
         Default: a function, that reuse windows with the same search patterns.
@@ -322,7 +468,7 @@ g:esearch.win_new (funcref)                                   *g:esearch.remembe
         vertical split and reuse it for further searches.
 
 g:esearch.win_contexts_syntax                      *g:esearch.win_contexts_syntax*
-        Toggles filetype-depent syntax.
+        Toggles filetype-dependent syntax.
         Type: |Boolean|
         Allowed values: 1 or 0.
         Default: 1
@@ -330,9 +476,19 @@ g:esearch.win_contexts_syntax                      *g:esearch.win_contexts_synta
         >
         let g:esearch.win_new = 1
 <
-g:esearch.win_map (list of dicts)                  *g:esearch.win_contexts_syntax*
-        Allows to define search-window local mappings. TODO
-        Allowed value: list of maparg dicts. See :help |maparg()| for details
+g:esearch.win_map                                              *g:esearch.win_map*
+        Allows to define search window-local mappings. Contains maparg dicts
+        that define mappings. See :help |maparg()| for details. As an
+        alternative, |esearch_win_config| autocommand can be used.
+        for details
+        Type: |List| of |Dict|s
+        Default: see |vim-esearch-win-map-defaults|
+        Example:~
+>
+        let g:esearch.win_map = []
+        let g:esearch.win_map += {'lhs': 'e': 'rhs': '<plug>(esearch-win-open)'}
+<
+        See also: |vim-esearch-win-map|
 
 g:esearch.win_context_len_annotations      *g:esearch.win_context_len_annotations*
         Toggles annotations to the right of a filename, that show the number
@@ -346,7 +502,7 @@ g:esearch.win_context_len_annotations      *g:esearch.win_context_len_annotation
 <
         NOTE: neovim 0.4.3 or higher is required.
 
-g:esearch.win_cursor_linenr_highlight        *g:esearch.win_cursor_linenr_highlight*
+g:esearch.win_cursor_linenr_highlight      *g:esearch.win_cursor_linenr_highlight*
         Toggles cursor line numbers highlight, like it's done in regular
         buffers.
         Type: |Boolean|
@@ -355,138 +511,20 @@ g:esearch.win_cursor_linenr_highlight        *g:esearch.win_cursor_linenr_highli
         >
         let g:esearch.win_cursor_linenr_highlight = 1
 <
-________________________________________________________________________________~
-SEARCH WINDOW MAPPINGS                                  *vim-esearch-win-mapings*
-
-                 Map                   Default                   Comment~
- --------------------------------------+------+--------------------------------------------------------------
-<Plug>(esearch-win-reload)             |  R   | Reload current search
-<Plug>(esearch-win-tabopen)            |  t   | Open a file under the cursor in a tab
-<Plug>(esearch-win-tabopen:stay)       |  T   | Oopen in a tab and stay within the win
-<Plug>(esearch-win-split)              |  o   | Open a file under the cursor in a split
-<Plug>(esearch-win-split:reuse:stay)   |  O   | Open in a reusable split and and stay within the win
-<Plug>(esearch-win-vsplit)             |  s   | Open a file under the cursor in a vertical split
-<Plug>(esearch-win-vsplit:reuse:stay)  |  S   | Open in a reusable vertical split and and stay within the win
-<Plug>(esearch-win-open)               | <CR> | Open a file under the cursor in the window
-<Plug>(esearch-win-preview)            |  p   | Open the preview window
-<Plug>(esearch-win-preview:enter)      |  P   | Open the preview window and enter it
-<Plug>(esearch-win-jump:entry:down)    |  J   | Jump down to the next outputted line
-<Plug>(esearch-win-jump:entry:up)      |  K   | Jump up to the previous outputted line
-<Plug>(esearch-win-jump:filename:down) |  }   | Jump down to the next filename
-<Plug>(esearch-win-jump:filename:up)   |  {   | Jump up to the previous filename
-<Plug>(textobj-esearch-match-i)        |  im  | Seek forward and operate the next match
-<Plug>(textobj-esearch-match-a)        |  am  | Same as above, but capture surrounding whitespaces
- --------------------------------------+------+--------------------------------------------------------------
-
-Use |g:esearch.win_map| to configure mappings or TODO autocommand.
-Example:~
->
-        let g:esearch = {}
-        let g:esearch.win_map = [
-        \ {'lhs': 'e', 'rhs': '<Plug>(esearch-win-vsplit)'},
-        \ {'lhs': 'E', 'rhs': '<Plug>(esearch-win-vsplit:stay)'},
-        \]
->
-
-See |maparg()| for other keys defaults
-
-<Plug>(esearch-win-reload)                            *<Plug>(esearch-win-reload)*
-        Reload the current search window.
-
-<Plug>(esearch-win-open)                                *<Plug>(esearch-win-open)*
-        Open a line in file under the cursor. To return back to the search window
-        |CTRL-O| can be used (builtin vim command to jump to older cursor
-        positions).
-        Example:~
->
-        let g:esearch.win_map = [
-        \ {'lhs': 'e', 'rhs': '<Plug>(esearch-win-open)'}
-        \]
-<
-<Plug>(esearch-win-tabopen)                          *<Plug>(esearch-win-tabopen)*
-<Plug>(esearch-win-tabopen:stay)                *<Plug>(esearch-win-tabopen:stay)*
-        Open a line in file under the cursor in a new tab. If `:stay` is used -
-        it doesn't move cursor to the opened file.
-
-<Plug>(esearch-win-split)                              *<Plug>(esearch-win-split)*
-<Plug>(esearch-win-split:stay)                    *<Plug>(esearch-win-split:stay)*
-<Plug>(esearch-win-split:reuse)                  *<Plug>(esearch-win-split:reuse)*
-<Plug>(esearch-win-split:reuse:stay)        *<Plug>(esearch-win-split:reuse:stay)*
-        Open a line in file under the cursor in a horizontal split. If `:stay`
-        is used - it doesn't move cursor to the opened file. If `:reuse` is
-        used - reuse the opened window for all further opens.
-
-<Plug>(esearch-win-vsplit)                            *<Plug>(esearch-win-vsplit)*
-<Plug>(esearch-win-vsplit:stay)                  *<Plug>(esearch-win-vsplit:stay)*
-<Plug>(esearch-win-vsplit:reuse)                *<Plug>(esearch-win-vsplit:reuse)*
-<Plug>(esearch-win-vsplit:reuse:stay)      *<Plug>(esearch-win-vsplit:reuse:stay)*
-        Open a line in file under the cursor in a vertical split. If `:stay` is
-        used - it doesn't move cursor to the opened file. If `:reuse` is used -
-        reuse the opened window for all further opens.
-
-<Plug>(esearch-win-preview)                          *<Plug>(esearch-win-preview)*
-<Plug>(esearch-win-preview:enter)              *<Plug>(esearch-win-preview:enter)*
-        Open a line in file under the cursor in a preview window. If `:enter` is
-        used - cursor will be moved into the opened window.
-        Example:~
->
-        let g:esearch.win_map = [
-        \ {'lhs': ']f', 'rhs': '<Plug>(esearch-win-jump:filename:up)'}
-        \ {'lhs': '[f', 'rhs': '<Plug>(esearch-win-jump:filename:down)'}
-        \]
-<
-        NOTE: floating preview is only supported in neovim TODO VERSION. In
-        vim split window will be used instead.
-
-<Plug>(esearch-win-jump:filename:up)        *<Plug>(esearch-win-jump:filename:up)*
-<Plug>(esearch-win-jump:filename:down)    *<Plug>(esearch-win-jump:filename:down)*
-        Move cursor to a filename up or down.
-        Example:~
->
-        let g:esearch.win_map = [
-        \ {'lhs': ']f', 'rhs': '<Plug>(esearch-win-jump:filename:up)'}
-        \ {'lhs': '[f', 'rhs': '<Plug>(esearch-win-jump:filename:down)'}
-        \]
-<
-<Plug>(esearch-win-jump:entry:up)              *<Plug>(esearch-win-jump:entry:up)*
-<Plug>(esearch-win-jump:entry:down)          *<Plug>(esearch-win-jump:entry:down)*
-        Move cursor to an outputed text line up or down.
-        Example:~
->
-        let g:esearch.win_map = [
-        \ {'lhs': '<m-j>', 'rhs': '<Plug>(esearch-win-jump:entry:up)'}
-        \ {'lhs': '<m-k>', 'rhs': '<Plug>(esearch-win-jump:entry:down)'}
-        \]
-<
-<Plug>(textobj-esearch-match-i)                  *<Plug>(textobj-esearch-match-i)*
-<Plug>(textobj-esearch-match-a)                  *<Plug>(textobj-esearch-match-a)*
-        Seek a match under the cursor or on any line forward to start
-        operating on it. <Plug>(textobj-esearch-match-i) captures on the
-        highlighted region, while <Plug>(textobj-esearch-match-a) captures
-        also trailing or leading whitespaces like |aw| text-object do
-        Usage example: press `daw` to delete a match under the cursor with
-        leading or trailing whitespaces or `ciw` to delete it and enter insert
-        mode.
-        Example:~
->
-        let g:esearch.win_map = [
-        \ {'lhs': 'ie', 'rhs': '<Plug>(textobj-esearch-match-i)', 'mode': 'ov'}
-        \ {'lhs': 'ae', 'rhs': '<Plug>(textobj-esearch-match-a)', 'mode': 'ov'}
-        \]
 
 ________________________________________________________________________________~
-SEARCH WINDOW PREVIEW                                        *vim-esearch-preview*
-                                                       *vim-esearch-split-preview*
+SEARCH WINDOW PREVIEW                                   *vim-esearch-win-preview*
+                                                  *vim-esearch-win-split-preview*
 
 The plugin has two option for previewing the results:
 - floating preview (using neovim floating windows).
 - split preview (using a regular split window).
 
-Preview window is opened with `p` key or using |<Plug>(esearch-win-preview)|
-key is remapped. For neovim floating window is used. For regular vim split preview
-will be used. To zoom preview window press `p` key multiple times. Preview
-window can be entered by pressing capital `P`. Use
-|<Plug>(esearch-win-preview:enter)| to map a custom key to enter the preview
+Preview window is opened with `p` key or using |<plug>(esearch-win-preview)|
+key is remapped. For neovim floating window is used. For regular vim split
+preview will be used. To zoom preview window press `p` key multiple times.
+Preview window can be entered by pressing capital `P`. Use
+|<plug>(esearch-win-preview:enter)| to map a custom key to enter the preview
 window.
 
 See also: |vim-esearch-map| for mappings customization.
@@ -507,7 +545,7 @@ Search window outlook:
  |  |  `2` another |line with `matched text`
  |  |  ^         ^          ^^^^^^^^^^^^
  |  |  |         |          esearchMatch
- |  |  |         Cursor positon {1}
+ |  |  |         Cursor position {1}
  |  |  esearchCursorLineNr
  |  esearchLineNr
 esearchFilename
@@ -523,7 +561,7 @@ Example:
 <
 
 esearchHeader                                                   *hl-esearchHeader*
-        First window line highlighta. Contains statistics, spinner and request
+        First window line highlight. Contains statistics, spinner and request
         status information.
         Default: linked to |hl-Title|
 
@@ -551,15 +589,17 @@ esearchMatch                                                     *hl-esearchMatc
 ________________________________________________________________________________~
 PERFORMANCE                                              *vim-esearch-performance*
 
-Basic configurations:
+Performance configurations:
+
+                 Property                                     Comment~
  ------------------------------------------+------------------------------------------------------
  `.win_update_throttle_wait`                 | Update throttling timeout
- `.win_matches_highlight_debounce_wait`      | Vieport matches highlight debouncing timeout
- `.win_contexts_syntax_debounce_wait`        | Vieport filetypes highlight debouncing timeout
+ `.win_matches_highlight_debounce_wait`      | Viewport matches highlight debouncing timeout
+ `.win_contexts_syntax_debounce_wait`        | Viewport filetypes highlight debouncing timeout
  `.win_viewport_off_screen_margin`           | Controls the height of viewport
  `.win_matches_highlight_strategy`           | A strategy to highlight matched text
  `.win_contexts_syntax_sync_minlines`        | See :help |:syn-sync-minlines| for details
- `.win_context_syntax_clear_on_line_len`     | Max line len before filetype syntaxe is cleared
+ `.win_context_syntax_clear_on_line_len`     | Max line len before a filetype syntax is cleared
  `.win_contexts_syntax_clear_on_line_len`    | Max line len before all syntaxes are cleared
  `.win_contexts_syntax_clear_on_files_count` | Max files count before filetype syntaxes are cleared
  `.win_ui_nvim_syntax`                       | Use position based syntax with (neovim only)
@@ -589,7 +629,8 @@ g:esearch.win_update_throttle_wait            *g:esearch.win_update_throttle_wai
         Allowed value: >= 0.
         Default: 100.
 
-g:esearch.win_matches_highlight_debounce_wait *g:esearch.win_matches_highlight_debounce_wait*
+                                   *g:esearch.win_matches_highlight_debounce_wait*
+g:esearch.win_matches_highlight_debounce_wait
         Debounce (trailing edge) timeout, used to prevent slowdowns on scrolls.
         Type: |Number|
         Allowed value: >= 0.
@@ -598,7 +639,8 @@ g:esearch.win_matches_highlight_debounce_wait *g:esearch.win_matches_highlight_d
         NOTE Has no affect unless |g:esearch.win_matches_highlight_strategy| is not
         "viewport".
 
-g:esearch.win_contexts_syntax_debounce_wait *g:esearch.win_contexts_syntax_debounce_wait*
+                                     *g:esearch.win_contexts_syntax_debounce_wait*
+g:esearch.win_contexts_syntax_debounce_wait
         Debounce (trailing edge) timeout, used to prevent slowdowns on
         scrolls, caused by loading filetype-dependent context syntaxes.
         Type: |Number|
@@ -607,18 +649,20 @@ g:esearch.win_contexts_syntax_debounce_wait *g:esearch.win_contexts_syntax_debou
 
         NOTE Has no affect unless |g:esearch.win_contexts_syntax| is not 1.
 
-g:esearch.win_viewport_off_screen_margin *g:esearch.win_viewport_off_screen_margin*
-        A number of lines, used to prevent slowdows caused by viewport
+                                        *g:esearch.win_viewport_off_screen_margin*
+g:esearch.win_viewport_off_screen_margin 
+        A number of lines, used to prevent slowdowns caused by viewport
         position based matches highlights adding or filetype-dependent context
         syntaxes loading when |CTRL-D| or |CTRL-U| scrolling is used.
         Type: |Number|
         Allowed value: >= 0.
-        Default: depends on 'lines' option, but alwasy >= 100.
+        Default: depends on 'lines' option, but always >= 100.
 
         NOTE Has no affect unless |g:esearch.win_contexts_syntax| is not 1 or
         |g:esearch.win_matches_highlight_strategy| is not "viewport".
 
-g:esearch.win_matches_highlight_strategy *g:esearch.win_matches_highlight_strategy*
+                                        *g:esearch.win_matches_highlight_strategy*
+g:esearch.win_matches_highlight_strategy
         A strategy to highlight matched text. Viewport highlight strategy use
         neovim position based highlights and is the fastest. Hlsearch strategy
         highlights matches by overwriting |@/| search register. Matchadd
@@ -629,7 +673,8 @@ g:esearch.win_matches_highlight_strategy *g:esearch.win_matches_highlight_strate
         Default: 'viewport' if g:esearch#has#nvim_lua_syntax is true,
         'matchadd' otherwise.
 
-g:esearch.win_contexts_syntax_sync_minlines *g:esearch.win_contexts_syntax_sync_minlines*
+                                     *g:esearch.win_contexts_syntax_sync_minlines*
+g:esearch.win_contexts_syntax_sync_minlines
         See :help |:syn-sync-minlines| for details
         Type: |Number|
         Allowed value: > 0.
@@ -637,25 +682,28 @@ g:esearch.win_contexts_syntax_sync_minlines *g:esearch.win_contexts_syntax_sync_
 
         NOTE Has no affect unless |g:esearch.win_contexts_syntax| is not 1.
 
-g:esearch.win_context_syntax_clear_on_line_len *g:esearch.win_context_syntax_clear_on_line_len*
+                                  *g:esearch.win_context_syntax_clear_on_line_len*
+g:esearch.win_context_syntax_clear_on_line_len
         Is used to set line length limit, after which a context syntax will be
-        disabled to prevent slowdowns (vim regex-based syntax pecularity).
+        disabled to prevent slowdowns (vim regex-based syntax peculiarity).
         Allowed value: > 0.
         Default: 800.
 
-g:esearch.win_contexts_syntax_clear_on_line_len *g:esearch.win_contexts_syntax_clear_on_line_len*
+                                 *g:esearch.win_contexts_syntax_clear_on_line_len*
+g:esearch.win_contexts_syntax_clear_on_line_len
         Is used to set line length limit, after which all filetype-dependent
         syntaxes will be disabled to prevent slowdowns (vim regex-based
-        syntax pecularity). Is relevant when one-line files like minified svg,
+        syntax peculiarity). Is relevant when one-line files like minified svg,
         js or css are outputted.
         Type: |Number|
         Allowed value: > 0.
         Default: 30000.
 
-g:esearch.win_contexts_syntax_clear_on_files_count *g:esearch.win_contexts_syntax_clear_on_files_count*
+                              *g:esearch.win_contexts_syntax_clear_on_files_count*
+g:esearch.win_contexts_syntax_clear_on_files_count
         Is used to set line files count limit, after which all filetype-dependent
         syntaxes will be disabled to prevent slowdowns (vim regex-based
-        syntax pecularity).
+        syntax peculiarity).
         Type: |Number|
         Allowed value: > 0.
         Default: 800 if |g:esearch.win_matches_highlight_strategy| is
@@ -670,15 +718,15 @@ g:esearch.win_ui_nvim_syntax                        *g:esearch.win_ui_nvim_synta
 ================================================================================
 COMMANDLINE                                                  *vim-esearch-cmdline*
 
-COMMANDLINE INPUT PROMPT                                      *vim-esearch-prompt*
+COMMANDLINE INPUT PROMPT                              *vim-esearch-cmdline-prompt*
 
-Input prompt is opened when <Plug>(esearch) or <Plug>(esearch-prefill) are
+Input prompt is opened when <plug>(esearch) or <plug>(esearch-prefill) are
 pressed.
 
 Within the prompt matching modes can be changed by double clicking:
-- <c-r><c-r> toggles regexp mode.
-- <c-s><c-s> togles case sensitive mode
-- <c-t><c-t> toggle textobject matching mode.
+- <c-r><c-r> toggles regex mode.
+- <c-s><c-s> toggles case sensitive mode
+- <c-t><c-t> toggle textobj matching mode.
 
 NOTE Double clicks are used to prevent any conflicts with the default mappings
 (e.g. |c_CTRL-R| to insert the contents of a register). TODO
@@ -687,7 +735,7 @@ Press <c-o> to open the menu to configure search paths, filetypes and other
 options.
 
 ________________________________________________________________________________~
-COMMANDLINE MENU                                                *vim-esearch-menu*
+COMMANDLINE MENU                                        *vim-esearch-cmdline-menu*
 
 Menu is a commandline-based way to configure the values, stored in |g:esearch|
 on the fly. It's separated into 4 columns: keys, that are used to activate
@@ -709,8 +757,7 @@ API is a set of global functions and |b:esearch| scoped methods to customize
 the workflow. See |vim-esearch-api-examples| to view what can be done by using the
 API.
 
-________________________________________________________________________________~
-API GLOBAL FUNCTIONS                                   *vim-esearch-api-functions*
+API GLOBAL FUNCTIONS                            *vim-esearch-api-global-functions*
 
 esearch#init([{options}])                                         *esearch#init()*
         Is invoked when |<plug>(esearch)| map is triggered.
@@ -722,13 +769,15 @@ esearch#init([{options}])                                         *esearch#init(
             0
         Example:
 >
-        nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/',
-                                              \ 'remember': ['regex', 'case']})<cr>
+        nnoremap <leader>fs :call esearch#init({
+            \ 'paths': $GOPATH . ' node_modules/',
+            \ 'remember': ['regex', 'case']
+            \})<cr>
 <
         Will search in vendor lib directories. Remembers only 'regex' and 'case'
         modes if they are changed during a request.
         
-        See also: TODO
+        See also: |g:esearch.remember|, |g:esearch.paths|
 
 esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce()*
         Can be used to create events independently from |CursorHold|. At the
@@ -739,12 +788,12 @@ esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce(
             {wait}    Wait timeout in milliseconds.
         Return: ~
             Dict with `.apply()` and `.cancel()` method to invoke the
-            debounced function or to cancel it's invokation befor {wait}
+            debounced function or to cancel it's invocation before {wait}
             timeout is exceeded.
         Example:
         >
         let g:echo_search_filename = esearch#debounce(
-              \ {-> esearch#log#echo('esearchFilename', b:esearch.filename())}, 50)
+              \ {-> esearch#log#echo(b:esearch.filename())}, 50)
         au User esearch_win_config
               \ au CursorMoved <buffer> call g:echo_search_filename.apply()
 <
@@ -752,65 +801,67 @@ esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce(
         in the echo area. It updates on cursor movement and is invoked only
         when 50 milliseconds is waited.
 
-        See also: TODO
+        See also: |esearch_win_config| event, |b:esearch.filename()| method
 
-esearch#log#echo({highlight}, {message})                      *esearch#debounce()*
+esearch#log#echo({message}, [{highlight}])                    *esearch#log#echo()*
         Outputs {message} with a color, defined by {highlight} argument.
 
         Parameters: ~
-            {highlight}    Highlight group (see :help |highlight-groups|)
             {message}      Text to output
+            {highlight}    Highlight group (optional).
+                           See :help |highlight-groups| for details.
+                           
         Return: ~
             0
         Example: see |esearch#debounce| for usage examples.
 
-esearch#let#restorable({assignments})                   *esearch#let#restorable()*
-        Allows to set variables, options and register using Python's
-        contextlib-like approach.
-
-        Parameters: ~
-            {assignments} Dict with with `'var_name': value` pairs. `var_name`
-            can start from scope specified (`g:`, `b:` etc.), `&` for
-            options and `@` for registers.
-        Return: ~
-            Dict with `.restore()` method to restore original values.
-        Example: TODO
-
 ________________________________________________________________________________~
-API LOCAL FUNCTIONS                                                    *b:esearch*
+API LOCAL FUNCTIONS                              *vim-esearch-api-local-functions*
+
+                                           *b:esearch.open()* *b:esearch.filename()*
+                             *b:esearch.unescaped_filename()* *b:esearch.filetype()*
+                                    *b:esearch.line_in_file()* *b:esearch.preview()*
+                              *b:esearch.preview_zoom()* *b:esearch.preview_enter()*
+                           *b:esearch.preview_close()* *b:esearch.is_preview_open()*
+                                *b:esearch.split_preview()* *b:esearch.jump2entry()*
+                               *b:esearch.jump2filename()* *b:esearch.is_filename()*
+                                     *b:esearch.is_entry()* *b:esearch.is_current()*
+                                                            *b:esearch.is_blank()*
 
 |b:esearch| contains options, inherited from |g:esearch| and methods to interact
 with the search window.
 
-Basic configurations:
- --------------------+-----------------------------------------------------------------------
- `.open`               | Open a line under the cursor. Used by `o`, `s`, `t`, <cr> and other mappings
- `.filename`           | Return escaped entrie's filanme under the cursor
- `.unescaped_filename` | Return unescaped entrie's filanme under the cursor
- `.filetype`           | Return a filetype under the cursor
- `.line_in_file`       | Return line number in a file for entry under the cursor
- `.preview`            | Open the preview window
- `.preview_zoom`       | Increase preview window height. Used in |<Plug>(esearch-win-preview)|
- `.preview_enter`      | Open the preview window. Used in |<Plug>(esearch-win-preview:enter)|
- `.preview_close`      | Close the preview window
- `.is_preview_open`    | Check if the preview is opened
- `.split_preview`      | Open split preview window. A wrapper around |b:esearch.open|
- `.jump2entry`         | Move the cursor to the next/prev entry
- `.jump2filename`      | Move the cursor to the next/prev filename
- `.is_filename`        | Return true if the cursor is above a filename
- `.is_entry`           | Return true if the cursor is above an entry
- `.is_current`         | Return true if the window related to |b:esearch| is current
- `.is_blank`           | Return if a search request outputted no results.
- --------------------+-----------------------------------------------------------------------
+      Method                                    Comment~
+ ----------------------+---------------------------------------------------------------------
+ `.open()`               | Open a line under the cursor. Used by `o`, `s`, `t`, <cr> and other mappings
+ `.filename()`           | Return escaped entry filename under the cursor
+ `.unescaped_filename()` | Return unescaped entry filename under the cursor
+ `.filetype()`           | Return a filetype under the cursor
+ `.line_in_file()`       | Return line number in a file for entry under the cursor
+ `.preview()`            | Open the preview window
+ `.preview_zoom()`       | Increase preview window height. Used in |<plug>(esearch-win-preview)|
+ `.preview_enter()`      | Open the preview window. Used in |<plug>(esearch-win-preview:enter)|
+ `.preview_close()`      | Close the preview window
+ `.is_preview_open()`    | Check if the preview is opened
+ `.split_preview()`      | Open split preview window. A wrapper around |b:esearch.open|
+ `.jump2entry()`         | Move the cursor to the next/prev entry
+ `.jump2filename()`      | Move the cursor to the next/prev filename
+ `.is_filename()`        | Return true if the cursor is above a filename
+ `.is_entry()`           | Return true if the cursor is above an entry
+ `.is_current()`         | Return true if the window related to |b:esearch| is current
+ `.is_blank()`           | Return if a search request outputted no results.
+ ----------------------+---------------------------------------------------------------------
 
 ________________________________________________________________________________~
-API EVENTS                                                    *vim-esearch-events*
+API EVENTS                                                *vim-esearch-api-events*
                                          *eseach_init_pre* *eseach_config_eager_pre*
                                    *eseach_config_eager_post* *esearch_win_init_pre*
-                                     *esearch_win_uninit_pre* *esearch_win_init_pre*
-                                        *esearch_win_config* *esearch_win_init_post*
+                                     *esearch_win_uninit_pre* *esearch_win_init_post*
+                                                              *esearch_win_config*
 
 Events in the order they are fired:
+
+          Event                                 Comment~
  -------------------------+-----------------------------------------------------
  `eseach_init_pre`          | Before |esearch#init| execution
  `eseach_config_eager_pre`  | Once before lazy configurations are loaded
@@ -818,8 +869,8 @@ Events in the order they are fired:
  `esearch_win_init_pre`     | Before the search window is initialized
  `esearch_win_uninit_pre`   | Before the cleanup from the previous search
  `esearch_win_init_pre`     | Before the search window is initialized
- |FileType| esearch         | Builtin event. Use `esearch_win_config` instead
- `esearch_win_config`       | Shold be used to configure the window
+ |FileType| esearch         | Builtin event. Use |esearch_win_config| instead
+ `esearch_win_config`       | Should be used to configure the window
  `esearch_win_init_post`    | After the search window is initialized
  -------------------------+-----------------------------------------------------
 
@@ -840,34 +891,51 @@ API USAGE EXAMPLES                                      *vim-esearch-api-example
 Search for debugger entries across the project without starting the prompt.
 Remember is set to 0 to prevent saving configs history for later searches.
 >
-    nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<cr>
+    nnoremap <leader>fd :call esearch#init({
+        \ 'pattern': '\b(ipdb\|debugger)\b',
+        \ 'regex':    1,
+        \ 'remember': 0
+        \})<cr>
 <
-Search in vendor lib directories. Remember only 'regex' and 'case' modes if
+Search in vendor lib directories. Remember only `'regex'` and `'case'` modes if
 they are changed during a request.
 >
-    nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<cr>
+    nnoremap <leader>fs :call esearch#init({
+        \ 'paths':    $GOPATH . ' node_modules/',
+        \ 'remember': ['regex', 'case']
+        \})<cr>
 <
 Search in front-end files using an explicitly set cwd.
 >
-    nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<cr>
+    nnoremap <leader>fe :call esearch#init({
+        \ 'paths': '**/*.{js,css,html}',
+        \ 'cwd':   '~/other-dir'
+        \})<cr>
 <
 If one of ag, rg or ack is available
 >
-    nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
+    nnoremap <leader>fe :call esearch#init({
+        \ 'filetypes': 'js css html',
+        \ 'cwd': '~/another-dir'
+        \})<cr>
 <
-Use callable prefiller to search go functions. Starting cursor position will be before
-the closing bracket.
+Use callable pre-filler to search go functions. Starting cursor position will
+be before the closing bracket.
 >
-    let g:search_gofunc = {'prefill': [{-> "func (\<Left>"}], 'filetypes': 'go', 'select_prefilled': 0}
+    let g:search_gofunc = {
+        \ 'prefill':          [{-> "func (\<Left>"}],
+        \ 'filetypes':       'go',
+        \ 'select_prefilled': 0
+        \}
     nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
 <
 NOTE `\<left>` syntax usage to move the cursor around. You can also use other
 bracketed keys to define the initial cursor position. The following example
-helps to search lines that end with ; by prefilling the prompt with `|.*;$`,
+helps to search lines that end with ; by pre-filling the prompt with `|.*;$`,
 where `|` is the cursor position.
 >
-    let g:search_colon_ended_lines = {'prefill': [{-> ".*;$\<home>"}], 'regex': 1'}
-    nnoremap <leader>f; :call esearch#init(g:search_colon_ended_lines)<cr>
+    let g:colon_ended_lines = {'prefill': [{-> ".*;$\<home>"}], 'regex': 1'}
+    nnoremap <leader>f; :call esearch#init(g:colon_ended_lines)<cr>
 <
                                                      *esearch_win_config-examples*
                                                               *b:esearch-examples*
@@ -877,37 +945,42 @@ NOTE It'll automatically wrap `s:custom_esearch_config()` call to collect garbag
 reloads, so no `augroup` inside is required.
 >
     autocmd User esearch_win_config call s:custom_esearch_config()
+
     function! s:custom_esearch_config() abort
-      setlocal nobuflisted    " don't show the buffer in the buffers list
-      setlocal bufhidden=hide " don't unload the buffer to be able to use <c-o> jumps
+      setlocal nobuflisted    " to not show the buffer in the buffers list
+      setlocal bufhidden=hide " to be able to use <c-o> jumps
 
       " Override the default vertical split mapping to open a split once and
       " reuse it for later `s` presses. The search window will remain focused
-      nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {'reuse': 1, 'stay': 1})<CR>
+      nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {
+          \ 'reuse': 1,
+          \ 'stay': 1})<CR>
       " Yank a hovered absolute path
       nnoremap <silent><buffer> yy :let @" = b:esearch.filename()\|let @+ = @"<CR>
       " Use a custom command to open a file in a tab
       nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
 
       " Populate the quickfix list using the current pattern
-      nnoremap <silent><buffer> <leader>fq
-        \ :call esearch#init({'pattern': b:esearch.pattern, 'out': 'qflist', 'remember': 0})<CR>
+      nnoremap <silent><buffer> <leader>fq :call esearch#init({
+          \ 'pattern': b:esearch.pattern,
+          \ 'out': 'qflist',
+          \ 'remember': 0})<CR>
     endfunction
 <
                                                     *b:esearch.preview()-examples*
                                                          *vim-esearch-autopreview*
 
 Show the preview automatically and update it after 100ms timeout. Change
-'split' to 'vsplit' to open the preview vertically
+'vsplit' to 'split' to open the preview horizontally.
 >
     autocmd User esearch_win_config
-      \ let b:autopreview = esearch#debounce(b:esearch.preview, 100)
-      \ autocmd CursorMoved <buffer> call b:autopreview.apply()
+      \   let b:autopreview = esearch#debounce(b:esearch.split_preview, 100)
+      \ | autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
 <
                                           *vim-esearch-offscreen-filename-example*
 
-The example below will show context filenames in 'statusline' that are above
-the viewport.
+The example below will show context filenames in 'statusline' that are outside
+(above) the viewport.
 >
     function! s:offscreen_filename() abort
       if exists('b:saved_statusline')
@@ -924,11 +997,13 @@ the viewport.
       endif
     endfunction
 
-    let s:show_offscreen_filename = esearch#debounce(function('s:offscreen_filename'), 50)
-    au User esearch_win_config au CursorMoved <buffer> call s:show_offscreen_filename.apply()
+    let s:show_offscreen_filename =
+        \ esearch#debounce(function('s:offscreen_filename'), 49)
+    au User esearch_win_config
+        \ au CursorMoved <buffer> call s:show_offscreen_filename.apply()
 <
 ________________________________________________________________________________~
-TROUBLESHOOTING                                      *vim-esearch-troubleshoointg*
+TROUBLESHOOTING                                      *vim-esearch-troubleshooting*
 
 1. Show previews automatically on cursor movement.
 
@@ -943,8 +1018,8 @@ ignore files. To skip `node_modules` try `echo node_modules >> ~/.ignore`.
 
 Run in your shell to prevent outputting unicode chars like `\312`.
 >
-  git config --global core.precomposeunicode true
-  git config --global core.quotePath false
+    git config --global core.precomposeunicode true
+    git config --global core.quotePath false
 <
 4. Some regex features like lookaround are not supported.
 

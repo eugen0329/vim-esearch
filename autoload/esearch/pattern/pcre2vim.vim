@@ -1,4 +1,4 @@
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 let s:Lexer   = vital#esearch#import('Text.Lexer')
 let s:Parser  = vital#esearch#import('Text.Parser')
 
@@ -9,7 +9,7 @@ fu! esearch#pattern#pcre2vim#convert(string, ...) abort
   try
     let tokens = s:PCRE2Vim.new(a:string).convert()
   catch /^PCRE2Vim:/
-    call s:Message.warn(printf("Can't convert %s to vim regex dialect for matches highlight (reason: %s)",
+    call s:Log.warn(printf("Can't convert %s to vim regex dialect for matches highlight (reason: %s)",
           \ string(a:string),
           \ substitute(v:exception, '^PCRE2Vim: ', '', ''),
           \ ))

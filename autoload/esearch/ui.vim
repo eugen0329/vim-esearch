@@ -1,4 +1,4 @@
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -71,7 +71,7 @@ fu! esearch#ui#render(component) abort
         \ : a:component.render()
 
   for [color, text] in tokens
-    call s:Message.echon(color, text)
+    call s:Log.echon(color, text)
   endfor
 endfu
 

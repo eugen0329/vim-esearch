@@ -1,4 +1,4 @@
-let s:Message  = esearch#message#import()
+let s:Log  = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:Promise  = vital#esearch#import('Async.Promise')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -97,7 +97,7 @@ fu! esearch#ftdetect#async_prewarm_cache() abort
 endfu
 
 fu! s:blocking_make_cache() abort
-  let lines = split(s:Message.capture('autocmd filetypedetect'), "\n")
+  let lines = split(s:Log.capture('autocmd filetypedetect'), "\n")
 
   let definitions = []
   for line in lines

@@ -1,5 +1,5 @@
 let s:Buffer  = vital#esearch#import('Vim.Buffer')
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 let s:Prelude = vital#esearch#import('Prelude')
 let s:List    = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -130,7 +130,7 @@ fu! s:Preview.open() abort dict
     call self.win.init_leaved_autoclose_events()
   catch
     call esearch#preview#close()
-    call s:Message.echomsg('ErrorMsg', v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
+    call s:Log.echomsg('ErrorMsg', v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
     return s:false
   finally
     noau keepj call current_win.restore()
@@ -166,7 +166,7 @@ fu! s:Preview.open_and_enter() abort dict
     call self.win.init_entered_autoclose_events()
   catch
     call esearch#preview#close()
-    call s:Message.echomsg('ErrorMsg', v:exception)
+    call s:Log.echomsg('ErrorMsg', v:exception)
     return s:false
   endtry
 
@@ -363,7 +363,7 @@ fu! s:ScratchBuffer.edit() abort dict
   " Prevents slowdowns on big syntax syncing ranges (according to the doc,
   " 'fromstart' option is equivalent to 'syncing starts ...', but with a large
   " number).
-  if match(s:Message.capture('syn sync'), 'syncing starts \d\{3,}') >= 0
+  if match(s:Log.capture('syn sync'), 'syncing starts \d\{3,}') >= 0
     syntax sync clear
     exe printf('syntax sync minlines=%d maxlines=%d',
           \ syntax_sync_lines,
@@ -441,7 +441,7 @@ endfu
 " Actual shape settings are set there
 fu! s:FloatingWindow.reshape() abort dict
   if !self.buffer.is_valid()
-    call s:Message.echomsg('ErrorMsg', 'Preview buffer was deleted')
+    call s:Log.echomsg('ErrorMsg', 'Preview buffer was deleted')
     return esearch#preview#close()
   endif
 

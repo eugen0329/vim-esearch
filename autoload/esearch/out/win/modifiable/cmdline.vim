@@ -1,6 +1,6 @@
 let s:String  = vital#esearch#import('Data.String')
 let s:List    = vital#esearch#import('Data.List')
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 let g:esearch#out#win#linenr_format = ' %3d '
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -20,7 +20,7 @@ fu! s:safely_replay_substitute(event, command) abort
     return
   endif
   if s:is_size_changed(a:event)
-    call s:Message.echo('ErrorMsg', 'Multiline :substitute is not allowed')
+    call s:Log.echo('ErrorMsg', 'Multiline :substitute is not allowed')
     return esearch#out#win#modifiable#unsupported#handle(a:event)
   endif
 
@@ -108,9 +108,9 @@ fu! s:execute(command_string, original_pattern) abort
     " NOTE capture use 'silent' under the hood which swaps backwards ranges, so
     " it's not equivalent to calling builtin execute() instead.
     " Swapping feature of silent isn't a hack and documented in :h E493
-    echo trim(s:Message.capture(a:command_string), "\n")
+    echo trim(s:Log.capture(a:command_string), "\n")
   catch /E486:/
-    call s:Message.echo('ErrorMsg', 'E486: Pattern not found: ' . a:original_pattern)
+    call s:Log.echo('ErrorMsg', 'E486: Pattern not found: ' . a:original_pattern)
   endtry
 endfu
 

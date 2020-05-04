@@ -1,10 +1,10 @@
-let s:Message = copy(vital#esearch#import('Vim.Message'))
+let s:Log = copy(vital#esearch#import('Vim.Message'))
 
 fu! esearch#log#import() abort
-  return s:Message
+  return s:Log
 endfu
 
-fu! s:Message.echon(hl, msg) abort dict
+fu! s:Log.echon(hl, msg) abort dict
   execute 'echohl' a:hl
   try
     echon a:msg
@@ -13,6 +13,10 @@ fu! s:Message.echon(hl, msg) abort dict
   endtry
 endfu
 
-fu! esearch#log#echo(hl, msg) abort
-  call s:Message.echo(a:hl, a:msg)
+fu! esearch#log#echo(msg, ...) abort
+  call s:Log.echo(get(a:, 1, 'NONE'), a:msg)
+endfu
+
+fu! esearch#log#echomsg(msg, hl) abort
+  call s:Log.echomsg(get(a:, 1, 'NONE'), a:msg)
 endfu

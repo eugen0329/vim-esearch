@@ -1,4 +1,4 @@
-let s:Message  = esearch#message#import()
+let s:Log  = esearch#log#import()
 
 " Is used to unobtrusive warn users about deprecations without blocking the
 " input or triggering 'more' prompt
