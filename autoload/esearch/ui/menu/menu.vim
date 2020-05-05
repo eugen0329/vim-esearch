@@ -48,8 +48,9 @@ fu! s:Menu.new(props) abort dict
         \   s:ContextEntry.new({'i':  i.next()}),
         \ ]
 
-  let instance.height = len(instance.items) + 1 " + height of the search input below
   let instance.prompt = s:SearchPrompt.new()
+  let text_height = esearch#ui#height(instance.prompt.render() + [['', a:props.cmdline]])
+  let instance.height = len(instance.items) + text_height
 
   return instance
 endfu
