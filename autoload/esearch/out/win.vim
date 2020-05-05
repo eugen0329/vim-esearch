@@ -132,6 +132,7 @@ endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
+    redraw
     echomsg 'esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')'
   endif
 

@@ -8,10 +8,8 @@ fu! esearch#ui#complete#paths#do(arglead, cmdline, curpos) abort
         \ 'fnameescape(s:Filepath.relpath(resolve(v:val)))')
 
   let candidates = []
-  for file in s:gather_candidates(current_word, already_listed)
-    let candidate = fnameescape(s:Filepath.relpath(resolve(file)))
+  for candidate in s:gather_candidates(current_word, already_listed)
     if isdirectory(candidate) | let candidate .= '/' | endif
-
     call add(candidates, prefix_text . candidate)
   endfor
 
@@ -30,6 +28,8 @@ fu! s:gather_candidates(word, already_listed) abort
 
   let unused_candidates = []
   for candidate in candidates
+    let candidate = fnameescape(s:Filepath.relpath(resolve(candidate)))
+
     if !s:List.has(a:already_listed, candidate) || candidate ==# a:word
       let unused_candidates += [candidate]
     endif

@@ -1,6 +1,6 @@
 " Translate deprecated configurations and set deprecation warnings
 fu! esearch#middleware#deprecations#apply(esearch) abort
-  if a:esearch.deprecations_loaded
+  if g:esearch.deprecations_loaded
     return a:esearch
   endif
 
