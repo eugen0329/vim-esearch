@@ -6,7 +6,12 @@ fu! esearch#prefill#try(esearch) abort
     if type(Prefiller) == s:t_func
       let pattern = Prefiller(a:esearch)
     else
-      let pattern = esearch#prefill#{Prefiller}(a:esearch)
+      try
+        let pattern = esearch#prefill#{Prefiller}(a:esearch)
+      catch /^Vim(function):E127/
+        " TODO write options validation middleware
+        continue
+      endtry
     endif
 
     if !empty(pattern)

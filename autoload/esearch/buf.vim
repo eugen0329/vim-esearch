@@ -69,15 +69,15 @@ fu! esearch#buf#goto_or_open(filename, opener, ...) abort
   if bufnr == bufnr('%') | return 1 | endif
   " Open if doesn't exist
   if bufnr == -1
-    silent return s:Buffer.open(a:filename, options)
+    return s:Buffer.open(a:filename, options)
   endif
   let [tabnr, winnr] = esearch#buf#tabwin(bufnr)
   " Open if closed
   if empty(winnr)
-    silent return s:Buffer.open(a:filename, options)
+    return s:Buffer.open(a:filename, options)
   endif
   " Locate if opened
-  silent exe 'tabnext ' . tabnr
+  exe 'tabnext ' . tabnr
   exe winnr . 'wincmd w'
   return 1
 endfu

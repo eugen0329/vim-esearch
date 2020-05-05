@@ -9,13 +9,13 @@ fu! esearch#middleware#warnings#apply(esearch) abort
 
   for message in g:esearch.pending_deprecations
     call s:Message.warn('DEPRECATION: ' . message)
+    redraw
   endfor
 
   if len(g:esearch.pending_deprecations) > 1
-    redraw
-    call s:Message.warn(printf('DEPRECATION: %s. Run :messages to view the other %d',
+    call s:Message.warn(printf('DEPRECATION: %s. Run :messages to view all %d',
           \ g:esearch.pending_deprecations[-1],
-          \ len(g:esearch.pending_deprecations) - 1))
+          \ len(g:esearch.pending_deprecations)))
   endif
   let g:esearch.pending_deprecations = []
 

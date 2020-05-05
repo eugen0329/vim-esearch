@@ -25,6 +25,19 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
 
   if index(a:esearch.prefill, 'visual') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['visual', ...], use <Plug>(esearch-prefill) operator mapping instead"]
+    call remove(a:esearch.prefill, index(a:esearch.prefill, 'visual'))
+  endif
+  if index(a:esearch.prefill, 'word_under_cursor') >= 0
+    let g:esearch.pending_deprecations += ["'prefill': ['word_under_cursor', ...], use 'cword' instead"]
+    let a:esearch.prefill[index(a:esearch.prefill, 'visual')] = 'cword'
+  endif
+  if index(a:esearch.prefill, 'system_clipboard') >= 0
+    let g:esearch.pending_deprecations += ["'prefill': ['system_clipboard', ...], use 'clipboard' instead"]
+    let a:esearch.prefill[index(a:esearch.prefill, 'system_clipboard')] = 'clipboard'
+  endif
+  if index(a:esearch.prefill, 'system_selection_clipboard') >= 0
+    let g:esearch.pending_deprecations += ["'prefill': ['system_selection_clipboard', ...], use 'clipboard' instead"]
+    let a:esearch.prefill[index(a:esearch.prefill, 'system_selection_clipboard')] = 'clipboard'
   endif
 
   if has_key(a:esearch, 'word')
