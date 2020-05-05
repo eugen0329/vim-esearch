@@ -49,22 +49,27 @@ fu! esearch#prefill#hlsearch(esearch) abort
         \ }
 endfu
 
-fu! esearch#prefill#last(esearch) abort
-  return get(g:esearch, 'last_pattern', 0)
+fu! esearch#prefill#last(_esearch) abort
+  return get(g:esearch, 'last_pattern', -1)
 endfu
 
-fu! esearch#prefill#current(esearch) abort
+fu! esearch#prefill#current(_esearch) abort
   if exists('b:esearch') | return get(b:esearch, 'pattern', 0) | endif
 endfu
 
-fu! esearch#prefill#cword(esearch) abort
+fu! esearch#prefill#cword(_esearch) abort
   return {'literal': expand('<cword>'), 'pcre': expand('<cword>')}
 endfu
 
-fu! esearch#prefill#clipboard(esearch) abort
-  return {'literal': getreg('"'), 'pcre': getreg('"')}
-endfu
+fu! esearch#prefill#clipboard(_esearch) abort
+  let clipboards = split(&clipboard, ',')
+  if index(clipboards, 'unnamedplus') >= 0
+    let register = '+'
+  elseif index(clipboards, 'unnamed') >= 0
+    let register = '*'
+  else
+    let register = '"'
+  endif
 
-fu! esearch#prefill#system_clipboard(esearch) abort
-  return {'literal': getreg('+'), 'pcre': getreg('+')}
+  return {'literal': getreg(register), 'pcre': getreg(register)}
 endfu

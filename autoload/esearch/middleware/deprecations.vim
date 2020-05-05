@@ -1,11 +1,11 @@
 " Translate deprecated configurations and set deprecation warnings
 fu! esearch#middleware#deprecations#apply(esearch) abort
-  if g:esearch.deprecations_loaded
+  if a:esearch.deprecations_loaded
     return a:esearch
   endif
 
   if exists('g:esearch#out#win#context_syntax_highlight')
-    let a:esearch.win_contexts_syntax = g:esearch#out#win#context_syntax_highlight
+    let g:esearch.win_contexts_syntax = g:esearch#out#win#context_syntax_highlight
     let g:esearch.pending_deprecations += ['g:esearch#out#win#context_syntax_highlight. Please, rename to g:esearch.win_contexts_syntax']
   endif
 
@@ -18,30 +18,30 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['g:esearch#out#win#open, see :help g:esearch.win_new for details']
   endif
 
-  if has_key(a:esearch, 'use')
-    let a:esearch.prefill = type(a:esearch.use) == type('') ? [a:esearch.use] : a:esearch.use
+  if has_key(g:esearch, 'use')
+    let g:esearch.prefill = type(g:esearch.use) == type('') ? [g:esearch.use] : g:esearch.use
     let g:esearch.pending_deprecations += ['g:esearch.use. Please, use g:esearch.prefill list instead']
   endif
 
-  if index(a:esearch.prefill, 'visual') >= 0
+  if index(g:esearch.prefill, 'visual') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['visual', ...], use <Plug>(esearch-prefill) operator mapping instead"]
-    call remove(a:esearch.prefill, index(a:esearch.prefill, 'visual'))
+    call remove(g:esearch.prefill, index(g:esearch.prefill, 'visual'))
   endif
-  if index(a:esearch.prefill, 'word_under_cursor') >= 0
+  if index(g:esearch.prefill, 'word_under_cursor') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['word_under_cursor', ...], use 'cword' instead"]
-    let a:esearch.prefill[index(a:esearch.prefill, 'visual')] = 'cword'
+    let g:esearch.prefill[index(g:esearch.prefill, 'visual')] = 'cword'
   endif
-  if index(a:esearch.prefill, 'system_clipboard') >= 0
+  if index(g:esearch.prefill, 'system_clipboard') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['system_clipboard', ...], use 'clipboard' instead"]
-    let a:esearch.prefill[index(a:esearch.prefill, 'system_clipboard')] = 'clipboard'
+    let g:esearch.prefill[index(g:esearch.prefill, 'system_clipboard')] = 'clipboard'
   endif
-  if index(a:esearch.prefill, 'system_selection_clipboard') >= 0
+  if index(g:esearch.prefill, 'system_selection_clipboard') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['system_selection_clipboard', ...], use 'clipboard' instead"]
-    let a:esearch.prefill[index(a:esearch.prefill, 'system_selection_clipboard')] = 'clipboard'
+    let g:esearch.prefill[index(g:esearch.prefill, 'system_selection_clipboard')] = 'clipboard'
   endif
 
-  if has_key(a:esearch, 'word')
-    let a:esearch.textobj = a:esearch.word
+  if has_key(g:esearch, 'word')
+    let g:esearch.textobj = g:esearch.word
     let g:esearch.pending_deprecations += ['g:esearch.word, see :help g:esearch.textobj for details']
   endif
 
