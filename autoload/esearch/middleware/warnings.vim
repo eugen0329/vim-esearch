@@ -8,12 +8,12 @@ fu! esearch#middleware#warnings#apply(esearch) abort
   endif
 
   for message in g:esearch.pending_deprecations
-    call s:Message.warn('DEPRECATION: ' . message)
+    call s:Log.warn('DEPRECATION: ' . message)
     redraw
   endfor
 
   if len(g:esearch.pending_deprecations) > 1
-    call s:Message.warn(printf('DEPRECATION: %s. Run :messages to view all %d',
+    call s:Log.warn(printf('DEPRECATION: %s. Run :messages to view all %d',
           \ g:esearch.pending_deprecations[-1],
           \ len(g:esearch.pending_deprecations)))
   endif

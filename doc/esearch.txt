@@ -792,28 +792,15 @@ esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce(
             timeout is exceeded.
         Example:
         >
-        let g:echo_search_filename = esearch#debounce(
-              \ {-> esearch#log#echo(b:esearch.filename())}, 50)
+        let g:preview_on_hover = esearch#debounce({-> b:esearch.preview()}, 1000)
         au User esearch_win_config
-              \ au CursorMoved <buffer> call g:echo_search_filename.apply()
+              \ au CursorMoved <buffer> call g:preview_on_hover.apply()
 <
-        Creates `g:echo_search_filename` decorated method to show the filename
-        in the echo area. It updates on cursor movement and is invoked only
-        when 50 milliseconds is waited.
+        It creates `g:preview_on_hover` decorated method to show the preview
+        at the cursor position when the cursor is above a line longer than 1000
+        milliseconds.
 
-        See also: |esearch_win_config| event, |b:esearch.filename()| method
-
-esearch#log#echo({message}, [{highlight}])                    *esearch#log#echo()*
-        Outputs {message} with a color, defined by {highlight} argument.
-
-        Parameters: ~
-            {message}      Text to output
-            {highlight}    Highlight group (optional).
-                           See :help |highlight-groups| for details.
-                           
-        Return: ~
-            0
-        Example: see |esearch#debounce| for usage examples.
+        See also: |esearch_win_config| event, |b:esearch.preview()| method
 
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                              *vim-esearch-api-local-functions*
