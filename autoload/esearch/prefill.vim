@@ -38,7 +38,7 @@ fu! esearch#prefill#visual(esearch) abort
 endfu
 
 fu! esearch#prefill#hlsearch(esearch) abort
-  if !get(v:, 'hlsearch', 0) | return | endif
+  if !get(v:, 'hlsearch') | return | endif
 
   let str = getreg('/')
   if empty(str) | return | endif
@@ -50,11 +50,11 @@ fu! esearch#prefill#hlsearch(esearch) abort
 endfu
 
 fu! esearch#prefill#last(_esearch) abort
-  return get(g:esearch, 'last_pattern', -1)
+  return get(g:esearch, 'last_pattern')
 endfu
 
 fu! esearch#prefill#current(_esearch) abort
-  if exists('b:esearch') | return get(b:esearch, 'pattern', 0) | endif
+  if exists('b:esearch') | return get(b:esearch, 'pattern') | endif
 endfu
 
 fu! esearch#prefill#cword(_esearch) abort
