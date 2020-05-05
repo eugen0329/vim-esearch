@@ -28,11 +28,11 @@ fu! esearch#map(lhs, rhs) abort
   let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
 
   if a:rhs ==# 'esearch'
-    call esearch#map#define({'lhs': a:lhs, 'rhs': '<Plug>(esearch)', 'mode': ' ', 'silent': 1})
+    call esearch#map#define({'lhs': a:lhs, 'rhs': '<Plug>(esearch)'}, {'mode': ' ', 'silent': 1})
     let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch)']
   elseif a:rhs ==# 'esearch-word-under-cursor'
     let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch-operator){textobject}']
-    call esearch#map#define({'lhs': a:lhs, 'rhs': '<Plug>(esearch-operator)iw', 'mode': ' ', 'silent': 1})
+    call esearch#map#define({'lhs': a:lhs, 'rhs': '<Plug>(esearch-operator)iw'}, {'mode': ' ', 'silent': 1})
   else
     let g:esearch.pending_deprecations += ['esearch#map, see :help esearch-mappings']
   endif
