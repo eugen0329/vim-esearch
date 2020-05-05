@@ -98,7 +98,7 @@ fu! esearch#map#escape_kind(char) abort
       return 'f'
    endif
 
-  return s:null
+  return ''
 endfu
 
 fu! s:is_keys_combination(group, c) abort

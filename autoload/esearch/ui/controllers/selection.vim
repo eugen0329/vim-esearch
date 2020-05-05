@@ -9,7 +9,7 @@ fu! s:SelectionController.render() abort dict
   call esearch#ui#render(s:SearchPrompt.new())
   call esearch#ui#render([['Visual', substitute(self.props.cmdline, "\n", '\\n', 'g')]])
 
-  let retype = s:null
+  let retype = ''
   let str =  self.props.cmdline
   let finish = s:false
 
@@ -32,7 +32,7 @@ fu! s:SelectionController.render() abort dict
     let retype = char
   elseif index(g:esearch#cmdline#cancel_selection_chars, char) >= 0
     " no-op
-  elseif esearch#map#escape_kind(char) isnot s:null
+  elseif !empty(esearch#map#escape_kind(char))
     let retype = char
   elseif mapcheck(char, 'c') !=# ''
     let retype = char
