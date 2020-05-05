@@ -29,7 +29,7 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
   endif
   if index(g:esearch.prefill, 'word_under_cursor') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['word_under_cursor', ...], use 'cword' instead"]
-    let g:esearch.prefill[index(g:esearch.prefill, 'visual')] = 'cword'
+    let g:esearch.prefill[index(g:esearch.prefill, 'word_under_cursor')] = 'cword'
   endif
   if index(g:esearch.prefill, 'system_clipboard') >= 0
     let g:esearch.pending_deprecations += ["'prefill': ['system_clipboard', ...], use 'clipboard' instead"]
