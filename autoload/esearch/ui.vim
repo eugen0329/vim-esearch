@@ -75,8 +75,32 @@ fu! esearch#ui#render(component) abort
   endfor
 endfu
 
+fu! esearch#ui#to_statusline(component) abort
+  let tokens = type(a:component) ==# s:t_list
+        \ ? a:component
+        \ : a:component.render()
+
+  let statusline = ''
+  for [color, text] in tokens
+    let statusline .= '%#'.color.'#%('.substitute(text, '%', '%%', 'g').'%)'
+
+    if strlen(statusline) > &columns
+      break
+    endif
+  endfor
+
+  return statusline
+endfu
+
 fu! esearch#ui#soft_clear() abort
   redraw | echo ''
+endfu
+
+fu! esearch#ui#height(tokens) abort
+  if empty(a:tokens) | return 0  | endif
+
+  let text = join(map(copy(a:tokens), 'v:val[1]'), '')
+  return float2nr(ceil(strdisplaywidth(text) * 1.0 / &columns))
 endfu
 
 fu! esearch#ui#hard_clear() abort

@@ -1,5 +1,4 @@
 let s:SearchPrompt    = esearch#ui#prompt#search#import()
-let s:PathTitlePrompt = esearch#ui#prompt#path_title#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -7,11 +6,6 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:SelectionController = esearch#ui#component()
 
 fu! s:SelectionController.render() abort dict
-  let paths = s:PathTitlePrompt.new().render()
-  if !empty(paths)
-    call esearch#ui#render(paths)
-    call esearch#ui#render([['NONE', "\n"]])
-  endif
   call esearch#ui#render(s:SearchPrompt.new())
   call esearch#ui#render([['Visual', substitute(self.props.cmdline, "\n", '\\n', 'g')]])
 
