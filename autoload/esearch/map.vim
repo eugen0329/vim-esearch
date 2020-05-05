@@ -1,3 +1,6 @@
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
+
 let s:String  = vital#esearch#import('Data.String')
 let s:Mapping = vital#esearch#import('Mapping')
 
@@ -95,7 +98,7 @@ fu! esearch#map#escape_kind(char) abort
       return 'f'
    endif
 
-  return 0
+  return s:null
 endfu
 
 fu! s:is_keys_combination(group, c) abort

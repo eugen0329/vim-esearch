@@ -51,6 +51,11 @@ if !exists('g:esearch#cmdline#cancel_selection_chars')
         \ "\<C-c>",
         \ ]
 endif
+if !exists('g:esearch#cmdline#insert_register_content_chars')
+  let g:esearch#cmdline#insert_register_content_chars = [
+        \ "\<C-r>",
+        \ ]
+endif
 
 fu! esearch#cmdline#read(esearch) abort
   return s:app(a:esearch)

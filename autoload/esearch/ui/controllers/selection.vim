@@ -21,7 +21,16 @@ fu! s:SelectionController.render() abort dict
 
   let char = esearch#util#getchar()
 
-  if index(g:esearch#cmdline#clear_selection_chars, char) >= 0
+  if index(g:esearch#cmdline#insert_register_content_chars, char) >= 0
+    let retype = char
+    let char = esearch#util#getchar()
+    let retype .= char
+
+    " From :h c_CTRL-R
+    if char =~# '^[0-9a-z"%#:\-=.]$'
+      let str = ''
+    endif
+  elseif index(g:esearch#cmdline#clear_selection_chars, char) >= 0
     let str = ''
   elseif index(g:esearch#cmdline#start_search_chars, char) >= 0
     let finish = s:true
@@ -29,7 +38,7 @@ fu! s:SelectionController.render() abort dict
     let retype = char
   elseif index(g:esearch#cmdline#cancel_selection_chars, char) >= 0
     " no-op
-  elseif esearch#map#escape_kind(char) isnot 0
+  elseif esearch#map#escape_kind(char) isnot s:null
     let retype = char
   elseif mapcheck(char, 'c') !=# ''
     let retype = char
