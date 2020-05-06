@@ -11,9 +11,7 @@ if has('nvim')
   endfu
 else
   fu! esearch#util#append_lines(lines) abort
-    for l in a:lines
-      call append(line('$'), l)
-    endfor
+    call append(line('$'), a:lines)
   endfu
 endif
 
