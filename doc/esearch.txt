@@ -101,40 +101,42 @@ GLOBAL                                                        *vim-esearch-globa
 
 GLOBAL MAPPINGS                                           *vim-esearch-global-map*
                                                  *vim-esearch-global-map-overview*
+                                   *<plug>(esearch)* *<plug>(operator-esearch-exec)*    
+                                                *<plug>(operator-esearch-prefill)* 
 
-           Map             Default                  Comment ~
- ------------------------+------------+-----------------------------------------------------------
- <plug>(esearch)         | <leader>ff | Start the input prompt.
- <plug>(esearch-prefill) | <leader>f  | |operator| to start the prompt prefilled with a |text-object|.
- <plug>(esearch-exec)    |            | |operator| to start searching for a |text-object|.
- ------------------------+------------+-----------------------------------------------------------
+           Map                        Default                  Comment ~
+ ---------------------------------+------------+-----------------------------------------------
+ <plug>(esearch)                  | <leader>ff | Start the input prompt.
+ <plug>(operator-esearch-prefill) | <leader>f  | Start the prompt prefilled with a |text-object|.
+ <plug>(operator-esearch-exec)    |            | Start searching for a |text-object|.
+ ---------------------------------+------------+-----------------------------------------------
 
 Example configuration: >
     nmap <c-f><c-f> <plug>(esearch)
-    map  <c-f>      <plug>(esearch-prefill)
-    map  <c-m-f>    <plug>(esearch-exec)
+    map  <c-f>      <plug>(operator-esearch-prefill)
+    map  <c-m-f>    <plug>(operator-esearch-exec)
 <
 In NORMAL mode press:
-  - <c-f><c-f> (double control-f) to start the input prompt, prefilled using
-    one of specified strategies, e.g. clipboard, word under the cursor etc.
-    (see |g:esearch.prefill|).
-  - <c-f>i" to start searching the prompt prefilled with `""` inner content
+  - <c-f><c-f> (double control-f) to start the input prompt prefilled using one 
+    of specified strategies, e.g. clipboard, word under the cursor etc..
+    (see |g:esearch.prefill|)
+  - <c-f>i" to start the prompt prefilled with double quotes inner text.
   - <c-m-f>iw to start searching for the current word instantly (works the
-    same as <c-f>iw<enter>, but using less keystrokes)
+    same as <c-f>iw<enter>, but requires less keystrokes).
 In VISUAL mode press:
   - <c-f> to start the input prompt, prefilled using the selected text.
   - <c-m-f> to start searching for the selected text instantly.
 
 Another example (simplified): >
       nmap <m-f> <plug>(esearch)
-      vmap <m-f> <plug>(esearch-exec)
+      vmap <m-f> <plug>(operator-esearch-exec)
 <
 In NORMAL mode press:
-  - <m-f> (meta-f or alt-f) to start the input prompt
+  - <m-f> (meta-f or alt-f) to start the input prompt.
 In VISUAL mode press:
-  - <m-f> to start searching for the selected text instantly
+  - <m-f> to start searching for the selected text instantly.
 
-See also: |object-select|.
+See also: |object-select|, |operator|.
 
 ________________________________________________________________________________~
 GLOBAL CONFIGURATIONS                                  *vim-esearch-global-config*
@@ -417,8 +419,8 @@ See also: |maparg()| for |g:esearch.win_map| syntax details.
 
 <plug>(esearch-win-tabopen)                          *<plug>(esearch-win-tabopen)*
 <plug>(esearch-win-tabopen:stay)                *<plug>(esearch-win-tabopen:stay)*
-        Open a line in the file under the cursor using new tab. If `:stay` is used -
-        stay in the search window.
+        Open a line in the file under the cursor using new tab. If `:stay` is
+        used - stay in the search window.
         Default: see |vim-esearch-win-map-defaults|
 
 <plug>(esearch-win-split)                              *<plug>(esearch-win-split)*
@@ -827,9 +829,9 @@ g:esearch.win_contexts_syntax_clear_on_line_len
 
                               *g:esearch.win_contexts_syntax_clear_on_files_count*
 g:esearch.win_contexts_syntax_clear_on_files_count
-        Is used to set line files count limit, after which all filetype-dependent
-        syntaxes will be disabled to prevent slowdowns (vim regex-based
-        syntax particularity).
+        Sets files count limit, after which all filetype-dependent syntaxes
+        will be disabled to prevent slowdowns (vim regex-based syntax
+        particularity).
         Type: |Number|
         Allowed values: > 0
         Default: 800 if |g:esearch.win_matches_highlight_strategy| is
@@ -868,8 +870,8 @@ COMMANDLINE                                                  *vim-esearch-cmdlin
 
 COMMANDLINE INPUT PROMPT                              *vim-esearch-cmdline-prompt*
 
-Input prompt is opened when <plug>(esearch) or <plug>(esearch-prefill) are
-pressed.
+Input prompt is opened when |<plug>(esearch)| or |<plug>(operator-esearch-prefill)|
+are pressed.
 
 Within the prompt matching modes can be changed by double clicking:
 - <c-r><c-r> toggles regex mode.
@@ -1077,8 +1079,8 @@ where `|` is the cursor position.
                                                               *b:esearch-examples*
 
 Use `esearch_win_hook` to setup window local configurations.
-NOTE It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on
-reloads, so no `augroup` inside is required.
+NOTE It'll automatically wrap `s:custom_esearch_config()` call to collect garbage
+on reloads, so no `augroup` inside is required.
 >
     autocmd User esearch_win_config call s:custom_esearch_config()
 
@@ -1192,4 +1194,4 @@ LICENCE                                                      *vim-esearch-licenc
 
 MIT
 
-vim:tw=80:cole=2:et:ft=help:norl:
+vim:tw=78:et:ft=help:norl:
