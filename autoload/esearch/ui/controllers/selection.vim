@@ -32,6 +32,7 @@ fu! s:SelectionController.render() abort dict
     endif
   elseif index(g:esearch#cmdline#clear_selection_chars, char) >= 0
     let str = ''
+    let retype = char
   elseif index(g:esearch#cmdline#start_search_chars, char) >= 0
     let finish = s:true
   elseif index(g:esearch#cmdline#cancel_selection_and_retype_chars, char) >= 0

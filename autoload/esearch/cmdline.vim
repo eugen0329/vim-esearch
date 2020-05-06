@@ -17,20 +17,21 @@ if !exists('g:esearch#cmdline#dir_icon')
 endif
 
 if !exists('g:esearch#cmdline#clear_selection_chars')
-  let g:esearch#cmdline#clear_selection_chars = [
-        \ "\<Del>",
-        \ "\<Bs>",
-        \ "\<C-w>",
-        \ "\<C-h>",
-        \ "\<C-u>",
+  let g:esearch#cmdline#clear_selection_chars = []
+endif
+let g:esearch#cmdline#clear_selection_chars += [
+      \ "\<Del>",
+      \ "\<Bs>",
+      \ "\<C-w>",
+      \ "\<C-h>",
+      \ "\<C-u>",
+      \ ]
+if g:esearch#has#meta_key
+  let g:esearch#cmdline#clear_selection_chars += [
+        \ "\<M-d>",
+        \ "\<M-BS>",
+        \ "\<M-C-h>",
         \ ]
-  if g:esearch#has#meta_key
-    let g:esearch#cmdline#clear_selection_chars += [
-          \ "\<M-d>",
-          \ "\<M-BS>",
-          \ "\<M-C-h>",
-          \ ]
-  endif
 endif
 if !exists('g:esearch#cmdline#start_search_chars')
   let g:esearch#cmdline#start_search_chars = [
@@ -56,6 +57,7 @@ if !exists('g:esearch#cmdline#insert_register_content_chars')
         \ "\<C-r>",
         \ ]
 endif
+let g:esearch#cmdline#insert_register_content_chars = ["\<C-r>", "\<C-v>"]
 
 fu! esearch#cmdline#read(esearch) abort
   return s:app(a:esearch)
