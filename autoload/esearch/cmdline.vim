@@ -57,7 +57,6 @@ if !exists('g:esearch#cmdline#insert_register_content_chars')
         \ "\<C-r>",
         \ ]
 endif
-let g:esearch#cmdline#insert_register_content_chars = ["\<C-r>", "\<C-v>"]
 
 fu! esearch#cmdline#read(esearch) abort
   return s:app(a:esearch)
