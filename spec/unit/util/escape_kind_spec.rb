@@ -27,7 +27,7 @@ describe 'esearch#util' do
     end
 
     shared_examples 'recognize as a regular char' do |char|
-      include_examples 'it recognizes', char, as: 0
+      include_examples 'it recognizes', char, as: ''
     end
 
     context 'ascii alphabet' do

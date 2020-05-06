@@ -157,7 +157,7 @@ function! s:custom_esearch_config() abort
   " Use a custom command to open a file in a tab
   nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
 
-  " Populate the quickfix list using the current pattern
+  " Populate quickfix list using the current pattern
   nnoremap <silent><buffer> <leader>fq
     \ :call esearch#init({'pattern': b:esearch.pattern, 'out': 'qflist', 'remember': 0})<CR>
 endfunction

@@ -41,7 +41,7 @@ fu! s:open(opener, ...) abort dict
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch
-    call s:Log.echomsg('ErrorMsg', v:exception . ' at ' . v:throwpoint)
+    call s:Log.error(v:exception . ' at ' . v:throwpoint)
     return s:false
   finally
     call original_vars.restore()

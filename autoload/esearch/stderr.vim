@@ -8,7 +8,7 @@ fu! esearch#stderr#incremental(adapter, errors) abort
 
   for error in a:errors
     redraw
-    call s:Log.echomsg('ErrorMsg',  prefix . error)
+    call s:Log.error(prefix . error)
   endfor
 endfu
 
@@ -35,5 +35,5 @@ fu! esearch#stderr#finish(esearch) abort
           \ )
   endif
   redraw
-  call s:Log.echomsg('ErrorMsg', message)
+  call s:Log.error(message)
 endfu

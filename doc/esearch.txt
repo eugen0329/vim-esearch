@@ -216,7 +216,6 @@ g:esearch.case                                                    *g:esearch.cas
 >
         let g:esearch.case = 'smart'
 <
-
 g:esearch.textobj                                              *g:esearch.textobj*
         Sets text-objects matching modes (e.g. whole lines or whole words).
         Allowed values: `0`, `'none'` (same as `0`), `'word'` or `'line'` (adapter
@@ -258,7 +257,6 @@ g:esearch.filetypes                                          *g:esearch.filetype
 >
         let g:esearch.filetypes = 'python css js'
 <
-
         NOTE Supported only by [ag], [rg] and [ack].
 
 g:esearch.paths                                                  *g:esearch.paths*
@@ -269,7 +267,6 @@ g:esearch.paths                                                  *g:esearch.path
 >
         let g:esearch.filetypes = 'node_modules/ configs/**/*.yml'
 <
-
         NOTE To use all globbing features make ensure that |'shell'| option
         contains required arguments. E.g. for bash globbing add to your vimrc:
         `set shell=bash\ -O\ globstar -O\ extglob`
@@ -491,7 +488,7 @@ See also: |maparg()| for |g:esearch.win_map| syntax details.
         \ {'lhs': 'ar', 'rhs': '<plug>(textobj-esearch-match-a)', 'mode': 'ov'}
         \]
 <
-        See also: |operator|, |text-objects|
+        See also: |operator|, |text-objects|.
 
 ================================================================================
 SEARCH WINDOW CONFIGURATIONS                              *vim-esearch-win-config*
@@ -565,7 +562,6 @@ g:esearch.win_cursor_linenr_highlight      *g:esearch.win_cursor_linenr_highligh
         >
         let g:esearch.win_cursor_linenr_highlight = 1
 <
-
 ________________________________________________________________________________~
 SEARCH WINDOW PREVIEW                                   *vim-esearch-win-preview*
                                                   *vim-esearch-win-split-preview*
@@ -653,12 +649,13 @@ PERFORMANCE                                              *vim-esearch-performanc
 
 Jump to |vim-esearch-performance-config-overview| for available configurations.
 
-Example configuration to make the search window as fast as possible:
+Example configuration to make the search window faster (by sacrificing some
+features):
 >
     let g:esearch = extend(get(g:, 'esearch', {}), {
           \ 'win_update_throttle_wait': 200,
           \ 'win_matches_highlight_debounce_wait': 200,
-          \ 'win_viewport_off_screen_margin': 0,
+          \ 'win_viewport_off_screen_margin': &lines / 2,
           \})
 
     " Disable filetype-dependent syntaxes
@@ -694,7 +691,7 @@ If the plugin works slowly:
     - Job control callbacks aren't throttled, but it can be mitigated using
       remote plugin (todo).
 
-PERFORMANCE                                               *vim-esearch-heuristics*
+                                              *vim-esearch-performance-heuristics*
 
 Heuristics used to deliver results earlier. Listed only to help understand why
 the search works better/worse/not as you expect. Feel free to scroll down if
@@ -929,7 +926,7 @@ esearch#init([{options}])                                         *esearch#init(
         Will search in vendor lib directories. Remembers only `'regex'` and `'case'`
         modes if they are changed during a request.
 
-        See also: |g:esearch.remember|, |g:esearch.paths|
+        See also: |g:esearch.remember|, |g:esearch.paths|.
 
 esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce()*
         Can be used to create events independently from |CursorHold|. At the
@@ -952,7 +949,7 @@ esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce(
         at the cursor position when the cursor is above a line longer than 1000
         milliseconds.
 
-        See also: |esearch_win_config| event, |b:esearch.preview()| method
+        See also: |esearch_win_config| event, |b:esearch.preview()| method.
 
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                              *vim-esearch-api-local-functions*
@@ -1099,7 +1096,7 @@ reloads, so no `augroup` inside is required.
       " Use a custom command to open a file in a tab
       nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
 
-      " Populate the quickfix list using the current pattern
+      " Populate quickfix list using the current pattern
       nnoremap <silent><buffer> <leader>fq :call esearch#init({
           \ 'pattern': b:esearch.pattern,
           \ 'out': 'qflist',
@@ -1122,6 +1119,11 @@ The example below will show context filenames in 'statusline' that are outside
 (above) the viewport.
 >
     function! s:offscreen_filename() abort
+      " prevent errors due to asynchronous execution
+      if exists('b:esearch') && !b:esearch.is_current()
+        return
+      endif
+
       if exists('b:saved_statusline')
         let  &statusline = b:saved_statusline
         unlet b:saved_statusline
@@ -1137,7 +1139,7 @@ The example below will show context filenames in 'statusline' that are outside
     endfunction
 
     let s:show_offscreen_filename =
-        \ esearch#debounce(function('s:offscreen_filename'), 49)
+        \ esearch#debounce(function('s:offscreen_filename'), 50)
     autocmd User esearch_win_config
         \ autocmd CursorMoved <buffer> call s:show_offscreen_filename.apply()
 <

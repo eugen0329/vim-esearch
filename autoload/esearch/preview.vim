@@ -52,9 +52,15 @@ fu! esearch#preview#open(filename, line, ...) abort
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let enter = get(opts, 'enter', s:false)
+  if !has_key(opts, 'emphasis')
+    let emphasis = get(opts, 'emphasis', [
+          \ esearch#emphasis#sign(),
+          \ esearch#emphasis#highlighted_line(),
+          \])
+  endif
 
   let g:esearch#preview#last = s:Preview
-        \.new(location, shape, win_vars, opts, close_on, enter)
+        \.new(location, shape, emphasis, win_vars, opts, close_on, enter)
 
   if enter
     return g:esearch#preview#last.open_and_enter()
@@ -73,7 +79,7 @@ fu! esearch#preview#reset() abort
   " Sometimes emphasis remains when using tabclose command. We need to try
   " cleaning it up no matter the window opened or not.
   if has_key(g:esearch#preview#last, 'win')
-    call g:esearch#preview#last.win.clear_emphasis()
+    call g:esearch#preview#last.win.unplace_emphasis()
   endif
   " If #close() is used on every listed event, it can cause a bug where previewed
   " buffer loose it's content on existing swaps, so this method is defined to handle this
@@ -95,7 +101,7 @@ endfu
 
 let s:Preview = {}
 
-fu! s:Preview.new(location, shape, win_vars, opts, close_on, enter) abort dict
+fu! s:Preview.new(location, shape, emphasis, win_vars, opts, close_on, enter) abort dict
   let instance = copy(self)
   let instance.location = a:location
   let instance.shape    = a:shape
@@ -103,6 +109,7 @@ fu! s:Preview.new(location, shape, win_vars, opts, close_on, enter) abort dict
   let instance.opts     = a:opts
   let instance.close_on = a:close_on
   let instance.enter    = a:enter
+  let instance.emphasis = a:emphasis
   return instance
 endfu
 
@@ -124,13 +131,12 @@ fu! s:Preview.open() abort dict
     " inheriting some options by buffers (for example, &winhl local to window
     " becoms local to buffer).
     call self.win.let(self.win_vars)
-    call self.win.set_emphasis(
-          \ esearch#emphasize#sign(self.win.id, self.location.line, '->'))
+    call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
     call self.win.init_leaved_autoclose_events()
   catch
     call esearch#preview#close()
-    call s:Log.echomsg('ErrorMsg', v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
+    call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
     return s:false
   finally
     noau keepj call current_win.restore()
@@ -160,13 +166,12 @@ fu! s:Preview.open_and_enter() abort dict
     " inheriting some options by buffers (for example, &winhl local to window
     " becoms local to buffer).
     call self.win.let(self.win_vars)
-    call self.win.set_emphasis(
-          \ esearch#emphasize#sign(self.win.id, self.location.line, '->'))
+    call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
     call self.win.init_entered_autoclose_events()
   catch
     call esearch#preview#close()
-    call s:Log.echomsg('ErrorMsg', v:exception)
+    call s:Log.error(v:exception)
     return s:false
   endtry
 
@@ -404,6 +409,7 @@ fu! s:FloatingWindow.new(buffer, location, shape, close_on) abort dict
   let instance.location = a:location
   let instance.shape    = a:shape
   let instance.close_on = a:close_on
+  let instance.emphasis = []
 
   return instance
 endfu
@@ -433,7 +439,7 @@ fu! s:FloatingWindow.open() abort dict
 endfu
 
 fu! s:FloatingWindow.close() abort dict
-  call self.clear_emphasis()
+  call self.unplace_emphasis()
   call nvim_win_close(self.id, 1)
 endfu
 
@@ -441,7 +447,7 @@ endfu
 " Actual shape settings are set there
 fu! s:FloatingWindow.reshape() abort dict
   if !self.buffer.is_valid()
-    call s:Log.echomsg('ErrorMsg', 'Preview buffer was deleted')
+    call s:Log.error('Preview buffer was deleted')
     return esearch#preview#close()
   endif
 
@@ -523,9 +529,13 @@ fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
   aug END
 endfu
 
-fu! s:FloatingWindow.set_emphasis(emphasis) abort dict
-  let self.emphasis = a:emphasis
-  call self.emphasis.draw()
+fu! s:FloatingWindow.place_emphasis(emphasis) abort dict
+  let self.emphasis = []
+
+  for e in a:emphasis
+    call add(self.emphasis, e.new(self.id, self.location.line))
+    call self.emphasis[-1].place()
+  endfor
 endfu
 
 " Helps to prevent blinks
@@ -542,7 +552,7 @@ fu! s:FloatingWindow.update(buffer, location, shape, close_on) abort dict
   let self.guard = esearch#win#let_restorable(self.id, self.variables)
 
   " Emphasis must be removed as it doesn't correspond to a:location anymore
-  call self.clear_emphasis()
+  call self.unplace_emphasis()
 
   return self
 endfu
@@ -551,9 +561,9 @@ fu! s:FloatingWindow.is_entered() abort dict
   return nvim_get_current_win() ==# self.id
 endfu
 
-fu! s:FloatingWindow.clear_emphasis() abort dict
+fu! s:FloatingWindow.unplace_emphasis() abort dict
   if !empty(self.emphasis)
-    call self.emphasis.clear()
+    call map(self.emphasis, 'v:val.unplace()')
     let self.emphasis = s:null
   endif
 endfu

@@ -67,7 +67,7 @@ fu! s:checkout(changenr, ...) abort dict
   endif
 
   let self.head = self.nodes[found_changenr]
-  call s:Log.echomsg('ErrorMsg', message)
+  call s:Log.error(message)
 endfu
 
 " traverse undotree using :undo or :redo using command specified in a:command
