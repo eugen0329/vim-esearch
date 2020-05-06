@@ -54,7 +54,7 @@ fu! s:informative_parts(esearch, pattern) abort
     call s:pattern2id.set(a:pattern, id)
   endif
 
-  return ['#'.id.' ', esearch#util#ellipsize_end(a:pattern, max_len, '...')]
+  return ['#'.id.' ', esearch#util#ellipsize_end(a:pattern, max_len, '..')]
 endfu
 
 fu! s:modifiers(esearch) abort

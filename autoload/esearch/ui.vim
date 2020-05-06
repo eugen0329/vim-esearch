@@ -80,16 +80,20 @@ fu! esearch#ui#to_statusline(component) abort
         \ ? a:component
         \ : a:component.render()
 
-  let statusline = ''
+  let result = ''
+  let winwidth = winwidth(0) - 2
+  let result_width = 0
   for [color, text] in tokens
-    let statusline .= '%#'.color.'#%('.substitute(text, '%', '%%', 'g').'%)'
+    let text = esearch#util#ellipsize_end(text, winwidth - result_width, '..')
+    let result_width += strdisplaywidth(text)
+    let result .= '%#'.color.'#%('.substitute(text, '%', '%%', 'g').'%)'
 
-    if strlen(statusline) > &columns
+    if result_width > winwidth
       break
     endif
   endfor
 
-  return statusline
+  return result 
 endfu
 
 fu! esearch#ui#soft_clear() abort
