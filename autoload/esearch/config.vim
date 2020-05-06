@@ -4,6 +4,7 @@ fu! esearch#config#eager() abort
   endif
 
   if !get(g:esearch, 'lazy_loaded', 0)
+    call esearch#util#doautocmd('User eseach_config_eager_pre')
     call esearch#config#init(g:esearch)
     call s:lua_init()
     call esearch#highlight#init()
@@ -39,12 +40,12 @@ fu! esearch#config#init(esearch) abort
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'errors':                                [],
-        \ 'prefill':                               ['visual', 'hlsearch', 'current', 'last'],
+        \ 'prefill':                               ['hlsearch', 'current', 'last'],
         \ 'select_prefilled':                      1,
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
-        \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
-        \ 'win_viewport_off_screen_margins':       &lines > 100 ? &lines : 100,
+        \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
+        \ 'win_viewport_off_screen_margin':       &lines > 100 ? &lines : 100,
         \ 'win_matches_highlight_debounce_wait':   100,
         \ 'win_matches_highlight_strategy':        g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd',
         \ 'win_contexts_syntax':                   1,

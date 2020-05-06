@@ -49,7 +49,7 @@ fu! s:MenuController.component_will_mount() abort dict
         \ '&lazyredraw': 0,
         \ '&more': 0,
         \ '&t_ve': ''})
-  call esearch#ui#hard_clear()
+  call esearch#ui#soft_clear()
 endfu
 
 fu! s:MenuController.component_will_unmount() abort dict

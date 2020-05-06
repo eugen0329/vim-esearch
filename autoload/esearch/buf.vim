@@ -1,5 +1,5 @@
 let s:Buffer   = vital#esearch#import('Vim.Buffer')
-let s:Message  = esearch#message#import()
+let s:Log  = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 if g:esearch#has#bufadd
@@ -102,7 +102,7 @@ fu! esearch#buf#qfbufnr() abort
 endfu
 
 fu! esearch#buf#qftype(bufnr) abort
-  let buffers = s:Message.capture('silent ls')
+  let buffers = s:Log.capture('silent ls')
 
   let nr = a:bufnr
   for buf in split(buffers, '\n')

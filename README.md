@@ -31,8 +31,8 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 - 2 preview modes using both neovim floating windows or plain split windows.
 - Interactions are done via API methods, that can be modified or reused to personalize the workflow.
 - Third party plugins integration:
-  - vim-visual-multi (multiple cursors plugin) is guarded from editing filenames and line numbers.
-  - Most of file browsers (nerdtree, dirvish, netranger, defx) can be used to specify search paths.
+  - vim-visual-multi (multiple cursors plugin) is guarded against editing filenames and line numbers.
+  - Most of the file browsers (nerdtree, dirvish, netranger, defx) can be used to specify search paths.
 
 ### Install
 
@@ -50,7 +50,7 @@ and extra features.
 
 ### Quick start
 
-Type `<leader>ff` keys (leader is `\` unless redefined) to open the prompt. Use
+Type `<leader>ff` keys (leader is `\` unless redefined) to open the input prompt. Use
 `<c-r><c-r>`, `<c-s><c-s>` and `<c-t><c-t>` within the prompt to cycle through
 regex, case sensitive and text-objects matching modes or use `<c-o>` to open
 a menu to set searching paths, filetypes or other configs.
@@ -66,7 +66,7 @@ Modify or delete the results right inside the search window and type
 `:write<CR>` to save your changes into files.
 
 Press `p` to open a preview window. Use multiple `p` to zoom it and capital `P`
-to enter the preview for express changes (without moving to a separate split window).
+to enter the preview for superficial changes (without moving to a separate split window).
 
 ### Basic configuration
 
@@ -76,13 +76,13 @@ configurations below if you want to alter the default behavior.
 
 ```vim
 " Use <c-f><c-f> to start the prompt, use <c-f>iw to pre-fill with the current word
-" or other textobject. Try <Plug>(esearch-exec) to start a search instantly.
+" or other text-objects. Try <Plug>(esearch-exec) to start a search instantly.
 nmap <c-f><c-f> <Plug>(esearch)
 map  <c-f>      <Plug>(esearch-prefill)
 
 let g:esearch = {}
 
-" Use regex matching with the smart case mode by default and avoid matching text objects.
+" Use regex matching with the smart case mode by default and avoid matching text-objects.
 let g:esearch.regex   = 1
 let g:esearch.textobj = 0
 let g:esearch.case    = 'smart'
@@ -138,7 +138,7 @@ nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
 Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on reloads, so no `augroup` inside is required.
 
 ```vim
-autocmd User esearch_win_event call s:custom_esearch_config()
+autocmd User esearch_win_config call s:custom_esearch_config()
 
 function! s:custom_esearch_config() abort
   setlocal nobuflisted    " don't show the buffer in the buffers list
@@ -157,7 +157,7 @@ function! s:custom_esearch_config() abort
   " Use a custom command to open a file in a tab
   nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
 
-  " Populate the quickfix list using the current pattern
+  " Populate quickfix list using the current pattern
   nnoremap <silent><buffer> <leader>fq
     \ :call esearch#init({'pattern': b:esearch.pattern, 'out': 'qflist', 'remember': 0})<CR>
 endfunction

@@ -1,10 +1,9 @@
-let s:Vital    = vital#esearch#new()
-let s:Message  = s:Vital.import('Vim.Message')
+let s:Log  = esearch#log#import()
 
 " Builtin confirm() is not working during tests
 fu! esearch#ui#confirm#show(message, options) abort
-  call s:Message.echo('MoreMsg', a:message)
-  call s:Message.echo('MoreMsg', s:wrap_shortcuts(a:options) . ':')
+  call s:Log.echo('MoreMsg', a:message)
+  call s:Log.echo('MoreMsg', s:wrap_shortcuts(a:options) . ':')
 
   try
     call inputsave()

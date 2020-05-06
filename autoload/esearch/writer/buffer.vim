@@ -1,4 +1,4 @@
-let s:Message  = esearch#message#import()
+let s:Log  = esearch#log#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -55,7 +55,7 @@ fu! s:write() abort dict
           \ map(conflicts, 'printf("\n\t%s (%s)", v:val.filename, v:val.reason)')
     let message = "Can't write changes to the following files:"
           \ . join(reasons_texts, '')
-    call s:Message.echo('ErrorMsg',  message)
+    call s:Log.echo('ErrorMsg',  message)
   endif
 endfu
 

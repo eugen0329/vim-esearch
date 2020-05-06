@@ -1,4 +1,4 @@
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -71,12 +71,40 @@ fu! esearch#ui#render(component) abort
         \ : a:component.render()
 
   for [color, text] in tokens
-    call s:Message.echon(color, text)
+    call s:Log.echon(color, text)
   endfor
+endfu
+
+fu! esearch#ui#to_statusline(component) abort
+  let tokens = type(a:component) ==# s:t_list
+        \ ? a:component
+        \ : a:component.render()
+
+  let result = ''
+  let winwidth = winwidth(0) - 2
+  let result_width = 0
+  for [color, text] in tokens
+    let text = esearch#util#ellipsize_end(text, winwidth - result_width, '..')
+    let result_width += strdisplaywidth(text)
+    let result .= '%#'.color.'#%('.substitute(text, '%', '%%', 'g').'%)'
+
+    if result_width > winwidth
+      break
+    endif
+  endfor
+
+  return result 
 endfu
 
 fu! esearch#ui#soft_clear() abort
   redraw | echo ''
+endfu
+
+fu! esearch#ui#height(tokens) abort
+  if empty(a:tokens) | return 0  | endif
+
+  let text = join(map(copy(a:tokens), 'v:val[1]'), '')
+  return float2nr(ceil(strdisplaywidth(text) * 1.0 / &columns))
 endfu
 
 fu! esearch#ui#hard_clear() abort

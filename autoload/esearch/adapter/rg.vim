@@ -18,13 +18,12 @@ else
 endif
 let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-filename'
 " https://docs.rs/regex/1.3.6/regex/#syntax
-" Crate stands for regexp lib from crete packages registry. Is default as
-" pcre is only supported in later versions
 call extend(s:Rg, {
-      \   'bool2regex': ['literal', 'crate'],
+      \   'bool2regex': ['literal', 'default'],
       \   'regex': {
       \     'literal':   {'icon': '',  'option': '--fixed-strings'},
-      \     'crate':     {'icon': 'r', 'option': ''},
+      \     'default':   {'icon': 'r', 'option': ''},
+      \     'auto':      {'icon': 'A', 'option': '--engine auto'},
       \     'pcre':      {'icon': 'P', 'option': '--pcre2'},
       \   },
       \   'bool2textobj': ['none', 'word'],

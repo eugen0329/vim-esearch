@@ -1,4 +1,4 @@
-let s:Message  = esearch#message#import()
+let s:Log  = esearch#log#import()
 
 " Is used to unobtrusive warn users about deprecations without blocking the
 " input or triggering 'more' prompt
@@ -8,12 +8,12 @@ fu! esearch#middleware#warnings#apply(esearch) abort
   endif
 
   for message in g:esearch.pending_deprecations
-    call s:Message.warn('DEPRECATION: ' . message)
+    call s:Log.warn('DEPRECATION: ' . message)
     redraw
   endfor
 
   if len(g:esearch.pending_deprecations) > 1
-    call s:Message.warn(printf('DEPRECATION: %s. Run :messages to view all %d',
+    call s:Log.warn(printf('DEPRECATION: %s. Run :messages to view all %d',
           \ g:esearch.pending_deprecations[-1],
           \ len(g:esearch.pending_deprecations)))
   endif

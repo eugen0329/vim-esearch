@@ -22,3 +22,5 @@ else
   let g:esearch#unicode#down   = '🡓'
   let g:esearch#unicode#updown = '🡑🡓'
 endif
+let g:esearch#unicode#arrow_right = ' ➜'
+let g:esearch#unicode#arrow_right = ' ➔'

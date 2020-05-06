@@ -11,9 +11,7 @@ if has('nvim')
   endfu
 else
   fu! esearch#util#append_lines(lines) abort
-    for l in a:lines
-      call append(line('$'), l)
-    endfor
+    call append(line('$'), a:lines)
   endfu
 endif
 
@@ -166,11 +164,12 @@ if has('nvim')
 else
   fu! esearch#util#getchar() abort
     let char = getchar()
-    if esearch#map#escape_kind(char) isnot 0
-      return char
-    else
+
+    if empty(esearch#map#escape_kind(char))
       return s:to_char(char)
     endif
+
+    return char
   endfu
 endif
 

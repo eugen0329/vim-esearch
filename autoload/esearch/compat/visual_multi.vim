@@ -1,5 +1,5 @@
 let s:List    = vital#esearch#import('Data.List')
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 let s:textobjects_whitelist = 'w()[]{}<>|''`"'
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -120,7 +120,7 @@ fu! s:iremap(lhs, rhs) abort
 endfu
 
 fu! s:unsupported(orig, msg) abort
-  call s:Message.echo('ErrorMsg', a:msg)
+  call s:Log.echo('ErrorMsg', a:msg)
   return ''
 endfu
 

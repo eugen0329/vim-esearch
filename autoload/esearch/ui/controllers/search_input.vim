@@ -16,10 +16,18 @@ let s:SearchInputController = esearch#ui#component()
 fu! s:SearchInputController.render() abort dict
   let s:self = self
   let original_mappings = esearch#map#restorable(g:esearch#cmdline#mappings, {'mode': 'c'})
+  let prompt = s:PathTitlePrompt.new().render()
+  if !empty(prompt)
+    let options = esearch#let#restorable({
+          \ '&statusline': esearch#ui#to_statusline(prompt),
+          \ })
+    redrawstatus!
+  endif
 
   try
     return self.render_initial_selection() && self.render_input()
   finally
+    if exists('options') | call options.restore() | endif
     call original_mappings.restore()
   endtry
 endfu
@@ -51,10 +59,8 @@ fu! s:SearchInputController.render_initial_selection() abort dict
 endfu
 
 fu! s:SearchInputController.render_input() abort
-  " redraw is required here to clear possible output leftovers from multiline
-  " calls
-  redraw
-  call esearch#ui#render(s:PathTitlePrompt.new())
+  " redraw is required here to clear possible output leftovers from multiline calls
+  call esearch#ui#soft_clear()
 
   let self.cmdline .= self.restore_cmdpos_chars()
   let self.pressed_mapped_key = s:null

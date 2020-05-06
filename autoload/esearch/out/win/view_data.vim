@@ -50,10 +50,10 @@ fu! s:filetype(...) abort dict
   return ctx.filetype
 endfu
 
-fu! s:unescaped_filename() abort dict
+fu! s:unescaped_filename(...) abort dict
   if !self.is_current() | return | endif
 
-  let ctx = s:file_context_at(line('.'), self)
+  let ctx = s:file_context_at(get(a:, 1, line('.')), self)
   if empty(ctx) | return s:null | endif
 
   if s:Filepath.is_absolute(ctx.filename)
@@ -65,10 +65,10 @@ fu! s:unescaped_filename() abort dict
   return filename
 endfu
 
-fu! s:filename() abort dict
+fu! s:filename(...) abort dict
   if !self.is_current() | return | endif
 
-  return fnameescape(self.unescaped_filename())
+  return fnameescape(self.unescaped_filename(get(a:, 1, line('.'))))
 endfu
 
 fu! s:file_context_at(line, esearch) abort
@@ -83,12 +83,12 @@ fu! s:file_context_at(line, esearch) abort
   return ctx
 endfu
 
-fu! s:is_entry() abort dict
-  return getline(line('.')) =~# g:esearch#out#win#entry_pattern
+fu! s:is_entry(...) abort dict
+  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#entry_pattern
 endfu
 
-fu! s:is_filename() abort dict
-  return getline(line('.')) =~# g:esearch#out#win#filename_pattern
+fu! s:is_filename(...) abort dict
+  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#filename_pattern
 endfu
 
 " Is used to prevent problems with asynchronous code

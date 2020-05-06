@@ -1,4 +1,4 @@
-let s:Message       = esearch#message#import()
+let s:Log       = esearch#log#import()
 let s:Filepath      = vital#esearch#import('System.Filepath')
 let s:BufferManager = vital#esearch#import('Vim.BufferManager')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -41,7 +41,7 @@ fu! s:open(opener, ...) abort dict
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch
-    call s:Message.echomsg('ErrorMsg', v:exception . ' at ' . v:throwpoint)
+    call s:Log.error(v:exception . ' at ' . v:throwpoint)
     return s:false
   finally
     call original_vars.restore()

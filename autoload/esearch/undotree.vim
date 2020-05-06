@@ -1,6 +1,5 @@
-let s:Vital    = vital#esearch#new()
-let s:Dict     = s:Vital.import('Data.Dict')
-let s:Message  = s:Vital.import('Vim.Message')
+let s:Dict     = vital#esearch#import('Data.Dict')
+let s:Log  = esearch#log#import()
 
 fu! esearch#undotree#new(state) abort
   let initial = s:node(a:state)
@@ -68,7 +67,7 @@ fu! s:checkout(changenr, ...) abort dict
   endif
 
   let self.head = self.nodes[found_changenr]
-  call s:Message.echomsg('ErrorMsg', message)
+  call s:Log.error(message)
 endfu
 
 " traverse undotree using :undo or :redo using command specified in a:command

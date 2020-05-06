@@ -1,4 +1,4 @@
-let s:Message = esearch#message#import()
+let s:Log = esearch#log#import()
 let s:String  = vital#esearch#import('Data.String')
 
 " Handle stderr from backends
@@ -8,7 +8,7 @@ fu! esearch#stderr#incremental(adapter, errors) abort
 
   for error in a:errors
     redraw
-    call s:Message.echomsg('ErrorMsg',  prefix . error)
+    call s:Log.error(prefix . error)
   endfor
 endfu
 
@@ -35,5 +35,5 @@ fu! esearch#stderr#finish(esearch) abort
           \ )
   endif
   redraw
-  call s:Message.echomsg('ErrorMsg', message)
+  call s:Log.error(message)
 endfu

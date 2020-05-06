@@ -27,8 +27,8 @@ let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#
 
 fu! esearch#out#win#init(esearch) abort
   call a:esearch.win_new(a:esearch)
-  call esearch#util#doautocmd('User esearch_win_init_pre')
   call s:cleanup()
+  call esearch#util#doautocmd('User esearch_win_init_pre')
 
   let b:esearch = extend(a:esearch, {
         \ 'bufnr':              bufnr('%'),
@@ -96,6 +96,7 @@ fu! esearch#out#win#init(esearch) abort
 endfu
 
 fu! s:cleanup() abort
+  call esearch#util#doautocmd('User esearch_win_uninit_pre')
   if exists('b:esearch')
     call esearch#backend#{b:esearch.backend}#abort(b:esearch.bufnr)
     call esearch#out#win#modifiable#uninit(b:esearch)
@@ -108,7 +109,6 @@ fu! s:cleanup() abort
   aug esearch_win_config
     au! * <buffer>
   aug END
-  call esearch#util#doautocmd('User esearch_win_uninit_post')
 endfu
 
 fu! esearch#out#win#goto_or_open(esearch) abort dict
@@ -132,6 +132,7 @@ endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
+    redraw
     echomsg 'esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')'
   endif
 
