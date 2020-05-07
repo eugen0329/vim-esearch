@@ -42,14 +42,14 @@ endfu
 fu! s:select_region_with_trailing_or_leading_spaces(begin, end) abort
   call cursor(a:begin)
 
-  if search(b:esearch.pattern.seek_match . '\%(\S\|$\)', 'ceWn') == line('.')
-    call search('\s\+\%#', 'cbW')
+  if search(b:esearch.pattern.seek_match . '\%(\S\|$\)', 'ecWn') == line('.')
+    call search('\s\+\%#', 'bcW')
     norm! v
     call cursor(a:end)
   else
     norm! v
     call cursor(a:end)
-    call search('\%#.\s\+', 'ceW')
+    call search('\%#.\s\+', 'ecW')
   endif
 endfu
 
@@ -59,9 +59,8 @@ fu! s:seek_forward(i, count) abort
   while i < a:count && search(b:esearch.pattern.seek_match, 'W')
     let i += 1
   endwhile
-  " let begin = searchpos(b:esearch.pattern.seek_match, 'cnW')
   let begin = getpos('.')[1:2]
-  let end   = searchpos(b:esearch.pattern.seek_match, 'ceWn')
+  let end   = searchpos(b:esearch.pattern.seek_match, 'ecWn')
 
   call cursor(line, col)
 
@@ -73,7 +72,7 @@ fu! s:seek_under_cursor(i, count) abort
   let curr_line = '\%'.line.'l'
   let inline_pattern = curr_line . b:esearch.pattern.seek_match
 
-  let begin = searchpos(inline_pattern, 'cbW')
+  let begin = searchpos(inline_pattern, 'bcW')
   let end   = searchpos(inline_pattern, 'ecW')
   call cursor(line, col)
 

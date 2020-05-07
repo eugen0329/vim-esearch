@@ -1,4 +1,3 @@
-" use a cache obj instead of a plain dict to prevent memory bloats.
 " 1 day age is required for UX to not break the id's sequence within a working day.
 let s:pattern2id = esearch#cache#expiring#new({'max_age': 60 * 60 * 24, 'size': 1024})
 " Vim supports ~ 240 bytes in buffer names, but to prevent tab/statuslines from
