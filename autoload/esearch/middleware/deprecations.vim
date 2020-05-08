@@ -20,7 +20,7 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
 
   if has_key(g:esearch, 'nerdtree_plugin')
     let g:esearch.filemanager_integration = g:esearch.nerdtree_plugin
-    let g:esearch.pending_deprecations += ['g:esearch.nerdtree_plugin. Please, use g:esearch.filemanager_integration list instead']
+    let g:esearch.pending_deprecations += ['g:esearch.nerdtree_plugin. Please, use g:esearch.filemanager_integration instead']
   endif
 
   if has_key(g:esearch, 'use')

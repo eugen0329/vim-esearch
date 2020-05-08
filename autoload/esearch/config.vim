@@ -57,7 +57,7 @@ fu! esearch#config#init(esearch) abort
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
         \ 'win_let':                               {'&l:buflisted': 0},
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
-        \ 'filenameger_integration':               1,
+        \ 'filemanager_integration':               1,
         \ 'deprecations_loaded':                   0,
         \ 'pending_deprecations':                  [],
         \}, 'keep')

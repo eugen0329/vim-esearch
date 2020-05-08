@@ -345,6 +345,17 @@ g:esearch.out                                                      *g:esearch.ou
         NOTE Quickfix list output contains far less features as it's vim's
         builtin.
 
+g:esearch.filemanager_integration              *g:esearch.filemanager_integration*
+        Flag to toggle integration with filemanagers (nerdtree, dirvish,
+        netranger, defx). If withing a filenmanager window, the plugin will
+        start the prompt using a directory under the cursor or using files and
+        directories selected in |Visual| mode.
+        Type: |Boolean|
+        Default: 1
+        Example:~
+>
+        let g:esearch.filemanager_integration = 0
+<
 ================================================================================
 SEARCH WINDOW                                                        *esearch-win*
 
@@ -422,8 +433,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
         are merged automatically with user defined pairs. Don't overwrite them
         to avoid side effects.
 
-        See also: |nvim_set_keymap()| for list elements syntax, |maparg()| for mode char
-        details.
+        See also: |nvim_set_keymap()| for list elements syntax, |maparg()| for mode
+        char details.
 
 <plug>(esearch-win-reload)                            *<plug>(esearch-win-reload)*
         Reload the current search window.
