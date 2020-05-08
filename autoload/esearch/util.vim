@@ -20,7 +20,7 @@ fu! esearch#util#ellipsize_end(text, max_len, ellipsis) abort
     return a:text
   endif
 
-  return a:text[: a:max_len - 1 - strchars(a:ellipsis)] . a:ellipsis
+  return strcharpart(a:text, 0, a:max_len - 1 - strchars(a:ellipsis)) . a:ellipsis
 endfu
 
 fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
