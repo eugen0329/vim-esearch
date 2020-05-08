@@ -3,28 +3,28 @@ files.
 
 CONTENTS                                                   *esearch-help-contents*
 
-Features overview     |vim-esearch-features|
-Install               |vim-esearch-install|
-Quick start           |vim-esearch-quickstart|
-Global                |vim-esearch-global|
-  Mappings              |vim-esearch-global-map|
-  Configurations        |vim-esearch-global-config|
-Search window         |vim-esearch-win|
-  Mappings              |vim-esearch-win-map|
-  Configurations        |vim-esearch-win-config|
-  Preview               |vim-esearch-win-preview|
-Commandline           |vim-esearch-cmdline|
-  Prompt                |vim-esearch-cmdline-prompt|
-  Menu                  |vim-esearch-cmdline-menu|
-Appearance            |vim-esearch-appearance|
-Performance           |vim-esearch-performance|
-API                   |vim-esearch-api|
-  Global functions      |vim-esearch-api-global-functions|
-  Local functions       |vim-esearch-api-local-functions|
-  Events                |vim-esearch-api-events|
-  Usage examples        |vim-esearch-api-examples|
-Troubleshooting       |vim-esearch-troubleshooting|
-Licence               |vim-esearch-licence|
+Features overview     |esearch-features|
+Install               |esearch-install|
+Quick start           |esearch-quickstart|
+Global                |esearch-global|
+  Mappings              |esearch-global-map|
+  Configurations        |esearch-global-config|
+Search window         |esearch-win|
+  Mappings              |esearch-win-map|
+  Configurations        |esearch-win-config|
+  Preview               |esearch-win-preview|
+Commandline           |esearch-cmdline|
+  Prompt                |esearch-cmdline-prompt|
+  Menu                  |esearch-cmdline-menu|
+Appearance            |esearch-appearance|
+Performance           |esearch-performance|
+API                   |esearch-api|
+  Global functions      |esearch-api-global-functions|
+  Local functions       |esearch-api-local-functions|
+  Events                |esearch-api-events|
+  Usage examples        |esearch-api-examples|
+Troubleshooting       |esearch-troubleshooting|
+Licence               |esearch-licence|
 
 ================================================================================
 FEATURES OVERVIEW                                               *esearch-features*
@@ -430,7 +430,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-open)                                *<plug>(esearch-win-open)*
         Open a line in the file under the cursor.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
         Example:~
 >
         let g:esearch.win_map = [
@@ -444,7 +444,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <plug>(esearch-win-tabopen:stay)                *<plug>(esearch-win-tabopen:stay)*
         Open a line in the file under the cursor using new tab. If `:stay` is
         used - stay in the search window.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
 
 <plug>(esearch-win-split)                              *<plug>(esearch-win-split)*
 <plug>(esearch-win-split:stay)                    *<plug>(esearch-win-split:stay)*
@@ -453,7 +453,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         Open a line under the cursor in the file using horizontal split. If
         `:stay` is used - stay in the search window. If `:reuse` is used - reuse the
         opened window for all further opens in the horizontal split.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
 
 <plug>(esearch-win-vsplit)                            *<plug>(esearch-win-vsplit)*
 <plug>(esearch-win-vsplit:stay)                  *<plug>(esearch-win-vsplit:stay)*
@@ -462,23 +462,23 @@ g:esearch.win_map                                              *g:esearch.win_ma
         Open a line under the cursor in the file using vertical split. If
         `:stay` is used - stay in the search window. If `:reuse` is used -
         reuse the opened window for further opens in the vertical split.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
 
 <plug>(esearch-win-preview)                          *<plug>(esearch-win-preview)*
 <plug>(esearch-win-preview:enter)              *<plug>(esearch-win-preview:enter)*
         Show the line under the cursor in the file using preview window. If
         `:enter` is used - put the cursor into the opened preview window.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
 
         NOTE Floating preview is only supported in neovim of version >=0.4.0.
         In vanilla vim split window will be used instead.
 
-        See also: |vim-esearch-autopreview|.
+        See also: |esearch-autopreview|.
 
 <plug>(esearch-win-jump:filename:up)        *<plug>(esearch-win-jump:filename:up)*
 <plug>(esearch-win-jump:filename:down)    *<plug>(esearch-win-jump:filename:down)*
         Move cursor to a filename up or down.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
         Example:~
 >
         let g:esearch.win_map = [
@@ -513,7 +513,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         Usage example: press `dam` to delete "a match" under the cursor with
         leading or trailing whitespaces or `cim` to delete "inner match" and start
         the insert mode.
-        Default: see |vim-esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults|
         Example:~
 >
         let g:esearch.win_map = [
@@ -536,7 +536,7 @@ Search window-related configurations are added to |g:esearch| dictionary.
             Property                              Comment~
  -----------------------------+-------------------------------------------------
  `.win_new`                     | Funcref to open a new window with search results
- `.win_map`                     | List of mapargs to define window-local mappings
+ `.win_map`                     | Window-local keymaps list. See |esearch-win-map|
  `.win_contexts_syntax`         | Use filetype-aware syntax highlights
  `.win_context_len_annotations` | Outputted lines count of a context
  `.win_cursor_linenr_highlight` | Funcref to open a new window with search results
@@ -562,20 +562,6 @@ g:esearch.win_contexts_syntax                      *g:esearch.win_contexts_synta
         >
         let g:esearch.win_new = 1
 <
-g:esearch.win_map                                              *g:esearch.win_map*
-        List of |maparg()| compliant dicts to define search window-local mappings.
-        Type: |List| of |Dict|s
-        Default: see |vim-esearch-win-map-defaults|
-        Example:~
->
-        let g:esearch.win_map = []
-        let g:esearch.win_map += {'lhs': 'e': 'rhs': '<plug>(esearch-win-open)'}
-
-<
-        NOTE Alternatively |esearch_win_config| autocommand can be used.
-
-        See also: |vim-esearch-win-map| for examples, :help |maparg()| for syntax
-        details.
 
 g:esearch.win_context_len_annotations      *g:esearch.win_context_len_annotations*
         FLoag to toggle annotations to the right of a filename, that show the
@@ -612,7 +598,7 @@ preview window press `p` key multiple times. To enter the preview window press
 capital `P`. Use |<plug>(esearch-win-preview:enter)| to map a custom key to enter
 the preview window.
 
-See also: |vim-esearch-map| for mappings customization.
+See also: |esearch-map| for mappings customization.
 
 ================================================================================
 APPEARANCE                                                    *esearch-appearance*
@@ -683,7 +669,7 @@ esearchMatch                                                     *hl-esearchMatc
 ================================================================================
 PERFORMANCE                                                  *esearch-performance*
 
-Jump to |vim-esearch-performance-config-overview| for available configurations.
+Jump to |esearch-performance-config-overview| for available configurations.
 
 Example configuration to make the search window faster (by sacrificing some
 features):
@@ -821,7 +807,7 @@ g:esearch.win_viewport_off_screen_margin
         NOTE Has no affect unless |g:esearch.win_contexts_syntax| is not 1 or
         |g:esearch.win_matches_highlight_strategy| is not `'viewport'`.
 
-        See also: |vim-esearch-heuristics|.
+        See also: |esearch-heuristics|.
 
                                         *g:esearch.win_matches_highlight_strategy*
 g:esearch.win_matches_highlight_strategy
@@ -889,7 +875,7 @@ g:esearch.final_batch_size                            *g:esearch.final_batch_siz
         Allowed value: > 1
         Default: depends lua availability
 
-        See also: |vim-esearch-heuristics|.
+        See also: |esearch-heuristics|.
 
 g:esearch.early_finish_wait                          *g:esearch.early_finish_wait*
         Timeout to avoid screen flickering when few results in milliseconds.
@@ -897,7 +883,7 @@ g:esearch.early_finish_wait                          *g:esearch.early_finish_wai
         Allowed values: >= 0
         Default: 50
 
-        See also: |vim-esearch-heuristics|.
+        See also: |esearch-heuristics|.
 
 ================================================================================
 COMMANDLINE                                                      *esearch-cmdline*
@@ -939,7 +925,7 @@ pattern.
 API                                                                  *esearch-api*
 
 API is a set of global functions and |b:esearch| scoped methods to customize
-the workflow. See |vim-esearch-api-examples| to view what can be done by using the
+the workflow. See |esearch-api-examples| to view what can be done by using the
 API.
 
 API GLOBAL FUNCTIONS                                *esearch-api-global-functions*
@@ -1184,7 +1170,7 @@ TROUBLESHOOTING                                          *esearch-troubleshootin
 
 1. Show previews automatically on cursor movement.
 
-See |vim-esearch-autopreview|.
+See |esearch-autopreview|.
 
 2. Avoid searching in `log/`, `node_modules/`, `dist/` and similar folders.
 
@@ -1215,7 +1201,7 @@ many lines or if there's a long line encountered.
 
 6. The search window is slow.
 
-See |vim-esearch-preformance|.
+See |esearch-preformance|.
 
 7. Pt adapter case-insensitive mode implicitly enables regex matching mode.
 
