@@ -165,7 +165,7 @@ else
   fu! esearch#util#getchar() abort
     let char = getchar()
 
-    if empty(esearch#map#escape_kind(char))
+    if empty(esearch#keymap#escape_kind(char))
       return s:to_char(char)
     endif
 

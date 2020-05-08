@@ -9,7 +9,7 @@ describe 'esearch#util' do
   describe '#escape_kind' do
     shared_examples 'it recognizes' do |arg, as:, **meta|
       it "recognizes #{arg} as #{as.inspect}", **meta do
-        expect(vim.echo("esearch#map#escape_kind(\"#{arg}\")")).to eq(VimlValue.dump(as))
+        expect(vim.echo("esearch#keymap#escape_kind(\"#{arg}\")")).to eq(VimlValue.dump(as))
       end
     end
 

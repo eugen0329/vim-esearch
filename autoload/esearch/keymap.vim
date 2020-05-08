@@ -4,46 +4,54 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:String  = vital#esearch#import('Data.String')
 let s:Mapping = vital#esearch#import('Mapping')
 
-fu! esearch#map#define(maparg, defaults) abort
-  let maparg = extend(copy(a:defaults), a:maparg)
+" nvim_set_keymap
+fu! esearch#keymap#set(mode, lhs, rhs, opts) abort
+  let maparg = extend({
+        \ 'lhs': a:lhs,
+        \ 'rhs': a:rhs,
+        \}, a:opts)
 
-  for mode in split(maparg.mode, '\zs')
+  for mode in split(a:mode, '\zs')
     let maparg.mode = mode
-    exe esearch#map#maparg2define_command(maparg)
+    exe esearch#keymap#maparg2set_command(maparg)
   endfor
 endfu
 
-fu! esearch#map#restorable(maps, defaults) abort
-  return s:Guard.store(a:maps, a:defaults)
+fu! esearch#keymap#del(mode, lhs, opts) abort
+  return s:Mapping.get_unmap_command(a:mode, a:opts, a:lhs)
+endfu
+
+fu! esearch#keymap#restorable(maps) abort
+  return s:Guard.store(a:maps)
 endfu
 
 let s:Guard = {}
 
-fu! s:Guard.store(mapargs, defaults) abort dict
+fu! s:Guard.store(maps) abort dict
   let instance = copy(self)
-  let instance.mapargs = map(copy(a:mapargs), 'extend(copy(a:defaults), v:val)')
+  let instance.maps = a:maps
   let [is_abbr, is_dict] = [0, 1]
-  let instance.original_mapargs = map(copy(instance.mapargs),
-        \ 'maparg(v:val.lhs, v:val.mode, is_abbr, is_dict)')
+  let instance.original_mapargs = map(copy(instance.maps),
+        \ 'maparg(v:val[1], v:val[0], is_abbr, is_dict)')
 
-  for maparg in a:mapargs
-    call esearch#map#define(maparg, a:defaults)
+  for map in a:maps
+    call esearch#keymap#set(map[0], map[1], map[2], get(map, 3, {}))
   endfor
 
   return instance
 endfu
 
 fu! s:Guard.restore() abort dict
-  for maparg in self.mapargs
-    exe esearch#map#maparg2undefine_command(maparg)
+  for map in self.maps
+    call esearch#keymap#del(map[0], map[1], get(map, 3, {}))
   endfor
 
   for maparg in self.original_mapargs
-    if !empty(maparg) | exe esearch#map#maparg2define_command(maparg) | endif
+    if !empty(maparg) | exe esearch#keymap#maparg2set_command(maparg) | endif
   endfor
 endfu
 
-fu! esearch#map#maparg2define_command(maparg) abort
+fu! esearch#keymap#maparg2set_command(maparg) abort
   let cmd = get(a:maparg, 'noremap') ? 'noremap' : 'map'
   let cmd = a:maparg.mode ==# '!' ? cmd . '!' : a:maparg.mode . cmd
 
@@ -53,12 +61,8 @@ fu! esearch#map#maparg2define_command(maparg) abort
   return join([cmd, s:Mapping.options_dict2raw(a:maparg), lhs, rhs])
 endfu
 
-fu! esearch#map#maparg2undefine_command(maparg) abort
-  return s:Mapping.get_unmap_command(a:maparg.mode, a:maparg, a:maparg.lhs)
-endfu
-
 " DEPRECATED
-fu! esearch#map#add(mappings, lhs, rhs) abort
+fu! esearch#keymap#add(mappings, lhs, rhs) abort
   for mapping in a:mappings
     if mapping.rhs == a:rhs && mapping.default == 1
       call remove(a:mappings, index(a:mappings, mapping))
@@ -70,7 +74,7 @@ fu! esearch#map#add(mappings, lhs, rhs) abort
 endfu
 
 " from arpeggio.vim
-fu! esearch#map#key2char(key) abort
+fu! esearch#keymap#key2char(key) abort
   let keys = s:split_to_keys(a:key)
   call map(keys, 'v:val =~# "^<.*>$" ? eval(''"\'' . v:val . ''"'') : v:val')
   return join(keys, '')
@@ -83,7 +87,7 @@ fu! s:split_to_keys(lhs) abort
   return split(a:lhs, '\(<[^<>]\+>\|.\)\zs')
 endfu
 
-fu! esearch#map#escape_kind(char) abort
+fu! esearch#keymap#escape_kind(char) abort
   call s:generate_escape_tables()
 
   let printable = strtrans(a:char)

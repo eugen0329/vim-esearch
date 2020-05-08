@@ -151,7 +151,7 @@ fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whiteli
     for r in regions | call r.clear() | endfor
   endif
   if g:Vm.extend_mode
-    return feedkeys(esearch#map#key2char(a:orig))
+    return feedkeys(esearch#keymap#key2char(a:orig))
   endif
 
   let [motion, motion_count] = s:sanitized_motion(a:whitelist0, a:whitelist1, a:whitelist2)
@@ -161,7 +161,7 @@ fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whiteli
 
   "" Counts are ignored for now as they can cause multiline changes
   " let multiplied_count = (a:count * motion_count)
-  call feedkeys(esearch#map#key2char(a:orig) . motion, 't')
+  call feedkeys(esearch#keymap#key2char(a:orig) . motion, 't')
 endfu
 
 fu! s:sanitized_motion(whitelist0, whitelist1, whitelist2) abort
@@ -269,7 +269,7 @@ fu! s:without_regions_overlapping_interface(orig, offset_from_linenr) abort
     for r in regions | call r.clear() | endfor
   endif
 
-  call feedkeys(esearch#map#key2char(a:orig), 'n')
+  call feedkeys(esearch#keymap#key2char(a:orig), 'n')
 endfu
 
 fu! s:CtrlW(orig) abort

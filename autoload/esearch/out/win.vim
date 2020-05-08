@@ -201,8 +201,9 @@ fu! s:init_mappings() abort
   vnoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
   onoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
 
-  for maparg in b:esearch.win_map
-    call esearch#map#define(maparg, {'mode': ' ', 'buffer': 1, 'silent': 1})
+  for args in b:esearch.win_map
+    let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
+    call esearch#keymap#set(args[0], args[1], args[2], opts)
   endfor
 endfu
 

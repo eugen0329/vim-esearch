@@ -2,10 +2,10 @@ let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
 let g:esearch#cmdline#mappings = [
-      \ {'lhs': '<C-o>',      'rhs': '<Plug>(esearch-open-menu)'},
-      \ {'lhs': '<C-r><C-r>', 'rhs': '<Plug>(esearch-toggle-regex)'},
-      \ {'lhs': '<C-s><C-s>', 'rhs': '<Plug>(esearch-toggle-case)'},
-      \ {'lhs': '<C-t><C-t>', 'rhs': '<Plug>(esearch-toggle-textobj)'},
+      \ ['c', '<C-o>',      '<Plug>(esearch-open-menu)'],
+      \ ['c', '<C-r><C-r>', '<Plug>(esearch-toggle-regex)'],
+      \ ['c', '<C-s><C-s>', '<Plug>(esearch-toggle-case)'],
+      \ ['c', '<C-t><C-t>', '<Plug>(esearch-toggle-textobj)'],
       \]
 
 if !exists('g:esearch#cmdline#dir_icon')

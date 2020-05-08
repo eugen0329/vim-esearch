@@ -15,7 +15,7 @@ let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
-  let original_mappings = esearch#map#restorable(g:esearch#cmdline#mappings, {'mode': 'c'})
+  let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
   let prompt = s:PathTitlePrompt.new().render()
   if !empty(prompt)
     let options = esearch#let#restorable({
