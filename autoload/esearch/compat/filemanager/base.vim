@@ -1,6 +1,6 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-fu! esearch#compat#filer#base#import() abort
+fu! esearch#compat#filemanager#base#import() abort
   return s:Base
 endfu
 

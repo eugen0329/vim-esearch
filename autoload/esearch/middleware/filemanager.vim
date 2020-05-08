@@ -1,14 +1,14 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-let g:esearch#middleware#filer#filetype2filer = {
+let g:esearch#middleware#filemanager#filetype2filer = {
       \ 'defx':      'defx',
       \ 'nerdtree':  'nerdtree',
       \ 'dirvish':   'dirvish',
       \ 'netranger': 'netranger',
       \ }
 
-fu! esearch#middleware#filer#apply(esearch) abort
-  if !has_key(g:esearch#middleware#filer#filetype2filer, &filetype)
+fu! esearch#middleware#filemanager#apply(esearch) abort
+  if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype) || !a:esearch.filemanager_integration
     return a:esearch
   endif
 
@@ -40,8 +40,8 @@ fu! s:paths_in_region(filer, region) abort
 endfu
 
 fu! s:filer() abort
-  let filer_name = g:esearch#middleware#filer#filetype2filer[&filetype]
-  return esearch#compat#filer#{filer_name}#import()
+  let filer_name = g:esearch#middleware#filemanager#filetype2filer[&filetype]
+  return esearch#compat#filemanager#{filer_name}#import()
 endfu
 
 " Paths are truncated to be relative to imitate that they are inputted manually in

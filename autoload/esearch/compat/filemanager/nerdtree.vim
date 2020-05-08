@@ -1,8 +1,8 @@
-fu! esearch#compat#filer#nerdtree#import() abort
+fu! esearch#compat#filemanager#nerdtree#import() abort
   return s:NERDTree
 endfu
 
-let s:NERDTree = copy(esearch#compat#filer#base#import())
+let s:NERDTree = copy(esearch#compat#filemanager#base#import())
 
 fu! s:NERDTree.nearest_directory_path() abort
   let path = g:NERDTreeFileNode.GetSelected().path

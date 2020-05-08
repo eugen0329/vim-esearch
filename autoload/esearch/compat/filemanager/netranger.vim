@@ -1,10 +1,10 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-fu! esearch#compat#filer#netranger#import() abort
+fu! esearch#compat#filemanager#netranger#import() abort
   return s:NETRanger
 endfu
 
-let s:NETRanger = copy(esearch#compat#filer#base#import())
+let s:NETRanger = copy(esearch#compat#filemanager#base#import())
 
 fu! s:NETRanger.path_under_cursor() abort
   return netranger#cur_node_path()

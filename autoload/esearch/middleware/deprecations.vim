@@ -18,6 +18,11 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['g:esearch#out#win#open, see :help g:esearch.win_new for details']
   endif
 
+  if has_key(g:esearch, 'nerdtree_plugin')
+    let g:esearch.filemanager_integration = g:esearch.nerdtree_plugin
+    let g:esearch.pending_deprecations += ['g:esearch.nerdtree_plugin. Please, use g:esearch.filemanager_integration list instead']
+  endif
+
   if has_key(g:esearch, 'use')
     let g:esearch.prefill = type(g:esearch.use) == type('') ? [g:esearch.use] : g:esearch.use
     let g:esearch.pending_deprecations += ['g:esearch.use. Please, use g:esearch.prefill list instead']
