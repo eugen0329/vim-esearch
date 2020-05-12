@@ -22,10 +22,7 @@ let g:esearch#has#virtual_text = exists('*nvim_buf_set_virtual_text')
 
 " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
 let g:esearch#has#vim8_calls_close_cb_last = has('patch-7.4.1787')
-" 7.4.1398 - Implemented close-cb
-let g:esearch#has#vim8_jobs = has('job') &&
-        \ has('patch-7.4.1398') &&
-        \ (g:esearch#has#vim8_calls_close_cb_last || exists('*timer_start'))
+let g:esearch#has#vim8_jobs = has('job') && g:esearch#has#vim8_calls_close_cb_last
 " Implemented as a function to not preload unneeded code from
 " autoload/vimproc.vim
 fu! esearch#has#vimproc() abort

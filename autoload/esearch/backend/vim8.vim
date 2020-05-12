@@ -1,15 +1,6 @@
 if !exists('g:esearch#backend#vim8#ticks')
-  let g:esearch#backend#vim8#ticks = 100
-endif
-
-if !exists('g:esearch#backend#vim8#ticks')
   let g:esearch#backend#vim8#ticks = 3
 endif
-if !exists('g:esearch#backend#vim8#timer')
-  " TODO better name
-  let g:esearch#backend#vim8#timer = 1000
-endif
-
 let s:jobs = {}
 let s:id = esearch#itertools#count()
 
@@ -79,7 +70,7 @@ endfu
 " Adapted from vital-Whisky
 fu! s:is_consumed() abort dict
   let timeout = g:esearch.early_finish_wait / 1000.0 - reltimefloat(reltime(self.start_at))
-  if timeout < 0.0 | return | endif
+  if timeout < 0.0 | return 0 | endif
   let stopped = 0
 
   let start_time = reltime()
@@ -102,36 +93,12 @@ fu! s:stderr(job_id, job, data) abort
   call esearch#stderr#incremental(job.request.adapter, [a:data])
 endfu
 
-func! s:timer_stop_workaround(job, timer) abort
-  " smh timer_stop cannot stop timer within a callback
-  call timer_stop(a:job.request.timer_id)
-endfunc
-
-func! s:watch_for_buffered_data_render_complete(job, timer) abort
-  " dirty check
-  if a:job.request.cursor == a:job.request.old_cursor
-    if !empty(a:job.request.events.schedule_finish)
-      call a:job.request.events.schedule_finish()
-    endif
-    call timer_start(0, function('s:timer_stop_workaround', [a:job]))
-  else
-    let a:job.request.old_cursor = a:job.request.cursor
-  endif
-endfunc
-
 fu! s:closed(job_id, channel) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
 
-  " TODO should be properly tested first
-  if g:esearch#has#vim8_calls_close_cb_last
-    if !empty(job.request.events.schedule_finish)
-      call job.request.events.schedule_finish()
-    endif
-  else
-    let job.request.timer_id = timer_start(g:esearch#backend#vim8#timer,
-          \ function('s:watch_for_buffered_data_render_complete', [job]),
-          \ {'repeat': -1})
+  if !empty(job.request.events.schedule_finish)
+    call job.request.events.schedule_finish()
   endif
 endfu
 
@@ -140,9 +107,6 @@ fu! s:exit(job_id, job, status) abort
   let job.request.status = a:status
 endfu
 
-" TODO write expansion for commands
-" g:esearch.expand_special has no affect due to josbstart is a function
-" (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#vim8#escape_cmd(command) abort
   return shellescape(a:command)
 endfu

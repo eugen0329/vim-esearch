@@ -104,9 +104,6 @@ fu! s:exit(job_id, status, event) abort
   endif
 endfu
 
-" TODO write expansion for commands
-" g:esearch.expand_special has no affect due to josbstart is a function
-" (e.g #dispatch uses cmdline, where #,%,... can be expanded)
 fu! esearch#backend#nvim#escape_cmd(command) abort
   return shellescape(a:command)
 endfu
