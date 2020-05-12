@@ -76,8 +76,8 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#filemanager#apply'),
           \ function('esearch#middleware#prewarm#apply'),
           \ function('esearch#middleware#pattern#apply'),
-          \ function('esearch#middleware#remember#apply'),
           \ function('esearch#middleware#exec#apply'),
+          \ function('esearch#middleware#remember#apply'),
           \ function('esearch#middleware#title#apply'),
           \ function('esearch#middleware#warnings#apply'),
           \]
@@ -118,14 +118,14 @@ fu! esearch#config#init(esearch) abort
   endif
 
   if g:esearch#has#nvim_lua
-    let g:esearch.batch_size = 5000
-    let g:esearch.final_batch_size = 15000
+    let g:esearch.batch_size       = get(g:esearch, 'batch_size', 5000)
+    let g:esearch.final_batch_size = get(g:esearch, 'final_batch_size', 15000)
   elseif g:esearch#has#vim_lua
-    let g:esearch.batch_size = 2500
-    let g:esearch.final_batch_size = 5000
+    let g:esearch.batch_size       = get(g:esearch, 'batch_size', 2500)
+    let g:esearch.final_batch_size = get(g:esearch, 'final_batch_size', 5000)
   else
-    let g:esearch.batch_size = 1000
-    let g:esearch.final_batch_size = 4000
+    let g:esearch.batch_size       = get(g:esearch, 'batch_size', 1000)
+    let g:esearch.final_batch_size = get(g:esearch, 'final_batch_size', 4000)
   endif
 
   return g:esearch
