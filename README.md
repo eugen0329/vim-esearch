@@ -62,6 +62,11 @@ To open a line in a file press `<Enter>` (open in the current window), `o` (open
 `s` (split vertically) or `t` to open in a new tab. Use the keys with shift
 pressed (`O`, `S` and `T`) to open staying in the search window.
 
+Use `im` and `am` text-objects to jump to the following match and start operating on it. E.g.
+press `dam` to delete "a match" under the cursor or located further with
+leading or trailing whitespaces or `cim` to delete "inner match" and start
+the insert mode.
+
 Modify or delete the results right inside the search window and type
 `:write<CR>` to save your changes into files.
 

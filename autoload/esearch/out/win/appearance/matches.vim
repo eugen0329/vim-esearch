@@ -15,7 +15,6 @@ nnoremap <Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
 
 fu! esearch#out#win#appearance#matches#init(esearch) abort
   if a:esearch.win_matches_highlight_strategy is# 'viewport'
-    let a:esearch.hl_strategy = 'viewport'
     let a:esearch.last_hl_range = [0,0]
     let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
     let a:esearch.lines_with_hl_matches = {}
@@ -26,6 +25,7 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()
     aug END
     call luaeval('esearch.appearance.buf_attach_matches()')
+    let a:esearch.hl_strategy = 'viewport'
     return
   endif
 
@@ -36,12 +36,13 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
   if a:esearch.win_matches_highlight_strategy is# 'hlsearch'
     let @/ = a:esearch.pattern.hl_match
     call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    let a:esearch.hl_strategy = 'hlsearch'
     return
   endif
 
   if a:esearch.win_matches_highlight_strategy is# 'matchadd'
-    let a:esearch.hl_strategy = 'matchadd'
     let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.pattern.hl_match, -1)
+    let a:esearch.hl_strategy = 'matchadd'
     return
   endif
 
