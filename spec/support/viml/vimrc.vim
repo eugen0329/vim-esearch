@@ -92,13 +92,11 @@ function! SynStack()  abort
 endfunc
 
 fu! SyntaxAt(ln, column) abort
-  let l:s = synID(a:ln, a:column, 0)
-  let name = synIDattr(l:s, 'name')
-
+  let name = synIDattr(synID(a:ln, a:column, 0), 'name')
   if empty(name)
     return ['ERR_EMPTY_SYNTAX_NAME', 'ERR_EMPTY_SYNTAX_NAME']
   endif
-  " let links_to = synIDattr(synIDtrans(l:s), 'name')
+
   let hlstr = ''
   redir => hlstr
   silent exe 'hi '.name

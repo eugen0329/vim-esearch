@@ -15,19 +15,19 @@ fu! esearch#out#win#diff#do(parsed_contexts, original_contexts) abort
           \ 'modified': {},
           \ 'deleted': [],
           \ }
+    let escaped_filename = fnameescape(ctx.filename)
 
     " entire context is removed
-    if !has_key(a:parsed_contexts, ctx.filename)
+    if !has_key(a:parsed_contexts, escaped_filename)
       let diff.contexts[ctx.id].deleted = keys(ctx.lines)
       let diff.statistics.files += 1
       let diff.statistics.deleted += len(ctx.lines)
       continue
     endif
 
-    let parsed_ctx = a:parsed_contexts[ctx.filename]
+    let parsed_ctx = a:parsed_contexts[escaped_filename]
     for [line, text] in items(ctx.lines)
       if has_key(parsed_ctx, line)
-        " TODO test case match
         if parsed_ctx[line] !=# text
           let diff.contexts[ctx.id].modified[line] = parsed_ctx[line]
           let diff.statistics.modified += 1

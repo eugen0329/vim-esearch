@@ -11,8 +11,8 @@ describe 'Writing in modifiable mode', :window do
 
   include_context 'setup modifiable testing'
 
-  let(:ctx) { Context.new('file1.txt', ['line 1', 'line 2']) }
-  let(:untouched_ctx) { Context.new('file2.txt', ['untouched line 1', 'untouched line 2']) }
+  let(:ctx) { Context.new('filename with whitespaces.txt', ['line 1', 'line 2']) }
+  let(:untouched_ctx) { Context.new('untouched filename.txt', ['untouched line 1', 'untouched line 2']) }
   let(:contexts) { [ctx, untouched_ctx] }
 
   after do

@@ -1,7 +1,6 @@
 local M = {}
 
-if vim.fn then
-  -- neovim >= 0.5
+if vim.fn then -- neovim >= 0.5
   function M.fnameescape(path)
     return vim.fn.fnameescape(path)
   end
@@ -18,8 +17,7 @@ if vim.fn then
       return false
     end
   end
-elseif vim.api then
-  -- neovim < 0.5
+elseif vim.api then -- neovim < 0.5
   function M.fnameescape(path)
     return vim.api.nvim_call_function('fnameescape', {path})
   end
@@ -36,8 +34,7 @@ elseif vim.api then
       return false
     end
   end
-else
-  -- vim
+else -- vim
   function M.fnameescape(path)
     return vim.funcref('fnameescape')(path)
   end
