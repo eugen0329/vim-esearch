@@ -652,11 +652,11 @@ esearchFilename
 esearchHeader                                                   *hl-esearchHeader*
         First window line highlight. Contains statistics, spinner and request
         status information.
-        Default: link to |hl-Title|
+        Default: |hl-Normal| with "bold" attribute
 
 esearchStatistics                                           *hl-esearchStatistics*
-        Information about outputted lines and files count highlight.
-        Contained in the header.
+        Information about outputted lines and files count highlight. Contained in
+        the header.
         Default: link to |hl-Number|
 
 esearchFilename                                               *hl-esearchFilename*

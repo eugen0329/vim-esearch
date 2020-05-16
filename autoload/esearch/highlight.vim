@@ -13,11 +13,11 @@ fu! esearch#highlight#init() abort
 endfu
 
 fu! esearch#highlight#define() abort
-  hi def link esearchHeader       Title
   hi def link esearchStatistics   Number
   hi def link esearchFilename     Directory
   hi def link esearchLineNr       LineNr
   hi def link esearchCursorLineNr CursorLineNr
+  call s:sethl('esearchHeader', {'cterm': 'bold', 'gui': 'bold'}, {'default': 1})
 
   let s:is_dark = s:detect_dark_background()
   call s:define_matches_highlight()

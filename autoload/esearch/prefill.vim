@@ -58,7 +58,10 @@ fu! esearch#prefill#current(_esearch) abort
 endfu
 
 fu! esearch#prefill#cword(_esearch) abort
-  return {'literal': expand('<cword>'), 'pcre': expand('<cword>')}
+  let cword = expand('<cword>')
+  if !empty(cword)
+    return {'literal': cword, 'pcre': expand('<cword>')}
+  endif
 endfu
 
 fu! esearch#prefill#clipboard(_esearch) abort
