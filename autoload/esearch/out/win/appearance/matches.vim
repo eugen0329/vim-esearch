@@ -19,7 +19,7 @@ fu! esearch#out#win#appearance#matches#init(esearch) abort
     let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
     let a:esearch.lines_with_hl_matches = {}
     let Callback = function('s:highlight_viewport_cb', [a:esearch])
-    let a:esearch.hl_matches = esearch#debounce(Callback, a:esearch.win_matches_highlight_debounce_wait)
+    let a:esearch.hl_matches = esearch#async#debounce(Callback, a:esearch.win_matches_highlight_debounce_wait)
 
     aug esearch_win_hl_matches
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()

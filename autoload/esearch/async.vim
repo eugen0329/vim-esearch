@@ -1,4 +1,4 @@
-fu! esearch#debounce#new(callback, wait, ...) abort
+fu! esearch#async#debounce(callback, wait, ...) abort
   return s:Trailing.new(a:callback, a:wait, a:000)
 endfu
 

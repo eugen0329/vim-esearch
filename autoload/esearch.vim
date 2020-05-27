@@ -38,10 +38,6 @@ fu! esearch#map(lhs, rhs) abort
   endif
 endfu
 
-fu! esearch#debounce(...) abort
-  return call('esearch#debounce#new', a:000)
-endfu
-
 if !exists('g:esearch#env')
   let g:esearch#env = 0 " prod
 endif

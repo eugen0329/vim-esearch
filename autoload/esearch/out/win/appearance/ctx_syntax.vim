@@ -66,7 +66,7 @@ let g:esearch#out#win#appearance#ctx_syntax#map = {
 fu! esearch#out#win#appearance#ctx_syntax#init(esearch) abort
   let Callback = function('s:highlight_viewport_cb', [a:esearch])
   let a:esearch.ctx_syntax_loaded = 1
-  let a:esearch.hl_ctx_syntax = esearch#debounce(Callback, a:esearch.win_contexts_syntax_debounce_wait)
+  let a:esearch.hl_ctx_syntax = esearch#async#debounce(Callback, a:esearch.win_contexts_syntax_debounce_wait)
   let a:esearch.context_syntax_regions = {}
   let a:esearch.max_lines_found = 0
   syntax sync minlines=100
