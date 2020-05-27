@@ -3,7 +3,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 fu! esearch#out#win#preview#floating#init(esearch) abort
   call extend(a:esearch, {
-        \ 'preview':         function('<SID>preview'),
+        \ 'preview_open':    function('<SID>preview_open'),
         \ 'preview_enter':   function('<SID>preview_enter'),
         \ 'preview_zoom':    function('<SID>preview_zoom'),
         \ 'preview_close':   function('esearch#preview#close'),
@@ -41,7 +41,7 @@ fu! s:preview_enter(...) abort dict
   call winrestview(view)
 endfu
 
-fu! s:preview(...) abort dict
+fu! s:preview_open(...) abort dict
   if !self.is_current() | return | endif
   return call(function('esearch#preview#open'),
         \ [self.unescaped_filename(), self.line_in_file()] + a:000)
@@ -58,6 +58,6 @@ fu! s:preview_zoom() abort dict
       call g:esearch#preview#last.win.reshape()
     endif
   else
-    return self.preview()
+    return self.preview_open()
   endif
 endfu

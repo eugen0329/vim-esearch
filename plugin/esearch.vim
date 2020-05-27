@@ -8,7 +8,8 @@ if !hasmapto('<Plug>(esearch)') && !hasmapto('<Plug>(operator-esearch-prefill)')
   map  <leader>f  <Plug>(operator-esearch-prefill)
 endif
 
-nnoremap       <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
-xmap                   <Plug>(esearch) <Plug>(operator-esearch-prefill)
-noremap  <expr><silent><Plug>(operator-esearch-prefill) esearch#util#operator_expr('esearch#opfunc_prefill')
-noremap  <expr><silent><Plug>(operator-esearch-exec)    esearch#util#operator_expr('esearch#opfunc_exec')
+nnoremap <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
+xmap             <Plug>(esearch) <Plug>(operator-esearch-prefill)
+
+noremap <expr><silent><Plug>(operator-esearch-prefill) esearch#util#operator_expr('esearch#opfunc_prefill')
+noremap <expr><silent><Plug>(operator-esearch-exec)    esearch#util#operator_expr('esearch#opfunc_exec')

@@ -3,13 +3,13 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 fu! esearch#out#win#preview#split#init(esearch) abort
   call extend(a:esearch, {
-        \ 'split_preview':      function('<SID>split_preview'),
+        \ 'split_preview_open': function('<SID>split_preview_open'),
         \ 'last_split_preview': {},
         \ })
 endfu
 
 " A wrapper around regular open
-fu! s:split_preview(...) abort dict
+fu! s:split_preview_open(...) abort dict
   if !self.is_current() | return | endif
 
   let last = self.last_split_preview
