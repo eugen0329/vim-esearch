@@ -1060,15 +1060,15 @@ Or the same query if one of ag, rg or ack is available
 <
 See also: |g:esearch.paths| for globbing details.
 
-4. Use callable prefiller and |<>| brackets notation to set initial prompt input
-text to `type | struct`, where `|` is the cursor position.
+4. Use a callable prefiller and |<>| brackets notation to set the initial input
+prompt text to `def |(self`, where `|` is the cursor position.
 >
-    let g:search_gofunc = {
-        \ 'prefill':          [{-> "type  struct\<s-left>\<left>"}],
-        \ 'filetypes':       'go',
+    let g:search_py_methods = {
+        \ 'prefill':          [{-> "def (self\<s-left>"}],
+        \ 'filetypes':       'python',
         \ 'select_prefilled': 0
         \}
-    nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
+    nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 <
 NOTE You can use any other bracketed keys to define the initial cursor position,
 but they must be preceded by `\` to be expanded within `""` quotes.

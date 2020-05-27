@@ -26,7 +26,6 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 - Filetype-dependent syntax highlights for better navigation.
 - Input prompt interface instead of using the commandline:
   - Search patterns can be pasted as is (try [url pattern](https://gist.github.com/gruber/8891611) with regex mode enabled by pressing `<c-r><c-r>` within the prompt).
-  - Patterns are escaped and automatically.
 - 2 preview modes using both neovim floating windows and plain splits.
 - Third party plugins integration:
   - vim-visual-multi (multiple cursors plugin) is guarded against editing filenames and line numbers.
@@ -122,7 +121,7 @@ nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'rege
 
 " Search in vendor lib directories. Remember only 'regex' and 'case' modes if
 " they are changed during a request.
-nnoremap <leader>fs :call esearch#init({'paths': $GOPATH . ' node_modules/', 'remember': ['regex', 'case']})<cr>
+nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
 
 " Search in front-end files using an explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
@@ -130,12 +129,16 @@ nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~
 " or if one of ag, rg or ack is available
 nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
 
-" Use callable prefiller to search go functions. Starting cursor position will be before
+" Use a callable prefiller to search python functions. Initial cursor position will be before
 " the closing bracket.
-let g:search_gofunc = {'prefill': [{-> "func (\<Left>"}], 'filetypes': 'go', 'select_prefilled': 0}
-nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
+let g:search_py_methods = {
+    \ 'prefill':          [{-> "def (self\<s-left>"}],
+    \ 'filetypes':       'python',
+    \ 'select_prefilled': 0
+    \}
+nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 ```
-Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `s:custom_esearch_config()` call to collect garbage on reloads, so no `augroup` inside is required.
+Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `call s:custom_esearch_config()` to collect garbage on reloads, so no `augroup` inside is required.
 ```vim
 autocmd User esearch_win_config call s:custom_esearch_config()
 
