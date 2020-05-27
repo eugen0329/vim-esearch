@@ -106,9 +106,9 @@ GLOBAL MAPPINGS                                               *esearch-global-ma
 
            Map                        Default                  What does ~
  ---------------------------------+------------+-----------------------------------------------
- <plug>(esearch)                  | <leader>ff | Start the input prompt.
- <plug>(operator-esearch-prefill) | <leader>f  | Start the prompt prefilled with a |text-object|.
- <plug>(operator-esearch-exec)    |            | Start searching for a |text-object|.
+ <plug>(esearch)                  | <leader>ff | Start the input prompt
+ <plug>(operator-esearch-prefill) | <leader>f  | Start the prompt prefilled with a |text-object|
+ <plug>(operator-esearch-exec)    |            | Start searching for a |text-object|
  ---------------------------------+------------+-----------------------------------------------
 
 Example configuration: >
@@ -162,7 +162,7 @@ To configure the plugin you must initialize it first with:
  `.paths`                  | String with paths to search in shell syntax
  `.select_prefilled`       | Flag to visually select a prefilled prompt text
  `.default_mappings`       | Flag to disable all default mappings
- `.adapter`                | Search util adapter name (one of `'ag'`, `'rg'` etc.),
+ `.adapter`                | Search util adapter name (one of `'ag'`, `'rg'` etc.)
  `.backend`                | Processing backend (|job-control|, |system()| etc.) name
  `.out`                    | Output target name (window or quickfix list)
  ------------------------+------------------------------------------------------
@@ -932,7 +932,7 @@ esearch#init([{options}])                                         *esearch#init(
 
         See also: |g:esearch.remember|, |g:esearch.paths|.
 
-esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce()*
+esearch#async#debounce({func}, {wait}, [{options}])     *esearch#async#debounce()*
         Can be used to create events independently from |CursorHold|. At the
         moment only trailing edge debouncing is supported.
 
@@ -946,8 +946,8 @@ esearch#debounce({func}, {wait}, [{options}])                 *esearch#debounce(
         Example:
         >
         autocmd User esearch_win_config
-              \   let b:preview = esearch#debounce(b:esearch.preview, 500)
-              \ | autocmd CursorMoved <buffer> call b:preview.apply()
+              \  let b:preview = esearch#async#debounce(b:esearch.preview, 500)
+              \| autocmd CursorMoved <buffer> call b:preview.apply()
 <
         It decorates |b:esearch.preview()| to show the preview at the cursor
         position when the cursor is above a line longer than 500 milliseconds.
@@ -977,18 +977,18 @@ with the search window.
  `.unescaped_filename()` | Return unescaped entry filename under the cursor
  `.filetype()`           | Return a filetype under the cursor
  `.line_in_file()`       | Return line number in a file for entry under the cursor
- `.preview()`            | Open the preview window
+ `.preview_open()`       | Open the preview window
  `.preview_zoom()`       | Increase preview window height. Used in |<plug>(esearch-win-preview)|
  `.preview_enter()`      | Open the preview window. Used in |<plug>(esearch-win-preview:enter)|
  `.preview_close()`      | Close the preview window
  `.is_preview_open()`    | Check if the preview is opened
- `.split_preview()`      | Open split preview window. A wrapper around |b:esearch.open|
+ `.split_preview_open()` | Open split preview window. A wrapper around |b:esearch.open|
  `.jump2entry()`         | Move the cursor to the next/prev entry
  `.jump2filename()`      | Move the cursor to the next/prev filename
  `.is_filename()`        | Return true if the cursor is above a filename
  `.is_entry()`           | Return true if the cursor is above an entry
  `.is_current()`         | Return true if the window related to |b:esearch| is current
- `.is_blank()`           | Return if a search request outputted no results.
+ `.is_blank()`           | Return if a search request outputted no results
  ----------------------+-----------------------------------------------------------------------
 
 ________________________________________________________________________________~
@@ -1060,24 +1060,20 @@ Or the same query if one of ag, rg or ack is available
 <
 See also: |g:esearch.paths| for globbing details.
 
-4. Use callable prefiller to search go functions. Starting cursor position will
-be before the closing bracket.
+4. Use callable prefiller and |<>| brackets notation to set initial prompt input
+text to `type | struct`, where `|` is the cursor position.
 >
     let g:search_gofunc = {
-        \ 'prefill':          [{-> "func (\<Left>"}],
+        \ 'prefill':          [{-> "type  struct\<s-left>\<left>"}],
         \ 'filetypes':       'go',
         \ 'select_prefilled': 0
         \}
     nnoremap <leader>fu :call esearch#init(g:search_gofunc)<cr>
 <
-NOTE `\<left>` syntax usage to move the cursor around. You can also use other
-bracketed keys to define the initial cursor position. The following example
-helps to search lines that end with ; by prefilling the prompt with `|.*;$`,
-where `|` is the cursor position.
->
-    let g:colon_ended_lines = {'prefill': [{-> ".*;$\<home>"}], 'regex': 1'}
-    nnoremap <leader>f; :call esearch#init(g:colon_ended_lines)<cr>
-<
+NOTE You can use any other bracketed keys to define the initial cursor position,
+but they must be preceded by `\` to be expanded within `""` quotes.
+
+See also: |key-notation|, |lambda|.
                                                      *esearch_win_config-examples*
                                                               *b:esearch-examples*
 
@@ -1096,12 +1092,14 @@ on reloads, so NO `augroup` inside is required.
       nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {
           \ 'reuse': 1,
           \ 'stay': 1})<CR>
+
       " Yank a hovered absolute path
       nnoremap <silent><buffer> yy :let @" = b:esearch.filename()\|let @+ = @"<CR>
+
       " Use a custom command to open a file in a tab
       nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
 
-      " Populate quickfix list using the current pattern
+      " Populate QuickFix list using results of the current pattern search
       nnoremap <silent><buffer> <leader>fq :call esearch#init({
           \ 'pattern': b:esearch.pattern,
           \ 'out': 'qflist',
@@ -1115,9 +1113,22 @@ on reloads, so NO `augroup` inside is required.
 'vsplit' to 'split' to open the preview horizontally.
 >
     autocmd User esearch_win_config
-      \   let b:autopreview = esearch#debounce(b:esearch.split_preview, 100)
-      \ | autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
+      \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
+      \| autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
 <
+Or the same behavior using floating previews (neovim only). Change align to
+`'top'`, `'right'`, `'bottom'`, `'left'` or `'cursor'` to adjust the window position.
+>
+    autocmd User esearch_win_config
+      \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
+      \| autocmd CursorMoved <buffer> call b:autopreview.apply({
+      \    'close_on': [],
+      \    'align': 'right',
+      \  })
+<
+NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
+as the preview is handled using `b:autopreview.apply()` call.
+
                                               *esearch-offscreen-filename-example*
 
 7. Show context filenames in 'statusline' that are outside (above) the viewport.
@@ -1143,7 +1154,7 @@ on reloads, so NO `augroup` inside is required.
     endfunction
 
     let s:show_offscreen_filename =
-        \ esearch#debounce(function('s:offscreen_filename'), 50)
+        \ esearch#async#debounce(function('s:offscreen_filename'), 50)
     autocmd User esearch_win_config
         \ autocmd CursorMoved <buffer> call s:show_offscreen_filename.apply()
 <
