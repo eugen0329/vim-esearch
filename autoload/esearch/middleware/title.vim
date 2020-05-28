@@ -1,4 +1,5 @@
-" 1 day age is required for UX to not break the id's sequence within a working day.
+" 1 day age is required for UX to not break the ids sequence within a day.
+" Size limitation is required to prevent bloats
 let s:pattern2id = esearch#cache#expiring#new({'max_age': 60 * 60 * 24, 'size': 1024})
 " Vim supports ~ 240 bytes in buffer names, but to prevent tab/statuslines from
 " being completely occupied by a title this number should be much smaller.
