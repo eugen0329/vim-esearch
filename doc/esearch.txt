@@ -299,8 +299,9 @@ g:esearch.context                                              *g:esearch.contex
         let g:esearch.after = 2
 <
 g:esearch.remember                                            *g:esearch.remember*
-        List of values to remember for later search requests. Configurations
-        not listed there will be reset to initial when the prompt is closed.
+        List of configuration names to remember for later search requests.
+        Configurations not listed there will be reset to initial when the prompt
+        is closed.
         Type: |List| of |String|s
         Allowed values: a list of |g:esearch| field names.
         Default: >
@@ -544,13 +545,13 @@ Search window-related configurations are added to |g:esearch| dictionary.
                                                      *esearch-win-config-overview*
 
            Property                         What contains~
- -----------------------------+-------------------------------------------------
+ -----------------------------+---------------------------------------------------
  `.win_new`                     | Funcref to open a new window with search results
  `.win_map`                     | List of window-local keymaps
  `.win_contexts_syntax`         | Flag to use filetype-aware syntax highlights
  `.win_context_len_annotations` | Flag to show outputted lines count of a context
  `.win_cursor_linenr_highlight` | Funcref to open a new window with search results
- -----------------------------+-------------------------------------------------
+ -----------------------------+---------------------------------------------------
 
 g:esearch.win_new                                              *g:esearch.win_new*
         Function to open a new search window
@@ -597,8 +598,8 @@ g:esearch.win_cursor_linenr_highlight      *g:esearch.win_cursor_linenr_highligh
         let g:esearch.win_cursor_linenr_highlight = 1
 <
 ________________________________________________________________________________~
-SEARCH WINDOW PREVIEW                                       *esearch-win-preview*
-                                                      *esearch-win-split-preview*
+SEARCH WINDOW PREVIEW                                        *esearch-win-preview*
+                                                       *esearch-win-split-preview*
 
 The plugin has two option for previewing the results:
 - floating preview (using neovim floating windows).
@@ -648,8 +649,10 @@ See also: |highlight-ctermfg|, |highlight-guifg|, |highlight-groups|.
  |  |  esearchCursorLineNr
  |  esearchLineNr
 esearchFilename
-                                   {1} Vim cursor position
-                                   {2} See |g:esearch.win_context_len_annotations|
+                                  {1} Vim cursor position that affects whether
+                                      |hl-esearchCursorLineNr| or |hl-esearchLineNr|
+                                      are used
+                                  {2} See |g:esearch.win_context_len_annotations|
 
 esearchHeader                                                   *hl-esearchHeader*
         First window line highlight. Contains statistics, spinner and request
@@ -726,7 +729,7 @@ Reasons the plugin works slowly and possible solutions:
       (job control stdout callbacks aren't throttled, but it can be mitigated
       using remote plugin (todo)).
 
-                                              *esearch-performance-config-overview*
+                                             *esearch-performance-config-overview*
 Performance configurations:
 
                  Property                                     What contains~
@@ -1241,7 +1244,7 @@ many lines or if there's a long line encountered.
 
 6. The search window is slow.
 
-See |esearch-preformance|.
+See |esearch-performance|.
 
 7. Pt adapter case-insensitive mode implicitly enables regex matching mode.
 
