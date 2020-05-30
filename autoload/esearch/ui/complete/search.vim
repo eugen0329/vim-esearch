@@ -34,7 +34,7 @@ fu! esearch#ui#complete#search#do(arglead, ...) abort
   call sort(spell_suggested,   'esearch#util#compare_len')
   call sort(equal,             'esearch#util#compare_len')
   call sort(partially_matched, 'esearch#util#compare_len')
-  return equal + start_with + partially_matched + spell_suggested + fuzzy_matched
+  return [a:arglead] + equal + start_with + partially_matched + spell_suggested + fuzzy_matched
 endfu
 
 fu! s:spell_pattern(arglead) abort

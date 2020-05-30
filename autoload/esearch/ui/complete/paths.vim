@@ -36,7 +36,7 @@ fu! s:gather_candidates(cwd, word, already_listed) abort
 
   let unused_candidates = []
   for candidate in candidates
-    let candidate = fnameescape(s:Filepath.relpath(s:simplify(resolve(candidate))))
+    let candidate = fnameescape(s:Filepath.relpath(resolve(candidate)))
 
     if !s:List.has(a:already_listed, candidate) || candidate ==# a:word
       let unused_candidates += [candidate]
@@ -44,9 +44,4 @@ fu! s:gather_candidates(cwd, word, already_listed) abort
   endfor
 
   return unused_candidates
-endfu
-
-fu! s:simplify(path) abort
-  return a:path
-  return substitute(a:path, '^//', '/', '')
 endfu
