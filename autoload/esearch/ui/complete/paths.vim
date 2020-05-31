@@ -25,9 +25,7 @@ fu! s:gather_candidates(cwd, word, already_listed) abort
   let ignorecase = esearch#let#restorable({
         \ '&wildignorecase': 1,
         \ '&fileignorecase': 1})
-
-  let word  = fnameescape(s:Filepath.relpath(resolve(a:word)))
-
+  let word = fnameescape(s:Filepath.relpath(a:word))
   try
     let candidates = split(globpath(a:cwd, word . '*'), "\n")
   finally
@@ -36,9 +34,9 @@ fu! s:gather_candidates(cwd, word, already_listed) abort
 
   let unused_candidates = []
   for candidate in candidates
-    let candidate = fnameescape(s:Filepath.relpath(resolve(candidate)))
+    let candidate = fnameescape(s:Filepath.relpath(candidate))
 
-    if !s:List.has(a:already_listed, candidate) || candidate ==# a:word
+    if !s:List.has(a:already_listed, candidate) || candidate ==# word
       let unused_candidates += [candidate]
     endif
   endfor
