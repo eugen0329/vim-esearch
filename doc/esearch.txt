@@ -170,8 +170,8 @@ To customize the plugin you must initialize it first with:
 g:esearch.default_mappings                            *g:esearch.default_mappings*
         Flag to disable all default mappings including both global and search
         window local mappings.
-        Allowed values: 1 or 0
         Type: |Boolean|
+        Allowed values: 1 or 0
         Default: 0
         Example:~
 >
@@ -183,8 +183,8 @@ g:esearch.regex                                                  *g:esearch.rege
         values to choose automatically.  E.g. if |g:esearch.adapter| is set or
         automatically resolved to `'grep'` you can set `'extended'` mode to use
         extended regex engine, `'pcre'` to use perl compatible regex etc.
-        Allowed values: `1`, `0` or engine name string.
         Type: |Boolean| or |String|
+        Allowed values: `1`, `0` or engine name string
         Default: 0
         Example:~
 >
@@ -209,9 +209,9 @@ Engine names of adapters:
 
 g:esearch.case                                                    *g:esearch.case*
         Case matching mode.
+        Type: |Boolean| or |String|
         Allowed values: `0`, `1`, `'ignore'` (same as `0`), `'sensitive'` (same as `1`) or
         `'smart'`
-        Type: |Boolean| or |String|
         Default: 0
         Example:~
 >
@@ -219,8 +219,8 @@ g:esearch.case                                                    *g:esearch.cas
 <
 g:esearch.textobj                                              *g:esearch.textobj*
         Text-objects matching mode (e.g. whole lines or whole words).
-        Allowed values: `0`, `'none'` (same as `0`), `'word'` or `'line'`
         Type: |Boolean| or |String|
+        Allowed values: `0`, `'none'` (same as `0`), `'word'` or `'line'`
         Default: 0
         Example:~
 >
@@ -304,7 +304,7 @@ g:esearch.remember                                            *g:esearch.remembe
         Configurations not listed there will be reset to initial when the prompt
         is closed.
         Type: |List| of |String|s
-        Allowed values: a list of |g:esearch| field names.
+        Allowed values: a list of |g:esearch| field names
         Default: >
           ['case', 'textobj', 'regex', 'before',
                 \ 'filetypes', 'paths', 'after', 'context']
@@ -315,7 +315,7 @@ g:esearch.remember                                            *g:esearch.remembe
 g:esearch.adapter                                              *g:esearch.adapter*
         Name of a search util to use.
         Type: |String|
-        Allowed values: `'rg'`, `'ag'`, `'ack'`, `'pt'`, `'git'` or `'grep'`.
+        Allowed values: `'rg'`, `'ag'`, `'ack'`, `'pt'`, `'git'` or `'grep'`
         Default: depends on executables availability.
         Example:~
 >
@@ -337,7 +337,7 @@ g:esearch.backend                                              *g:esearch.backen
 g:esearch.out                                                      *g:esearch.out*
         Name of a target to output results
         Type: |String|
-        Allowed values: `'win'`, `'qflist'`.
+        Allowed values: `'win'`, `'qflist'`
         Default: `'win'`
         Example:~
 >
@@ -390,9 +390,10 @@ mapping definitions to |g:esearch.win_map| list:
 
 g:esearch.win_map                                              *g:esearch.win_map*
         List of keymap definitions in builtin |nvim_set_keymap()| function
-        arguments format.
+        arguments format to extend default mappings. To override default
+        mappings use it with |g:esearch.default_mappings| set to `1`.
         Type: |List| of |Lists|
-        Default: see |esearch-win-map-defaults|
+        Default: see |esearch-win-map-defaults| table above
         Format: >
             let g:esearch.win_map = [[{modes}, {lhs}, {rhs}, {opts}], ...]
 <
@@ -431,7 +432,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         endfunction
 <
         NOTE Options `{'silent': 1, 'buffer': 1}` in |g:esearch.win_map| elements
-        are merged automatically with user defined pairs. Don't overwrite them
+        are merged automatically with user defined pairs. Don't override them
         to avoid side effects.
 
         See also: |nvim_set_keymap()| for list elements syntax, |maparg()| for mode
@@ -494,8 +495,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
         Example:~
 >
         let g:esearch.win_map = [
-        \ [' ', ']f', '<plug>(esearch-win-jump:filename:up)'],
-        \ [' ', '[f', '<plug>(esearch-win-jump:filename:down)']
+        \ [' ', ']f', '<plug>(esearch-win-jump:filename:down)'],
+        \ [' ', '[f', '<plug>(esearch-win-jump:filename:up)']
         \]
 <
         NOTE `' '` is used to create keymap using regular |map| command.
@@ -557,7 +558,7 @@ Search window-related configurations are added to |g:esearch| dictionary.
 g:esearch.win_new                                              *g:esearch.win_new*
         Function to open a new search window
         Type: |Funcref|
-        Default: a function, that reuse windows with the same search patterns.
+        Default: a function, that reuse windows with the same search patterns
         Example:~
         >
         let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Find]', 'vnew')}
@@ -593,7 +594,7 @@ g:esearch.win_cursor_linenr_highlight      *g:esearch.win_cursor_linenr_highligh
         Flag to toggle virtual UI cursor line numbers highlight, similar to
         how it's done in regular buffers.
         Type: |Boolean|
-        Default: depends on 'cursorline' builtin option value.
+        Default: depends on 'cursorline' builtin option value
         Example:~
         >
         let g:esearch.win_cursor_linenr_highlight = 1
@@ -755,7 +756,7 @@ g:esearch.win_update_throttle_wait            *g:esearch.win_update_throttle_wai
         slowdowns, but also the later the search finish.
         Type: |Number|
         Allowed values: >= 0
-        Default: 100.
+        Default: 100
 
                                    *g:esearch.win_matches_highlight_debounce_wait*
 g:esearch.win_matches_highlight_debounce_wait
@@ -763,7 +764,7 @@ g:esearch.win_matches_highlight_debounce_wait
         slowdowns on scrolls.
         Type: |Number|
         Allowed values: >= 0
-        Default: 100.
+        Default: 100
 
         NOTE Has no affect if |g:esearch.win_matches_highlight_strategy|
         is not `'viewport'`.
@@ -775,7 +776,7 @@ g:esearch.win_contexts_syntax_debounce_wait
         syntaxes.
         Type: |Number|
         Allowed values: >= 0
-        Default: 100.
+        Default: 100
 
         NOTE Has no affect if |g:esearch.win_contexts_syntax| is false.
 
@@ -787,7 +788,7 @@ g:esearch.win_viewport_off_screen_margin
         scrolling is used.
         Type: |Number|
         Allowed values: >= 0
-        Default: depends on 'lines' option, but always >= 100.
+        Default: depends on 'lines' option, but always >= 100
 
         NOTE Has no affect if |g:esearch.win_contexts_syntax| is false and
         |g:esearch.win_matches_highlight_strategy| is not `'viewport'`. Also
@@ -1145,7 +1146,7 @@ Or the same behavior using floating previews (neovim only). Change align to
       \  })
 <
 NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
-as the preview is handled using `b:autopreview.apply()` call.
+as the preview updates are handled using `b:autopreview.apply()` call.
 
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
@@ -1166,15 +1167,13 @@ as the preview is handled using `b:autopreview.apply()` call.
         \ })
         \}
 
-      " Add mappings to close the floating window before opening an entry
+      " Add a mapping to close the floating window before opening an entry
       let g:esearch.win_map = [
         \ ['n', '<cr>', ':call b:esearch.open("quit | edit")<cr>', {'noremap': 1}],
-        \ ['n', 'o',    ':call b:esearch.open("quit | split")<cr>', {'noremap': 1}],
-        \ ['n', 's',    ':call b:esearch.open("quit | vsplit")<cr>', {'noremap': 1}],
         \]
 
       " Close the floating window when leaving it
-      autocmd User esearch_win_config autocmd BufLeave <buffer> quit
+      autocmd User esearch_win_config autocmd WinLeave <buffer> quit
 <
 NOTE Neovim >=0.4.0 is required.
 
