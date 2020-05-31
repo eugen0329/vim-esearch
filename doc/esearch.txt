@@ -162,7 +162,7 @@ To customize the plugin you must initialize it first with:
  `.paths`                  | String with paths to search in shell syntax
  `.select_prefilled`       | Flag to visually select a prefilled prompt text
  `.default_mappings`       | Flag to disable all default mappings
- `.adapter`                | Search util adapter name (one of `'ag'`, `'rg'` etc.)
+ `.adapter`                | Search util adapter name (ag, rg, grep etc.)
  `.backend`                | Processing backend (|job-control|, |system()| etc.) name
  `.out`                    | Output target name (window or quickfix list)
  ------------------------+------------------------------------------------------
@@ -183,7 +183,7 @@ g:esearch.regex                                                  *g:esearch.rege
         values to choose automatically.  E.g. if |g:esearch.adapter| is set or
         automatically resolved to `'grep'` you can set `'extended'` mode to use
         extended regex engine, `'pcre'` to use perl compatible regex etc.
-        Allowed values: `1`, `0` or engine name string (adapter dependent).
+        Allowed values: `1`, `0` or engine name string.
         Type: |Boolean| or |String|
         Default: 0
         Example:~
@@ -219,14 +219,15 @@ g:esearch.case                                                    *g:esearch.cas
 <
 g:esearch.textobj                                              *g:esearch.textobj*
         Text-objects matching mode (e.g. whole lines or whole words).
-        Allowed values: `0`, `'none'` (same as `0`), `'word'` or `'line'` (adapter
-        dependent)
+        Allowed values: `0`, `'none'` (same as `0`), `'word'` or `'line'`
         Type: |Boolean| or |String|
         Default: 0
         Example:~
 >
         let g:esearch.case = 'word'
 <
+        NOTE Only `'grep'` and `'rg'` support `'line'`.
+
 g:esearch.prefill                                              *g:esearch.prefill*
         List of strategies to set the initial value of the prompt.
         Allowed list elements: `'clipboard'` (prefills with |clipboard| content),
@@ -237,9 +238,9 @@ g:esearch.prefill                                              *g:esearch.prefil
         proceed to the next strategy.
         Type: |List| of |String| and |Funcref|s
         Default: `['hlsearch', 'current', 'last']`
-        Example: ~
+        Example:~
 >
-        let g:esearch.prefill = ['hlsearch', 'cword', { -> 'custom text' }]
+        let g:esearch.prefill = ['hlsearch', 'cword', {-> 'custom text' }]
 <
         NOTE The order of listed strategies matters.
 
@@ -586,13 +587,13 @@ g:esearch.win_context_len_annotations      *g:esearch.win_context_len_annotation
         >
         let g:esearch.win_context_len_annotations = 1
 <
-        NOTE Neovim 0.4.3 or higher is required.
+        NOTE Neovim >=0.4.3 is required.
 
 g:esearch.win_cursor_linenr_highlight      *g:esearch.win_cursor_linenr_highlight*
         Flag to toggle virtual UI cursor line numbers highlight, similar to
         how it's done in regular buffers.
         Type: |Boolean|
-        Default: depends on 'cursorline' vim's option value.
+        Default: depends on 'cursorline' builtin option value.
         Example:~
         >
         let g:esearch.win_cursor_linenr_highlight = 1
@@ -798,10 +799,10 @@ g:esearch.win_viewport_off_screen_margin
                                         *g:esearch.win_matches_highlight_strategy*
 g:esearch.win_matches_highlight_strategy
         Strategy name to highlight matched text. Viewport highlight strategy use
-        neovim position based highlights and is the fastest. Hlsearch strategy
-        highlights matches by overwriting |@/| search register. Matchadd
+        neovim position based highlights and is the fastest. `'hlsearch'` strategy
+        highlights matches by overwriting |@/| search register. `'matchadd'`
         strategy use |matchadd()| function and can be slow when the output is
-        big.
+        big or if lines are long.
         Type: |String|
         Allowed values: `'viewport'`, `'hlsearch'` or `'matchadd'`
         Default: `'viewport'` if g:esearch#has#nvim_lua_syntax is true,
@@ -840,8 +841,8 @@ g:esearch.win_contexts_syntax_clear_on_files_count
         disabled to prevent slowdowns (vim regex-based syntax particularity).
         Type: |Number|
         Allowed values: > 0
-        Default: 800 if |g:esearch.win_matches_highlight_strategy| is
-        `'viewport'`, 200 otherwise
+        Default: 1000 if |g:esearch.win_matches_highlight_strategy| is `'viewport'`,
+        200 otherwise
 
 g:esearch.win_ui_nvim_syntax                        *g:esearch.win_ui_nvim_syntax*
         Flag to toggle position-based syntax highlights of virtual UI elements.
@@ -917,13 +918,13 @@ API.
 
 API GLOBAL FUNCTIONS                                *esearch-api-global-functions*
 
-esearch#init([{options}])                                         *esearch#init()*
+esearch#init([{opts}])                                            *esearch#init()*
         Is invoked when |<plug>(esearch)| map is triggered.
 
-        Parameters: ~
-            {options} Dict with the same key-values as for |g:esearch| dict to
-                      overrule it (optional).
-        Return: ~
+        Parameters:~
+            {opts} Dict with the same key-values as for |g:esearch| dict to
+                   overrule it (optional).
+        Return:~
             0
         Example:~
 >
@@ -937,14 +938,14 @@ esearch#init([{options}])                                         *esearch#init(
 
         See also: |g:esearch.remember|, |g:esearch.paths|.
 
-esearch#async#debounce({func}, {wait}, [{options}])     *esearch#async#debounce()*
+esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce()*
         Can be used to create events independently from |CursorHold|. At the
         moment only trailing edge debouncing is supported.
 
-        Parameters: ~
+        Parameters:~
             {func}    Funcref to call on timeout.
             {wait}    Wait timeout in milliseconds.
-        Return: ~
+        Return:~
             Dict with `.apply()` and `.cancel()` method to invoke the
             debounced function or to cancel it's invocation before {wait}
             timeout is exceeded.
@@ -963,10 +964,10 @@ esearch#buf#goto_or_open({name}, {opener}])             *esearch#async#debounce(
         Go to a window where buffer {name} is opened or use {opener} to open a
         new buffer.
 
-        Parameters: ~
+        Parameters:~
             {name}    New or existing buffer name
             {opener}  Command |String| or |Funcref| with {name} as an argument.
-        Return: ~
+        Return:~
             Same as from |bufload()|.
 
         See also: |g:esearch.win_new()-examples| and |g:esearch.win_new| for usage
@@ -1140,7 +1141,7 @@ Or the same behavior using floating previews (neovim only). Change align to
       \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
       \| autocmd CursorMoved <buffer> call b:autopreview.apply({
       \    'close_on': [],
-      \    'align': 'right',
+      \    'align': 'right'
       \  })
 <
 NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
@@ -1170,7 +1171,7 @@ as the preview is handled using `b:autopreview.apply()` call.
         \ ['n', '<cr>', ':call b:esearch.open("quit | edit")<cr>', {'noremap': 1}],
         \ ['n', 'o',    ':call b:esearch.open("quit | split")<cr>', {'noremap': 1}],
         \ ['n', 's',    ':call b:esearch.open("quit | vsplit")<cr>', {'noremap': 1}],
-        \ ]
+        \]
 
       " Close the floating window when leaving it
       autocmd User esearch_win_config autocmd BufLeave <buffer> quit
@@ -1220,20 +1221,26 @@ See |esearch-autopreview|.
 The preferred approach is to use `.agignore` for ag, `.rgignore` or similar
 ignore files. To skip `node_modules` try `echo node_modules >> ~/.ignore`.
 
-3. Git adapter have problems when searching in filenames with non-ASCII names.
+3. Neovim position-based highlights are removed after undo or inline changes.
+
+Currently it's a limitation of position-based highlights to prevent slowdowns
+on buffer updates. Set |g:esearch.win_matches_highlight_strategy| to `'hlsearch'`
+or `'matchadd'` to solve it, but they can work slower.
+
+4. Git adapter have problems when searching in filenames with non-ASCII names.
 
 Run in your shell to prevent outputting unicode chars like `\312`.
 >
     git config --global core.precomposeunicode true
     git config --global core.quotePath false
 <
-4. Some regex features like lookaround are not supported.
+5. Some regex features like lookaround are not supported.
 
 Use ag, ack or rg (after version 0.11) to access the PCRE syntax. Git and grep
 are also support them, but sometimes require to be installed with the
 corresponding flag.
 
-5. Filetype-specific syntax highlights are missing or different than those
+6. Filetype-specific syntax highlights are missing or different than those
 within opened files.
 
 The plugin uses separate syntax definitions to make the window more
@@ -1242,11 +1249,11 @@ g:esearch.win_contexts_syntax = 0` or open a PR to add or improve the existing
 syntax files. Highlights can also be cleared automatically if there are too
 many lines or if there's a long line encountered.
 
-6. The search window is slow.
+7. The search window is slow.
 
 See |esearch-performance|.
 
-7. Pt adapter case-insensitive mode implicitly enables regex matching mode.
+8. Pt adapter case-insensitive mode implicitly enables regex matching mode.
 
 Ignore case option in `pt` works by building a regex so you should use case
 sensitive mode to match literally or switch to another adapter like `ag` or

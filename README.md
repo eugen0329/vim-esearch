@@ -98,7 +98,7 @@ let g:esearch.root_markers = ['.git', 'Makefile', 'node_modules']
 " Prevent esearch from mapping any default hotkeys.
 let g:esearch.default_mappings = 0
 
-" Open the window in a vertical split and reuse it for all searches.
+" Open the search window in a vertical split and reuse it for all searches.
 let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }
 
 " Redefine the default highlights (see :help highlight for syntax details)
@@ -166,6 +166,7 @@ function! s:custom_esearch_config() abort
     \ :call esearch#init({'pattern': b:esearch.pattern, 'out': 'qflist', 'remember': 0})<CR>
 endfunction
 ```
+See `:help esearch-api` for more api usage examples.
 
 ### Troubleshooting
 
@@ -192,6 +193,9 @@ If it's misleading for you, please, disable them using `let g:esearch.win_contex
 5. The search window is slow.
 
 If it's sluggish during updates, try to increase `let g:esearch.win_update_throttle_wait = 200` value (100 is the default). If it's still slow after the search has finished, try to use `let g:esearch.win_contexts_syntax = 0` or consider to use neovim, as it has position-based highlights comparing to regex-based syntax matches and parses/renders results faster. Also, make sure that `echo esearch#has#lua` outputs 1.
+
+
+See `:help esearch-troubleshooting` for more troubleshooting examples.
 
 ### Acknowledgements
 

@@ -63,7 +63,7 @@ fu! esearch#config#init(esearch) abort
         \}, 'keep')
   let g:esearch = extend(g:esearch, {
         \ 'win_ui_nvim_syntax':                       g:esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
-        \ 'win_contexts_syntax_clear_on_files_count': g:esearch.win_matches_highlight_strategy ==# 'viewport' ? 800 : 200,
+        \ 'win_contexts_syntax_clear_on_files_count': g:esearch.win_matches_highlight_strategy ==# 'viewport' ? 1000 : 200,
         \}, 'keep')
 
   if !has_key(g:esearch, 'middleware')
