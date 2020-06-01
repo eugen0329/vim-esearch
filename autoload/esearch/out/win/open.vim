@@ -41,19 +41,20 @@ fu! s:open(opener, ...) abort dict
   try
     let Open = reuse ? function('s:open_reusable') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)
+    let bufnr = bufnr('%')
     keepjumps call winrestview(view)
     call esearch#let#generic(window_vars)
   catch /E325:/ " swapexists exception, will be handled by a user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch
     call s:Log.error(v:exception . ' at ' . v:throwpoint)
-    return s:false
+    return
   finally
     call original_vars.restore()
     if stay | call current_win.restore() | endif
   endtry
 
-  return s:true
+  return bufnr
 endfu
 
 fu! s:open_new(esearch, opener, filename, opts) abort

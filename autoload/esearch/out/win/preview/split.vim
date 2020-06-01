@@ -4,7 +4,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 fu! esearch#out#win#preview#split#init(esearch) abort
   call extend(a:esearch, {
         \ 'split_preview_open': function('<SID>split_preview_open'),
-        \ 'last_split_preview': {},
+        \ 'last_split_preview': {'filename': '', 'line_in_file': -1, 'bufnr': -1},
         \ })
 endfu
 
@@ -17,14 +17,15 @@ fu! s:split_preview_open(...) abort dict
         \ 'filename':     self.filename(),
         \ 'line_in_file': self.line_in_file(),
         \ }
-  if last ==# current
+  if bufwinnr(last.bufnr) >= 0 && last ==# current
     return 0
   endif
   let self.last_split_preview = current
 
-  return self.open(get(a:000, 0, 'vnew'), extend({
+  let current.bufnr = self.open(get(a:000, 0, 'vnew'), extend({
         \ 'stay':  1,
         \ 'reuse': 1,
         \ 'let!':  {'&l:foldenable': 0},
         \ }, get(a:000, 1, {})))
+  return s:true
 endfu
