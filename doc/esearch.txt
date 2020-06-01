@@ -337,7 +337,7 @@ g:esearch.backend                                              *g:esearch.backen
         to redefine this option.
 
 g:esearch.out                                                      *g:esearch.out*
-        Name of a target to output results
+        Name of a target to output results.
         Type: |String|
         Allowed values: `'win'`, `'qflist'`
         Default: `'win'`
@@ -401,12 +401,12 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <
         Parameters:~
             {modes} |String| with mode characters (`'n'` for |Normal|, `'v'` for |Visual|,
-                    `' '` to use as |map| command etc.).
-            {lhs}   Left-hand side of the keymap.
-            {rhs}   Right-hand side of the keymap. 
+                    `' '` to use as |map| command etc.)
+            {lhs}   Left-hand side of the keymap
+            {rhs}   Right-hand side of the keymap
             {opts}  |Dict| of |:map-arguments| names. Use `{'noremap': 1}` - to define
                     as |noremap| in a specified mode, `{'unique': 1}` to define with
-                    |:map-<unique>| argument etc. (optional)
+                    |:map-<unique>| argument etc (optional)
 
         Example:~
 >
@@ -943,7 +943,7 @@ esearch#init([{opts}])                                            *esearch#init(
             \})<cr>
 <
         Will search in vendor lib directories. Remember only `'regex'` and `'case'`
-        modes if they are changed during a request.
+        configurations if they are changed during a request.
 
         See also: |g:esearch.remember|, |g:esearch.paths|.
 
@@ -1166,7 +1166,7 @@ as the preview updates are handled using `b:autopreview.apply()` call.
         \ esearch#buf#goto_or_open('[Find]', {bufname->
         \   nvim_open_win(bufadd(bufname), v:true, {
         \     'relative': 'editor',
-        \     'row': float2nr(&lines * 0.2) / 2 - 1,
+        \     'row': float2nr(&lines * 0.2) / 2,
         \     'col': float2nr((&columns * 0.2) / 2),
         \     'width': float2nr(&columns * 0.8),
         \     'height': float2nr(&lines * 0.8)
