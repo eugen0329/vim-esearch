@@ -17,7 +17,7 @@ fu! s:split_preview_open(...) abort dict
         \ 'filename':     self.filename(),
         \ 'line_in_file': self.line_in_file(),
         \ }
-  if bufwinnr(last.bufnr) >= 0 && last ==# current
+  if last ==# current && bufwinnr(last.bufnr) >= 0
     return 0
   endif
   let self.last_split_preview = current
