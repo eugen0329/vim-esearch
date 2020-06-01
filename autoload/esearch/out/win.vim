@@ -18,7 +18,7 @@ let g:esearch#out#win#legacy_mappings = {
       \}
 
 let g:esearch#out#win#entry_pattern = '^\s\+\d\+\s\+.*'
-let g:esearch#out#win#filename_pattern = '^[^ ]' " '\%>2l'
+let g:esearch#out#win#filename_pattern = '^[^ ]'
 let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let g:esearch#out#win#linenr_format = ' %3d '
 let g:esearch#out#win#entry_format = ' %3d %s'

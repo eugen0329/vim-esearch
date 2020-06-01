@@ -107,7 +107,6 @@ describe 'esearch#pattern' do
           it { expect(convert.call('((a))')).to   eq('\(\(a\)\)')    }
           it { expect(convert.call('((a))')).to   eq('\(\(a\)\)')    }
           it { expect(convert.call('((a|b))')).to eq('\(\(a\|b\)\)') }
-          it { expect(convert.call('((a|b))')).to eq('\(\(a\|b\)\)') }
 
           it { expect(convert.call('(a)\(')).to eq('\(a\)(') }
           it { expect(convert.call('(a)\)')).to eq('\(a\))') }
@@ -120,8 +119,6 @@ describe 'esearch#pattern' do
           # Capability                   in Vimspeak in Perlspeak
           # backref-less grouping        \%(atom\)   (?:atom)
           it { expect(convert.call('(?:a)')).to eq('\%(a\)') }
-          it { expect(convert.call('(?:a)')).to eq('\%(a\)') }
-          it { expect(convert.call('(?:a|b)')).to eq('\%(a\|b\)') }
           it { expect(convert.call('(?:a|b)')).to eq('\%(a\|b\)') }
         end
 
@@ -134,7 +131,6 @@ describe 'esearch#pattern' do
 
         context 'when branch reset' do
           # https://www.rexegg.com/regex-disambiguation.html#branchreset
-          it { expect(convert.call('(?|a)')).to eq('\(a\)') }
           it { expect(convert.call('(?|a)')).to eq('\(a\)') }
         end
 
@@ -167,8 +163,6 @@ describe 'esearch#pattern' do
               it { expect(convert.call('(?<!\d) \w')).to eq('\%(\d\)\@<! \w') } # matches "a" in "a 2 b"
             end
           end
-          #  call assert_equal('\%(the\)\@>cat',    Parse('(?>the)cat')) " atomic
-          #  call assert_equal((Parse('(?<=ab(?<!cd))')), '\%(ab\%(cd\)\@<!\)\@<=')
         end
       end
 

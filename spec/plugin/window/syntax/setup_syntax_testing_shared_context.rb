@@ -27,7 +27,7 @@ RSpec.shared_context 'setup syntax testing' do
 
   it 'keeps header highlight untouched' do
     is_expected.to have_highlight_aliases(
-      '\%1l[0-9]*'  => %w[esearchStatistics Number]
+      '\%1l[0-9]*' => %w[esearchStatistics Number]
     )
   end
 end

@@ -52,27 +52,10 @@ let s:modifiers_span_pattern = printf('(?%s:', s:modifiers_set)
 let s:modifiers_pattern      = printf('(?%s)', s:modifiers_set)
 unlet s:modifiers_set
 let s:comment_pattern = '(?#\%('.g:esearch#pattern#even_count_of_escapes.'\\)\|[^)]\)*)'
-let s:posix_named_set_pattern = join([
-      \ 'alnum',
-      \ 'alpha',
-      \ 'blank',
-      \ 'cntrl',
-      \ 'digit',
-      \ 'graph',
-      \ 'lower',
-      \ 'print',
-      \ 'punct',
-      \ 'space',
-      \ 'upper',
-      \ 'xdigit',
-      \ 'return',
-      \ 'tab',
-      \ 'escape',
-      \ 'backspace',
-      \ 'word',
-      \ 'ascii',
-      \ ], '\|')
-let s:posix_named_set_pattern = printf('\[:\%%(%s\):\]', s:posix_named_set_pattern)
+let s:posix_named_set_pattern = printf('\[:\%%(%s\):\]', join([
+      \ 'alnum', 'alpha', 'blank', 'cntrl', 'digit', 'graph', 'lower', 'print',
+      \ 'punct', 'space', 'upper', 'xdigit', 'return', 'tab', 'escape',
+      \ 'backspace', 'word', 'ascii'], '\|'))
 let s:range_quantifier_pattern   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
 let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
@@ -137,7 +120,7 @@ let s:pcre2vim_expand_escaped = extend({
       \ '\b': '\%(\<\|\>\)',
       \ '\B': '\%(\w\)\@<=\%(\w\)\@=',
       \ '\K': '',
-      \ }, s:pcre2vim_unescape_regular)
+      \}, s:pcre2vim_unescape_regular)
 " NOTE: possessive are converted to greedy. https:/\p{/github.com/vim/vim/issues/4638
 let s:pcre2vim_quantifier = {
       \ '*':  '*',
@@ -149,7 +132,7 @@ let s:pcre2vim_quantifier = {
       \ '*?': '\{-}',
       \ '+?': '\{-1,}',
       \ '??': '\{-,1}',
-      \ }
+      \}
 let s:pcre2vim_group_start = {
       \ '(?<=': '\%(',
       \ '(?<!': '\%(',
@@ -159,7 +142,7 @@ let s:pcre2vim_group_start = {
       \ '(?:':  '\%(',
       \ '(?|':  '\(',
       \ '(':    '\(',
-      \ }
+      \}
 let s:pcre2vim_group_end = {
       \ '(?<=': '\)\@<=',
       \ '(?<!': '\)\@<!',
@@ -170,7 +153,7 @@ let s:pcre2vim_group_end = {
       \ '(?|':  '\)',
       \ '(':    '\)',
       \}
-let s:metachar2class_content = {
+let s:metachar2set_content = {
       \ '\s': ' \t',
       \ '\w': '0-9a-zA-Z_',
       \ '\d': '0-9',
@@ -185,11 +168,11 @@ let s:metachar2class_content = {
       \ '\x': '\x',
       \ '\]': '\]',
       \ '\[': '\[',
-      \ }
-let s:posix_set2class_content = {
-      \ '[:word:]':  s:metachar2class_content['\w'],
+      \}
+let s:posix_set2set_content = {
+      \ '[:word:]':  s:metachar2set_content['\w'],
       \ '[:ascii:]': '\x00-\x7F',
-      \ }
+      \}
 
 fu! s:PCRE2Vim.pop_context() abort dict
   call remove(self.contexts, -1)
@@ -211,15 +194,13 @@ fu! s:PCRE2Vim.parse_set() abort dict
       call self.throw('properties are not supported')
     elseif self.next_is([s:POSIX_NAMED_SET])
       let text = self.advance().matched_text
-      let result += [get(s:posix_set2class_content, text, text)]
+      let result += [get(s:posix_set2set_content, text, text)]
     elseif self.next_is([s:ESCAPED_ANY])
       let text = self.advance().matched_text
-      let result += [get(s:metachar2class_content, text, text[1:])]
+      let result += [get(s:metachar2set_content, text, text[1:])]
     elseif self.next_is([s:SET_END])
       call self.advance()
-      if self.contexts[-1].label ==# s:SET_START
-        return result + [']']
-      endif
+      if self.contexts[-1].label ==# s:SET_START | return result + [']'] | endif
 
       let self.result += result
       call self.throw('unexpected context' . string(self.contexts))
