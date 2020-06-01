@@ -21,11 +21,16 @@ fu! s:open(opener, ...) abort dict
   let opts            = get(a:, 1, {})
   let stay            = get(opts, 'stay', 0)    " stay in the current window
   let reuse           = get(opts, 'reuse', 0)   " open only a single window
-  let restorable_vars = get(opts, 'let', {})    " assign vars/opts/regs per function execution
   let window_vars     = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
   let cmdarg          = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
   let mods            = get(opts, 'mods', '')   " EX: botright
   let open_opts       = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
+  " assign vars/opts/regs per function execution
+  if stay
+    let restorable_vars = get(opts, 'let', {'&ei': 'WinLeave,BufLeave,BufWinLeave,TabLeave'})
+  else
+    let restorable_vars = get(opts, 'let', {})
+  endif
 
   let original_vars = esearch#let#restorable(restorable_vars)
   if stay | let current_win = esearch#win#stay() | endif
