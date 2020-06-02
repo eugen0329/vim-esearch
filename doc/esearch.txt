@@ -334,7 +334,7 @@ g:esearch.backend                                              *g:esearch.backen
 <
         NOTE Some backends are not asynchronous (like system) or use
         pseudo-asynchronous (like vimproc) mechanisms, so it's not recommended
-        to redefine this option.
+        to redefine this configuration.
 
 g:esearch.out                                                      *g:esearch.out*
         Name of a target to output results.
@@ -432,7 +432,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
           xnoremap <silent><buffer>     - :call CustomFunction(mode())<cr>
         endfunction
 <
-        NOTE Options `{'silent': 1, 'buffer': 1}` in |g:esearch.win_map| elements
+        NOTE Arguments `{'silent': 1, 'buffer': 1}` in |g:esearch.win_map| elements
         are merged automatically with user defined pairs. Don't override them
         to avoid side effects.
 
@@ -994,8 +994,8 @@ API LOCAL FUNCTIONS                                  *esearch-api-local-function
                                      *b:esearch.is_entry()* *b:esearch.is_current()*
                                                             *b:esearch.is_blank()*
 
-Buffer-local |b:esearch| variable contains options inherited from |g:esearch| and
-extra methods to interact with the search window.
+Buffer-local |b:esearch| variable contains configurations inherited from |g:esearch|
+and extra methods to interact with the search window.
 
       Method                                   What does~
  ----------------------+-----------------------------------------------------------------------
@@ -1157,6 +1157,7 @@ as the preview updates are handled using `b:autopreview.apply()` call.
 
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
+
 7. Use a popup-like floating window to render search results.
 >
     let g:esearch = {}
