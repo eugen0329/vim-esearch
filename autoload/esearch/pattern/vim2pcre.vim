@@ -2,7 +2,7 @@ let s:esc = g:esearch#pattern#even_count_of_escapes . '\zs'
 
 fu! esearch#pattern#vim2pcre#convert(string) abort
   let string = a:string
-  " From :h pattern-atoms
+  " :h pattern-atoms
   let string = substitute(string, s:esc . '\\_\([$.^]\)',       '\1',   'g')
   let string = substitute(string, s:esc . '\\[<>]',             '\\b',  'g')
   let string = substitute(string, s:esc . '\\z[se]',            '',     'g')

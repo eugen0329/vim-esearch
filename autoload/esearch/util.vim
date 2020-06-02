@@ -157,7 +157,7 @@ else
   endfu
 endif
 
-if has('nvim')
+if has('nvim') || g:esearch#has#windows
   fu! esearch#util#getchar() abort
     return s:to_char(getchar())
   endfu

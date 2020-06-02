@@ -7,7 +7,6 @@ let s:max_len = 120
 
 fu! esearch#middleware#title#apply(esearch) abort
   let a:esearch.title = s:title(a:esearch, a:esearch.pattern.str())
-
   return a:esearch
 endfu
 

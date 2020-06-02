@@ -157,7 +157,7 @@ fu! esearch#config#default_adapter() abort
     return 'ack'
   elseif executable('pt')
     return 'pt'
-  elseif !g:esearch#has#windows && !system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') && !v:shell_error
+  elseif !system('git rev-parse --is-inside-work-tree') && !v:shell_error
     return 'git'
   elseif executable('grep')
     return 'grep'
@@ -168,6 +168,8 @@ endfu
 
 let s:root = expand( '<sfile>:p:h:h:h')
 fu! s:lua_init() abort
+  if !g:esearch#has#lua | return | endif
+
   if g:esearch#has#nvim_lua
     lua << EOF
     esearch = require'esearch/neovim'

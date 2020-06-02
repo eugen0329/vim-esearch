@@ -123,11 +123,11 @@ fu! esearch#out#win#goto_or_open(esearch) abort dict
         \ && empty(&buftype)
         \ && empty(bufname('%'))
         \ && !&modified
-    silent call esearch#buf#open(bufname, 'edit')
+    silent call esearch#buf#open(bufname, 'noswap edit')
     return
   endif
 
-  silent call esearch#buf#goto_or_open(bufname, 'tabnew')
+  silent call esearch#buf#goto_or_open(bufname, 'noswap tabnew')
 endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort

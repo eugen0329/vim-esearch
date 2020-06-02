@@ -61,18 +61,6 @@ fu! esearch#keymap#maparg2set_command(maparg) abort
   return join([cmd, s:Mapping.options_dict2raw(a:maparg), lhs, rhs])
 endfu
 
-" DEPRECATED
-fu! esearch#keymap#add(mappings, lhs, rhs) abort
-  for mapping in a:mappings
-    if mapping.rhs == a:rhs && mapping.default == 1
-      call remove(a:mappings, index(a:mappings, mapping))
-      break
-    endif
-  endfor
-
-  call add(a:mappings, {'lhs': a:lhs, 'rhs': a:rhs, 'default': 0})
-endfu
-
 " from arpeggio.vim
 fu! esearch#keymap#key2char(key) abort
   let keys = s:split_to_keys(a:key)
@@ -116,59 +104,24 @@ fu! s:generate_escape_tables() abort
   let s:meta_prefix = strtrans("\<M-a>")[:-2]
   let s:ameta_prefix = strtrans("\<A-a>")[:-2]
 
-  let s:metas = [s:meta_prefix, s:ameta_prefix, s:super_prefix]
+  let s:metas = filter([s:meta_prefix, s:ameta_prefix, s:super_prefix], 'len(v:val) > 0')
+  if empty(s:metas)
+    let s:meta_prefix_re = '^$'
+  else
+    let s:meta_prefix_re = '^\%(' . join(s:metas, '\|') . '\)'
+  endif
   let s:shifts = []
   let s:controls = []
 
-   let chars = [
-         \ 'Nul',
-         \ 'BS',
-         \ 'Tab',
-         \ 'NL',
-         \ 'FF',
-         \ 'CR',
-         \ 'Return',
-         \ 'Enter',
-         \ 'Esc',
-         \ 'Space',
-         \ 'lt',
-         \ 'Bslash',
-         \ 'Bar',
-         \ 'Del',
-         \ 'CSI',
-         \ 'xCSI',
-         \ 'Up',
-         \ 'Down',
-         \ 'Left',
-         \ 'Right',
-         \ 'Help',
-         \ 'Undo',
-         \ 'Insert',
-         \ 'Home',
-         \ 'End',
-         \ 'PageUp',
-         \ 'PageDown',
-         \ 'kUp',
-         \ 'kDown',
-         \ 'kLeft',
-         \ 'kRight',
-         \ 'kHome',
-         \ 'kEnd',
-         \ 'kOrigin',
-         \ 'kPageUp',
-         \ 'kPageDown',
-         \ 'kDel',
-         \ 'kPlus',
-         \ 'kMinus',
-         \ 'kMultiply',
-         \ 'kDivide',
-         \ 'kPoint',
-         \ 'kComma',
-         \ 'kEqual',
-         \ 'kEnter',
-         \ ]
+   let keycode_names = [
+         \ 'Nul', 'BS', 'Tab', 'NL', 'FF', 'CR', 'Return', 'Enter', 'Esc',
+         \ 'Space', 'lt', 'Bslash', 'Bar', 'Del', 'CSI', 'xCSI', 'Up', 'Down',
+         \ 'Left', 'Right', 'Help', 'Undo', 'Insert', 'Home', 'End', 'PageUp',
+         \ 'PageDown', 'kUp', 'kDown', 'kLeft', 'kRight', 'kHome', 'kEnd',
+         \ 'kOrigin', 'kPageUp', 'kPageDown', 'kDel', 'kPlus', 'kMinus',
+         \ 'kMultiply', 'kDivide', 'kPoint', 'kComma', 'kEqual', 'kEnter']
 
-   for c in chars
+   for c in keycode_names
      call add(s:metas, strtrans(eval('"\<M-'.c.'>"')))
      call add(s:metas, strtrans(eval('"\<A-'.c.'>"')))
      call add(s:metas, strtrans(eval('"\<D-'.c.'>"')))
@@ -193,10 +146,6 @@ fu! s:generate_escape_tables() abort
      call add(s:shifts, strtrans(eval('"\<S-F'.i.'>"')))
      call add(s:controls, strtrans(eval('"\<C-F'.i.'>"')))
    endfor
-   let s:meta_prefix_re = '^\%('
-         \ . s:meta_prefix . '\|'
-         \ . s:super_prefix . '\|'
-         \ . s:ameta_prefix . '\)'
 
    let s:escape_tables_loaded = 1
 endfu
