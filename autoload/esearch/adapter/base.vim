@@ -15,7 +15,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
   if empty(a:esearch.paths)
     let paths = self.pwd()
   else
-    let paths = join(map(copy(a:esearch.paths), 'esearch#shell#escape(v:val)'), ' ')
+    let paths = esearch#shell#join(a:esearch.paths)
   endif
 
   let context = ''

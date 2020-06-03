@@ -3,7 +3,6 @@ let s:Lexer    = vital#esearch#import('Text.Lexer')
 let s:Parser   = vital#esearch#import('Text.Parser')
 
 let s:metachars = '()[]{}?*+@!$^|'
-
 " From src/vim.h
 if g:esearch#has#windows
   let g:esearch#shell#path_esc_chars = " \t\n*?[{`%#'\"|!<"
@@ -13,9 +12,48 @@ else
   let g:esearch#shell#path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
 endif
 
+fu! esearch#shell#blank_argv() abort
+  return g:esearch#has#posix_shell ? [] : ''
+endfu
+
 fu! esearch#shell#split(string) abort
+  if !g:esearch#has#posix_shell | return [a:string, 0] | endif
   let splitter = s:Splitter.new(a:string)
   return [splitter.split(), splitter.error]
+endfu
+
+fu! esearch#shell#join(args) abort
+  if !g:esearch#has#posix_shell | return a:args | endif
+  return join(map(copy(a:args), 'esearch#shell#escape(v:val)'), ' ')
+endfu
+
+fu! esearch#shell#escape(path) abort
+  return join(esearch#shell#split_by_metachars(a:path), '')
+endfu
+
+" Returns a list in format [str1, meta1, ...] to conveniently highlight the
+" metachars
+fu! esearch#shell#split_by_metachars(path) abort
+  if !g:esearch#has#posix_shell | return [shellescape(a:path.str), ''] | endif
+  let str = a:path.str
+
+  let parts = []
+  let substr_begin = 0
+  for special_index in a:path.metachars
+    let parts += [s:fnameescape(str[substr_begin : special_index][:-2]), str[special_index]]
+    let substr_begin = special_index + 1
+  endfor
+  let parts += [s:fnameescape(str[substr_begin :])]
+
+  if parts[0] =~# '^[+>]' || (len(parts) == 1 && parts[0] ==# '-')
+    let parts[0] = '\' . parts[0]
+  endif
+
+  return parts
+endfu
+
+fu! esearch#shell#argv(args) abort
+  return map(copy(a:args), 's:to_arg(v:val)')
 endfu
 
 let s:rules = [
@@ -47,17 +85,17 @@ endfu
 "   .str       - string
 "   .metachars - indexes where special chars are located
 fu! s:Splitter.split() abort dict
-  let paths = []
+  let args = []
 
   while ! self.end()
     if self.next_is(['WS'])
       call self.advance()
     else
-      call add(paths, self.consume_path())
+      call add(args, self.consume_arg())
     endif
   endwhile
 
-  return paths
+  return args
 endfu
 
 fu! s:Splitter.consume_squote() dict abort
@@ -105,7 +143,7 @@ fu! s:Splitter.consume_dquote() dict abort
   return ''
 endfu
 
-fu! s:Splitter.consume_path() abort dict
+fu! s:Splitter.consume_arg() abort dict
   let parsed = ''
   let begin = self.p
   let metachars = []
@@ -132,15 +170,21 @@ fu! s:Splitter.consume_path() abort dict
     endif
   endwhile
 
-  return s:path(parsed, begin, self.p, metachars)
+  return s:arg(parsed, begin, self.p, metachars)
 endfu
 
-fu! s:path(str, begin, end, metachars) abort
+fu! s:arg(str, begin, end, metachars) abort
   return {'str': a:str, 'begin': a:begin, 'end': a:end, 'metachars': a:metachars}
 endfu
 
-fu! esearch#shell#path(str) abort
-  return s:path(a:str, 0, 0, [])
+" Vital relpath converts home to ~. It cause problems with vim's builtin
+" isdirectory(), so fnamemodify is used.
+fu! s:to_arg(path) abort
+  if s:Filepath.is_relative(a:path)
+    return s:arg(a:path, 0, 0, [])
+  endif
+
+  return s:arg(fnamemodify(a:path, ':.'), 0, 0, [])
 endfu
 
 fu! s:Splitter.advance() abort dict
@@ -148,31 +192,6 @@ fu! s:Splitter.advance() abort dict
   let self.p  += strchars(token.matched_text)
 
   return token
-endfu
-
-fu! esearch#shell#escape(path) abort
-  return join(esearch#shell#split_by_metachars(a:path), '')
-endfu
-
-" Returns a list in format [str1, meta1, ...] to conveniently highlight the
-" metachars
-fu! esearch#shell#split_by_metachars(path) abort
-  if !g:esearch#has#shell_glob | return [shellescape(a:path.str)] | endif
-  let str = a:path.str
-
-  let parts = []
-  let substr_begin = 0
-  for special_index in a:path.metachars
-    let parts += [s:fnameescape(str[substr_begin : special_index][:-2]), str[special_index]]
-    let substr_begin = special_index + 1
-  endfor
-  let parts += [s:fnameescape(str[substr_begin :])]
-
-  if parts[0] =~# '^[+>]' || (len(parts) == 1 && parts[0] ==# '-')
-    let parts[0] = '\' . parts[0]
-  endif
-
-  return parts
 endfu
 
 fu! s:fnameescape(string) abort

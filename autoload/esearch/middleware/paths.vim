@@ -1,21 +1,23 @@
 fu! esearch#middleware#paths#apply(esearch) abort
   if !has_key(a:esearch, 'paths')
-    let a:esearch.paths = []
+    let a:esearch.paths = esearch#shell#blank_argv()
     return a:esearch
   endif
 
-  if type(a:esearch.paths) ==# type('')
-    let [paths, error] = esearch#shell#split(a:esearch.paths)
-
-    if !empty(error)
-      throw "Can't parse paths: " . error
+  if g:esearch#has#posix_shell
+    if type(a:esearch.paths) ==# type('')
+      let [paths, error] = esearch#shell#split(a:esearch.paths)
+    
+      if !empty(error)
+        throw "Can't parse paths: " . error
+      endif
+    
+      let a:esearch.paths = paths
+    elseif type(a:esearch.paths) ==# type([])
+      " TODO add a validation
+    else
+      throw 'Unknown paths type: ' . string(a:esearch.paths) . ' (string expected)'
     endif
-
-    let a:esearch.paths = paths
-  elseif type(a:esearch.paths) ==# type([])
-    " TODO add a validation or smth
-  else
-    throw 'Unknown paths type: ' . string(a:esearch.paths) . ' (string expected)'
   endif
 
   return a:esearch

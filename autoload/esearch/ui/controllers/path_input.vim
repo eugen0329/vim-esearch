@@ -3,7 +3,7 @@ let s:PathInputController = esearch#ui#component()
 
 fu! s:PathInputController.render() abort dict
   let s:self = self
-  let user_input_in_shell_format =  join(map(copy(self.props.paths), 'esearch#shell#escape(v:val)'), ' ')
+  let user_input_in_shell_format = esearch#shell#join(self.props.paths)
 
   redraw!
   while 1
@@ -32,7 +32,7 @@ endfu
 
 fu! s:map_state_to_props(state) abort dict
   return {
-        \ 'paths': get(a:state, 'paths', []),
+         \ 'paths': get(a:state, 'paths', esearch#shell#blank_argv()),
         \ 'cwd':   a:state.cwd,
         \ }
 endfu

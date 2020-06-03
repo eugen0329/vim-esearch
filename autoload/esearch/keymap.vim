@@ -80,7 +80,7 @@ fu! esearch#keymap#escape_kind(char) abort
 
   let printable = strtrans(a:char)
 
-   if printable =~# s:meta_prefix_re || s:is_keys_combination(s:metas, printable)
+   if (!empty(s:meta_prefix_re) && printable =~# s:meta_prefix_re) || s:is_keys_combination(s:metas, printable)
      return 'meta'
    elseif s:is_keys_combination(s:shifts, printable)
      return 'shift'
@@ -100,13 +100,12 @@ endfu
 fu! s:generate_escape_tables() abort
   if exists('s:escape_tables_loaded') | return | endif
 
-  let s:super_prefix = strtrans("\<D-a>")[:-2]
-  let s:meta_prefix = strtrans("\<M-a>")[:-2]
-  let s:ameta_prefix = strtrans("\<A-a>")[:-2]
-
-  let s:metas = filter([s:meta_prefix, s:ameta_prefix, s:super_prefix], 'len(v:val) > 0')
+  let super_prefix = strtrans("\<D-a>")[:-2]
+  let meta_prefix = strtrans("\<M-a>")[:-2]
+  let ameta_prefix = strtrans("\<A-a>")[:-2]
+  let s:metas = filter([meta_prefix, ameta_prefix, super_prefix], '!empty(v:val)')
   if empty(s:metas)
-    let s:meta_prefix_re = '^$'
+    let s:meta_prefix_re = ''
   else
     let s:meta_prefix_re = '^\%(' . join(s:metas, '\|') . '\)'
   endif
