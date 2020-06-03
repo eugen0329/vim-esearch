@@ -118,7 +118,7 @@ fu! s:Splitter.consume_squote() dict abort
   endwhile
 
   let self.error = 'unterminated single quote at column ' . begin
-  return ''
+  return parsed
 endfu
 
 fu! s:Splitter.consume_dquote() dict abort
@@ -140,7 +140,7 @@ fu! s:Splitter.consume_dquote() dict abort
   endwhile
 
   let self.error = 'unterminated double quote at column ' . begin
-  return ''
+  return parsed
 endfu
 
 fu! s:Splitter.consume_arg() abort dict
