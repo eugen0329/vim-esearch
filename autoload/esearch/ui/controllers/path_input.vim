@@ -32,9 +32,9 @@ endfu
 
 fu! s:map_state_to_props(state) abort dict
   return {
-         \ 'paths': get(a:state, 'paths', esearch#shell#blank_argv()),
+        \ 'paths': get(a:state, 'paths', esearch#shell#blank_argv()),
         \ 'cwd':   a:state.cwd,
-        \ }
+        \}
 endfu
 
 fu! esearch#ui#controllers#path_input#import() abort

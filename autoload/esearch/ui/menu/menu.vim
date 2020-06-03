@@ -42,7 +42,7 @@ fu! s:Menu.new(props) abort dict
           \ ]
   endif
   let instance.items += [
-        \   s:PathEntry.new({'i':     i.next(), 'keys':  s:path_keys}),
+        \   s:PathEntry.new({'i':     i.next(), 'keys': s:path_keys}),
         \   s:BeforeEntry.new({'i':   i.next()}),
         \   s:AfterEntry.new({'i':    i.next()}),
         \   s:ContextEntry.new({'i':  i.next()}),

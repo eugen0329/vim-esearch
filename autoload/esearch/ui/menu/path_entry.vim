@@ -27,7 +27,7 @@ fu! s:PathEntry.keypress(event) abort dict
 endfu
 
 fu! s:map_state_to_props(state) abort dict
-  return {'paths': join(get(a:state, 'paths'), ' ')}
+  return {'paths': get(a:state, 'paths')}
 endfu
 
 fu! esearch#ui#menu#path_entry#import() abort
