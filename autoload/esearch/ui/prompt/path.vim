@@ -13,12 +13,14 @@ fu! s:PathPrompt.render() abort dict
   let end = len(paths) - 1
   for i in range(0, end)
     let path = paths[i]
-    if isdirectory(esearch#util#abspath(cwd, path.str))
+    if path.raw
+      let result += [['Special', path.str]]
+    elseif isdirectory(esearch#util#abspath(cwd, path.str))
       let result += [['Directory', dir_icon . esearch#shell#escape(path)]]
     elseif empty(path.metachars)
       let result += [[self.props.normal_highlight, esearch#shell#escape(path)]]
     else
-      let result += self.highlight_special_chars(path)
+      let result += self.highlight_metachars(path)
     endif
 
     if i != end
@@ -29,14 +31,14 @@ fu! s:PathPrompt.render() abort dict
   return result
 endfu
 
-fu! s:PathPrompt.highlight_special_chars(path) abort dict
+fu! s:PathPrompt.highlight_metachars(path) abort dict
   let parts = esearch#shell#split_by_metachars(a:path)
   let result = []
 
   for regular_index in range(0, len(parts)-3, 2)
-    let special_index = regular_index + 1
+    let i = regular_index + 1
     let result += [[self.props.normal_highlight, parts[regular_index]]]
-    let result += [['Identifier', parts[special_index]]]
+    let result += [['Identifier', parts[i]]]
   endfor
 
   let result += [[self.props.normal_highlight, parts[-1]]]

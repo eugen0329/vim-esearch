@@ -21,7 +21,7 @@ fu! s:windows_candidates(cwd, arglead, cmdline) abort
   let [word, prefix] = esearch#ui#complete#base#word_and_prefix(a:arglead)
   let word = s:Filepath.relpath(word)
   let candidates = map(s:glob(a:cwd, word), 'shellescape(s:minimize(v:val))')
-  return esearch#ui#complete#base#filter(candidates, a:cmdline, prefix)
+  return esearch#ui#complete#base#prepare(candidates, a:cmdline, prefix)
 endfu
 
 fu! s:posix_candidates(cwd, arglead, cmdline) abort
@@ -41,16 +41,21 @@ fu! s:posix_candidates(cwd, arglead, cmdline) abort
 endfu
 
 fu! s:gather_posix_candidates(cwd, word, already_listed, Escape) abort
-  let unused_candidates = []
+  let candidates = []
   let word = s:Filepath.relpath(a:word)
   for candidate in s:glob(a:cwd, word)
     let candidate = a:Escape(s:minimize(candidate))
-    if !s:List.has(a:already_listed, candidate) || candidate ==# word
-      let unused_candidates += [candidate]
+    if !s:List.has(a:already_listed, candidate)
+      let candidates += [candidate]
     endif
   endfor
 
-  return unused_candidates
+  if word =~# g:esearch#shell#metachars_pattern
+    " keep the current word if includes metachars
+    let candidates = [word] + candidates
+  endif
+
+  return candidates
 endfu
 
 fu! s:minimize(arg) abort
@@ -74,7 +79,7 @@ fu! s:glob(cwd, word) abort
         \ '&wildignorecase': 1,
         \ '&fileignorecase': 1})
   try
-    return split(globpath(a:cwd, a:word . '*'), "\n")
+    return split(globpath(a:cwd, a:word . (a:word =~# '\*$' ? '' : '*')), "\n")
   finally
     call ignorecase.restore()
   endtry

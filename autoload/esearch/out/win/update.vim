@@ -58,7 +58,7 @@ fu! esearch#out#win#update#can_finish_early(esearch) abort
   let original_early_update_limit = a:esearch.early_update_limit
   let a:esearch.early_update_limit *= 1000
   try
-    return a:esearch.request.is_consumed()
+    return a:esearch.request.is_consumed(a:esearch.early_finish_wait)
           \ && (len(a:esearch.request.data) - a:esearch.request.cursor) <= a:esearch.final_batch_size
   finally
     let a:esearch.early_update_limit = original_early_update_limit

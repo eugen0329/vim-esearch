@@ -7,8 +7,8 @@ describe 'esearch#shell' do
   include Helpers::FileSystem
   include Helpers::Shell
 
-  context '#split' do
-    context 'special' do
+  describe '#split' do
+    describe 'special' do
       shared_examples 'it detects wildcars location' do |c|
         it { expect(metachars_at("#{c}ab")).to     eq([[0]])    }
         it { expect(metachars_at("#{c}ab#{c}")).to eq([[0, 3]]) }
@@ -38,22 +38,22 @@ describe 'esearch#shell' do
       it { expect(metachars_at('ab')).to eq([[]]) }
     end
 
-    context 'single word' do
+    describe 'single word' do
       it { expect(split('ab')).to  eq([['ab', 0..2]]) }
       it { expect(split('ab ')).to eq([['ab', 0..2]]) }
       it { expect(split(' ab')).to eq([['ab', 1..3]]) }
     end
 
-    context 'multiple words' do
+    describe 'multiple words' do
       it { expect(split('a b')).to  eq([['a', 0..1], ['b',  2..3]]) }
       it { expect(split('a bc')).to eq([['a', 0..1], ['bc', 2..4]]) }
     end
 
-    context 'multibyte' do
+    describe 'multibyte' do
       it { expect(split("'Σ'")).to  eq([['Σ', 0..3]]) }
     end
 
-    context 'double quote' do
+    describe 'double quote' do
       it { expect(split('"a b"')).to    eq([['a b', 0..5]])  }
       it { expect(split(' "a b"')).to   eq([['a b', 1..6]])  }
       it { expect(split('"a b" ')).to   eq([['a b', 0..5]])  }
@@ -66,14 +66,14 @@ describe 'esearch#shell' do
       it { expect(split('a"')).to       eq(:error)           }
       it { expect(split('"a')).to       eq(:error)           }
 
-      context 'unescaping anything' do
+      describe 'unescaping anything' do
         it { expect(split('"\\a"')).to  eq([['a', 0..4]])    }
         it { expect(split('"\\&"')).to  eq([['&', 0..4]])    }
         it { expect(split('"\\."')).to  eq([['.', 0..4]])    }
       end
     end
 
-    context 'single quote' do
+    describe 'single quote' do
       it { expect(split("'a b'")).to    eq([['a b', 0..5]])    }
       it { expect(split("'a b' ")).to   eq([['a b', 0..5]])    }
       it { expect(split(" 'a b'")).to   eq([['a b', 1..6]])    }
@@ -87,19 +87,30 @@ describe 'esearch#shell' do
       it { expect(split("a'")).to       eq(:error)             }
     end
 
-    context 'backslashes' do
+    describe 'eval' do
+      describe 'backticks' do
+        it { expect(split('`')).to     eq(:error)          }
+        it { expect(split('`\``')).to  eq(:error)          }
+        it { expect(split('`a\``')).to eq(:error)          }
+        it { expect(split('``')).to    eq([['``',  0..2]]) }
+        it { expect(split('`a`')).to   eq([['`a`', 0..3]]) }
+      end
+    end
+
+    describe 'backslashes' do
       it { expect(split('\\')).to      eq(:error)          }
       it { expect(split('a\\ b')).to   eq([['a b', 0..4]]) }
       it { expect(split('\\ a ')).to   eq([[' a', 0..3]])  }
       it { expect(split('a\\ ')).to    eq([['a ', 0..3]])  }
       it { expect(split('a\\  ')).to   eq([['a ', 0..3]])  }
       it { expect(split('\\\\')).to    eq([['\\', 0..2]])  }
+      it { expect(split('\\`')).to     eq([['`', 0..2]])   }
 
-      context 'globbing' do
+      describe 'globbing' do
         it { expect(split('\\*ab')).to eq([['*ab', 0..4]]) }
       end
 
-      context 'unescaping anything' do
+      describe 'unescaping anything' do
         it { expect(split('a\\b')).to eq([['ab', 0..3]]) }
         it { expect(split('ab\\')).to eq(:error)         }
         it { expect(split('\\ab')).to eq([['ab', 0..3]]) }

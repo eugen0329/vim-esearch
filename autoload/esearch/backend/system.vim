@@ -15,7 +15,7 @@ fu! esearch#backend#system#init(cwd, adapter, cmd) abort
   return request
 endfu
 
-fu! s:is_consumed() abort dict
+fu! s:is_consumed(wait) abort dict
   return self.finished
 endfu
 

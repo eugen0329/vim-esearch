@@ -277,6 +277,8 @@ g:esearch.paths                                                  *g:esearch.path
         `set shell=bash\ -O\ globstar -O\ extglob`
         If you use OSX, install the latest bash version first using:
         `:!brew install bash`
+        NOTE For POSIX compliant shells `` backticks can be used to use
+        evaluated results as paths. See also: |esearch-git-examples|.
 
 g:esearch.select_prefilled                            *g:esearch.select_prefilled*
         Flag to use a visual-like selection of a prefilled text in the prompt.
@@ -880,7 +882,7 @@ g:esearch.early_finish_wait                          *g:esearch.early_finish_wai
         before the start.
         Type: |Number|
         Allowed values: >= 0
-        Default: 50
+        Default: 80
 
 ================================================================================
 COMMANDLINE                                                      *esearch-cmdline*
@@ -1076,7 +1078,7 @@ they are changed during a request.
         \ 'cwd':   '~/other-dir'
         \})<cr>
 <
-Or the same query if one of ag, rg or ack is available
+Or the same query if one of [ag], [rg] or [ack] is available:
 >
     nnoremap <leader>fe :call esearch#init({
         \ 'filetypes': 'js css html',
@@ -1099,10 +1101,19 @@ NOTE You can use any other bracketed keys to define the initial cursor position,
 but they must be preceded by `\` to be expanded within `""` quotes.
 
 See also: |key-notation|, |lambda|.
+
+                                                            *esearch-git-examples*
+5. Use backticks in |g:esearch.paths| to search in modified files only.
+>
+    nnoremap <leader>fm :call esearch#init({
+          \ 'adapter':  'git',
+          \ 'paths':    '`git ls-files --modified`',
+          \ 'remember': []
+          \})<cr>
+<
                                                      *esearch_win_config-examples*
                                                               *b:esearch-examples*
-
-5. Use `esearch_win_hook` to setup window local configurations.
+6. Use `esearch_win_hook` to setup window local configurations.
 >
     autocmd User esearch_win_config call s:custom_esearch_config()
 
@@ -1135,7 +1146,7 @@ on reloads, so NO `augroup` inside is required.
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*
 
-6. Show the preview automatically and update it after 100ms timeout. Change
+7. Show the preview automatically and update it after 100ms timeout. Change
 'vsplit' to 'split' to open the preview horizontally.
 >
     autocmd User esearch_win_config
@@ -1158,7 +1169,7 @@ as the preview updates are handled using `b:autopreview.apply()` call.
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
 
-7. Use a popup-like floating window to render search results.
+8. Use a popup-like floating window to render search results.
 >
     let g:esearch = {}
 
@@ -1184,7 +1195,7 @@ See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
 
                                               *esearch-offscreen-filename-example*
 
-8. Show context filenames in 'statusline' that are outside (above) the viewport.
+9. Show context filenames in 'statusline' that are above the viewport.
 >
     function! s:offscreen_filename() abort
       " prevent errors due to asynchronous execution

@@ -3,6 +3,7 @@ let s:Lexer    = vital#esearch#import('Text.Lexer')
 let s:Parser   = vital#esearch#import('Text.Parser')
 
 let s:metachars = '()[]{}?*+@!$^|'
+let g:esearch#shell#metachars_pattern = '['.escape(s:metachars, ']').']'
 " From src/vim.h
 if g:esearch#has#windows
   let g:esearch#shell#path_esc_chars = " \t\n*?[{`%#'\"|!<"
@@ -36,12 +37,11 @@ endfu
 fu! esearch#shell#split_by_metachars(path) abort
   if !g:esearch#has#posix_shell | return [shellescape(a:path.str), ''] | endif
   let str = a:path.str
-
   let parts = []
   let substr_begin = 0
-  for special_index in a:path.metachars
-    let parts += [s:fnameescape(str[substr_begin : special_index][:-2]), str[special_index]]
-    let substr_begin = special_index + 1
+  for i in a:path.metachars
+    let parts += [s:fnameescape(str[substr_begin : i][:-2]), str[i]]
+    let substr_begin = i + 1
   endfor
   let parts += [s:fnameescape(str[substr_begin :])]
 
@@ -53,19 +53,20 @@ fu! esearch#shell#split_by_metachars(path) abort
 endfu
 
 fu! esearch#shell#argv(args) abort
-  return map(copy(a:args), 's:to_arg(v:val)')
+  return map(copy(a:args), 's:minimizer_arg(v:val)')
 endfu
 
 let s:rules = [
-      \  ['DQ',                '"'                             ],
-      \  ['SQ',                "'"                             ],
-      \  ['ESCAPED_DQ',        '\\"'                           ],
-      \  ['ESCAPED_SQ',        '\\'''                          ],
-      \  ['TRAILING_ESCAPE',   '\\$'                           ],
-      \  ['WS',                '\s\+'                          ],
-      \  ['ESCAPED_ANY',       '\\.'                           ],
-      \  ['METACHARS',         '['.escape(s:metachars, ']').']'],
-      \  ['REGULAR',           '\%([[:alnum:]/\-_.]\+\|.\)'    ],
+      \  ['DQ',                '"'                              ],
+      \  ['SQ',                "'"                              ],
+      \  ['ESCAPED_DQ',        '\\"'                            ],
+      \  ['ESCAPED_SQ',        '\\'''                           ],
+      \  ['TRAILING_CHAR',     '[`\\]$'                         ],
+      \  ['WS',                '\s\+'                           ],
+      \  ['ESCAPED_ANY',       '\\.'                            ],
+      \  ['EVAL',              '`[^`]\{-}`'                     ],
+      \  ['METACHARS',         g:esearch#shell#metachars_pattern],
+      \  ['REGULAR',           '\%([[:alnum:]/\-_.]\+\|.`\)'    ],
       \]
 
 let s:Splitter = { 'error': 0, 'p': 0 }
@@ -90,6 +91,8 @@ fu! s:Splitter.split() abort dict
   while ! self.end()
     if self.next_is(['WS'])
       call self.advance()
+    elseif self.next_is(['EVAL'])
+      call add(args, self.consume_eval())
     else
       call add(args, self.consume_arg())
     endif
@@ -143,6 +146,12 @@ fu! s:Splitter.consume_dquote() dict abort
   return parsed
 endfu
 
+fu! s:Splitter.consume_eval() abort dict
+  let begin = self.p
+  let parsed = self.advance().matched_text
+  return s:arg(parsed, begin, self.p, [], 1)
+endfu
+
 fu! s:Splitter.consume_arg() abort dict
   let parsed = ''
   let begin = self.p
@@ -162,29 +171,28 @@ fu! s:Splitter.consume_arg() abort dict
       let parsed .= self.advance().matched_text
     elseif self.next_is(['WS'])
       break
-    elseif self.next_is(['TRAILING_ESCAPE'])
-      call self.advance()
-      let self.error = 'trailing escape'
+    elseif self.next_is(['TRAILING_CHAR'])
+      let self.error = 'trailing ' . string(self.advance().matched_text)
     else
       let parsed .= self.advance().matched_text
     endif
   endwhile
 
-  return s:arg(parsed, begin, self.p, metachars)
+  return s:arg(parsed, begin, self.p, metachars, 0)
 endfu
 
-fu! s:arg(str, begin, end, metachars) abort
-  return {'str': a:str, 'begin': a:begin, 'end': a:end, 'metachars': a:metachars}
+fu! s:arg(str, begin, end, metachars, raw) abort
+  return {'str': a:str, 'begin': a:begin, 'end': a:end, 'metachars': a:metachars, 'raw': a:raw}
 endfu
 
 " Vital relpath converts home to ~. It cause problems with vim's builtin
 " isdirectory(), so fnamemodify is used.
-fu! s:to_arg(path) abort
+fu! s:minimizer_arg(path) abort
   if s:Filepath.is_relative(a:path)
-    return s:arg(a:path, 0, 0, [])
+    return s:arg(a:path, 0, 0, [], 0)
   endif
 
-  return s:arg(fnamemodify(a:path, ':.'), 0, 0, [])
+  return s:arg(fnamemodify(a:path, ':.'), 0, 0, [], 0)
 endfu
 
 fu! s:Splitter.advance() abort dict

@@ -13,6 +13,6 @@ fu! esearch#ui#complete#base#word_and_prefix(arglead) abort
   return [word, a:arglead[: strchars(a:arglead) - strchars(word) - 1]]
 endfu
 
-fu! esearch#ui#complete#base#filter(candidates, cmdline, prefix) abort
+fu! esearch#ui#complete#base#prepare(candidates, cmdline, prefix) abort
   return map(filter(a:candidates, 'stridx(a:cmdline, v:val) == -1'), 'a:prefix . v:val')
 endfu

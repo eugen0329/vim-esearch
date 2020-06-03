@@ -46,7 +46,7 @@ fu! esearch#backend#vimproc#init(cwd, adapter, cmd) abort
   return request
 endfu
 
-fu! s:is_consumed() abort dict
+fu! s:is_consumed(wait) abort dict
   " Ignore the feature as vimproc backend is a candidate for deprecation
   return 0
 endfu

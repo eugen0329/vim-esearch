@@ -68,8 +68,8 @@ fu! s:stdout(job_id, job, data) abort
 endfu
 
 " Adapted from vital-Whisky
-fu! s:is_consumed() abort dict
-  let timeout = g:esearch.early_finish_wait / 1000.0 - reltimefloat(reltime(self.start_at))
+fu! s:is_consumed(wait) abort dict
+  let timeout = a:wait / 1000.0 - reltimefloat(reltime(self.start_at))
   if timeout < 0.0 | return 0 | endif
   let stopped = 0
 
