@@ -13,10 +13,6 @@ else
   let g:esearch#shell#path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
 endif
 
-fu! esearch#shell#blank_argv() abort
-  return g:esearch#has#posix_shell ? [] : ''
-endfu
-
 fu! esearch#shell#split(string) abort
   if !g:esearch#has#posix_shell | return [a:string, 0] | endif
   let splitter = s:Splitter.new(a:string)
@@ -32,8 +28,17 @@ fu! esearch#shell#escape(path) abort
   return join(esearch#shell#split_by_metachars(a:path), '')
 endfu
 
-" Returns a list in format [str1, meta1, ...] to conveniently highlight the
-" metachars
+" Posix argv is represented as a list for better completion, highlights and
+" validation. Windows argv is represented as a string.
+fu! esearch#shell#argv(strs) abort
+  if g:esearch#has#posix_shell
+    return map(copy(a:strs), 's:minimized_arg(v:val)')
+  endif
+
+  return join(map(copy(a:strs), 'shellescape(v:val)'))
+endfu
+
+" Returns a list in format [escaped_str1, meta1, ...] to highlight metachars
 fu! esearch#shell#split_by_metachars(path) abort
   if !g:esearch#has#posix_shell | return [shellescape(a:path.str), ''] | endif
   let str = a:path.str
@@ -52,21 +57,17 @@ fu! esearch#shell#split_by_metachars(path) abort
   return parts
 endfu
 
-fu! esearch#shell#argv(args) abort
-  return map(copy(a:args), 's:minimizer_arg(v:val)')
-endfu
-
 let s:rules = [
-      \  ['DQ',                '"'                              ],
-      \  ['SQ',                "'"                              ],
-      \  ['ESCAPED_DQ',        '\\"'                            ],
-      \  ['ESCAPED_SQ',        '\\'''                           ],
-      \  ['TRAILING_CHAR',     '[`\\]$'                         ],
-      \  ['WS',                '\s\+'                           ],
-      \  ['ESCAPED_ANY',       '\\.'                            ],
-      \  ['EVAL',              '`[^`]\{-}`'                     ],
-      \  ['METACHARS',         g:esearch#shell#metachars_pattern],
-      \  ['REGULAR',           '\%([[:alnum:]/\-_.]\+\|.`\)'    ],
+      \ ['DQ',                '"'                              ],
+      \ ['SQ',                "'"                              ],
+      \ ['ESCAPED_DQ',        '\\"'                            ],
+      \ ['ESCAPED_SQ',        '\\'''                           ],
+      \ ['TRAILING_CHAR',     '[`\\]$'                         ],
+      \ ['WS',                '\s\+'                           ],
+      \ ['ESCAPED_ANY',       '\\.'                            ],
+      \ ['EVAL',              '`[^`]\{-}`'                     ],
+      \ ['METACHARS',         g:esearch#shell#metachars_pattern],
+      \ ['REGULAR',           '\%([[:alnum:]/\-_.]\+\|.\)'     ],
       \]
 
 let s:Splitter = { 'error': 0, 'p': 0 }
@@ -181,18 +182,18 @@ fu! s:Splitter.consume_arg() abort dict
   return s:arg(parsed, begin, self.p, metachars, 0)
 endfu
 
-fu! s:arg(str, begin, end, metachars, raw) abort
-  return {'str': a:str, 'begin': a:begin, 'end': a:end, 'metachars': a:metachars, 'raw': a:raw}
-endfu
-
 " Vital relpath converts home to ~. It cause problems with vim's builtin
 " isdirectory(), so fnamemodify is used.
-fu! s:minimizer_arg(path) abort
+fu! s:minimized_arg(path) abort
   if s:Filepath.is_relative(a:path)
     return s:arg(a:path, 0, 0, [], 0)
   endif
 
   return s:arg(fnamemodify(a:path, ':.'), 0, 0, [], 0)
+endfu
+
+fu! s:arg(str, begin, end, metachars, raw) abort
+  return {'str': a:str, 'begin': a:begin, 'end': a:end, 'metachars': a:metachars, 'raw': a:raw}
 endfu
 
 fu! s:Splitter.advance() abort dict

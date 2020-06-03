@@ -94,6 +94,8 @@ describe 'esearch#shell' do
         it { expect(split('`a\``')).to eq(:error)          }
         it { expect(split('``')).to    eq([['``',  0..2]]) }
         it { expect(split('`a`')).to   eq([['`a`', 0..3]]) }
+        it { expect(split('"`a`"')).to eq([['`a`', 0..5]]) }
+        it { expect(split("'`a`'")).to eq([['`a`', 0..5]]) }
       end
     end
 

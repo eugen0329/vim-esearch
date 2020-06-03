@@ -1,6 +1,6 @@
 fu! esearch#middleware#paths#apply(esearch) abort
   if !has_key(a:esearch, 'paths')
-    let a:esearch.paths = esearch#shell#blank_argv()
+    let a:esearch.paths = esearch#shell#argv([])
     return a:esearch
   endif
 
