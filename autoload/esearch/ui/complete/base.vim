@@ -1,18 +1,18 @@
-fu! esearch#ui#complete#base#parse_arglead(arglead) abort
+fu! esearch#ui#complete#base#word_and_prefix(arglead) abort
   let leading_words = split(a:arglead, '\s\+')
+  " no current word
   if a:arglead =~# '\s$' || empty(leading_words)
     return ['' , a:arglead]
   endif
 
-  let current_word = leading_words[-1]
-  if strchars(a:arglead) == strchars(current_word)
-    return [current_word, '']
+  let word = leading_words[-1]
+  if strchars(a:arglead) == strchars(word)
+    return [word, '']
   endif
 
-  let prefix_text = a:arglead[: strchars(a:arglead) - strchars(current_word) - 1]
-  if prefix_text !~# '\s$'
-    let prefix_text .= ' '
-  endif
+  return [word, a:arglead[: strchars(a:arglead) - strchars(word) - 1]]
+endfu
 
-  return [current_word, prefix_text]
+fu! esearch#ui#complete#base#filter(candidates, cmdline, prefix) abort
+  return map(filter(a:candidates, 'stridx(a:cmdline, v:val) == -1'), 'a:prefix . v:val')
 endfu
