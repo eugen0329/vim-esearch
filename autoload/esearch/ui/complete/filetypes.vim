@@ -4,7 +4,7 @@ fu! esearch#ui#complete#filetypes#do(filetypes, arglead, cmdline, curpos) abort
   let [word, prefix] = esearch#ui#complete#base#word_and_prefix(a:arglead)
   let already_listed = split(a:cmdline)
   let candidates = s:gather_candidates(a:filetypes, word, already_listed)
-  return esearch#ui#complete#base#prepare(candidates, a:cmdline, prefix)
+  return map(candidates, 'prefix . v:val')
 endfu
 
 fu! s:gather_candidates(filetypes, word, already_listed) abort
@@ -15,6 +15,6 @@ fu! s:gather_candidates(filetypes, word, already_listed) abort
   endif
 
   let candidates = filter(copy(a:filetypes),
-        \ '!s:List.has(a:already_listed, v:val) && v:val =~? pattern')
+        \ '(v:val ==# a:word || !s:List.has(a:already_listed, v:val)) && v:val =~? pattern')
   return s:List.sort(candidates, '(len(a:a) - len(a:b))')
 endfu

@@ -80,6 +80,7 @@ else
 end
 
 RSpec.configure do |c|
+  c.seed = 1
   c.color_mode = true
   c.order      = :rand
   c.formatter  = :documentation

@@ -21,7 +21,7 @@ fu! s:windows_candidates(cwd, arglead, cmdline) abort
   let [word, prefix] = esearch#ui#complete#base#word_and_prefix(a:arglead)
   let word = s:Filepath.relpath(word)
   let candidates = map(s:glob(a:cwd, word), 'shellescape(s:minimize(v:val))')
-  return esearch#ui#complete#base#prepare(candidates, a:cmdline, prefix)
+  return map(filter(candidates, 'stridx(a:cmdline, v:val) == -1'), 'prefix . v:val')
 endfu
 
 fu! s:posix_candidates(cwd, arglead, cmdline) abort

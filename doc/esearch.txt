@@ -172,7 +172,6 @@ g:esearch.default_mappings                            *g:esearch.default_mapping
         Flag to disable all default mappings including both global and search
         window local mappings.
         Type: |Boolean|
-        Allowed values: 1 or 0
         Default: 0
         Example:~
 >
@@ -558,17 +557,21 @@ Search window-related configurations are added to |g:esearch| dictionary.
 
            Property                         What contains~
  -----------------------------+---------------------------------------------------
- `.win_new`                     | Funcref to open a new window with search results
+ `.win_new()`                   | Funcref to open a new window with search results
  `.win_map`                     | List of window-local keymaps
  `.win_contexts_syntax`         | Flag to use filetype-aware syntax highlights
  `.win_context_len_annotations` | Flag to show outputted lines count of a context
  `.win_cursor_linenr_highlight` | Funcref to open a new window with search results
  -----------------------------+---------------------------------------------------
 
-g:esearch.win_new                                              *g:esearch.win_new*
-        Function to open a new search window
+g:esearch.win_new({esearch})                                 *g:esearch.win_new()*
+        Function to open a new search window. 
         Type: |Funcref|
-        Default: a function, that reuse windows with the same search patterns
+        Default: function that reuse windows with the same search patterns
+        Parameters:~
+            {esearch} Facade object inherited from |g:esearch| and extended with
+                      |esearch#init()| {opts} parameter to be written to |b:esearch|
+                      buffer-local variable after |g:esearch.win_new()| call
         Example:~
         >
         let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Find]', 'vnew') }
@@ -581,18 +584,15 @@ g:esearch.win_new                                              *g:esearch.win_ne
 g:esearch.win_contexts_syntax                      *g:esearch.win_contexts_syntax*
         Flag to toggle filetype-dependent syntax.
         Type: |Boolean|
-        Allowed values: 1 or 0
         Default: 1
         Example:~
         >
         let g:esearch.win_contexts_syntax = 1
-<
 
 g:esearch.win_context_len_annotations      *g:esearch.win_context_len_annotations*
         Flag to toggle annotations to the right of a filename, that show the
         number of outputted lines.
         Type: |Boolean|
-        Allowed values: 1 or 0
         Default: 1
         Example:~
         >
@@ -986,7 +986,7 @@ esearch#buf#goto_or_open({name}, {opener}])             *esearch#async#debounce(
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                                  *esearch-api-local-functions*
 
-                                           *b:esearch.open()* *b:esearch.filename()*
+                                 *b:esearch* *b:esearch.open()* *b:esearch.filename()*
                              *b:esearch.unescaped_filename()* *b:esearch.filetype()*
                                *b:esearch.line_in_file()* *b:esearch.preview_open()*
                               *b:esearch.preview_zoom()* *b:esearch.preview_enter()*

@@ -4,15 +4,8 @@ let s:Parser   = vital#esearch#import('Text.Parser')
 
 let s:metachars = '()[]{}?*+@!$^|'
 let g:esearch#shell#metachars_pattern = '['.escape(s:metachars, ']').']'
-" From src/vim.h
-if g:esearch#has#windows
-  let g:esearch#shell#path_esc_chars = " \t\n*?[{`%#'\"|!<"
-elseif g:esearch#has#vms
-  let g:esearch#shell#path_esc_chars = " \t\n*?{`\\%#'\"|!"
-else
-  let g:esearch#shell#path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
-endif
 
+" Split for posix argv and passthrough for windows
 fu! esearch#shell#split(string) abort
   if !g:esearch#has#posix_shell | return [a:string, 0] | endif
   let splitter = s:Splitter.new(a:string)
@@ -38,9 +31,10 @@ fu! esearch#shell#argv(strs) abort
   return join(map(copy(a:strs), 'shellescape(v:val)'))
 endfu
 
-" Returns a list in format [escaped_str1, meta1, ...] to highlight metachars
+" Return a list in format [escaped_str1, meta1, ...] to highlight metachars
 fu! esearch#shell#split_by_metachars(path) abort
   if !g:esearch#has#posix_shell | return [shellescape(a:path.str), ''] | endif
+  if a:path.raw | return [a:path.str, ''] | endif
   let str = a:path.str
   let parts = []
   let substr_begin = 0
@@ -203,6 +197,15 @@ fu! s:Splitter.advance() abort dict
   return token
 endfu
 
+" From src/vim.h
+if g:esearch#has#windows
+  let s:path_esc_chars = " \t\n*?[{`%#'\"|!<"
+elseif g:esearch#has#vms
+  let s:path_esc_chars = " \t\n*?{`\\%#'\"|!"
+else
+  let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
+endif
+
 fu! s:fnameescape(string) abort
-  return escape(a:string, s:metachars . g:esearch#shell#path_esc_chars)
+  return escape(a:string, s:metachars . s:path_esc_chars)
 endfu
