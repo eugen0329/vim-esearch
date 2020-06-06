@@ -971,7 +971,7 @@ esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce(
 
         See also: |esearch_win_config| event, |b:esearch.preview_open()| method.
 
-esearch#buf#goto_or_open({name}, {opener}])             *esearch#async#debounce()*
+esearch#buf#goto_or_open({name}, {opener}])           *esearch#buf#goto_or_open()*
         Go to a window where buffer {name} is opened or use {opener} to open a
         new buffer.
 
@@ -1078,6 +1078,12 @@ they are changed during a request.
         \ 'cwd':   '~/other-dir'
         \})<cr>
 <
+NOTE To use all globbing features make ensure that |'shell'| option contains
+required arguments. E.g. for bash globbing add to your vimrc:
+`set shell=bash\ -O\ globstar -O\ extglob`
+If you use OSX, install the latest bash version first using:
+`:!brew install bash`
+
 Or the same query if one of [ag], [rg] or [ack] is available:
 >
     nnoremap <leader>fe :call esearch#init({
