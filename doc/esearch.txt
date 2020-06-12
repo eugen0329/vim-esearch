@@ -107,8 +107,8 @@ GLOBAL MAPPINGS                                               *esearch-global-ma
            Map                        Default                  What does ~
  ---------------------------------+------------+----------------------------------------------
  <plug>(esearch)                  | <leader>ff | Start the input prompt
- <plug>(operator-esearch-prefill) | <leader>f  | Start the prompt prefilled with a |text-object|
- <plug>(operator-esearch-exec)    |            | Start searching for a |text-object|
+ <plug>(operator-esearch-prefill) | <leader>f  | Start the prompt prefilled with a text-object
+ <plug>(operator-esearch-exec)    |            | Start searching for a text-object
  ---------------------------------+------------+----------------------------------------------
 
 Example custom configuration: >
@@ -140,6 +140,7 @@ See also: |object-select|, |operator|.
 
 ________________________________________________________________________________~
 GLOBAL CONFIGURATIONS                                      *esearch-global-config*
+                                                                       *g:esearch*
 
 Configurations are scoped within `g:esearch` dictionary to make them easier to
 review and to not create mess within the global namespace. This dictionary
@@ -271,7 +272,7 @@ g:esearch.paths                                                  *g:esearch.path
 >
         let g:esearch.filetypes = 'node_modules/ configs/**/*.yml'
 <
-        NOTE To use all globbing features make ensure that |'shell'| option
+        NOTE To use all globbing features make ensure that 'shell' option
         contains required arguments. E.g. for bash globbing add to your vimrc:
         `set shell=bash\ -O\ globstar -O\ extglob`
         If you use OSX, install the latest bash version first using:
@@ -402,11 +403,11 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <
         Parameters:~
             {modes} |String| with mode characters (`'n'` for |Normal|, `'v'` for |Visual|,
-                    `' '` to use as |map| command etc.)
+                    `' '` to use as |:map| command etc.)
             {lhs}   Left-hand side of the keymap
             {rhs}   Right-hand side of the keymap
             {opts}  |Dict| of |:map-arguments| names. Use `{'noremap': 1}` - to define
-                    as |noremap| in a specified mode, `{'unique': 1}` to define with
+                    as |:noremap| in a specified mode, `{'unique': 1}` to define with
                     |:map-<unique>| argument etc (optional)
 
         Example:~
@@ -422,7 +423,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         same keymap for multiple modes and to not-repeat-yourself. 
 
         The example above is equivalent to using |esearch_win_config| autocommand
-        and vim |map| command.
+        and vim |:map| command.
 >
         autocmd User esearch_win_config call s:esearch_win_config()
 
@@ -500,7 +501,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         \ [' ', '[f', '<plug>(esearch-win-jump:filename:up)']
         \]
 <
-        NOTE `' '` is used to create a keymap using regular |map| command.
+        NOTE `' '` is used to create a keymap using regular |:map| command.
         NOTE <plug>(esearch-win-jump:filename:down) jumps to the 2nd filename
         for convenience reasons, as opening when the cursor is above the header
         leads to opening the 1st file.
@@ -518,7 +519,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         \ [' ', '<c-n>', '<plug>(esearch-win-jump:entry:down)']
         \]
 <
-        NOTE `' '` is used to create a keymap using regular |map| command.
+        NOTE `' '` is used to create a keymap using regular |:map| command.
         NOTE <plug>(esearch-win-jump:entry:down) jumps to the 2nd entry for
         convenience reasons, as opening when the cursor is above the header
         leads to opening the first entry.
@@ -674,7 +675,7 @@ esearchHeader                                                   *hl-esearchHeade
 esearchStatistics                                           *hl-esearchStatistics*
         Information about outputted lines and files count highlight. Contained
         in the header.
-        Default: link to |hl-Number|
+        Default: link to Number
 
 esearchFilename                                               *hl-esearchFilename*
         Filename above each context highlight.
@@ -725,7 +726,7 @@ Reasons the plugin works slowly and possible solutions:
     - Too low throttling timeout: increase |g:esearch.win_update_throttle_wait|
   - When scrolling:
     - Vim |matchadd()| regex matches highlights are used: try to set
-      |g:eseach.win_matches_highlight_strategy| to ``'viewport'` (neovim only)
+      |g:esearch.win_matches_highlight_strategy| to ``'viewport'` (neovim only)
       or `'hlsearch'`
     - Long line is encountered: try to set lower values of
       |g:esearch.win_context_syntax_clear_on_line_len| and
@@ -751,7 +752,7 @@ Performance configurations:
  `.win_contexts_syntax_debounce_wait`        | Viewport filetypes highlight debouncing timeout (ms)
  `.win_viewport_off_screen_margin`           | Number of lines to extend the viewport height
  `.win_matches_highlight_strategy`           | Strategy name to highlight matched text
- `.win_contexts_syntax_sync_minlines`        | See :help |syn-sync-minlines| for details
+ `.win_contexts_syntax_sync_minlines`        | See :help |:syn-sync-minlines| for details
  `.win_context_syntax_clear_on_line_len`     | Max line len before a filetype syntax is cleared
  `.win_contexts_syntax_clear_on_line_len`    | Max line len before all syntaxes are cleared
  `.win_contexts_syntax_clear_on_files_count` | Max files count before filetype syntaxes are cleared
@@ -981,7 +982,7 @@ esearch#buf#goto_or_open({name}, {opener}])           *esearch#buf#goto_or_open(
         Return:~
             Same as from |bufloaded()|.
 
-        See also: |g:esearch.win_new()-examples| and |g:esearch.win_new|.
+        See also: |g:esearch.win_new()-examples| and |g:esearch.win_new()|.
 
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                                  *esearch-api-local-functions*
@@ -1011,7 +1012,7 @@ and extra methods to interact with the search window.
  `.preview_enter()`      | Open the preview window. Used in |<plug>(esearch-win-preview:enter)|
  `.preview_close()`      | Close the preview window
  `.is_preview_open()`    | Check if the preview is opened
- `.split_preview_open()` | Open split preview window. A wrapper around |b:esearch.open|
+ `.split_preview_open()` | Open split preview window. A wrapper around |b:esearch.open()|
  `.jump2entry()`         | Move the cursor to the next/prev entry
  `.jump2filename()`      | Move the cursor to the next/prev filename
  `.is_filename()`        | Return |TRUE| if the cursor is above a filename
@@ -1031,7 +1032,7 @@ Events in the order they are fired:
 
           Event                           When applied~
  -------------------------+-----------------------------------------------------
- `eseach_init_pre`          | Before |esearch#init| execution
+ `eseach_init_pre`          | Before |esearch#init()| execution
  `eseach_config_eager_pre`  | Once before lazy configurations are loaded
  `eseach_config_eager_post` | Once after lazy configurations are loaded
  `esearch_win_uninit_pre`   | Before the cleanup from the previous search

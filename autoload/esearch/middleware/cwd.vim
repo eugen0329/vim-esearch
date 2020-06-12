@@ -12,9 +12,7 @@ endfu
 fu! esearch#middleware#cwd#_find_root(path, markers) abort
   " Partially based on vital's prelude path2project-root internals
   let start_dir = s:Prelude.path2directory(a:path)
-  " TODO rewrite to return start_dir when ticket with fixing cwd handling is
-  " ready
-  if empty(a:markers) | return a:path | endif
+  if empty(a:markers) | return start_dir | endif
 
   let dir = start_dir
   let max_depth = 50

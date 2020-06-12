@@ -13,6 +13,7 @@ describe 'esearch window context syntax', :window do
 
     let(:source_file_content) do
       <<~SOURCE
+        FROM
         ADD
         ARG
         CMD
