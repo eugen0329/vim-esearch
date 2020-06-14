@@ -59,77 +59,96 @@ fu! s:define_matches_highlight() abort
   call s:sethl('esearchMatch', esearch_match, {'default': 1})
 endfu
 
-" For the most of dark colorschemes NormalFloat -> Pmenu is too light. But for
-" light colorschemes it's better to use Pmenu as it's usually not too gray.
 fu! s:define_float_highlighs() abort
-  let normal_float  = s:resolvehl('NormalFloat', 'Pmenu')
-  let normal        = s:gethl('Normal')
-  let cursor_linenr = s:gethl('CursorLineNr')
-  let linenr        = s:gethl('LineNr')
-  let sign_column   = s:gethl('SignColumn')
-  let cursor_line   = s:gethl('CursorLine')
+  let hl = {}
+  let hl.normal_float  = s:resolvehl('NormalFloat', {'fallback': 'Pmenu'})
+  let hl.normal        = s:gethl('Normal')
+  let hl.conceal       = s:gethl('Conceal')
+  let hl.cursor_linenr = s:gethl('CursorLineNr')
+  let hl.linenr        = s:gethl('LineNr')
+  let hl.sign_column   = s:gethl('SignColumn')
+  let hl.cursor_line   = s:gethl('CursorLine')
 
+  " For the most of dark colorschemes NormalFloat -> Pmenu is too light, so
+  " Normal is adjusted to be slightly lighter
   if s:is_dark
     let percent = g:esearch#highlight#float_lighter
-  elseif has_key(normal_float, 'guibg')
-    let [normal.guibg, linenr.guibg, sign_column.guibg] =
-          \ [normal_float.guibg, normal_float.guibg, normal_float.guibg]
-    call s:sethl('esearchNormalFloat',       normal,        {'default': 1})
-    call s:sethl('esearchCursorLineNrFloat', cursor_linenr, {'default': 1})
-    call s:sethl('esearchCursorLineFloat',   cursor_line,   {'default': 1})
-    call s:sethl('esearchLineNrFloat',       linenr,        {'default': 1})
-    call s:sethl('esearchSignColumnFloat',   sign_column,   {'default': 1})
-
-    return
   else
+    " For light colorschemes it's better to use Pmenu if available as adjusting
+    " Normal to be darker cause it to be greyish.
+    if has_key(hl.normal_float, 'guibg')
+      let guibg = hl.normal_float.guibg
+      let [hl.normal.guibg, hl.conceal.guibg, hl.linenr.guibg, hl.sign_column.guibg] =
+            \ [guibg, guibg, guibg, guibg]
+      call s:sethl('esearchNormalFloat',       hl.normal,        {'default': 1})
+      call s:sethl('esearchConcealFloat',      hl.conceal,       {'default': 1})
+      call s:sethl('esearchCursorLineNrFloat', hl.cursor_linenr, {'default': 1})
+      call s:sethl('esearchCursorLineFloat',   hl.cursor_line,   {'default': 1})
+      call s:sethl('esearchLineNrFloat',       hl.linenr,        {'default': 1})
+      call s:sethl('esearchSignColumnFloat',   hl.sign_column,   {'default': 1})
+
+      return
+    endif
+
     let percent = g:esearch#highlight#float_darker
   endif
 
-  if s:is_hex(normal, 'guibg')
-    let normal.guibg = s:adjust_brightness(normal.guibg, percent)
-  endif
-  if has_key(normal_float, 'ctermbg')
-    let normal.ctermbg = normal_float.ctermbg
-  endif
-  if has_key(normal_float, 'ctermfg')
-    let normal.ctermfg = normal_float.ctermfg
-  endif
-  call s:sethl('esearchNormalFloat', normal, {'default': 1})
-
-  if s:is_hex(cursor_line, 'guibg')
-    let cursor_line.guibg = s:adjust_brightness(cursor_line.guibg, percent)
-  endif
-  call s:sethl('esearchCursorLineFloat', cursor_line, {'default': 1})
-
-  if s:is_hex(cursor_linenr, 'guibg')
-    let cursor_linenr.guibg = s:adjust_brightness(cursor_linenr.guibg, percent)
-  endif
-  call s:sethl('esearchCursorLineNrFloat', cursor_linenr, {'default': 1})
-
-  if s:is_hex(linenr, 'guibg')
-    let linenr.guibg = s:adjust_brightness(linenr.guibg, percent)
-    let sign_column.guibg = linenr.guibg
-  elseif has_key(normal, 'guibg')
-    let sign_column.guibg = normal.guibg
-  endif
-  call s:sethl('esearchLineNrFloat', linenr, {'default': 1})
-
-  if has_key(linenr, 'ctermbg')
-    let sign_column.ctermbg = linenr.ctermbg
-  elseif has_key(normal, 'ctermbg')
-    let sign_column.ctermbg = normal.ctermbg
-  endif
-  call s:sethl('esearchSignColumnFloat', sign_column, {'default': 1})
+  call s:define_float_highlights_with_adjusted_brightness(hl, percent)
 endfu
 
-fu! s:resolvehl(name, fallback) abort
+fu! s:define_float_highlights_with_adjusted_brightness(hl, percent) abort
+  let [hl, percent] = [a:hl, a:percent]
+  
+  if s:is_hex(hl.normal, 'guibg')
+    let hl.normal.guibg = s:adjust_brightness(hl.normal.guibg, percent)
+  endif
+  if has_key(hl.normal_float, 'ctermbg')
+    let hl.normal.ctermbg = hl.normal_float.ctermbg
+  endif
+  if has_key(hl.normal_float, 'ctermfg')
+    let hl.normal.ctermfg = hl.normal_float.ctermfg
+  endif
+  call s:sethl('esearchNormalFloat', hl.normal, {'default': 1})
+
+  if s:is_hex(hl.conceal, 'guibg')
+    let hl.conceal.guibg = s:adjust_brightness(hl.conceal.guibg, percent)
+  endif
+  call s:sethl('esearchConcealFloat', hl.conceal, {'default': 1})
+
+  if s:is_hex(hl.cursor_line, 'guibg')
+    let hl.cursor_line.guibg = s:adjust_brightness(hl.cursor_line.guibg, percent)
+  endif
+  call s:sethl('esearchCursorLineFloat', hl.cursor_line, {'default': 1})
+
+  if s:is_hex(hl.cursor_linenr, 'guibg')
+    let hl.cursor_linenr.guibg = s:adjust_brightness(hl.cursor_linenr.guibg, percent)
+  endif
+  call s:sethl('esearchCursorLineNrFloat', hl.cursor_linenr, {'default': 1})
+
+  if s:is_hex(hl.linenr, 'guibg')
+    let hl.linenr.guibg = s:adjust_brightness(hl.linenr.guibg, percent)
+    let hl.sign_column.guibg = hl.linenr.guibg
+  elseif has_key(hl.normal, 'guibg')
+    let hl.sign_column.guibg = hl.normal.guibg
+  endif
+  call s:sethl('esearchLineNrFloat', hl.linenr, {'default': 1})
+
+  if has_key(hl.linenr, 'ctermbg')
+    let hl.sign_column.ctermbg = hl.linenr.ctermbg
+  elseif has_key(hl.normal, 'ctermbg')
+    let hl.sign_column.ctermbg = hl.normal.ctermbg
+  endif
+  call s:sethl('esearchSignColumnFloat', hl.sign_column, {'default': 1})
+endfu
+
+fu! s:resolvehl(name, kwargs) abort
   if hlexists(a:name)
     let hl = s:gethl(a:name)
     if has_key(hl, 'link') && hlexists(hl.link)
       let hl = s:gethl(hl.link)
     endif
   else
-    let hl = s:gethl(a:fallback)
+    let hl = s:gethl(a:kwargs.fallback)
   endif
 
   return hl
