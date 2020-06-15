@@ -17,11 +17,11 @@ fu! esearch#highlight#define() abort
   hi def link esearchFilename     Directory
   hi def link esearchLineNr       LineNr
   hi def link esearchCursorLineNr CursorLineNr
-  hi def esearchHeader cterm=bold gui=bold
+  hi def      esearchHeader       cterm=bold gui=bold
 
   let s:is_dark = s:detect_dark_background()
   call s:define_matches_highlight()
-  if g:esearch#has#nvim | call s:define_float_highlighs() | endif
+  if g:esearch#has#nvim | call s:define_float_win_highlights() | endif
 
   if hlexists('esearchLnum')
     call s:copyhl('esearchLnum', 'esearchLineNr', {'force': 1})
@@ -34,111 +34,122 @@ endfu
 " Try to emphasize enough without overruling foregrounds, that are used by
 " context syntaxes
 fu! s:define_matches_highlight() abort
-  let cursorline = s:gethl('CursorLine')
-  let normal = s:gethl('Normal')
+  let CursorLine = s:gethl('CursorLine')
+  let Normal = s:gethl('Normal')
+  let esearchMatch = {}
 
-  let esearch_match = {}
-
-  if has_key(cursorline, 'ctermbg')
-    let esearch_match.ctermbg = cursorline.ctermbg
-    let esearch_match.cterm   = 'bold,underline'
+  if has_key(CursorLine, 'ctermbg')
+    let esearchMatch.ctermbg = CursorLine.ctermbg
+    let esearchMatch.cterm   = 'bold,underline'
   else " blue bg + white fg
-    let esearch_match.ctermbg = 27
-    let esearch_match.ctermfg = 15
+    let esearchMatch.ctermbg = 27
+    let esearchMatch.ctermfg = 15
   endif
 
-  if s:is_hex(normal, 'guibg')
+  if s:is_hex(Normal, 'guibg')
     let percent = s:is_dark ? g:esearch#highlight#match_lighter : g:esearch#highlight#match_darker
-    let esearch_match.guibg = s:adjust_brightness(normal.guibg, percent)
-    let esearch_match.gui = 'bold'
+    let esearchMatch.guibg = s:change_brightness(Normal.guibg, percent)
+    let esearchMatch.gui = 'bold'
   else
-    let esearch_match.guibg = get(cursorline, 'guibg', '#005FFF')
-    let esearch_match.gui = 'bold,underline'
+    let esearchMatch.guibg = get(CursorLine, 'guibg', '#005FFF')
+    let esearchMatch.gui = 'bold,underline'
   endif
 
-  call s:sethl('esearchMatch', esearch_match, {'default': 1})
+  call s:sethl('esearchMatch', esearchMatch, {'default': 1})
 endfu
 
-fu! s:define_float_highlighs() abort
+fu! s:define_float_win_highlights() abort
   let hl = {}
-  let hl.normal_float  = s:resolvehl('NormalFloat', {'fallback': 'Pmenu'})
-  let hl.normal        = s:gethl('Normal')
-  let hl.conceal       = s:gethl('Conceal')
-  let hl.cursor_linenr = s:gethl('CursorLineNr')
-  let hl.linenr        = s:gethl('LineNr')
-  let hl.sign_column   = s:gethl('SignColumn')
-  let hl.cursor_line   = s:gethl('CursorLine')
+  let hl.NormalFloat  = s:resolvehl('NormalFloat', {'fallback': 'Pmenu'})
+  let hl.Normal       = s:gethl('Normal')
+  let hl.Conceal      = s:gethl('Conceal')
+  let hl.CursorLineNr = s:gethl('CursorLineNr')
+  let hl.LineNr       = s:gethl('LineNr')
+  let hl.SignColumn   = s:gethl('SignColumn')
+  let hl.CursorLine   = s:gethl('CursorLine')
 
   " For the most of dark colorschemes NormalFloat -> Pmenu is too light, so
   " Normal is adjusted to be slightly lighter
   if s:is_dark
     let percent = g:esearch#highlight#float_lighter
   else
-    " For light colorschemes it's better to use Pmenu if available as adjusting
-    " Normal to be darker cause it to be greyish.
-    if has_key(hl.normal_float, 'guibg')
-      let guibg = hl.normal_float.guibg
-      let [hl.normal.guibg, hl.conceal.guibg, hl.linenr.guibg, hl.sign_column.guibg] =
-            \ [guibg, guibg, guibg, guibg]
-      call s:sethl('esearchNormalFloat',       hl.normal,        {'default': 1})
-      call s:sethl('esearchConcealFloat',      hl.conceal,       {'default': 1})
-      call s:sethl('esearchCursorLineNrFloat', hl.cursor_linenr, {'default': 1})
-      call s:sethl('esearchCursorLineFloat',   hl.cursor_line,   {'default': 1})
-      call s:sethl('esearchLineNrFloat',       hl.linenr,        {'default': 1})
-      call s:sethl('esearchSignColumnFloat',   hl.sign_column,   {'default': 1})
-
-      return
+    " For light colorschemes it's better to use NormalFloat if available as
+    " adjusting Normal to be darker cause it to be greyish.
+    if has_key(hl.NormalFloat, 'guibg') || has_key(hl.NormalFloat, 'ctermbg')
+      return s:define_float_win_highlights_with_normal_float_bg(hl)
     endif
 
     let percent = g:esearch#highlight#float_darker
   endif
 
-  call s:define_float_highlights_with_adjusted_brightness(hl, percent)
+  call s:define_float_win_highlights_with_adjusted_brightness(hl, percent)
 endfu
 
-fu! s:define_float_highlights_with_adjusted_brightness(hl, percent) abort
+fu! s:define_float_win_highlights_with_normal_float_bg(hl) abort
+  let hl = a:hl
+
+  if has_key(hl.NormalFloat, 'guibg')
+    let guibg = hl.NormalFloat.guibg
+    let [hl.Normal.guibg, hl.Conceal.guibg, hl.LineNr.guibg, hl.SignColumn.guibg] =
+          \ [guibg, guibg, guibg, guibg]
+  endif
+
+  if has_key(hl.NormalFloat, 'ctermbg')
+    let ctermbg = hl.NormalFloat.ctermbg
+    let [hl.Normal.ctermbg, hl.Conceal.ctermbg, hl.LineNr.ctermbg, hl.SignColumn.ctermbg] =
+          \ [ctermbg, ctermbg, ctermbg, ctermbg]
+  endif
+
+  call s:sethl_float_win(hl)
+endfu
+
+fu! s:define_float_win_highlights_with_adjusted_brightness(hl, percent) abort
   let [hl, percent] = [a:hl, a:percent]
   
-  if s:is_hex(hl.normal, 'guibg')
-    let hl.normal.guibg = s:adjust_brightness(hl.normal.guibg, percent)
+  if s:is_hex(hl.Normal, 'guibg')
+    let hl.Normal.guibg = s:change_brightness(hl.Normal.guibg, percent)
   endif
-  if has_key(hl.normal_float, 'ctermbg')
-    let hl.normal.ctermbg = hl.normal_float.ctermbg
+  if has_key(hl.NormalFloat, 'ctermbg')
+    let hl.Normal.ctermbg = hl.NormalFloat.ctermbg
   endif
-  if has_key(hl.normal_float, 'ctermfg')
-    let hl.normal.ctermfg = hl.normal_float.ctermfg
+  if has_key(hl.NormalFloat, 'ctermfg')
+    let hl.Normal.ctermfg = hl.NormalFloat.ctermfg
   endif
-  call s:sethl('esearchNormalFloat', hl.normal, {'default': 1})
 
-  if s:is_hex(hl.conceal, 'guibg')
-    let hl.conceal.guibg = s:adjust_brightness(hl.conceal.guibg, percent)
+  if s:is_hex(hl.Conceal, 'guibg')
+    let hl.Conceal.guibg = s:change_brightness(hl.Conceal.guibg, percent)
   endif
-  call s:sethl('esearchConcealFloat', hl.conceal, {'default': 1})
 
-  if s:is_hex(hl.cursor_line, 'guibg')
-    let hl.cursor_line.guibg = s:adjust_brightness(hl.cursor_line.guibg, percent)
+  if s:is_hex(hl.CursorLine, 'guibg')
+    let hl.CursorLine.guibg = s:change_brightness(hl.CursorLine.guibg, percent)
   endif
-  call s:sethl('esearchCursorLineFloat', hl.cursor_line, {'default': 1})
 
-  if s:is_hex(hl.cursor_linenr, 'guibg')
-    let hl.cursor_linenr.guibg = s:adjust_brightness(hl.cursor_linenr.guibg, percent)
+  if s:is_hex(hl.CursorLineNr, 'guibg')
+    let hl.CursorLineNr.guibg = s:change_brightness(hl.CursorLineNr.guibg, percent)
   endif
-  call s:sethl('esearchCursorLineNrFloat', hl.cursor_linenr, {'default': 1})
 
-  if s:is_hex(hl.linenr, 'guibg')
-    let hl.linenr.guibg = s:adjust_brightness(hl.linenr.guibg, percent)
-    let hl.sign_column.guibg = hl.linenr.guibg
-  elseif has_key(hl.normal, 'guibg')
-    let hl.sign_column.guibg = hl.normal.guibg
+  if s:is_hex(hl.LineNr, 'guibg')
+    let hl.LineNr.guibg = s:change_brightness(hl.LineNr.guibg, percent)
+    let hl.SignColumn.guibg = hl.LineNr.guibg
+  elseif has_key(hl.Normal, 'guibg')
+    let hl.SignColumn.guibg = hl.Normal.guibg
   endif
-  call s:sethl('esearchLineNrFloat', hl.linenr, {'default': 1})
+  if has_key(hl.LineNr, 'ctermbg')
+    let hl.SignColumn.ctermbg = hl.LineNr.ctermbg
+  elseif has_key(hl.Normal, 'ctermbg')
+    let hl.SignColumn.ctermbg = hl.Normal.ctermbg
+  endif
 
-  if has_key(hl.linenr, 'ctermbg')
-    let hl.sign_column.ctermbg = hl.linenr.ctermbg
-  elseif has_key(hl.normal, 'ctermbg')
-    let hl.sign_column.ctermbg = hl.normal.ctermbg
-  endif
-  call s:sethl('esearchSignColumnFloat', hl.sign_column, {'default': 1})
+  call s:sethl_float_win(hl)
+endfu
+
+fu! s:sethl_float_win(hl) abort
+  call s:sethl('esearchNormalFloat',       a:hl.Normal,       {'default': 1})
+  call s:sethl('esearchConcealFloat',      a:hl.Conceal,      {'default': 1})
+  call s:sethl('esearchCursorLineNrFloat', a:hl.CursorLineNr, {'default': 1})
+  call s:sethl('esearchCursorLineFloat',   a:hl.CursorLine,   {'default': 1})
+  call s:sethl('esearchLineNrFloat',       a:hl.LineNr,       {'default': 1})
+  call s:sethl('esearchSignColumnFloat',   a:hl.SignColumn,   {'default': 1})
 endfu
 
 fu! s:resolvehl(name, kwargs) abort
@@ -169,10 +180,12 @@ fu! s:hex2rgb(hex) abort
         \ str2nr(printf('0x%s', hex[4:5]), 16)]
 endfu
 
-fu! s:adjust_brightness(hex, percent) abort
-  return s:rgb2hex(map(s:hex2rgb(a:hex), 'esearch#util#clip(float2nr(v:val + 255 * a:percent), 0, 255)'))
+fu! s:change_brightness(hex, percent) abort
+  return s:rgb2hex(map(s:hex2rgb(a:hex),
+        \ 'esearch#util#clip(float2nr(v:val + 255 * a:percent), 0, 255)'))
 endfu
 
+" TODO remove when deprecated highlights are dropped
 fu! s:copyhl(from, to, options) abort
   let new_highlight = {'name': a:to, 'attrs': s:Highlight.get(a:from).attrs}
 
@@ -180,12 +193,13 @@ fu! s:copyhl(from, to, options) abort
 endfu
 
 fu! s:sethl(name, attributes, options) abort
-  " TODO investigate. When cleared - colors are inherited from normal, while
-  " Normal can be cleared
   if a:attributes ==# {'cleared': 1}
     let new_highlight = {'name': a:name, 'attrs': {'clear': 1}}
   else
-    let new_highlight = {'name': a:name, 'attrs': filter(a:attributes, '!empty(v:val) && v:key !=# "cleared"')}
+    let new_highlight = {
+          \ 'name': a:name,
+          \ 'attrs': filter(a:attributes, '!empty(v:val) && v:key !=# "cleared"')
+          \}
   endif
 
   silent call s:Highlight.set(new_highlight, a:options)
@@ -203,9 +217,9 @@ endfu
 " &background can become out of sync when a colorscheme is switched, so hsp usage
 " is more reliable.
 fu! s:detect_dark_background() abort
-  let normal = s:gethl('Normal')
-  if g:esearch#has#gui_colors && s:is_hex(normal, 'guibg')
-    return s:hsp(normal.guibg) <= 127.5
+  let Normal = s:gethl('Normal')
+  if g:esearch#has#gui_colors && s:is_hex(Normal, 'guibg')
+    return s:hsp(Normal.guibg) <= 127.5
   endif
 
   return &background ==# 'dark'
