@@ -125,6 +125,15 @@ else
   endfu
 endif
 
+fu! esearch#util#has_upper(text) abort
+  let ignorecase = esearch#let#restorable({'&ignorecase': 0})
+  try
+    return a:text =~# '[[:upper:]]'
+  catch 
+    call ignorecase.restore()
+  endtry
+endfu
+
 fu! s:to_char(getchar_output) abort
   if type(a:getchar_output) ==# type('')
     return a:getchar_output

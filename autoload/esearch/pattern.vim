@@ -6,9 +6,9 @@ let g:esearch#pattern#even_count_of_escapes =  '\%(\\\)\@<!\%(\\\\\)*'
 " .literal - in --fixed-strings sytax for prefilling the cmdline
 " .pcre    - in perl compatible syntax for prefilling the cmdline
 fu! esearch#pattern#new(str, regex, case, textobj) abort
-  " NOTE conversion literal2pcre(str) or pcre2literal(str) doesn't happen, as
-  " these attrs are only used to prefill the cmdline in further searches, so no
-  " strong need to implement extra converters
+  " Conversions literal2pcre(str) or pcre2literal(str) don't happen, as these
+  " attrs are only used to prefill the cmdline in further searches, so no strong
+  " need to implement extra converters
   let pattern = {'arg': a:str, 'literal': a:str, 'pcre': a:str}
 
   if a:regex ==# 'literal'
@@ -17,19 +17,12 @@ fu! esearch#pattern#new(str, regex, case, textobj) abort
     let pattern.vim = esearch#pattern#pcre2vim#convert(a:str)
   endif
 
-  " Modifiers are set to the back to:
-  " - not overrule the modifiers specified inside
-  " - be able to overwrite ^ in the beginning using the first char
-  "   replacement. See #win#appearance#matches for details.
   if a:case ==# 'ignore'
     let pattern.vim = pattern.vim.'\c'
   elseif a:case ==# 'sensitive'
     let pattern.vim = pattern.vim.'\C'
   elseif a:case ==# 'smart'
-    " NOTE that \u <=> [A-Z], so if the output contains ASCII only, this will
-    " work as usual 'smartcase', but if there's a unicode char, then false
-    " positive matches are possible
-    let pattern.vim = pattern.vim . (a:str =~# '\u' ? '\C' : '\c')
+    let pattern.vim = pattern.vim . (esearch#util#has_upper(a:str) ? '\C' : '\c')
   elseif g:esearch#env isnot# 0
     echoerr 'Unknown case option ' . a:case
   endif
