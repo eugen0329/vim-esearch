@@ -129,7 +129,7 @@ fu! esearch#util#has_upper(text) abort
   let ignorecase = esearch#let#restorable({'&ignorecase': 0})
   try
     return a:text =~# '[[:upper:]]'
-  catch 
+  finally
     call ignorecase.restore()
   endtry
 endfu

@@ -416,6 +416,11 @@ class Editor
     reader.echo arg
   end
 
+  def echo!(arg)
+    invalidate_cache!
+    reader.echo(arg)
+  end
+
   def clipboard=(content)
     command "let @#{CLIPBOARD_REGISTER} = \"#{content}\""
   end

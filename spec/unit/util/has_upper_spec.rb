@@ -8,19 +8,28 @@ describe 'esearch#util' do
   describe '#has_upper' do
     subject(:has_upper) do
       lambda do |text|
-        editor.echo func('esearch#util#has_upper', text)
+        editor.echo! func('esearch#util#has_upper', text)
       end
     end
 
     shared_examples 'it works with any encoding' do
-      context 'when ascii' do
-        it { expect(has_upper.call('aab')).to eq(0) }
-        it { expect(has_upper.call('aAb')).to eq(1) }
+      describe 'detection' do
+        context 'when ascii' do
+          it { expect(has_upper.call('aab')).to eq(0) }
+          it { expect(has_upper.call('aAb')).to eq(1) }
+        end
+        
+        context 'when unicode' do
+          it { expect(has_upper.call('aσb')).to eq(0) }
+          it { expect(has_upper.call('aΣb')).to eq(1) }
+        end
       end
 
-      context 'when unicode' do
-        it { expect(has_upper.call('aσb')).to eq(0) }
-        it { expect(has_upper.call('aΣb')).to eq(1) }
+      describe 'options restoring' do
+        it do
+          expect { has_upper.call('a') }
+            .not_to change { editor.echo(var('&ignorecase')) }
+        end
       end
     end
 
