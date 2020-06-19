@@ -1,7 +1,10 @@
 let g:esearch#pattern#even_count_of_escapes =  '\%(\\\)\@<!\%(\\\\\)*'
 
 fu! esearch#pattern#new(str, regex, case, textobj) abort
-  let pattern = {'str': a:str}
+  " NOTE conversion literal2pcre(str) and pcre2literal(str) doesn't happen, as
+  " these attrs are only used to prefill the cmdline in further searches, so no
+  " need to implement extra converters
+  let pattern = {'str': a:str, 'literal': a:str, 'pcre': a:str}
 
   if a:regex ==# 'literal'
     let pattern.vim = esearch#pattern#literal2vim#convert(a:str)
