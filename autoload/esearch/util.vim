@@ -23,34 +23,6 @@ fu! esearch#util#ellipsize_end(text, max_len, ellipsis) abort
   return strcharpart(a:text, 0, a:max_len - 1 - strchars(a:ellipsis)) . a:ellipsis
 endfu
 
-fu! esearch#util#ellipsize(text, col, left, right, ellipsis) abort
-  if strchars(a:text) < a:left + a:right
-    return a:text
-  endif
-
-  if a:col - 1 < a:left
-    " if unused room to the left - extending the right side
-    let extended_right_index = a:left + a:right - 1
-    if extended_right_index + 1 >= strchars(a:text)
-      return a:text[: extended_right_index]
-    else
-      return a:text[: extended_right_index - strchars(a:ellipsis)] . a:ellipsis
-    endif
-  elseif a:col + a:right >= strchars(a:text)
-    " if unused room to the right - extending the left side
-    let extended_left_index = strchars(a:text) - a:left - a:right
-    if extended_left_index == 0
-      return a:text[strchars(a:ellipsis) + extended_left_index :]
-    else
-      return a:ellipsis . a:text[strchars(a:ellipsis) + extended_left_index :]
-    endif
-  else
-    return    a:ellipsis
-          \ . a:text[a:col - a:left + strchars(a:ellipsis) : a:col + a:right - 1 - strchars(a:ellipsis)]
-          \ . a:ellipsis
-  endif
-endfu
-
 fu! esearch#util#clip(value, from, to) abort
   " is made inclusive to be compliant with vim internal functions
   if a:value >= a:to
@@ -137,26 +109,6 @@ fu! esearch#util#buff_words() abort
   return s:List.uniq(words)
 endfu
 
-if !exists('g:esearch#util#ellipsis')
-  if g:esearch#has#unicode
-    let g:esearch#util#ellipsis = g:esearch#unicode#ellipsis
-  else
-    let g:esearch#util#ellipsis = '|'
-  endif
-endif
-
-" prevent output of {...} and [...] for recursive references
-if has('nvim')
-  fu! s:fix_recursive_reference_output(list_or_dict) abort
-    return a:list_or_dict
-  endfu
-else
-  fu! s:fix_recursive_reference_output(list_or_dict) abort
-    " See :h string() for more details
-    return deepcopy(a:list_or_dict)
-  endfu
-endif
-
 if has('nvim') || g:esearch#has#windows
   fu! esearch#util#getchar() abort
     return s:to_char(getchar())
@@ -214,20 +166,6 @@ fu! esearch#util#abspath(cwd, path) abort
   endif
 
   return s:Filepath.join(a:cwd, a:path)
-endfu
-
-" TODO consider to extract to utils
-fu! esearch#util#readfile(filename, cache) abort
-  let key = [a:filename, getfsize(a:filename), getftime(a:filename)]
-
-  if a:cache.has(key)
-    let lines = a:cache.get(key)
-  else
-    let lines = readfile(a:filename)
-    call a:cache.set(key, lines)
-  endif
-
-  return lines
 endfu
 
 " Is DANGEROUS as it can cause editing file with an existing swap, required ONLY

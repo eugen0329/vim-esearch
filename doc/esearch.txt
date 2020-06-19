@@ -87,7 +87,7 @@ Open files~
     the keys with shift pressed (`O`, `S` and `T`) to open staying in the
     search window.
 
-Make changes~
+Write changes~
     Modify or delete the results right inside the search window and type
     `:write<CR>`` to save your changes into files.
 

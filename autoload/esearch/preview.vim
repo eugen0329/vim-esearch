@@ -20,10 +20,9 @@ let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 let g:esearch#preview#silent_open_eventignore =
       \ 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
 
-let g:esearch#preview#buffers     = {}
-let g:esearch#preview#win         = s:null
-let g:esearch#preview#last        = {}
-let g:esearch#preview#cache       = esearch#cache#lru#new(20)
+let g:esearch#preview#buffers = {}
+let g:esearch#preview#win     = s:null
+let g:esearch#preview#last    = {}
 
 fu! esearch#preview#open(filename, line, ...) abort
   let opts = get(a:000, 0, {})
@@ -191,7 +190,7 @@ fu! s:RegularBuffer.new(filename, ...) abort dict
     let instance.bufwinid = bufwinid(instance.id)
   else
     let instance.id = nvim_create_buf(1, 0)
-    let instance.bufwinid = -2
+    let instance.bufwinid = -1
   endif
 
   return instance
@@ -317,74 +316,6 @@ endfu
 fu! s:RegularBuffer.is_valid() abort dict
   return self.id >= 0 && nvim_buf_is_valid(self.id)
 endfu
-
-"""""""""""""""""""""""""""""""""""""""
-
-let g:esearch#preview#scratches = esearch#cache#lru#new(5)
-
-" Isn't used now. Consider to leverage it for preventing buffer bloating when
-" previewing on timeout.
-let s:ScratchBuffer = {'kind': 'scratch', 'filetype': s:null, 'lines': []}
-
-fu! s:ScratchBuffer.new(filename) abort dict
-  let instance          = copy(self)
-  let instance.filename = a:filename
-  let instance.id       = nvim_create_buf(0, 1)
-  return instance
-endfu
-
-fu! s:ScratchBuffer.fetch_or_create(filename, cache) abort
-  if a:cache.has(a:filename)
-    let instance = a:cache.get(a:filename)
-    if instance.is_valid()
-      return instance
-    endif
-
-    call a:cache.remove(a:filename)
-  endif
-
-  let instance = self.new(a:filename)
-  call a:cache.set(a:filename, instance)
-
-  return instance
-endfu
-
-fu! s:ScratchBuffer.edit() abort dict
-  if empty(self.filetype)
-    let self.filetype = esearch#ftdetect#complete(self.filename)
-    if self.filetype isnot# s:null
-      call nvim_buf_set_option(self.id, 'filetype', self.filetype)
-    endif
-  endif
-
-  if empty(self.lines)
-    let self.lines =
-          \ esearch#util#readfile(self.filename, g:esearch#preview#cache)
-  endif
-  call nvim_buf_set_lines(self.id, 0, -1, 0, self.lines)
-
-  let syntax_sync_lines = 100
-  " Prevents slowdowns on big syntax syncing ranges (according to the doc,
-  " 'fromstart' option is equivalent to 'syncing starts ...', but with a large
-  " number).
-  if match(s:Log.capture('syn sync'), 'syncing starts \d\{3,}') >= 0
-    syntax sync clear
-    exe printf('syntax sync minlines=%d maxlines=%d',
-          \ syntax_sync_lines,
-          \ syntax_sync_lines + 1)
-  endif
-endfu
-
-fu! s:ScratchBuffer.remove() abort dict
-  if !bufexists(self.id) | return | endif
-  silent exe self.id 'bwipeout'
-endfu
-
-fu! s:ScratchBuffer.is_valid() abort dict
-  return nvim_buf_is_valid(self.id)
-endfu
-
-"""""""""""""""""""""""""""""""""""""""
 
 " Maintain the window as a singleton.
 fu! s:create_or_update_floating_window(buffer, location, shape, close_on) abort

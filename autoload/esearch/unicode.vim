@@ -1,6 +1,5 @@
 scriptencoding utf-8
 
-let g:esearch#unicode#ellipsis = '⦚'
 if exists('g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol')
   let g:esearch#unicode#dir_icon = g:WebDevIconsUnicodeDecorateFolderNodesDefaultSymbol
 elseif has('osx')
@@ -22,5 +21,4 @@ else
   let g:esearch#unicode#down   = '🡓'
   let g:esearch#unicode#updown = '🡑🡓'
 endif
-let g:esearch#unicode#arrow_right = ' ➜'
 let g:esearch#unicode#arrow_right = ' ➔'

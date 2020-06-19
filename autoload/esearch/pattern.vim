@@ -1,17 +1,12 @@
 let g:esearch#pattern#even_count_of_escapes =  '\%(\\\)\@<!\%(\\\\\)*'
 
-fu! esearch#pattern#new(string, is_regex, case, textobj) abort
-  let pattern = {
-        \ 'is_regex': a:is_regex,
-        \ 'str':      function('<SID>str'),
-        \ 'literal':  a:string,
-        \ 'pcre':     a:string,
-        \ }
+fu! esearch#pattern#new(str, regex, case, textobj) abort
+  let pattern = {'str': a:str}
 
-  if pattern.is_regex
-    let pattern.vim = esearch#pattern#pcre2vim#convert(a:string)
+  if a:regex ==# 'literal'
+    let pattern.vim = esearch#pattern#literal2vim#convert(a:str)
   else
-    let pattern.vim = esearch#pattern#literal2vim#convert(a:string)
+    let pattern.vim = esearch#pattern#pcre2vim#convert(a:str)
   endif
 
   " Modifiers are set to the back to:
@@ -26,7 +21,7 @@ fu! esearch#pattern#new(string, is_regex, case, textobj) abort
     " NOTE that \u <=> [A-Z], so if the output contains ASCII only, this will
     " work as usual 'smartcase', but if there's a unicode char, then false
     " positive matches are possible
-    let pattern.vim = pattern.vim . (pattern.vim =~# '\u' ? '\C' : '\c')
+    let pattern.vim = pattern.vim . (a:str =~# '\u' ? '\C' : '\c')
   elseif g:esearch#env isnot# 0
     echoerr 'Unknown case option ' . a:case
   endif
@@ -38,8 +33,4 @@ fu! esearch#pattern#new(string, is_regex, case, textobj) abort
   endif
 
   return pattern
-endfu
-
-fu! s:str() abort dict
-  return self.is_regex ? self.pcre : self.literal
 endfu

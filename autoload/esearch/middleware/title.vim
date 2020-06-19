@@ -6,7 +6,7 @@ let s:pattern2id = esearch#cache#expiring#new({'max_age': 60 * 60 * 24, 'size': 
 let s:max_len = 120
 
 fu! esearch#middleware#title#apply(esearch) abort
-  let a:esearch.title = s:title(a:esearch, a:esearch.pattern.str())
+  let a:esearch.title = s:title(a:esearch, a:esearch.pattern.str)
   return a:esearch
 endfu
 
@@ -20,18 +20,18 @@ fu! s:title(esearch, pattern) abort
 endfu
 
 fu! s:format(esearch) abort
-  if a:esearch.is_regex()
+  if a:esearch.regex ==# 'literal'
     if g:esearch#has#unicode
-      return 'Search %s'.g:esearch#unicode#slash.'%s'.g:esearch#unicode#slash.'%s'
+      return 'Search %s'.g:esearch#unicode#quote_left.'%s'.g:esearch#unicode#quote_right.'%s'
     else
-      return "Search %sr'%s'%s"
+      return 'Search %s<%s>%s'
     endif
   endif
 
   if g:esearch#has#unicode
-    return 'Search %s'.g:esearch#unicode#quote_left.'%s'.g:esearch#unicode#quote_right.'%s'
+    return 'Search %s'.g:esearch#unicode#slash.'%s'.g:esearch#unicode#slash.'%s'
   else
-    return 'Search %s<%s>%s'
+    return "Search %sr'%s'%s"
   endif
 endfu
 
