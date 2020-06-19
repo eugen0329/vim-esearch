@@ -6,7 +6,7 @@ let s:pattern2id = esearch#cache#expiring#new({'max_age': 60 * 60 * 24, 'size': 
 let s:max_len = 120
 
 fu! esearch#middleware#title#apply(esearch) abort
-  let a:esearch.title = s:title(a:esearch, a:esearch.pattern.str)
+  let a:esearch.title = s:title(a:esearch, a:esearch.pattern.arg)
   return a:esearch
 endfu
 

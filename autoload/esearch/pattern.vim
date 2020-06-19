@@ -1,10 +1,15 @@
 let g:esearch#pattern#even_count_of_escapes =  '\%(\\\)\@<!\%(\\\\\)*'
 
+" Returns |Dict| that holds different views of the same pattern:
+" .arg     - in a syntax to pass as a search util argument
+" .vim     - in vim 'nomagic' syntax to hl or interact with matches within vim
+" .literal - in --fixed-strings sytax for prefilling the cmdline
+" .pcre    - in perl compatible syntax for prefilling the cmdline
 fu! esearch#pattern#new(str, regex, case, textobj) abort
-  " NOTE conversion literal2pcre(str) and pcre2literal(str) doesn't happen, as
+  " NOTE conversion literal2pcre(str) or pcre2literal(str) doesn't happen, as
   " these attrs are only used to prefill the cmdline in further searches, so no
-  " need to implement extra converters
-  let pattern = {'str': a:str, 'literal': a:str, 'pcre': a:str}
+  " strong need to implement extra converters
+  let pattern = {'arg': a:str, 'literal': a:str, 'pcre': a:str}
 
   if a:regex ==# 'literal'
     let pattern.vim = esearch#pattern#literal2vim#convert(a:str)
