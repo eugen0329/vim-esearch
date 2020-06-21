@@ -52,16 +52,16 @@ fu! esearch#shell#split_by_metachars(path) abort
 endfu
 
 let s:rules = [
-      \ ['DQ',                '"'                              ],
-      \ ['SQ',                "'"                              ],
-      \ ['ESCAPED_DQ',        '\\"'                            ],
-      \ ['ESCAPED_SQ',        '\\'''                           ],
-      \ ['TRAILING_CHAR',     '[`\\]$'                         ],
-      \ ['WS',                '\s\+'                           ],
-      \ ['ESCAPED_ANY',       '\\.'                            ],
-      \ ['EVAL',              '`[^`]\{-}`'                     ],
-      \ ['METACHARS',         g:esearch#shell#metachars_pattern],
-      \ ['REGULAR',           '\%([[:alnum:]/\-_.]\+\|.\)'     ],
+      \ ['DQ',            '"'                              ],
+      \ ['SQ',            "'"                              ],
+      \ ['ESCAPED_DQ',    '\\"'                            ],
+      \ ['ESCAPED_SQ',    '\\'''                           ],
+      \ ['TRAILING_CHAR', '[`\\]$'                         ],
+      \ ['WS',            '\s\+'                           ],
+      \ ['ESCAPED_ANY',   '\\.'                            ],
+      \ ['EVAL',          '`[^`]\{-}`'                     ],
+      \ ['METACHARS',     g:esearch#shell#metachars_pattern],
+      \ ['REGULAR',       '\%([[:alnum:]/\-_.]\+\|.\)'     ],
       \]
 
 let s:Splitter = { 'error': 0, 'p': 0 }

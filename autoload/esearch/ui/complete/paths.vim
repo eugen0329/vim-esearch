@@ -5,9 +5,9 @@ fu! esearch#ui#complete#paths#do(cwd, arglead, cmdline, _curpos) abort
   let original_cwd = esearch#win#lcd(a:cwd) " as most of builtin functions depend on cwd
   try
     if g:esearch#has#posix_shell
-      return s:posix_candidates(a:cwd, a:arglead, a:cmdline)
+      return s:posix_shell_candidates(a:cwd, a:arglead, a:cmdline)
     else
-      return s:windows_candidates(a:cwd, a:arglead, a:cmdline)
+      return s:windows_cmd_candidates(a:cwd, a:arglead, a:cmdline)
     endif
   catch
     echomsg v:exception
@@ -16,7 +16,7 @@ fu! esearch#ui#complete#paths#do(cwd, arglead, cmdline, _curpos) abort
   endtry
 endfu
 
-fu! s:windows_candidates(cwd, arglead, cmdline) abort
+fu! s:windows_cmd_candidates(cwd, arglead, cmdline) abort
   let words = split(a:cmdline)
   let [word, prefix] = esearch#ui#complete#base#word_and_prefix(a:arglead)
   let word = s:Filepath.relpath(word)
@@ -24,7 +24,7 @@ fu! s:windows_candidates(cwd, arglead, cmdline) abort
   return map(filter(candidates, 'stridx(a:cmdline, v:val) == -1'), 'prefix . v:val')
 endfu
 
-fu! s:posix_candidates(cwd, arglead, cmdline) abort
+fu! s:posix_shell_candidates(cwd, arglead, cmdline) abort
   let [word, prefix_text] = s:parse_posix_argled(a:arglead)
   let [already_listed, _] = esearch#shell#split(a:cmdline)
   let Escape = function('fnameescape')

@@ -37,7 +37,7 @@ FEATURES OVERVIEW                                               *esearch-feature
   - Adaptive disabling of certain highlights on a large number of lines.
 - In-place modifying and saving changes into files.
 - Filetype-dependent syntax highlights for better navigation.
-- Input prompt interface instead of using the commandline:
+- Input prompt interface instead of using |:| commandline:
   - Search patterns can be pasted as is
   - Pcre-to-vim regex translation to highlight matches.
 - 2 preview modes using both neovim floating windows or plain split windows.
@@ -194,14 +194,14 @@ g:esearch.regex                                                  *g:esearch.rege
         Regex engine names of adapters:
 
         Adapter       Allowed g:esearch.regexp values ~
-        -------+---------------------------------------------------------------
+        -------+----------------------------------------------------------------
         `'rg'`   | `'literal'`, `'default'`, `'auto'`, `'pcre'`
         `'ag'`   | `'literal'`, `'pcre'`
         `'ack'`  | `'literal'`, `'pcre'`
         `'pt'`   | `'literal'`, `'re2'`
         `'git'`  | `'literal'`, `'basic'`, `'extended'`, `'pcre'`
         `'grep'` | `'literal'`, `'basic'`, `'extended'`, `'pcre'`
-        -------+---------------------------------------------------------------
+        -------+----------------------------------------------------------------
 
         NOTE Older versions of [rg] may not have `'pcre'` and `'auto'` available.
         `'git'` and `'grep'` may also have some engines missing depending on what
@@ -407,8 +407,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
             {lhs}   Left-hand side of the keymap
             {rhs}   Right-hand side of the keymap
             {opts}  |Dict| of |:map-arguments| names. Use `{'noremap': 1}` - to define
-                    as |:noremap| in a specified mode, `{'unique': 1}` to define with
-                    |:map-<unique>| argument etc (optional)
+                    as |:noremap| in a specified mode, `{'unique': 1}` to define
+                    with |:map-<unique>| argument etc (optional)
 
         Example:~
 >
@@ -557,13 +557,13 @@ Search window-related configurations are added to |g:esearch| dictionary.
                                                      *esearch-win-config-overview*
 
            Property                         What contains~
- -----------------------------+---------------------------------------------------
+ -----------------------------+-------------------------------------------------
  `.win_new()`                   | Funcref to open a new window with search results
  `.win_map`                     | List of window-local keymaps
  `.win_contexts_syntax`         | Flag to use filetype-aware syntax highlights
  `.win_context_len_annotations` | Flag to show outputted lines count of a context
  `.win_cursor_linenr_highlight` | Funcref to open a new window with search results
- -----------------------------+---------------------------------------------------
+ -----------------------------+-------------------------------------------------
 
 g:esearch.win_new({esearch})                                 *g:esearch.win_new()*
         Function to open a new search window. 

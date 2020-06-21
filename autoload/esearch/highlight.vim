@@ -7,12 +7,12 @@ let g:esearch#highlight#match_darker  = -0.10
 fu! esearch#highlight#init() abort
   aug esearch_highlight
     au!
-    au ColorScheme * call esearch#highlight#define()
+    au ColorScheme * call esearch#highlight#set()
   aug END
-  call esearch#highlight#define()
+  call esearch#highlight#set()
 endfu
 
-fu! esearch#highlight#define() abort
+fu! esearch#highlight#set() abort
   hi def link esearchStatistics   Number
   hi def link esearchFilename     Directory
   hi def link esearchLineNr       LineNr
@@ -20,8 +20,8 @@ fu! esearch#highlight#define() abort
   hi def      esearchHeader       cterm=bold gui=bold
 
   let s:is_dark = s:detect_dark_background()
-  call s:define_matches_highlight()
-  if g:esearch#has#nvim | call s:define_float_win_highlights() | endif
+  call s:set_matches_highlight()
+  if g:esearch#has#nvim | call s:set_float_win_highlights() | endif
 
   if hlexists('esearchLnum')
     call s:copyhl('esearchLnum', 'esearchLineNr', {'force': 1})
@@ -33,7 +33,7 @@ endfu
 
 " Try to emphasize enough without overruling foregrounds, that are used by
 " context syntaxes
-fu! s:define_matches_highlight() abort
+fu! s:set_matches_highlight() abort
   let CursorLine = s:gethl('CursorLine')
   let Normal = s:gethl('Normal')
   let esearchMatch = {}
@@ -58,7 +58,7 @@ fu! s:define_matches_highlight() abort
   call s:sethl('esearchMatch', esearchMatch, {'default': 1})
 endfu
 
-fu! s:define_float_win_highlights() abort
+fu! s:set_float_win_highlights() abort
   let hl = {}
   let hl.NormalFloat  = s:resolvehl('NormalFloat', {'fallback': 'Pmenu'})
   let hl.Normal       = s:gethl('Normal')
@@ -76,16 +76,16 @@ fu! s:define_float_win_highlights() abort
     " For light colorschemes it's better to use NormalFloat if available as
     " adjusting Normal to be darker cause it to be greyish.
     if has_key(hl.NormalFloat, 'guibg') || has_key(hl.NormalFloat, 'ctermbg')
-      return s:define_float_win_highlights_with_normal_float_bg(hl)
+      return s:set_float_win_highlights_with_normal_float_bg(hl)
     endif
 
     let percent = g:esearch#highlight#float_darker
   endif
 
-  call s:define_float_win_highlights_with_adjusted_brightness(hl, percent)
+  call s:set_float_win_highlights_with_adjusted_brightness(hl, percent)
 endfu
 
-fu! s:define_float_win_highlights_with_normal_float_bg(hl) abort
+fu! s:set_float_win_highlights_with_normal_float_bg(hl) abort
   let hl = a:hl
 
   if has_key(hl.NormalFloat, 'guibg')
@@ -103,7 +103,7 @@ fu! s:define_float_win_highlights_with_normal_float_bg(hl) abort
   call s:sethl_float_win(hl)
 endfu
 
-fu! s:define_float_win_highlights_with_adjusted_brightness(hl, percent) abort
+fu! s:set_float_win_highlights_with_adjusted_brightness(hl, percent) abort
   let [hl, percent] = [a:hl, a:percent]
   
   if s:is_hex(hl.Normal, 'guibg')
