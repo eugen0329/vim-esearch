@@ -224,3 +224,8 @@ else
     endtry
   endfu
 endif
+
+fu! esearch#util#escape_for_statusline(str) abort
+  let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
+  return substitute(tr(a:str, '/', safe_slash), '%', '%%', 'g')
+endfu

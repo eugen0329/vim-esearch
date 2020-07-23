@@ -112,10 +112,7 @@ fu! s:cleanup() abort
 endfu
 
 fu! esearch#out#win#goto_or_open(esearch) abort dict
-  " scope search windows to self.cwd instead of getcwd()
-  let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
-  let bufname = substitute(a:esearch.title, '/', safe_slash, 'g')
-  let bufname = s:Filepath.join(a:esearch.cwd, bufname)
+  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.title)
 
   " If the window is empty and the only within the tab - reuse it
   if winnr('$') == 1
