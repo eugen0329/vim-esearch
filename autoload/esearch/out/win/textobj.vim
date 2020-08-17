@@ -69,11 +69,11 @@ endfu
 
 fu! s:seek_under_cursor(i, count) abort
   let [line, col] = getpos('.')[1:2]
-  let curr_line = '\%'.line.'l'
-  let inline_pattern = curr_line . b:esearch.pattern.seek_match
+  let curr_line_re = '\%'.line.'l'
+  let inline_match_re = curr_line_re . b:esearch.pattern.seek_match
 
-  let begin = searchpos(inline_pattern, 'bcW')
-  let end   = searchpos(inline_pattern, 'ecW')
+  let begin = searchpos(inline_match_re, 'bcW')
+  let end   = searchpos(inline_match_re, 'ecW')
   call cursor(line, col)
 
   if begin != [0, 0] && begin[1] <= col && col <= end[1]

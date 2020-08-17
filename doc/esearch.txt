@@ -664,7 +664,7 @@ See also: |highlight-ctermfg|, |highlight-guifg|, |highlight-groups|.
 esearchFilename
                                   {1} Vim cursor position that affects whether
                                       |hl-esearchCursorLineNr| or |hl-esearchLineNr|
-                                      are used
+                                      is used
                                   {2} See |g:esearch.win_context_len_annotations|
 
 esearchHeader                                                   *hl-esearchHeader*
@@ -722,7 +722,7 @@ Reasons the plugin works slowly and possible solutions:
     - Lua is missing: install vim/neovim with lua support. To verify use
       `:echo esearch#has#lua`
     - Too slow adapter: if |g:esearch.adapter| is set/resolved to `'grep'`,
-      try to install [ag], [rg], [pt] or [ack]
+      try to use [ag], [rg], [pt] or [ack] instead.
     - Too low throttling timeout: increase |g:esearch.win_update_throttle_wait|
   - When scrolling:
     - Vim |matchadd()| regex matches highlights are used: try to set
@@ -1056,7 +1056,7 @@ API USAGE EXAMPLES                                          *esearch-api-example
 
                                                          *esearch#init()-examples*
 1. Search for debugger entries across the project without starting the prompt.
-Remember is set to 0 to prevent saving configs history for later searches.
+`'remember'` is set to `0` to prevent saving configs history for later searches.
 >
     nnoremap <leader>fd :call esearch#init({
         \ 'pattern': '\b(ipdb\|debugger)\b',

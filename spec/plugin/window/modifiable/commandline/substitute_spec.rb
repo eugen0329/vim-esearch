@@ -7,7 +7,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
   include Helpers::Modifiable::Commandline
   Context ||= Helpers::Modifiable::Context
 
-  include_context 'setup modifiable testing'
+  include_context 'setup modifiable testing', default_mappings: 1
 
   let(:context1) { Context.new('aaaaaa', ('x'..'z').map { |letter| "aaa#{letter}" }) }
   let(:context2) { Context.new('bbbbbb', ('x'..'z').map { |letter| "bbb#{letter}" }) }
@@ -96,7 +96,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
           it 'substitutes matched text' do
             expect {
               editor.send_command("%s/#{pattern}/changed/#{flags}")
-              editor.send_keys 'y' * confirmations_count + ''
+              editor.raw_send_keys 'y' * confirmations_count + ''
             }.to change_entries_text(modified_entries)
               .to(['changed'] * modified_entries.count)
               .and not_to_change_entries_text(entries - modified_entries)
@@ -127,22 +127,6 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
                 }.to change_entries_text([entry2])
                   .to(['changed'])
                   .and not_to_change_entries_text([entry1])
-              end
-            end
-
-            context 'when n > 1 matches in the same line' do
-              let(:pattern) { "\\(^\\s*#{entry1.line_in_file}\\|#{entry1.result_text}\\)" }
-
-              it 'asks twice in a line with two confirmable matches' do
-                expect {
-                  editor.send_command("%s/#{pattern}/changed/#{flags}")
-                  editor.send_keys 'a'
-                }.not_to change_entries_text(entries)
-
-                expect {
-                  editor.send_keys 'y'
-                }.to change_entries_text([entry1])
-                  .to(['changed'])
               end
             end
           end
@@ -180,7 +164,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
               it 'substitutes all matches but 1st' do
                 expect {
                   editor.send_command("%s/#{pattern}/changed/#{flags}")
-                  editor.send_keys 'nna'
+                  editor.raw_send_keys 'na'
                 }.to change_entries_text(modified_entries)
                   .to(['changed'] * modified_entries.count)
                   .and not_to_change_entries_text(entries - modified_entries)
@@ -266,14 +250,23 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
   end
 
   describe 'multiline substitution' do
-    it 'recovers on removing newlines' do
-      expect { editor.send_command('%s/\\_.//') }
-        .not_to change { editor.lines.to_a }
+    context 'when removing newlines' do
+      it 'prevents from \_.' do
+        expect { editor.send_command('%s/\\_.//') }
+          .not_to change { editor.lines.to_a }
+      end
+
+      it 'prevents from \n' do
+        expect { editor.send_command('%s/\\_.//') }
+          .not_to change { editor.lines.to_a }
+      end
     end
 
-    it 'recovers on adding newlines' do
-      expect { editor.send_command('%s/\\r//') }
-        .not_to change { editor.lines.to_a }
+    context 'when adding newlines' do
+      it 'prevents from adding \r' do
+        expect { editor.send_command('%s/\\r//') }
+          .not_to change { editor.lines.to_a }
+      end
     end
   end
 

@@ -1,5 +1,3 @@
-let g:esearch#pattern#even_count_of_escapes =  '\%(\\\)\@<!\%(\\\\\)*'
-
 " Returns |Dict| that holds different views of the same pattern:
 " .arg     - in a syntax to pass as a search util argument
 " .vim     - in vim 'nomagic' syntax to hl or interact with matches within vim

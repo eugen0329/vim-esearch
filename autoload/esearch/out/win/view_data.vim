@@ -1,4 +1,4 @@
-let s:RESULT_LINE_PATTERN = '^\%>1l\s\+\d\+.*'
+let s:results_line_re = '^\%>1l\s\+\d\+.*'
 let s:Filepath = vital#esearch#import('System.Filepath')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
@@ -84,11 +84,11 @@ fu! s:file_context_at(line, esearch) abort
 endfu
 
 fu! s:is_entry(...) abort dict
-  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#entry_pattern
+  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#entry_re
 endfu
 
 fu! s:is_filename(...) abort dict
-  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#filename_pattern
+  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#filename_re
 endfu
 
 " Is used to prevent problems with asynchronous code
@@ -107,9 +107,9 @@ fu! s:result_line() abort
 
   " if the cursor above the header on above a file
   if current_line < 3 || match(current_line_text, '^[^ ].*') >= 0
-    return search(s:RESULT_LINE_PATTERN, 'cWn') " search forward
+    return search(s:results_line_re, 'cWn') " search forward
   elseif empty(current_line_text)
-    return search(s:RESULT_LINE_PATTERN, 'bcWn')  " search backward
+    return search(s:results_line_re, 'bcWn')  " search backward
   else
     return current_line
   endif

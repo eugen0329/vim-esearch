@@ -1,4 +1,4 @@
-let s:esc = g:esearch#pattern#even_count_of_escapes . '\zs'
+let s:esc = g:esearch#util#even_count_of_escapes_re . '\zs'
 
 fu! esearch#pattern#vim2pcre#convert(string) abort
   let string = a:string

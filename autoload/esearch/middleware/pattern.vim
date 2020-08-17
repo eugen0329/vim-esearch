@@ -8,16 +8,16 @@ fu! esearch#middleware#pattern#apply(esearch) abort
     let esearch.cmdline = esearch#prefill#try(esearch)[pattern_type]
     let esearch = esearch#cmdline#read(esearch)
     if empty(esearch.cmdline) | throw 'Cancel' | endif
-    let esearch.pattern = s:fetch_or_new(esearch.cmdline, esearch)
+    let esearch.pattern = s:cached_or_new(esearch.cmdline, esearch)
     let g:esearch.last_pattern = esearch.pattern
   elseif type(esearch.pattern) ==# type('')
-    let esearch.pattern = s:fetch_or_new(esearch.pattern, esearch)
+    let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
   endif
 
   return esearch
 endfu
 
-fu! s:fetch_or_new(text, esearch) abort
+fu! s:cached_or_new(text, esearch) abort
   if g:esearch#middleware#pattern#cache.has(a:text)
     let pattern = g:esearch#middleware#pattern#cache.get(a:text)
   else

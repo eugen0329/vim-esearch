@@ -1,6 +1,8 @@
 let s:List     = vital#esearch#import('Data.List')
 let s:Filepath = vital#esearch#import('System.Filepath')
 
+let g:esearch#util#even_count_of_escapes_re =  '\%(\\\)\@<!\%(\\\\\)*'
+
 fu! esearch#util#setline(_, lnum, text) abort
   call setline(a:lnum, a:text)
 endfu

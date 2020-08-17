@@ -101,6 +101,7 @@ fu! esearch#config#init(esearch) abort
           \ [' ' , '{',    '<Plug>(esearch-win-jump:filename:up)'  ],
           \ ['ov', 'im',   '<Plug>(textobj-esearch-match-i)',      ],
           \ ['ov', 'am',   '<Plug>(textobj-esearch-match-a)',      ],
+          \ ['c',  '<CR>', '<Plug>(esearch-win-CR)', {'nowait': 1} ],
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])

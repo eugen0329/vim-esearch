@@ -405,7 +405,8 @@ class Editor
     raise unless history_updated
 
     command('let &undolevels=&undolevels')
-    press! ":#{string_to_execute}<Enter>"
+    press! ":#{string_to_execute}"
+    send_keys :enter
   end
 
   def raw_echo(arg)

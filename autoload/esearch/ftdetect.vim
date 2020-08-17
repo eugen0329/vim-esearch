@@ -11,8 +11,8 @@ let s:setfiletype = ['setfiletype', 'setf']
 " TODO consider to define either syntax file which highlights for strings,
 " comments and keywords set for both languages with extension collisions (like
 " matlab and objc for *.m)
-if !exists('g:esearch_ftdetect_patterns')
-  let g:esearch_ftdetect_patterns = {
+if !exists('g:esearch_ftdetect_re2filetype')
+  let g:esearch_ftdetect_re2filetype = {
         \ '\.sh$':     'sh',
         \ '\.bash$':   'sh',
         \ '\.bats$':   'sh',
@@ -62,20 +62,20 @@ fu! esearch#ftdetect#fast(filename) abort
   endif
 
   let basename = s:Filepath.basename(a:filename)
-  let extension_pattern = '\.'.fnamemodify(basename, ':e') . '$'
+  let extension_re = '\.'.fnamemodify(basename, ':e') . '$'
 
-  if has_key(g:esearch_ftdetect_patterns, extension_pattern)
-    return g:esearch_ftdetect_patterns[extension_pattern]
+  if has_key(g:esearch_ftdetect_re2filetype, extension_re)
+    return g:esearch_ftdetect_re2filetype[extension_re]
 
   endif
 
-  let basename_pattern = '^' . basename . '$'
-  if has_key(g:esearch#ftdetect#pattern2ft, basename_pattern)
-    return g:esearch#ftdetect#pattern2ft[basename_pattern]
+  let basename_re = '^' . basename . '$'
+  if has_key(g:esearch#ftdetect#pattern2ft, basename_re)
+    return g:esearch#ftdetect#pattern2ft[basename_re]
   endif
 
-  if has_key(g:esearch#ftdetect#pattern2ft, extension_pattern)
-    return g:esearch#ftdetect#pattern2ft[extension_pattern]
+  if has_key(g:esearch#ftdetect#pattern2ft, extension_re)
+    return g:esearch#ftdetect#pattern2ft[extension_re]
   endif
 
   " is checked last as it's slower then other

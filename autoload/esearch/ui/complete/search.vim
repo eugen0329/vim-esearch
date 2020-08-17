@@ -6,10 +6,10 @@ fu! esearch#ui#complete#search#do(arglead, ...) abort
   let fuzzy_matched     = []
   let start_with        = []
 
-  let fuzzy_pattern = s:fuzzy_pattern(a:arglead)
-  let spell_pattern = s:spell_pattern(a:arglead)
-  let word_len = strlen(a:arglead)
+  let fuzzy_re = s:fuzzy_re(a:arglead)
+  let spell_re = s:spell_re(a:arglead)
 
+  let word_len = strlen(a:arglead)
   for word in s:buffer_words(word_len)
     if word == a:arglead
       call add(equal, word)
@@ -22,9 +22,9 @@ fu! esearch#ui#complete#search#do(arglead, ...) abort
     elseif substr_index >= 0
       call add(partially_matched, word)
     elseif word_len > 2
-      if word =~ spell_pattern
+      if word =~ spell_re
         call add(spell_suggested, word)
-      elseif word =~ fuzzy_pattern
+      elseif word =~ fuzzy_re
         call add(fuzzy_matched, word)
       endif
     endif
@@ -37,11 +37,11 @@ fu! esearch#ui#complete#search#do(arglead, ...) abort
   return [a:arglead] + equal + start_with + partially_matched + spell_suggested + fuzzy_matched
 endfu
 
-fu! s:spell_pattern(arglead) abort
-  let spell_pattern = a:arglead
+fu! s:spell_re(arglead) abort
+  let spell_re = a:arglead
   let spell = esearch#let#restorable({'&spellsuggest': 1, '&spell': 1})
   try
-    return substitute(spell_pattern, '\h\k*', '\=s:spell_suggestions(submatch(0))', 'g')
+    return substitute(spell_re, '\h\k*', '\=s:spell_suggestions(submatch(0))', 'g')
   finally
     call spell.restore()
   endtry
@@ -51,9 +51,9 @@ fu! s:spell_suggestions(word) abort
   return printf('\m\(%s\)', join(spellsuggest(a:word, 10), '\|'))
 endfu
 
-fu! s:fuzzy_pattern(arglead) abort
+fu! s:fuzzy_re(arglead) abort
   let chars = map(split(a:arglead, '.\zs'), 'escape(v:val, "\\[]^$.*")')
-  let fuzzy_pattern = join(
+  let fuzzy_re = join(
         \ extend(map(chars[0 : -2], "v:val . '[^' .v:val. ']\\{-}'"),
         \ chars[-1:-1]), '')
 endfu

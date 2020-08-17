@@ -3,7 +3,7 @@ let s:Lexer    = vital#esearch#import('Text.Lexer')
 let s:Parser   = vital#esearch#import('Text.Parser')
 
 let s:metachars = '()[]{}?*+@!$^|'
-let g:esearch#shell#metachars_pattern = '['.escape(s:metachars, ']').']'
+let g:esearch#shell#metachars_re = '['.escape(s:metachars, ']').']'
 
 " Split for posix argv and passthrough for windows
 fu! esearch#shell#split(string) abort
@@ -60,7 +60,7 @@ let s:rules = [
       \ ['WS',            '\s\+'                           ],
       \ ['ESCAPED_ANY',   '\\.'                            ],
       \ ['EVAL',          '`[^`]\{-}`'                     ],
-      \ ['METACHARS',     g:esearch#shell#metachars_pattern],
+      \ ['METACHARS',     g:esearch#shell#metachars_re],
       \ ['REGULAR',       '\%([[:alnum:]/\-_.]\+\|.\)'     ],
       \]
 

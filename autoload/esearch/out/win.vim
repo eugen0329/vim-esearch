@@ -17,9 +17,9 @@ let g:esearch#out#win#legacy_mappings = {
       \ 'prev-file':          '<Plug>(esearch-win-jump:filename:up)',
       \}
 
-let g:esearch#out#win#entry_pattern = '^\s\+\d\+\s\+.*'
-let g:esearch#out#win#filename_pattern = '^[^ ]'
-let g:esearch#out#win#result_text_regex_prefix = '\%>1l\%(\s\+\d\+\s.*\)\@<='
+let g:esearch#out#win#entry_re = '^\s\+\d\+\s\+.*'
+let g:esearch#out#win#filename_re = '^[^ ]'
+let g:esearch#out#win#result_text_regex_prefix_re = '\%>1l\%(\s\+\d\+\s.*\)\@<='
 let g:esearch#out#win#linenr_format = ' %3d '
 let g:esearch#out#win#entry_format = ' %3d %s'
 
@@ -36,6 +36,7 @@ fu! esearch#out#win#init(esearch) abort
         \ 'reload':             function('<SID>reload'),
         \ 'highlights_enabled': g:esearch.win_contexts_syntax,
         \})
+  let b:esearch.request.bufnr = bufnr('%')
 
   call esearch#out#win#open#init(b:esearch)
   call esearch#out#win#preview#floating#init(b:esearch)
@@ -50,9 +51,6 @@ fu! esearch#out#win#init(esearch) abort
   " Some plugins set mappings on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
   call s:init_mappings()
-  call s:init_commands()
-
-  let b:esearch.request.bufnr = bufnr('%')
 
   setfiletype esearch
 
@@ -149,19 +147,6 @@ fu! esearch#out#win#map(lhs, rhs) abort
   let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs), 'mode': 'n'}]
 endfu
 
-fu! s:init_commands() abort
-  command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ESubstitute
-        \ call esearch#substitute#do(<q-args>, <line1>, <line2>, b:esearch)
-
-  if exists(':E') != 2
-    command! -nargs=1 -range=0 -bar -buffer -complete=custom,esearch#substitute#complete E
-          \ call esearch#substitute#do(<q-args>, <line1>, <line2>, b:esearch)
-  elseif exists(':ES') != 2
-    command! -nargs=1 -range=0 -bar -buffer  -complete=custom,esearch#substitute#complete ES
-          \ call esearch#substitute#do(<q-args>, <line1>, <line2>, b:esearch)
-  endif
-endfu
-
 fu! s:init_mappings() abort
   nnoremap <silent><buffer> <Plug>(esearch-win-reload)            :<C-U>cal b:esearch.reload()<CR>
   nnoremap <silent><buffer> <Plug>(esearch-win-open)              :<C-U>cal b:esearch.open('edit')<CR>
@@ -197,6 +182,8 @@ fu! s:init_mappings() abort
   onoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
   vnoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
   onoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
+
+  cnoremap <silent><buffer> <Plug>(esearch-win-CR) <C-\>eesearch#out#win#modifiable#cmdline#replace()<CR><CR>
 
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))

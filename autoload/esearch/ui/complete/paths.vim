@@ -50,7 +50,7 @@ fu! s:gather_posix_candidates(cwd, word, already_listed, Escape) abort
     endif
   endfor
 
-  if word =~# g:esearch#shell#metachars_pattern
+  if word =~# g:esearch#shell#metachars_re
     " keep the current word if includes metachars
     let candidates = [word] + candidates
   endif

@@ -6,7 +6,7 @@ fu! esearch#out#win#jumps#init(esearch) abort
 endfu
 
 fu! s:jump2filename(direction, count, ...) abort dict
-  let filename_pattern = g:esearch#out#win#filename_pattern . '\%>2l'
+  let filename_re = g:esearch#out#win#filename_re . '\%>2l'
   let times = a:count
 
   if get(a:, 1) is# 'v'
@@ -16,13 +16,13 @@ fu! s:jump2filename(direction, count, ...) abort dict
   " When jumping down from the header context, it locates the second filenme
   if a:direction ==# 1
     if line('.') <= 2
-      call search(filename_pattern, 'W')
+      call search(filename_re, 'W')
     endif
     while times > 0
-      if !search(filename_pattern, 'W') && !self.is_filename()
+      if !search(filename_re, 'W') && !self.is_filename()
         " if no filenames forward (the cursor is within the last ctx) - jump to
         " the last filename
-        call search(filename_pattern,  'Wbe')
+        call search(filename_re,  'Wbe')
         break
       endif
       let times -= 1
@@ -30,21 +30,21 @@ fu! s:jump2filename(direction, count, ...) abort dict
   else
     " When jumping up from the header context, it locates the first filename below
     if line('.') <= 2
-      call search(filename_pattern, 'W')
+      call search(filename_re, 'W')
     else
       norm! 0
 
       " if no filenames forward (the cursor is within the last ctx) - jump to
       " the filename before the last ctx
-      if !self.is_filename() && !search(filename_pattern,  'Wn')
-        call search(filename_pattern,  'Wbe')
+      if !self.is_filename() && !search(filename_re,  'Wn')
+        call search(filename_re,  'Wbe')
       endif
 
       while times > 0
-        if !search(filename_pattern,  'Wbe') && !self.is_filename()
+        if !search(filename_re,  'Wbe') && !self.is_filename()
           " if no filenames backward (the cursor is within the first ctx) - jump to
           " the first filename
-          call search(filename_pattern, 'W')
+          call search(filename_re, 'W')
           break
         endif
         let times -= 1
@@ -64,7 +64,7 @@ fu! s:jump2entry(direction, count, ...) abort dict
     norm! gv
   endif
 
-  let pattern = g:esearch#out#win#entry_pattern
+  let pattern = g:esearch#out#win#entry_re
   let times = a:count
 
   " When jumping down from the header context, it locates the second entry as

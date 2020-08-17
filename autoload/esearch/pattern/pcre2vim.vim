@@ -1,6 +1,6 @@
-let s:Log = esearch#log#import()
-let s:Lexer   = vital#esearch#import('Text.Lexer')
-let s:Parser  = vital#esearch#import('Text.Parser')
+let s:Log    = esearch#log#import()
+let s:Lexer  = vital#esearch#import('Text.Lexer')
+let s:Parser = vital#esearch#import('Text.Parser')
 
 " NOTE: is not intended to be a general purpose converter as some of atoms are
 " suppressed for using in #out#win
@@ -48,18 +48,18 @@ endfu
 
 " https:/\p{/www.regular-expressions.info/modifiers.html
 let s:modifiers_set = '[\-bcdeimnpqstwx]\+'
-let s:modifiers_span_pattern = printf('(?%s:', s:modifiers_set)
-let s:modifiers_pattern      = printf('(?%s)', s:modifiers_set)
+let s:modifiers_span_re = printf('(?%s:', s:modifiers_set)
+let s:modifiers_re      = printf('(?%s)', s:modifiers_set)
 unlet s:modifiers_set
-let s:comment_pattern = '(?#\%('.g:esearch#pattern#even_count_of_escapes.'\\)\|[^)]\)*)'
-let s:posix_named_set_pattern = printf('\[:\%%(%s\):\]', join([
+let s:comment_re = '(?#\%('.g:esearch#util#even_count_of_escapes_re.'\\)\|[^)]\)*)'
+let s:posix_named_set_re = printf('\[:\%%(%s\):\]', join([
       \ 'alnum', 'alpha', 'blank', 'cntrl', 'digit', 'graph', 'lower', 'print',
       \ 'punct', 'space', 'upper', 'xdigit', 'return', 'tab', 'escape',
       \ 'backspace', 'word', 'ascii'], '\|'))
-let s:range_quantifier_pattern   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
+let s:range_quantifier_re   = '{\%(\d\+\|\d\+,\d*\)}[+?]\='
 let s:capture_range_quantifier = '{\zs\%(\d\+\|\d\+,\d*\)\ze}[+?]\='
 " Very rough match
-let s:bracketed_escape_pattern = '\%(\\[xou]{\x\+}\)'
+let s:bracketed_escape_re = '\%(\\[xou]{\x\+}\)'
 let s:POSIX_NAMED_SET   = 1
 let s:SET_START         = 2
 let s:SET_END           = 3
@@ -76,21 +76,21 @@ let s:BRACKETED_ESCAPE  = 13
 let s:ESCAPED_ANY       = 14
 let s:ANY               = 15
 let s:rules = [
-      \  [s:POSIX_NAMED_SET,   s:posix_named_set_pattern                ],
-      \  [s:SET_START,         '\[\^\='                                 ],
-      \  [s:SET_END,           '\]'                                     ],
-      \  [s:MODIFIER,          s:modifiers_pattern                      ],
-      \  [s:MODIFIER_SPAN,     s:modifiers_span_pattern                 ],
-      \  [s:COMMENT,           s:comment_pattern                        ],
-      \  [s:NAMED_GROUP_START, '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
-      \  [s:GROUP_START,       '(\%(?<=\|?<!\|?=\|?!\|?>\|?:\|?|\)\='   ],
-      \  [s:GROUP_END,         ')'                                      ],
-      \  [s:RANGE_QUANTIFER,   s:range_quantifier_pattern               ],
-      \  [s:QUANTIFIER,        '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
-      \  [s:PROPERTY,          '\\[Pp]{\w\+}'                           ],
-      \  [s:BRACKETED_ESCAPE,  s:bracketed_escape_pattern               ],
-      \  [s:ESCAPED_ANY,       '\\.'                                    ],
-      \  [s:ANY,               '\%([[:alnum:][:blank:]''"/\-]\+\|.\)'   ],
+      \ [s:POSIX_NAMED_SET,   s:posix_named_set_re                     ],
+      \ [s:SET_START,         '\[\^\='                                 ],
+      \ [s:SET_END,           '\]'                                     ],
+      \ [s:MODIFIER,          s:modifiers_re                           ],
+      \ [s:MODIFIER_SPAN,     s:modifiers_span_re                      ],
+      \ [s:COMMENT,           s:comment_re                             ],
+      \ [s:NAMED_GROUP_START, '(?\%(P\=<\w\+>\|''\w\+''\)'             ],
+      \ [s:GROUP_START,       '(\%(?<=\|?<!\|?=\|?!\|?>\|?:\|?|\)\='   ],
+      \ [s:GROUP_END,         ')'                                      ],
+      \ [s:RANGE_QUANTIFER,   s:range_quantifier_re                    ],
+      \ [s:QUANTIFIER,        '\%(??\|\*?\|+?\|?+\|\*+\|++\|?\|+\|\*\)'],
+      \ [s:PROPERTY,          '\\[Pp]{\w\+}'                           ],
+      \ [s:BRACKETED_ESCAPE,  s:bracketed_escape_re                    ],
+      \ [s:ESCAPED_ANY,       '\\.'                                    ],
+      \ [s:ANY,               '\%([[:alnum:][:blank:]''"/\-]\+\|.\)'   ],
       \]
 
 let s:pcre2vim_escape = {
@@ -242,7 +242,7 @@ fu! s:PCRE2Vim.convert() abort dict
       call self.push_context(self.token.matched_text)
     elseif self.next_is([s:GROUP_END])
       call self.advance()
-      if empty(self.contexts) | call self.throw('unexpected group end') | endif
+      if empty(self.contexts) | call self.throw('unexpected GROUP_END') | endif
 
       if has_key(s:pcre2vim_group_end, self.contexts[-1].label)
         let self.result += [s:pcre2vim_group_end[self.contexts[-1].label]]

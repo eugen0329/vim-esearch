@@ -18,7 +18,7 @@ describe 'esearch#util' do
           it { expect(has_upper.call('aab')).to eq(0) }
           it { expect(has_upper.call('aAb')).to eq(1) }
         end
-        
+
         context 'when unicode' do
           it { expect(has_upper.call('aσb')).to eq(0) }
           it { expect(has_upper.call('aΣb')).to eq(1) }

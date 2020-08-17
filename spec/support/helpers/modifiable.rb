@@ -43,7 +43,7 @@ module Helpers::Modifiable
   define_negated_matcher :not_to_change, :change
   define_negated_matcher :not_change, :change
 
-  shared_context 'setup modifiable testing' do
+  shared_context 'setup modifiable testing' do |default_mappings: 0|
     let(:contexts) do
       [Context.new('context1.txt', 1.upto(5).map { |i| "aa#{i}" }),
        Context.new('context2.txt', 1.upto(5).map { |i| "bb#{i}" }),
@@ -67,7 +67,7 @@ module Helpers::Modifiable
         backend:          'system',
         regex:            1,
         prefill:          [],
-        default_mappings: 0,
+        default_mappings: defined?(default_mappings) ? default_mappings : 0,
         root_markers:     []
       )
       # TODO: reduce duplication with configuration#adapter=()

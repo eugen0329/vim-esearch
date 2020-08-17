@@ -1,5 +1,4 @@
 let s:separator = ''
-let g:esearch#out#win#linenr_format = ' %3d '
 
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()

@@ -197,7 +197,7 @@ fu! s:identify_text_change(event) abort
     let b:__pending_o_event = 0
     call s:insert_enter_with_o()
   elseif from.cmdhistnr !=# to.cmdhistnr
-    call s:identify_cmdline()
+    " no-op
   elseif from.mode ==# 'i'
     call s:identify_insert()
   elseif from.mode ==# 'V' || to.mode ==# 'V'
@@ -269,35 +269,6 @@ fu! s:insert_enter_with_o() abort
         \ 'line1': to.line,
         \ 'line2': to.line,
         \ })
-endfu
-
-fu! s:identify_cmdline() abort
-  let [from, to] = b:__states[-2:-1]
-  let line1 = line("'[")
-
-  let ds = from.size - to.size
-
-  if from.size > to.size
-    return s:emit({
-          \ 'id':            'cmdline1',
-          \ 'cmdline':       histget(':', -1),
-          \ 'line1':         line1,
-          \ 'line2':         line1  + to.size - from.size,
-          \ 'original_size': from.size,
-          \ 'changenr1':     from.changenr,
-          \ 'changenr2':     to.changenr,
-          \ })
-  else
-    return s:emit({
-          \ 'id':     'cmdline2',
-          \ 'cmdline': histget(':', -1),
-          \ 'line1':   line1,
-          \ 'line2':   line("']"),
-          \ 'original_size': from.size,
-          \ 'changenr1': from.changenr,
-          \ 'changenr2': to.changenr,
-          \ })
-  endif
 endfu
 
 fu! esearch#changes#add_observer(funcref) abort

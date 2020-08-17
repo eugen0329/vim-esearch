@@ -1,234 +1,114 @@
 let s:String  = vital#esearch#import('Data.String')
-let s:List    = vital#esearch#import('Data.List')
 let s:Log = esearch#log#import()
-let g:esearch#out#win#linenr_format = ' %3d '
 
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
+let s:multiline_atom_re = g:esearch#util#even_count_of_escapes_re.'\\\%(_\.\|n\)'
+let s:multiline_string_re = g:esearch#util#even_count_of_escapes_re.'\\r'
 
-fu! esearch#out#win#modifiable#cmdline#handle(event) abort
-  let substitute = s:parse_substitute(a:event.cmdline)
-  if !empty(substitute)
-    return s:safely_replay_substitute(a:event, substitute)
+let s:offset_re  = '%(%([esb][\-+]|[\-+])=\d+)' " see :h {offset}
+let s:address_re =
+      \'%('
+      \.  '\.|\$|\%|''.|\\/|\\?|\\&|\d+|/%(\\.|.)*/|\?%(\\.|.)*\?'
+      \.')'.s:offset_re.'=' " see {address}
+let s:range_re = '('.s:address_re.'%([,;]'.s:address_re.')*)'
+" partially taken from vim over
+let s:slash_re   = '([\x00-\xff]&[^\\"|[:alnum:][:blank:]])'
+let s:pattern_re = '(%(\\.|.){-})'
+let s:string_re  = '(\3%(\\.|.){-})'
+let s:flags_re   = '%((\3[&cegiInp#lr])*\s*)'
+let s:count_re   = '(\s[1-9]\d*)'
+" :[range]s[ubstitute]/{pattern}/{string}/[flags] [count]
+let s:substitute_command_re = '\v^:*'
+      \ . s:range_re . '='
+      \ . '(s%[ubstitute]|sno%[magic]|sm%[agic]|ES%[ubstitute])'
+      \ . s:slash_re
+      \ . '%('
+      \ .   s:pattern_re
+      \ .   '%('
+      \ .     s:string_re
+      \ .     '%('
+      \ .       s:flags_re
+      \ .       s:count_re.'='
+      \ .     ')='
+      \ .   ')='
+      \ . ')=$'
+
+fu! esearch#out#win#modifiable#cmdline#replace() abort
+  let cmdline = getcmdline()
+  let default_pattern = @/
+  if getcmdtype() !=# ':'
+    return cmdline
   endif
 
-  call esearch#out#win#modifiable#unsupported#handle(a:event)
-endfu
-
-fu! s:safely_replay_substitute(event, command) abort
-  if s:is_dry_run(a:command.flags)
-    return
-  endif
-  if s:is_size_changed(a:event)
-    call s:Log.echo('ErrorMsg', 'Multiline :substitute is not allowed')
-    return esearch#out#win#modifiable#unsupported#handle(a:event)
+  let parsed = s:maybe_substitute(getcmdline(), default_pattern)
+  if empty(parsed)
+    return cmdline
   endif
 
-  let original_pattern = a:command.get_pattern()
-  let safe_pattern = s:safe_pattern(original_pattern)
-  if original_pattern ==# safe_pattern
-    return
+  if match(parsed.command, 'E\%[Substitute]') >= 0
+    call s:warn_cmd_deprecated('esearch: '.parsed.command.' command is deprecated. Use :sbustitute/ and :write commands instead.')
+    let parsed.command = 's'
   endif
-  let a:command.pattern = safe_pattern
-  " Overwrite global search register like builtin :s does.
-  " Is executed earlier to prevent blinks
-  let @/ = a:command.pattern
-
-  try
-    " clear previous command output as soon as apossible as we expect the correct
-    " statistics output from :substitute, replayed with the safe pattern.
-    echo ''
-
-    if stridx(a:command.flags, 'c') >= 0
-      call s:replay_confirmable(a:event, a:command, original_pattern)
-    else
-      call s:replay(a:event, a:command, original_pattern)
-    endif
-  finally
-    call b:esearch.undotree.synchronize()
-  endtry
-endfu
-
-fu! s:replay(event, command, original_pattern) abort
-  noau keepjumps silent undo
-  call b:esearch.undotree.mark_block_as_corrupted()
-  call s:execute(a:command.to_str(), a:original_pattern)
-endfu
-
-fu! s:replay_confirmable(event, command, original_pattern) abort
-  let command_with_confirmation = a:command
-  let command = copy(a:command)
-  let command.flags = substitute(command.flags, 'c', '', '')
-  let [confirmed_lines, remaining_range]
-        \ = s:lookup_confirmations_from_undo(a:event.changenr1, a:event.changenr2)
-  execute 'noau keepjumps silent undo ' . a:event.changenr1
-
-  let ask_again_on_lines = []
-  let state = b:esearch.undotree.head.state
-  let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
-  for [modified_text, line] in confirmed_lines
-    let context = contexts.by_line(line)
-    if context.begin == line || (context.end == line && context.end != line('$'))
-      " don't replay changes on top of contexts boundaries (as they contain only
-      " the virtual ui)
-    else
-      let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[line])
-
-      if s:String.starts_with(modified_text, linenr)
-        call setline(line, modified_text) " LineNr isn't corrupted, can be safely replayed
-      elseif stridx(command.flags, 'g') < 0
-        " if it was the only match in the line and it corrupts the virtual ui
-        " - don't replay
-      else
-        call add(ask_again_on_lines, line)
-      endif
-    endif
-  endfor
-
-  if !empty(remaining_range)
-    call s:execute_silently(command.to_str({'range': join(remaining_range, ',')}))
+  if match(empty(parsed.pattern) ? default_pattern : parsed.pattern, s:multiline_atom_re) >= 0
+    call s:Log.warn("esearch: Can't match newlines using \\_. or \\n")
+    return ''
+  endif
+  if match(parsed.string, s:multiline_string_re) >= 0
+    call s:Log.warn("esearch: Can't add newlines using \\r")
+    return ''
   endif
 
-  for line in ask_again_on_lines
-    call s:execute_silently(command_with_confirmation.to_str({'range': line}))
-  endfor
+  return parsed.str()
 endfu
 
-fu! s:execute_silently(command_string) abort
-  try
-    silent execute a:command_string
-  catch /E486:/
-    " suppress errors on missing
-  endtry
-endfu
-
-fu! s:execute(command_string, original_pattern) abort
-  redraw " clear previous substitute output
-  try
-    " NOTE capture use 'silent' under the hood which swaps backwards ranges, so
-    " it's not equivalent to calling builtin execute() instead.
-    " Swapping feature of silent isn't a hack and documented in :h E493
-    echo trim(s:Log.capture(a:command_string), "\n")
-  catch /E486:/
-    call s:Log.echo('ErrorMsg', 'E486: Pattern not found: ' . a:original_pattern)
-  endtry
-endfu
-
-" According to :help, undo block is formed on each change no matter the size.
-" When [c]onfirmation flag is used, :substitute produce an undo block on each
-" confirmed line, so all the confirmed lines can be pretty reliably (to a
-" certain extent) fetched from undo history.
-fu! s:lookup_confirmations_from_undo(from_block, until_block) abort
-  execute 'noau keepjumps silent undo ' . a:from_block
-
-  let visited_blocks = 0
-  let remaining_range = []
-  let confirmed_lines = []
-  while visited_blocks < &undolevels
-    if changenr() >= a:until_block
-      break
-    endif
-    noautocmd silent redo
-
-    let [line1, line2] = [line("'["), line("']")]
-    " if 'a' is pressed - substitute is executed until the end of a given range,
-    " otherwise - changes are recorded line by line
-    if line1 < line2
-      call assert_true(empty(remaining_range))
-      " we should handle line1 more thoroughly as if 'a' is pressed
-      " within line1 after at least one 'n', replacing all the remaining_range from
-      " line1 may cause overriding of 'n' presses
-      let remaining_range = [line1 + 1, line2]
-      call add(confirmed_lines, [getline(line1), line1])
-    else
-      call add(confirmed_lines, [getline(line1), line1])
-    endif
-
-    call b:esearch.undotree.mark_block_as_corrupted()
-    let visited_blocks += 1
-  endwhile
-
-  return [confirmed_lines, remaining_range]
-endfu
-
-fu! s:safe_pattern(pattern) abort
-  let pattern = a:pattern
-
-  if !s:String.starts_with(a:pattern, g:esearch#out#win#result_text_regex_prefix)
-    let pattern = g:esearch#out#win#result_text_regex_prefix . a:pattern
-  endif
-
-  return pattern
-endfu
-
-fu! s:parse_substitute(word) abort
-  " partially taken from vim over
-  let very_magic  = '\v'
-  let range       = '(.{-})'
-  let command     = '(s%[ubstitute])'
-  let first_slash = '([\x00-\xff]&[^\\"|[:alnum:][:blank:]])'
-  let pattern     = '(%(\\.|.){-})'
-  let string      = '(\3%(\\.|.){-})'
-  let flags       = '(\3[&cegiInp#lr]*\s*)'
-  let cnt         = '%((\s[1-9]\d*))?'
-
-  let parse_pattern
-        \   = very_magic
-        \   . '^:*'
-        \   . range
-        \   . command
-        \   . first_slash
-        \   . pattern
-        \   . '%('
-        \   . string
-        \   . '%('
-        \   . flags
-        \   . cnt
-        \   . ')?)?'
-        \   . '$'
-
-  let parts = matchlist(a:word, parse_pattern)[1:7]
-  if type(parts) == type(0) || empty(parts)
+fu! s:maybe_substitute(cmdline, default_pattern) abort
+  let matches = matchlist(a:cmdline, s:substitute_command_re)[1:7]
+  if type(matches) == type(0) || empty(matches)
     return {}
   endif
 
+  " :[range]s[ubstitute]/{pattern}/{string}/[flags] [count]
   return {
-        \ 'range':            parts[0],
-        \ 'command':          parts[1],
-        \ 'slash':            parts[2],
-        \ 'pattern':          parts[3],
-        \ 'string':           parts[4],
-        \ 'flags':            parts[5],
-        \ 'count':            parts[6],
-        \ 'previous_pattern': @/,
-        \ 'to_str':           function('<SID>to_str'),
-        \ 'get_pattern':      function('<SID>get_pattern'),
-        \ }
+        \ 'range':   matches[0],
+        \ 'command': matches[1],
+        \ 'slash':   matches[2],
+        \ 'pattern': s:safe_pattern(matches[3], a:default_pattern),
+        \ 'string':  matches[4],
+        \ 'flags':   matches[5],
+        \ 'count':   matches[6],
+        \ 'str':     function('<SID>str'),
+        \}
 endfu
 
-fu! s:to_str(...) abort dict
-  let parts = extend(copy(self), get(a:000, 0, {}))
-  return parts.range
-        \ . parts.command
-        \ . parts.slash
-        \ . parts.pattern
-        \ . parts.string
-        \ . parts.flags
-        \ . parts.count
-endfu
+fu! s:safe_pattern(original_pattern, default_pattern) abort
+  let pattern = empty(a:original_pattern) ? a:default_pattern : a:original_pattern
 
-fu! s:get_pattern() abort dict
-  if empty(self.pattern)
-    return self.previous_pattern
+  if s:String.starts_with(pattern, g:esearch#out#win#result_text_regex_prefix_re)
+    return a:original_pattern
   endif
-  return self.pattern
+
+  return g:esearch#out#win#result_text_regex_prefix_re . pattern
 endfu
 
-fu! s:is_dry_run(flags) abort
-  " [n] Report the number of matches, do not actually substitute.
-  return stridx(a:flags, 'n') >= 0
+fu! s:str() abort dict
+  return    self.range
+        \ . self.command
+        \ . self.slash
+        \ . self.pattern
+        \ . self.string
+        \ . self.flags
+        \ . self.count
 endfu
 
-fu! s:is_size_changed(event) abort
-  return a:event.original_size != line('$')
-endfu
+" Used only for ES command deprecation warning. Should be removed later
+if g:esearch#has#timers
+  fu! s:warn_cmd_deprecated(msg) abort dict
+    return timer_start(0, function('<SID>warn_on_next_tick_cb', [a:msg]))
+  endfu
+  fu! s:warn_on_next_tick_cb(msg, _timer) abort
+    return s:Log.warn(a:msg)
+  endfu
+else
+  fu! s:warn_cmd_deprecated(msg) abort dict
+    return s:Log.warn(a:msg)
+  endfu
+endif
