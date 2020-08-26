@@ -4,7 +4,7 @@
 
 Neovim/Vim plugin for **e**asy async **search** and replace across multiple files.
 
-![ESearch Demo gif](https://raw.githubusercontent.com/eugen0329/vim-esearch/master/.github/demo.gif)
+![demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/main.png)
 
 1. [Features overview](#features-overview)
 2. [Install](#install)
@@ -47,15 +47,16 @@ and extra features.
 
 ### Quick start
 
-Type `<leader>ff` keys (leader is `\` unless redefined) to open the input prompt. Use
-`<c-r><c-r>`, `<c-s><c-s>` and `<c-t><c-t>` within the prompt to cycle through
+Type `<leader>ff` keys (leader is `\` unless redefined) to open the input prompt.
+
+Use `<c-r><c-r>`, `<c-s><c-s>` and `<c-t><c-t>` within the prompt to cycle through
 regex, case-sensitive and text-objects matching modes or use `<c-o>` to open
 a menu to set searching paths, filetypes or other configs.
 
 Within the search window use `J` and `K` to jump between entries or `{` and `}`
 to jump between filenames. Use `R` to reload the results.
 
-To open a line in a file press `<Enter>` (open in the current window), `o` (open in a split),
+To open a line in a file press `<enter>` (open in the current window), `o` (open in a split),
 `s` (split vertically) or `t` to open in a new tab. Use the keys with shift
 pressed (`O`, `S` and `T`) to open staying in the search window.
 
@@ -63,11 +64,30 @@ Use `im` and `am` text-objects to jump to the following match and start operatin
 press `dam` to delete "a match" with trailing whitespaces under the cursor or jump to the nearestor, `cim` to delete "inner match" and start
 the insert mode.
 
+Use `:substitute/` command without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
+
 Modify or delete the results right inside the search window and type
-`:write<CR>` to save changes into files.
+`:write<cr>` to save changes into files.
 
 Press `p` to open a preview window. Use multiple `p` to zoom it and capital `P`
 to enter the preview for superficial changes (without jumping to a separate split window).
+
+Default mappings cheatsheet:
+
+| Keymap                                     | What it does                                                                                 |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `<leader>ff`                               | Start the search pattern **input prompt** _[global]_                                                            |
+| `<leader>f{textobj}`                       | Srart a new **search for a text-object** _[global]_                         |
+| `<c-r><c-r>` / `<c-s><c-s>` / `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                        |
+| `<c-o>`                                    | Open the **menu** _[prompt]_                                                                     |
+| `<cr>` / `o` / `s` / `t`                | **Open** the search result in the current window/vertical split/horitontal split/new tab  _[window]_ |
+| `O` / `S` / `T`                            | Same as above, but stay in the window  _[window]_                                            |
+| `J` / `K`                                  | Jump to the next/previous **search entry**  _[window]_                                           |
+| `{` / `}`                                  | Jump to the next/previous **filename**  _[window]_                                               |
+| `cim` / `dim`                              | Change/delete matched text  _[window]_                                                       |
+| `cam` / `dam`                              | Same as above, but capture trailing whitespaces as well  _[window]_                          |
+| `:write<cr>`                               | **Write** changes into files  _[window]_                          |
+| `p` / `P`                                  | Zoom/enter the **preview** window  _[window]_                                                    |
 
 ### Basic configuration
 
@@ -101,7 +121,7 @@ let g:esearch.default_mappings = 0
 " Open the search window in a vertical split and reuse it for all searches.
 let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }
 
-" Redefine the default highlights (see :help highlight for syntax details)
+" Redefine the default highlights (see :help highlight and :help esearch-appearance)
 highlight      esearchHeader     cterm=bold gui=bold ctermfg=white ctermbg=white
 highlight link esearchStatistics esearchFilename
 highlight link esearchFilename   Label
@@ -109,6 +129,51 @@ highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#F
 ```
 
 ### API
+
+Automatically update the preview for the entry under the cursor.
+*NOTE* It'll automatically wrap `CursorMoved` autocommand to collect garbage on reloads, so no `augroup` around is required.
+```vim
+autocmd User esearch_win_config
+  \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
+  \| autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
+```
+
+Use a popup-like floating window to render search results.
+```vim
+let g:esearch = {}
+" Try to jump into an opened floating window or open a new one.
+let g:esearch.win_new = {->
+  \ esearch#buf#goto_or_open('[Find]', {bufname->
+  \   nvim_open_win(bufadd(bufname), v:true, {
+  \     'relative': 'editor',
+  \     'row': float2nr(&lines * 0.2) / 2,
+  \     'col': float2nr((&columns * 0.2) / 2),
+  \     'width': float2nr(&columns * 0.8),
+  \     'height': float2nr(&lines * 0.8)
+  \   })
+  \ })
+  \}
+" Close the floating window when opening an entry
+autocmd User esearch_win_config autocmd BufLeave <buffer> quit
+```
+
+Add mappings for window using `g:esearch.win_map` list of args.
+```vim
+let g:esearch = {}
+"   Keymap   |     What it does
+" -----------+-------------------------------------------------------------------
+" yy         | Yank a hovered absolute path
+" t          | Use a custom command to open a file in a tab
+" <leader>fl | Populate QuickFix list using results of the current pattern search
+"
+" Each definition contains nvim_set_keymap() args: [{modes}, {lhs}, {rhs}]
+let g:esearch.win_map = [
+\ ['n', 'yy', ':let @" = b:esearch.filename()|let @+ = @"|echo "Yanked ".@"<cr>'                      ],
+\ ['n', 't',  ':call b:esearch.open("NewTabdrop")<cr>'                                                ],
+\ ['n', '<leader>fl',
+\             ':call esearch#init({"pattern": b:esearch.pattern, "out": "qflist", "remember": 0})<cr>'],
+\]
+```
 
 Use `esearch#init({options}})` function to start a search. Specify `{options}`
 dictionary using the same keys as in the global config to customize the
@@ -138,35 +203,9 @@ let g:search_py_methods = {
     \}
 nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 ```
-Use `esearch_win_hook` to setup window local configurations. *NOTE* It'll automatically wrap `call s:custom_esearch_config()` to collect garbage on reloads, so no `augroup` inside is required.
-```vim
-autocmd User esearch_win_config call s:custom_esearch_config()
 
-function! s:custom_esearch_config() abort
-  setlocal nobuflisted    " don't show the buffer in the buffers list
-  setlocal bufhidden=hide " don't unload the buffer to be able to use <c-o> jumps
 
-  " Show the preview automatically and update it after 100ms timeout. Change
-  " 'split' to 'vsplit' to open the preview vertically
-  let b:preview = esearch#async#debounce(b:esearch.split_preview, 100)
-  autocmd CursorMoved <buffer> call b:preview.apply('split')
-
-  " Override the default vertical split mapping to open a split once and
-  " reuse it for later `s` presses. The search window will remain focused
-  nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {'reuse': 1, 'stay': 1})<CR>
-
-  " Yank a hovered absolute path
-  nnoremap <silent><buffer> yy :let @" = b:esearch.filename()\|let @+ = @"<CR>
-
-  " Use a custom command to open a file in a tab
-  nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
-
-  " Populate QuickFix list using results of the current pattern search
-  nnoremap <silent><buffer> <leader>fq
-    \ :call esearch#init({'pattern': b:esearch.pattern, 'out': 'qflist', 'remember': 0})<CR>
-endfunction
-```
-See `:help esearch-api` for more api usage examples.
+See `:help esearch-api` and `:help esearch-api-examples` for more details.
 
 ### Troubleshooting
 
@@ -181,7 +220,7 @@ Run `git config --global core.precomposeunicode true && git config --global core
 
 3. Some regex features like lookaround are not supported.
 
-Use ag, ack or rg (after version 0.11) to access the PCRE syntax. Git and grep
+Use ag, ack or rg (of version >= 0.11) to access the PCRE syntax. Git and grep
 are also support them, but sometimes require to be installed with the
 corresponding flag.
 

@@ -12,7 +12,8 @@ syn keyword es_goConditional if else switch select
 syn keyword es_goLabel       case default
 syn keyword es_goRepeat      for range
 syn keyword es_goBuiltins  append cap close complex copy delete imag len make new panic print println real recover
-syn keyword es_goConstants iota true false nil
+syn keyword es_goConstants iota nil
+syn keyword es_goBool true false 
 syn keyword es_goType      chan map bool string error int int8 int16 int32 int64 rune byte uint uint8 uint16 uint32 uint64 uintptr float32 float64 complex64 complex128
 
 syn region  es_goString      start=+"+   skip=+\\\\\|\\"+ end=+"\|^+
@@ -25,6 +26,7 @@ hi def link es_goDirective   Statement
 hi def link es_goDeclaration Keyword
 hi def link es_goDeclType    Keyword
 hi def link es_goConstants   Keyword
+hi def link es_goBool        Boolean
 hi def link es_goType        Type
 hi def link es_goBuiltins    Keyword
 hi def link es_goStatement   Statement
