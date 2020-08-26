@@ -130,6 +130,8 @@ highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#F
 
 ### API
 
+![autopreview demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/autopreview.png)
+
 Automatically update the preview for the entry under the cursor.
 *NOTE* It'll automatically wrap `CursorMoved` autocommand to collect garbage on reloads, so no `augroup` around is required.
 ```vim
@@ -137,6 +139,8 @@ autocmd User esearch_win_config
   \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
   \| autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
 ```
+
+![floating demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/floating.png)
 
 Use a popup-like floating window to render search results.
 ```vim
