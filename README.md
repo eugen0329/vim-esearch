@@ -62,7 +62,7 @@ pressed (`O`, `S` and `T`) to open staying in the search window.
 
 Use `im` and `am` text-objects to jump to the following match and start operating on it. E.g.
 press `dam` to delete "a match" with trailing whitespaces under the cursor or jump to the nearest, `cim` to delete "inner match" and start
-the insert mode.
+the insert mode. Use any other operator including user-defined to capture matched text. Use `.` to repeat the last change.
 
 Use `:substitute/` command without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
 
@@ -74,20 +74,20 @@ to enter the preview for superficial changes (without jumping to a separate spli
 
 Default mappings cheatsheet:
 
-| Keymap                                     | What it does                                                                                 |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `<leader>ff`                               | Start the search pattern **input prompt** _[global]_                                                            |
-| `<leader>f{textobj}`                       | Start a new **search for a text-object** _[global]_                         |
-| `<c-r><c-r>` / `<c-s><c-s>` / `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                        |
-| `<c-o>`                                    | Open the **menu** _[prompt]_                                                                     |
-| `<cr>` / `o` / `s` / `t`                | **Open** the search result in the current window/vertical split/horizontal split/new tab  _[window]_ |
-| `O` / `S` / `T`                            | Same as above, but stay in the window  _[window]_                                            |
-| `J` / `K`                                  | Jump to the next/previous **search entry**  _[window]_                                           |
-| `{` / `}`                                  | Jump to the next/previous **filename**  _[window]_                                               |
-| `cim` / `dim`                              | Change/delete matched text  _[window]_                                                       |
-| `cam` / `dam`                              | Same as above, but capture trailing whitespaces as well  _[window]_                          |
-| `:write<cr>`                               | **Write** changes into files  _[window]_                          |
-| `p` / `P`                                  | Zoom/enter the **preview** window  _[window]_                                                    |
+| Keymap                                          | What it does                                                                                             |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `<leader>ff`                                    | Open the search pattern **input prompt** _[global]_                                                      |
+| `<leader>f{textobj}`                            | Start a new **search for a text-object** _[global]_                                                      |
+| `<c-r><c-r>` / `<c-s><c-s>` / <br> `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                                |
+| `<c-o>`                                         | Open the **menu** _[prompt]_                                                                             |
+| `<cr>` / `o` / `s` / `t`                        | **Open** a search result entry in the current window/vertical split/horizontal split/new tab  _[window]_ |
+| `O` / `S` / `T`                                 | Same as above, but stay in the window  _[window]_                                                        |
+| `J` / `K`                                       | Jump to the next/previous **search entry**  _[window]_                                                   |
+| `{` / `}`                                       | Jump to the next/previous **filename**  _[window]_                                                       |
+| `cim` / `dim` / `vim`                           | Jump to the next match and change/delete/select it _[window]_                                                            |
+| `cam` / `dam` / `vam`                           | Same as above, but capture trailing whitespaces as well  _[window]_                                      |
+| `:write<cr>`                                    | **Write** changes into files  _[window]_                                                                 |
+| `p` / `P`                                       | Zoom/enter the **preview** window  _[window]_                                                            |
 
 ### Basic configuration
 
@@ -133,7 +133,7 @@ highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#F
 ![autopreview demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/autopreview.png)
 
 Automatically update the preview for the entry under the cursor.
-*NOTE* It'll automatically wrap `CursorMoved` autocommand to collect garbage on reloads, so no `augroup` around is required.
+*NOTE* It'll internally wrap `CursorMoved` autocommand to collect garbage on reloads, so no `augroup` around is required.
 ```vim
 autocmd User esearch_win_config
   \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
