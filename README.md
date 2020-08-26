@@ -61,7 +61,7 @@ To open a line in a file press `<enter>` (open in the current window), `o` (open
 pressed (`O`, `S` and `T`) to open staying in the search window.
 
 Use `im` and `am` text-objects to jump to the following match and start operating on it. E.g.
-press `dam` to delete "a match" with trailing whitespaces under the cursor or jump to the nearestor, `cim` to delete "inner match" and start
+press `dam` to delete "a match" with trailing whitespaces under the cursor or jump to the nearest, `cim` to delete "inner match" and start
 the insert mode.
 
 Use `:substitute/` command without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
@@ -77,10 +77,10 @@ Default mappings cheatsheet:
 | Keymap                                     | What it does                                                                                 |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | `<leader>ff`                               | Start the search pattern **input prompt** _[global]_                                                            |
-| `<leader>f{textobj}`                       | Srart a new **search for a text-object** _[global]_                         |
+| `<leader>f{textobj}`                       | Start a new **search for a text-object** _[global]_                         |
 | `<c-r><c-r>` / `<c-s><c-s>` / `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                        |
 | `<c-o>`                                    | Open the **menu** _[prompt]_                                                                     |
-| `<cr>` / `o` / `s` / `t`                | **Open** the search result in the current window/vertical split/horitontal split/new tab  _[window]_ |
+| `<cr>` / `o` / `s` / `t`                | **Open** the search result in the current window/vertical split/horizontal split/new tab  _[window]_ |
 | `O` / `S` / `T`                            | Same as above, but stay in the window  _[window]_                                            |
 | `J` / `K`                                  | Jump to the next/previous **search entry**  _[window]_                                           |
 | `{` / `}`                                  | Jump to the next/previous **filename**  _[window]_                                               |
@@ -92,7 +92,7 @@ Default mappings cheatsheet:
 ### Basic configuration
 
 Configurations are scoped within `g:esearch` dictionary. Play around with
-kay-values below if you want to alter the default behavior:
+key-values below if you want to alter the default behavior:
 
 ```vim
 " Use <c-f><c-f> to start the prompt, use <c-f>iw to pre-fill with the current word
@@ -115,7 +115,7 @@ let g:esearch.prefill = ['hlsearch', 'last', 'clipboard']
 " to blank to always use the current working directory.
 let g:esearch.root_markers = ['.git', 'Makefile', 'node_modules']
 
-" Prevent esearch from mapping any default hotkeys.
+" Prevent esearch from adding any default keymaps.
 let g:esearch.default_mappings = 0
 
 " Open the search window in a vertical split and reuse it for all searches.
@@ -157,7 +157,7 @@ let g:esearch.win_new = {->
 autocmd User esearch_win_config autocmd BufLeave <buffer> quit
 ```
 
-Add mappings for window using `g:esearch.win_map` list of args.
+Add mappings for window using `g:esearch.win_map` list.
 ```vim
 let g:esearch = {}
 "   Keymap   |     What it does
@@ -180,6 +180,14 @@ dictionary using the same keys as in the global config to customize the
 behavior per request. Examples:
 
 ```vim
+" Search in modified files only using backticks in paths string
+" Remember is set to 0 to prevent saving configs history for later searches.
+nnoremap <leader>fm :call esearch#init({
+      \ 'adapter':  'git',
+      \ 'paths':    '`git ls-files --modified`',
+      \ 'remember': 0
+      \})<cr>
+
 " Search for debugger entries across the project without starting the prompt.
 " Remember is set to 0 to prevent saving configs history for later searches.
 nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<cr>
@@ -203,7 +211,6 @@ let g:search_py_methods = {
     \}
 nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 ```
-
 
 See `:help esearch-api` and `:help esearch-api-examples` for more details.
 
