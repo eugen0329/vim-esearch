@@ -4,7 +4,6 @@ local util  = require'esearch/util'
 local M = {}
 
 function M.render(data, esearch)
-  print('render:', #data, #esearch)
   local parsed, _separators_count = parse.lines(data)
   local contexts                 = esearch['contexts']
   local line_numbers_map         = esearch['line_numbers_map']
