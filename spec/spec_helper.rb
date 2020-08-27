@@ -9,7 +9,7 @@ require 'active_support/notifications'
 require 'active_support/tagged_logging'
 begin
   require 'pry'
-  Pry.config.history.file = '.pry_history'
+  Pry.config.history_file = '.pry_history'
 rescue LoadError # rubocop:disable Lint/SuppressedException
 end
 

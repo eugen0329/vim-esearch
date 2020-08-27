@@ -207,7 +207,7 @@ nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~
 nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
 
 " Use a callable prefiller to search python functions. Initial cursor position will be before
-" the closing bracket.
+" the opening bracket.
 nnoremap <leader>fp :call esearch#init({
       \ 'prefill':          [{-> "def (self\<lt>s-left>"}],
       \ 'filetypes':       'python',

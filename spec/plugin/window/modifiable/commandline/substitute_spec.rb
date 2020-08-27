@@ -275,7 +275,7 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
 
     context 'when backwards range is given' do
       it 'substitutes with auto-swap region confirmation' do
-        expect  {
+        expect {
           editor.send_command("$,1s/#{pattern}/changed/")
           editor.send_keys 'y'
         }.to change_entries_text([entry]).to(['changed'])
