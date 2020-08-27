@@ -79,6 +79,9 @@ Style/TrailingCommaInHashLiteral:
 Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: consistent_comma
 
+Metrics/CyclomaticComplexity:
+  Max: 8
+
 ### Parser specs
 # use %q|| instead of %q() to simplify escaping testing
 Style/PercentQLiterals:

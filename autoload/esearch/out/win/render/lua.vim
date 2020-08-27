@@ -44,11 +44,10 @@ if g:esearch#has#nvim_lua
   endfu
 else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
-    echomsg ['esearch#out#win#render#lua#do', a:data, a:from, a:to]
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
       let a:esearch.files_count = luaeval('esearch.render(_A.d, _A.e)',
-            \ {'e': a:esearch, 'd': a:data[a:from : a:to]})
+            \ {'d': a:data[a:from : a:to], 'e': a:esearch})
     finally
       call cwd.restore()
     endtry
