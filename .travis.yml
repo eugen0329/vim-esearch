@@ -111,9 +111,9 @@ jobs:
 
       # Although travis has less cores than 4, it's better for splitting as
       # groups with even execution time cannot be precisely determined using files size
-    - name: 'Acceptance tests of window output 1'
-      script:
-        - bundle exec parallel_test spec/plugin/window/syntax -n 2 --group-by filesize --type rspec
+    # - name: 'Acceptance tests of window output 1'
+      # script:
+        # - bundle exec parallel_test spec/plugin/window/syntax -n 2 --group-by filesize --type rspec
         # - bundle exec parallel_test spec/plugin/window/modifiable/commandline/substitute_spec.rb -n 2 --group-by filesize --type rspec
       # os: linux
     # - name: 'Acceptance tests of window output 2'
