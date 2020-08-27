@@ -9,9 +9,7 @@ function M.lines(data)
   -- must be invalidated across calls to prevent using stale file presence information
   local cache = {}
 
-  for i = 0, #data - 1 do
-    local line = data[i]
-
+  for line in data() do
     if line:len() == 0 or line == '--' then
       separators_count = separators_count + 1
     else
