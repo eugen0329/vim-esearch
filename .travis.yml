@@ -114,7 +114,7 @@ jobs:
     - name: 'Acceptance tests of window output 1'
       script:
         - bundle exec parallel_test spec/plugin/window/syntax -n 2 --group-by filesize --type rspec
-        - bundle exec parallel_test spec/plugin/window/modifiable/commandline/substitute_spec.rb -n 2 --group-by filesize --type rspec
+        # - bundle exec parallel_test spec/plugin/window/modifiable/commandline/substitute_spec.rb -n 2 --group-by filesize --type rspec
       # os: linux
     # - name: 'Acceptance tests of window output 2'
       # script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_columnwise/within_single_context_spec.rb ./spec/plugin/compatibility/visual_multi_spec.rb
