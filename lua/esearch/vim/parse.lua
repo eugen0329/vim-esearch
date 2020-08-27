@@ -9,12 +9,12 @@ function M.lines(data)
   -- must be invalidated across calls to prevent using stale file presence information
   local cache = {}
 
-  print('#data:' .. #data)
-  print('data[0]:' .. data[0])
-  print('data[1]:' .. data[1])
+  print('#data:', #data)
+  print('data[0]:', data[0])
+  print('data[1]:', data[1])
 
   for line in data() do
-    print('line: ' .. line)
+    print('line: ', line)
     if line:len() == 0 or line == '--' then
       separators_count = separators_count + 1
     else
