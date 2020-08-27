@@ -3,24 +3,29 @@ sudo: required
 dist: xenial      # https://docs.travis-ci.com/user/reference/linux/#overview
 osx_image: xcode9 # https://docs.travis-ci.com/user/reference/osx/#macos-version
 
-services:
-  - xvfb # NOTE: Services are not supported on osx
+services: # NOTE: Services are not supported on osx
+  - xvfb
 env:
   DISPLAY=":99.0"
   HOMEBREW_NO_AUTO_UPDATE=1
   VIM_GUI=1
   NVIM_GUI=0
+  DOCKER_BUILD=0
+  PARALLEL_SPLIT_TEST_PROCESSES=2
 
-rvm: 2.3.8     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
+rvm: 2.7.1     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
 language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+  -
+    test "$DOCKER_BUILD" = '1' && docker save -o docker_images/images.tar $(docker images -a -q) || true
 cache:
   bundler: true
   apt: true
   pip: true
   directories:
+    - docker_images
     - $TRAVIS_BUILD_DIR/spec/support/vim_plugins
     # - $TRAVIS_BUILD_DIR/spec/support/bin
     - $HOME/.rvm
@@ -31,10 +36,14 @@ cache:
 
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
-  - yes | gem update --system --force
-  - gem install bundler
+  - |
+    [ "$DOCKER_BUILD" = '1' ] && (docker load -i docker_images/images.tar || true) && return
+    yes | gem update --system --force
+    gem install bundler
 install:
   - |
+    [ "$DOCKER_BUILD" = '1' ] && spec/support/docker/build-alpine && return
+
     if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
       which pyenv
       whereis pyenv
@@ -49,89 +58,109 @@ install:
       pip3 --version
     fi
 
-    [ "$LINT_FOR" = viml ] && pip3 install vim-vint==0.3.21 && return
-    [ "$LINT_FOR" = ruby ] && bundle install && return
-
-
-    if [ "$SKIP_INSTALL_VIM_DEPENDENCIES" != '1' ]; then
-      sh spec/support/bin/install_vim_dependencies.sh "$TRAVIS_BUILD_DIR/spec/support/vim_plugins" "$TRAVIS_BUILD_DIR/spec/support/bin"
-    fi
-
     bundle install
 
-    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/bin/install_osx_dependencies.sh
-    else
-      sh spec/support/bin/install_linux_dependencies.sh
+    if [ "$LINT" = 1 ]; then
+      pip3 install vim-vint==0.3.21
+      sudo apt-get install -y luarocks
+      sudo luarocks install luacheck
     fi
+
+    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+    else
+      sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+    fi
+
+    bundle exec rake generate_lexer generate_parser
+    git config --global core.precomposeunicode true  ; git config --global core.quotePath false
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
     # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then DISPLAY=":99.0" sh -e /etc/init.d/xvfb start; sleep 5 fi
-
-after_failure:
   - env
   - ls -lah /usr/local/bin
+  - ls -lah "$TRAVIS_BUILD_DIR/spec/support/bin"
+  - ls -lah "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+  - |
+    vim --version || true
+    ack --help || true
+    ag --help || true
+    grep --help || true
+    "$TRAVIS_BUILD_DIR/spec/support/bin/rg" --help || true
+    "$TRAVIS_BUILD_DIR/spec/support/bin/pt" --help || true
+    git grep -h || true
 
 jobs:
   include:
-    # Why tests for two platforms:
-    #   - tests rely on platform specific calls and should be crossplatform
-    #   - underlying backends (mostly vimproc) rely platform specific calls
+    # parallel_split_test cause deadlocks on mac, so testing
+    # synchronously
+    # - name: 'Acceptance tests of #backend#system'
+    #   script: bundle exec rspec spec/plugin/backend_spec.rb --tag system
+    #   os: osx
+    # - name: 'Acceptance tests of #backend#nvim'
+    #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag nvim' --seed 6880
+    #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+    #   os: osx
+    # - name: 'Acceptance tests of #backend#vim8 with #viml render'
+    #   script: bundle exec rspec spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
+    #   os: osx
+    # - name: 'Acceptance tests of #backend#vimproc'
+    #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
+    #   os: osx
 
-    # OSX acceptance
+      # Although travis has less cores than 4, it's better for splitting as
+      # groups with even execution time cannot be precisely determined using files size
+    # - name: 'Acceptance tests of window output 1'
+      # script:
+        # - bundle exec parallel_test spec/plugin/window/syntax -n 2 --group-by filesize --type rspec
+        # - bundle exec parallel_test spec/plugin/window/modifiable/commandline/substitute_spec.rb -n 2 --group-by filesize --type rspec
+      # os: linux
+    # - name: 'Acceptance tests of window output 2'
+      # script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_columnwise/within_single_context_spec.rb ./spec/plugin/compatibility/visual_multi_spec.rb
+      # os: linux
+    # - name: 'Acceptance tests of window output 3'
+      # script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_columnwise/across_multiple_contexts_spec.rb
+      # os: linux
+    # - name: 'Acceptance tests of window output 4'
+      # script: bundle exec parallel_split_test ./spec/plugin/window/modifiable_linewise_spec.rb
+      # os: linux
     - name: 'Acceptance tests of #backend#system'
-      script: bundle exec rspec --tag system
-      os: osx
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6880
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
-      os: osx
-    - name: 'Acceptance tests of #backend#vim8'
-      script: bundle exec rspec --tag vim8
-      os: osx
-    - name: 'Acceptance tests of #backend#vimproc'
-      script: bundle exec rspec --tag vimproc
-      os: osx
-
-    # Linux acceptance
-    - name: 'Acceptance tests of #backend#system'
-      script: bundle exec rspec --tag system
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
       os: linux
-    - name: 'Acceptance tests of #backend#nvim'
-      script: bundle exec rspec --tag nvim --seed 6885
-      env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
+    #  TODO
+    # - name: 'Acceptance tests of #backend#nvim'
+    #   script: spec/support/docker/rake RSPEC_OPTS='--tag neovim'
+    #   env: NVIM_GUI=0 DOCKER_BUILD=1
+    #   services: docker
+    #   os: linux
+    - name: 'Acceptance tests of #backend#vim8 with #viml render and #legacy parser'
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
       os: linux
-    - name: 'Acceptance tests of #backend#vim8'
-      script: bundle exec rspec --tag vim8
+    - name: 'Acceptance tests of #backend#vim8 with #lua render'
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render:viml
       os: linux
     - name: 'Acceptance tests of #backend#vimproc'
-      script: bundle exec rspec --tag vimproc
+      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
       os: linux
 
-      # Unit tests
+    - name: 'Acceptance tests of adapter'
+      script: bundle exec rake RSPEC_OPTS='--tag adapters'
+      os: linux
+    - name: 'Acceptance tests of commandline'
+      script: bundle exec rake RSPEC_OPTS='--tag commandline'
+      os: linux
     - name: 'Unit tests'
-      script: bundle exec rspec --tag ~backend
+      script: bundle exec parallel_test spec/unit -n 2 --group-by filesize --type rspec
       os: linux
-
-      # Linters
-    - name: 'Ruby and support shell files lint (Rubocop, shellcheck)'
-      env: LINT_FOR=ruby SKIP_INSTALL_VIM_DEPENDENCIES=1
+    - name: 'Linters (luacheck, rubocop, vint, shellcheck)'
+      env: LINT=1 INSTALL_PYTHON_VERSION=3.6.1
       script:
+        - luacheck lua/
+        - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
         - bundle exec rubocop --display-cop-names
-        - shellcheck spec/support/bin/*.sh # decided to not create another build
+        - spec/support/docker/shellcheck
       os: linux
-    - name: 'Viml lint (Vint, VimLint)'
-      env:
-        LINT_FOR=viml
-        SKIP_INSTALL_VIM_DEPENDENCIES=1
-        VIML_DIRECTORIES='autoload nerdtree_plugin plugin syntax'
-      before_script:
-        - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
-        - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
-      script:
-        - sh "spec/support/bin/vimlint.sh" /tmp/vim-vimlint /tmp/vim-vimlparser $VIML_DIRECTORIES
-        - "vint $VIML_DIRECTORIES"
-      language: python
-      python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
+      # language: python
+      # python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux

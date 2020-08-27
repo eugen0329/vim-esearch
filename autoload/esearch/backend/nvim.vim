@@ -1,5 +1,4 @@
 let s:jobs = {}
-let s:incrementable_internal_id = 0
 
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
@@ -7,11 +6,10 @@ endif
 
 let s:NVIM_JOB_IS_INVALID = -3
 
-fu! esearch#backend#nvim#init(cmd, pty) abort
+fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   let request = {
-        \ 'internal_job_id': s:incrementable_internal_id,
         \ 'jobstart_args': {
-        \   'cmd': [&shell, &shellcmdflag, a:cmd],
+        \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
         \   'opts': {
         \     'on_stdout': function('s:stdout'),
         \     'on_stderr': function('s:stderr'),
@@ -22,61 +20,61 @@ fu! esearch#backend#nvim#init(cmd, pty) abort
         \   },
         \ },
         \ 'backend':  'nvim',
-        \ 'command':  a:cmd,
+        \ 'adapter':  a:adapter,
+        \ 'command':  a:command,
+        \ 'cwd':      a:cwd,
         \ 'data':     [],
-        \ 'intermediate':     '',
+        \ 'intermediate': '',
+        \ 'is_consumed': function('<SID>is_consumed'),
         \ 'errors':     [],
         \ 'finished': 0,
         \ 'status': 0,
+        \ 'cursor': 0,
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'events': {
-        \   'forced_finish': 'ESearchNVimFinish'.s:incrementable_internal_id,
-        \   'update': 'ESearchNVimUpdate'.s:incrementable_internal_id
+        \   'schedule_finish': 0,
+        \   'update': 0
         \ }
         \}
-
-  let s:incrementable_internal_id += 1
 
   return request
 endfu
 
-fu! esearch#backend#nvim#run(request) abort
-  " call esearch#log#debug('jobstart before', '/tmp/esearch_log.txt')
-  let job_id = jobstart(a:request.jobstart_args.cmd, a:request.jobstart_args.opts)
-  " call esearch#log#debug('jobstart after', '/tmp/esearch_log.txt')
-  let a:request.job_id = job_id
-  call jobclose(job_id, 'stdin')
-  " call esearch#log#debug('jobclose after', '/tmp/esearch_log.txt')
-  let s:jobs[job_id] = { 'data': [], 'request': a:request }
+fu! esearch#backend#nvim#exec(request) abort
+  let cwd = esearch#win#lcd(a:request.cwd)
+  try
+    let job_id = jobstart(a:request.jobstart_args.command, a:request.jobstart_args.opts)
+    let a:request.job_id = job_id
+    let a:request.start_at = reltime()
+    call jobclose(job_id, 'stdin')
+    let s:jobs[job_id] = { 'data': [], 'request': a:request }
+  finally
+    call cwd.restore()
+  endtry
+endfu
+
+fu! s:is_consumed(wait) abort dict
+  let timeout = a:wait - float2nr(reltimefloat(reltime(self.start_at)) * 1000)
+  if timeout < 0.0 | return 0 | endif
+  return jobwait([self.job_id], timeout)[0] ==# -1 && self.finished
 endfu
 
 " TODO encoding
 fu! s:stdout(job_id, data, event) dict abort
-  let job = s:jobs[a:job_id]
-  let data = a:data
+  let request = s:jobs[a:job_id].request
 
-  " If there is incomplete line from the last s:stduout call
-  if !empty(job.request.intermediate) && !empty(data)
-    let data[0] = job.request.intermediate . data[0]
-    let job.request.intermediate = ''
+  if !empty(request.intermediate)
+    let a:data[0] = request.intermediate . a:data[0]
+    let request.intermediate = ''
   endif
-
-  " If the last line is incomplete:
-  if !empty(data) && data[-1] !~# '\r$'
-    let job.request.intermediate = remove(data, -1)
-  endif
-
-  if self.pty
-    call map(data, "substitute(v:val, '\\r$', '', '')")
-  endif
-  let data = filter(data, "'' !=# v:val")
-  let job.request.data += data
+  let request.intermediate = remove(a:data, -1)
+  call extend(request.data, a:data)
 
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
-  if self.tick % self.ticks == 1
-    exe 'do User '.job.request.events.update
+  if self.tick % self.ticks == 1 && !empty(request.events.update)
+    call request.events.update()
   endif
 endfu
 
@@ -91,23 +89,24 @@ fu! s:stderr(job_id, data, event) dict abort
     let job.request.errors[-1] .= data[0]
     call remove(data, 0)
   endif
-  let job.request.errors += filter(data, "'' !=# v:val")
+  let errors = filter(data, "'' !=# v:val")
+  let job.request.errors += errors
+  if empty(errors) | return | endif
+
+  call esearch#stderr#incremental(job.request.adapter, errors)
 endfu
 
 fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  if !job.request.aborted
-    exe 'do User '.job.request.events.forced_finish
+  if !job.request.aborted && !empty(job.request.events.schedule_finish)
+    call job.request.events.schedule_finish()
   endif
 endfu
 
-" TODO write expansion for commands
-" g:esearch.expand_special has no affect due to josbstart is a function
-" (e.g #dispatch uses cmdline, where #,%,... can be expanded)
-fu! esearch#backend#nvim#escape_cmd(cmd) abort
-  return shellescape(a:cmd)
+fu! esearch#backend#nvim#escape_cmd(command) abort
+  return shellescape(a:command)
 endfu
 
 fu! esearch#backend#nvim#init_events() abort
@@ -118,9 +117,10 @@ endfu
 fu! esearch#backend#nvim#abort(bufnr) abort
   " FIXME unify with out#qflist
   let esearch = getbufvar(a:bufnr, 'esearch', get(g:, 'esearch_qf', {'request': {}}))
+  if empty(esearch.request) || esearch.request.aborted | return | endif
   let esearch.request.aborted = 1
 
-  if !empty(esearch) && has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
+  if has_key(esearch.request, 'job_id') && jobwait([esearch.request.job_id], 0) != [s:NVIM_JOB_IS_INVALID]
     try
       call jobstop(esearch.request.job_id)
     catch /E900:/
@@ -128,11 +128,3 @@ fu! esearch#backend#nvim#abort(bufnr) abort
     endtry
   endif
 endfu
-
-function! esearch#backend#nvim#_context() abort
-  return s:
-endfunction
-function! esearch#backend#nvim#_sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

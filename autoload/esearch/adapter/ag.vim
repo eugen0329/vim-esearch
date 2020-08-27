@@ -1,78 +1,45 @@
-if !exists('g:esearch#adapter#ag#options')
-  let g:esearch#adapter#ag#options = ''
+fu! esearch#adapter#ag#new() abort
+  return copy(s:Ag)
+endfu
+
+let s:Ag = esearch#adapter#base#import()
+if exists('g:esearch#adapter#ag#bin')
+  " TODO warn deprecated
+  let s:Ag.bin = g:esearch#adapter#ag#bin
+else
+  let s:Ag.bin = 'ag'
 endif
-if !exists('g:esearch#adapter#ag#bin')
-  let g:esearch#adapter#ag#bin = 'ag'
+if exists('g:esearch#adapter#ag#options')
+  " TODO warn deprecated
+  let s:Ag.options = g:esearch#adapter#ag#options
+else
+  let s:Ag.options = '--follow'
 endif
+let s:Ag.mandatory_options = '--nogroup --nocolor --noheading --nobreak'
+call extend(s:Ag, {
+      \   'bool2regex': ['literal', 'pcre'],
+      \   'regex': {
+      \     'literal':   {'icon': '',  'option': '--fixed-strings'},
+      \     'pcre':      {'icon': 'r', 'option': ''},
+      \   },
+      \   'bool2textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':      {'icon': '',  'option': ''},
+      \     'word':      {'icon': 'w', 'option': '--word-regexp'},
+      \   },
+      \   'bool2case': ['ignore', 'sensitive'],
+      \   'case': {
+      \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
+      \     'sensitive': {'icon': 's', 'option': '--case-sensitive'},
+      \     'smart':     {'icon': 'S', 'option': '--smart-case'},
+      \   }
+      \ })
 
-let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
+" ag --list-file-types
+let s:Ag.filetypes = split('actionscript ada asciidoc apl asm batch bitbake bro cc cfmx chpl clojure coffee coq cpp crystal csharp css cython delphi dlang dot dts ebuild elisp elixir elm erlang factor fortran fsharp gettext glsl go groovy haml handlebars haskell haxe hh html idris ini ipython isabelle j jade java jinja2 js json jsp julia kotlin less liquid lisp log lua m4 make mako markdown mason matlab mathematica md mercury naccess nim nix objc objcpp ocaml octave org parrot pdb perl php pike plist plone proto pug puppet python qml racket rake restructuredtext rs r rdoc ruby rust salt sass scala scheme shell smalltalk sml sql stata stylus swift tcl terraform tex thrift tla tt toml ts twig vala vb velocity verilog vhdl vim wix wsdl wadl xml yaml')
 
-fu! esearch#adapter#ag#_options() abort
-  if !exists('s:options')
-    let s:options = {
-    \ 'regex':   { 'p': ['--literal', ''],   's': ['>', 'r'] },
-    \ 'case':    { 'p': ['--ignore-case', '--case-sensitive'], 's': ['>', 'c'] },
-    \ 'word':    { 'p': ['',   '--word-regex'], 's': ['>', 'w'] },
-    \ 'stringify':   function('esearch#util#stringify'),
-    \ 'parametrize': function('esearch#util#parametrize'),
-    \}
-  endif
-  return s:options
+fu! s:Ag.is_success(request) abort
+  " https://github.com/ggreer/the_silver_searcher/issues/1298
+  return a:request.status == 0
+        \ || (a:request.status == 1 && empty(a:request.errors) && empty(a:request.data))
 endfu
-
-fu! esearch#adapter#ag#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#ag#_options()
-  let r = options.parametrize('regex')
-  let c = options.parametrize('case')
-  let w = options.parametrize('word')
-  return g:esearch#adapter#ag#bin.' '.r.' '.c.' '.w.' --nogroup --nocolor --column ' .
-        \ g:esearch#adapter#ag#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
-endfu
-
-fu! esearch#adapter#ag#is_broken_result(line) abort
-  return empty(matchlist(a:line, s:format)[1:4])
-endfu
-
-fu! esearch#adapter#ag#requires_pty() abort
-  return 1
-endfu
-
-fu! esearch#adapter#ag#parse_results(raw, from, to, broken_results, ...) abort
-  if empty(a:raw) | return [] | endif
-  let format = s:format
-  let results = []
-
-  let i = a:from
-  let limit = a:to + 1
-
-  while i < limit
-    let el = matchlist(a:raw[i], format)[1:4]
-    if len(el) != 4
-      if index(a:broken_results, a:raw[i]) < 0
-        call add(a:broken_results, {'after': a:raw[i-1], 'res': a:raw[i]})
-      endif
-    else
-      call add(results, {'filename': el[0], 'lnum': el[1], 'col': el[2], 'text': el[3]})
-    endif
-    let i += 1
-  endwhile
-  return results
-endfu
-
-" Used to build the query
-fu! s:parametrize(key, ...) dict abort
-  let option_index = g:esearch[a:key]
-  return self[a:key]['p'][option_index]
-endfu
-
-" Used in cmdline prompt
-fu! s:stringify(key, ...) dict abort
-  let option_index = g:esearch[a:key]
-  return self[a:key]['s'][option_index]
-endfu
-
-function! esearch#adapter#ag#sid() abort
-  return maparg('<SID>', 'n')
-endfunction
-nnoremap <SID>  <SID>

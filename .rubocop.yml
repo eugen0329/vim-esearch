@@ -31,7 +31,20 @@ Style/BlockDelimiters:
     - 'spec/**/*_spec.rb'
     - 'spec/spec_helper.rb'
     - 'spec/**/shared_examples/*.rb'
-  # EnforcedStyle: braces_for_chaining
+
+# Allow .to change {} dsl
+Lint/AmbiguousBlockAssociation:
+  Exclude:
+    - 'spec/**/*_spec.rb'
+    - 'spec/spec_helper.rb'
+    - 'spec/support/helpers/**/*.rb'
+    - 'spec/**/shared_examples/*.rb'
+
+Layout/FirstArrayElementIndentation:
+  EnforcedStyle: consistent
+
+Lint/BooleanSymbol:
+  Enabled: false
 
 Style/DoubleNegation:
   Enabled: false # TODO
@@ -41,5 +54,48 @@ Metrics/MethodLength:
 
 AllCops:
   Exclude:
-    - 'spec/support/brew_formula/**/*'
+    - 'spec/support/**/brew_formulae/**/*'
     - 'spec/support/bin/**/*'
+    - 'spec/fixtures/**/*'
+    - 'spec/support/lib/viml_value/parser.rb'
+    - 'spec/support/lib/viml_value/lexer.rb'
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+  Exclude:
+    - 'spec/support/vimrunner_neovim/**/*'
+    - 'spec/support/dsl/**/*'
+
+Layout/HashAlignment:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Metrics/CyclomaticComplexity:
+  Max: 8
+
+### Parser specs
+# use %q|| instead of %q() to simplify escaping testing
+Style/PercentQLiterals:
+  Exclude:
+    - 'spec/lib/viml_value/*_spec.rb'
+    - 'spec/lib/viml_value_spec.rb'
+Style/RedundantPercentQ: # to preserve alignments
+  Exclude:
+    - 'spec/lib/viml_value/*_spec.rb'
+    - 'spec/lib/viml_value_spec.rb'
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    '%q':    '||'
+    '%Q':    '||'
+  Include:
+    - 'spec/lib/viml_value/*_spec.rb'
+    - 'spec/lib/viml_value_spec.rb'

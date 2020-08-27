@@ -1,127 +1,151 @@
 # frozen_string_literal: true
 
-require 'rbconfig'
 require 'pathname'
-require 'vimrunner'
+require 'rspec'
 require 'vimrunner/rspec'
-require 'active_support/core_ext/numeric/time.rb'
-Dir[File.expand_path('spec/support/**/*.rb')].sort.each { |f| require f unless f.include?('brew_formula') }
+require 'active_support/dependencies'
+require 'active_support/core_ext/numeric/time'
+require 'active_support/notifications'
+require 'active_support/tagged_logging'
+begin
+  require 'pry'
+  Pry.config.history_file = '.pry_history'
+rescue LoadError # rubocop:disable Lint/SuppressedException
+end
 
-SEARCH_UTIL_ADAPTERS = %w[ack ag git grep pt rg].freeze
+require 'support/inflections'
+require 'support/subscriptions'
+require 'known_issues'
 
-Vimrunner::RSpec.configure do |config|
-  config.reuse_server = true
+require 'support/configuration'
+Configuration.tap do |c|
+  c.root = Pathname(File.expand_path('..', __dir__))
+  c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
+  c.search_event_timeout  = 8.seconds
+  c.search_freeze_timeout = 10.second
+  c.process_check_timeout = 10.second
+end
 
-  config.start_vim do
-    load_plugins!(vim_gui? ? Vimrunner.start_gvim : Vimrunner.start)
+ActiveSupport::Dependencies.autoload_paths += [
+  Configuration.root.join('spec/support'),
+  Configuration.root.join('spec/support/lib'),
+]
+require 'support/client'
+require 'support/server'
+
+EDITOR = Editor.new
+def editor
+  EDITOR
+end
+
+# Required mostly for improvimg performance of neovim backend testing by
+# sacrificing reliability (as with every optimization which involves caching
+# etc.). For other backends increase of running speed is about 1.5x - 2x times
+if Configuration.dangerously_maximize_performance?
+  Editor.cache_enabled = true
+  Editor.reader_class = Editor::Read::Batched
+  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
+  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
+  Configuration.vimrunner_switch_to_neovim_callback_scope = :all
+
+  ESEARCH = API::ESearch::Facade.new(editor)
+  def esearch
+    ESEARCH
+  end
+
+  VISUAL_MULTI = API::VisualMulti.new(editor)
+  def visual_multi
+    VISUAL_MULTI
+  end
+else
+  Editor.cache_enabled = false
+  Editor.reader_class = Editor::Read::Eager
+  API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
+  VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
+  Configuration.vimrunner_switch_to_neovim_callback_scope = :each
+
+  API::ESearch::Window.search_event_timeout    = 16.seconds
+  API::ESearch::Window.search_freeze_timeout   = 10.seconds
+  API::ESearch::QuickFix.search_event_timeout  = 16.seconds
+  API::ESearch::QuickFix.search_freeze_timeout = 10.seconds
+  API::ESearch::Platform.process_check_timeout = 20.seconds
+
+  def esearch
+    @esearch ||= API::ESearch::Facade.new(editor)
+  end
+
+  def visual_multi
+    @visual_multi ||= API::VisualMulti.new(editor)
   end
 end
 
-VimrunnerNeovim::RSpec.configure do |config|
-  config.reuse_server = true
+RSpec.configure do |c|
+  c.seed = 1
+  c.color_mode = true
+  c.order      = :rand
+  c.formatter  = :documentation
+  c.fail_fast  = Configuration.ci? ? 3 : 2
+  c.example_status_persistence_file_path = 'failed_specs.txt'
+  c.define_derived_metadata { |meta| meta[Configuration.platform_name] = true }
+  c.after(:each) { VimrunnerSpy.reset! } if Configuration.debug_specs_performance?
+  # overrule vimrunner
+  c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 
-  config.start_nvim do
-    load_plugins!(VimrunnerNeovim::Server.new(
-      nvim: nvim_path,
-      gui: nvim_gui?,
-      timeout: 10,
-      verbose_level: 0
-    ).start)
+  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
+  c.filter_run_excluding(:neovim)
+  c.filter_run_excluding(:osx_only) unless Configuration.osx?
+  c.filter_run_excluding(:multibyte_commandline) # TODO
+
+  c.define_derived_metadata(file_path: %r{/spec/plugin/window/}) do |metadata|
+    metadata[:window] = true
+  end
+  c.define_derived_metadata(file_path: %r{/spec/unit/}) do |metadata|
+    metadata[:unit] = true
+  end
+  c.define_derived_metadata(file_path: %r{/spec/lib/}) do |metadata|
+    metadata[:unit] = true # consider to test separately
   end
 end
 
-RSpec.configure do |config|
-  config.include Support::DSL::Vim
-  config.include Support::DSL::ESearch
-
-  config.color_mode = true
-  config.order = :rand
-  config.formatter = :documentation
-  config.fail_fast = 3
-end
-
+Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n
 RSpec::Matchers.define_negated_matcher :not_include, :include
+Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
-def load_plugins!(vim)
-  vimproc_path = working_directory.join('spec', 'support', 'vim_plugins', 'vimproc.vim')
-  pp_path      = working_directory.join('spec', 'support', 'vim_plugins', 'vim-prettyprint')
+Vimrunner::RSpec.configure do |c|
+  c.reuse_server = true
 
-  vim.add_plugin(working_directory, 'plugin/esearch.vim')
-  vim.add_plugin(vimproc_path,      'plugin/vimproc.vim')
-  vim.add_plugin(pp_path,           'plugin/prettyprint.vim')
-  vim
-end
-
-def nvim_path
-  if linux?
-    # working_directory.join('spec', 'support', 'bin', "nvim.linux.appimage").to_s
-    working_directory.join('spec', 'support', 'bin', 'squashfs-root', 'usr', 'bin', 'nvim').to_s
-  else
-    working_directory.join('spec', 'support', 'bin', 'nvim-osx64', 'bin', 'nvim').to_s
+  c.start_vim do
+    load_runtime!(Client.new(Server.vim(
+      name:       "VIMRUNER#{Time.now.to_f}#{ENV['TEST_ENV_NUMBER']}",
+      executable: Configuration.vim_path,
+      vimrc:      Configuration.vimrc_path,
+      timeout:    10
+    ).start))
   end
 end
 
-def vim_gui?
-  # NOTE: for some reason non-gui deadlocks on travis
-  ENV.fetch('VIM_GUI', '1') == '1' && gui?
+VimrunnerNeovim::RSpec.configure do |c|
+  c.reuse_server = true
+
+  c.start_nvim do
+    load_runtime!(Client.new(Server.neovim(
+      name:          "NVIMRUNER#{Time.now.to_f}#{Configuration.test_env_number}",
+      nvim:          Configuration.nvim_path,
+      gui:           Configuration.nvim_gui?,
+      vimrc:         Configuration.vimrc_path,
+      timeout:       10,
+      verbose_level: 0
+    ).start))
+  end
 end
 
-def nvim_gui?
-  # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
-  ENV.fetch('NVIM_GUI', '1') == '1' && gui?
-end
-
-def osx?
-  !(RbConfig::CONFIG['host_os'] =~ /darwin/).nil?
-end
-
-def linux?
-  !(RbConfig::CONFIG['host_os'] =~ /linux/).nil?
-end
-
-def gui?
-  ENV.fetch('GUI', '1') == '1'
-end
-
-def ci?
-  ENV['TRAVIS_BUILD_ID'].present?
-end
-
-# TODO: move out of here
-def wait_for_search_start
-  expect {
-    press('lh') # press jk to close "Press ENTER or type command to continue" prompt
-    bufname('%') =~ /Search/
-  }.to become_true_within(20.second)
-end
-
-def wait_for_search_freezed(timeout = 3.seconds)
-  expect { line(1) =~ /Finish/i }.not_to become_true_within(timeout)
-end
-
-def wait_for_qickfix_enter
-  expect {
-    expr('&filetype') == 'qf'
-  }.to become_true_within(5.second)
-end
-
-def ps_commands
-  `ps -A -o command | sed 1d`
-end
-
-def ps_commands_without_sh
-  ps_commands
-    .split("\n")
-    .reject { |l| %r{\A\s*(?:/bin/)?sh}.match?(l) }
-    .join("\n")
-end
-
-def working_directory
-  @working_directory ||= Pathname.new(File.expand_path('..', __dir__))
-end
-
-def delete_current_buffer
-  # From :help bdelete
-  #   Unload buffer [N] (default: current buffer) and delete it from the buffer list.
-  press ':bdelete<Enter>'
+def load_runtime!(vim)
+  vim.append_runtimepath(Configuration.viml_dir)
+  vim.add_plugin(Configuration.root,                                 'plugin/esearch.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('vimproc.vim'),      'plugin/vimproc.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('clever-f.vim'),     'plugin/clever-f.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('vim-visual-multi'), 'plugin/visual-multi.vim')
+  ## Will be used for testing contex syntax highlights
+  # vim.add_plugin(Configuration.plugins_dir.join('vim-colors-solarized'))
+  vim
 end

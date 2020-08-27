@@ -1,78 +1,62 @@
-if !exists('g:esearch#adapter#grep#options')
-  let g:esearch#adapter#grep#options = ''
+fu! esearch#adapter#grep#new() abort
+  return copy(s:Grep)
+endfu
+
+let s:Grep = esearch#adapter#base#import()
+
+if exists('g:esearch#adapter#grep#bin')
+  " TODO warn deprecated
+  let s:Grep.bin = g:esearch#adapter#grep#bin
+else
+  let s:Grep.bin = 'grep'
 endif
-if !exists('g:esearch#adapter#grep#bin')
-  let g:esearch#adapter#grep#bin = 'grep'
+if exists('g:esearch#adapter#grep#options')
+  " TODO warn deprecated
+  let s:Grep.options = g:esearch#adapter#grep#options
+else
+  " -I: don't match binary files
+  let s:Grep.options = '-I '
 endif
 
-let s:format = '^\(.\{-}\)\:\(\d\{-}\)\:\(.\{-}\)$'
+" Short options are used as they are supported more often than long ones
 
-fu! esearch#adapter#grep#_options() abort
-  if !exists('s:options')
-    if has('macunix')
-      let regex = '-E'
-    else
-      let regex = '--perl-regexp'
-    endif
-    let s:options = {
-    \ 'regex': { 'p': ['--fixed-strings', regex], 's': ['>', 'r'] },
-    \ 'case':  { 'p': ['--ignore-case',   ''             ], 's': ['>', 'c'] },
-    \ 'word':  { 'p': ['',                '--word-regexp'], 's': ['>', 'w'] },
-    \ 'stringify':   function('esearch#util#stringify'),
-    \ 'parametrize': function('esearch#util#parametrize'),
-    \}
-  endif
-  return s:options
+" -n: output line numbers
+" -R: recursive, follow symbolic links
+" -H: Print the file name for each match.
+" -x: Line regexp
+let s:Grep.mandatory_options = '-H -R -n'
+call extend(s:Grep, {
+      \   'bool2regex': ['literal', 'basic'],
+      \   'regex': {
+      \     'literal':  {'icon': '',  'option': '-F'},
+      \     'basic':    {'icon': 'G', 'option': '-G'},
+      \     'extended': {'icon': 'E', 'option': '-E'},
+      \     'pcre':     {'icon': 'P', 'option': '-P'},
+      \   },
+      \   'bool2textobj': ['none', 'word'],
+      \   'textobj': {
+      \     'none':     {'icon': '',  'option': ''},
+      \     'word':     {'icon': 'w', 'option': '-w'},
+      \     'line':     {'icon': 'l', 'option': '-x'},
+      \   },
+      \   'bool2case': ['ignore', 'sensitive'],
+      \   'case': {
+      \     'ignore':    {'icon':  '', 'option': '-i'},
+      \     'sensitive': {'icon': 's', 'option': ''},
+      \   }
+      \ })
+
+let s:Grep.filetypes = ''
+
+fu! s:Grep.filetypes2args(filetypes) abort dict
+  return ''
 endfu
 
-fu! esearch#adapter#grep#cmd(pattern, dir, escape, ...) abort
-  let options = a:0 ? a:1 : esearch#adapter#grep#_options()
-  let r = options.parametrize('regex')
-  let c = options.parametrize('case')
-  let w = options.parametrize('word')
-  " -r: recursive, no follow symbolic links
-  " -I: Process a binary file as if it did not contain matching data
-
-  return g:esearch#adapter#grep#bin.' '.r.' '.c.' '.w.' -r --line-number --exclude-dir=.{git,svn,hg} ' .
-        \ g:esearch#adapter#grep#options . ' -- ' .
-        \ a:escape(a:pattern)  . ' ' . fnameescape(a:dir)
+fu! s:Grep.pwd() abort dict
+  return '.'
 endfu
 
-fu! esearch#adapter#grep#is_broken_result(line) abort
-  return empty(matchlist(a:line, s:format)[1:3])
-endfu
-
-fu! esearch#adapter#grep#parse_results(raw, from, to, broken_results, pattern) abort
-  if empty(a:raw) | return [] | endif
-  let format = s:format
-  let results = []
-  let pattern = a:pattern
-
-  let i = a:from
-  let limit = a:to + 1
-
-  while i < limit
-    let el = matchlist(a:raw[i], format)[1:3]
-    if empty(el)
-      if index(a:broken_results, a:raw[i]) < 0
-        call add(a:broken_results, a:raw[i])
-      endif
-    else
-      let col = match(el[2], pattern) + 1
-      if !col | let col = 1 | endif
-      call add(results, {'filename': el[0], 'lnum': el[1], 'col': col, 'text': el[2]})
-    endif
-    let i += 1
-  endwhile
-  return results
-endfu
-
-fu! esearch#adapter#grep#requires_pty() abort
-  return 0
-endfu
-
-" Used to build the query
-fu! s:parametrize(key, ...) dict abort
-  let option_index = g:esearch[a:key]
-  return self[a:key]['p'][option_index]
+fu! s:Grep.is_success(request) abort
+  " 0 if a line is match, 1 if no lines matched, > 1 are for errors
+  return a:request.status == 0 || a:request.status == 1
 endfu

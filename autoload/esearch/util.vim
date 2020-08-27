@@ -1,137 +1,39 @@
-" if !exists('g:esearch#util#use_setbufline')
-"   let g:esearch#util#use_setbufline = 0
-" endif
-"" Disagreeably inefficient. Consider to implement #setbuflines instead to reduce redundant buffer switches
-"""""""""""""""""""""""""""""""""""""""""""""""""""
-" if g:esearch#util#use_setbufline
-"   fu! esearch#util#setline(expr, lnum, text) abort
-"     let oldnr = winnr()
-"     let winnr = bufwinnr(a:expr)
+let s:List     = vital#esearch#import('Data.List')
+let s:Filepath = vital#esearch#import('System.Filepath')
 
-"     if oldnr != winnr
-"       if winnr ==# -1
-"         noau silent exec 'sp '.escape(bufname(bufnr(a:expr)), ' \`')
-"         noau silent call setline(a:lnum, a:text)
-"         noau silent hide
-"       else
-"         noau exec   winnr.'wincmd w'
-"         noau silent call setline(a:lnum, a:text)
-"       endif
-"     else
-"       noau silent! call setline(a:lnum, a:text)
-"     endif
-"     noau exec oldnr.'wincmd w'
-"   endfu
-" else
-  fu! esearch#util#setline(_, lnum, text) abort
-    return setline(a:lnum, a:text)
+let g:esearch#util#even_count_of_escapes_re =  '\%(\\\)\@<!\%(\\\\\)*'
+
+fu! esearch#util#setline(_, lnum, text) abort
+  call setline(a:lnum, a:text)
+endfu
+
+if has('nvim')
+  fu! esearch#util#append_lines(lines) abort
+    call nvim_buf_set_lines(0, -1, -1, 0, a:lines)
   endfu
-" endif
+else
+  fu! esearch#util#append_lines(lines) abort
+    call append(line('$'), a:lines)
+  endfu
+endif
 
-" borrowed from the airline
-fu! esearch#util#qftype(bufnr) abort
-  let buffers = ''
-  redir => buffers
-  silent ls
-  redir END
-
-  let nr = a:bufnr
-  for buf in split(buffers, '\n')
-    if match(buf, '\v^\s*'.nr) > -1
-      if match(buf, '\cQuickfix') > -1
-        return 'qf'
-      elseif match(buf, '\cLocation') > -1
-        return 'loc'
-      else
-        return 'reg'
-      endif
-    endif
-  endfor
-endfu
-
-fu! esearch#util#qfbufnr() abort
-  redir => buffers
-  silent ls
-  redir END
-
-  for buf in split(buffers, '\n')
-    if match(buf, '\cQuickfix') > -1
-      return str2nr(matchlist(buf, '\s\(\d\+\)')[1])
-    endif
-  endfor
-  return -1
-endfu
-
-fu! esearch#util#bufloc(bufnr) abort
-  for tabnr in range(1, tabpagenr('$'))
-    if tabpagenr() == tabnr | continue | endif
-    let buflist = tabpagebuflist(tabnr)
-    if index(buflist, a:bufnr) >= 0
-      for winnr in range(1, tabpagewinnr(tabnr, '$'))
-        if buflist[winnr - 1] == a:bufnr | return [tabnr, winnr] | endif
-      endfor
-    endif
-  endfor
-
-  return []
-endf
-
-
-fu! esearch#util#flatten(list) abort
-  let flatten = []
-  for elem in a:list
-    if type(elem) == type([])
-      call extend(flatten, esearch#util#flatten(elem))
-    else
-      call add(flatten, elem)
-    endif
-    unlet elem
-  endfor
-  return flatten
-endfu
-
-fu! esearch#util#uniq(list) abort
-  let i = 0
-  let seen = {}
-  while i < len(a:list)
-    if (a:list[i] ==# '' && exists('empty')) || has_key(seen,a:list[i])
-      call remove(a:list,i)
-    elseif a:list[i] ==# ''
-      let i += 1
-      " TODO refactor to check variable value instead of existance
-      " @vimlint(EVL102, 1, l:empty)
-      let empty = 1
-      " @vimlint(EVL102, 0, l:empty)
-    else
-      let seen[a:list[i]] = 1
-      let i += 1
-    endif
-  endwhile
-  return a:list
-endfu
-
-fu! esearch#util#btrunc(str, center, lw, rw) abort
-  " om - omission, lw/rw - with from the left(right)
-  let om = g:esearch#util#trunc_omission
-
-  let l = (a:lw > a:center ? 0 : a:center - a:lw + len(om))
-  let r = (len(a:str) <= a:center + a:rw ? len(a:str)-1 : a:center+a:rw-len(om))
-
-  return (l == 0 ? '' : om) . a:str[l : r] . (r == len(a:str)-1 ? '' : om)
-endfu
-
-fu! esearch#util#trunc(str, size) abort
-  if len(a:str) > a:size
-    return a:str[:a:size] . '…'
+fu! esearch#util#ellipsize_end(text, max_len, ellipsis) abort
+  if strchars(a:text) < a:max_len
+    return a:text
   endif
 
-  return a:str
+  return strcharpart(a:text, 0, a:max_len - 1 - strchars(a:ellipsis)) . a:ellipsis
 endfu
 
-fu! esearch#util#shellescape(str) abort
-  return escape(fnameescape(a:str), ';')
-  " return shellescape(a:str, g:esearch.escape_special)
-  " return fnameescape(shellescape(a:str, g:esearch.escape_special))
+fu! esearch#util#clip(value, from, to) abort
+  " is made inclusive to be compliant with vim internal functions
+  if a:value >= a:to
+    return a:to
+  elseif a:value <= a:from
+    return a:from
+  else
+    return a:value
+  endif
 endfu
 
 fu! esearch#util#timenow() abort
@@ -139,207 +41,51 @@ fu! esearch#util#timenow() abort
   return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
 endfu
 
-fu! esearch#util#has_unicode() abort
-  return has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
-endfu
+fu! esearch#util#region_text(region) abort
+  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
 
-fu! esearch#util#visual_selection() abort
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection ==# 'inclusive' ? 1 : 2)]
-  let lines[0] = lines[0][col1 - 1:]
-  return join(lines, "\n")
-endfu
-
-fu! esearch#util#set(key, val) dict abort
-  let self[a:key] = a:val
-  return self
-endfu
-
-fu! esearch#util#get(key) dict abort
-  return self[a:key]
-endfu
-
-fu! esearch#util#dict() dict abort
-  return filter(copy(self), 'type(v:val) != '.type(function('tr')))
-endfu
-
-fu! esearch#util#with_val(val) dict abort
-  let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
-  return filter(copy(self), 'type(v:val) == type('.val.') && v:val==# '.val)
-endfu
-
-fu! esearch#util#without_val(val) dict abort
-  let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
-  return filter(copy(self), 'type(v:val) != type('.val.') || v:val!=# '.val)
-endfu
-
-fu! esearch#util#key(val) dict abort
-  let val = type(a:val) ==# type('') ? '"'.a:val.'"' : a:val
-  return get(keys(filter(copy(self), 'type(v:val) == type('.val.') && v:val==# '.val)), 0, 0)
-endfu
-
-fu! esearch#util#without(key) dict abort
-  return filter(copy(self), 'v:key !=# "'.a:key.'"')
-endfu
-
-fu! esearch#util#slice(...) dict abort
-  return filter(deepcopy(self), 'index(a:000, v:key) >= 0')
-endfu
-
-fu! esearch#util#set_default(key, default) dict abort
-  if !has_key(self, a:key)
-    let self[a:key] = a:default
-  endif
-  return self
-endfu
-
-fu! esearch#util#highlight(highlight, str, ...) abort
-  exe 'echohl ' . a:highlight . '| echon ' . strtrans(string(a:str))
-  if a:0 && empty(a:1)
-    echohl 'Normal'
-  endif
-endfu
-
-
-fu! esearch#util#hlecho(groups) abort
-  for group in a:groups
-    let str = len(group) == 1 ? '' : '| echon ' . string(group[1])
-    let highlight = 'echohl ' . group[0]
-    exe  highlight . str
-  endfor
-endfu
-
-" Used to build adapter query query
-fu! esearch#util#parametrize(key, ...) dict abort
-  let option_index = g:esearch[a:key]
-  return self[a:key]['p'][option_index]
-endfu
-
-" Used in cmdline prompt
-fu! esearch#util#stringify(key, ...) dict abort
-  let option_index = g:esearch[a:key]
-  return self[a:key]['s'][option_index]
-endfu
-
-fu! esearch#util#highlight_attr(group, mode, what, default) abort
-  let attr = synIDattr(synIDtrans(hlID(a:group)), a:what, a:mode)
-  if attr ==# -1 || attr ==# ''
-    return a:default
-  endif
-  return attr
-endfu
-
-fu! esearch#util#stringify_mapping(map) abort
-  let str = substitute(a:map, '<[Cc]-\([^>]\)>', 'ctrl-\1 ', 'g')
-  let str = substitute(str, '<[Ss]-\([^>]\)>', 'shift-\1 ', 'g')
-  let str = substitute(str, '<[AMam]-\([^>]\)>', 'alt-\1 ', 'g')
-  let str = substitute(str, '<[Dd]-\([^>]\)>', 'cmd-\1 ', 'g')
-  let str = substitute(str, '\s\+$', '', 'g')
-  return str
-endfu
-
-fu! esearch#util#destringify_mapping(map) abort
-  let str = substitute(a:map, 'ctrl',           'C', 'g')
-  let str = substitute(str,   '\%(alt\|meta\)', 'M', 'g')
-  let str = substitute(str,   'shift',          'S', 'g')
-  let str = substitute(str,   'cmd',            'D', 'g')
-  let str = join(map(filter(split(str,' '), "v:val !=# ''"),"'<'.v:val.'>'"),'')
-  return str
-endfu
-
-" Trying to infer which combination was pressed (<C-k>, <M-c> etc.)
-" Required:
-"   To figure out two values:
-"   1. <{}- > - the first which refers to kind of shift (M - meta, C - control etc.)
-"   2. <S-{}> - the second. This button is pressed along with a shift.
-" Algorythm:
-"   1. :let char = getchar()
-"   2. Pressing <M-c> (as an example), content of char now is '<80><fc>^Hc'
-"   3. Reveal unprintable chars by :let printable = strtrans(a:char)
-"      The last caracter printable[-1:] is the second required value.
-"   4. Walk through different combinations:
-"        Suppose it was combination with meta, like <M-a>.
-"        Comparing head of
-
-"          strtrans("\<M-a>") (that returns '<80><fc>^Ha'
-"                                          |  head   |tail (the last char)|)
-"
-"        with the head of the *printable*.
-"
-"          strtrans("\<M-a>")[:-2] == printable[:-2]
-"
-"        If they're eql, than the first required value is found,
-"        else - try the following kind of shift in the same way.
-"
-fu! esearch#util#map_name(char) abort
-  let printable = strtrans(a:char)
-
-  let len = strlen(printable)
-  let without_last_char = printable[:-2]
-  let last_char = printable[-1:]
-
-  if strtrans("\<M-a>")[:-2] == without_last_char
-    return '<M-'.last_char.'>'
-  elseif strtrans("\<F1>")[:-2] == without_last_char
-    return '<F'.last_char.'>'
-  elseif strtrans("\<S-F1>")[:-2] == without_last_char
-    return '<S-f'.last_char.'>'
-  elseif strtrans("\<S-F1>")[:-2] == without_last_char
-    return '<S-f'.last_char.'>'
-  elseif strtrans("\<C-a>")[:-2] == without_last_char
-    return '<C-'.last_char.'>'
-  endif
-
-  return 0
-endfu
-
-" TODO handle <expr> mappings
-fu! esearch#util#map_rhs(printable) abort
-  let printable = a:printable
-
-  " We can't fetch maparg neither with l:char nor with strtrans(l:char)
-  let mapname = esearch#util#map_name(printable)
-  if !empty(mapname)
-
-    " Vim can't expand mappings if we have mapping like
-    " maparg('<M-f>', 'c') == '<S-Left>' and "\<M-f>" send to
-    " input() as an initial {text} argument, so we try to do it manually
-    let maparg = maparg(mapname, 'c')
-    if !empty(maparg)
-      " let char = eval('"\'.maparg.'"')
-      return eval('"\'.maparg.'"')
+  try
+    if esearch#util#is_visual(a:region.type)
+      silent exe 'normal! gvy'
+    elseif a:region.type ==# 'line'
+      silent exe "normal! '[V']y"
+    else
+      silent exe 'normal! `[v`]y'
     endif
-  endif
 
-  return ''
+    return @@
+  finally
+    call options.restore()
+  endtry
 endfu
 
-fu! esearch#util#has_vimproc() abort
-  if !exists('s:exists_vimproc')
-    try
-      call vimproc#version()
-      let s:exists_vimproc = 1
-    catch
-      let s:exists_vimproc = 0
-    endtry
+fu! esearch#util#type2region(type) abort
+  if esearch#util#is_visual(a:type)
+    return {'type': a:type, 'begin': "'<", 'end': "'>"}
+  elseif a:type ==# 'line'
+    return {'type': a:type, 'begin': "'[", 'end': "']"}
+  else
+    return {'type': a:type, 'begin': '`[', 'end': '`]'}
   endif
-  return s:exists_vimproc
 endfu
 
-fu! esearch#util#recognize_plug_manager() abort
-  if exists('*plug#begin')
-    return 'Vundle'
-  elseif exists('*neobundle#begin')
-    return 'NeoBundle'
-  elseif exists('*dein#begin')
-    return 'Dein'
-  elseif exists('*vundle#begin')
-    return 'Vundle'
-  elseif exists('*pathogen#infect')
-    return 'Pathogen'
+fu! esearch#util#operator_expr(operatorfunc) abort
+  if mode(1)[:1] ==# 'no'
+    return 'g@'
+  elseif mode() ==# 'n'
+    let &operatorfunc = a:operatorfunc
+    return 'g@'
+  else
+    return ":\<C-u>call ".a:operatorfunc."(visualmode())\<CR>"
   endif
+endfu
+
+fu! esearch#util#is_visual(mode) abort
+  return a:mode =~? "^[vs\<C-v>]$"
+endfu
+
+fu! esearch#util#slice(dict, keys) abort
+  return filter(copy(a:dict), 'index(a:keys, v:key) >= 0')
 endfu
 
 fu! esearch#util#compare_len(first, second) abort
@@ -361,34 +107,127 @@ fu! esearch#util#buff_words() abort
     endwhile
     let lnum += 1
   endwhile
-  return esearch#util#uniq(words)
+
+  return s:List.uniq(words)
 endfu
 
-fu! esearch#util#add_map(mappings, lhs, rhs) abort
-  for mapping in a:mappings
-    if mapping.rhs == a:rhs && mapping.default == 1
-      call remove(a:mappings, index(a:mappings, mapping))
-      break
+if has('nvim') || g:esearch#has#windows
+  fu! esearch#util#getchar() abort
+    return s:to_char(getchar())
+  endfu
+else
+  fu! esearch#util#getchar() abort
+    let char = getchar()
+
+    if empty(esearch#keymap#escape_kind(char))
+      return s:to_char(char)
     endif
-  endfor
 
-  call add(a:mappings, {'lhs': a:lhs, 'rhs': a:rhs, 'default': 0})
-endfu
-
-fu! esearch#util#vim8_job_start_close_cb_implemented() abort
-  " 7.4.1398 - Implemented close-cb
-  return has('patch-7.4.1398')
-endfu
-
-fu! esearch#util#vim8_calls_close_cb_last() abort
-  " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
-  return has('patch-7.4.1787')
-endfu
-
-if !exists('g:esearch#util#trunc_omission')
-  if esearch#util#has_unicode()
-    let g:esearch#util#trunc_omission = g:esearch#unicode#trunc_omission
-  else
-    let g:esearch#util#trunc_omission = '|'
-  endif
+    return char
+  endfu
 endif
+
+fu! esearch#util#has_upper(text) abort
+  let ignorecase = esearch#let#restorable({'&ignorecase': 0})
+  try
+    return a:text =~# '[[:upper:]]'
+  finally
+    call ignorecase.restore()
+  endtry
+endfu
+
+fu! s:to_char(getchar_output) abort
+  if type(a:getchar_output) ==# type('')
+    return a:getchar_output
+  endif
+  return nr2char(a:getchar_output)
+endfu
+
+fu! esearch#util#insert(list, items, index) abort
+  let i = len(a:items) - 1
+  let list = a:list
+
+  while i >= 0
+    let list = insert(list, a:items[i], a:index)
+    let i -= 1
+  endwhile
+
+  return list
+endfu
+
+fu! esearch#util#safe_undojoin() abort
+  try
+    undojoin
+  catch /E790:/
+  endtry
+endfu
+
+fu! esearch#util#safe_matchdelete(id) abort
+  if a:id < 1 | return | endif " E802
+
+  try
+    call matchdelete(a:id)
+  catch /E803:/
+  endtry
+endfu
+
+fu! esearch#util#abspath(cwd, path) abort
+  if s:Filepath.is_absolute(a:path)
+    return a:path
+  endif
+
+  return s:Filepath.join(a:cwd, a:path)
+endfu
+
+" Is DANGEROUS as it can cause editing file with an existing swap, required ONLY
+" for floating preview windows
+fu! esearch#util#silence_swap_prompt() abort
+  " A - suppress swap prompt
+  " F - don't echo that a:filename is edited
+  return esearch#let#restorable({'&shortmess': 'AF'})
+endfu
+
+fu! esearch#util#slice_factory(keys) abort
+  let private_scope = {}
+  exe    " fu! l:private_scope.slice(dict) abort\n"
+     \ . '   return esearch#util#slice(a:dict,'.string(a:keys).")\n"
+     \ . ' endfu'
+  return private_scope.slice
+endfu
+
+fu! esearch#util#pluralize(word, count) abort
+  let word = a:word
+
+  if a:count == 1 || empty(word)
+    return word
+  endif
+
+  " tim pope
+  let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
+  let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
+  let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')
+  let word = substitute(word, '\v\Cf@<!f$',          've',  '')
+  let word .= 's'
+  return word
+endfu
+
+if g:esearch#has#nomodeline
+  fu! esearch#util#doautocmd(expr) abort
+    exe 'silent doau <nomodeline> ' . a:expr
+  endfu
+else
+  fu! esearch#util#doautocmd(expr) abort
+    let original_modelines = &modelines
+    try
+      set modelines=0
+      exe 'silent doau ' . a:expr
+    finally
+      let &modelines = original_modelines
+    endtry
+  endfu
+endif
+
+fu! esearch#util#escape_for_statusline(str) abort
+  let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
+  return substitute(tr(a:str, '/', safe_slash), '%', '%%', 'g')
+endfu

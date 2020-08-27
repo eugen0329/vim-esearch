@@ -8,19 +8,35 @@ require 'vimrunner/errors'
 require 'vimrunner/client'
 require 'vimrunner/platform'
 
+require 'active_support/core_ext/class/attribute'
+require 'active_support/core_ext/numeric/time'
+
+# almost copypasted from vimrunner due to inability to write an extension for it
+
 # rubocop:disable Layout/ClassLength
 module VimrunnerNeovim
   class Server
-    VIMRC        = Vimrunner::Server::VIMRC
-    VIMRUNNER_RC = Vimrunner::Server::VIMRUNNER_RC
+    include PlatformCheck
 
-    attr_reader :nvr_executable, :vimrc, :nvim, :gui, :name,
-      :verbose_level, :verbose_log_file, :nvim_log_file
+    VIMRC        = ::Vimrunner::Server::VIMRC
+    VIMRUNNER_RC = ::Vimrunner::Server::VIMRUNNER_RC
+    REMOTE_EXPR_METHOD_NAMES = {
+      prepend_with_escape_press:                           :remote_expr_prepended_with_escape_press,
+      fallback_to_prepending_with_escape_press_on_timeout: :remote_expr_with_fallback_on_timeout,
+      default:                                             :remote_expr_default,
+    }.freeze
+    class_attribute :remote_expr_execution_mode,
+                    default: :prepend_with_escape_press
+    class_attribute :remote_expr_execution_timeout,
+                    default: 0.5.seconds
+
+    attr_reader :nvr_executable, :vimrc, :executable, :gui, :name,
+      :verbose_level, :verbose_log_file, :nvim_log_file, :pid
 
     def initialize(options = {})
       @nvr_executable = options.fetch(:nvr_executable) { 'nvr' }
       @name           = options.fetch(:name) { "/tmp/VIMRUNNER_NEOVIM#{Time.now.to_i}" }
-      @nvim           = options.fetch(:nvim) { 'nvim' }
+      @executable     = options.fetch(:executable) { 'nvim' }
       @vimrc          = options.fetch(:vimrc) { VIMRC }
       @foreground     = options.fetch(:foreground, false)
       @gui            = options.fetch(:gui, false)
@@ -36,7 +52,7 @@ module VimrunnerNeovim
       # >= 14  Anything pending in a ":finally" clause.
       # >= 15  Every executed Ex command (truncated at 200 characters).
       @verbose_level    = options.fetch(:verbose_level, 0)
-      @verbose_log_file = options.fetch(:verbose_log_file) { '/tmp/vimrunner_neovim_verbose_log.log' }
+      @verbose_log_file = options.fetch(:verbose_log_file) { '/tmp/vimrunner_neovim_verbose.log' }
 
       # $NVIM_LOG_FILE variable for nvim
       @nvim_log_file = options.fetch(:nvim_log_file) { "#{Dir.home}/.local/share/nvim/log" }
@@ -60,7 +76,6 @@ module VimrunnerNeovim
     def connect(options = {})
       connect!(options)
     rescue Timeout::Error
-      puts 'Timeout' * 10
       nil
     end
 
@@ -106,10 +121,33 @@ module VimrunnerNeovim
     end
 
     def remote_expr(expression)
-      remote_send('<C-\\><C-n>jk')
-      result = execute([nvr_executable, *nvr_args, '--remote-expr', expression])
-      remote_send('<C-\\><C-n>jk')
+      method_name = REMOTE_EXPR_METHOD_NAMES.fetch(remote_expr_execution_mode) do
+        raise "Unknown remote_expr_execution_mode: #{remote_expr_execution_mode}"
+      end
+
+      public_send(method_name, expression)
+    end
+
+    def remote_expr_default(expression)
+      execute([nvr_executable, *nvr_args, '--remote-expr', expression])
+    end
+
+    def remote_expr_with_fallback_on_timeout(expression)
+      args = [nvr_executable, *nvr_args, '--remote-expr', expression, '-s']
+      result = nil
+      Timeout.timeout(remote_expr_execution_timeout, Timeout::Error) do
+        thread = Thread.new { result = execute(args) }
+        thread.abort_on_exception = true
+        thread.join
+      end
       result
+    rescue Timeout::Error
+      remote_expr_prepended_with_escape_press(expression)
+    end
+
+    def remote_expr_prepended_with_escape_press(expression)
+      remote_send('<C-\\><C-n><Esc>')
+      remote_expr_default(expression)
     end
 
     def remote_send(keys)
@@ -135,24 +173,24 @@ module VimrunnerNeovim
 
     def env
       {
-        'NVIM_LOG_FILE' => nvim_log_file
+        'NVIM_LOG_FILE' => nvim_log_file,
       }
     end
 
     # has problems with io
     def with_io_popen
-      pipe = IO.popen([env, nvim, *nvim_args])
+      pipe = IO.popen([env, executable, *nvim_args])
       [nil, nil, pipe.pid]
     end
 
     # hangs forever on linux machines
     def background_pty
-      PTY.spawn(env, nvim, *nvim_args, '--headless')
+      PTY.spawn(env, executable, '--headless', *nvim_args)
     end
 
     # doesn't work with pry, but may be ok for CI
     def headless_process_without_extra_output
-      pid = fork { exec(env, nvim, *nvim_args, '--embed', '--headless') }
+      pid = fork { exec(env, executable, *nvim_args, '--embed', '--headless') }
       [nil, nil, pid]
     end
 
@@ -160,27 +198,28 @@ module VimrunnerNeovim
     # ENTER or type command to continue". Can be convenient for debug headless
     # mode, but it pollutes output with this messages
     def headless_process_with_extra_output
-      pid = fork { exec(env, nvim, *nvim_args, '--headless') }
+      pid = fork { exec(env, executable, '--headless', *nvim_args) }
       [nil, nil, pid]
     end
 
     def fork_gui
-      exec_nvim_command = "#{nvim} #{nvim_args.join(' ')}"
+      exec_nvim_command = "#{executable} #{nvim_args.join(' ')}"
       # TODO: extract platform check
-      pid = if RbConfig::CONFIG['host_os'] =~ /darwin/
+      pid = if osx?
               fork { exec(env, 'iterm', exec_nvim_command) }
             else
+              # fork { exec(env, 'xterm', '-geometry', '500x20+1000+1', '-e', exec_nvim_command) }
               fork { exec(env, 'xterm', '-e', exec_nvim_command) }
             end
       [nil, nil, pid]
     end
 
     def nvim_args
-      ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
+      @nvim_args ||= ['--listen', name, '-n', '-u', vimrc, verbose_log_argument, '-c "set nomore"']
     end
 
     def nvr_args
-      ['--nostart', '--servername', name]
+      @nvr_args ||= ['--nostart', '--servername', name]
     end
 
     def wait_until_running(seconds)

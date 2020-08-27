@@ -8,8 +8,6 @@ require 'vimrunner/errors'
 require 'vimrunner/client'
 require 'vimrunner/platform'
 
-require_relative 'server'
-
 # almost copypasted from vimrunner due to inability to write an extension for it
 
 module VimrunnerNeovim
@@ -50,10 +48,6 @@ module VimrunnerNeovim
       yield configuration
     end
   end
-end
-
-Vimrunner::RSpec.configure do |config|
-  config.reuse_server = false
 end
 
 RSpec.configure do |config|
