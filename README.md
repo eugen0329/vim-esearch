@@ -78,7 +78,7 @@ Default mappings cheatsheet:
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `<leader>ff`                                    | Open the search pattern **input prompt** _[global]_                                                      |
 | `<leader>f{textobj}`                            | Start a new **search for a text-object** _[global]_                                                      |
-| `<c-r><c-r>` / `<c-s><c-s>` / <br> `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                                |
+| `<c-r><c-r>` / <br> `<c-s><c-s>` / <br> `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                                |
 | `<c-o>`                                         | Open the **menu** _[prompt]_                                                                             |
 | `<cr>` / `o` / `s` / `t`                        | **Open** a search result entry in the current window/vertical split/horizontal split/new tab _[window]_ |
 | `O` / `S` / `T`                                 | Same as above, but stay in the window _[window]_                                                        |
