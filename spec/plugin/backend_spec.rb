@@ -341,7 +341,7 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'git'
         include_context 'works with adapter', 'grep'
         include_context 'works with adapter', 'pt', Configuration.pt_path
-        include_context 'works with adapter', 'rg', Configuration.rg_path
+        # include_context 'works with adapter', 'rg', Configuration.rg_path
       end
     end
   end

@@ -256,13 +256,13 @@ describe 'esearch#adapter', :adapters do
     include_examples 'adapter paths testing examples', 'git'
     include_examples 'adapter paths testing examples', 'grep'
     include_examples 'adapter paths testing examples', 'pt', Configuration.pt_path
-    include_examples 'adapter paths testing examples', 'rg', Configuration.rg_path
+    # include_examples 'adapter paths testing examples', 'rg', Configuration.rg_path
   end
 
   shared_examples '[filetypes] testing examples' do
     include_examples 'adapter filetypes testing examples', 'ag'
     include_examples 'adapter filetypes testing examples', 'ack'
-    include_examples 'adapter filetypes testing examples', 'rg', Configuration.rg_path
+    # include_examples 'adapter filetypes testing examples', 'rg', Configuration.rg_path
   end
 
   # describe '#nvim', :neovim do
