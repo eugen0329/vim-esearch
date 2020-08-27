@@ -9,7 +9,7 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 1. [Features overview](#features-overview)
 2. [Install](#install)
 3. [Quick start](#quick-start)
-4. [Basic configuration](#basic-configuration)
+4. [Configuration](#configuration)
 5. [API](#api)
 6. [Troubleshooting](#troubleshooting)
 7. [Acknowledgements](#acknowledgements)
@@ -80,16 +80,16 @@ Default mappings cheatsheet:
 | `<leader>f{textobj}`                            | Start a new **search for a text-object** _[global]_                                                      |
 | `<c-r><c-r>` / `<c-s><c-s>` / <br> `<c-t><c-t>` | Cycle through regex/case/text-object **modes** _[prompt]_                                                |
 | `<c-o>`                                         | Open the **menu** _[prompt]_                                                                             |
-| `<cr>` / `o` / `s` / `t`                        | **Open** a search result entry in the current window/vertical split/horizontal split/new tab  _[window]_ |
-| `O` / `S` / `T`                                 | Same as above, but stay in the window  _[window]_                                                        |
-| `J` / `K`                                       | Jump to the next/previous **search entry**  _[window]_                                                   |
-| `{` / `}`                                       | Jump to the next/previous **filename**  _[window]_                                                       |
-| `cim` / `dim` / `vim`                           | Jump to the next match and change/delete/select it _[window]_                                                            |
-| `cam` / `dam` / `vam`                           | Same as above, but capture trailing whitespaces as well  _[window]_                                      |
-| `:write<cr>`                                    | **Write** changes into files  _[window]_                                                                 |
-| `p` / `P`                                       | Zoom/enter the **preview** window  _[window]_                                                            |
+| `<cr>` / `o` / `s` / `t`                        | **Open** a search result entry in the current window/vertical split/horizontal split/new tab _[window]_ |
+| `O` / `S` / `T`                                 | Same as above, but stay in the window _[window]_                                                        |
+| `J` / `K`                                       | Jump to the next/previous **search entry** _[window]_                                                   |
+| `{` / `}`                                       | Jump to the next/previous **filename** _[window]_                                                       |
+| `cim` / `dim` / `vim`                           | Jump to the **next match** and change/delete/select it _[window]_                                                            |
+| `cam` / `dam` / `vam`                           | Same as above, but capture trailing whitespaces as well _[window]_                                      |
+| `:write<cr>`                                    | **Write** changes into files _[window]_                                                                 |
+| `p` / `P`                                       | Zoom/enter the **preview** window _[window]_                                                            |
 
-### Basic configuration
+### Configuration
 
 Configurations are scoped within `g:esearch` dictionary. Play around with
 key-values below if you want to alter the default behavior:
@@ -147,7 +147,7 @@ Use a popup-like floating window to render search results.
 let g:esearch = {}
 " Try to jump into an opened floating window or open a new one.
 let g:esearch.win_new = {->
-  \ esearch#buf#goto_or_open('[Find]', {bufname->
+  \ esearch#buf#goto_or_open('[Search]', {bufname->
   \   nvim_open_win(bufadd(bufname), v:true, {
   \     'relative': 'editor',
   \     'row': float2nr(&lines * 0.2) / 2,
@@ -200,20 +200,19 @@ nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'rege
 " they are changed during a request.
 nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
 
-" Search in front-end files using an explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
+" Search in front-end files using explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
-nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/other-dir'})<cr>
+nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/another-dir'})<cr>
 " or if one of ag, rg or ack is available
 nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
 
 " Use a callable prefiller to search python functions. Initial cursor position will be before
 " the closing bracket.
-let g:search_py_methods = {
-    \ 'prefill':          [{-> "def (self\<s-left>"}],
-    \ 'filetypes':       'python',
-    \ 'select_prefilled': 0
-    \}
-nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
+nnoremap <leader>fp :call esearch#init({
+      \ 'prefill':          [{-> "def (self\<lt>s-left>"}],
+      \ 'filetypes':       'python',
+      \ 'select_prefilled': 0
+      \})<cr>
 ```
 
 See `:help esearch-api` and `:help esearch-api-examples` for more details.

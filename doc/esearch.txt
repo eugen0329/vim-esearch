@@ -1072,11 +1072,11 @@ they are changed during a request.
         \ 'remember': ['regex', 'case']
         \})<cr>
 <
-3. Search in front-end files using an explicitly set cwd.
+3. Search in front-end files using explicitly set cwd.
 >
     nnoremap <leader>fe :call esearch#init({
         \ 'paths': '**/*.{js,css,html}',
-        \ 'cwd':   '~/other-dir'
+        \ 'cwd':   '~/another-dir'
         \})<cr>
 <
 NOTE To use all globbing features make ensure that |'shell'| option contains
