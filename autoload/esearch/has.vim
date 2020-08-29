@@ -14,15 +14,15 @@ let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#ha
 let g:esearch#has#nvim_lua_syntax = has('nvim') && exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight
 let g:esearch#has#unicode = has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 let g:esearch#has#preview = has('nvim') && exists('*nvim_open_win')
-let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')
 let g:esearch#has#nvim_winid = exists('*nvim_set_current_win') && exists('*nvim_get_current_win')
 let g:esearch#has#vim8_types = exists('v:true') && exists('v:false') && exists('v:null')
 let g:esearch#has#nomodeline = has('patch-7.3.438')
 let g:esearch#has#virtual_text = exists('*nvim_buf_set_virtual_text')
-
+let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')
 " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
 let g:esearch#has#vim8_calls_close_cb_last = has('patch-7.4.1787')
 let g:esearch#has#vim8_jobs = has('job') && g:esearch#has#vim8_calls_close_cb_last
+let g:esearch#has#jobs = g:esearch#has#nvim_jobs || g:esearch#has#vim8_jobs
 " Implemented as a function to not preload unneeded code from
 " autoload/vimproc.vim
 fu! esearch#has#vimproc() abort
