@@ -353,20 +353,6 @@ describe 'esearch#backend', :backend do
     include_context 'a backend 2', 'system'
   end
 
-  describe '#vimproc', :vimproc, backend: :vimproc do
-    before(:context) do
-      esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml')
-      editor.command <<~VIML
-        let g:esearch#backend#vimproc#updatetime = 30
-        let g:esearch#backend#vimproc#read_timeout = 30
-      VIML
-    end
-
-    include_context 'a backend', 'vimproc'
-    include_context 'a backend 2', 'vimproc'
-    it_behaves_like 'an abortable backend', 'vimproc'
-  end
-
   describe '#nvim', :neovim do
     around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
 

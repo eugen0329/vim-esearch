@@ -67,7 +67,7 @@ fu! s:open_reusable(esearch, opener, filename, opts) abort
   let opened_window = get(a:esearch.reusable_windows, opener_id, s:null)
 
   if !empty(opened_window) && esearch#win#exists(opened_window)
-    call esearch#win#enter(opened_window)
+    call esearch#win#goto(opened_window)
     " Don't open if the file is already opened.
     " Prevents from asking about existing swap prompt multiple times
     if s:Filepath.abspath(bufname('%')) !=# a:filename

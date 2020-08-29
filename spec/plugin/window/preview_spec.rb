@@ -130,7 +130,7 @@ describe 'esearch#preview' do
               .to stay_in_buffer
               .and change { windows.count }.by(1)
             editor.command! 'au! esearch_preview_autoclose *'
-            editor.echo func('esearch#win#enter', windows.last)
+            editor.echo func('esearch#win#goto', windows.last)
             expect(editor.syntax_under_cursor).not_to be_blank
             expect(editor.changenr).to eq(changes_count)
           end
@@ -156,7 +156,7 @@ describe 'esearch#preview' do
               .to stay_in_buffer
               .and change { windows.count }.by(1)
             editor.command! 'au! esearch_preview_autoclose *'
-            editor.echo func('esearch#win#enter', windows.last)
+            editor.echo func('esearch#win#goto', windows.last)
             expect(editor.syntax_under_cursor).not_to be_blank
           end
 

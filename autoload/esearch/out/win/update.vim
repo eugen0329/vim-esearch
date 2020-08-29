@@ -18,13 +18,10 @@ fu! esearch#out#win#update#init(esearch) abort
       au! * <buffer>
       call esearch#backend#{a:esearch.backend}#init_events()
 
-      if a:esearch.backend !=# 'vimproc'
-        " TODO
-        for [func_name, event] in items(a:esearch.request.events)
-          let a:esearch.request.events[func_name] =
-                \ function('s:early_update_backend_cb', [bufnr('%')])
-        endfor
-      endif
+      for [func_name, event] in items(a:esearch.request.events)
+        let a:esearch.request.events[func_name] =
+              \ function('s:early_update_backend_cb', [bufnr('%')])
+      endfor
 
       let a:esearch.updates_timer = timer_start(
             \ a:esearch.win_update_throttle_wait,
@@ -200,8 +197,4 @@ fu! esearch#out#win#update#finish(bufnr) abort
     call luaeval('esearch.appearance.buf_attach_ui()')
   endif
   call esearch#out#win#appearance#annotations#init(esearch)
-endfu
-
-fu! esearch#out#win#update#trigger_key_press(...) abort
-  call feedkeys("g\<ESC>", 'n')
 endfu

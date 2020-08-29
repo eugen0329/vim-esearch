@@ -53,11 +53,6 @@ fu! esearch#out#qflist#setup_autocmds(opts) abort
   aug END
 endfu
 
-fu! esearch#out#qflist#trigger_key_press(...) abort
-  " call feedkeys("\<Plug>(esearch-Nop)")
-  call feedkeys("g\<ESC>", 'n')
-endfu
-
 fu! esearch#out#qflist#update() abort
   let esearch = g:esearch_qf
   let ignore_batches = esearch.ignore_batches

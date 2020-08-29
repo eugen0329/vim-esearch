@@ -44,7 +44,7 @@ fu! esearch#config#init(esearch) abort
         \ 'select_prefilled':                      1,
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
-        \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
+        \ 'win_update_throttle_wait':              g:esearch#has#throttle ? 100 : 0,
         \ 'win_viewport_off_screen_margin':        &lines > 100 ? &lines : 100,
         \ 'win_matches_highlight_debounce_wait':   100,
         \ 'win_matches_highlight_strategy':        g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd',
@@ -137,8 +137,6 @@ fu! esearch#config#default_backend() abort
     return 'nvim'
   elseif g:esearch#has#vim8_jobs
     return 'vim8'
-  elseif g:esearch#has#vimproc()
-    return 'vimproc'
   else
     return 'system'
   endif

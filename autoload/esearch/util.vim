@@ -36,11 +36,6 @@ fu! esearch#util#clip(value, from, to) abort
   endif
 endfu
 
-fu! esearch#util#timenow() abort
-  let now = reltime()
-  return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
-endfu
-
 fu! esearch#util#region_text(region) abort
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
 

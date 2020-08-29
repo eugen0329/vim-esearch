@@ -51,10 +51,6 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   skip! '/3\d+5/', adapter: :grep, matching: :regexp
   skip! '/3\d*5/', adapter: :grep, matching: :regexp
 
-  # TODO: investigate
-  random_failure! 'aborts on search restart', /.*/, :osx, backend: :vimproc
-  random_failure! 'aborts on bufdelete',      /.*/, :osx, backend: :vimproc
-
   # Git have different way to escape globs:
   #   `ag *.txt`,       `ag \*.txt`       - a wildcard and a regular string
   #   `git grep *.txt`, `git grep \*.txt` - both metachars
@@ -72,7 +68,4 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   skip! 'searching in a file with name "a\\n"', adapter: :pt
   skip! 'searching in a file with name "a\\n"', adapter: :rg
   skip! 'searching in a file with name "a\\n"', adapter: :grep
-
-  # vimproc doesn't handle LF as job control does
-  pending! 'searching in a file with name "a\\r"', /MissingEntry/, backend: :vimproc
 end
