@@ -107,10 +107,6 @@ fu! s:exit(job_id, job, status) abort
   let job.request.status = a:status
 endfu
 
-fu! esearch#backend#vim8#escape_cmd(command) abort
-  return shellescape(a:command)
-endfu
-
 fu! esearch#backend#vim8#init_events() abort
   au BufUnload <buffer>
         \ call esearch#backend#vim8#abort(str2nr(expand('<abuf>')))

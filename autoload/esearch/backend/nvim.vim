@@ -105,10 +105,6 @@ fu! s:exit(job_id, status, event) abort
   endif
 endfu
 
-fu! esearch#backend#nvim#escape_cmd(command) abort
-  return shellescape(a:command)
-endfu
-
 fu! esearch#backend#nvim#init_events() abort
   au BufUnload <buffer>
         \ call esearch#backend#nvim#abort(str2nr(expand('<abuf>')))
