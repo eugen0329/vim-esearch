@@ -105,9 +105,6 @@ jobs:
     # - name: 'Acceptance tests of #backend#vim8 with #viml render'
     #   script: bundle exec rspec spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
     #   os: osx
-    # - name: 'Acceptance tests of #backend#vimproc'
-    #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
-    #   os: osx
 
     - name: 'Acceptance tests of #backend#system'
       script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
@@ -123,9 +120,6 @@ jobs:
       os: linux
     - name: 'Acceptance tests of #backend#vim8 with #lua render'
       script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render:viml
-      os: linux
-    - name: 'Acceptance tests of #backend#vimproc'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vimproc
       os: linux
 
     - name: 'Acceptance tests of adapter'
