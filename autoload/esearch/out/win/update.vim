@@ -1,56 +1,50 @@
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-
-" TODO refactoring
 fu! esearch#out#win#update#init(esearch) abort
-  " TODO consider to drop ignore batches
-  let a:esearch.batched = 0
   if !a:esearch.request.async | return | endif
-  let a:esearch.early_update_limit = a:esearch.batch_size
 
   call extend(a:esearch, {
         \ 'last_update_at': reltime(),
         \ 'updates_timer':  -1,
+        \ 'early_update_limit': a:esearch.batch_size,
         \})
 
-  if a:esearch.win_update_throttle_wait > 0 && g:esearch#has#timers
-    aug esearch_win_updates
-      au! * <buffer>
-      call esearch#backend#{a:esearch.backend}#init_events()
+  aug esearch_win_updates
+    au! * <buffer>
+    exe 'au BufUnload <buffer> call esearch#backend#'.a:esearch.backend."#abort(str2nr(expand('<abuf>')))"
+  aug END
 
-      for [func_name, event] in items(a:esearch.request.events)
-        let a:esearch.request.events[func_name] =
-              \ function('s:early_update_backend_cb', [bufnr('%')])
-      endfor
-
-      let a:esearch.updates_timer = timer_start(
-            \ a:esearch.win_update_throttle_wait,
-            \ function('s:update_timer_cb', [a:esearch, bufnr('%')]),
-            \ {'repeat': -1})
-    aug END
+  if g:esearch#has#throttle && a:esearch.win_update_throttle_wait > 0
+    call s:init_throttled_updates(a:esearch)
   else
-    aug esearch_win_updates
-      au! * <buffer>
-      call esearch#backend#{a:esearch.backend}#init_events()
-    aug END
-    for [func_name, event] in items(a:esearch.request.events)
-      let a:esearch.request.events[func_name] = function('esearch#out#win#update#' . func_name, [bufnr('%')])
-    endfor
+    call s:init_instant_updates(a:esearch)
   endif
+endfu
+
+fu! s:init_throttled_updates(esearch) abort
+  let a:esearch.request.cb.update = function('s:early_update_backend_cb', [bufnr('%')])
+  let a:esearch.request.cb.schedule_finish = function('s:early_update_backend_cb', [bufnr('%')])
+  let a:esearch.updates_timer = timer_start(
+        \ a:esearch.win_update_throttle_wait,
+        \ function('s:update_timer_cb', [a:esearch, bufnr('%')]),
+        \ {'repeat': -1})
+endfu
+
+" rely only on stdout events
+fu! s:init_instant_updates(esearch) abort
+  let a:esearch.request.cb.update = function('esearch#out#win#update', [bufnr('%')])
+  let a:esearch.request.cb.schedule_finish = function('esearch#out#win#schedule_finish', [bufnr('%')])
 endfu
 
 fu! esearch#out#win#update#uninit(esearch) abort
   if has_key(a:esearch, 'updates_timer')
     call timer_stop(a:esearch.updates_timer)
   endif
+  exe printf('au! esearch_win_updates * <buffer=%s>', string(a:esearch.bufnr))
 endfu
 
-" When checking for an ability to finish early it's important to allow loading more
-" data than during early update, as is_consumed() is done using jobwait, that can
-" cause unwanted idle when early_update_limit is exceeded, but the backend
-" is still working.
+" NOTE is_consumed waits early_finish_wait ms while early_update_backend_cb is
+" working.
 fu! esearch#out#win#update#can_finish_early(esearch) abort
-  if !a:esearch.request.async | return s:true | endif
+  if !a:esearch.request.async | return 1 | endif
 
   let original_early_update_limit = a:esearch.early_update_limit
   let a:esearch.early_update_limit *= 1000
@@ -62,35 +56,26 @@ fu! esearch#out#win#update#can_finish_early(esearch) abort
   endtry
 endfu
 
-" Is used to render the first batch as soon as possible before the first timer
-" callback invokation. Is called on stdout event from a backend and is undloaded
-" when the first batch is rendered. Will render <= 2 * batch_size entries
-" (usually much less than 2x).
 fu! s:early_update_backend_cb(bufnr) abort
-  if a:bufnr != bufnr('%')
-    return
-  endif
+  if a:bufnr != bufnr('%') | return | endif
+
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  if esearch.request.cursor < esearch.early_update_limit
-    call esearch#out#win#update#update(a:bufnr)
+  if esearch.request.cursor >= esearch.early_update_limit
+    let esearch.request.cb.update = 0
+    let esearch.request.cb.schedule_finish = 0
+    return
+  endif
 
-    if esearch.request.finished && len(esearch.request.data) == esearch.request.cursor
-      call esearch#out#win#update#schedule_finish(a:bufnr)
-    endif
-  else
-    call s:unload_update_events(esearch)
+  call esearch#out#win#update#update(a:bufnr)
+  if esearch.request.finished && len(esearch.request.data) == esearch.request.cursor
+    call esearch#out#win#update#schedule_finish(a:bufnr)
   endif
 endfu
 
 fu! s:update_timer_cb(esearch, bufnr, timer) abort
-  " Timer counts time only from the beginning, not from the return, so we have to
-  " ensure it manually
-  " TODO extract to a separate throttling lib
   let elapsed = reltimefloat(reltime(a:esearch.last_update_at)) * 1000
-  if elapsed < a:esearch.win_update_throttle_wait
-    return
-  endif
+  if elapsed < a:esearch.win_update_throttle_wait | return | endif
 
   call esearch#out#win#update#update(a:esearch.bufnr)
 
@@ -102,27 +87,16 @@ fu! s:update_timer_cb(esearch, bufnr, timer) abort
   endif
 endfu
 
-fu! s:unload_update_events(esearch) abort
-  aug esearch_win_updates
-    for func_name in keys(a:esearch.request.events)
-      let a:esearch.request.events[func_name] = s:null
-    endfor
-  aug END
-  exe printf('au! esearch_win_updates * <buffer=%d>', a:esearch.bufnr)
-endfu
-
 fu! esearch#out#win#update#update(bufnr, ...) abort
-  " prevent updates when outside of the window
-  if a:bufnr != bufnr('%')
-    return
-  endif
+  if a:bufnr != bufnr('%') | return | endif
+
   let esearch = getbufvar(a:bufnr, 'esearch')
-  let batched = get(a:000, 0, esearch.batched)
+  let batched = get(a:, 1, 0)
   let request = esearch.request
   let data = request.data
   let data_size = len(data)
 
-  call setbufvar(a:bufnr, '&ma', 1)
+  call setbufvar(a:bufnr, '&modifiable', 1)
   if data_size > request.cursor
     if !batched
           \ || data_size - request.cursor - 1 <= esearch.batch_size
@@ -136,30 +110,25 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
 
     call esearch.render(a:bufnr, data, from, to, esearch)
   endif
-
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
-
   call setbufvar(a:bufnr, '&modifiable', 0)
+
   let esearch.last_update_at = reltime()
 endfu
 
 fu! esearch#out#win#update#schedule_finish(bufnr) abort
   if a:bufnr == bufnr('%')
-    call esearch#out#win#update#finish(a:bufnr)
-  else
-    " Bind event to finish the search as soon as the buffer is entered
-    aug esearch_win_updates
-      exe printf('au BufEnter <buffer=%d> ++once call esearch#out#win#update#finish(%d)', a:bufnr, a:bufnr)
-    aug END
-    return
+    return esearch#out#win#update#finish(a:bufnr)
   endif
+
+  " Bind event to finish the search as soon as the buffer is entered
+  aug esearch_win_updates
+    exe printf('au BufEnter <buffer=%d> call esearch#out#win#update#finish(%d)', a:bufnr, a:bufnr)
+  aug END
 endfu
 
 fu! esearch#out#win#update#finish(bufnr) abort
-  " prevent updates when outside of the buffer
-  if a:bufnr != bufnr('%')
-    return
-  endif
+  if a:bufnr != bufnr('%') | return | endif
 
   call esearch#util#doautocmd('User esearch_win_finish_pre')
   let esearch = getbufvar(a:bufnr, 'esearch')
@@ -171,25 +140,16 @@ fu! esearch#out#win#update#finish(bufnr) abort
     call luaeval('esearch.appearance.set_context_len_annotation(_A[1], _A[2])',
           \ [esearch.contexts[-1].begin, len(esearch.contexts[-1].lines)])
   endif
-
-  if esearch.request.async
-    exe printf('au! esearch_win_updates * <buffer=%s>', string(a:bufnr))
-  endif
-
-  if has_key(esearch, 'updates_timer')
-    call timer_stop(esearch.updates_timer)
-  endif
+  call esearch#out#win#update#uninit(esearch)
   call setbufvar(a:bufnr, '&modifiable', 1)
 
   if !esearch.current_adapter.is_success(esearch.request)
     call esearch#stderr#finish(esearch)
   endif
-
   let esearch.header_text = function('esearch#out#win#header#finished_render')
   call esearch#util#setline(a:bufnr, 1, esearch.header_text())
 
   call setbufvar(a:bufnr, '&modified', 0)
-
   call esearch#out#win#modifiable#init()
 
   if esearch.win_ui_nvim_syntax

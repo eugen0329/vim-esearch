@@ -144,7 +144,6 @@ jobs:
         - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
         - bundle exec rubocop --display-cop-names
         - spec/support/docker/shellcheck
-      os: linux
       # language: python
       # python: 3.7 # From logs: The `pip3' command exists in these Python versions: 3.6.7, 3.7, 3.7.1
       os: linux

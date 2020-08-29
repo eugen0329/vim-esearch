@@ -6,7 +6,6 @@ describe 'Writing in modifiable mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable
-  include Helpers::Modifiable::Write
   Context ||= Helpers::Modifiable::Context
 
   include_context 'setup modifiable testing'

@@ -67,7 +67,7 @@ fu! esearch#out#win#appearance#ctx_syntax#init(esearch) abort
   if !a:esearch.win_contexts_syntax | return | endif
 
   let Callback = function('s:highlight_viewport_cb', [a:esearch])
-  let a:esearch.ctx_syntax_loaded = 1
+  let a:esearch.loaded_ctx_syntaxes = 1
   let a:esearch.hl_ctx_syntax = esearch#async#debounce(Callback, a:esearch.win_contexts_syntax_debounce_wait)
   let a:esearch.context_syntax_regions = {}
   let a:esearch.max_lines_found = 0
@@ -112,7 +112,7 @@ endfu
 
 " Can be used to highlight 
 fu! esearch#out#win#appearance#ctx_syntax#highlight_viewport(esearch) abort
-  if !get(a:esearch, 'ctx_syntax_loaded', 0) | return | endif
+  if !get(a:esearch, 'loaded_ctx_syntaxes', 0) | return | endif
   let begin = esearch#util#clip(line('w0'), 3, line('$'))
   let end   = esearch#util#clip(line('w$'), 3, line('$'))
   return s:highlight_range(a:esearch, begin, end)
@@ -131,7 +131,7 @@ fu! s:highlight_range(esearch, begin, end) abort
 
   let state = esearch#out#win#_state(a:esearch)
   for ctx in b:esearch.contexts[state.ctx_ids_map[a:begin] : state.ctx_ids_map[a:end]]
-    if !ctx.syntax_loaded
+    if !ctx.loaded_syntax
       call s:define_context_filetype_syntax_region(a:esearch, ctx)
     endif
   endfor
@@ -158,7 +158,7 @@ fu! s:define_context_filetype_syntax_region(esearch, ctx) abort
   endif
 
   if !has_key(g:esearch#out#win#appearance#ctx_syntax#map, a:ctx.filetype)
-    let a:ctx.syntax_loaded = -1
+    let a:ctx.loaded_syntax = -1
     return
   endif
   let syntax_name = g:esearch#out#win#appearance#ctx_syntax#map[a:ctx.filetype]
@@ -187,7 +187,7 @@ fu! s:define_context_filetype_syntax_region(esearch, ctx) abort
   if a:esearch.max_lines_found < len
     let a:esearch.max_lines_found = len
   endif
-  let a:ctx.syntax_loaded = 1
+  let a:ctx.loaded_syntax = 1
 endfu
 
 fu! s:include_syntax_cluster(ft) abort

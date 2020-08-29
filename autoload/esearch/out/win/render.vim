@@ -40,7 +40,7 @@ fu! esearch#out#win#render#add_context(contexts, filename, begin) abort
         \ 'end': 0,
         \ 'filename': a:filename,
         \ 'filetype': s:null,
-        \ 'syntax_loaded': 0,
+        \ 'loaded_syntax': 0,
         \ 'lines': {},
         \ })
 endfu

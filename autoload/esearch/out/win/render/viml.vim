@@ -43,7 +43,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
           let a:esearch.slow_hl_enabled = 1
           call esearch#out#win#stop_highlights('too long line encountered')
         else
-          let a:esearch.contexts[-1].syntax_loaded = -1
+          let a:esearch.contexts[-1].loaded_syntax = -1
         end
       end
 

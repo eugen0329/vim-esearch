@@ -48,7 +48,7 @@ function M.render(data, esearch)
         ['end']           = false,
         ['filename']      = filename,
         ['filetype']      = false,
-        ['syntax_loaded'] = false,
+        ['loaded_syntax'] = false,
         ['lines']         = vim.dict(),
         }))
       ctx_by_name[filename] = contexts[#contexts - 1]
@@ -64,7 +64,7 @@ function M.render(data, esearch)
         esearch['slow_hl_enabled'] = false
         vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
-        contexts[#contexts - 1]['syntax_loaded'] = true
+        contexts[#contexts - 1]['loaded_syntax'] = true
       end
     end
 

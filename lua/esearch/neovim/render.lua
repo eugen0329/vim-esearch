@@ -50,7 +50,7 @@ function M.render(data, last_context, files_count, slow_hl_enabled)
         ['end']           = 0,
         ['filename']      = filename,
         ['filetype']      = 0,
-        ['syntax_loaded'] = 0,
+        ['loaded_syntax'] = 0,
         ['lines']         = {},
         }
       ctx_by_name[filename] = contexts[#contexts]
@@ -66,7 +66,7 @@ function M.render(data, last_context, files_count, slow_hl_enabled)
         slow_hl_enabled = false
         vim.api.nvim_eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
-        contexts[#contexts]['syntax_loaded'] = -1
+        contexts[#contexts]['loaded_syntax'] = -1
       end
     end
 

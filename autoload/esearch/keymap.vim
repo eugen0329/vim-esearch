@@ -98,7 +98,7 @@ fu! s:is_keys_combination(group, c) abort
 endfu
 
 fu! s:generate_escape_tables() abort
-  if exists('s:escape_tables_loaded') | return | endif
+  if exists('s:loaded_escape_tables') | return | endif
 
   let super_prefix = strtrans("\<D-a>")[:-2]
   let meta_prefix = strtrans("\<M-a>")[:-2]
@@ -146,5 +146,5 @@ fu! s:generate_escape_tables() abort
      call add(s:controls, strtrans(eval('"\<C-F'.i.'>"')))
    endfor
 
-   let s:escape_tables_loaded = 1
+   let s:loaded_escape_tables = 1
 endfu

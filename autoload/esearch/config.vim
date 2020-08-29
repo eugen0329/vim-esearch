@@ -3,12 +3,12 @@ fu! esearch#config#eager() abort
     let g:esearch = {}
   endif
 
-  if !get(g:esearch, 'lazy_loaded', 0)
+  if !get(g:esearch, 'loaded_lazy', 0)
     call esearch#util#doautocmd('User eseach_config_eager_pre')
     call esearch#config#init(g:esearch)
     call s:lua_init()
     call esearch#highlight#init()
-    let g:esearch.lazy_loaded = 1
+    let g:esearch.loaded_lazy = 1
     call esearch#util#doautocmd('User eseach_config_eager_post')
   endif
 endfu
@@ -58,7 +58,6 @@ fu! esearch#config#init(esearch) abort
         \ 'win_let':                               {'&l:buflisted': 0},
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
         \ 'filemanager_integration':               1,
-        \ 'deprecations_loaded':                   0,
         \ 'pending_deprecations':                  [],
         \}, 'keep')
   let g:esearch = extend(g:esearch, {

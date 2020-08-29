@@ -17,13 +17,12 @@ endfu
 fu! esearch#out#qflist#setup_autocmds(esearch) abort
   aug ESearchQFListAutocmds
     au! * <buffer>
-    for [func_name, Event] in items(a:esearch.request.events)
-      let a:esearch.request.events[func_name] = function('esearch#out#qflist#' . func_name)
-    endfor
-    call esearch#backend#{a:esearch.backend}#init_events()
+    let a:esearch.request.cb.update = function('esearch#out#qflist#update')
+    let a:esearch.request.cb.schedule_finish = function('esearch#out#qflist#schedule_finish')
 
     " Keep only User cmds(reponsible for results updating) and qf initialization
     au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "
+    exe 'au BufUnload <buffer> call esearch#backend#'.a:esearch.backend."#abort(str2nr(expand('<abuf>')))"
 
     " We need to handle quickfix bufhidden=wipe behavior
     if !exists('#ESearchQFListAutocmds#FileType')

@@ -1,6 +1,6 @@
 " Translate deprecated configurations and set deprecation warnings
 fu! esearch#middleware#deprecations#apply(esearch) abort
-  if g:esearch.deprecations_loaded
+  if get(g:esearch, 'loaded_deprecations', 0)
     return a:esearch
   endif
 
@@ -58,6 +58,6 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['highlight esearchFName. Please, rename to esearchFilename']
   endif
 
-  let g:esearch.deprecations_loaded = 1
+  let g:esearch.loaded_deprecations = 1
   return a:esearch
 endfu
