@@ -231,3 +231,18 @@ fu! esearch#util#escape_for_statusline(str) abort
   let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
   return substitute(tr(a:str, '/', safe_slash), '%', '%%', 'g')
 endfu
+
+fu! esearch#itertools#count() abort
+  return s:Count.new()
+endfu
+
+let s:Count = {'_value': 0}
+
+fu! s:Count.new() abort dict
+  return copy(self)
+endfu
+
+fu! s:Count.next() abort dict
+  let self._value += 1
+  return self._value - 1
+endfu
