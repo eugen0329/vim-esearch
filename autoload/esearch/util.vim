@@ -232,7 +232,7 @@ fu! esearch#util#escape_for_statusline(str) abort
   return substitute(tr(a:str, '/', safe_slash), '%', '%%', 'g')
 endfu
 
-fu! esearch#itertools#count() abort
+fu! esearch#util#counter() abort
   return s:Count.new()
 endfu
 

@@ -30,7 +30,7 @@ let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys + s:filet
 fu! s:Menu.new(props) abort dict
   let instance = extend(copy(self), {'props': a:props})
 
-  let i = esearch#itertools#count()
+  let i = esearch#util#counter()
   let instance.items = [
         \   s:CaseEntry.new({'i':     i.next(), 'keys':  s:case_keys}),
         \   s:RegexEntry.new({'i':    i.next(), 'keys': s:regex_keys}),
