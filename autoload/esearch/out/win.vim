@@ -43,7 +43,6 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#out#win#header#init(b:esearch)
   call esearch#out#win#view_data#init(b:esearch)
   call esearch#out#win#jumps#init(b:esearch)
-  call esearch#out#win#render#init(b:esearch)
   call esearch#out#win#update#init(b:esearch)
   call esearch#out#win#textobj#init(b:esearch)
 

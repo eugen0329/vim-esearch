@@ -55,7 +55,6 @@ fu! esearch#config#init(esearch) abort
         \ 'win_contexts_syntax_clear_on_line_len': 30000,
         \ 'win_context_len_annotations':           g:esearch#has#virtual_text,
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
-        \ 'win_let':                               {'&l:buflisted': 0},
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
         \ 'filemanager_integration':               1,
         \ 'pending_deprecations':                  [],

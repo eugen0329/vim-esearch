@@ -10,8 +10,8 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
   endif
 
   if exists('g:esearch#out#win#buflisted')
-    call extend(g:esearch.win_let, {'&l:buflisted': g:esearch#out#win#buflisted})
-    let g:esearch.pending_deprecations += ['g:esearch#out#win#buflisted, see :help g:esearch.win_let for details']
+    au User esearch#win_config let &buflisted = g:esearch#out#win#buflisted
+    let g:esearch.pending_deprecations += ['g:esearch#out#win#buflisted, see :help esearch_win_config for details']
   endif
 
   if exists('g:esearch#out#win#open')

@@ -2,16 +2,26 @@ fu! esearch#out#win#update#init(esearch) abort
   if !a:esearch.request.async | return | endif
 
   call extend(a:esearch, {
-        \ 'last_update_at': reltime(),
-        \ 'updates_timer':  -1,
+        \ 'last_update_at':     reltime(),
+        \ 'updates_timer':      -1,
         \ 'early_update_limit': a:esearch.batch_size,
+        \ 'contexts':           [],
+        \ 'files_count':        0,
+        \ 'separators_count':   0,
+        \ 'line_numbers_map':   [],
+        \ 'ctx_by_name':        {},
+        \ 'ctx_ids_map':        [],
+        \ 'render':             function('esearch#out#win#render#'.a:esearch.win_render_strategy.'#do'),
         \})
+
+  setl undolevels=-1 noswapfile nonumber norelativenumber nospell nowrap synmaxcol=400
+  setl nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide foldmethod=marker
+  call s:init_header_ctx(a:esearch)
 
   aug esearch_win_updates
     au! * <buffer>
     exe 'au BufUnload <buffer> call esearch#backend#'.a:esearch.backend."#abort(str2nr(expand('<abuf>')))"
   aug END
-
   if g:esearch#has#throttle && a:esearch.win_update_throttle_wait > 0
     call s:init_throttled_updates(a:esearch)
   else
@@ -26,6 +36,18 @@ fu! s:init_throttled_updates(esearch) abort
         \ a:esearch.win_update_throttle_wait,
         \ function('s:update_timer_cb', [a:esearch, bufnr('%')]),
         \ {'repeat': -1})
+endfu
+
+fu! s:init_header_ctx(esearch) abort
+  call esearch#out#win#update#add_context(a:esearch.contexts, '', 1) " add blank header context
+  let header_ctx = a:esearch.contexts[0]
+  let header_ctx.end = 2
+  let a:esearch.ctx_ids_map += [header_ctx.id, header_ctx.id]
+  let a:esearch.line_numbers_map += [0, 0]
+  setl modifiable
+  silent 1,$delete_
+  call esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())
+  setl nomodifiable
 endfu
 
 " rely only on stdout events
@@ -85,6 +107,18 @@ fu! s:update_timer_cb(esearch, bufnr, timer) abort
     call esearch#out#win#update#schedule_finish(a:esearch.bufnr)
     call timer_stop(a:timer)
   endif
+endfu
+
+fu! esearch#out#win#update#add_context(contexts, filename, begin) abort
+  call add(a:contexts, {
+        \ 'id': len(a:contexts),
+        \ 'begin': a:begin,
+        \ 'end': 0,
+        \ 'filename': a:filename,
+        \ 'filetype': '',
+        \ 'loaded_syntax': 0,
+        \ 'lines': {},
+        \ })
 endfu
 
 fu! esearch#out#win#update#update(bufnr, ...) abort
