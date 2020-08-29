@@ -1,10 +1,5 @@
 fu! esearch#out#win#update#init(esearch) abort
-  if !a:esearch.request.async | return | endif
-
   call extend(a:esearch, {
-        \ 'last_update_at':     reltime(),
-        \ 'updates_timer':      -1,
-        \ 'early_update_limit': a:esearch.batch_size,
         \ 'contexts':           [],
         \ 'files_count':        0,
         \ 'separators_count':   0,
@@ -13,10 +8,23 @@ fu! esearch#out#win#update#init(esearch) abort
         \ 'ctx_ids_map':        [],
         \ 'render':             function('esearch#out#win#render#'.a:esearch.win_render_strategy.'#do'),
         \})
-
+  aug esearch_win_updates " init blank to prevent errors on cleanup
+  aug END
   setl undolevels=-1 noswapfile nonumber norelativenumber nospell nowrap synmaxcol=400
   setl nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide foldmethod=marker
   call s:init_header_ctx(a:esearch)
+
+  if a:esearch.request.async
+    call s:init_async_updates(a:esearch)
+  endif
+endfu
+
+fu! s:init_async_updates(esearch) abort
+  call extend(a:esearch, {
+        \ 'last_update_at':     reltime(),
+        \ 'updates_timer':      -1,
+        \ 'early_update_limit': a:esearch.batch_size,
+        \})
 
   aug esearch_win_updates
     au! * <buffer>
@@ -52,8 +60,8 @@ endfu
 
 " rely only on stdout events
 fu! s:init_instant_updates(esearch) abort
-  let a:esearch.request.cb.update = function('esearch#out#win#update', [bufnr('%')])
-  let a:esearch.request.cb.schedule_finish = function('esearch#out#win#schedule_finish', [bufnr('%')])
+  let a:esearch.request.cb.update = function('esearch#out#win#update#update', [bufnr('%')])
+  let a:esearch.request.cb.schedule_finish = function('esearch#out#win#update#schedule_finish', [bufnr('%')])
 endfu
 
 fu! esearch#out#win#update#uninit(esearch) abort

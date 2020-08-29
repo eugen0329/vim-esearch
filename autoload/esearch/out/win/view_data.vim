@@ -1,7 +1,5 @@
 let s:results_line_re = '^\%>1l\s\+\d\+.*'
 let s:Filepath = vital#esearch#import('System.Filepath')
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 " Methods to mine information from a rendered window
 
@@ -34,8 +32,8 @@ endfu
 fu! s:filetype(...) abort dict
   if !self.is_current() | return | endif
 
-  let ctx = s:file_context_at(line('.'), self)
-  if empty(ctx) | return s:null | endif
+  let ctx = s:ctx_at(line('.'), self)
+  if empty(ctx) | return '' | endif
 
   if empty(ctx.filetype)
     let opts = get(a:000)
@@ -53,8 +51,8 @@ endfu
 fu! s:unescaped_filename(...) abort dict
   if !self.is_current() | return | endif
 
-  let ctx = s:file_context_at(get(a:, 1, line('.')), self)
-  if empty(ctx) | return s:null | endif
+  let ctx = s:ctx_at(get(a:, 1, line('.')), self)
+  if empty(ctx) | return '' | endif
 
   if s:Filepath.is_absolute(ctx.filename)
     let filename = ctx.filename
@@ -71,8 +69,8 @@ fu! s:filename(...) abort dict
   return fnameescape(self.unescaped_filename(get(a:, 1, line('.'))))
 endfu
 
-fu! s:file_context_at(line, esearch) abort
-  if a:esearch.is_blank() | return s:null | endif
+fu! s:ctx_at(line, esearch) abort
+  if a:esearch.is_blank() | return {} | endif
 
   let ctx = esearch#out#win#repo#ctx#new(a:esearch, esearch#out#win#_state(a:esearch))
         \.by_line(a:line)
@@ -98,7 +96,7 @@ endfu
 
 fu! s:is_blank() abort dict
   " if only a header ctx
-  if len(self.contexts) < 2 | return s:true | endif
+  if len(self.contexts) < 2 | return 1 | endif
 endfu
 
 fu! s:result_line() abort
