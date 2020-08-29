@@ -23,12 +23,12 @@ if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let [a:esearch.files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, a:esearch.highlights_enabled] =
+      let [a:esearch.files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, a:esearch.slow_hl_enabled] =
             \ luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])',
             \ [a:data[a:from : a:to],
             \ a:esearch.contexts[-1],
             \ a:esearch.files_count,
-            \ a:esearch.highlights_enabled])
+            \ a:esearch.slow_hl_enabled])
     finally
       call cwd.restore()
     endtry

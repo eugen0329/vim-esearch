@@ -31,12 +31,11 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
   let b:esearch = extend(a:esearch, {
-        \ 'bufnr':              bufnr('%'),
-        \ 'mode':               'normal',
-        \ 'reload':             function('<SID>reload'),
-        \ 'highlights_enabled': g:esearch.win_contexts_syntax,
+        \ 'bufnr':           bufnr('%'),
+        \ 'mode':            'normal',
+        \ 'reload':          function('<SID>reload'),
+        \ 'slow_hl_enabled': a:esearch.win_contexts_syntax || a:esearch.win_cursor_linenr_highlight,
         \})
-  let b:esearch.request.bufnr = bufnr('%')
 
   call esearch#out#win#open#init(b:esearch)
   call esearch#out#win#preview#floating#init(b:esearch)
@@ -57,7 +56,7 @@ fu! esearch#out#win#init(esearch) abort
   " Prevent from blinking on reloads if the command is known to have a large
   " output
   if g:esearch#out#win#searches_with_stopped_highlights.has(b:esearch.request.command)
-    let b:esearch.highlights_enabled = 0
+    let b:esearch.slow_hl_enabled = 0
     if g:esearch.win_matches_highlight_strategy ==# 'viewport'
       call esearch#out#win#appearance#matches#init(b:esearch)
     endif
@@ -65,12 +64,8 @@ fu! esearch#out#win#init(esearch) abort
     " Highlights should be set after setting the filetype as all the definitions
     " are inside syntax/esearch.vim
     call esearch#out#win#appearance#matches#init(b:esearch)
-    if g:esearch.win_contexts_syntax
-      call esearch#out#win#appearance#ctx_syntax#init(b:esearch)
-    endif
-    if g:esearch.win_cursor_linenr_highlight
-      call esearch#out#win#appearance#cursor_linenr#init(b:esearch)
-    endif
+    call esearch#out#win#appearance#ctx_syntax#init(b:esearch)
+    call esearch#out#win#appearance#cursor_linenr#init(b:esearch)
   endif
   if g:esearch.win_ui_nvim_syntax
     call luaeval('esearch.appearance.highlight_header(true)')
@@ -84,13 +79,10 @@ fu! esearch#out#win#init(esearch) abort
   if esearch#out#win#update#can_finish_early(b:esearch)
     call esearch#out#win#update#finish(bufnr('%'))
   endif
-  " If there are any results ready and if the traits are initialized - try
-  " to add the highlights prematurely without waiting for debouncing callback
-  " firing. Premature highlights are more lightweight as they highlight
-  " only the visiable part of viewport without it's margins (they will be
-  " highlighted later using debounced callbacks).
-  call esearch#out#win#appearance#matches#apply_to_viewport_without_margins(b:esearch)
-  call esearch#out#win#appearance#ctx_syntax#apply_to_viewport_without_margins(b:esearch)
+  " If there are any results ready - try to add the highlights prematurely
+  " without waiting for debouncing callback firing.
+  call esearch#out#win#appearance#matches#highlight_viewport(b:esearch)
+  call esearch#out#win#appearance#ctx_syntax#highlight_viewport(b:esearch)
 endfu
 
 fu! s:cleanup() abort

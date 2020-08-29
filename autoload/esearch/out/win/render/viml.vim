@@ -18,7 +18,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       if filename !=# a:esearch.contexts[-1].filename
         let a:esearch.contexts[-1].end = line
 
-        if a:esearch.highlights_enabled &&
+        if a:esearch.slow_hl_enabled &&
               \ a:esearch.contexts[-1].id > a:esearch.win_contexts_syntax_clear_on_files_count
           call esearch#out#win#stop_highlights('too many lines')
         end
@@ -39,8 +39,8 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
       endif
 
       if len(text) > a:esearch.win_context_syntax_clear_on_line_len
-        if len(text) > a:esearch.win_contexts_syntax_clear_on_line_len && a:esearch.highlights_enabled
-          let a:esearch.highlights_enabled = 1
+        if len(text) > a:esearch.win_contexts_syntax_clear_on_line_len && a:esearch.slow_hl_enabled
+          let a:esearch.slow_hl_enabled = 1
           call esearch#out#win#stop_highlights('too long line encountered')
         else
           let a:esearch.contexts[-1].syntax_loaded = -1
