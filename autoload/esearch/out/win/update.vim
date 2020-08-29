@@ -4,7 +4,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 " TODO refactoring
 fu! esearch#out#win#update#init(esearch) abort
   " TODO consider to drop ignore batches
-  let a:esearch.ignore_batches = 0
+  let a:esearch.batched = 0
   if !a:esearch.request.async | return | endif
   let a:esearch.early_update_limit = a:esearch.batch_size
 
@@ -117,15 +117,14 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
     return
   endif
   let esearch = getbufvar(a:bufnr, 'esearch')
-  let ignore_batches = get(a:000, 0, esearch.ignore_batches)
+  let batched = get(a:000, 0, esearch.batched)
   let request = esearch.request
   let data = request.data
   let data_size = len(data)
 
   call setbufvar(a:bufnr, '&ma', 1)
   if data_size > request.cursor
-    " TODO consider to discard ignore_batches as it doesn't make a lot of sense
-    if ignore_batches
+    if !batched
           \ || data_size - request.cursor - 1 <= esearch.batch_size
           \ || (request.finished && data_size - request.cursor - 1 <= esearch.final_batch_size)
       let [from, to] = [request.cursor, data_size - 1]
@@ -165,7 +164,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
   call esearch#util#doautocmd('User esearch_win_finish_pre')
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  call esearch#out#win#update#update(a:bufnr, 1)
+  call esearch#out#win#update#update(a:bufnr, 0)
   " TODO
   let esearch.contexts[-1].end = line('$')
   if esearch.win_context_len_annotations
