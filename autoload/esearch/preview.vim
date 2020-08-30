@@ -10,7 +10,7 @@ let g:esearch#preview#close_on = [
       \ 'BufEnter',
       \ 'BufWinEnter',
       \ 'TabLeave',
-      \ ]
+      \]
 let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 " The constant is used to ignore events used by :edit and :view commands to
 " reduce the execution of unwanted autocommands like updating lightline,
@@ -265,15 +265,10 @@ fu! s:RegularBuffer.edit() abort dict
     let win_ids = win_findbuf(self.id)
     let is_hidden = empty(win_ids) || win_ids ==# [g:esearch#preview#win.id]
 
-    " TODO minify
-    if filereadable(self.swapname) " AND if there's existing swap
-      if is_hidden " AND if it's not displayed in any regular window
-        return s:false " Use the fallback
-      else
-        return s:true " Reuse the buffer
-      endif
-    elseif !is_hidden " AND if there're opened windows with this buffer attached
+    if !is_hidden " if there're opened windows with this buffer attached
       return s:true " Reuse the buffer
+    elseif filereadable(self.swapname) " OR if there's existing swap
+      return s:false " Use the fallback
     endif
   endif
   " Otherwise - use :edit to verify that there's no swapfiles appeared and
@@ -499,7 +494,7 @@ fu! s:FloatingWindow.unplace_emphasis() abort dict
 endfu
 
 fu! s:FloatingWindow.enter() abort dict
-  noau keepj call esearch#win#enter(self.id)
+  noau keepj call esearch#win#goto(self.id)
 endfu
 
 """""""""""""""""""""""""""""""""""""""

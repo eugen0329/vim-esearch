@@ -17,7 +17,7 @@ fu! s:new(diff, esearch) abort
         \ 'delete_lines':          function('<SID>delete_lines'),
         \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
         \ 'detect_conflict':       function('<SID>detect_conflict'),
-        \ }
+        \}
 endfu
 
 fu! s:write() abort dict

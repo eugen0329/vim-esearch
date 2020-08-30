@@ -44,7 +44,7 @@ fu! s:open(opener, ...) abort dict
     let bufnr = bufnr('%')
     keepjumps call winrestview(view)
     call esearch#let#generic(window_vars)
-  catch /E325:/ " swapexists exception, will be handled by a user
+  catch /E325:/ " swapexists exception, will be handled by the user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch
     call s:Log.error(v:exception . ' at ' . v:throwpoint)
@@ -63,11 +63,11 @@ fu! s:open_new(esearch, opener, filename, opts) abort
 endfu
 
 fu! s:open_reusable(esearch, opener, filename, opts) abort
-  let opener_id = s:opener_id(a:opener)
+  let opener_id = string(a:opener)
   let opened_window = get(a:esearch.reusable_windows, opener_id, s:null)
 
   if !empty(opened_window) && esearch#win#exists(opened_window)
-    call esearch#win#enter(opened_window)
+    call esearch#win#goto(opened_window)
     " Don't open if the file is already opened.
     " Prevents from asking about existing swap prompt multiple times
     if s:Filepath.abspath(bufname('%')) !=# a:filename
@@ -89,25 +89,6 @@ fu! s:to_callable(opener) abort
   endif
 
   return function('<SID>raw_opener', [a:opener])
-endfu
-
-fu! s:opener_id(opener) abort
-  if type(a:opener) ==# s:t_string
-    return a:opener
-  elseif type(a:opener) ==# s:t_func
-    let stringified = string(a:opener)
-    " Same lambdas has different ids while they do the same. The code below
-    " expands lambda source and removes lambda ids from it to allow user to
-    " create anonymous functions without flooding vimrc.
-    if stridx(stringified, "function('<lambda>") ==# 0
-      let stringified = execute('function a:opener') " Expand lambda source
-      let stringified = substitute(stringified, '<lambda>\(\d\+\)', '<number>', '')
-    endif
-
-    return stringified
-  endif
-
-  return string(a:opener)
 endfu
 
 " Notes, why opening of a filename escaped previously is required:

@@ -36,14 +36,5 @@ fu! esearch#backend#system#exec(request) abort
   endtry
 endfu
 
-fu! esearch#backend#system#escape_cmd(cmd) abort
-  return shellescape(a:cmd)
-endfu
-
 fu! esearch#backend#system#abort(...) abort
-  " dummy function to meet the api
-endfu
-
-fu! esearch#backend#system#init_events() abort
-  " dummy function to meet the api
 endfu

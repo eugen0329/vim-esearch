@@ -5,7 +5,6 @@ require 'spec_helper'
 describe 'vim-visual-multi compatibility', :window do
   include Helpers::FileSystem
   include Helpers::Modifiable
-  include Helpers::Modifiable::Linewise
   include Helpers::Modifiable::Columnwise
   include Helpers::VisualMulti
 

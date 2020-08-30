@@ -36,11 +36,6 @@ fu! esearch#util#clip(value, from, to) abort
   endif
 endfu
 
-fu! esearch#util#timenow() abort
-  let now = reltime()
-  return str2float(reltimestr([now[0] % 10000, now[1]/1000 * 1000]))
-endfu
-
 fu! esearch#util#region_text(region) abort
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
 
@@ -230,4 +225,19 @@ endif
 fu! esearch#util#escape_for_statusline(str) abort
   let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'
   return substitute(tr(a:str, '/', safe_slash), '%', '%%', 'g')
+endfu
+
+fu! esearch#util#counter() abort
+  return s:Count.new()
+endfu
+
+let s:Count = {'_value': 0}
+
+fu! s:Count.new() abort dict
+  return copy(self)
+endfu
+
+fu! s:Count.next() abort dict
+  let self._value += 1
+  return self._value - 1
 endfu

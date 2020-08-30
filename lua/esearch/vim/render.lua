@@ -30,9 +30,9 @@ function M.render(data, esearch)
     if filename ~= contexts[#contexts - 1]['filename'] then
       contexts[#contexts - 1]['end'] = line
 
-      if esearch['highlights_enabled'] == 1 and
+      if util.is_true(esearch['slow_hl_enabled']) and
           #contexts > esearch_win_contexts_syntax_clear_on_files_count then
-        esearch['highlights_enabled'] = false
+        esearch['slow_hl_enabled'] = false
         vim.eval('esearch#out#win#stop_highlights("too many lines")')
       end
 
@@ -48,7 +48,7 @@ function M.render(data, esearch)
         ['end']           = false,
         ['filename']      = filename,
         ['filetype']      = false,
-        ['syntax_loaded'] = false,
+        ['loaded_syntax'] = false,
         ['lines']         = vim.dict(),
         }))
       ctx_by_name[filename] = contexts[#contexts - 1]
@@ -60,11 +60,11 @@ function M.render(data, esearch)
     end
 
     if text:len() > esearch_win_context_syntax_max_line_len then
-      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and esearch['highlights_enabled'] == 1 then
-        esearch['highlights_enabled'] = false
+      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and util.is_true(esearch['slow_hl_enabled']) then
+        esearch['slow_hl_enabled'] = false
         vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
-        contexts[#contexts - 1]['syntax_loaded'] = true
+        contexts[#contexts - 1]['loaded_syntax'] = true
       end
     end
 

@@ -5,8 +5,9 @@ endfu
 if has('nvim')
     " vim methods like matchadd have problems when leaving the the
   fu! esearch#out#win#appearance#cursor_linenr#init(esearch) abort
-    let a:esearch.linenr_ns_id = luaeval('esearch.appearance.CURSOR_LINENR_NS')
+    if !a:esearch.win_cursor_linenr_highlight | return | endif
 
+    let a:esearch.linenr_ns_id = luaeval('esearch.appearance.CURSOR_LINENR_NS')
     aug esearch_win_hl_cursor_linenr
       au CompleteChanged,CursorMoved,CursorMovedI <buffer> call s:highlight_cursor_line_number()
       au BufLeave <buffer> call s:clear_cursor_line_number()
@@ -35,8 +36,9 @@ if has('nvim')
 endif
 
 fu! esearch#out#win#appearance#cursor_linenr#init(esearch) abort
-  let a:esearch.linenr_hl_id = 0
+  if !a:esearch.win_cursor_linenr_highlight | return | endif
 
+  let a:esearch.linenr_hl_id = 0
   aug esearch_win_hl_cursor_linenr
     au CursorMoved,CursorMovedI <buffer> call s:highlight_cursor_line_number()
     " TODO has bugs when splitting using capital S

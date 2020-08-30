@@ -3,12 +3,12 @@ fu! esearch#config#eager() abort
     let g:esearch = {}
   endif
 
-  if !get(g:esearch, 'lazy_loaded', 0)
+  if !get(g:esearch, 'loaded_lazy', 0)
     call esearch#util#doautocmd('User eseach_config_eager_pre')
     call esearch#config#init(g:esearch)
     call s:lua_init()
     call esearch#highlight#init()
-    let g:esearch.lazy_loaded = 1
+    let g:esearch.loaded_lazy = 1
     call esearch#util#doautocmd('User eseach_config_eager_post')
   endif
 endfu
@@ -44,7 +44,7 @@ fu! esearch#config#init(esearch) abort
         \ 'select_prefilled':                      1,
         \ 'parse_strategy':                        g:esearch#has#lua ? 'lua' : 'viml',
         \ 'win_render_strategy':                   g:esearch#has#lua ? 'lua' : 'viml',
-        \ 'win_update_throttle_wait':              g:esearch#has#throttle && g:esearch.backend !=# 'vimproc' ? 100 : 0,
+        \ 'win_update_throttle_wait':              g:esearch#has#throttle ? 100 : 0,
         \ 'win_viewport_off_screen_margin':        &lines > 100 ? &lines : 100,
         \ 'win_matches_highlight_debounce_wait':   100,
         \ 'win_matches_highlight_strategy':        g:esearch#has#nvim_lua_syntax ? 'viewport' : 'matchadd',
@@ -55,10 +55,8 @@ fu! esearch#config#init(esearch) abort
         \ 'win_contexts_syntax_clear_on_line_len': 30000,
         \ 'win_context_len_annotations':           g:esearch#has#virtual_text,
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
-        \ 'win_let':                               {'&l:buflisted': 0},
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
         \ 'filemanager_integration':               1,
-        \ 'deprecations_loaded':                   0,
         \ 'pending_deprecations':                  [],
         \}, 'keep')
   let g:esearch = extend(g:esearch, {
@@ -137,8 +135,6 @@ fu! esearch#config#default_backend() abort
     return 'nvim'
   elseif g:esearch#has#vim8_jobs
     return 'vim8'
-  elseif g:esearch#has#vimproc()
-    return 'vimproc'
   else
     return 'system'
   endif

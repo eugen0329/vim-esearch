@@ -1,6 +1,6 @@
 " Translate deprecated configurations and set deprecation warnings
 fu! esearch#middleware#deprecations#apply(esearch) abort
-  if g:esearch.deprecations_loaded
+  if get(g:esearch, 'loaded_deprecations', 0)
     return a:esearch
   endif
 
@@ -10,8 +10,8 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
   endif
 
   if exists('g:esearch#out#win#buflisted')
-    call extend(g:esearch.win_let, {'&l:buflisted': g:esearch#out#win#buflisted})
-    let g:esearch.pending_deprecations += ['g:esearch#out#win#buflisted, see :help g:esearch.win_let for details']
+    au User esearch#win_config let &buflisted = g:esearch#out#win#buflisted
+    let g:esearch.pending_deprecations += ['g:esearch#out#win#buflisted, see :help esearch_win_config for details']
   endif
 
   if exists('g:esearch#out#win#open')
@@ -58,6 +58,6 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
     let g:esearch.pending_deprecations += ['highlight esearchFName. Please, rename to esearchFilename']
   endif
 
-  let g:esearch.deprecations_loaded = 1
+  let g:esearch.loaded_deprecations = 1
   return a:esearch
 endfu

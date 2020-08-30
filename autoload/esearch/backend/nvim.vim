@@ -32,7 +32,7 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
         \ 'cursor': 0,
         \ 'async': 1,
         \ 'aborted': 0,
-        \ 'events': {
+        \ 'cb': {
         \   'schedule_finish': 0,
         \   'update': 0
         \ }
@@ -73,8 +73,8 @@ fu! s:stdout(job_id, data, event) dict abort
 
   " Reduce buffer updates to prevent long cursor lock
   let self.tick = self.tick + 1
-  if self.tick % self.ticks == 1 && !empty(request.events.update)
-    call request.events.update()
+  if self.tick % self.ticks == 1 && !empty(request.cb.update)
+    call request.cb.update()
   endif
 endfu
 
@@ -100,18 +100,9 @@ fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  if !job.request.aborted && !empty(job.request.events.schedule_finish)
-    call job.request.events.schedule_finish()
+  if !job.request.aborted && !empty(job.request.cb.schedule_finish)
+    call job.request.cb.schedule_finish()
   endif
-endfu
-
-fu! esearch#backend#nvim#escape_cmd(command) abort
-  return shellescape(a:command)
-endfu
-
-fu! esearch#backend#nvim#init_events() abort
-  au BufUnload <buffer>
-        \ call esearch#backend#nvim#abort(str2nr(expand('<abuf>')))
 endfu
 
 fu! esearch#backend#nvim#abort(bufnr) abort

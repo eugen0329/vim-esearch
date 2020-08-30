@@ -4,8 +4,8 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:sign_name  = 'esearchEmphasisSign'
 let s:sign_group = 'esearchEmphasisSigns'
 let s:sign_id    = 502012117
-" Prio should be big enought to overrule the less important signs at the moment
-" of previewing like from linters etc.
+" Prio should be big enought to overrule less important signs at the moment
+" of previewing like linter signs etc.
 let s:priority   = 1000
 let s:line_ns = nvim_create_namespace('esearch_line_emphasis')
 

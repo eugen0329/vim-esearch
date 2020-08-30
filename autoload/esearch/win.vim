@@ -1,4 +1,4 @@
-let s:window_id  = esearch#itertools#count()
+let s:window_id  = esearch#util#counter()
 
 " Utility functions to work with windows. Includes:
 " - normalized windows api
@@ -49,7 +49,7 @@ fu! s:CurrentWindowGuard.new() abort dict
 endfu
 
 fu! s:CurrentWindowGuard.restore() abort dict
-  call esearch#win#enter(self.handle)
+  call esearch#win#goto(self.handle)
   call winrestview(self.view)
 endfu
 
@@ -101,7 +101,7 @@ if g:esearch#has#nvim_winid
     return nvim_get_current_win()
   endfu
 
-  fu! esearch#win#enter(handle) abort
+  fu! esearch#win#goto(handle) abort
     return nvim_set_current_win(a:handle)
   endfu
 
@@ -168,7 +168,7 @@ else
     return s:ViewTracer.trace_window()
   endfu
 
-  fu! esearch#win#enter(handle) abort
+  fu! esearch#win#goto(handle) abort
     call s:ViewTracer.jump(a:handle)
   endfu
 

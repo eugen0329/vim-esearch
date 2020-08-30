@@ -160,5 +160,30 @@ module Helpers::Modifiable::Columnwise
 
     AnchoredContext.new(name, name_anchors, entries)
   end
+
+  def entry_index(location)
+    if location[:ctx] == :header
+      0 # everything that belongs to header points to entry 0
+    elsif location.key?(:entry)
+      location[:entry] < 0 ? contexts[ctx_index(location)].entries.count + location[:entry] : location[:entry]
+    elsif location[:ui] == :name
+      0 # as ctx name point to entry 0
+    elsif location[:ui] == :separator
+      # as separators are after the last entry
+      contexts[ctx_index(location)].entries.count
+    else
+      raise ArgumentError
+    end
+  end
+
+  def ctx_index(location)
+    if location[:ctx] == :header
+      0 # everything that belongs to header points to ctx 0
+    elsif location[:ctx].is_a? Integer
+      location[:ctx]
+    else
+      raise ArgumentError, location
+    end
+  end
 end
 # rubocop:enable Metrics/ModuleLength

@@ -25,7 +25,7 @@ if !exists('g:esearch_ftdetect_re2filetype')
         \ '\.tsx$':    'typescriptreact',
         \ '\.jsx$':    'javascriptreact',
         \ '\.r$':      get(g:, 'filetype_r', 'r'),
-        \ '\.sql$':    get(g:, 'filetype_r', 'sql'),
+        \ '\.sql$':    get(g:, 'filetype_sql', 'sql'),
         \ '\.tex$':    'tex',
         \ '\.xml$':    'xml',
         \ '\.html$':   'html',

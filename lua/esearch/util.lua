@@ -55,6 +55,10 @@ else -- vim
   end
 end
 
+function M.is_true(val)
+  return val == 1 or val == true
+end
+
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting
 local function code(s)
   return (string.gsub(s, "\\([\\\"])", function (x)

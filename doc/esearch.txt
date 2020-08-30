@@ -328,15 +328,12 @@ g:esearch.adapter                                              *g:esearch.adapte
 g:esearch.backend                                              *g:esearch.backend*
         Name of a processing backend to use.
         Type: |String|
-        Allowed values: `'nvim'`, `'vim8'`, `'vimproc'`, `'system'`
+        Allowed values: `'nvim'`, `'vim8'`, `'system'`
         Default: depends on editor features.
         Example:~
 >
         let g:esearch.backend = 'system'
 <
-        NOTE Some backends are not asynchronous (like system) or use
-        pseudo-asynchronous (like vimproc) mechanisms, so it's not recommended
-        to redefine this configuration.
 
 g:esearch.out                                                      *g:esearch.out*
         Name of a target to output results.
@@ -1044,7 +1041,7 @@ Events in the order they are fired:
 
 Example:
 >
-    autocmd User esearch_win_config set nowrap
+    autocmd User esearch_win_config setlocal nowrap buflisted
 <
 NOTE |esearch_win_config| is preferred over |FileType| esearch event as it's
 designed to automatically cleanup events on window reloading or window reusing
