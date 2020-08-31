@@ -7,7 +7,7 @@ endfu
 let s:NETRanger = copy(esearch#compat#filemanager#base#import())
 
 fu! s:NETRanger.path_under_cursor() abort
-  return netranger#cur_node_path()
+  return netranger#api#cur_node_path()
 endfu
 
 fu! s:NETRanger.paths_in_range(begin, end) abort
