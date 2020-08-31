@@ -22,8 +22,7 @@ function M.render(data, esearch)
   local i = 0
   local limit = #parsed
 
-  while(i < limit)
-  do
+  while(i < limit) do
     local filename = parsed[i]['filename']
     local text = parsed[i]['text']
 
@@ -75,6 +74,7 @@ function M.render(data, esearch)
     line = line + 1
     i = i + 1
   end
+
   return tostring(files_count)
 end
 

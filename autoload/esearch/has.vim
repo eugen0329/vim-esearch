@@ -22,6 +22,7 @@ let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')
 " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
 let g:esearch#has#vim8_calls_close_cb_last = has('patch-7.4.1787')
 let g:esearch#has#vim8_jobs = has('job') && g:esearch#has#vim8_calls_close_cb_last
+let g:esearch#has#jobs = g:esearch#has#nvim_jobs || g:esearch#has#vim8_jobs
 " 7.3.896 memory leaks in Lua interface
 let s:fixed_lua = (v:version > 703 || v:version == 703 && has('patch896'))
 let g:esearch#has#nvim_lua = has('nvim') && !g:esearch#has#windows && s:fixed_lua
