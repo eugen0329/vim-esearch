@@ -64,9 +64,9 @@ fu! esearch#out#win#appearance#matches#soft_stop(esearch) abort
   call esearch#out#win#appearance#matches#uninit(a:esearch)
 endfu
 
-fu! esearch#out#win#appearance#matches#apply_to_viewport_without_margins(esearch) abort
+fu! esearch#out#win#appearance#matches#highlight_viewport(esearch) abort
   if get(a:esearch, 'hl_strategy') is# 'viewport'
-    call s:highlight_viewport(a:esearch, line('w0'), line('w$'))
+    call s:highlight_range(a:esearch, line('w0'), line('w$'))
   endif
 endfu
 
@@ -75,27 +75,27 @@ fu! s:highlight_viewport_cb(esearch) abort
     return
   endif
 
-  let [top, bottom] = [ line('w0'), line('w$') ]
+  let [begin, end] = [line('w0'), line('w$')]
   let last_hl_range = a:esearch.last_hl_range
-  if last_hl_range[0] <= top && bottom <= last_hl_range[1]
+  if last_hl_range[0] <= begin && end <= last_hl_range[1]
     return
   endif
 
-  let top    = esearch#util#clip(top - a:esearch.win_viewport_off_screen_margin, 1, line('$'))
-  let bottom = esearch#util#clip(bottom + a:esearch.win_viewport_off_screen_margin, 1, line('$'))
-  call s:highlight_viewport(a:esearch, top, bottom)
+  let begin    = esearch#util#clip(begin - a:esearch.win_viewport_off_screen_margin, 1, line('$'))
+  let end = esearch#util#clip(end + a:esearch.win_viewport_off_screen_margin, 1, line('$'))
+  call s:highlight_range(a:esearch, begin, end)
 endfu
 
-fu! s:highlight_viewport(esearch, top, bottom) abort
+fu! s:highlight_range(esearch, begin, end) abort
   let pattern = a:esearch.pattern.vim
   let state = esearch#out#win#_state(a:esearch)
   let line_numbers_map = state.line_numbers_map
   let ctx_ids_map = state.ctx_ids_map
   let lines_with_hl_matches = a:esearch.lines_with_hl_matches
-  let a:esearch.last_hl_range = [a:top, a:bottom]
+  let a:esearch.last_hl_range = [a:begin, a:end]
 
-  let line = a:top
-  for text in nvim_buf_get_lines(0, line - 1, a:bottom, 0)
+  let line = a:begin
+  for text in nvim_buf_get_lines(0, line - 1, a:end, 0)
     let linenr =  line_numbers_map[line]
     let ctx_id = ctx_ids_map[line]
 

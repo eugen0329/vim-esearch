@@ -6,12 +6,6 @@
 plugins_dir="${1:-"$provision_dir/../vim_plugins"}"
 
 install_vim_plugin                            \
-  'https://github.com/Shougo/vimproc.vim'     \
-  "$plugins_dir/vimproc.vim"                  \
-  '89065f62883edb10a99aa1b1640d6d411907316b'  \
-  "make"
-
-install_vim_plugin                            \
   'https://github.com/rhysd/clever-f.vim.git' \
   "$plugins_dir/clever-f.vim"                 \
   '48706f4124d77d814de0ad5fa264fd73ab35df38'

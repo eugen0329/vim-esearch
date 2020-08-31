@@ -7,7 +7,7 @@ let s:Base = {
       \ 'options': 'NotImplemented',
       \ 'mandatory_options': 'NotImplemented'}
 
-fu! s:Base.command(esearch, pattern, escape) abort dict
+fu! s:Base.command(esearch) abort dict
   let regex = self.regex[a:esearch.regex].option
   let case = self.textobj[a:esearch.textobj].option
   let textobj = self.case[a:esearch.case].option
@@ -33,7 +33,7 @@ fu! s:Base.command(esearch, pattern, escape) abort dict
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
         \ '--',
-        \ a:escape(a:pattern),
+        \ shellescape(a:esearch.pattern.arg),
         \ paths,
         \], ' ')
 endfu
@@ -42,11 +42,11 @@ fu! s:Base.filetypes2args(filetypes) abort dict
   return substitute(a:filetypes, '\<', '--', 'g')
 endfu
 
+" Some adapters require pwd to set explicitly (like grep) using '.'. For
+" others it cause unwanted './' prefix. Exact path doesn't need to be
+" specified as it's set using :lcd command and outherwise would cause a full
+" path to be rendered.
 fu! s:Base.pwd() abort dict
-  " Some adapters require pwd to set explicitly (like grep) using '.'. For
-  " others it cause unwanted './' prefix. Exact path doesn't need to be
-  " specified as it's set using :lcd command and outherwise would cause a full
-  " path to be rendered.
   return ''
 endfu
 

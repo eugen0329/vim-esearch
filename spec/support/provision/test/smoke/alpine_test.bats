@@ -41,7 +41,6 @@ teardown() {
   # this workaround works
   assert_equal "$status" 129
 
-  assert_file_exists "$plugins_dir/vimproc.vim/plugin/vimproc.vim"
   # pt is installed on a separate docker build stage
   assert_file_missing "$local_bin_dir/pt"
 }

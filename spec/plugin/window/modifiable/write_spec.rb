@@ -6,7 +6,6 @@ describe 'Writing in modifiable mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable
-  include Helpers::Modifiable::Write
   Context ||= Helpers::Modifiable::Context
 
   include_context 'setup modifiable testing'
@@ -27,7 +26,7 @@ describe 'Writing in modifiable mode', :window do
         editor.send_keys 'dd'
         ctx.file.unlink
         editor.bwipeout(ctx.file.path.to_s)
-        expect { write_with_confirmation }
+        expect { editor.send_keys_separately ':write', :enter, 'y' }
           .to not_change { untouched_ctx.file.readlines }
         expect(File.exist?(ctx.file.path)).not_to eq(true)
       end
@@ -43,7 +42,7 @@ describe 'Writing in modifiable mode', :window do
           ctx.entries[0].locate!
           motion.call
           ctx.file.write_content(modified_file_lines)
-          expect { write_with_confirmation }
+          expect { editor.send_keys_separately ':write', :enter, 'y' }
             .to not_change { untouched_ctx.file.readlines }
 
           editor.enter_buffer! ctx.file.path
@@ -78,7 +77,7 @@ describe 'Writing in modifiable mode', :window do
           ctx.entries[0].locate!
           motion.call
           ctx.file.write_content(modified_file_lines)
-          expect { write_with_confirmation }
+          expect { editor.send_keys_separately ':write', :enter, 'y' }
             .to not_change { untouched_ctx.file.readlines }
 
           editor.enter_buffer! ctx.file.path
@@ -112,7 +111,7 @@ describe 'Writing in modifiable mode', :window do
       it 'modifies buffer' do
         ctx.entries[0].locate!
         motion.call
-        expect { write_with_confirmation }
+        expect { editor.send_keys_separately ':write', :enter, 'y' }
           .to not_change { untouched_ctx.file.readlines }
 
         editor.enter_buffer! ctx.file.path

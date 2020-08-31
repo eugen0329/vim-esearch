@@ -3,7 +3,7 @@ local util  = require'esearch/util'
 
 local M = {}
 
-function M.render(data, last_context, files_count, highlights_enabled)
+function M.render(data, last_context, files_count, slow_hl_enabled)
   local parsed, separators_count = parse.lines(data)
   local contexts = {last_context}
   local line_numbers_map = {}
@@ -32,9 +32,9 @@ function M.render(data, last_context, files_count, highlights_enabled)
     if filename ~= contexts[#contexts]['filename'] then
       contexts[#contexts]['end'] = line
 
-      if highlights_enabled == 1 and
+      if util.is_true(slow_hl_enabled) and
           contexts[#contexts]['id'] > esearch_win_contexts_syntax_clear_on_files_count then
-        highlights_enabled = false
+        slow_hl_enabled = false
         vim.api.nvim_eval('esearch#out#win#stop_highlights("too many lines")')
       end
 
@@ -50,7 +50,7 @@ function M.render(data, last_context, files_count, highlights_enabled)
         ['end']           = 0,
         ['filename']      = filename,
         ['filetype']      = 0,
-        ['syntax_loaded'] = 0,
+        ['loaded_syntax'] = 0,
         ['lines']         = {},
         }
       ctx_by_name[filename] = contexts[#contexts]
@@ -62,11 +62,11 @@ function M.render(data, last_context, files_count, highlights_enabled)
     end
 
     if text:len() > esearch_win_context_syntax_max_line_len then
-      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and highlights_enabled == 1 then
-        highlights_enabled = false
+      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and util.is_true(slow_hl_enabled) then
+        slow_hl_enabled = false
         vim.api.nvim_eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
-        contexts[#contexts]['syntax_loaded'] = -1
+        contexts[#contexts]['loaded_syntax'] = -1
       end
     end
 
@@ -87,7 +87,7 @@ function M.render(data, last_context, files_count, highlights_enabled)
     esearch.appearance.annotate(contexts)
   end
 
-  return {files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, highlights_enabled}
+  return {files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, slow_hl_enabled}
 end
 
 return M

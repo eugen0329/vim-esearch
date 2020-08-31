@@ -2,7 +2,7 @@ if !exists('g:esearch#backend#vim8#ticks')
   let g:esearch#backend#vim8#ticks = 3
 endif
 let s:jobs = {}
-let s:id = esearch#itertools#count()
+let s:id = esearch#util#counter()
 
 fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   " TODO add 'stoponexit'
@@ -37,7 +37,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'cursor': 0,
-        \ 'events': {
+        \ 'cb': {
         \   'schedule_finish': 0,
         \   'update': 0
         \ }
@@ -61,8 +61,8 @@ endfu
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
   let request.data += filter(split(a:data, "\n", 1), "'' !=# v:val")
-  if !empty(request.events.update) && request.tick % request.ticks == 1 && !request.aborted
-    call request.events.update()
+  if !empty(request.cb.update) && request.tick % request.ticks == 1 && !request.aborted
+    call request.cb.update()
   endif
   let request.tick = request.tick + 1
 endfu
@@ -97,23 +97,14 @@ fu! s:closed(job_id, channel) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
 
-  if !empty(job.request.events.schedule_finish)
-    call job.request.events.schedule_finish()
+  if !empty(job.request.cb.schedule_finish)
+    call job.request.cb.schedule_finish()
   endif
 endfu
 
 fu! s:exit(job_id, job, status) abort
   let job = s:jobs[a:job_id]
   let job.request.status = a:status
-endfu
-
-fu! esearch#backend#vim8#escape_cmd(command) abort
-  return shellescape(a:command)
-endfu
-
-fu! esearch#backend#vim8#init_events() abort
-  au BufUnload <buffer>
-        \ call esearch#backend#vim8#abort(str2nr(expand('<abuf>')))
 endfu
 
 fu! esearch#backend#vim8#abort(bufnr) abort
