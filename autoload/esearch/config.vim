@@ -36,7 +36,7 @@ fu! esearch#config#init(esearch) abort
         \ 'after':                                 0,
         \ 'before':                                0,
         \ 'context':                               0,
-        \ 'early_finish_wait':                     80,
+        \ 'early_finish_wait':                     g:esearch#has#nvim ? 80 : 100,
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'errors':                                [],

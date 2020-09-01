@@ -198,5 +198,5 @@ fu! esearch#out#win#update#finish(bufnr) abort
     call luaeval('esearch.appearance.buf_attach_ui()')
   endif
   call esearch#out#win#appearance#annotations#init(esearch)
-  redraw
+  if g:esearch#has#nvim && esearch.live_update | redraw | endif
 endfu

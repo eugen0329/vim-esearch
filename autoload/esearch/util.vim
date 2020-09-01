@@ -1,4 +1,5 @@
 let s:List     = vital#esearch#import('Data.List')
+let s:Log      = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#util#even_count_of_escapes_re =  '\%(\\\)\@<!\%(\\\\\)*'
@@ -244,4 +245,13 @@ endfu
 
 fu! esearch#util#deprecate(message) abort
   let g:esearch.pending_warnings += ['DEPRECATION: ' . a:message]
+endfu
+
+fu! esearch#util#warn(message) abort
+  if mode() ==# 'c'
+    let g:esearch.pending_warnings += [a:message]
+  else
+    redraw
+    call s:Log.info(msg)
+  endif
 endfu

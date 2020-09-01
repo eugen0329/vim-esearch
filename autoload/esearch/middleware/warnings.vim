@@ -8,7 +8,7 @@ fu! esearch#middleware#warnings#apply(esearch) abort
   endif
 
   for msg in g:esearch.pending_warnings
-    call s:Log.warn(msg)
+    call s:Log.info(msg)
     redraw
   endfor
 
