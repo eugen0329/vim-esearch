@@ -9,8 +9,8 @@ fu! esearch#out#qflist#init(esearch) abort
   if a:esearch.request.async
     call esearch#out#qflist#setup_autocmds(a:esearch)
   endif
-  let g:esearch_qf = extend(a:esearch, {'title': ':'.a:esearch.title})
-  call esearch#buf#rename_qf(g:esearch_qf.title)
+  let g:esearch_qf = extend(a:esearch, {'name': ':'.a:esearch.name})
+  call esearch#buf#rename_qf(g:esearch_qf.name)
   if !g:esearch_qf.request.async
     call esearch#out#qflist#finish()
   endif
@@ -82,10 +82,10 @@ fu! esearch#out#qflist#finish() abort
   " Update using all remaining request.data
   call esearch#out#qflist#update(0)
 
-  let esearch.title = esearch.title . '. Finished.'
+  let esearch.name = esearch.name . '. Finished.'
 
   if esearch#buf#qftype(bufnr('%')) ==# 'qf'
-    call esearch#buf#rename_qf(esearch.title)
+    call esearch#buf#rename_qf(esearch.name)
   else
     let bufnr = esearch#buf#qfbufnr()
     if bufnr !=# -1
@@ -94,7 +94,7 @@ fu! esearch#out#qflist#finish() abort
         if index(buflist, bufnr) >= 0
           for winnr in range(1, tabpagewinnr(tabnr, '$'))
             if buflist[winnr - 1] == bufnr
-              call settabwinvar(tabnr, winnr, 'quickfix_title', esearch.title)
+              call settabwinvar(tabnr, winnr, 'quickfix_title', esearch.name)
             endif
           endfor
         endif
@@ -108,9 +108,9 @@ fu! s:was_live_update(esearch) abort
 endfu
 
 fu! s:init_live_updated(esearch) abort
-  let g:esearch_qf.title = ':'.a:esearch.title
+  let g:esearch_qf.name = ':'.a:esearch.name
   if g:esearch_qf.request.finished
-    let g:esearch_qf.title .= '. Finished.'
+    let g:esearch_qf.name .= '. Finished.'
   endif
-  call esearch#buf#rename_qf(g:esearch_qf.title)
+  call esearch#buf#rename_qf(g:esearch_qf.name)
 endfu

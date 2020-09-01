@@ -87,9 +87,9 @@ fu! esearch#out#win#init(esearch) abort
 endfu
 
 fu! s:init_live_updated(esearch) abort
-  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.title)
+  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.name)
   try
-    call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.title))
+    call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.name))
     call esearch#util#doautocmd('BufEnter')
   catch /E95:/
     let bufnr = bufnr('')
@@ -119,7 +119,7 @@ fu! s:cleanup() abort
 endfu
 
 fu! esearch#out#win#goto_or_open(esearch) abort dict
-  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.title)
+  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.name)
 
   " If the window is empty and the only within the tab - reuse it
   if winnr('$') == 1

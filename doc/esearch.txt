@@ -585,7 +585,8 @@ g:esearch.win_new({esearch})                                 *g:esearch.win_new(
                       buffer-local variable after |g:esearch.win_new()| call
         Example:~
         >
-        let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Find]', 'vnew') }
+        let g:esearch.win_new =
+              \ {esearch -> esearch#buf#goto_or_open(esearch.name, 'vnew') }
 <
         Example above will use a single window for any search request in a
         vertical split and reuse it for further searches.
@@ -1191,6 +1192,8 @@ Or the same behavior using floating previews (neovim only). Change align to
 <
 NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
 as the preview updates are handled using `b:autopreview.apply()` call.
+NOTE This kind of preview is recommended as it's designed to safely handle swap
+dialogs that will appear if |b:esearch.split_preview_open| is used.
 
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
@@ -1200,8 +1203,8 @@ as the preview updates are handled using `b:autopreview.apply()` call.
     let g:esearch = {}
 
     " Try to jump into an opened floating window or open a new one.
-    let g:esearch.win_new = {->
-        \ esearch#buf#goto_or_open('[Find]', {bufname->
+    let g:esearch.win_new = {esearch->
+        \ esearch#buf#goto_or_open(esearch.name, {bufname->
         \   nvim_open_win(bufadd(bufname), v:true, {
         \     'relative': 'editor',
         \     'row': float2nr(&lines * 0.2) / 2,

@@ -69,7 +69,7 @@ fu! s:live_update(...) abort
         \ 'pattern': cmdline,
         \ 'remember': [],
         \ 'live_exec': 1,
-        \ 'title': '[esearch]',
+        \ 'name': '[esearch]',
         \ }, 'force'))
 endfu
 

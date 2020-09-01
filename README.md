@@ -123,7 +123,8 @@ let g:esearch.default_mappings = 0
 let g:esearch.live_update = 0
 
 " Open the search window in a vertical split and reuse it for all searches.
-let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }
+let g:esearch.name = '[esearch]'
+let g:esearch.win_new = {esearch -> esearch#buf#goto_or_open(esearch.name, 'vnew') }
 
 " Redefine the default highlights (see :help highlight and :help esearch-appearance)
 highlight      esearchHeader     cterm=bold gui=bold ctermfg=white ctermbg=white
@@ -150,9 +151,9 @@ Use a popup-like floating window to render search results.
 ```vim
 let g:esearch = {}
 " Try to jump into an opened floating window or open a new one.
-let g:esearch.win_new = {->
-  \ esearch#buf#goto_or_open('[Search]', {bufname->
-  \   nvim_open_win(bufadd(bufname), v:true, {
+let g:esearch.win_new = {esearch ->
+  \ esearch#buf#goto_or_open(esearch.name, {name ->
+  \   nvim_open_win(bufadd(name), v:true, {
   \     'relative': 'editor',
   \     'row': float2nr(&lines * 0.2) / 2,
   \     'col': float2nr((&columns * 0.2) / 2),

@@ -79,7 +79,7 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#pattern#apply'),
           \ function('esearch#middleware#exec#apply'),
           \ function('esearch#middleware#remember#apply'),
-          \ function('esearch#middleware#title#apply'),
+          \ function('esearch#middleware#name#apply'),
           \ function('esearch#middleware#warnings#apply'),
           \]
   endif
