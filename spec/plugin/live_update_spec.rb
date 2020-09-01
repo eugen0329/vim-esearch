@@ -50,7 +50,7 @@ describe 'esearch#backend', :backend do
             expect(esearch)
               .to  have_search_finished
               .and have_not_reported_errors
-              .and have_valid_buffer_name(search_string)
+              .and have_valid_buffer_basename(search_string)
           end
           expect(editor.buffers.count).to eq(1)
         end
@@ -69,7 +69,7 @@ describe 'esearch#backend', :backend do
             expect(esearch)
               .to  have_search_finished
               .and have_not_reported_errors
-              .and have_valid_buffer_name(search_string)
+              .and have_valid_buffer_basename(search_string)
           end.not_to change { editor.echo var('b:esearch.id') }
         end
       end
@@ -85,7 +85,7 @@ describe 'esearch#backend', :backend do
           expect(esearch)
             .to  have_search_finished
             .and have_not_reported_errors
-            .and have_valid_buffer_name(search_string)
+            .and have_valid_buffer_basename(search_string)
         end
       end
 
@@ -115,7 +115,7 @@ describe 'esearch#backend', :backend do
             expect(esearch)
               .to  have_search_finished
               .and have_not_reported_errors
-              .and have_valid_buffer_name("#{search_string}42")
+              .and have_valid_buffer_basename("#{search_string}42")
           end.to change { editor.echo var('b:esearch.id') }
         end
       end

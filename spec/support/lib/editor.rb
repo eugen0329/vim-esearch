@@ -120,6 +120,10 @@ class Editor
     expand('%:p')
   end
 
+  def current_buffer_basename
+    expand('%:t')
+  end
+
   def current_line_number
     echo func('line', '.')
   end

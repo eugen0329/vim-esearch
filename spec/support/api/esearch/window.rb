@@ -45,10 +45,10 @@ class API::ESearch::Window
     end
   end
 
-  def has_valid_buffer_name?(name, timeout: search_event_timeout)
+  def has_valid_buffer_basename?(basename, timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      expected = "Search #{esearch.configuration.ql}#{name}#{esearch.configuration.qr}"
-      break true if editor.with_ignore_cache { Pathname(editor.bufname('')).basename.to_s == expected }
+      expected = "Search #{esearch.configuration.ql}#{basename}#{esearch.configuration.qr}"
+      break true if editor.with_ignore_cache { editor.current_buffer_basename == expected }
     end
   end
 
@@ -167,7 +167,7 @@ class API::ESearch::Window
   end
 
   def inside_search_window?
-    editor.current_buffer_name.match?(/^Search/)
+    editor.current_buffer_basename.match?(/^Search/)
   end
 
   private

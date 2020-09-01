@@ -24,7 +24,7 @@ class API::ESearch::Facade
     :has_live_update_search_started?,
     :has_no_live_update_search_started?,
     :has_search_finished?,
-    :has_valid_buffer_name?,
+    :has_valid_buffer_basename?,
     :has_reported_a_single_result?,
     :has_search_highlight?,
     :has_filename_highlight?,
