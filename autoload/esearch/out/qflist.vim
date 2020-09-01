@@ -1,4 +1,6 @@
 fu! esearch#out#qflist#init(esearch) abort
+  if s:was_live_update(a:esearch) | return s:init_live_updated(a:esearch) | endif
+
   if has_key(g:, 'esearch_qf')
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
   end
@@ -8,7 +10,7 @@ fu! esearch#out#qflist#init(esearch) abort
     call esearch#out#qflist#setup_autocmds(a:esearch)
   endif
   let g:esearch_qf = extend(a:esearch, {'title': ':'.a:esearch.title})
-  let w:quickfix_title = g:esearch_qf.title
+  call esearch#buf#rename_qf(g:esearch_qf.title)
   if !g:esearch_qf.request.async
     call esearch#out#qflist#finish()
   endif
@@ -83,7 +85,7 @@ fu! esearch#out#qflist#finish() abort
   let esearch.title = esearch.title . '. Finished.'
 
   if esearch#buf#qftype(bufnr('%')) ==# 'qf'
-    let w:quickfix_title = esearch.title
+    call esearch#buf#rename_qf(esearch.title)
   else
     let bufnr = esearch#buf#qfbufnr()
     if bufnr !=# -1
@@ -99,4 +101,16 @@ fu! esearch#out#qflist#finish() abort
       endfor
     endif
   endif
+endfu
+
+fu! s:was_live_update(esearch) abort
+  return a:esearch.live_update && !a:esearch.live_exec
+endfu
+
+fu! s:init_live_updated(esearch) abort
+  let g:esearch_qf.title = ':'.a:esearch.title
+  if g:esearch_qf.request.finished
+    let g:esearch_qf.title .= '. Finished.'
+  endif
+  call esearch#buf#rename_qf(g:esearch_qf.title)
 endfu

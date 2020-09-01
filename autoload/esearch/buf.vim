@@ -121,3 +121,7 @@ endfu
 fu! esearch#buf#rename(name) abort
   exe 'file' fnameescape(a:name)
 endfu
+
+fu! esearch#buf#rename_qf(name) abort
+  let w:quickfix_title = a:name
+endfu
