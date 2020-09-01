@@ -26,7 +26,9 @@ let g:esearch#out#win#entry_format = ' %3d %s'
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort
-  call a:esearch.win_new(a:esearch)
+  if s:was_live_update(a:esearch) | return s:init_live_updated(a:esearch) | endif
+
+  if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
   call s:cleanup()
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
@@ -84,6 +86,22 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#out#win#appearance#ctx_syntax#highlight_viewport(b:esearch)
 endfu
 
+fu! s:init_live_updated(esearch) abort
+  let bufname = s:Filepath.join(a:esearch.cwd, a:esearch.title)
+  try
+    call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.title))
+    call esearch#util#doautocmd('BufEnter')
+  catch /E95:/
+    let bufnr = bufnr('')
+    call a:esearch.win_new(a:esearch)
+    if bufnr !=# bufnr('') | exe bufnr 'bwipeout' | endif
+  endtry
+endfu
+
+fu! s:was_live_update(esearch) abort
+  return a:esearch.live_update && !a:esearch.live_exec
+endfu
+
 fu! s:cleanup() abort
   call esearch#util#doautocmd('User esearch_win_uninit_pre')
   if exists('b:esearch')
@@ -133,8 +151,8 @@ endfu
 fu! esearch#out#win#map(lhs, rhs) abort
   let g:esearch = get(g:, 'esearch', {})
   let g:esearch = extend(g:esearch, {'win_map': []}, 'keep')
-  let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
-  let g:esearch.pending_deprecations += ['esearch#out#win#map, see :help g:esearch.win_map']
+  let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
+  let esearch#util#deprecate('esearch#out#win#map, see :help g:esearch.win_map')
   let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs), 'mode': 'n'}]
 endfu
 

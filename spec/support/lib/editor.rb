@@ -104,7 +104,7 @@ class Editor
     press! ":cd #{where}<Enter>"
   end
 
-  def bufname(arg)
+  def bufname(arg = '')
     echo func('bufname', arg)
   end
 
@@ -324,10 +324,6 @@ class Editor
 
   def cwd
     echo func('getcwd')
-  end
-
-  def trigger_cursor_moved_event!
-    press!('<Esc>lh')
   end
 
   def command(string_to_execute)

@@ -4,6 +4,7 @@ let s:pattern2id = esearch#cache#expiring#new({'max_age': 60 * 60 * 24, 'size': 
 let s:max_len = 120
 
 fu! esearch#middleware#title#apply(esearch) abort
+  if has_key(a:esearch, 'title') | return a:esearch | endif
   let a:esearch.title = s:title(a:esearch, a:esearch.pattern.arg)
   return a:esearch
 endfu

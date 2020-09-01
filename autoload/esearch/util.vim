@@ -241,3 +241,7 @@ fu! s:Count.next() abort dict
   let self._value += 1
   return self._value - 1
 endfu
+
+fu! esearch#util#deprecate(message) abort
+  let g:esearch.pending_warnings += ['DEPRECATION: ' . a:message]
+endfu

@@ -19,22 +19,22 @@ fu! esearch#opfunc_prefill(type) abort
 endfu
 
 fu! esearch#opfunc_exec(type) abort
-  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type))})
+  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type)), 'live_update': 0})
 endfu
 
 " DEPRECATED
 fu! esearch#map(lhs, rhs) abort
   let g:esearch = get(g:, 'esearch', {})
-  let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
+  let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
 
   if a:rhs ==# 'esearch'
+    let esearch#util#deprecate('esearch#map, use map {keys} <Plug>(esearch)')
     call esearch#keymap#set('n', a:lhs, '<Plug>(esearch)', {'silent': 1})
-    let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch)']
   elseif a:rhs ==# 'esearch-word-under-cursor'
-    let g:esearch.pending_deprecations += ["esearch#map with 'esearch-word-under-cursor', use map {keys} <Plug>(operator-esearch-prefill)iw"]
+    let esearch#util#deprecate("esearch#map with 'esearch-word-under-cursor', use map {keys} <Plug>(operator-esearch-prefill)iw")
     call esearch#keymap#set('n', a:lhs, '<Plug>(esearch-operator)iw', {'silent': 1})
   else
-    let g:esearch.pending_deprecations += ['esearch#map, see :help esearch-mappings']
+    let esearch#util#deprecate('esearch#map, see :help esearch-mappings')
   endif
 endfu
 

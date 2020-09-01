@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pathname'
 require 'active_support/core_ext/numeric/time'
 
 # rubocop:disable Layout/ClassLength
@@ -22,17 +23,32 @@ class API::ESearch::Window
     editor.delete_current_buffer!(ignore_unsaved_changes: false) if inside_search_window?
   end
 
+  def has_live_update_search_started?(timeout: search_event_timeout)
+    became_truthy_within?(timeout) do
+      break true if editor.with_ignore_cache { inside_live_update_window? }
+    end
+  end
+
+  def has_no_live_update_search_started?(timeout: search_event_timeout)
+    !has_live_update_search_started?(timeout: timeout)
+  end
+
   def has_search_started?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      editor.trigger_cursor_moved_event!
-      break true if inside_search_window?
+      break true if editor.with_ignore_cache { inside_search_window? }
     end
   end
 
   def has_search_finished?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      editor.trigger_cursor_moved_event!
-      break true if parser.header_finished? || has_reported_errors_in_messages?
+      break true if editor.with_ignore_cache { parser.header_finished? || has_reported_errors_in_messages? }
+    end
+  end
+
+  def has_valid_buffer_name?(name, timeout: search_event_timeout)
+    became_truthy_within?(timeout) do
+      expected = "Search #{esearch.configuration.ql}#{name}#{esearch.configuration.qr}"
+      break true if editor.with_ignore_cache { Pathname(editor.bufname('')).basename.to_s == expected }
     end
   end
 
@@ -146,8 +162,12 @@ class API::ESearch::Window
     parser.entries
   end
 
+  def inside_live_update_window?
+    editor.current_buffer_name.match?(/\[esearch\]/)
+  end
+
   def inside_search_window?
-    editor.current_buffer_name.match?(/Search/)
+    editor.current_buffer_name.match?(/^Search/)
   end
 
   private

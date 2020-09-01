@@ -117,3 +117,7 @@ fu! esearch#buf#qftype(bufnr) abort
     endif
   endfor
 endfu
+
+fu! esearch#buf#rename(name) abort
+  exe 'file' fnameescape(a:name)
+endfu

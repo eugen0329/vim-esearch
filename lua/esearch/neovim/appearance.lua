@@ -27,6 +27,7 @@ function M.buf_attach_matches()
 end
 
 function M.highlight_ui(bufnr, from, to)
+  if vim.api.nvim_call_function('bufexists', {bufnr}) == 0 then return end
   vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, from, to)
 
   -- for some reason when clearing a namespace {from} acts like it's 1-indexed,
@@ -131,11 +132,13 @@ function M.highlight_cursor_linenr()
   local bufnr = vim.api.nvim_get_current_buf()
 
   vim.schedule(function()
+    if vim.api.nvim_call_function('bufexists', {bufnr}) == 0 then return end
+
     -- the condition below is needed to prevent adding highlights to buffer when leaving them
     if bufnr == vim.api.nvim_get_current_buf() then
-      vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+      vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
       if last_column ~= nil then
-        vim.api.nvim_buf_add_highlight(0, ns, 'esearchCursorLineNr', line, 0, last_column)
+        vim.api.nvim_buf_add_highlight(bufnr, ns, 'esearchCursorLineNr', line, 0, last_column)
       end
     end
   end)

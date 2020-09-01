@@ -7,7 +7,10 @@ fu! esearch#middleware#pattern#apply(esearch) abort
     let pattern_type = esearch.regex ==# 'literal' ? 'literal' : 'pcre'
     let esearch.cmdline = esearch#prefill#try(esearch)[pattern_type]
     let esearch = esearch#cmdline#read(esearch)
-    if empty(esearch.cmdline) | throw 'Cancel' | endif
+    if !get(esearch, 'live_exec')
+      " TODO handle removing live_update win
+      if empty(esearch.cmdline) | throw 'Cancel' | endif
+    endif
     let esearch.pattern = s:cached_or_new(esearch.cmdline, esearch)
     let g:esearch.last_pattern = esearch.pattern
   elseif type(esearch.pattern) ==# type('')
