@@ -13,11 +13,11 @@ describe 'esearch#backend', :backend do
 
   define_negated_matcher :not_to_change, :change
 
-  let(:live_update_throttle_wait) { 50 }
+  let(:live_update_debounce_wait) { 50 }
   before do
     esearch.configure(
       root_markers:              [],
-      live_update_throttle_wait: live_update_throttle_wait
+      live_update_debounce_wait: live_update_debounce_wait
     )
   end
 
@@ -75,7 +75,7 @@ describe 'esearch#backend', :backend do
       end
 
       context 'when a pattern is submitted before the first update' do
-        let(:live_update_throttle_wait) { 42_000_000 }
+        let(:live_update_debounce_wait) { 42_000_000 }
 
         it 'outputs the search results' do
           esearch.input!(search_string)
@@ -100,7 +100,7 @@ describe 'esearch#backend', :backend do
       end
 
       context 'when a pattern is submitted before the second update' do
-        let(:live_update_throttle_wait) { 1000 }
+        let(:live_update_debounce_wait) { 1000 }
 
         it 'outputs the search results' do
           esearch.input!(search_string)

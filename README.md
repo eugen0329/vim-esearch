@@ -17,6 +17,7 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 
 ### Features overview
 
+- Update search results on the fly while you're typing.
 - Performance:
   - Async neovim/vim8 jobs api are used.
   - Fast lua-based rendering.
@@ -117,6 +118,9 @@ let g:esearch.root_markers = ['.git', 'Makefile', 'node_modules']
 
 " Prevent esearch from adding any default keymaps.
 let g:esearch.default_mappings = 0
+
+" Start the search only when the enter is hit instead of updating the search while you're typing.
+let g:esearch.live_update = 0
 
 " Open the search window in a vertical split and reuse it for all searches.
 let g:esearch.win_new = {-> esearch#buf#goto_or_open('[Search]', 'vnew') }

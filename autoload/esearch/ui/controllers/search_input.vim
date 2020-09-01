@@ -33,7 +33,7 @@ endfu
 
 fu! s:SearchInputController.init_live_update() dict abort
   let self.executed_cmdline = ''
-  let s:live_update = esearch#async#debounce(function('s:live_update'), self.props.live_update_throttle_wait)
+  let s:live_update = esearch#async#debounce(function('s:live_update'), self.props.live_update_debounce_wait)
   aug esearch_live_update
     au!
     au CmdlineChanged * call s:live_update.apply() | redraw!
@@ -46,7 +46,7 @@ fu! s:SearchInputController.init_live_update() dict abort
 endfu
 
 fu! s:SearchInputController.final_live_update() dict abort
-  " if changes were made before live_update_throttle_wait is exceeded
+  " if changes were made before live_update_debounce_wait is exceeded
   if self.executed_cmdline !=# self.cmdline
     call s:live_update(self.cmdline)
   endif
@@ -145,7 +145,7 @@ endfu
 
 let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'cmdpos',
       \ 'did_select_prefilled', 'select_prefilled', 'win_update_throttle_wait',
-      \ 'live_update_throttle_wait', 'live_update'])
+      \ 'live_update_debounce_wait', 'live_update'])
 
 fu! esearch#ui#controllers#search_input#import() abort
   return esearch#ui#connect(s:SearchInputController, s:map_state_to_props)

@@ -58,9 +58,9 @@ fu! esearch#config#init(esearch) abort
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
         \ 'live_update':                           1,
         \ 'live_exec':                             0,
-        \ 'live_update_throttle_wait':             100,
+        \ 'live_update_debounce_wait':             100,
         \ 'filemanager_integration':               1,
-        \ 'pending_warnings':                  [],
+        \ 'pending_warnings':                      [],
         \}, 'keep')
   let g:esearch = extend(g:esearch, {
         \ 'win_ui_nvim_syntax':                       g:esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
