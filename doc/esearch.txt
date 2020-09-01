@@ -787,7 +787,7 @@ g:esearch.live_update_debounce_wait          *g:esearch.live_update_debounce_wai
         but also the later a new search with the latest pattern will be started.
         Type: |Number|
         Allowed values: > 0
-        Default: 100
+        Default: 200
 
                                    *g:esearch.win_matches_highlight_debounce_wait*
 g:esearch.win_matches_highlight_debounce_wait

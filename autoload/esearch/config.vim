@@ -56,9 +56,9 @@ fu! esearch#config#init(esearch) abort
         \ 'win_context_len_annotations':           g:esearch#has#virtual_text,
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
-        \ 'live_update':                           1,
+        \ 'live_update':                           g:esearch#has#live_update,
         \ 'live_exec':                             0,
-        \ 'live_update_debounce_wait':             100,
+        \ 'live_update_debounce_wait':             200,
         \ 'filemanager_integration':               1,
         \ 'pending_warnings':                      [],
         \}, 'keep')
