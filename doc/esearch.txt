@@ -903,7 +903,7 @@ g:esearch.early_finish_wait                          *g:esearch.early_finish_wai
         before the start.
         Type: |Number|
         Allowed values: >= 0
-        Default: 80
+        Default: 100
 
 ================================================================================
 COMMANDLINE                                                      *esearch-cmdline*

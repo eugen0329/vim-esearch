@@ -75,6 +75,8 @@ fu! s:app(esearch) abort
   try
     while app.render()
     endwhile
+  catch /Vim:Interrupt/
+    " noop
   finally
     call app.component_will_unmount()
     call context.restore()
@@ -93,7 +95,9 @@ fu! s:initial_state(esearch) abort
 endfu
 
 fu! s:reducer(state, action) abort
-  if a:action.type ==# 'NEXT_CASE'
+  if a:action.type ==# 'SET_LIVE_UPDATE_BUFNR'
+    return extend(copy(a:state), {'live_update_bufnr': a:action.bufnr})
+  elseif a:action.type ==# 'NEXT_CASE'
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
   elseif a:action.type ==# 'NEXT_REGEX'
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})

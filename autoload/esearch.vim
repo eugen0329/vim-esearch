@@ -11,7 +11,7 @@ fu! esearch#init(...) abort
     return
   endtry
 
-  call esearch#out#{esearch.out}#init(esearch)
+  return esearch#out#{esearch.out}#init(esearch)
 endfu
 
 fu! esearch#opfunc_prefill(type) abort
@@ -19,7 +19,7 @@ fu! esearch#opfunc_prefill(type) abort
 endfu
 
 fu! esearch#opfunc_exec(type) abort
-  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type)), 'live_update': 0})
+  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type))})
 endfu
 
 " DEPRECATED

@@ -12,6 +12,7 @@ describe 'esearch#backend', :backend do
   include VimlValue::SerializationHelpers
 
   define_negated_matcher :not_to_change, :change
+  define_negated_matcher :not_change, :change
 
   let(:live_update_debounce_wait) { 50 }
   before do
@@ -94,8 +95,55 @@ describe 'esearch#backend', :backend do
           esearch.search!(search_string)
           expect do
             editor.send_keys 'R'
-          end.to change { editor.echo var('b:esearch.id') }
+          end.to change { editor.echo(var('b:esearch.id')) }
             .and not_to_change { editor.tabs }
+        end
+      end
+
+      context 'when the search is cancelled' do
+        context 'when before the first update' do
+          let(:live_update_debounce_wait) { 42_000_000 }
+
+          it 'closes the window' do
+            esearch.input!(search_string)
+            expect(esearch).to have_no_live_update_search_started(timeout: 0.5.seconds)
+
+            expect { editor.send_keys :control_c }
+              .to not_change { editor.current_buffer_basename }
+              .from('')
+              .and not_to_change { editor.buffers.count }
+          end
+        end
+
+        context 'when after the first update' do
+          it 'closes the window' do
+            esearch.input!(search_string)
+            expect(esearch)
+              .to  have_live_update_search_started(timeout: 2.seconds)
+              .and have_search_finished
+              .and have_not_reported_errors
+
+            expect { editor.send_keys :control_c }
+              .to change { editor.current_buffer_basename }
+              .from('[esearch]')
+              .to('')
+          end
+        end
+      end
+
+      context 'when an empty string is submitted' do
+        it 'closes the window' do
+          esearch.input!(search_string)
+          expect(esearch)
+            .to  have_live_update_search_started(timeout: 2.seconds)
+            .and have_search_finished
+            .and have_not_reported_errors
+
+          editor.send_keys :control_w
+          expect { editor.send_keys :enter }
+            .to change { editor.current_buffer_basename }
+            .from('[esearch]')
+            .to('')
         end
       end
 

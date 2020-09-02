@@ -441,6 +441,8 @@ class Editor
     down:      '\\<Down>',
     end:       '\\<End>',
     paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}",
+    control_c: '\\<C-c>',
+    control_w: '\\<C-w>',
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

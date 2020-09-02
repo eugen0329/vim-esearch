@@ -1,5 +1,5 @@
 fu! esearch#out#qflist#init(esearch) abort
-  if s:was_live_update(a:esearch) | return s:init_live_updated(a:esearch) | endif
+  if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
 
   if has_key(g:, 'esearch_qf')
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
@@ -14,6 +14,7 @@ fu! esearch#out#qflist#init(esearch) abort
   if !g:esearch_qf.request.async
     call esearch#out#qflist#finish()
   endif
+  return g:esearch_qf
 endfu
 
 fu! esearch#out#qflist#setup_autocmds(esearch) abort
@@ -103,14 +104,11 @@ fu! esearch#out#qflist#finish() abort
   endif
 endfu
 
-fu! s:was_live_update(esearch) abort
-  return a:esearch.live_update && !a:esearch.live_exec
-endfu
-
 fu! s:init_live_updated(esearch) abort
   let g:esearch_qf.name = ':'.a:esearch.name
   if g:esearch_qf.request.finished
     let g:esearch_qf.name .= '. Finished.'
   endif
   call esearch#buf#rename_qf(g:esearch_qf.name)
+  return g:esearch_qf
 endfu

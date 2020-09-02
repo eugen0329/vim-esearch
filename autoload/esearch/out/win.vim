@@ -26,7 +26,7 @@ let g:esearch#out#win#entry_format = ' %3d %s'
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort
-  if s:was_live_update(a:esearch) | return s:init_live_updated(a:esearch) | endif
+  if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
 
   if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
   call s:cleanup()
@@ -84,6 +84,7 @@ fu! esearch#out#win#init(esearch) abort
   " without waiting for debouncing callback firing.
   call esearch#out#win#appearance#matches#highlight_viewport(b:esearch)
   call esearch#out#win#appearance#ctx_syntax#highlight_viewport(b:esearch)
+  return b:esearch
 endfu
 
 fu! s:init_live_updated(esearch) abort
@@ -96,10 +97,7 @@ fu! s:init_live_updated(esearch) abort
     call a:esearch.win_new(a:esearch)
     if bufnr !=# bufnr('') | exe bufnr 'bwipeout' | endif
   endtry
-endfu
-
-fu! s:was_live_update(esearch) abort
-  return a:esearch.live_update && !a:esearch.live_exec
+  return a:esearch
 endfu
 
 fu! s:cleanup() abort

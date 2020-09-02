@@ -252,6 +252,13 @@ fu! esearch#util#warn(message) abort
     let g:esearch.pending_warnings += [a:message]
   else
     redraw
-    call s:Log.info(msg)
+    call s:Log.info(a:message)
   endif
+endfu
+
+" If live_update feature is enabled:
+"    live_exec - exec a new search and skip
+"   !live_exec - skip exec and connect to an already executed search
+fu! esearch#util#is_skip_exec(esearch) abort
+  return a:esearch.live_update && !a:esearch.live_exec
 endfu
