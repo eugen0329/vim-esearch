@@ -66,14 +66,12 @@ fu! s:live_update(...) abort
   let cmdline = a:0 ? a:1 : getcmdline()
   if empty(cmdline) | return | endif
   let s:self.executed_cmdline = cmdline
-  " let esearch = 
   let esearch = esearch#init(extend(copy(s:self.__context__().store.state), {
         \ 'pattern': cmdline,
         \ 'remember': [],
         \ 'live_exec': 1,
         \ 'name': '[esearch]',
         \ }, 'force'))
-  " echomsg [11, esearch.bufnr]
   call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
 endfu
 

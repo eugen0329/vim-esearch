@@ -92,7 +92,7 @@ fu! s:init_live_updated(esearch) abort
   try
     call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.name))
     call esearch#util#doautocmd('BufEnter')
-  catch /E95:/
+  catch /E95:/ " Buffer with this name already exists
     let bufnr = bufnr('')
     call a:esearch.win_new(a:esearch)
     if bufnr !=# bufnr('') | exe bufnr 'bwipeout' | endif
