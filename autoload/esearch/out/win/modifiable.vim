@@ -67,7 +67,7 @@ fu! s:write() abort
   let message = 'Write changes? (' . join(lines_stats, ', ') . files_stats_text . ')'
 
   if esearch#ui#confirm#show(message, ['Yes', 'No']) == 1
-    call esearch#writer#buffer#write(diff, b:esearch)
+    call esearch#writer#{b:esearch.writer}#write(diff, b:esearch)
   endif
 endfu
 

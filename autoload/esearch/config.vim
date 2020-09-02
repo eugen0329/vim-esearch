@@ -39,6 +39,7 @@ fu! esearch#config#init(esearch) abort
         \ 'early_finish_wait':                     100,
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
+        \ 'writer':                                'buffer',
         \ 'errors':                                [],
         \ 'prefill':                               ['hlsearch', 'current', 'last'],
         \ 'select_prefilled':                      1,

@@ -45,6 +45,12 @@ class API::ESearch::Window
     end
   end
 
+  def has_output_message?(message, timeout: search_event_timeout)
+    became_truthy_within?(timeout) do
+      editor.messages.any? { |message| message.include?(message) }
+    end
+  end
+
   def has_valid_buffer_basename?(basename, timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       expected = "Search #{esearch.configuration.ql}#{basename}#{esearch.configuration.qr}"
