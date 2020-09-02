@@ -85,6 +85,7 @@ fu! s:hl(es, l1, l2) abort
   let state = esearch#out#win#_state(a:es)
   let lnrs = state.line_numbers_map
   let ids = state.ctx_ids_map
+  if len(ids) < a:l2 | retu | en
   let done = a:es.lines_with_hl_matches
   let a:es.last_hl_range = [a:l1,a:l2]
 

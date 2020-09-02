@@ -63,147 +63,122 @@ let g:esearch#out#win#appearance#ctx_syntax#map = {
       \ 'fortran':         'es_ctx_generic',
       \}
 
-fu! esearch#out#win#appearance#ctx_syntax#init(esearch) abort
-  if !a:esearch.win_contexts_syntax | return | endif
+fu! esearch#out#win#appearance#ctx_syntax#init(es) abort
+  if !a:es.win_contexts_syntax | retu | en
 
-  let Callback = function('s:hl_viewport_cb', [a:esearch])
-  let a:esearch.loaded_ctx_syntaxes = 1
-  let a:esearch.hl_ctx_syntax = esearch#async#debounce(Callback, a:esearch.win_contexts_syntax_debounce_wait)
-  let a:esearch.context_syntax_regions = {}
-  let a:esearch.max_lines_found = 0
-  syntax sync minlines=100
+  let Callback = function('s:hl_viewport_cb', [a:es])
+  let a:es.loaded_ctx_syntaxes = 1
+  let a:es.hl_ctx_syntax = esearch#async#debounce(Callback, a:es.win_contexts_syntax_debounce_wait)
+  let a:es.context_syntax_regions = {}
+  let a:es.max_lines_found = 0
+  syn sync minlines=100
   aug esearch_win_hl_ctx_syntax
-    au CursorMoved <buffer> call b:esearch.hl_ctx_syntax.apply()
+    au CursorMoved <buffer> cal b:esearch.hl_ctx_syntax.apply()
   aug END
 endfu
 
-fu! esearch#out#win#appearance#ctx_syntax#uninit(esearch) abort
+fu! esearch#out#win#appearance#ctx_syntax#uninit(es) abort
   aug esearch_win_hl_ctx_syntax
     au! * <buffer>
   aug END
-  if has_key(a:esearch, 'hl_ctx_syntax')
-    call a:esearch.hl_ctx_syntax.cancel()
-  endif
-  syntax sync clear
-  syntax clear
-  let a:esearch.context_syntax_regions = {}
+  if has_key(a:es, 'hl_ctx_syntax')
+    cal a:es.hl_ctx_syntax.cancel()
+  en
+  syn sync clear
+  syn clear
+  let a:es.context_syntax_regions = {}
 endfu
 
-fu! esearch#out#win#appearance#ctx_syntax#soft_stop(esearch) abort
+fu! esearch#out#win#appearance#ctx_syntax#soft_stop(es) abort
   aug esearch_win_hl_ctx_syntax
     au! * <buffer>
   aug END
-  if has_key(a:esearch, 'hl_ctx_syntax')
-    call a:esearch.hl_ctx_syntax.cancel()
-  endif
+  if has_key(a:es, 'hl_ctx_syntax')
+    cal a:es.hl_ctx_syntax.cancel()
+  en
 
-  if a:esearch.win_ui_nvim_syntax
+  if a:es.win_ui_nvim_syntax
     syn clear
   else
-    for name in map(values(a:esearch.context_syntax_regions), 'v:val.name')
+    for name in map(values(a:es.context_syntax_regions), 'v:val.name')
       exe 'syn clear ' . name
       exe 'syn clear esearchContext_' . name
     endfor
-  endif
-  let a:esearch.context_syntax_regions = {}
-  syntax sync clear
-  syntax sync maxlines=1
+  en
+  let a:es.context_syntax_regions = {}
+  syn sync clear
+  syn sync maxlines=1
 endfu
 
 " Can be used to highlight 
-fu! esearch#out#win#appearance#ctx_syntax#hl_viewport(esearch) abort
-  if !get(a:esearch, 'loaded_ctx_syntaxes', 0) | return | endif
-  let begin = esearch#util#clip(line('w0'), 3, line('$'))
-  let end   = esearch#util#clip(line('w$'), 3, line('$'))
-  return s:hl(a:esearch, begin, end)
+fu! esearch#out#win#appearance#ctx_syntax#hl_viewport(es) abort
+  if !get(a:es, 'loaded_ctx_syntaxes', 0) | retu | en
+  let l1 = esearch#util#clip(line('w0'), 3, line('$'))
+  let l2 = esearch#util#clip(line('w$'), 3, line('$'))
+  retu s:hl(a:es, l1, l2)
 endfu
 
-fu! s:hl_viewport_cb(esearch) abort
-  let begin = esearch#util#clip(line('w0') - a:esearch.win_viewport_off_screen_margin, 3, line('$'))
-  let end   = esearch#util#clip(line('w$') + a:esearch.win_viewport_off_screen_margin, 3, line('$'))
-  return s:hl(a:esearch, begin, end)
+fu! s:hl_viewport_cb(es) abort
+  let l1 = esearch#util#clip(line('w0') - a:es.win_viewport_off_screen_margin, 3, line('$'))
+  let l2 = esearch#util#clip(line('w$') + a:es.win_viewport_off_screen_margin, 3, line('$'))
+  retu s:hl(a:es, l1, l2)
 endfu
 
-fu! s:hl(esearch, begin, end) abort
-  if !a:esearch.slow_hl_enabled || line('$') < 3 || !a:esearch.is_current()
-    return
-  endif
-
-  let state = esearch#out#win#_state(a:esearch)
-  for ctx in b:esearch.contexts[state.ctx_ids_map[a:begin] : state.ctx_ids_map[a:end]]
-    if !ctx.loaded_syntax
-      call s:define_context_filetype_syntax_region(a:esearch, ctx)
-    endif
-  endfor
-  call s:update_syntax_sync(a:esearch)
+fu! s:hl(es, l1, l2) abort
+  if !a:es.slow_hl_enabled || line('$') < 3 || !a:es.is_current() | retu | en
+  let s = esearch#out#win#_state(a:es)
+  for c in b:esearch.contexts[s.ctx_ids_map[a:l1]:s.ctx_ids_map[a:l2]]
+    if !c.loaded_syntax | cal s:def_ctx_region(a:es,c) | en
+  endfo
+  cal s:upd_sync(a:es)
 endfu
 
-fu! s:update_syntax_sync(esearch) abort
-  if !a:esearch.slow_hl_enabled
-        \ || a:esearch['max_lines_found'] < 1
-    return
-  endif
-
-  "" for some reason it clears other properties which doesn't related to sync
-  "" like syn iskeyword etc.
-  " syntax sync clear
-  exe 'syntax sync minlines='.min([
-        \ float2nr(a:esearch.max_lines_found),
-        \ a:esearch.win_contexts_syntax_sync_minlines])
+fu! s:upd_sync(es) abort
+  if !a:es.slow_hl_enabled || a:es.max_lines_found < 1 | retu | en
+  exe 'syn sync minlines='.min([float2nr(a:es.max_lines_found),a:es.win_contexts_syntax_sync_minlines])
 endfu
 
-fu! s:define_context_filetype_syntax_region(esearch, ctx) abort
+fu! s:def_ctx_region(es, ctx) abort
   if empty(a:ctx.filetype)
     let a:ctx.filetype = esearch#ftdetect#fast(a:ctx.filename)
-  endif
+  en
 
   if !has_key(g:esearch#out#win#appearance#ctx_syntax#map, a:ctx.filetype)
     let a:ctx.loaded_syntax = -1
-    return
-  endif
-  let syntax_name = g:esearch#out#win#appearance#ctx_syntax#map[a:ctx.filetype]
+    retu
+  en
+  let syn = g:esearch#out#win#appearance#ctx_syntax#map[a:ctx.filetype]
 
-  if !has_key(a:esearch.context_syntax_regions, syntax_name)
-    let region = {
-          \ 'cluster': s:include_syntax_cluster(syntax_name),
-          \ 'name':    syntax_name,
-          \ }
-    let a:esearch.context_syntax_regions[syntax_name] = region
-    exe printf('syntax region %s start="^ " end="^$" contained contains=esearchLineNr,%s',
-          \ region.name,
-          \ region.cluster)
+  if !has_key(a:es.context_syntax_regions, syn)
+    let r = {'cluster': s:include(syn), 'name': syn}
+    let a:es.context_syntax_regions[syn] = r
+    exe printf('syn region %s start="^ " end="^$" contained contains=esearchLineNr,%s', r.name, r.cluster)
   else
-    let region = a:esearch.context_syntax_regions[syntax_name]
-  endif
+    let r = a:es.context_syntax_regions[syn]
+  en
 
   " fnameescape() is used as listed filenames are escaped
   " escape(..., '/...) as the filename pattern is enclosed in //
   " escape(..., ...^$.[\') is used as matching must be literal
   let start = escape(fnameescape(a:ctx.filename), '/^$.[\')
-  exe printf('syntax region esearchContext_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s',
-        \ region.name, start, region.name)
+  exe printf('syn region esearchctx_%s start=/\M^%s$/ end=/^$/ contains=esearchFilename,%s', r.name, start, r.name)
 
   let len = a:ctx.end - a:ctx.begin
-  if a:esearch.max_lines_found < len
-    let a:esearch.max_lines_found = len
-  endif
+  if a:es.max_lines_found < len | let a:es.max_lines_found = len | en
   let a:ctx.loaded_syntax = 1
 endfu
 
-fu! s:include_syntax_cluster(ft) abort
-  let cluster_name = '@' . toupper(a:ft)
-
+fu! s:include(ft) abort
   if exists('b:current_syntax')
     let syntax_save = b:current_syntax
-    unlet b:current_syntax
-  endif
-
-  exe 'syntax include' cluster_name 'syntax/' . a:ft . '.vim'
-
+    unl b:current_syntax
+  en
+  let clus = '@'.toupper(a:ft)
+  exe 'syn include' clus 'syntax/'.a:ft.'.vim'
   if exists('syntax_save')
     let b:current_syntax = syntax_save
-  elseif exists('b:current_syntax')
-    unlet b:current_syntax
-  endif
-  return cluster_name
+  elsei exists('b:current_syntax')
+    unl b:current_syntax
+  en
+  retu clus
 endfu

@@ -135,7 +135,7 @@ endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
-    call esearch#util#warn('esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')')
+    call esearch#util#warn('esearch: some highlights were disabled to prevent slowdowns (reason: ' . a:reason . ')')
   endif
 
   call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)
@@ -200,6 +200,7 @@ endfu
 
 fu! s:reload() abort dict
   call esearch#backend#{self.backend}#abort(self.bufnr)
+  let self.live_update = 0
   let self.contexts = []
   let self.ctx_ids_map = []
   let self.ctx_by_name = {}

@@ -7,6 +7,7 @@ fu! esearch#middleware#warnings#apply(esearch) abort
     return a:esearch
   endif
 
+  call uniq(g:esearch.pending_warnings)
   for msg in g:esearch.pending_warnings
     call s:Log.info(msg)
     redraw
