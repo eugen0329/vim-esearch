@@ -66,7 +66,7 @@ let g:esearch#out#win#appearance#ctx_syntax#map = {
 fu! esearch#out#win#appearance#ctx_syntax#init(esearch) abort
   if !a:esearch.win_contexts_syntax | return | endif
 
-  let Callback = function('s:highlight_viewport_cb', [a:esearch])
+  let Callback = function('s:hl_viewport_cb', [a:esearch])
   let a:esearch.loaded_ctx_syntaxes = 1
   let a:esearch.hl_ctx_syntax = esearch#async#debounce(Callback, a:esearch.win_contexts_syntax_debounce_wait)
   let a:esearch.context_syntax_regions = {}
@@ -111,20 +111,20 @@ fu! esearch#out#win#appearance#ctx_syntax#soft_stop(esearch) abort
 endfu
 
 " Can be used to highlight 
-fu! esearch#out#win#appearance#ctx_syntax#highlight_viewport(esearch) abort
+fu! esearch#out#win#appearance#ctx_syntax#hl_viewport(esearch) abort
   if !get(a:esearch, 'loaded_ctx_syntaxes', 0) | return | endif
   let begin = esearch#util#clip(line('w0'), 3, line('$'))
   let end   = esearch#util#clip(line('w$'), 3, line('$'))
-  return s:highlight_range(a:esearch, begin, end)
+  return s:hl(a:esearch, begin, end)
 endfu
 
-fu! s:highlight_viewport_cb(esearch) abort
+fu! s:hl_viewport_cb(esearch) abort
   let begin = esearch#util#clip(line('w0') - a:esearch.win_viewport_off_screen_margin, 3, line('$'))
   let end   = esearch#util#clip(line('w$') + a:esearch.win_viewport_off_screen_margin, 3, line('$'))
-  return s:highlight_range(a:esearch, begin, end)
+  return s:hl(a:esearch, begin, end)
 endfu
 
-fu! s:highlight_range(esearch, begin, end) abort
+fu! s:hl(esearch, begin, end) abort
   if !a:esearch.slow_hl_enabled || line('$') < 3 || !a:esearch.is_current()
     return
   endif

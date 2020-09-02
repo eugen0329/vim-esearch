@@ -40,6 +40,7 @@ fu! esearch#config#init(esearch) abort
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'writer':                                'buffer',
+        \ 'writer_opener':                         'tabnew',
         \ 'errors':                                [],
         \ 'prefill':                               ['hlsearch', 'current', 'last'],
         \ 'select_prefilled':                      1,
@@ -60,7 +61,7 @@ fu! esearch#config#init(esearch) abort
         \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend !=# 'system',
         \ 'live_exec':                             0,
         \ 'live_update_bufnr':                     -1,
-        \ 'live_update_debounce_wait':             200,
+        \ 'live_update_debounce_wait':             150,
         \ 'filemanager_integration':               1,
         \ 'pending_warnings':                      [],
         \}, 'keep')

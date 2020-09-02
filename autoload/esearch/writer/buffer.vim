@@ -12,7 +12,7 @@ fu! s:BufferWriter.write() abort dict
     let path = esearch#util#abspath(cwd, ctx.filename)
     if !self.verify_readable(path) | continue | endif
 
-    exe '$tabnew ' . path
+    exe 'keepalt keepjumps $tabnew ' path
     if !self.verify_not_modified(ctx, path) | continue | endif
 
     let self.modified_line = line('$')

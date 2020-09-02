@@ -1,5 +1,5 @@
 fu! esearch#writer#base#import() abort
-  return s:Base
+  return copy(s:Base)
 endfu
 
 let s:Base = {}

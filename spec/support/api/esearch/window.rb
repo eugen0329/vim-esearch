@@ -45,7 +45,7 @@ class API::ESearch::Window
     end
   end
 
-  def has_output_message?(message, timeout: search_event_timeout)
+  def has_output_message?(_message, timeout: search_event_timeout)
     became_truthy_within?(timeout) do
       editor.messages.any? { |message| message.include?(message) }
     end
