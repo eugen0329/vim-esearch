@@ -1,109 +1,59 @@
-let s:Log  = esearch#log#import()
-
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-
 fu! esearch#writer#buffer#write(diff, esearch) abort
-  return s:new(a:diff, a:esearch).write()
+  return s:BufferWriter.new(a:diff, a:esearch).write()
 endfu
 
-fu! s:new(diff, esearch) abort
-  return {
-        \ 'diff':                  a:diff,
-        \ 'esearch':               a:esearch,
-        \ 'modified_line':         s:null,
-        \ 'write':                 function('<SID>write'),
-        \ 'replace_lines':         function('<SID>replace_lines'),
-        \ 'delete_lines':          function('<SID>delete_lines'),
-        \ 'try_jump_to_diff_line': function('<SID>try_jump_to_diff_line'),
-        \ 'detect_conflict':       function('<SID>detect_conflict'),
-        \}
-endfu
+let s:BufferWriter = esearch#writer#base#import()
 
-fu! s:write() abort dict
+fu! s:BufferWriter.write() abort dict
   let cwd = self.esearch.cwd
-  let conflicts = []
+  let self.conflicts = []
 
-  for [id, ctx] in items(self.diff.contexts)
+  for ctx in values(self.diff.contexts)
     let path = esearch#util#abspath(cwd, ctx.filename)
+    if !self.verify_readable(path) | continue | endif
+
     exe '$tabnew ' . path
+    if !self.verify_not_modified(ctx, path) | continue | endif
 
-    let conflict = self.detect_conflict(ctx, path)
-    if conflict isnot# s:null
-      call add(conflicts, conflict)
-      continue
-    endif
-
-    if !empty(get(ctx, 'modified', {}))
-      call self.replace_lines(ctx.modified)
-    endif
-    call self.try_jump_to_diff_line()
-
-    if !empty(get(ctx, 'deleted', []))
-      call self.delete_lines(ctx.deleted)
-    endif
-    call self.try_jump_to_diff_line()
-
-    let self.modified_line = s:null
-  endfor
-  redraw!
-
-  if empty(conflicts)
-    call setbufvar(self.esearch.bufnr, '&modified', 0)
-  else
-    let reasons_texts =
-          \ map(conflicts, 'printf("\n\t%s (%s)", v:val.filename, v:val.reason)')
-    let message = "Can't write changes to the following files:"
-          \ . join(reasons_texts, '')
-    call s:Log.echo('ErrorMsg',  message)
-  endif
-endfu
-
-fu! s:detect_conflict(ctx, path) abort dict
-  if !filereadable(a:path)
-    return {'filename': a:ctx.filename, 'reason': 'is not readable'}
-  endif
-
-  let original_lines = a:ctx.original.lines
-  for changed_line_number in a:ctx.deleted + keys(a:ctx.modified)
-    if getline(changed_line_number) !=# original_lines[changed_line_number]
-      return {
-            \ 'filename': a:ctx.filename,
-            \ 'reason':   'line ' . changed_line_number . ' has changed',
-            \ }
-    endif
-  endfor
-
-  return s:null
-endfu
-
-fu! s:try_jump_to_diff_line() abort dict
-  if self.modified_line isnot# s:null && line('.') != self.modified_line
+    let self.modified_line = line('$')
+    if !empty(ctx.modified) | call self.replace_lines(ctx.modified) | endif
+    if !empty(ctx.deleted)  | call self.delete_lines(ctx.deleted)  | endif
     call cursor(self.modified_line, 1)
-  endif
+  endfor
+
+  redraw!
+  call self.log()
 endfu
 
-fu! s:replace_lines(modified) abort dict
-  let lines_with_text_to_replace = items(a:modified)
+fu! s:BufferWriter.verify_not_modified(ctx, path) abort dict
+  let original_lines = a:ctx.original.lines
+  for modified_line in a:ctx.deleted + keys(a:ctx.modified)
+    if getline(modified_line) !=# original_lines[modified_line]
+      call add(self.conflicts, {
+            \ 'filename': a:ctx.filename,
+            \ 'reason':   'line '.modified_line.' has changed',
+            \})
+      return 0
+    endif
+  endfor
 
-  for [line, text] in lines_with_text_to_replace
+  return 1
+endfu
+
+fu! s:BufferWriter.replace_lines(modified) abort dict
+  for [line, text] in items(a:modified)
     call setline(line, text)
   endfor
 
-  if self.modified_line is# s:null
-    let [first_replaced_line, _text] = lines_with_text_to_replace[0]
-    let self.modified_line = first_replaced_line
-  endif
+  let line = str2nr(min(keys(a:modified)))
+  if !empty(line) | let self.modified_line = min([self.modified_line, line]) | endif
 endfu
 
-fu! s:delete_lines(deleted) abort dict
-  let lines_to_delete = reverse(sort(a:deleted, 'N'))
-
-  for line in lines_to_delete
+fu! s:BufferWriter.delete_lines(deleted) abort dict
+  let lines = reverse(sort(a:deleted, 'N'))
+  for line in lines
     call deletebufline(bufnr('%'), line)
   endfor
-
-  if self.modified_line is# s:null
-    let self.modified_line = max([1, lines_to_delete[0] - 1])
-  endif
+  let line = str2nr(lines[-1]) - 1
+  if !empty(line) | let self.modified_line = min([self.modified_line, line]) | endif
 endfu
