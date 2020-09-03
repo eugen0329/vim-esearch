@@ -22,7 +22,7 @@ endfu
 fu! esearch#backend#system#exec(request) abort
   let cwd = esearch#win#lcd(a:request.cwd)
   try
-    let a:request.data = split(system(a:request.command), "\n")
+    let a:request.data = split(system(a:request.command), '\r\=\n')
     let a:request.status = v:shell_error
     let a:request.finished = 1
 

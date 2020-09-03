@@ -53,7 +53,7 @@ fu! s:init_header_ctx(es) abort
   let a:es.ctx_ids_map += [header_ctx.id, header_ctx.id]
   let a:es.line_numbers_map += [0, 0]
   setl modifiable
-  silent 1,$delete_
+  keepjumps silent %delete_
   cal esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())
   setl nomodifiable
 endfu

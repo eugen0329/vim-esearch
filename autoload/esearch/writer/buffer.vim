@@ -9,8 +9,8 @@ fu! s:BufferWriter.write() abort dict
   let self.conflicts = []
 
   for ctx in values(self.diff.contexts)
-    let path = esearch#util#abspath(cwd, ctx.filename)
-    if !self.verify_readable(path) | continue | endif
+    let path = esearch#out#win#view_data#filename(self.esearch, ctx.original)
+    if !self.verify_readable(ctx, path) | continue | endif
 
     exe 'keepalt keepjumps $tabnew ' path
     if !self.verify_not_modified(ctx, path) | continue | endif
