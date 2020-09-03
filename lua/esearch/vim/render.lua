@@ -23,15 +23,16 @@ function M.render(data, esearch)
   local limit = #parsed
 
   while(i < limit) do
-    local filename = parsed[i]['filename']
-    local text = parsed[i]['text']
+    local filename = parsed[i].filename
+    local git = parsed[i].git
+    local text = parsed[i].text
 
     if filename ~= contexts[#contexts - 1]['filename'] then
       contexts[#contexts - 1]['end'] = line
 
-      if util.is_true(esearch['slow_hl_enabled']) and
+      if util.is_true(esearch.slow_hl_enabled) and
           #contexts > esearch_win_contexts_syntax_clear_on_files_count then
-        esearch['slow_hl_enabled'] = false
+        esearch.slow_hl_enabled = false
         vim.eval('esearch#out#win#stop_highlights("too many lines")')
       end
 
@@ -49,6 +50,7 @@ function M.render(data, esearch)
         ['filetype']      = false,
         ['loaded_syntax'] = false,
         ['lines']         = vim.dict(),
+        ['git']           = git,
         }))
       ctx_by_name[filename] = contexts[#contexts - 1]
       ctx_ids_map:add(contexts[#contexts - 1]['id'])
@@ -59,8 +61,8 @@ function M.render(data, esearch)
     end
 
     if text:len() > esearch_win_context_syntax_max_line_len then
-      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and util.is_true(esearch['slow_hl_enabled']) then
-        esearch['slow_hl_enabled'] = false
+      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and util.is_true(esearch.slow_hl_enabled) then
+        esearch.slow_hl_enabled = false
         vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
         contexts[#contexts - 1]['loaded_syntax'] = true

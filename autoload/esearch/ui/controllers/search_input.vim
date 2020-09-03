@@ -28,9 +28,7 @@ fu! s:SearchInputController.render_path_prompt() dict abort
   let prompt = s:PathTitlePrompt.new().render()
   if empty(prompt) | return 0 | endif
 
-  let options = esearch#let#restorable({
-        \ '&statusline': esearch#ui#to_statusline(prompt),
-        \ })
+  let options = esearch#let#restorable({'&statusline': esearch#ui#to_statusline(prompt)})
   redrawstatus!
   return options
 endfu
@@ -57,22 +55,28 @@ endfu
 
 fu! s:SearchInputController.final_live_update() dict abort
   " if changes were made and live_update_debounce_wait wasn't exceeded
-  if self.executed_cmdline !=# self.cmdline
-    call s:live_update(self.cmdline)
-  endif
+  let cmdline = self.cmdline
+  if s:self.executed_cmdline ==# cmdline || empty(cmdline) | return | endif
+  call s:live_exec(cmdline)
 endfu
 
 fu! s:live_update(...) abort
   let cmdline = a:0 ? a:1 : getcmdline()
-  if empty(cmdline) | return | endif
+  if s:self.executed_cmdline ==# cmdline || len(cmdline) < s:self.props.live_update_min_len
+    return
+  endif
   let s:self.executed_cmdline = cmdline
-  let esearch = esearch#init(extend(copy(s:self.__context__().store.state), {
-        \ 'pattern': cmdline,
+  let esearch = s:live_exec(cmdline)
+  call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
+endfu
+
+fu! s:live_exec(cmdline) abort
+  return esearch#init(extend(copy(s:self.__context__().store.state), {
+        \ 'pattern': a:cmdline,
         \ 'remember': [],
         \ 'live_exec': 1,
         \ 'name': '[esearch]',
         \ }, 'force'))
-  call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
 endfu
 
 fu! s:redraw(_) abort
@@ -156,7 +160,7 @@ endfu
 
 let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'cmdpos',
       \ 'did_select_prefilled', 'select_prefilled', 'win_update_throttle_wait',
-      \ 'live_update_debounce_wait', 'live_update'])
+      \ 'live_update_debounce_wait', 'live_update', 'live_update_min_len'])
 
 fu! esearch#ui#controllers#search_input#import() abort
   return esearch#ui#connect(s:SearchInputController, s:map_state_to_props)

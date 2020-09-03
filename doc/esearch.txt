@@ -276,6 +276,8 @@ g:esearch.live_update                                      *g:esearch.live_updat
 <
         NOTE To increase the timeout after which the output is updated see
         |g:esearch.live_update_debounce_wait| variable.
+        NOTE To configure the number of chars after which a new search is
+        started see |g:esearch.live_update_min_len| variable.
 
 g:esearch.paths                                                  *g:esearch.paths*
         Paths listed using shell syntax to search in.
@@ -758,8 +760,9 @@ Performance configurations:
 
                  Property                                     What contains~
  ------------------------------------------+------------------------------------------------------
- `.win_update_throttle_wait`                 | Update throttling timeout (ms)
  `.live_update_debounce_wait`                | Live update start debouncing timeout (ms)
+ `.live_update_min_len`                      | Number of chars after which live update starts
+ `.win_update_throttle_wait`                 | Update throttling timeout (ms)
  `.win_matches_highlight_debounce_wait`      | Viewport matches highlight debouncing timeout (ms)
  `.win_contexts_syntax_debounce_wait`        | Viewport filetypes highlight debouncing timeout (ms)
  `.win_viewport_off_screen_margin`           | Number of lines to extend the viewport height
@@ -774,13 +777,6 @@ Performance configurations:
  `.early_finish_wait`                        | Timeout to avoid screen blinks when few results (ms)
  ------------------------------------------+------------------------------------------------------
 
-g:esearch.win_update_throttle_wait            *g:esearch.win_update_throttle_wait*
-        Window updates timeout in milliseconds. The bigger this value, the lower
-        slowdowns, but also the later the search finish.
-        Type: |Number|
-        Allowed values: >= 0
-        Default: 100
-
 g:esearch.live_update_debounce_wait          *g:esearch.live_update_debounce_wait*
         Live update start timeout in milliseconds after which the output is
         updated. The bigger this value, the lower slowdowns while you typing,
@@ -788,6 +784,20 @@ g:esearch.live_update_debounce_wait          *g:esearch.live_update_debounce_wai
         Type: |Number|
         Allowed values: > 0
         Default: 150
+
+g:esearch.live_update_min_len                      *g:esearch.live_update_min_len*
+        Minumum search pattern length to start live update.
+        during live updates.
+        Type: |Number|
+        Allowed values: > 0
+        Default: 3
+
+g:esearch.win_update_throttle_wait            *g:esearch.win_update_throttle_wait*
+        Window updates timeout in milliseconds. The bigger this value, the lower
+        slowdowns, but also the later the search finish.
+        Type: |Number|
+        Allowed values: >= 0
+        Default: 100
 
                                    *g:esearch.win_matches_highlight_debounce_wait*
 g:esearch.win_matches_highlight_debounce_wait

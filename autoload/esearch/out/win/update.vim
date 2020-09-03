@@ -47,7 +47,7 @@ fu! s:init_throttled_updates(es) abort
 endfu
 
 fu! s:init_header_ctx(es) abort
-  cal esearch#out#win#update#add_context(a:es.contexts, '', 1) " add blank header context
+  cal esearch#out#win#update#add_context(a:es.contexts, '', 1, 0) " add blank header context
   let header_ctx = a:es.contexts[0]
   let header_ctx.end = 2
   let a:es.ctx_ids_map += [header_ctx.id, header_ctx.id]
@@ -120,7 +120,7 @@ fu! s:update_timer_cb(es, bufnr, timer) abort
   en
 endfu
 
-fu! esearch#out#win#update#add_context(contexts, filename, begin) abort
+fu! esearch#out#win#update#add_context(contexts, filename, begin, git) abort
   cal add(a:contexts, {
         \ 'id': len(a:contexts),
         \ 'begin': a:begin,
@@ -128,6 +128,7 @@ fu! esearch#out#win#update#add_context(contexts, filename, begin) abort
         \ 'filename': a:filename,
         \ 'filetype': '',
         \ 'loaded_syntax': 0,
+        \ 'git': a:git,
         \ 'lines': {},
         \ })
 endfu

@@ -24,10 +24,10 @@ function M.render(data, last_context, files_count, slow_hl_enabled)
   local limit = #parsed + 1
   local lines = {}
 
-  while(i < limit)
-  do
+  while(i < limit) do
     local filename = parsed[i]['filename']
-    local text = parsed[i]['text']
+    local text = parsed[i].text
+    local git = parsed[i].git
 
     if filename ~= contexts[#contexts]['filename'] then
       contexts[#contexts]['end'] = line
@@ -52,6 +52,7 @@ function M.render(data, last_context, files_count, slow_hl_enabled)
         ['filetype']      = 0,
         ['loaded_syntax'] = 0,
         ['lines']         = {},
+        ['git']           = git,
         }
       ctx_by_name[filename] = contexts[#contexts]
       ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts]['id']

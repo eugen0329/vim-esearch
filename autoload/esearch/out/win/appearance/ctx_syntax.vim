@@ -102,7 +102,7 @@ fu! esearch#out#win#appearance#ctx_syntax#soft_stop(es) abort
   else
     for name in map(values(a:es.context_syntax_regions), 'v:val.name')
       exe 'syn clear ' . name
-      exe 'syn clear esearchContext_' . name
+      exe 'syn clear esearchctx_' . name
     endfor
   en
   let a:es.context_syntax_regions = {}

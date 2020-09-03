@@ -1,4 +1,4 @@
-local util = require'esearch/util'
+local parse_line = require('esearch/shared/adapter/parse').parse_line
 
 local M = {}
 
@@ -8,6 +8,7 @@ function M.lines(data)
   local separators_count = 0
   -- must be invalidated across calls to prevent using stale file presence information
   local cache = {}
+  local filename, lnum, text, git
 
   for i = 1, #data do
     local line = data[i]
@@ -15,17 +16,14 @@ function M.lines(data)
     if line:len() == 0 or line == '--' then
       separators_count = separators_count + 1
     else
-      -- Heuristic to try the fastest matching with a fallback to the comprehensive algorithm
-      local filename, lnum, text = line:match('(.-)[:%-](%d+)[:%-](.*)')
-      if filename == nil or text == nil or not util.filereadable(filename, cache) then
-        filename, lnum, text = util.parse_line(line, cache)
-      end
+      filename, lnum, text, git = parse_line(line, cache)
 
-      if filename ~= nil then
+      if filename then
         parsed[#parsed + 1] = {
           ['filename'] = filename,
           ['lnum']     = lnum,
-          ['text']     = text:gsub("[\r\n]", '')
+          ['text']     = text:gsub("[\r\n]", ''),
+          ['git']      = git,
         }
       end
     end

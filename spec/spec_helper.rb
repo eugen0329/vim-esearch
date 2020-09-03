@@ -110,6 +110,7 @@ end
 Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n
 RSpec::Matchers.define_negated_matcher :not_include, :include
 Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
+Fixtures::LazyRepo.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
 Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
@@ -144,6 +145,7 @@ def load_runtime!(vim)
   vim.add_plugin(Configuration.root,                                 'plugin/esearch.vim')
   vim.add_plugin(Configuration.plugins_dir.join('clever-f.vim'),     'plugin/clever-f.vim')
   vim.add_plugin(Configuration.plugins_dir.join('vim-visual-multi'), 'plugin/visual-multi.vim')
+  vim.add_plugin(Configuration.plugins_dir.join('vim-fugitive'),     'plugin/fugitive.vim')
   ## Will be used for testing contex syntax highlights
   # vim.add_plugin(Configuration.plugins_dir.join('vim-colors-solarized'))
   vim

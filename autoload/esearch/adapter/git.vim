@@ -19,7 +19,7 @@ endif
 
 " -H - show filenames
 " -I - don't search binary files
-let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
+let s:Git.mandatory_options = '-H --no-color --line-number'
 call extend(s:Git, {
       \   'bool2regex': ['literal', 'basic'],
       \   'regex': {
