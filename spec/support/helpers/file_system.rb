@@ -5,7 +5,7 @@ module Helpers::FileSystem
 
   # Normally we shouldn't do any setup outside `it` blocks, but as far as all the
   # files are lazy then it's not an issue
-  delegate :swap_file, :file, :directory, :repo, to: :class
+  delegate :swap_file, :file, :directory, to: :class
 
   class_methods do
     def swap_file(...)
@@ -18,10 +18,6 @@ module Helpers::FileSystem
 
     def directory(...)
       Fixtures::LazyDirectory.new(...)
-    end
-
-    def repo(...)
-      Fixtures::LazyRepo.new(...)
     end
   end
 end

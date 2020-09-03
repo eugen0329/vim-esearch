@@ -20,7 +20,7 @@ describe 'esearch#backend', :backend do
       let(:line) { 2 }
       let(:column) { 3..4 }
       let(:expected_file) { file("_\n__#{search_string}_", path) }
-      let(:test_directory) { repo([expected_file]).persist! }
+      let(:test_directory) { directory([expected_file]).persist! }
 
       before do
         esearch.configuration.submit!
@@ -33,7 +33,6 @@ describe 'esearch#backend', :backend do
       it "outputs 1 entry from the file named #{path.inspect}" do
         esearch.search!(search_string)
 
-        # require 'pry'; binding.pry
         KnownIssues.mark_example_pending_if_known_issue(self) do
           expect(esearch)
             .to  have_search_started
@@ -47,9 +46,6 @@ describe 'esearch#backend', :backend do
       end
     end
   end
-
-  # to test search string: thorough entry verification, superficial filename check
-  shared_examples 'finds 1 entry of'
 
   shared_examples 'works with adapter' do |adapter, adapter_bin|
     context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
@@ -211,15 +207,54 @@ describe 'esearch#backend', :backend do
     end
   end
 
-  before do
-    esearch.configure(
-      backend:             'system',
-      last_id:             0,
-      win_render_strategy: 'lua',
-      parse_strategy:      'lua',
-      paths:               '`git rev-list --all`'
-    )
+  shared_examples 'a backend 2' do |backend|
+    context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
+      let(:backend) { backend }
+
+      before { esearch.configure(backend: backend, last_id: 0) }
+
+      describe '#out#win' do
+        before { esearch.configure(out: 'win') }
+
+        include_context 'works with adapter', 'ag'
+        include_context 'works with adapter', 'ack'
+        include_context 'works with adapter', 'git'
+        include_context 'works with adapter', 'grep'
+        include_context 'works with adapter', 'pt', Configuration.pt_path
+        include_context 'works with adapter', 'rg', Configuration.rg_path
+
+        context 'when rev-list in paths' do
+          before { esearch.configure(paths: '`git rev-list --all`') }
+
+          include_context 'works with adapter', 'git'
+        end
+      end
+    end
   end
 
-  include_context 'works with adapter', 'git'
+  describe '#system', :system do
+    before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
+
+    include_context 'a backend',   'system'
+    include_context 'a backend 2', 'system'
+  end
+
+  describe '#vim8', :vim8 do
+    it_behaves_like 'an abortable backend', 'vim8'
+
+    context 'when rendering with lua', render: :lua do
+      before { esearch.configure(win_render_strategy: 'lua', parse_strategy: 'lua') }
+
+      include_context 'a backend', 'vim8'
+      include_context 'a backend 2', 'vim8'
+    end
+
+    context 'when rendering with viml', render: :viml do
+      before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
+
+      include_context 'a backend', 'vim8'
+      include_context 'a backend 2', 'vim8'
+    end
+  end
 end
+

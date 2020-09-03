@@ -88,7 +88,7 @@ endfu
 
 " Captures existing or the smallest filename. Will output a wrong filename if it
 " contains [-:] or is removed.
-fu! s:parse_filename_with_commit_prefix(entries, line)
+fu! s:parse_filename_with_commit_prefix(entries, line) abort
   let name_start = match(a:line, '[-:]') + 1
   let name_end = name_start
   let min_name_end = 0

@@ -14,12 +14,12 @@ fu! s:SearchInputController.render() abort dict
   let s:self = self
   try
     let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
-    let original_options = self.render_path_prompt()
+    let original_statusline = self.render_path_prompt()
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
-    if !empty(original_options) | call original_options.restore() | endif
+    if !empty(original_statusline) | call original_statusline.restore() | endif
     call original_mappings.restore()
   endtry
 endfu
@@ -28,7 +28,8 @@ fu! s:SearchInputController.render_path_prompt() dict abort
   let prompt = s:PathTitlePrompt.new().render()
   if empty(prompt) | return 0 | endif
 
-  let options = esearch#let#restorable({'&statusline': esearch#ui#to_statusline(prompt)})
+  let self.statusline = esearch#ui#to_statusline(prompt)
+  let options = esearch#let#restorable({'&statusline': self.statusline})
   redrawstatus!
   return options
 endfu
@@ -39,18 +40,18 @@ fu! s:SearchInputController.init_live_update() dict abort
   aug esearch_live_update
     au!
     au CmdlineChanged * call s:live_update.apply()
+    au OptionSet * if has_key(s:self, 'statusline') | let &statusline = s:self.statusline | endif
   aug END
   let s:live_update = esearch#async#debounce(function('s:live_update'),
         \ self.props.live_update_debounce_wait)
   call s:live_update.apply(self.props.cmdline)
 
   if self.props.win_update_throttle_wait > 0
-    let debounce_timeout = self.props.win_update_throttle_wait
+    let timeout = self.props.win_update_throttle_wait
   else
-    let debounce_timeout = self.props.live_update_debounce_wait
+    let timeout = self.props.live_update_debounce_wait
   endif
-  let self.redraw_timer = timer_start(
-        \ debounce_timeout, function('s:redraw'), {'repeat': -1})
+  let self.redraw_timer = timer_start(timeout, function('s:redraw'), {'repeat': -1})
 endfu
 
 fu! s:SearchInputController.final_live_update() dict abort

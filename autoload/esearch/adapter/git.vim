@@ -14,7 +14,8 @@ if exists('g:esearch#adapter#git#options')
   let s:Git.options = g:esearch#adapter#git#options
 else
   " -I: don't match binary files
-  let s:Git.options = '-I '
+  " --no-untracked: to avoid errors when .paths = '`git rev-list HEAD`' is used
+  let s:Git.options = '-I --no-untracked'
 endif
 
 " -H - show filenames

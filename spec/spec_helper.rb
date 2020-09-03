@@ -110,7 +110,6 @@ end
 Kernel.srand(RSpec.configuration.seed || 1) # make random calls reproducible using --seed=n
 RSpec::Matchers.define_negated_matcher :not_include, :include
 Fixtures::LazyDirectory.fixtures_directory = Configuration.root.join('spec', 'fixtures')
-Fixtures::LazyRepo.fixtures_directory = Configuration.root.join('spec', 'fixtures')
 
 Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
