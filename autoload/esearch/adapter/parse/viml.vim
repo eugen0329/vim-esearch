@@ -1,4 +1,4 @@
-fu! esearch#adapter#parse#viml#funcref() abort
+fu! esearch#adapter#parse#viml#import() abort
   return function('esearch#adapter#parse#viml#parse')
 endfu
 

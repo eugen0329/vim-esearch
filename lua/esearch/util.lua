@@ -40,13 +40,13 @@ function M.is_true(val)
 end
 
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting
-local function M.code(s)
+function M.code(s)
   return (string.gsub(s, "\\([\\\"])", function (x)
             return string.format("\\%03d", string.byte(x))
           end))
 end
 
-local function M.decode(s)
+function M.decode(s)
   return (string.gsub(s, "\\(%d%d%d)", function (d)
             return "\\" .. string.char(d)
           end))

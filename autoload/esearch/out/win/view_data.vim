@@ -32,7 +32,7 @@ endfu
 fu! s:filetype(...) abort dict
   if !self.is_current() | return | endif
 
-  let ctx = s:ctx_at(line('.'), self)
+j let ctx = s:ctx_at(line('.'), self)
   if empty(ctx) | return '' | endif
 
   if empty(ctx.filetype)
@@ -50,9 +50,9 @@ endfu
 
 fu! s:git_url(es, filename) abort
   if !has_key(a:es, 'git_dir')
-    let a:es.git_dir = FugitiveExtractGitDir(a:es.cwd)
+    let a:es.git_dir = esearch#git#dir(a:es.cwd)
   endif
-  return FugitiveFind(a:filename, a:es.git_dir)
+  return esearch#git#url(a:es.git_dir, a:filename)
 endfu
 
 fu! s:unescaped_filename(...) abort dict
@@ -61,7 +61,7 @@ fu! s:unescaped_filename(...) abort dict
   let ctx = s:ctx_at(get(a:, 1, line('.')), self)
   if empty(ctx) | return '' | endif
 
-  if get(ctx, 'git') ==# 1 && exists('*FugitiveFind')
+  if get(ctx, 'git') ==# 1
     return s:git_url(self, ctx.filename)
   elseif s:Filepath.is_absolute(ctx.filename)
     return ctx.filename

@@ -1,15 +1,15 @@
-fu! esearch#out#qflist#init(esearch) abort
-  if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
+fu! esearch#out#qflist#init(es) abort
+  if esearch#util#is_skip_exec(a:es) | return s:init_live_updated(a:es) | endif
 
   if has_key(g:, 'esearch_qf')
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
   end
   call setqflist([])
   copen
-  if a:esearch.request.async
-    call esearch#out#qflist#setup_autocmds(a:esearch)
+  if a:es.request.async
+    call esearch#out#qflist#setup_autocmds(a:es)
   endif
-  let g:esearch_qf = extend(a:esearch, {'name': ':'.a:esearch.name})
+  let g:esearch_qf = extend(a:es, {'name': ':'.a:es.name})
   call esearch#buf#rename_qf(g:esearch_qf.name)
   if !g:esearch_qf.request.async
     call esearch#out#qflist#finish()
@@ -17,15 +17,15 @@ fu! esearch#out#qflist#init(esearch) abort
   return g:esearch_qf
 endfu
 
-fu! esearch#out#qflist#setup_autocmds(esearch) abort
+fu! esearch#out#qflist#setup_autocmds(es) abort
   aug ESearchQFListAutocmds
     au! * <buffer>
-    let a:esearch.request.cb.update = function('esearch#out#qflist#update')
-    let a:esearch.request.cb.schedule_finish = function('esearch#out#qflist#schedule_finish')
+    let a:es.request.cb.update = function('esearch#out#qflist#update')
+    let a:es.request.cb.schedule_finish = function('esearch#out#qflist#schedule_finish')
 
     " Keep only User cmds(reponsible for results updating) and qf initialization
     au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "
-    exe 'au BufUnload <buffer> call esearch#backend#'.a:esearch.backend."#abort(str2nr(expand('<abuf>')))"
+    exe 'au BufUnload <buffer> call esearch#backend#'.a:es.backend."#abort(str2nr(expand('<abuf>')))"
 
     " We need to handle quickfix bufhidden=wipe behavior
     if !exists('#ESearchQFListAutocmds#FileType')
@@ -38,24 +38,29 @@ fu! esearch#out#qflist#setup_autocmds(esearch) abort
 endfu
 
 fu! esearch#out#qflist#update(...) abort
-  let esearch = g:esearch_qf
+  let es = g:esearch_qf
   let batched = get(a:, 1, 0)
 
-  let request = esearch.request
-  let data = esearch.request.data
+  let request = es.request
+  let data = es.request.data
   let data_size = len(data)
   if data_size > request.cursor
-    if batched || data_size - request.cursor - 1 <= esearch.batch_size
+    if batched || data_size - request.cursor - 1 <= es.batch_size
       let [from,to] = [request.cursor, data_size - 1]
       let request.cursor = data_size
     else
-      let [from, to] = [request.cursor, request.cursor + esearch.batch_size - 1]
-      let request.cursor += esearch.batch_size
+      let [from, to] = [request.cursor, request.cursor + es.batch_size - 1]
+      let request.cursor += es.batch_size
     endif
 
-    let cwd = esearch#win#lcd(esearch.cwd)
+    let cwd = esearch#win#lcd(es.cwd)
     try
-      let [parsed, _separators_count] = esearch.parse(data, from, to)
+      let parsed = es.parse(data, from, to)[0]
+      if es.adapter ==# 'git'
+        if !has_key(es, 'git_dir') | let es.git_dir = esearch#git#dir(es.cwd) | endif
+        call s:set_git_urls(es.git_dir, parsed)
+      endif
+
       if esearch#buf#qftype(bufnr('%')) ==# 'qf'
         let curpos = getcurpos()[1:]
         noau call setqflist(parsed, 'a')
@@ -69,24 +74,30 @@ fu! esearch#out#qflist#update(...) abort
   endif
 endfu
 
+fu! s:set_git_urls(dir, entries) abort
+  for e in a:entries
+    if get(e, 'git') | let e.module = e.filename | let e.filename = esearch#git#url(a:dir, e.filename) | en
+  endfor
+endfu
+
 fu! esearch#out#qflist#schedule_finish() abort
   call esearch#out#qflist#finish()
 endfu
 
 fu! esearch#out#qflist#finish() abort
-  let esearch = g:esearch_qf
+  let es = g:esearch_qf
 
-  if esearch.request.async
+  if es.request.async
     au! ESearchQFListAutocmds * <buffer>
   endif
 
   " Update using all remaining request.data
   call esearch#out#qflist#update(0)
 
-  let esearch.name = esearch.name . '. Finished.'
+  let es.name = es.name . '. Finished.'
 
   if esearch#buf#qftype(bufnr('%')) ==# 'qf'
-    call esearch#buf#rename_qf(esearch.name)
+    call esearch#buf#rename_qf(es.name)
   else
     let bufnr = esearch#buf#qfbufnr()
     if bufnr !=# -1
@@ -95,7 +106,7 @@ fu! esearch#out#qflist#finish() abort
         if index(buflist, bufnr) >= 0
           for winnr in range(1, tabpagewinnr(tabnr, '$'))
             if buflist[winnr - 1] == bufnr
-              call settabwinvar(tabnr, winnr, 'quickfix_title', esearch.name)
+              call settabwinvar(tabnr, winnr, 'quickfix_title', es.name)
             endif
           endfor
         endif
@@ -104,8 +115,8 @@ fu! esearch#out#qflist#finish() abort
   endif
 endfu
 
-fu! s:init_live_updated(esearch) abort
-  let g:esearch_qf.name = ':'.a:esearch.name
+fu! s:init_live_updated(es) abort
+  let g:esearch_qf.name = ':'.a:es.name
   if g:esearch_qf.request.finished
     let g:esearch_qf.name .= '. Finished.'
   endif
