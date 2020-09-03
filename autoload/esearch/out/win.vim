@@ -29,7 +29,7 @@ fu! esearch#out#win#init(esearch) abort
   if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
 
   if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
-  call s:cleanup()
+  let clean = s:cleanup()
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
   let b:esearch = extend(a:esearch, {
@@ -50,7 +50,7 @@ fu! esearch#out#win#init(esearch) abort
 
   " Some plugins set mappings on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
-  call s:init_mappings()
+  if clean | call s:init_mappings() | endif
 
   setfiletype esearch
 
@@ -82,8 +82,8 @@ fu! esearch#out#win#init(esearch) abort
   endif
   " If there are any results ready - try to add the highlights prematurely
   " without waiting for debouncing callback firing.
-  call esearch#out#win#appearance#matches#highlight_viewport(b:esearch)
-  call esearch#out#win#appearance#ctx_syntax#highlight_viewport(b:esearch)
+  call esearch#out#win#appearance#matches#hl_viewport(b:esearch)
+  call esearch#out#win#appearance#ctx_syntax#hl_viewport(b:esearch)
   return b:esearch
 endfu
 
@@ -114,6 +114,7 @@ fu! s:cleanup() abort
   aug esearch_win_config
     au! * <buffer>
   aug END
+  return !exists('b:esearch')
 endfu
 
 fu! esearch#out#win#goto_or_open(esearch) abort dict
@@ -134,7 +135,7 @@ endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
-    call esearch#util#warn('esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')')
+    call esearch#util#warn('esearch: some highlights were disabled to prevent slowdowns (reason: ' . a:reason . ')')
   endif
 
   call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)
@@ -199,6 +200,7 @@ endfu
 
 fu! s:reload() abort dict
   call esearch#backend#{self.backend}#abort(self.bufnr)
+  let self.live_update = 0
   let self.contexts = []
   let self.ctx_ids_map = []
   let self.ctx_by_name = {}

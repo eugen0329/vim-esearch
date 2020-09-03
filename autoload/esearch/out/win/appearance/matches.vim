@@ -13,108 +13,95 @@
 " idea from incsearch.vim
 nnoremap <Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
 
-fu! esearch#out#win#appearance#matches#init(esearch) abort
-  if a:esearch.win_matches_highlight_strategy is# 'viewport'
-    let a:esearch.last_hl_range = [0,0]
-    let a:esearch.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
-    let a:esearch.lines_with_hl_matches = {}
-    let Callback = function('s:highlight_viewport_cb', [a:esearch])
-    let a:esearch.hl_matches = esearch#async#debounce(Callback, a:esearch.win_matches_highlight_debounce_wait)
+fu! esearch#out#win#appearance#matches#init(es) abort
+  if a:es.win_matches_highlight_strategy ==# 'viewport'
+    let a:es.last_hl_range = [0,0]
+    let a:es.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
+    let a:es.lines_with_hl_matches = {}
+    let Callback = function('s:hl_viewport_cb', [a:es])
+    let a:es.hl_matches = esearch#async#debounce(Callback, a:es.win_matches_highlight_debounce_wait)
 
     aug esearch_win_hl_matches
       au CursorMoved <buffer> call b:esearch.hl_matches.apply()
-    aug END
+    aug to
     call luaeval('esearch.appearance.buf_attach_matches()')
-    let a:esearch.hl_strategy = 'viewport'
-    return
+    let a:es.hl_strategy = 'viewport'
+    retu
   endif
 
-  if !has_key(a:esearch.pattern, 'hl_match')
-    let a:esearch.pattern.hl_match = esearch#out#win#matches#pattern_each(a:esearch)
+  if !has_key(a:es.pattern, 'hl_match')
+    let a:es.pattern.hl_match = esearch#out#win#matches#pattern_each(a:es)
   endif
 
-  if a:esearch.win_matches_highlight_strategy is# 'hlsearch'
-    let @/ = a:esearch.pattern.hl_match
+  if a:es.win_matches_highlight_strategy ==# 'hlsearch'
+    let @/ = a:es.pattern.hl_match
     call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
-    let a:esearch.hl_strategy = 'hlsearch'
-    return
+    let a:es.hl_strategy = 'hlsearch'
+    retu
   endif
 
-  if a:esearch.win_matches_highlight_strategy is# 'matchadd'
-    let a:esearch.matches_hl_id = matchadd('esearchMatch', a:esearch.pattern.hl_match, -1)
-    let a:esearch.hl_strategy = 'matchadd'
-    return
+  if a:es.win_matches_highlight_strategy ==# 'matchadd'
+    let a:es.matches_hl_id = matchadd('esearchMatch', a:es.pattern.hl_match, -1)
+    let a:es.hl_strategy = 'matchadd'
+    retu
   endif
 
-  let a:esearch.hl_strategy = ''
+  let a:es.hl_strategy = ''
 endfu
 
-fu! esearch#out#win#appearance#matches#uninit(esearch) abort
-  if has_key(a:esearch, 'hl_matches')
+fu! esearch#out#win#appearance#matches#uninit(es) abort
+  if has_key(a:es, 'hl_matches')
     aug esearch_win_hl_matches
       au! * <buffer>
-    aug END
-    call a:esearch.hl_matches.cancel()
-  elseif has_key(a:esearch, 'matches_hl_id')
-    call esearch#util#safe_matchdelete(a:esearch.matches_hl_id)
+    aug to
+    call a:es.hl_matches.cancel()
+  elsei has_key(a:es, 'matches_hl_id')
+    call esearch#util#safe_matchdelete(a:es.matches_hl_id)
   endif
 endfu
 
-fu! esearch#out#win#appearance#matches#soft_stop(esearch) abort
-  call esearch#out#win#appearance#matches#uninit(a:esearch)
+fu! esearch#out#win#appearance#matches#soft_stop(es) abort
+  call esearch#out#win#appearance#matches#uninit(a:es)
 endfu
 
-fu! esearch#out#win#appearance#matches#highlight_viewport(esearch) abort
-  if get(a:esearch, 'hl_strategy') is# 'viewport'
-    call s:highlight_range(a:esearch, line('w0'), line('w$'))
-  endif
-endfu
+fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
+  if a:es.hl_strategy ==# 'viewport' | cal s:hl(a:es, line('w0'), line('w$')) | en
+endf
 
-fu! s:highlight_viewport_cb(esearch) abort
-  if !a:esearch.is_current()
-    return
-  endif
+fu! s:hl_viewport_cb(es) abort
+  if !a:es.is_current() | retu | en
 
-  let [begin, end] = [line('w0'), line('w$')]
-  let last_hl_range = a:esearch.last_hl_range
-  if last_hl_range[0] <= begin && end <= last_hl_range[1]
-    return
-  endif
+  let [from, to] = [line('w0'), line('w$')]
+  let last_hl_range = a:es.last_hl_range
+  if last_hl_range[0] <= from && to <= last_hl_range[1] | retu | en
 
-  let begin    = esearch#util#clip(begin - a:esearch.win_viewport_off_screen_margin, 1, line('$'))
-  let end = esearch#util#clip(end + a:esearch.win_viewport_off_screen_margin, 1, line('$'))
-  call s:highlight_range(a:esearch, begin, end)
-endfu
+  let from = esearch#util#clip(from - a:es.win_viewport_off_screen_margin, 1, line('$'))
+  let to   = esearch#util#clip(to + a:es.win_viewport_off_screen_margin, 1, line('$'))
+  cal s:hl(a:es, from, to)
+endf
 
-fu! s:highlight_range(esearch, begin, end) abort
-  let pattern = a:esearch.pattern.vim
-  let state = esearch#out#win#_state(a:esearch)
-  let line_numbers_map = state.line_numbers_map
-  let ctx_ids_map = state.ctx_ids_map
-  let lines_with_hl_matches = a:esearch.lines_with_hl_matches
-  let a:esearch.last_hl_range = [a:begin, a:end]
+fu! s:hl(es, l1, l2) abort
+  let p = a:es.pattern.vim
+  let state = esearch#out#win#_state(a:es)
+  let lnrs = state.line_numbers_map
+  let ids = state.ctx_ids_map
+  if len(ids) < a:l2 | retu | en
+  let done = a:es.lines_with_hl_matches
+  let a:es.last_hl_range = [a:l1,a:l2]
 
-  let line = a:begin
-  for text in nvim_buf_get_lines(0, line - 1, a:end, 0)
-    let linenr =  line_numbers_map[line]
-    let ctx_id = ctx_ids_map[line]
+  let l = a:l1
+  for txt in nvim_buf_get_lines(0,l-1,a:l2,0)
+    let lnr = lnrs[l]
+    let i = ids[l]
 
-    if linenr ==# 0
-      let line += 1
-      continue
-    elseif !has_key(lines_with_hl_matches, ctx_id)
-      let lines_with_hl_matches[ctx_id] = {}
-    elseif has_key(lines_with_hl_matches[ctx_id], linenr)
-      let line += 1
-      continue
-    endif
+    if lnr ==# 0 | let l += 1 | con
+    elsei !has_key(done,i) | let done[i] = {} |
+    elsei has_key(done[i],lnr) | let l += 1 | con | en
 
-    let begin = match(text, pattern, max([strlen(linenr), 3]) + 2)
-    if begin < 0 | let line += 1 | continue | endif
-    let matchend = matchend(text, pattern, begin)
-
-    call nvim_buf_add_highlight(0, a:esearch.matches_ns, 'esearchMatch', line - 1, begin, matchend)
-    let lines_with_hl_matches[ctx_id][linenr] = 1
-    let line += 1
-  endfor
-endfu
+    let l1 = match(txt,p,max([strlen(lnr),3]) + 2)
+    if l1 < 0 | let l += 1 | con | en
+    cal nvim_buf_add_highlight(0,a:es.matches_ns,'esearchMatch',l-1,l1,matchend(txt,p,l1))
+    let done[i][lnr] = 1
+    let l += 1
+  endfo
+endf

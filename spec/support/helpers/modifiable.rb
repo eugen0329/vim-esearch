@@ -59,6 +59,7 @@ module Helpers::Modifiable
     let!(:test_directory) { directory(files).persist! }
     let(:entries) { contexts.map(&:entries).flatten }
     let(:output) { esearch.output }
+    let(:writer) { 'buffer' }
 
     before do
       esearch.configure!(
@@ -66,6 +67,7 @@ module Helpers::Modifiable
         out:              'win',
         backend:          'system',
         regex:            1,
+        writer:           writer,
         prefill:          [],
         default_mappings: defined?(default_mappings) ? default_mappings : 0,
         root_markers:     []
