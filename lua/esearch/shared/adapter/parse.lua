@@ -18,19 +18,17 @@ local CONTROL_CHARS = {
 }
 
 
-local function parse_quoted_filename(line, cache)
+-- Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename
+local function parse_with_quoted_filename(line)
   local filename, lnum, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
   if not filename then return end
   filename, lnum, text = decode(filename), decode(lnum), decode(text)
-
   filename = filename:gsub('\\(.)', CONTROL_CHARS)
-  if filereadable(filename, cache) then
-    return filename, lnum, text
-  end
+  return filename, lnum, text
 end
 
 local function parse_existing_filename(line, cache)
-  local filename
+  local filename, lnum, text
   local filename_end = 1
 
   while true do
@@ -39,7 +37,9 @@ local function parse_existing_filename(line, cache)
 
     filename = line:sub(1, filename_end - 1)
     if filereadable(filename, cache) then
-      return filename, filename_end
+      lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
+      if not lnum then return end
+      return filename, lnum, text
     end
   end
 end
@@ -47,9 +47,17 @@ end
 -- Captures existing or the smallest filename. Will output a wrong filename if
 -- it contains [:%-] or is removed.
 local function parse_filename_with_commit_prefix(line, cache)
-  local filename_start = line:find('[:%-]') + 1
+  local filename_start = line:find('[:%-]')
+  if not filename_start then return end
+  filename_start = filename_start + 1
   local filename_end = filename_start
-  local filename, min_filename_end
+  local filename, min_filename_end, lnum, text
+
+  if line:sub(filename_start, filename_start) == '"' then
+    filename, lnum, text = parse_with_quoted_filename(line:sub(filename_start))
+    if not filename or not lnum or not text then return end
+    return line:sub(1, filename_start - 1) .. filename, lnum, text
+  end
 
   while true do
     filename_end = line:find('[:%-]%d+[:%-]', filename_end + 1)
@@ -59,17 +67,21 @@ local function parse_filename_with_commit_prefix(line, cache)
 
     filename = line:sub(filename_start, filename_end - 1)
     if filereadable(filename, cache) then
-      return line:sub(1, filename_end - 1), filename_end
+      lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
+      if not lnum then return end
+      return line:sub(1, filename_end - 1), lnum, text
     end
   end
 
   if min_filename_end then
-    return line:sub(1, min_filename_end - 1), min_filename_end
+    lnum, text = line:match('(%d+)[:%-](.*)', min_filename_end)
+    if not lnum then return end
+    return line:sub(1, min_filename_end - 1), lnum, text
   end
 end
 
 function M.parse_line(line, cache)
-  local filename, filename_end, lnum, text
+  local filename, lnum, text
   local rev = nil -- flag to determine whether it belong to a git repo
 
   -- Heuristic to try the fastest matching
@@ -80,18 +92,15 @@ function M.parse_line(line, cache)
 
   -- if the line starts with "
   if line:sub(1, 1) == '"' then
-    filename, lnum, text = parse_quoted_filename(line, cache)
+    filename, lnum, text = parse_with_quoted_filename(line)
     if filename then return filename, lnum, text, rev end
   end
 
-  filename, filename_end = parse_existing_filename(line, cache)
+  filename, lnum, text = parse_existing_filename(line, cache)
   if not filename then
-    filename, filename_end = parse_filename_with_commit_prefix(line, cache)
+    filename, lnum, text = parse_filename_with_commit_prefix(line, cache)
     if filename then rev = true end
   end
-
-  lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
-  if not lnum or not text then return end
 
   return filename, lnum, text, rev
 end
