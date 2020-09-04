@@ -42,15 +42,14 @@ class DumpEditorStateOnErrorFormatter
       global_configuration: format_hash(Debug.global_configuration),
       buffer_configuration: format_hash(Debug.buffer_configuration),
       messages:             format_array(Debug.messages),
-      runtimepaths:         format_array(Debug.runtimepaths),
-      sourced_scripts:      format_array(Debug.sourced_scripts),
-      user_autocommands:    format_array(Debug.user_autocommands),
       plugin_log:           format_array(Debug.plugin_log),
-      nvim_log:             format_array(Debug.nvim_log),
       verbose_log:          format_array(Debug.verbose_log),
       running_processes:    format_array(Debug.running_processes),
-      update_time:          prepend_indent(Debug.update_time),
       screenshot_path:      prepend_indent(Debug.screenshot!),
+      # runtimepaths:         format_array(Debug.runtimepaths),
+      # sourced_scripts:      format_array(Debug.sourced_scripts),
+      # user_autocommands:    format_array(Debug.user_autocommands),
+      # nvim_log:             format_array(Debug.nvim_log),
     }
   end
 

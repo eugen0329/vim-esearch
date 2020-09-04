@@ -7,6 +7,16 @@ require 'English' # reference global vars by human readable names
 module Debug
   extend VimlValue::SerializationHelpers
   extend self # instead of module_function to maintain private methods
+  UNWANTED_CONFIGS = %w[
+    adapters
+    current_adapter
+    reusable_buffers_manager
+    opened_buffers_manager
+    middleware
+    win_map
+    undotree
+    remember
+  ].freeze
 
   def global_configuration
     reader.echo(var('g:esearch'))
@@ -67,12 +77,6 @@ module Debug
     reader.echo(func('execute', 'messages')).split("\n")
   end
 
-  def update_time
-    reader.echo(var('&updatetime'))
-  rescue Editor::Read::Base::ReadError => e
-    e.message
-  end
-
   def buffer_content
     reader.echo func('getline', 1, func('line', '$'))
   end
@@ -101,6 +105,10 @@ module Debug
   end
 
   private
+
+  def filter_config(config)
+    config.reject { |k, _v| UNWANTED_CONFIGS.include?(k) }
+  end
 
   # Eager reader with disabled caching is used for reliability
   def reader
