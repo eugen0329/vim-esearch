@@ -50,7 +50,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
         ['filetype']      = 0,
         ['loaded_syntax'] = 0,
         ['lines']         = {},
-        ['git']           = entry.git,
+        ['rev']           = entry.rev,
         }
       ctx_by_name[filename] = contexts[#contexts]
       ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts].id

@@ -69,6 +69,9 @@ end
 
 function M.buf_attach_ui()
   local bufnr = vim.api.nvim_get_current_buf()
+
+  M.highlight_header(true) -- tmp measure to prevent missing highlights on live updates
+
   if not M.ATTACHED_UI[bufnr] then
     M.ATTACHED_UI[bufnr] = true
     vim.api.nvim_buf_attach(0, false, {on_lines=ui_cb, on_detach=detach_ui_cb})

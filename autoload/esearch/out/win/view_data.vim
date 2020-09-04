@@ -21,7 +21,7 @@ endfu
 fu! esearch#out#win#view_data#filename(es, ctx) abort
   if empty(a:ctx) | return '' | endif
 
-  if get(a:ctx, 'git') ==# 1
+  if get(a:ctx, 'rev') ==# 1
     return s:git_url(a:es, a:ctx.filename)
   elseif s:Filepath.is_absolute(a:ctx.filename)
     return a:ctx.filename

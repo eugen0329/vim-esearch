@@ -21,7 +21,7 @@ endfu
 
 fu! s:Base.verify_readable(ctx, path) abort dict
   if filereadable(a:path) | return 1 | endif
-  if get(a:ctx.original, 'git')
+  if get(a:ctx.original, 'rev')
     call add(self.conflicts, {'filename': a:path, 'reason': 'is a git blob'})
   else
     call add(self.conflicts, {'filename': a:path, 'reason': 'is not readable'})

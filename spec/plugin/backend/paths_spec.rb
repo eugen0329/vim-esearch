@@ -257,4 +257,3 @@ describe 'esearch#backend', :backend do
     end
   end
 end
-

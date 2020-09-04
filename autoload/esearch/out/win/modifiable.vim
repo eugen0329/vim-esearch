@@ -48,23 +48,21 @@ fu! s:write() abort
     return
   endi
 
-  let lines_stats = []
-  let changes_count = 0
+  let [total_changes, kinds] = [0, []]
   if diff.statistics.modified > 0
-    let changes_count += diff.statistics.modified
-    let lines_stats += [diff.statistics.modified . ' modified']
+    let total_changes += diff.statistics.modified
+    let kinds += [diff.statistics.modified . ' modified']
   endif
   if diff.statistics.deleted > 0
-    let changes_count += diff.statistics.deleted
-    let lines_stats += [diff.statistics.deleted . ' deleted']
+    let total_changes += diff.statistics.deleted
+    let kinds += [diff.statistics.deleted . ' deleted']
   endif
-  let files_stats_text = printf(' %s %s %d %s',
-        \ (len(lines_stats) > 1 ? 'lines' : esearch#util#pluralize('line', changes_count)),
-        \ (diff.statistics.files > 1 ? 'across' : 'inside'),
+  let message = printf('Write changes? (%s %s in %d %s)',
+        \ join(kinds, ', '),
+        \ total_changes == 1 ? 'line' : 'lines',
         \ diff.statistics.files,
-        \ esearch#util#pluralize('file', diff.statistics.files),
+        \ diff.statistics.files == 1 ? 'file' : 'files',
         \ )
-  let message = 'Write changes? (' . join(lines_stats, ', ') . files_stats_text . ')'
 
   if esearch#ui#confirm#show(message, ['Yes', 'No']) == 1
     call esearch#writer#{b:esearch.writer}#write(diff, b:esearch)

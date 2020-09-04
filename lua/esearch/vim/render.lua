@@ -22,7 +22,7 @@ function M.render(data, esearch)
 
   for i = 0, #parsed - 1 do
     local entry = parsed[i]
-    local filename, text, git = entry.filename, entry.text, entry.git
+    local filename, text, rev = entry.filename, entry.text, entry.rev
 
     -- IF new filename encountered
     if filename ~= contexts[#contexts - 1].filename then
@@ -49,7 +49,7 @@ function M.render(data, esearch)
         ['filetype']      = false,
         ['loaded_syntax'] = false,
         ['lines']         = vim.dict(),
-        ['git']           = git,
+        ['rev']           = rev,
         }))
       ctx_by_name[filename] = contexts[#contexts - 1]
       ctx_ids_map:add(contexts[#contexts - 1].id)

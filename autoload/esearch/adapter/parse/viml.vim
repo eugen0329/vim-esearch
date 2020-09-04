@@ -1,3 +1,5 @@
+" Legacy parser
+
 fu! esearch#adapter#parse#viml#import() abort
   return function('esearch#adapter#parse#viml#parse')
 endfu
@@ -15,14 +17,12 @@ let g:esearch#adapter#parse#viml#controls = {
       \  '033':"\e",
       \}
 
-" Legacy parser
-" Parse lines in format filename[-:]line_number[-:]text
+" Parse lines in format (rev:)?filename[-:]line_number[-:]text
 fu! esearch#adapter#parse#viml#parse(data, from, to) abort dict
   if empty(a:data) | return [] | endif
   let entries = []
   let pattern = self.pattern.vim
   let separators_count = 0
-  let git = self.adapter ==# 'git'
 
   let i = a:from
   let limit = a:to + 1
@@ -101,20 +101,21 @@ fu! s:parse_filename_with_commit_prefix(entries, line) abort
 
     let filename = strpart(a:line, name_start, name_end - name_start)
     if filereadable(filename) 
-      return s:add_git_entry(a:entries, a:line, strpart(a:line, 0, name_end), min_name_end)
+      return s:parse_rev(a:entries, a:line, name_end)
     endif
   endwhile
 
   if min_name_end > 0
-    return s:add_git_entry(a:entries, a:line, strpart(a:line, 0, min_name_end), min_name_end)
+    return s:parse_rev(a:entries, a:line, min_name_end)
   endif
 
   return 0
 endfu
 
-fu! s:add_git_entry(entries, line, name, end) abort
+fu! s:parse_rev(entries, line, end) abort
   let m = matchlist(a:line, '\(\d\+\)[-:]\(.*\)', a:end)[1:2]
   if empty(m) | return 0 | endif
-  call add(a:entries, {'filename': a:name, 'lnum': m[0], 'text': m[1], 'git': 1})
+  let filename = strpart(a:line, 0, a:end)
+  call add(a:entries, {'filename': filename, 'lnum': m[0], 'text': m[1], 'rev': 1})
   return 1
 endfu

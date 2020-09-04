@@ -76,7 +76,7 @@ endfu
 
 fu! s:set_git_urls(dir, entries) abort
   for e in a:entries
-    if get(e, 'git') | let e.module = e.filename | let e.filename = esearch#git#url(a:dir, e.filename) | en
+    if get(e, 'rev') | let e.module = e.filename | let e.filename = esearch#git#url(a:dir, e.filename) | en
   endfor
 endfu
 

@@ -70,30 +70,30 @@ end
 
 function M.parse_line(line, cache)
   local filename, filename_end, lnum, text
-  local git = nil -- flag to determine whether it belong to a git repo
+  local rev = nil -- flag to determine whether it belong to a git repo
 
   -- Heuristic to try the fastest matching
   filename, lnum, text = line:match('(.-)[:%-](%d+)[:%-](.*)')
   if filename and text and filereadable(filename, cache) then
-    return filename, lnum, text, git
+    return filename, lnum, text, rev
   end
 
   -- if the line starts with "
   if line:sub(1, 1) == '"' then
     filename, lnum, text = parse_quoted_filename(line, cache)
-    if filename then return filename, lnum, text, git end
+    if filename then return filename, lnum, text, rev end
   end
 
   filename, filename_end = parse_existing_filename(line, cache)
   if not filename then
     filename, filename_end = parse_filename_with_commit_prefix(line, cache)
-    if filename then git = true end
+    if filename then rev = true end
   end
 
   lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
   if not lnum or not text then return end
 
-  return filename, lnum, text, git
+  return filename, lnum, text, rev
 end
 
 return M
