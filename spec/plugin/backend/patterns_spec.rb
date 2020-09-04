@@ -11,7 +11,7 @@ describe 'esearch#backend', :backend do
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
 
-  before { esearch.configure(root_markers: [], adapters: {grep: {options:'--exclude-dir=.git'}}) }
+  before { esearch.configure(root_markers: [], adapters: {grep: {options: '--exclude-dir=.git'}}) }
 
   shared_examples 'finds 1 entry of' do |search_string, **kwargs|
     context "when searching for #{dump(search_string)}" do
