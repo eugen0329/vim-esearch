@@ -200,9 +200,9 @@ describe Debug do
 
   describe '.buffer_configuration' do
     context 'when defined' do
-      before { editor.command!('let b:esearch = {"option": ["..."]}') }
+      before { editor.command!('let b:esearch = {"buffer": "configuration"}') }
 
-      it { expect(debug.buffer_configuration).to eq('option' => ['...']) }
+      it { expect(debug.buffer_configuration).to eq('buffer' => 'configuration') }
     end
 
     context 'when undefined' do
@@ -218,9 +218,9 @@ describe Debug do
 
   describe '.global_configuration' do
     context 'when defined' do
-      before { editor.command!('let g:esearch = "global_configuration"') }
+      before { editor.command!('let g:esearch = {"global": "configuration"}') }
 
-      it { expect(debug.global_configuration).to eq('global_configuration') }
+      it { expect(debug.global_configuration).to eq('global' => 'configuration') }
     end
 
     context 'when undefined' do

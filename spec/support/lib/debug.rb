@@ -16,16 +16,17 @@ module Debug
     win_map
     undotree
     remember
+    hl_ctx_syntax
   ].freeze
 
   def global_configuration
-    reader.echo(var('g:esearch'))
+    filter_config(reader.echo(var('g:esearch')))
   rescue Editor::Read::Base::ReadError => e
     e.message
   end
 
   def buffer_configuration
-    reader.echo(var('b:esearch'))
+    filter_config(reader.echo(var('b:esearch')))
   rescue Editor::Read::Base::ReadError => e
     e.message
   end
