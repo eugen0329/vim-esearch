@@ -50,11 +50,10 @@ fu! esearch#preview#open(filename, line, ...) abort
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let enter = get(opts, 'enter', s:false)
-  if !has_key(opts, 'emphasis')
-    let emphasis = get(opts, 'emphasis', [
-          \ esearch#emphasis#sign(),
-          \ esearch#emphasis#highlighted_line(),
-          \])
+  if has_key(opts, 'emphasis')
+    let emphasis = opts.emphasis
+  else
+    let emphasis = [esearch#emphasis#sign(), esearch#emphasis#highlighted_line()])
   endif
 
   let g:esearch#preview#last = s:Preview
