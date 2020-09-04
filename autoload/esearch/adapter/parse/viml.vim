@@ -37,7 +37,7 @@ fu! esearch#adapter#parse#viml#parse(data, from, to) abort dict
 
     if line[0] ==# '"'
       let e = s:parse_with_quoted_filename(line)
-      if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
+      if !empty(e) && filereadable(e.filename) | call add(entries, e) | let i += 1 | continue | endif
     endif
 
     let e = s:parse_existing_filename(line)
@@ -52,73 +52,78 @@ endfu
 " Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename
 fu! s:parse_with_quoted_filename(line) abort
   let m = matchlist(a:line, '^"\(\%(\\\\\|\\"\|.\)\{-}\)"[-:]\(\d\+\)[-:]\(.*\)$')[1:3]
-  if len(m) == 3
-    let [filename, lnum, text] = m
+  if len(m) != 3 | return 0 | endif
 
-    let filename = substitute(filename, '\\\([abtnvfr"\\]\|033\)',
-          \ '\=g:esearch#adapter#parse#viml#controls[submatch(1)]', 'g')
-    if filereadable(filename)
-      return {'filename': filename, 'lnum': lnum, 'text': text}
-    endif
-  endif
-
-  return 0
+  let [name, lnum, text] = m
+  let name = substitute(name, '\\\([abtnvfr"\\]\|033\)',
+        \ '\=g:esearch#adapter#parse#viml#controls[submatch(1)]', 'g')
+  return {'filename': name, 'lnum': lnum, 'text': text}
 endfu
 
 fu! s:parse_existing_filename(line) abort
   let name_end = 0
-  let filename = ''
+  let name = ''
 
   while 1
     let name_end = match(a:line, '[-:]\d\+[-:]', name_end + 1)
     if name_end < 0 | break | endif
 
-    let filename = strpart(a:line, 0 , name_end)
-    if filereadable(filename) | break | end
+    let name = strpart(a:line, 0 , name_end)
+    if filereadable(name) | break | end
   endwhile
 
   if name_end > 0
     let m = matchlist(a:line, '\(\d\+\)[-:]\(.*\)', name_end)[1:2]
     if empty(m) | return 0 | endif
-    return {'filename': filename, 'lnum': m[0], 'text': m[1]}
+    return {'filename': name, 'lnum': m[0], 'text': m[1]}
   endif
 
   return 0
 endfu
 
-" Captures existing or the smallest filename. Will output a wrong filename if it
-" contains [-:] or is removed.
+" Heuristic to captures existing quoted, existing unquoted or the smallest
+" filename.
 fu! s:parse_filename_with_commit_prefix(line) abort
   let name_start = match(a:line, '[-:]') + 1
   if name_start == 0 | return 0 | endif
   let name_end = name_start
   let min_name_end = 0
-  let filename = ''
+  let quoted_name_end = 0
 
+  " try QUOTED
   if a:line[name_start] ==# '"'
-    let e = s:parse_with_quoted_filename(a:line[name_start:])
-    if !empty(e) | return extend(e, {'filename': a:line[:name_start-1] . e.filename}) | endif
+    let quoted_entry = s:parse_with_quoted_filename(a:line[name_start :])
+    if !empty(quoted_entry)
+      let name = quoted_entry.filename
+      call extend(quoted_entry, {'filename': a:line[: name_start-1] . name})
+      if filereadable(name) | return quoted_entry | endif
+      let quoted_name_end = name_start + len(name) + 2
+    endif
   endif
 
+  " try EXISTING
   while 1
     let name_end = match(a:line, '[-:]\d\+[-:]', name_end + 1)
     if name_end < 0 | break | endif
     if min_name_end == 0 | let min_name_end = name_end | endif
-
-    let filename = strpart(a:line, name_start, name_end - name_start)
-    if filereadable(filename) 
-      return s:parse_rev(a:line, name_end)
-    endif
+    let name = strpart(a:line, name_start, name_end - name_start)
+    if filereadable(name) | return s:parse_from_pos(a:line, name_end) | endif
   endwhile
 
-  if min_name_end > 0 | return s:parse_rev(a:line, min_name_end) | endif
-
-  return 0
+  " try the SMALLEST of min and quoted names
+  if quoted_name_end && min_name_end
+    if quoted_name_end < min_name_end | return quoted_entry | endif
+    return s:parse_from_pos(a:line, min_name_end)
+  elseif quoted_name_end
+    return quoted_entry
+  elseif min_name_end
+    return s:parse_from_pos(a:line, min_name_end)
+  endif
 endfu
 
-fu! s:parse_rev(line, end) abort
+fu! s:parse_from_pos(line, end) abort
   let m = matchlist(a:line, '\(\d\+\)[-:]\(.*\)', a:end)[1:2]
   if empty(m) | return 0 | endif
-  let filename = strpart(a:line, 0, a:end)
-  return {'filename': filename, 'lnum': m[0], 'text': m[1], 'rev': 1}
+  let name = strpart(a:line, 0, a:end)
+  return {'filename': name, 'lnum': m[0], 'text': m[1], 'rev': 1}
 endfu

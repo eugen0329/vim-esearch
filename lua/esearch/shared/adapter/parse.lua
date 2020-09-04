@@ -17,103 +17,101 @@ local CONTROL_CHARS = {
   ['\033'] = string.char(27)
 }
 
--- Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename
-local function parse_with_quoted_filename(line)
-  local filename, lnum, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
-  if not filename then return end
-  return (decode(filename):gsub('\\(.)', CONTROL_CHARS)), decode(lnum), decode(text)
+-- Parse lines in format "name"[-:]line_number[-:]text and unwrap the name
+local function parse_with_quoted_name(line)
+  local name, lnum, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
+  if not name then return end
+  return (decode(name):gsub('\\(.)', CONTROL_CHARS)), decode(lnum), decode(text)
 end
 
-local function parse_existing_filename(line, cache)
-  local filename, lnum, text
-  local filename_end = 1
+local function parse_from_pos(line, from)
+  local lnum, text = line:match('(%d+)[:%-](.*)', from)
+  if not lnum then return end
+  return line:sub(1, from - 1), lnum, text
+end
+
+local function parse_existing_name(line, cache)
+  local name_end = 1
 
   while true do
-    filename_end = line:find('[:%-]%d+[:%-]', filename_end + 1)
-    if not filename_end then return end
+    name_end = line:find('[:%-]%d+[:%-]', name_end + 1)
+    if not name_end then return end
 
-    filename = line:sub(1, filename_end - 1)
-    if filereadable(filename, cache) then
-      lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
-      if not lnum then return end
-      return filename, lnum, text
+    local name = line:sub(1, name_end - 1)
+    if filereadable(name, cache) then
+      return parse_from_pos(line, name_end)
     end
   end
 end
 
 -- Heuristic to captures existing quoted, existing unquoted or the smallest
--- filename.
-local function parse_filename_with_commit_prefix(line, cache)
-  local filename_start = line:find('[:%-]')
-  if not filename_start then return end
-  filename_start = filename_start + 1
-  local filename_end = filename_start
-  local filename, min_filename_end, lnum, text
-  local quoted_filename_end
+-- name.
+local function parse_name_with_commit_prefix(line, cache)
+  local name_start = line:find('[:%-]')
+  if not name_start then return end
+  name_start = name_start + 1
+  local name_end = name_start
+  local name, lnum, text
+  local min_name_end, quoted_name_end
+  local quoted_entry
 
   -- try QUOTED
-  if line:sub(filename_start, filename_start) == '"' then
-    filename, lnum, text = parse_with_quoted_filename(line:sub(filename_start))
-    if filename then
-      if filereadable(filename, cache) then
-        return line:sub(1, filename_start - 1) .. filename, lnum, text
-      end
-
-      quoted_filename_end = filename:len()
+  if line:sub(name_start, name_start) == '"' then
+    name, lnum, text = parse_with_quoted_name(line:sub(name_start))
+    if name then
+      quoted_entry = {line:sub(1, name_start - 1) .. name, lnum, text}
+      if filereadable(name, cache) then return unpack(quoted_entry) end
+      quoted_name_end = name_start + name:len() + 2
     end
   end
 
   -- try EXISTING
   while true do
-    filename_end = line:find('[:%-]%d+[:%-]', filename_end + 1)
-    if not filename_end then break end
-    if not min_filename_end then min_filename_end = filename_end end
+    name_end = line:find('[:%-]%d+[:%-]', name_end + 1)
+    if not name_end then break end
+    if not min_name_end then min_name_end = name_end end
 
-    filename = line:sub(filename_start, filename_end - 1)
-    if filereadable(filename, cache) then
-      lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
-      if not lnum then return end
-      return line:sub(1, filename_end - 1), lnum, text
+    name = line:sub(name_start, name_end - 1)
+    if filereadable(name, cache) then
+      return parse_from_pos(line, name_end)
     end
   end
 
-  -- try the SMALLEST of min and quoted filenames
-  if quoted_filename_end and min_filename_end then
-    filename_end = math.min(quoted_filename_end, min_filename_end)
-  elseif quoted_filename_end then
-    filename_end = quoted_filename_end
-  elseif min_filename_end then
-    filename_end = min_filename_end
-  else
-    return
+  -- try the SMALLEST of min and quoted names
+  if quoted_name_end and min_name_end then
+    if quoted_name_end < min_name_end then
+      return unpack(quoted_entry)
+    end
+    return parse_from_pos(line, min_name_end)
+  elseif quoted_name_end then
+    return unpack(quoted_entry)
+  elseif min_name_end then
+    return parse_from_pos(line, min_name_end)
   end
-  lnum, text = line:match('(%d+)[:%-](.*)', filename_end)
-  if not lnum then return end
-  return line:sub(1, filename_end - 1), lnum, text
 end
 
 function M.parse_line(line, cache)
-  local filename, lnum, text
+  local name, lnum, text
   local rev = nil -- flag to determine whether it belong to a git repo
 
   -- try the fastest matching
-  filename, lnum, text = line:match('(.-)[:%-](%d+)[:%-](.*)')
-  if filename and text and filereadable(filename, cache) then return filename, lnum, text, rev end
+  name, lnum, text = line:match('(.-)[:%-](%d+)[:%-](.*)')
+  if name and text and filereadable(name, cache) then return name, lnum, text, rev end
 
   -- if the line starts with "
   if line:sub(1, 1) == '"' then
-    filename, lnum, text = parse_with_quoted_filename(line)
-    print('asd', filename, filereadable(filename, cache))
-    if filename and filereadable(filename, cache) then return filename, lnum, text, rev end
+    name, lnum, text = parse_with_quoted_name(line)
+    print('asd', name, filereadable(name, cache))
+    if name and filereadable(name, cache) then return name, lnum, text, rev end
   end
 
-  filename, lnum, text = parse_existing_filename(line, cache)
-  if not filename then
-    filename, lnum, text = parse_filename_with_commit_prefix(line, cache)
-    if filename then rev = true end
+  name, lnum, text = parse_existing_name(line, cache)
+  if not name then
+    name, lnum, text = parse_name_with_commit_prefix(line, cache)
+    if name then rev = true end
   end
 
-  return filename, lnum, text, rev
+  return name, lnum, text, rev
 end
 
 return M
