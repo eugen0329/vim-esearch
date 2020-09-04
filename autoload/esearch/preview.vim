@@ -53,7 +53,7 @@ fu! esearch#preview#open(filename, line, ...) abort
   if has_key(opts, 'emphasis')
     let emphasis = opts.emphasis
   else
-    let emphasis = [esearch#emphasis#sign(), esearch#emphasis#highlighted_line()])
+    let emphasis = [esearch#emphasis#sign(), esearch#emphasis#highlighted_line()]
   endif
 
   let g:esearch#preview#last = s:Preview
