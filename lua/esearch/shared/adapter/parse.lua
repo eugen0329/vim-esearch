@@ -21,7 +21,7 @@ local CONTROL_CHARS = {
 local function parse_with_quoted_filename(line)
   local filename, lnum, text = code(line):match('"(.-)"[:%-](%d+)[:%-](.*)')
   if not filename then return end
-  return decode(filename:gsub('\\(.)', CONTROL_CHARS)), decode(lnum), decode(text)
+  return (decode(filename):gsub('\\(.)', CONTROL_CHARS)), decode(lnum), decode(text)
 end
 
 local function parse_existing_filename(line, cache)
@@ -103,6 +103,7 @@ function M.parse_line(line, cache)
   -- if the line starts with "
   if line:sub(1, 1) == '"' then
     filename, lnum, text = parse_with_quoted_filename(line)
+    print('asd', filename, filereadable(filename, cache))
     if filename and filereadable(filename, cache) then return filename, lnum, text, rev end
   end
 

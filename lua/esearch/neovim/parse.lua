@@ -17,13 +17,12 @@ function M.lines(data)
       separators_count = separators_count + 1
     else
       filename, lnum, text, rev = parse_line(line, cache)
-
       if filename then
         parsed[#parsed + 1] = {
-          ['filename'] = filename,
-          ['lnum']     = lnum,
-          ['text']     = text:gsub("[\r\n]", ''),
-          ['rev']      = rev,
+          filename = filename,
+          lnum     = lnum,
+          text     = text:gsub("[\r\n]", ''),
+          rev      = rev,
         }
       end
     end
