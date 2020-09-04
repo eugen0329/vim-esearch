@@ -11,7 +11,7 @@ describe 'esearch#backend', :backend do
   include Helpers::ReportEditorStateOnError
   include VimlValue::SerializationHelpers
 
-  before  { esearch.configure(root_markers: []) }
+  before { esearch.configure(root_markers: [], adapters: {grep: {options:'--exclude-dir=.git'}}) }
 
   # to test paths: thorough filename verification, superficial entry check
   shared_examples 'searches in path' do |path:|

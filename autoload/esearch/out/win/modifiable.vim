@@ -91,8 +91,6 @@ fu! s:handle(event) abort
     call esearch#out#win#modifiable#insert#add_newlines#handle(a:event)
   elseif a:event.id =~# 'join'
     call esearch#out#win#modifiable#unsupported#handle(a:event)
-  elseif a:event.id =~# 'cmdline'
-    " no-op. will be removed as well as others
   else
     call esearch#out#win#modifiable#unsupported#handle(a:event)
   endif

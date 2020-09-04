@@ -14,12 +14,14 @@ fu! esearch#git#dir(cwd) abort
 endfu
 
 fu! esearch#git#read_cmd(path) abort
-  setlocal noswapfile endofline bufhidden=delete
+  " First modifiable to allow reloads
+  setlocal modifiable noswapfile bufhidden=delete buftype=nofile
   call esearch#util#doautocmd('BufReadPre')
   let [dir, filename] = matchlist(a:path, 'esearchgit://\(.\{-}\)//\(\x\{40\}:.\+\)')[1:2]
   let dir = s:Prelude.substitute_path_separator(shellescape(dir, 1))
   let filename = s:Prelude.substitute_path_separator(shellescape(filename, 1)) 
-  exe '0read ++edit !git -C' dir 'cat-file -p' filename
+  " lockmarks to preserve the cursor location on open
+  exe 'lockmarks 0read ++edit !git -C' dir 'cat-file -p' filename
   keepjumps silent $delete_
   setlocal nomodifiable nomodified readonly
   call esearch#util#doautocmd('BufReadPost')

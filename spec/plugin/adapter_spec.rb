@@ -18,16 +18,16 @@ describe 'esearch#adapter', :adapters do
 
   include_context 'report editor state on error'
 
+  before { esearch.configure(prefill: [], root_markers: [], adapters: {grep: {options: '--exclude-dir=.git'}}) }
+
   shared_examples 'adapter paths testing examples' do |adapter, adapter_bin|
     describe "##{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure(
-          adapter:      adapter,
-          out:          'win',
-          backend:      'system',
-          regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
-          prefill:      [],
-          root_markers: []
+          adapter: adapter,
+          out:     'win',
+          backend: 'system',
+          regex:   (adapter =~ /grep|git/ ? 'pcre' : 1)
         )
         esearch.configuration.adapter_bin = adapter_bin if adapter_bin
         esearch.configuration.submit!
@@ -110,15 +110,13 @@ describe 'esearch#adapter', :adapters do
         let(:context_lines) { 0 }
         before do
           esearch.configure(
-            adapter:      adapter,
-            out:          'win',
-            backend:      'system',
-            regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
-            prefill:      [],
-            root_markers: [],
-            before:       before_lines,
-            after:        after_lines,
-            context:      context_lines
+            adapter: adapter,
+            out:     'win',
+            backend: 'system',
+            regex:   (adapter =~ /grep|git/ ? 'pcre' : 1),
+            before:  before_lines,
+            after:   after_lines,
+            context: context_lines
           )
           esearch.configuration.adapter_bin = adapter_bin if adapter_bin
           esearch.configuration.submit!
@@ -225,12 +223,10 @@ describe 'esearch#adapter', :adapters do
   shared_examples 'adapter filetypes testing examples' do |adapter, adapter_bin|
     before do
       esearch.configure(
-        adapter:      adapter,
-        out:          'win',
-        backend:      'system',
-        regex:        (adapter =~ /grep|git/ ? 'pcre' : 1),
-        prefill:      [],
-        root_markers: []
+        adapter: adapter,
+        out:     'win',
+        backend: 'system',
+        regex:   (adapter =~ /grep|git/ ? 'pcre' : 1)
       )
       esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       esearch.configuration.submit!

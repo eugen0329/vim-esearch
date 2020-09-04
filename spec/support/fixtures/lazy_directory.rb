@@ -24,12 +24,9 @@ class Fixtures::LazyDirectory
 
     files.each do |f|
       f.working_directory = directory_path
-      uncommited = f.path.exist?
       f.persist!
-      if uncommited
-        system("git -C #{Shellwords.escape(path)} add #{Shellwords.escape(f.path)} >/dev/null 2>&1")
-        system("git -C #{Shellwords.escape(path)} commit -m #{Shellwords.escape(f.path)} >/dev/null 2>&1")
-      end
+      system("git -C #{Shellwords.escape(path)} add #{Shellwords.escape(f.path)} >/dev/null 2>&1")
+      system("git -C #{Shellwords.escape(path)} commit -m #{Shellwords.escape(f.path)} >/dev/null 2>&1")
     end
 
     self
