@@ -197,7 +197,7 @@ fu! s:identify_text_change(event) abort
     let b:__pending_o_event = 0
     call s:insert_enter_with_o()
   elseif from.cmdhistnr !=# to.cmdhistnr
-    " no-op
+    call b:esearch.undotree.synchronize() " cmdline
   elseif from.mode ==# 'i'
     call s:identify_insert()
   elseif from.mode ==# 'V' || to.mode ==# 'V'
