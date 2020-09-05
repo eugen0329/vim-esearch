@@ -14,12 +14,13 @@ if exists('g:esearch#adapter#git#options')
   let s:Git.options = g:esearch#adapter#git#options
 else
   " -I: don't match binary files
-  let s:Git.options = '-I '
+  " --no-untracked: to avoid errors when .paths = '`git rev-list HEAD`' is used
+  let s:Git.options = '-I --no-untracked'
 endif
 
 " -H - show filenames
 " -I - don't search binary files
-let s:Git.mandatory_options = '-H --no-color --line-number --untracked'
+let s:Git.mandatory_options = '-H --no-color --line-number'
 call extend(s:Git, {
       \   'bool2regex': ['literal', 'basic'],
       \   'regex': {

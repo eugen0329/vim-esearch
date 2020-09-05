@@ -64,7 +64,8 @@ class API::ESearch::Window
     # Both a valid. The only difference is that vim escapes > and + only when
     # they are leading
     filename_variations = [editor.escape_regexp(editor.escape_filename(relative_path)),
-                           editor.escape_regexp(editor.escape_filename('./' + relative_path)),]
+                           editor.escape_regexp(editor.escape_filename('./' + relative_path)),
+                           '^\\x\\{40}:' + editor.escape_regexp(relative_path),]
     editor.syntax_aliases_at([filename_variations.join('\|')]) ==
       [%w[esearchFilename Directory]]
   end
@@ -134,14 +135,6 @@ class API::ESearch::Window
     entry.line_in_window
   end
 
-  def has_outputted_result_with_right_position_inside_file?(relative_path, line_in_file, _column)
-    # TODO: will be resolved on open whe pcre parser is ready
-    # location_in_file(relative_path, line_in_file) == [line_in_file, column]
-    location_in_file(relative_path, line_in_file)[0] == line_in_file
-  rescue MissingEntryError
-    false
-  end
-
   def location_in_file(relative_path, line_in_file)
     entry = find_entry(relative_path, line_in_file)
     raise MissingEntryError if entry.empty?
@@ -151,7 +144,7 @@ class API::ESearch::Window
 
   def find_entry(relative_path, line_in_file)
     found = parser.entries.find do |entry|
-      entry_path = Pathname(entry.relative_path).cleanpath
+      entry_path = Pathname(entry.relative_path).cleanpath.sub(/^\h{7,40}:/, '')
 
       # Both a valid. The only difference is that vim escapes > and + only when
       # they are leading

@@ -18,23 +18,14 @@ fu! esearch#undotree#new(state) abort
 endfu
 
 fu! s:node(state) abort
-  return {
-        \ 'changenr': changenr(),
-        \ 'state':    a:state,
-        \ }
+  return {'changenr': changenr(), 'state': a:state}
 endfu
 
 " Synchronizes with builtin undotree
 fu! s:synchronize(...) abort dict
-  if a:0 == 1
-    let state = a:1
-  else
-    let state = self.head.state
-  endif
-
-  let node = s:node(state)
-  let self.nodes[node.changenr] = node
-  let self.head = node
+  let state = a:0 ? a:1 : self.head.state
+  let self.head = s:node(state)
+  let self.nodes[self.head.changenr] = self.head
 endfu
 
 fu! s:mark_block_as_corrupted(...) abort dict

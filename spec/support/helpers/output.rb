@@ -17,6 +17,26 @@ module Helpers::Output
     end
   end
 
+  matcher :have_outputted_result_with_right_position_inside_file do |relative_path, line_in_file, _column|
+    match do
+      entry = esearch.output.find_entry(relative_path, line_in_file)
+      if entry.empty?
+        @missing_entry = true
+        return false
+      end
+
+      @line_in_file, @lines = entry.open { [editor.current_line_number, editor.lines.to_a] }
+      @line_in_file == line_in_file
+    end
+
+    failure_message do
+      message = 'expected to have_outputted_result_with_right_position_inside_file'
+      return "#{message}, got entry #{relative_path} is missing" if @missing_entry
+
+      "#{message}, got actual: #{@line_in_file}, expected: #{line_in_file}, lines: #{@lines}"
+    end
+  end
+
   matcher :have_not_reported_errors do
     match(&:has_not_reported_errors?)
 

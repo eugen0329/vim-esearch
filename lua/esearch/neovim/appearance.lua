@@ -48,7 +48,7 @@ function M.highlight_ui(bufnr, from, to)
       -- separators are not highlighted
     elseif text:sub(1,1) == ' ' then
       local _, pos2 =  text:find('^%s+%d+%s')
-      if pos2 ~= nil then
+      if pos2 then
         vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
       end
     else
@@ -69,6 +69,9 @@ end
 
 function M.buf_attach_ui()
   local bufnr = vim.api.nvim_get_current_buf()
+
+  M.highlight_header(true) -- tmp measure to prevent missing highlights on live updates
+
   if not M.ATTACHED_UI[bufnr] then
     M.ATTACHED_UI[bufnr] = true
     vim.api.nvim_buf_attach(0, false, {on_lines=ui_cb, on_detach=detach_ui_cb})
@@ -137,7 +140,7 @@ function M.highlight_cursor_linenr()
     -- the condition below is needed to prevent adding highlights to buffer when leaving them
     if bufnr == vim.api.nvim_get_current_buf() then
       vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-      if last_column ~= nil then
+      if last_column then
         vim.api.nvim_buf_add_highlight(bufnr, ns, 'esearchCursorLineNr', line, 0, last_column)
       end
     end

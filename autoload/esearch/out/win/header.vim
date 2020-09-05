@@ -69,16 +69,13 @@ endfu
 fu! esearch#out#win#header#finished_render() abort dict
   return printf(s:finished_header,
         \ len(self.request.data) - self.separators_count,
-        \ esearch#util#pluralize('line', len(self.request.data) - self.separators_count),
+        \ len(self.request.data) - self.separators_count == 1 ? 'line' : 'lines',
         \ self.files_count,
-        \ esearch#util#pluralize('file', self.files_count),
+        \ self.files_count == 1 ? 'file' : 'files',
         \ )
 endfu
 
 fu! s:lines_word(esearch) abort
-  if !empty(a:esearch.precision_hint)
-    return 'line(s)'
-  endif
-
-  return esearch#util#pluralize('line', len(a:esearch.request.data) - a:esearch.separators_count)
+  if !empty(a:esearch.precision_hint) | return 'line(s)' | endif
+  return len(a:esearch.request.data) - a:esearch.separators_count == 1 ? 'line' : 'lines'
 endfu

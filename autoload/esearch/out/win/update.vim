@@ -47,13 +47,13 @@ fu! s:init_throttled_updates(es) abort
 endfu
 
 fu! s:init_header_ctx(es) abort
-  cal esearch#out#win#update#add_context(a:es.contexts, '', 1) " add blank header context
+  cal esearch#out#win#update#add_context(a:es.contexts, '', 1, 0) " add blank header context
   let header_ctx = a:es.contexts[0]
   let header_ctx.end = 2
   let a:es.ctx_ids_map += [header_ctx.id, header_ctx.id]
   let a:es.line_numbers_map += [0, 0]
   setl modifiable
-  silent 1,$delete_
+  keepjumps silent %delete_
   cal esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())
   setl nomodifiable
 endfu
@@ -120,7 +120,7 @@ fu! s:update_timer_cb(es, bufnr, timer) abort
   en
 endfu
 
-fu! esearch#out#win#update#add_context(contexts, filename, begin) abort
+fu! esearch#out#win#update#add_context(contexts, filename, begin, rev) abort
   cal add(a:contexts, {
         \ 'id': len(a:contexts),
         \ 'begin': a:begin,
@@ -128,6 +128,7 @@ fu! esearch#out#win#update#add_context(contexts, filename, begin) abort
         \ 'filename': a:filename,
         \ 'filetype': '',
         \ 'loaded_syntax': 0,
+        \ 'rev': a:rev,
         \ 'lines': {},
         \ })
 endfu
@@ -181,10 +182,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
   cal esearch#out#win#update#update(a:bufnr, 0)
   " TODO
   let es.contexts[-1].end = line('$')
-  if es.win_context_len_annotations
-    cal luaeval('esearch.appearance.set_context_len_annotation(_A[1], _A[2])',
-          \ [es.contexts[-1].begin, len(es.contexts[-1].lines)])
-  en
+  cal esearch#out#win#appearance#annotations#init(es)
   cal esearch#out#win#update#uninit(es)
   cal setbufvar(a:bufnr, '&modifiable', 1)
 
@@ -196,10 +194,5 @@ fu! esearch#out#win#update#finish(bufnr) abort
 
   cal setbufvar(a:bufnr, '&modified', 0)
   cal esearch#out#win#modifiable#init()
-
-  if es.win_ui_nvim_syntax
-    cal luaeval('esearch.appearance.buf_attach_ui()')
-  en
-  cal esearch#out#win#appearance#annotations#init(es)
-  if g:esearch#has#nvim && es.live_update | redraw | en
+  if es.win_ui_nvim_syntax | cal luaeval('esearch.appearance.buf_attach_ui()') | en
 endfu

@@ -110,22 +110,27 @@ describe Debug do
     end
   end
 
-  describe '.update_time' do
-    it { expect(debug.update_time).to be > 0 }
-  end
-
   describe '.working_directories' do
+    let(:cwd_content) do
+      test_directory
+        .files
+        .map { |f| [f.path.basename.to_s, f.readlines] }
+        .push(['.git', 'directory'])
+        .sort
+    end
     let(:expected) do
       {
         '$PWD'        => Configuration.root,
         'getcwd()'    => test_directory.path,
-        'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s },
+        'cwd_content' => cwd_content,
       }
     end
 
     before { esearch.cd! test_directory }
 
-    it { expect(debug.working_directories).to match(expected) }
+    it do
+      expect(debug.working_directories).to match(expected)
+    end
   end
 
   describe '.screenshot!' do
@@ -181,7 +186,7 @@ describe Debug do
   end
 
   describe '.runtimepaths' do
-    it { expect(debug.runtimepaths).to include Configuration.root.to_s }
+    xit { expect(debug.runtimepaths).to include Configuration.root.to_s }
   end
 
   describe '.sourced_scripts' do
@@ -204,9 +209,9 @@ describe Debug do
 
   describe '.buffer_configuration' do
     context 'when defined' do
-      before { editor.command!('let b:esearch = {"option": ["..."]}') }
+      before { editor.command!('let b:esearch = {"buffer": "configuration"}') }
 
-      it { expect(debug.buffer_configuration).to eq('option' => ['...']) }
+      it { expect(debug.buffer_configuration).to eq('buffer' => 'configuration') }
     end
 
     context 'when undefined' do
@@ -222,9 +227,9 @@ describe Debug do
 
   describe '.global_configuration' do
     context 'when defined' do
-      before { editor.command!('let g:esearch = "global_configuration"') }
+      before { editor.command!('let g:esearch = {"global": "configuration"}') }
 
-      it { expect(debug.global_configuration).to eq('global_configuration') }
+      it { expect(debug.global_configuration).to eq('global' => 'configuration') }
     end
 
     context 'when undefined' do

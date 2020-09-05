@@ -10,7 +10,6 @@ install_vim_plugin                            \
   "$plugins_dir/clever-f.vim"                 \
   '48706f4124d77d814de0ad5fa264fd73ab35df38'
 
-# Version isn't locked to alwasy test against HEAD
 install_vim_plugin                                \
   'https://github.com/mg979/vim-visual-multi.git' \
   "$plugins_dir/vim-visual-multi"

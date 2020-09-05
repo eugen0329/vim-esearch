@@ -1,4 +1,4 @@
-fu! esearch#adapter#parse#lua#funcref() abort
+fu! esearch#adapter#parse#lua#import() abort
   return function('esearch#adapter#parse#lua#parse')
 endfu
 

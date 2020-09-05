@@ -96,18 +96,18 @@ jobs:
     # parallel_split_test cause deadlocks on mac, so testing
     # synchronously
     # - name: 'Acceptance tests of #backend#system'
-    #   script: bundle exec rspec spec/plugin/backend_spec.rb --tag system
+    #   script: bundle exec rspec spec/plugin/backend/ --tag system
     #   os: osx
     # - name: 'Acceptance tests of #backend#nvim'
-    #   script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag nvim' --seed 6880
+    #   script: bundle exec parallel_split_test spec/plugin/backend/ --tag nvim' --seed 6880
     #   env: INSTALL_PYTHON_VERSION=3.6.1 NVIM_GUI=0
     #   os: osx
     # - name: 'Acceptance tests of #backend#vim8 with #viml render'
-    #   script: bundle exec rspec spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
+    #   script: bundle exec rspec spec/plugin/backend/ --tag vim8 --tag ~render:lua
     #   os: osx
 
     - name: 'Acceptance tests of #backend#system'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag system
+      script: bundle exec parallel_split_test spec/plugin/backend --tag system	
       os: linux
     #  TODO
     # - name: 'Acceptance tests of #backend#nvim'
@@ -116,10 +116,10 @@ jobs:
     #   services: docker
     #   os: linux
     - name: 'Acceptance tests of #backend#vim8 with #viml render and #legacy parser'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render:lua
+      script: bundle exec parallel_split_test spec/plugin/backend --tag vim8 --tag ~render:lua	
       os: linux
     - name: 'Acceptance tests of #backend#vim8 with #lua render'
-      script: bundle exec parallel_split_test spec/plugin/backend_spec.rb --tag vim8 --tag ~render:viml
+      script: bundle exec parallel_split_test spec/plugin/backend --tag vim8 --tag ~render:viml	
       os: linux
 
     - name: 'Acceptance tests of adapter'
@@ -129,7 +129,7 @@ jobs:
       script: bundle exec rake RSPEC_OPTS='--tag commandline'
       os: linux
     - name: 'Unit tests'
-      script: bundle exec parallel_test spec/unit -n 2 --group-by filesize --type rspec
+      script: bundle exec parallel_test spec/unit -n 2 --type rspec
       os: linux
     - name: 'Linters (luacheck, rubocop, vint, shellcheck)'
       env: LINT=1 INSTALL_PYTHON_VERSION=3.6.1

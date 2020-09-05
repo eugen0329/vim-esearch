@@ -1,3 +1,4 @@
+let s:Prelude  = vital#esearch#import('Prelude')
 let s:List     = vital#esearch#import('Data.List')
 let s:Log      = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
@@ -168,10 +169,7 @@ fu! esearch#util#safe_matchdelete(id) abort
 endfu
 
 fu! esearch#util#abspath(cwd, path) abort
-  if s:Filepath.is_absolute(a:path)
-    return a:path
-  endif
-
+  if s:Filepath.is_absolute(a:path) | return a:path | endif
   return s:Filepath.join(a:cwd, a:path)
 endfu
 
@@ -189,22 +187,6 @@ fu! esearch#util#slice_factory(keys) abort
      \ . '   return esearch#util#slice(a:dict,'.string(a:keys).")\n"
      \ . ' endfu'
   return private_scope.slice
-endfu
-
-fu! esearch#util#pluralize(word, count) abort
-  let word = a:word
-
-  if a:count == 1 || empty(word)
-    return word
-  endif
-
-  " tim pope
-  let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
-  let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
-  let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')
-  let word = substitute(word, '\v\Cf@<!f$',          've',  '')
-  let word .= 's'
-  return word
 endfu
 
 if g:esearch#has#nomodeline
@@ -257,8 +239,27 @@ fu! esearch#util#warn(message) abort
 endfu
 
 " If live_update feature is enabled:
-"    live_exec - exec a new search and skip
+"    live_exec - exec a new search
 "   !live_exec - skip exec and connect to an already executed search
 fu! esearch#util#is_skip_exec(esearch) abort
   return a:esearch.live_update && !a:esearch.live_exec
+endfu
+
+fu! esearch#util#find_up(path, markers) abort
+  " Partially based on vital's prelude path2project-root internals
+  let dir = s:Prelude.path2directory(a:path)
+  let depth = 0
+  while depth < 50
+    for marker in a:markers
+      let file = globpath(dir, marker, 1)
+      if file !=# '' | return file | endif
+    endfor
+
+    let dir_upwards = fnamemodify(dir, ':h')
+    " NOTE compare is case insensitive
+    if dir_upwards == dir | return '' | endif
+    let dir = dir_upwards
+    let depth += 1
+  endwhile
+  return ''
 endfu

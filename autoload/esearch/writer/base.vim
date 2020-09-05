@@ -19,8 +19,12 @@ fu! s:Base.log() abort dict
   call esearch#util#warn(message)
 endfu
 
-fu! s:Base.verify_readable(path) abort dict
+fu! s:Base.verify_readable(ctx, path) abort dict
   if filereadable(a:path) | return 1 | endif
-  call add(self.conflicts, {'filename': a:path, 'reason': 'is not readable'})
+  if get(a:ctx.original, 'rev')
+    call add(self.conflicts, {'filename': a:path, 'reason': 'is a git blob'})
+  else
+    call add(self.conflicts, {'filename': a:path, 'reason': 'is not readable'})
+  endif
   return 0
 endfu

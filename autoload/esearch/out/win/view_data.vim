@@ -10,11 +10,23 @@ fu! esearch#out#win#view_data#init(esearch) abort
         \ 'filetype':           function('<SID>filetype'),
         \ 'line_in_file':       function('<SID>line_in_file'),
         \ 'ctx_view':           function('<SID>ctx_view'),
+        \ 'ctx_at':             function('<SID>ctx_at'),
         \ 'is_filename':        function('<SID>is_filename'),
         \ 'is_entry':           function('<SID>is_entry'),
         \ 'is_current':         function('<SID>is_current'),
         \ 'is_blank':           function('<SID>is_blank'),
         \ })
+endfu
+
+fu! esearch#out#win#view_data#filename(es, ctx) abort
+  if empty(a:ctx) | return '' | endif
+
+  if get(a:ctx, 'rev') ==# 1
+    return s:git_url(a:es, a:ctx.filename)
+  elseif s:Filepath.is_absolute(a:ctx.filename)
+    return a:ctx.filename
+  endif
+  return s:Filepath.join(a:es.cwd, a:ctx.filename)
 endfu
 
 " Returns dict that can be forwarded into builtin winrestview()
@@ -32,7 +44,7 @@ endfu
 fu! s:filetype(...) abort dict
   if !self.is_current() | return | endif
 
-  let ctx = s:ctx_at(line('.'), self)
+  let ctx = self.ctx_at(line('.'))
   if empty(ctx) | return '' | endif
 
   if empty(ctx.filetype)
@@ -48,34 +60,30 @@ fu! s:filetype(...) abort dict
   return ctx.filetype
 endfu
 
+fu! s:git_url(es, filename) abort
+  if !has_key(a:es, 'git_dir')
+    let a:es.git_dir = esearch#git#dir(a:es.cwd)
+  endif
+  return esearch#git#url(a:es.git_dir, a:filename)
+endfu
+
 fu! s:unescaped_filename(...) abort dict
   if !self.is_current() | return | endif
-
-  let ctx = s:ctx_at(get(a:, 1, line('.')), self)
-  if empty(ctx) | return '' | endif
-
-  if s:Filepath.is_absolute(ctx.filename)
-    let filename = ctx.filename
-  else
-    let filename = s:Filepath.join(self.cwd, ctx.filename)
-  endif
-
-  return filename
+  return esearch#out#win#view_data#filename(self, self.ctx_at(get(a:, 1, line('.'))))
 endfu
 
 fu! s:filename(...) abort dict
   if !self.is_current() | return | endif
-
-  return fnameescape(self.unescaped_filename(get(a:, 1, line('.'))))
+  return fnameescape(esearch#out#win#view_data#filename(self, self.ctx_at(get(a:, 1, line('.')))))
 endfu
 
-fu! s:ctx_at(line, esearch) abort
-  if a:esearch.is_blank() | return {} | endif
+fu! s:ctx_at(line) dict abort
+  if self.is_blank() | return {} | endif
 
-  let ctx = esearch#out#win#repo#ctx#new(a:esearch, esearch#out#win#_state(a:esearch))
+  let ctx = esearch#out#win#repo#ctx#new(self, esearch#out#win#_state(self))
         \.by_line(a:line)
   if ctx.id == 0
-    return a:esearch.contexts[1]
+    return self.contexts[1]
   endif
 
   return ctx

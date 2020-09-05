@@ -32,10 +32,6 @@ class API::ESearch::QuickFix
     raise 'TODO'
   end
 
-  def has_outputted_result_with_right_position_inside_file?
-    raise 'TODO'
-  end
-
   def has_not_reported_errors?
     has_reported_errors_in_title?
   end

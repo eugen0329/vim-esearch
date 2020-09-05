@@ -15,7 +15,7 @@ if exists('g:esearch#adapter#grep#options')
   let s:Grep.options = g:esearch#adapter#grep#options
 else
   " -I: don't match binary files
-  let s:Grep.options = '-I '
+  let s:Grep.options = '-I'
 endif
 
 " Short options are used as they are supported more often than long ones
