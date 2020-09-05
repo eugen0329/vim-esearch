@@ -15,7 +15,7 @@ module Debug
     win_context_len_annotations win_viewport_off_screen_margin win_contexts_syntax
     loaded_lazy root_markers win_matches_highlight_debounce_wait pending_warnings
     final_batch_size context live_update_debounce_wait filetypes adapter after
-    last_id
+    last_id win_contexts_syntax_clear_on_line_len ctx_by_name
   ].freeze
 
   def global_configuration
@@ -115,7 +115,11 @@ module Debug
   end
 
   def filter_config(config)
-    config.reject { |k, _v| UNWANTED_CONFIGS.include?(k) }
+    filtered = config
+               .reject { |k, _v| UNWANTED_CONFIGS.include?(k) }
+               .reject { |_k, v| v.is_a?(VimlValue::Types::Funcref) }
+    filtered['request'].delete('jobstart_args') if filtered['request'].is_a? Hash
+    filtered
   end
 
   # Eager reader with disabled caching is used for reliability

@@ -240,8 +240,6 @@ describe 'esearch#backend', :backend do
   end
 
   describe '#vim8', :vim8 do
-    it_behaves_like 'an abortable backend', 'vim8'
-
     context 'when rendering with lua', render: :lua do
       before { esearch.configure(win_render_strategy: 'lua', parse_strategy: 'lua') }
 
