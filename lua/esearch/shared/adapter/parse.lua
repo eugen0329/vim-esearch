@@ -46,7 +46,7 @@ end
 
 -- Heuristic to captures existing quoted, existing unquoted or the smallest
 -- name.
-local function parse_name_with_commit_prefix(line, cache)
+local function parse_name_with_revision_prefix(line, cache)
   local name_start = line:find('[:%-]')
   if not name_start then return end
   name_start = name_start + 1
@@ -107,7 +107,7 @@ function M.parse_line(line, cache)
 
   name, lnum, text = parse_existing_name(line, cache)
   if not name then
-    name, lnum, text = parse_name_with_commit_prefix(line, cache)
+    name, lnum, text = parse_name_with_revision_prefix(line, cache)
     if name then rev = true end
   end
 

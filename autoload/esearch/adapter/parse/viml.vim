@@ -42,7 +42,7 @@ fu! esearch#adapter#parse#viml#parse(data, from, to) abort dict
 
     let e = s:parse_existing_filename(line)
     if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
-    let e = s:parse_filename_with_commit_prefix(line)
+    let e = s:parse_filename_with_revision_prefix(line)
     if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
   endwhile
 
@@ -83,7 +83,7 @@ endfu
 
 " Heuristic to captures existing quoted, existing unquoted or the smallest
 " filename.
-fu! s:parse_filename_with_commit_prefix(line) abort
+fu! s:parse_filename_with_revision_prefix(line) abort
   let name_start = match(a:line, '[-:]') + 1
   if name_start == 0 | return 0 | endif
   let name_end = name_start
