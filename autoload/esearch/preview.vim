@@ -1,5 +1,5 @@
 let s:Buffer  = vital#esearch#import('Vim.Buffer')
-let s:Log = esearch#log#import()
+let s:Log     = esearch#log#import()
 let s:Prelude = vital#esearch#import('Prelude')
 let s:List    = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
@@ -50,11 +50,10 @@ fu! esearch#preview#open(filename, line, ...) abort
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
 
   let enter = get(opts, 'enter', s:false)
-  if !has_key(opts, 'emphasis')
-    let emphasis = get(opts, 'emphasis', [
-          \ esearch#emphasis#sign(),
-          \ esearch#emphasis#highlighted_line(),
-          \])
+  if has_key(opts, 'emphasis')
+    let emphasis = opts.emphasis
+  else
+    let emphasis = [esearch#emphasis#sign(), esearch#emphasis#highlighted_line()]
   endif
 
   let g:esearch#preview#last = s:Preview

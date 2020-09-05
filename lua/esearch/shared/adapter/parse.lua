@@ -52,8 +52,7 @@ local function parse_name_with_revision_prefix(line, cache)
   name_start = name_start + 1
   local name_end = name_start
   local name, lnum, text
-  local min_name_end, quoted_name_end
-  local quoted_entry
+  local min_name_end, quoted_name_end, quoted_entry
 
   -- try QUOTED
   if line:sub(name_start, name_start) == '"' then

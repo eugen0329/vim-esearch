@@ -6,7 +6,7 @@ aug esearch_git
 aug END
 
 fu! esearch#git#url(dir, filename) abort
-  return 'esearchgit://' . a:dir . '//' . a:filename
+  return 'esearchgit://' . simplify(a:dir) . '//' . simplify(a:filename)
 endfu
 
 fu! esearch#git#dir(cwd) abort

@@ -14,11 +14,6 @@ install_vim_plugin                                \
   'https://github.com/mg979/vim-visual-multi.git' \
   "$plugins_dir/vim-visual-multi"
 
-install_vim_plugin                            \
-  'https://github.com/tpope/vim-fugitive.git' \
-  "$plugins_dir/vim-fugitive"
-
-
 ## Will be used for testing contex syntax highlights
 # install_vim_plugin                                          \
 #   'https://github.com/altercation/vim-colors-solarized.git' \

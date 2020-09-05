@@ -111,17 +111,26 @@ describe Debug do
   end
 
   describe '.working_directories' do
+    let(:cwd_content) do
+      test_directory
+        .files
+        .map { |f| [f.path.basename.to_s, f.readlines] }
+        .push(['.git', 'directory'])
+        .sort
+    end
     let(:expected) do
       {
         '$PWD'        => Configuration.root,
         'getcwd()'    => test_directory.path,
-        'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s },
+        'cwd_content' => cwd_content,
       }
     end
 
     before { esearch.cd! test_directory }
 
-    it { expect(debug.working_directories).to match(expected) }
+    it do
+      expect(debug.working_directories).to match(expected)
+    end
   end
 
   describe '.screenshot!' do

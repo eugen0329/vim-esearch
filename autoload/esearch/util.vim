@@ -169,10 +169,7 @@ fu! esearch#util#safe_matchdelete(id) abort
 endfu
 
 fu! esearch#util#abspath(cwd, path) abort
-  if s:Filepath.is_absolute(a:path)
-    return a:path
-  endif
-
+  if s:Filepath.is_absolute(a:path) | return a:path | endif
   return s:Filepath.join(a:cwd, a:path)
 endfu
 
@@ -190,22 +187,6 @@ fu! esearch#util#slice_factory(keys) abort
      \ . '   return esearch#util#slice(a:dict,'.string(a:keys).")\n"
      \ . ' endfu'
   return private_scope.slice
-endfu
-
-fu! esearch#util#pluralize(word, count) abort
-  let word = a:word
-
-  if a:count == 1 || empty(word)
-    return word
-  endif
-
-  " tim pope
-  let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
-  let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
-  let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')
-  let word = substitute(word, '\v\Cf@<!f$',          've',  '')
-  let word .= 's'
-  return word
 endfu
 
 if g:esearch#has#nomodeline

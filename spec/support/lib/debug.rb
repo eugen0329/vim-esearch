@@ -35,9 +35,10 @@ module Debug
   end
 
   def working_directories
-    paths = reader.echo([var('$PWD'), func('getcwd')]).map { |p| Pathname(p) }
-    result = ['$PWD', 'getcwd()'].zip(paths).to_h
-    result['cwd_content'] = Dir.entries(result['getcwd()']) - ['.', '..'] if File.directory?(result['getcwd()'])
+    result = reader
+             .echo({'$PWD': var('$PWD'), 'getcwd()': func('getcwd')})
+             .transform_values { |path| Pathname(path) }
+    result['cwd_content'] = cwd_content(result['getcwd()']) if File.directory?(result['getcwd()'])
     result
   end
 
@@ -105,6 +106,13 @@ module Debug
   end
 
   private
+
+  def cwd_content(cwd)
+    (Dir.entries(cwd) - ['.', '..'])
+      .map { |path| [path, cwd.join(path)] }
+      .map { |path, fullpath| fullpath.file? ? [path, fullpath.readlines] : [path, fullpath.ftype] }
+      .sort
+  end
 
   def filter_config(config)
     config.reject { |k, _v| UNWANTED_CONFIGS.include?(k) }
