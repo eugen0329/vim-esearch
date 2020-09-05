@@ -17,6 +17,23 @@ module Helpers::Output
     end
   end
 
+  matcher :have_outputted_result_with_right_position_inside_file do |relative_path, line_in_file, _column|
+    match do
+      @line_in_file = esearch.output.location_in_file(relative_path, line_in_file)[0]
+      @line_in_file == line_in_file
+    rescue API::ESearch::Window::MissingEntryError
+      @missing_entry = true
+      false
+    end
+
+    failure_message do
+      message = 'expected to have_outputted_result_with_right_position_inside_file'
+      return "#{message}, got entry #{relative_path} is missing" if @missing_entry
+
+      "#{message}, got lines actual: #{@line_in_file}, expected: #{line_in_file}"
+    end
+  end
+
   matcher :have_not_reported_errors do
     match(&:has_not_reported_errors?)
 

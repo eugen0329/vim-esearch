@@ -1,9 +1,6 @@
 let s:Guard = vital#esearch#import('Vim.Guard')
 let s:GenericLet = function('esearch#let#generic')
 
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-
 " Generic letter (not setter, to not confuse with set command). Behaves like a
 " usual let
 fu! esearch#let#generic(variables) abort

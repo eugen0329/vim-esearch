@@ -135,14 +135,6 @@ class API::ESearch::Window
     entry.line_in_window
   end
 
-  def has_outputted_result_with_right_position_inside_file?(relative_path, line_in_file, _column)
-    # TODO: will be resolved on open whe pcre parser is ready
-    # location_in_file(relative_path, line_in_file) == [line_in_file, column]
-    location_in_file(relative_path, line_in_file)[0] == line_in_file
-  rescue MissingEntryError
-    false
-  end
-
   def location_in_file(relative_path, line_in_file)
     entry = find_entry(relative_path, line_in_file)
     raise MissingEntryError if entry.empty?
