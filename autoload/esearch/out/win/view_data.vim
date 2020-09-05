@@ -61,10 +61,10 @@ fu! s:filetype(...) abort dict
 endfu
 
 fu! s:git_url(es, filename) abort
-  if !has_key(a:es, 'git_dir')
-    let a:es.git_dir = esearch#git#dir(a:es.cwd)
+  if !has_key(a:es, '_git_dir')
+    let a:es._git_dir = a:es.git_dir(a:es.cwd)
   endif
-  return esearch#git#url(a:es.git_dir, a:filename)
+  return a:es.git_url(a:filename, a:es._git_dir)
 endfu
 
 fu! s:unescaped_filename(...) abort dict

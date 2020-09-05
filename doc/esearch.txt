@@ -168,6 +168,8 @@ To customize the plugin you must initialize it first with:
  `.adapter`                 | Search util (ag, rg, grep etc.) adapter name
  `.backend`                 | Processing backend (|job-control|, |system()| etc.) name
  `.out`                     | Output target name (window or quickfix list)
+ `.git_dir()`               | |Funcref| to extract git repository path
+ `.git_url()`               | |Funcref| to generate urls for blobs viewing
  `.filemanager_integration` | Flag to toggle capturing paths from filemanagers
  -------------------------+-----------------------------------------------------
 
@@ -394,6 +396,21 @@ g:esearch.out                                                      *g:esearch.ou
 <
         NOTE Quickfix list output contains far less features as it's vim's
         builtin.
+
+g:esearch.git_dir({cwd})                                     *g:esearch.git_dir()*
+        Function to extract git repository path.
+        Type: |Funcref|
+        Default: function that searches up for .git/HEAD file
+        Parameters:~
+            {cwd}   |String| with directory used for .git extraction
+
+g:esearch.git_url({path}, {dir})                             *g:esearch.git_url()*
+        Function to generate urls for blobs viewing.
+        Type: |Funcref|
+        Default: function that generates blob filenames used internally
+        Parameters:~
+            {path}   |String| with path in rev:filename format
+            {dir}    |String| with extracted git directory
 
 g:esearch.filemanager_integration              *g:esearch.filemanager_integration*
         Flag to toggle integration with filemanagers (nerdtree, dirvish,

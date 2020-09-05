@@ -57,6 +57,8 @@ fu! esearch#config#init(esearch) abort
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
         \ 'write_cb':                              function('s:write_cb'),
+        \ 'git_dir':                               function('esearch#git#dir'),
+        \ 'git_url':                               function('esearch#git#url'),
         \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend !=# 'system',
         \ 'live_update_debounce_wait':             150,
         \ 'live_update_min_len':                   3,

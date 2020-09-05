@@ -124,7 +124,7 @@ let g:esearch.live_update = 0
 
 " Open the search window in a vertical split and reuse it for all searches.
 let g:esearch.name = '[esearch]'
-let g:esearch.win_new = {esearch -> esearch#buf#goto_or_open(esearch.name, 'vnew') }
+let g:esearch.win_new = {esearch -> esearch#buf#goto_or_open(esearch.name, 'vnew')}
 
 " Redefine the default highlights (see :help highlight and :help esearch-appearance)
 highlight      esearchHeader     cterm=bold gui=bold ctermfg=white ctermbg=white
@@ -165,13 +165,15 @@ let g:esearch.win_new = {esearch ->
 " Close the floating window when opening an entry
 autocmd User esearch_win_config autocmd BufLeave <buffer> quit
 ```
-Customize writing changes behavior by redifing the callback that is invoked after applying changes. Default callback is `{buf, bang -> buf.write(bang)}`
+Customize writing changes behavior by redefining the callback that is invoked after applying changes. Default callback is `{buf, bang -> buf.write(bang)}`
 ```vim
 " Sublime Text-like opening buffers without saving
 let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
+
 " Write silently and wipeout buffers if they wasn't exist
 let g:esearch.write_cb = {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
-" Append buffers data to a location list for reviewing, then open it and display the first entry
+
+" Append buffers data to a location list for reviewing, open it and display the first entry
 let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
 au User esearch_write_post lopen | wincmd p | lfirst
 ```
@@ -238,9 +240,16 @@ nnoremap <c-f><c-g> :call esearch#init({
 " Search in commits from an inputted branch made from yesterday
 nnoremap <c-f><c-b> :call esearch#init({
       \ 'adapter':  'git',
-      \ 'paths':    '`git rev-list --since=yesterday '.input('branch> ', '', system('git branch')).'`',
+      \ 'paths':    '`git rev-list --since=yesterday '.input('rev> ', '', 'customlist,fugitive#CompleteObject').'`',
       \ 'remember': 0
       \})<cr>
+```
+
+In place of the built-in git blobs viewer, it's also possible to use custom functions from other plugins to have adanced features. Although, they are generally slower, so if autopreview is used, it's
+recommended to use the built-ins.
+```vim
+let g:esearch.git_dir = {cwd -> FugitiveExtractGitDir(cwd)}
+let g:esearch.git_url = {path, dir -> FugitiveFind(path, dir)}
 ```
 
 See `:help esearch-api` and `:help esearch-api-examples` for more details.

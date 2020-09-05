@@ -5,7 +5,7 @@ aug esearch_git
   au BufReadCmd esearchgit://* cal esearch#git#read_cmd(expand('<amatch>'))
 aug END
 
-fu! esearch#git#url(dir, filename) abort
+fu! esearch#git#url(filename, dir) abort
   return 'esearchgit://' . simplify(a:dir) . '//' . simplify(a:filename)
 endfu
 
@@ -15,7 +15,7 @@ endfu
 
 fu! esearch#git#read_cmd(path) abort
   " set modifiable to allow reloads
-  setlocal modifiable noswapfile bufhidden=delete buftype=nofile
+  setlocal modifiable noswapfile buftype=nofile
   call esearch#util#doautocmd('BufReadPre')
   let [dir, filename] = matchlist(a:path, 'esearchgit://\(.\{-}\)//\(\x\{40\}:.\+\)')[1:2]
   let dir = s:Prelude.substitute_path_separator(shellescape(dir, 1))
