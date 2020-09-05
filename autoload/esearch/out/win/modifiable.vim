@@ -10,7 +10,7 @@ fu! esearch#out#win#modifiable#init() abort
   set buftype=acwrite
   aug ESearchWinModifiable
     au! * <buffer>
-    au BufWriteCmd <buffer> call s:write()
+    au BufWriteCmd <buffer> call s:write_cmd()
   aug END
 
   let b:esearch.undotree = esearch#undotree#new({
@@ -35,38 +35,28 @@ fu! esearch#out#win#modifiable#uninit(esearch) abort
   call esearch#changes#unlisten_for_current_buffer()
 endfu
 
-fu! s:write() abort
+fu! s:write_cmd() abort
   let parsed = esearch#out#win#parse#entire()
-  if has_key(parsed, 'error')
-    throw parsed.error
-  endif
+  if has_key(parsed, 'error') | throw parsed.error | endif
 
   let diff = esearch#out#win#diff#do(parsed.contexts, b:esearch.contexts[1:])
+  if diff.statistics.files == 0 | echo 'Nothing to save' | return | endi
 
-  if diff.statistics.files == 0
-    echo 'Nothing to save'
-    return
-  endi
-
-  let [total_changes, kinds] = [0, []]
-  if diff.statistics.modified > 0
-    let total_changes += diff.statistics.modified
+  let [kinds, total_changes] = [[], diff.statistics.modified + diff.statistics.deleted]
+  if diff.statistics.modified > 0 |
     let kinds += [diff.statistics.modified . ' modified']
   endif
   if diff.statistics.deleted > 0
-    let total_changes += diff.statistics.deleted
     let kinds += [diff.statistics.deleted . ' deleted']
   endif
   let message = printf('Write changes? (%s %s in %d %s)',
         \ join(kinds, ', '),
         \ total_changes == 1 ? 'line' : 'lines',
         \ diff.statistics.files,
-        \ diff.statistics.files == 1 ? 'file' : 'files',
-        \ )
+        \ diff.statistics.files == 1 ? 'file' : 'files')
+  if esearch#ui#confirm#show(message, ['Yes', 'No']) != 1 | return |endif
 
-  if esearch#ui#confirm#show(message, ['Yes', 'No']) == 1
-    call esearch#writer#{b:esearch.writer}#write(diff, b:esearch)
-  endif
+  call esearch#writer#do(diff, b:esearch, v:cmdbang)
 endfu
 
 fu! s:handle(event) abort

@@ -39,7 +39,7 @@ class DumpEditorStateOnErrorFormatter
       buffers:              format_array(Debug.buffers),
       buffer_content:       format_array(Debug.buffer_content),
       working_directories:  format_hash(Debug.working_directories.transform_values(&:to_s)),
-      buffer_configuration: format_hash(Debug.buffer_configuration),
+      buffer_configuration: format_hash(Debug.configuration('b:esearch')),
       messages:             format_array(Debug.messages),
       plugin_log:           format_array(Debug.plugin_log),
       verbose_log:          format_array(Debug.verbose_log),

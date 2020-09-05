@@ -18,14 +18,8 @@ module Debug
     last_id win_contexts_syntax_clear_on_line_len ctx_by_name
   ].freeze
 
-  def global_configuration
-    filter_config(reader.echo(var('g:esearch')))
-  rescue Editor::Read::Base::ReadError => e
-    e.message
-  end
-
-  def buffer_configuration
-    filter_config(reader.echo(var('b:esearch')))
+  def configuration(name)
+    filter_config(reader.echo(var(name)))
   rescue Editor::Read::Base::ReadError => e
     e.message
   end

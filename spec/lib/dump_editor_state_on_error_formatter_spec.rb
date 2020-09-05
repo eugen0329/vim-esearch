@@ -13,8 +13,7 @@ describe DumpEditorStateOnErrorFormatter do
 
     before do
       expect(Debug).to receive(:buffer_content).and_return(['<buffer_content>'])
-      expect(Debug).to receive(:buffer_configuration).and_return('<buffer_configuration>')
-      expect(Debug).to receive(:global_configuration).and_return('<global_configuration>')
+      expect(Debug).to receive(:configuration).and_return('<buffer_configuration>')
       expect(Debug).to receive(:plugin_log).and_return(['<plugin_log>'])
       expect(Debug).to receive(:verbose_log).and_return(['<verbose_log>'])
       expect(Debug).to receive(:working_directories).and_return('<working_directories>': '<working_directories>')

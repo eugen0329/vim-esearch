@@ -12,6 +12,7 @@ class Editor
 
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
   CLIPBOARD_REGISTER = '"'
+  CURRENT_BUFFER = '%'
 
   class_attribute :cache_enabled, default: true
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
@@ -61,7 +62,7 @@ class Editor
     echo func('getline', number)
   end
 
-  def lines(range = nil, prefetch_count: 30)
+  def lines(range = nil, buffer: CURRENT_BUFFER, prefetch_count: 30)
     raise ArgumentError unless prefetch_count.positive?
     return enum_for(:lines, range, prefetch_count: prefetch_count) { lines_count } unless block_given?
 
@@ -72,7 +73,7 @@ class Editor
       break if evaluated?(current_lines_count) && current_lines_count < prefetch_from
 
       prefetch_to = [to || Float::INFINITY, prefetch_from + prefetch_count - 1].min
-      lines_array(prefetch_from..prefetch_to)
+      lines_array(prefetch_from..prefetch_to, buffer: buffer)
         .each { |line_content| yield(line_content) }
     end
   end
@@ -89,11 +90,10 @@ class Editor
     echo func('line', '.')
   end
 
-  def lines_array(range = nil)
+  def lines_array(range = nil, buffer: CURRENT_BUFFER)
     from, to = lines_range(range)
     to = func('line', '$') if to.nil?
-
-    echo func('getline', from, to)
+    echo func('getbufline', buffer, from, to)
   end
 
   def lines_count

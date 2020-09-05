@@ -14,7 +14,7 @@ fu! esearch#git#dir(cwd) abort
 endfu
 
 fu! esearch#git#read_cmd(path) abort
-  " First modifiable to allow reloads
+  " set modifiable to allow reloads
   setlocal modifiable noswapfile bufhidden=delete buftype=nofile
   call esearch#util#doautocmd('BufReadPre')
   let [dir, filename] = matchlist(a:path, 'esearchgit://\(.\{-}\)//\(\x\{40\}:.\+\)')[1:2]

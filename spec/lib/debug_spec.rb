@@ -207,29 +207,11 @@ describe Debug do
     it { expect(debug.buffer_content).to eq(test_file.lines) }
   end
 
-  describe '.buffer_configuration' do
-    context 'when defined' do
-      before { editor.command!('let b:esearch = {"buffer": "configuration"}') }
-
-      it { expect(debug.buffer_configuration).to eq('buffer' => 'configuration') }
-    end
-
-    context 'when undefined' do
-      before(:context) { editor.command!('unlet! b:esearch') }
-
-      it do
-        expect(debug.buffer_configuration)
-          .to  be_a(String)
-          .and include('Undefined')
-      end
-    end
-  end
-
-  describe '.global_configuration' do
+  describe '.configuration' do
     context 'when defined' do
       before { editor.command!('let g:esearch = {"global": "configuration"}') }
 
-      it { expect(debug.global_configuration).to eq('global' => 'configuration') }
+      it { expect(debug.configuration('g:esearch')).to eq('global' => 'configuration') }
     end
 
     context 'when undefined' do

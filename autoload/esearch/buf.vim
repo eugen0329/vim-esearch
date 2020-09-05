@@ -1,5 +1,5 @@
-let s:Buffer   = vital#esearch#import('Vim.Buffer')
-let s:Log  = esearch#log#import()
+let s:Buffer = vital#esearch#import('Vim.Buffer')
+let s:Log = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 if g:esearch#has#bufadd
@@ -15,32 +15,7 @@ endif
 
 " :h file-pattern
 fu! esearch#buf#pattern(filename) abort
-  " Normalize the path (remove redundant path components like in foo/./bar) and
-  " resolve links
-  let filename = resolve(a:filename)
-
-  " From :h file-pattern
-  " Note that for all systems the '/' character is used for path separator (even
-  " Windows). This was done because the backslash is difficult to use in a pattern
-  " and to make the autocommands portable across different systems.
-  let filename = s:Filepath.to_slash(filename)
-
-  " From :h file-pattern:
-  "   *          matches any sequence of characters; Unusual: includes path separators
-  "   ?          matches any single character
-  "   \?         matches a '?'
-  "   .          matches a '.'
-  "   ~          matches a '~'
-  "   ,          separates patterns
-  "   \,         matches a ','
-  "   { }        like \( \) in a |pattern|
-  "   ,          inside { }: like \| in a |pattern|
-  "   \}         literal }
-  "   \{         literal {
-  "   \\\{n,m\}  like \{n,m} in a |pattern|
-  "   \          special meaning like in a |pattern|
-  "   [ch]       matches 'c' or 'h'
-  "   [^ch]      match any character but 'c' and 'h'
+  let filename = s:Filepath.to_slash(resolve(a:filename))
   " Special file-pattern characters must be escaped: [ escapes to [[], not \[.
   let filename = escape(filename, '?*[],\')
   " replacing with \{ and \} or [{] and [}] doesn't work
@@ -61,20 +36,20 @@ fu! esearch#buf#tabwin(bufnr) abort
   return [0, 0]
 endf
 
-fu! esearch#buf#goto_or_open(filename, opener, ...) abort
+fu! esearch#buf#goto_or_open(buffer, opener, ...) abort
   let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
-  let bufnr = esearch#buf#find(a:filename)
+  let bufnr = esearch#buf#find(a:buffer)
 
   " Noop if the buffer is current
   if bufnr == bufnr('%') | return 1 | endif
   " Open if doesn't exist
   if bufnr == -1
-    return s:Buffer.open(a:filename, options)
+    return s:Buffer.open(a:buffer, options)
   endif
   let [tabnr, winnr] = esearch#buf#tabwin(bufnr)
   " Open if closed
   if empty(winnr)
-    return s:Buffer.open(a:filename, options)
+    return s:Buffer.open(a:buffer, options)
   endif
   " Locate if opened
   exe 'tabnext ' . tabnr
@@ -82,9 +57,9 @@ fu! esearch#buf#goto_or_open(filename, opener, ...) abort
   return 1
 endfu
 
-fu! esearch#buf#open(filename, opener, ...) abort
+fu! esearch#buf#open(buffer, opener, ...) abort
   let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
-  return s:Buffer.open(a:filename, options)
+  return s:Buffer.open(a:buffer, options)
 endfu
 
 " borrowed from the airline
@@ -124,4 +99,105 @@ endfu
 
 fu! esearch#buf#rename_qf(name) abort
   let w:quickfix_title = a:name
+endfu
+
+fu! s:bufdo(bufnr, cmd, bang) abort
+  let cur_buffer = esearch#buf#stay()
+  try
+    exe a:bufnr 'bufdo' a:cmd . (a:bang ? '!' : '') |
+    return 1
+  catch   | call esearch#util#warn(v:exception) | return 0
+  finally | call cur_buffer.restore()
+  endtry
+endfu
+
+fu! esearch#buf#handle() abort
+  return s:Handle
+endfu
+
+let s:Handle = {}
+
+if g:esearch#has#bufadd && g:esearch#has#bufline_functions
+  fu! s:Handle.new(filename) abort dict
+    let existed = bufexists(a:filename)
+    let bufnr = bufadd(a:filename)
+    call bufload(a:filename)
+    call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
+    return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
+  endfu
+
+  fu! s:Handle.getline(lnum) abort dict
+    return getbufline(self.bufnr, a:lnum)[0]
+  endfu
+
+  fu! s:Handle.setline(lnum, replacement) abort dict
+    return setbufline(self.bufnr, a:lnum, a:replacement)
+  endfu
+
+  fu! s:Handle.deleteline(lnum) abort dict
+    return deletebufline(self.bufnr, a:lnum)
+  endfu
+
+  fu! s:Handle.write(bang) dict abort
+    return s:bufdo(self.bufnr, 'write', a:bang)
+  endfu
+
+  fu! s:Handle.open(opener, ...) dict abort
+    let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
+    return s:Buffer.open(self.bufnr, options)
+  endfu
+
+  fu! s:Handle.bdelete(...) dict abort
+    return s:bufdo(self.bufnr, 'bdelete', get(a:, 1))
+  endfu
+
+  fu! s:Handle.bwipeout(...) dict abort
+    return s:bufdo(self.bufnr, 'bwipeout', get(a:, 1))
+  endfu
+else
+  fu! s:Handle.new(filename) abort dict
+    let existed = bufexists(a:filename)
+    call esearch#buf#open(a:filename, 'edit', {'mods': 'keepalt keepjumps'})
+    setlocal buflisted
+    return extend(copy(self), {'bufnr': bufnr('%'), 'filename': a:filename, 'existed': existed})
+  endfu
+
+  fu! s:Handle.getline(lnum) abort dict
+    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+    return getline(a:lnum)
+  endfu
+
+  fu! s:Handle.setline(lnum, replacement) abort dict
+    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+    return setline(a:lnum, a:replacement)
+  endfu
+
+  fu! s:Handle.deleteline(lnum) abort dict
+    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+    exe a:lnum 'delete'
+  endfu
+
+  fu! s:Handle.write(bang) dict abort
+    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+    exe 'write' (a:bang ? '!' : '')
+  endfu
+
+  fu! s:Handle.open(opener, ...) dict abort
+    let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
+    return s:Buffer.open(self.filename, options)
+  endfu
+endif
+
+fu! esearch#buf#stay() abort
+  return s:CurrentBufferGuard.new()
+endfu
+
+let s:CurrentBufferGuard = {}
+
+fu! s:CurrentBufferGuard.new() abort dict
+  return extend(copy(self), {'bufnr': bufnr('')})
+endfu
+
+fu! s:CurrentBufferGuard.restore() abort dict
+  if self.bufnr != bufnr('') | exe self.bufnr 'buffer!' | endif
 endfu

@@ -39,8 +39,6 @@ fu! esearch#config#init(esearch) abort
         \ 'early_finish_wait':                     100,
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
-        \ 'writer':                                'buffer',
-        \ 'writer_opener':                         'tabnew',
         \ 'errors':                                [],
         \ 'prefill':                               ['hlsearch', 'current', 'last'],
         \ 'select_prefilled':                      1,
@@ -58,6 +56,7 @@ fu! esearch#config#init(esearch) abort
         \ 'win_context_len_annotations':           g:esearch#has#annotations,
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
+        \ 'write_cb':                              function('s:write_cb'),
         \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend !=# 'system',
         \ 'live_update_debounce_wait':             150,
         \ 'live_update_min_len':                   3,
@@ -168,6 +167,10 @@ fu! esearch#config#default_adapter() abort
   else
     throw 'No adapter executables found'
   endif
+endfu
+
+fu! s:write_cb(buf, bang) abort
+  return a:buf.write(a:bang)
 endfu
 
 let s:root = expand( '<sfile>:p:h:h:h')

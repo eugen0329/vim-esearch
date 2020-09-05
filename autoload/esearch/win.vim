@@ -137,10 +137,7 @@ if g:esearch#has#nvim_winid
       elseif name =~# '^&'
         let value = nvim_win_get_option(self.handle, name[1:])
       else
-        throw printf(
-              \ 'Unknown value "%s" was specified',
-              \ name
-              \)
+        throw printf('Unknown value "%s" was specified', name)
       endif
 
       let self._resources[name] = value

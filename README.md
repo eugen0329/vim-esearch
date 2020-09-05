@@ -165,7 +165,16 @@ let g:esearch.win_new = {esearch ->
 " Close the floating window when opening an entry
 autocmd User esearch_win_config autocmd BufLeave <buffer> quit
 ```
-
+Customize writing changes behavior by redifing the callback that is invoked after applying changes. Default callback is `{buf, bang -> buf.write(bang)}`
+```vim
+" Sublime Text-like opening buffers without saving
+let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
+" Write silently and wipeout buffers if they wasn't exist
+let g:esearch.write_cb = {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
+" Append buffers data to a location list for reviewing, then open it and display the first entry
+let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
+au User esearch_write_post lopen | wincmd p | lfirst
+```
 Add mappings for window using `g:esearch.win_map` list.
 ```vim
 let g:esearch = {}
@@ -177,34 +186,23 @@ let g:esearch = {}
 "
 " Each definition contains nvim_set_keymap() args: [{modes}, {lhs}, {rhs}]
 let g:esearch.win_map = [
-\ ['n', 'yy', ':let @" = b:esearch.filename()|let @+ = @"|echo "Yanked ".@"<cr>'                      ],
-\ ['n', 't',  ':call b:esearch.open("NewTabdrop")<cr>'                                                ],
-\ ['n', '<leader>fl',
-\             ':call esearch#init({"pattern": b:esearch.pattern, "out": "qflist", "remember": 0})<cr>'],
+\ ['n', 'yy', ':let @" = b:esearch.filename()|let @+ = @"|echo "Yanked ".@"<cr>'                         ],
+\ ['n', 't',  ':call b:esearch.open("NewTabdrop")<cr>'                                                   ],
+\ ['n', '<leader>fq', ':call esearch#init(extend(copy(b:esearch), {"out": "qflist", "remember": 0}))<cr>'],
 \]
 ```
 
 Use `esearch#init({options}})` function to start a search. Specify `{options}`
 dictionary using the same keys as in the global config to customize the
 behavior per request. Examples:
-
-Use a popup-like floating window to render search results.
 ```vim
-" Search in modified files only using backticks in paths string
-" Remember is set to 0 to prevent saving configs history for later searches.
-nnoremap <leader>fm :call esearch#init({
-      \ 'adapter':  'git',
-      \ 'paths':    '`git ls-files --modified`',
-      \ 'remember': 0
-      \})<cr>
-
 " Search for debugger entries across the project without starting the prompt.
 " Remember is set to 0 to prevent saving configs history for later searches.
 nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<cr>
 
 " Search in vendor lib directories. Remember only 'regex' and 'case' modes if
 " they are changed during a request.
-nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
+nnoremap <leader>fl :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
 
 " Search in front-end files using explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
@@ -213,11 +211,35 @@ nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~
 nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
 
 " Use a callable prefiller to search python functions. Initial cursor position will be before
-" the opening bracket.
+" the opening bracket due to \<s-left> added.
 nnoremap <leader>fp :call esearch#init({
       \ 'prefill':          [{-> "def (self\<lt>s-left>"}],
       \ 'filetypes':       'python',
       \ 'select_prefilled': 0
+      \})<cr>
+```
+
+Paths string can contain commands in backticks to obtain search paths from the git database or other utils.
+```vim
+" Search in modified files only using backticks in paths string
+" Remember is set to 0 to prevent saving configs history for later searches.
+nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`', 'remember': 0})<cr>
+```
+
+Grepping in git revisions is also supported.
+```vim
+" Search in commits made from the beginning of a sprint (if 2 weeks long)
+nnoremap <c-f><c-g> :call esearch#init({
+      \ 'adapter':  'git',
+      \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
+      \ 'remember': 0
+      \})<cr>
+
+" Search in commits from an inputted branch made from yesterday
+nnoremap <c-f><c-b> :call esearch#init({
+      \ 'adapter':  'git',
+      \ 'paths':    '`git rev-list --since=yesterday '.input('branch> ', '', system('git branch')).'`',
+      \ 'remember': 0
       \})<cr>
 ```
 

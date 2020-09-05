@@ -8,10 +8,15 @@ module Helpers::Modifiable
   extend RSpec::Matchers::DSL
 
   Context = Struct.new(:name, :content) do
+    include VimlValue::SerializationHelpers
     attr_accessor :file
 
     def lines
       entries.map(&:result_text)
+    end
+
+    def buffer_lines
+      editor.echo(func('getbufline', file.path.to_s, 1, 10_000))
     end
 
     def line_numbers
@@ -67,7 +72,6 @@ module Helpers::Modifiable
         out:              'win',
         backend:          'system',
         regex:            1,
-        writer:           writer,
         prefill:          [],
         default_mappings: defined?(default_mappings) ? default_mappings : 0,
         root_markers:     []

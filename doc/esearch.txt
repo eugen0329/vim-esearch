@@ -162,6 +162,7 @@ To customize the plugin you must initialize it first with:
  `.filetypes`               | String with filetypes to search in (space separated)
  `.paths`                   | String with paths to search in using shell syntax
  `.live_update`             | Start and update the output while you're typing
+ `.write_cb`                | Callback to write a buffer after applying changes
  `.select_prefilled`        | Flag to visually select a prefilled prompt text
  `.default_mappings`        | Flag to toggle all default mappings
  `.adapter`                 | Search util (ag, rg, grep etc.) adapter name
@@ -194,7 +195,7 @@ g:esearch.regex                                                  *g:esearch.rege
 <
         Regex engine names of adapters:
 
-        Adapter       Allowed g:esearch.regexp values ~
+        Adapter       Allowed g:esearch.regex values ~
         -------+----------------------------------------------------------------
         `'rg'`   | `'literal'`, `'default'`, `'auto'`, `'pcre'`
         `'ag'`   | `'literal'`, `'pcre'`
@@ -278,6 +279,38 @@ g:esearch.live_update                                      *g:esearch.live_updat
         |g:esearch.live_update_debounce_wait| variable.
         NOTE To configure the number of chars after which a new search is
         started see |g:esearch.live_update_min_len| variable.
+
+g:esearch.write_cb({buf}, {bang})                           *g:esearch.write_cb()*
+        |Funcref| that is invoked after applying changes to each buffer while
+        writing changes using |:write| command.
+        Type: |Funcref|
+        Default: function that writes changes in the background
+        Parameters:~
+            {buf}     Modified buffer handle.
+            {bang}    Shows whether |:write| command was executed with a "!"
+
+        Example:~
+        >
+        let g:esearch.write_cb =
+            \ {buf, bang -> buf.write(bang) && buf.open('$tabnew')}
+<
+        Example above configures the writer to write changes and open buffers
+        for reviewing them.
+
+        See also: |g:esearch.write_cb()-examples|.
+
+            {buf} props         Allowed g:esearch.regex values ~
+        --------------------+---------------------------------------------------------
+        `.existed`            | Shows whether |bufexists()| returned |TRUE| before loading
+        `.bufnr`              | Buffer number
+        `.filename`           | Opened file absolute path
+        `.text`               | First changed line text (for passing to |setqflist()|)
+        `.lnum`               | First changed line number (for passing to |setqflist()|)
+        `.write([{bang}]`)    | Invokes |:write| for the buffer with optional ! applied
+        `.open({opener}`)     | Open buffer using {opener} command |String| or |Funcref|
+        `.bdelete([{bang}]`)  | Invokes |:bdelete| for the buffer with optional ! applied
+        `.bwipeout([{bang}]`) | Invokes |:bwipeout| for the buffer with optional ! applied
+        --------------------+---------------------------------------------------------
 
 g:esearch.paths                                                  *g:esearch.paths*
         Paths listed using shell syntax to search in.
@@ -1056,7 +1089,7 @@ API EVENTS                                                    *esearch-api-event
                                          *eseach_init_pre* *eseach_config_eager_pre*
                                    *eseach_config_eager_post* *esearch_win_init_pre*
                                     *esearch_win_uninit_pre* *esearch_win_init_post*
-                                                              *esearch_win_config*
+                         *esearch_win_config* *esearch_write_pre* *esearch_write_post*
 
 Events in the order they are fired:
 
@@ -1070,6 +1103,8 @@ Events in the order they are fired:
  |FileType| esearch         | Builtin event. Use |esearch_win_config| instead
  `esearch_win_config`       | Should be used to configure the window
  `esearch_win_init_post`    | After the search window is initialized
+ `esearch_write_pre`        | Before writing changes using |:write| command
+ `esearch_write_post`       | After writing changes using |:write| command
  -------------------------+-----------------------------------------------------
 
 Example:
@@ -1225,12 +1260,31 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
         \ })
         \}
 
-      " Close the floating window when opening an entry
-      autocmd User esearch_win_config autocmd BufLeave <buffer> quit
+    " Close the floating window when opening an entry
+    autocmd User esearch_win_config autocmd BufLeave <buffer> quit
 <
 NOTE Neovim >=0.4.0 is required.
 
 See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
+
+                                                   *g:esearch.write_cb()-examples*
+
+9. Sublime Text-like opening buffers without saving
+>
+    let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
+<
+Write silently and wipeout buffers if they wasn't exist
+>
+    let g:esearch.write_cb =
+        \ {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
+<
+Append buffers data to a location list for reviewing, then open it and
+display the first entry
+>
+    let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
+    au User esearch_write_post lopen | wincmd p | lfirst
+<
+See also: |g:esearch.write_cb()|, |esearch_write_post|.
 
                                               *esearch-offscreen-filename-example*
 
