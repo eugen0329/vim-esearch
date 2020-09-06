@@ -59,13 +59,13 @@ fu! s:informative_parts(esearch, pattern) abort
 endfu
 
 fu! s:modifiers(esearch) abort
-  let modifiers  = get(a:esearch.current_adapter.case,  a:esearch.case,  {'icon': ''}).icon
-  let regex_icon = get(a:esearch.current_adapter.regex, a:esearch.regex, {'icon': ''}).icon
+  let modifiers  = get(a:esearch._adapter.case,  a:esearch.case,  {'icon': ''}).icon
+  let regex_icon = get(a:esearch._adapter.regex, a:esearch.regex, {'icon': ''}).icon
  " don't show default regexp modifiers, hint with wrapping backslashes instead
   if regex_icon !=# 'r'
     let modifiers .= regex_icon
   endif
-  let modifiers .= get(a:esearch.current_adapter.textobj, a:esearch.textobj, {'icon': ''}).icon
+  let modifiers .= get(a:esearch._adapter.textobj, a:esearch.textobj, {'icon': ''}).icon
 
   return modifiers
 endfu

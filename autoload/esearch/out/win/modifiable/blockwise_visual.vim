@@ -28,7 +28,7 @@ fu! esearch#out#win#modifiable#blockwise_visual#handle(event) abort
         call setline(line, s:separator)
       else
         let line_in_file = state.line_numbers_map[line]
-        let linenr = printf(g:esearch#out#win#linenr_format, line_in_file)
+        let linenr = printf(g:esearch#out#win#linenr_fmt, line_in_file)
         if strlen(linenr) + 1 <= a:event.col1
           continue
         endif

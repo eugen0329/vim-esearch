@@ -138,6 +138,7 @@ class Editor
     # [-] is escaped when it's the only char in a name (to prevent confusion
     # with `cd -` argument)
     text
+      .to_s
       .gsub(/([\t\n *%$'"<{\[\\])/, '\\\\\1')
       .sub(/^([+>])/, '\\\\\1')
       .sub(/^-$/, '\\-')
@@ -177,7 +178,7 @@ class Editor
   end
 
   def edit!(filename)
-    command!("edit! #{filename}")
+    command!("edit! #{escape_filename(filename)}")
   end
 
   def pwd
@@ -224,19 +225,6 @@ class Editor
       .map { |path| Pathname(path).cleanpath.expand_path.to_s }
   end
 
-  def enter_buffer!(name)
-    location = with_ignore_cache do
-      echo func('esearch#buf#tabwin', func('esearch#buf#find', name))
-    end
-
-    raise MissingBufferError if location == [0, 0]
-
-    command! <<~VIML
-      tabn #{location[0]}
-      #{location[1]} winc w
-    VIML
-  end
-
   def bufnr
     echo func('bufnr')
   end
@@ -273,11 +261,11 @@ class Editor
   end
 
   def split!(path)
-    command! "split #{editor.escape_filename(path)}"
+    command! "split #{escape_filename(path)}"
   end
 
   def tabedit!(path)
-    command! "tabedit #{editor.escape_filename(path)}"
+    command! "tabedit #{escape_filename(path)}"
   end
 
   def bwipeout(buffer_number)

@@ -6,10 +6,7 @@ let s:Mapping = vital#esearch#import('Mapping')
 
 " nvim_set_keymap
 fu! esearch#keymap#set(mode, lhs, rhs, opts) abort
-  let maparg = extend({
-        \ 'lhs': a:lhs,
-        \ 'rhs': a:rhs,
-        \}, a:opts)
+  let maparg = extend({'lhs': a:lhs, 'rhs': a:rhs}, a:opts)
 
   for mode in split(a:mode, '\zs')
     let maparg.mode = mode

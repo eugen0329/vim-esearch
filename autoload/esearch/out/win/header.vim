@@ -15,13 +15,13 @@ fu! esearch#out#win#header#init(esearch) abort
 
   " If context heights are given (-A, -B, -C) - consumed lines count are
   " imprecise as they contain separators ('--' or '')
-  if a:esearch.current_adapter.outputs_separators(a:esearch)
+  if a:esearch._adapter.outputs_separators(a:esearch)
     let a:esearch.precision_hint = s:less_or_equal
   else
     let a:esearch.precision_hint = ''
   endif
 
-  let a:esearch.header_format =
+  let a:esearch.header_fmt =
         \  'Matches in ' . a:esearch.precision_hint
         \. '%d%-' . s:spinner_max_frame_len . 's line(s), '
         \. '%d%-' . s:spinner_max_frame_len . 's file(s)'
@@ -40,7 +40,7 @@ fu! esearch#out#win#header#in_progress() abort dict
   " remains.
   if self.request.finished
     let self.header_text = function('esearch#out#win#header#finished_backend')
-    let self.header_format =
+    let self.header_fmt =
           \  'Matches in '.self.precision_hint.'%3d ' . s:lines_word(self) . ', '
           \. '%3d%-'.s:spinner_max_frame_len.'s file(s)'
     return self.header_text()
@@ -48,7 +48,7 @@ fu! esearch#out#win#header#in_progress() abort dict
 
   let spinner = s:spinner[self.header_tick % s:spinner_frames_count]
   let self.header_tick += 1
-  return printf(self.header_format,
+  return printf(self.header_fmt,
         \ len(self.request.data)  - self.separators_count,
         \ spinner,
         \ self.files_count,
@@ -59,7 +59,7 @@ endfu
 fu! esearch#out#win#header#finished_backend() abort dict
   let spinner = s:spinner[self.header_tick % s:spinner_frames_count]
   let self.header_tick += 1
-  return printf(self.header_format,
+  return printf(self.header_fmt,
         \ len(self.request.data) - self.separators_count,
         \ self.files_count,
         \ spinner

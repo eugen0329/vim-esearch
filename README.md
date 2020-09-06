@@ -17,13 +17,14 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 
 ### Features overview
 
-- Update search results on the fly while you're typing.
+- In-place modifying and writing changes into files.
+- Updating search output on the fly while you're typing.
+- Searching and viewing files from git history.
 - Performance:
   - Async neovim/vim8 jobs api are used.
   - Fast lua-based rendering.
   - Viewport position-based highlights (neovim only).
   - Adaptive disabling of certain highlights on a large number of lines.
-- In-place modifying and saving changes into files.
 - Filetype-dependent syntax highlights for better navigation.
 - Input prompt interface instead of using the commandline:
   - Search patterns can be pasted as is (try [url pattern](https://gist.github.com/gruber/8891611) with regex mode enabled by pressing `<c-r><c-r>` within the prompt).
@@ -119,10 +120,10 @@ let g:esearch.root_markers = ['.git', 'Makefile', 'node_modules']
 " Prevent esearch from adding any default keymaps.
 let g:esearch.default_mappings = 0
 
-" Start the search only when the enter is hit instead of updating the search while you're typing.
+" Start the search only when the enter is hit instead of updating the pattern while you're typing.
 let g:esearch.live_update = 0
 
-" Open the search window in a vertical split and reuse it for all searches.
+" Open the search window in a vertical split and reuse it for all further searches.
 let g:esearch.name = '[esearch]'
 let g:esearch.win_new = {esearch -> esearch#buf#goto_or_open(esearch.name, 'vnew')}
 
@@ -139,6 +140,7 @@ highlight      esearchMatch      ctermbg=27 ctermfg=15 guibg='#005FFF' guifg='#F
 
 Automatically update the preview for the entry under the cursor.
 *NOTE* It'll internally wrap `CursorMoved` autocommand to collect garbage on reloads, so no `augroup` around is required.
+
 ```vim
 autocmd User esearch_win_config
   \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
@@ -148,6 +150,7 @@ autocmd User esearch_win_config
 ![floating demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/floating.png)
 
 Use a popup-like floating window to render search results.
+
 ```vim
 let g:esearch = {}
 " Try to jump into an opened floating window or open a new one.
@@ -162,41 +165,62 @@ let g:esearch.win_new = {esearch ->
   \   })
   \ })
   \}
-" Close the floating window when opening an entry
+" Close the floating window when opening an entry.
 autocmd User esearch_win_config autocmd BufLeave <buffer> quit
 ```
-Customize writing changes behavior by redefining the callback that is invoked after applying changes. Default callback is `{buf, bang -> buf.write(bang)}`
+
+Customize writing changes behavior by redefining the callback that is invoked after applying replacements and deletions. Default callback is `{buf, bang -> buf.write(bang)}`
+
 ```vim
-" Sublime Text-like opening buffers without saving
+" Sublime Text-like opening buffers without saving.
 let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
 
-" Write silently and wipeout buffers if they wasn't exist
+" Write silently and wipeout buffers if they wasn't exist.
 let g:esearch.write_cb = {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
 
-" Append buffers data to a location list for reviewing, open it and display the first entry
+" Append buffers data to a location list for reviewing, open it and display the first entry.
 let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
 au User esearch_write_post lopen | wincmd p | lfirst
 ```
+
 Add mappings for window using `g:esearch.win_map` list.
+
 ```vim
 let g:esearch = {}
-"   Keymap   |     What it does
-" -----------+-------------------------------------------------------------------
-" yy         | Yank a hovered absolute path
-" t          | Use a custom command to open a file in a tab
-" <leader>fl | Populate QuickFix list using results of the current pattern search
-"
-" Each definition contains nvim_set_keymap() args: [{modes}, {lhs}, {rhs}]
+"   Keymap |     What it does
+" ---------+---------------------------------------------------------------------------------------------
+"    yf    | Yank a hovered file absolute path.
+"    t     | Use a custom command to open a file in a tab.
+"    +     | Render [count] more lines after a line with matches. Ex: + adds 1 line, 10+ adds 10.
+"    -     | Render [count] less lines after a line with matches. Ex: - hides 1 line, 10- hides 10.
+"    gq    | Populate QuickFix list using results of the current pattern search.
+"    gsp   | Sort the results by path. NOTE that it's search util-specific.
+"    gsd   | Sort the results by modification date. NOTE that it's search util-specific.
+
+" Each definition contains nvim_set_keymap() args: [{modes}, {lhs}, {rhs}].
 let g:esearch.win_map = [
-\ ['n', 'yy', ':let @" = b:esearch.filename()|let @+ = @"|echo "Yanked ".@"<cr>'                         ],
-\ ['n', 't',  ':call b:esearch.open("NewTabdrop")<cr>'                                                   ],
-\ ['n', '<leader>fq', ':call esearch#init(extend(copy(b:esearch), {"out": "qflist", "remember": 0}))<cr>'],
-\]
+ \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @" | echo "Yanked " . @"<cr>' ],
+ \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                                 ],
+ \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'         ],
+ \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'         ],
+ \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), out_to_quickfix))<cr>'       ],
+ \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'                ],
+ \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'                ],
+ \]
+
+" Helpers to use in keymaps.
+let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
+let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
+let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
+" {'backend': 'system'} means that this request will be executed synchronously using " system() call, that
+" is more convenient for the purpose of expanding the context to add or hide lines around.
+let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
 ```
 
 Use `esearch#init({options}})` function to start a search. Specify `{options}`
 dictionary using the same keys as in the global config to customize the
 behavior per request. Examples:
+
 ```vim
 " Search for debugger entries across the project without starting the prompt.
 " Remember is set to 0 to prevent saving configs history for later searches.
@@ -222,22 +246,24 @@ nnoremap <leader>fp :call esearch#init({
 ```
 
 Paths string can contain commands in backticks to obtain search paths from the git database or other utils.
+
 ```vim
 " Search in modified files only using backticks in paths string
 " Remember is set to 0 to prevent saving configs history for later searches.
 nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`', 'remember': 0})<cr>
 ```
 
-Grepping in git revisions is also supported.
+Grepping in git revisions.
+
 ```vim
-" Search in commits made from the beginning of a sprint (if 2 weeks long)
+" Search in commits made since the beginning of a sprint (if 2 weeks long).
 nnoremap <c-f><c-g> :call esearch#init({
       \ 'adapter':  'git',
       \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
       \ 'remember': 0
       \})<cr>
 
-" Search in commits from an inputted branch made from yesterday
+" Search in commits made since yesterday using an inputted branch.
 nnoremap <c-f><c-b> :call esearch#init({
       \ 'adapter':  'git',
       \ 'paths':    '`git rev-list --since=yesterday '.input('rev> ', '', 'customlist,fugitive#CompleteObject').'`',
@@ -245,8 +271,9 @@ nnoremap <c-f><c-b> :call esearch#init({
       \})<cr>
 ```
 
-In place of the built-in git blobs viewer, it's also possible to use custom functions from other plugins to have adanced features. Although, they are generally slower, so if autopreview is used, it's
-recommended to use the built-ins.
+In place of the built-in git blobs viewer, it's also possible to use custom functions from other plugins to have advanced features.
+Although, they are generally slower, so if autopreview is used, it's recommended to use the built-ins.
+
 ```vim
 let g:esearch.git_dir = {cwd -> FugitiveExtractGitDir(cwd)}
 let g:esearch.git_url = {path, dir -> FugitiveFind(path, dir)}

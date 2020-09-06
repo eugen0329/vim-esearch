@@ -8,7 +8,7 @@ module Debug
   extend VimlValue::SerializationHelpers
   extend self # instead of module_function to maintain private methods
   UNWANTED_CONFIGS = %w[
-    adapters current_adapter reusable_buffers_manager opened_buffers_manager
+    adapters _adapter reusable_buffers_manager opened_buffers_manager
     middleware win_map undotree remember hl_ctx_syntax last_pattern
     win_contexts_syntax_debounce_wait before win_cursor_linenr_highlight
     win_update_throttle_wait win_contexts_syntax_clear_on_files_count

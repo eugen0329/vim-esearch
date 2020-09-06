@@ -36,7 +36,7 @@ fu! s:Menu.new(props) abort dict
         \   s:RegexEntry.new({'i':    i.next(), 'keys': s:regex_keys}),
         \   s:TextobjEntry.new({'i':  i.next(), 'keys':  s:textobj_keys}),
         \ ]
-  if !empty(a:props.current_adapter.filetypes)
+  if !empty(a:props._adapter.filetypes)
     let instance.items += [
           \   s:FiletypeEntry.new({'i': i.next(), 'keys': s:filetype_keys}),
           \ ]
@@ -93,7 +93,7 @@ fu! s:Menu.keypress(event) abort dict
   return stop_propagation
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'after', 'before', 'context', 'current_adapter'])
+let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'after', 'before', 'context', '_adapter'])
 
 fu! esearch#ui#menu#menu#import() abort
   return esearch#ui#connect(s:Menu, s:map_state_to_props)

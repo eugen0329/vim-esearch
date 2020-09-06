@@ -20,8 +20,8 @@ let g:esearch#out#win#legacy_mappings = {
 let g:esearch#out#win#entry_re = '^\s\+\d\+\s\+.*'
 let g:esearch#out#win#filename_re = '^[^ ]'
 let g:esearch#out#win#result_text_regex_prefix_re = '\%>1l\%(\s\+\d\+\s.*\)\@<='
-let g:esearch#out#win#linenr_format = ' %3d '
-let g:esearch#out#win#entry_format = ' %3d %s'
+let g:esearch#out#win#linenr_fmt = ' %3d '
+let g:esearch#out#win#entry_fmt = ' %3d %s'
 
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
@@ -29,9 +29,10 @@ fu! esearch#out#win#init(esearch) abort
   if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
 
   if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
-  let clean = s:cleanup()
+  let was_clean = s:cleanup(a:esearch)
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
+  if !was_clean && has_key(b:esearch, 'view') | let view = remove(b:esearch, 'view') | endif
   let b:esearch = extend(a:esearch, {
         \ 'bufnr':           bufnr('%'),
         \ 'mode':            'normal',
@@ -50,7 +51,7 @@ fu! esearch#out#win#init(esearch) abort
 
   " Some plugins set mappings on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
-  if clean | call s:init_mappings() | endif
+  if was_clean | call s:init_mappings() | endif
 
   setfiletype esearch
 
@@ -80,14 +81,21 @@ fu! esearch#out#win#init(esearch) abort
   if esearch#out#win#update#can_finish_early(b:esearch)
     call esearch#out#win#update#finish(bufnr('%'))
   endif
+
+  " For some searches there will already be enough lines to restore the view
+  " while can_finish_early is executed
+  if exists('view') | call s:winrestview(b:esearch, view) | endif
+
   " If there are any results ready - try to add the highlights prematurely
   " without waiting for debouncing callback firing.
   call esearch#out#win#appearance#matches#hl_viewport(b:esearch)
   call esearch#out#win#appearance#ctx_syntax#hl_viewport(b:esearch)
+
   return b:esearch
 endfu
 
 fu! s:init_live_updated(esearch) abort
+  let b:esearch.live_exec = 0
   try
     call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.name))
   catch /E95:/ " Buffer with this name already exists
@@ -98,7 +106,7 @@ fu! s:init_live_updated(esearch) abort
   return a:esearch
 endfu
 
-fu! s:cleanup() abort
+fu! s:cleanup(esearch) abort
   call esearch#util#doautocmd('User esearch_win_uninit_pre')
   if exists('b:esearch')
     call esearch#backend#{b:esearch.backend}#abort(b:esearch.bufnr)
@@ -108,6 +116,7 @@ fu! s:cleanup() abort
     call esearch#out#win#appearance#ctx_syntax#uninit(b:esearch)
     call esearch#out#win#appearance#cursor_linenr#uninit(b:esearch)
     call esearch#out#win#appearance#annotations#uninit(b:esearch)
+    if !a:esearch.live_exec | let b:esearch.view = s:winsaveview(b:esearch) | endif
   endif
   aug esearch_win_config
     au! * <buffer>
@@ -148,8 +157,8 @@ fu! esearch#out#win#map(lhs, rhs) abort
   let g:esearch = get(g:, 'esearch', {})
   let g:esearch = extend(g:esearch, {'win_map': []}, 'keep')
   let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
-  let esearch#util#deprecate('esearch#out#win#map, see :help g:esearch.win_map')
-  let g:esearch.win_map += [{'lhs': a:lhs, 'rhs': get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs), 'mode': 'n'}]
+  call esearch#util#deprecate('esearch#out#win#map, see :help g:esearch.win_map')
+  let g:esearch.win_map += [['n', a:lhs, get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs)]]
 endfu
 
 fu! s:init_mappings() abort
@@ -199,10 +208,6 @@ endfu
 fu! s:reload() abort dict
   call esearch#backend#{self.backend}#abort(self.bufnr)
   let self.live_update = 0
-  let self.contexts = []
-  let self.ctx_ids_map = []
-  let self.ctx_by_name = {}
-  let self.undotree = {}
   return esearch#init(self)
 endfu
 
@@ -216,4 +221,23 @@ fu! esearch#out#win#_state(esearch) abort
   else
     return a:esearch.undotree.head.state
   endif
+endfu
+
+" Bind view to a line within a context.
+fu! s:winsaveview(es) abort
+  let view = winsaveview()
+  let view.ctx_lnum = matchstr(getline('.'), '^\s\+\zs\d\+\ze.*')
+  let view.filename = a:es.contexts[a:es.ctx_ids_map[view.lnum]].filename
+  return view
+endfu
+
+fu! s:winrestview(es, view) abort
+  let ctx = get(a:es.ctx_by_name, remove(a:view, 'filename'), 0)
+  if empty(ctx) | return winrestview(a:view) | endif
+
+  let offset = index(sort(keys(ctx.lines), 'N'), remove(a:view, 'ctx_lnum'))
+  let lnum = ctx.begin + offset + 2
+  let a:view.topline += lnum - a:view.lnum
+  let a:view.lnum = lnum
+  call winrestview(a:view)
 endfu

@@ -630,7 +630,7 @@ Search window-related configurations are added to |g:esearch| dictionary.
 g:esearch.win_new({esearch})                                 *g:esearch.win_new()*
         Function to open a new search window. 
         Type: |Funcref|
-        Default: function that reuse windows with the same search patterns
+        Default: function that reuse windows with the same patterns
         Parameters:~
             {esearch} Facade object inherited from |g:esearch| and extended with
                       |esearch#init()| {opts} parameter to be written to |b:esearch|
@@ -1159,6 +1159,7 @@ they are changed during a request.
     nnoremap <leader>fe :call esearch#init({
         \ 'paths': '**/*.{js,css,html}',
         \ 'cwd':   '~/another-dir'
+        \ 'remember': 0
         \})<cr>
 <
 NOTE To use all globbing features make ensure that |'shell'| option contains
@@ -1193,49 +1194,27 @@ See also: |key-notation|, |lambda|.
 
                                                             *esearch-git-examples*
 5. Use backticks in |g:esearch.paths| to search in modified files only.
+
+Search in modified files only.
 >
     nnoremap <leader>fm :call esearch#init({
-          \ 'adapter':  'git',
-          \ 'paths':    '`git ls-files --modified`',
-          \ 'remember': []
-          \})<cr>
+        \ 'paths': '`git ls-files --modified`',
+        \ 'remember': 0
+        \})<cr>
 <
-                                                     *esearch_win_config-examples*
-                                                              *b:esearch-examples*
-6. Use `esearch_win_hook` to setup window local configurations.
+Search in commits made since the beginning of a sprint (if 2 weeks long).
 >
-    autocmd User esearch_win_config call s:custom_esearch_config()
-
-    function! s:custom_esearch_config() abort
-      setlocal nobuflisted    " to not show the buffer in the buffers list
-      setlocal bufhidden=hide " to be able to use <c-o> jumps
-
-      " Override the default vertical split mapping to open a split once and
-      " reuse it for later `s` presses. The search window will remain focused
-      nnoremap <silent><buffer> s  :call b:esearch.open('vnew', {
-          \ 'reuse': 1,
-          \ 'stay': 1})<CR>
-
-      " Yank a hovered absolute path
-      nnoremap <silent><buffer> yy :let @" = b:esearch.filename()\|let @+ = @"<CR>
-
-      " Use a custom command to open a file in a tab
-      nnoremap <silent><buffer> t  :call b:esearch.open('NewTabdrop')<CR>
-
-      " Populate QuickFix list using results of the current pattern search
-      nnoremap <silent><buffer> <leader>fq :call esearch#init({
-          \ 'pattern': b:esearch.pattern,
-          \ 'out': 'qflist',
-          \ 'remember': 0})<CR>
-    endfunction
+    nnoremap <c-f><c-g> :call esearch#init({
+        \ 'adapter':  'git',
+        \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
+        \ 'remember': 0
+        \})<cr>
 <
-NOTE It'll automatically wrap `s:custom_esearch_config()` call to collect garbage
-on reloads, so NO `augroup` inside is required.
 
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*
 
-7. Show the preview automatically and update it after 100ms timeout. Change
+6. Show the preview automatically and update it after 100ms timeout. Change
 'vsplit' to 'split' to open the preview horizontally.
 >
     autocmd User esearch_win_config
@@ -1256,6 +1235,40 @@ NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocomm
 as the preview updates are handled using `b:autopreview.apply()` call.
 NOTE This kind of preview is recommended as it's designed to safely handle swap
 dialogs that will appear if |b:esearch.split_preview_open| is used.
+
+                                                      *g:esearch.win_map-examples*
+                                                            *esearch-sort-results*
+7. Use `g:esearch.win_map` to setup window local mappings.
+>
+    let g:esearch.win_map = [
+     \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @"<cr>'                ],
+     \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                          ],
+     \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'  ],
+     \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'  ],
+     \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), out_to_quickfix))<cr>'],
+     \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'         ],
+     \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'         ],
+     \]
+
+     let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
+     let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
+     let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
+     let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
+<
+
+      Keymap       What will do~
+     -------+-------------------------------------------------------------------
+       yf   | Yank a hovered file absolute path.
+       t    | Use a custom command to open a file in a tab.
+       +    | Render [count] more context lines after a line with matches.
+       -    | Render [count] less context lines after a line with matches.
+       gq   | Populate QuickFix list using results of the current pattern search.
+       gsp  | Sort the results by path. 
+       gsd  | Sort the results by modification date.
+     -------+-------------------------------------------------------------------
+
+NOTE that "gsp" and "gsd" keymaps are [rg]-specific. Alternatively, you can use
+`--sort-files` option for [ack] or `--workers=1` option for [ag].
 
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
@@ -1286,17 +1299,19 @@ See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
 
                                                    *g:esearch.write_cb()-examples*
 
-9. Sublime Text-like opening buffers without saving
+9. Use write callback to adjust the behavior of writing the window.
+
+Sublime Text-like opening buffers without saving.
 >
     let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
 <
-Write silently and wipeout buffers if they wasn't exist
+Write silently and wipeout buffers if they wasn't exist.
 >
     let g:esearch.write_cb =
         \ {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
 <
 Append buffers data to a location list for reviewing, then open it and
-display the first entry
+display the first entry.
 >
     let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
     au User esearch_write_post lopen | wincmd p | lfirst
@@ -1305,7 +1320,7 @@ See also: |g:esearch.write_cb()|, |esearch_write_post|.
 
                                               *esearch-offscreen-filename-example*
 
-9. Show context filenames in 'statusline' that are above the viewport.
+10. Show context filenames in 'statusline' that are above the viewport.
 >
     function! s:offscreen_filename() abort
       " prevent errors due to asynchronous execution
