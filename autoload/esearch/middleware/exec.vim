@@ -1,7 +1,7 @@
 fu! esearch#middleware#exec#apply(esearch) abort
   if esearch#util#is_skip_exec(a:esearch) | return a:esearch | endif
 
-  let command = a:esearch.current_adapter.command(a:esearch)
+  let command = a:esearch._adapter.command(a:esearch)
   let a:esearch.request = esearch#backend#{a:esearch.backend}#init(
         \ a:esearch.cwd, a:esearch.adapter, command)
   call esearch#backend#{a:esearch.backend}#exec(a:esearch.request)

@@ -1,3 +1,5 @@
+let s:INF = 88888888
+
 fu! esearch#out#win#update#init(es) abort
   cal extend(a:es, {
         \ 'contexts':           [],
@@ -20,11 +22,7 @@ fu! esearch#out#win#update#init(es) abort
 endfu
 
 fu! s:init_async_updates(es) abort
-  cal extend(a:es, {
-        \ 'last_update_at':     reltime(),
-        \ 'updates_timer':      -1,
-        \ 'early_update_limit': &lines,
-        \})
+  cal extend(a:es, {'upd_at': reltime(), 'upd_timer':  -1, 'early_upd_max': a:es.live_exec ? &lines : a:es.batch_size})
 
   aug esearch_win_updates
     au! * <buffer>
@@ -40,7 +38,7 @@ endfu
 fu! s:init_throttled_updates(es) abort
   let a:es.request.cb.update = function('s:early_update_cb', [a:es])
   let a:es.request.cb.schedule_finish = function('s:early_update_cb', [a:es])
-  let a:es.updates_timer = timer_start(
+  let a:es.upd_timer = timer_start(
         \ a:es.win_update_throttle_wait,
         \ function('s:update_timer_cb', [a:es, bufnr('%')]),
         \ {'repeat': -1})
@@ -65,24 +63,26 @@ fu! s:init_instant_updates(es) abort
 endfu
 
 fu! esearch#out#win#update#uninit(es) abort
-  if has_key(a:es, 'updates_timer')
-    cal timer_stop(a:es.updates_timer)
+  if has_key(a:es, 'upd_timer')
+    cal timer_stop(a:es.upd_timer)
   en
   exe printf('au! esearch_win_updates * <buffer=%s>', string(a:es.bufnr))
 endfu
 
 " NOTE is_consumed waits early_finish_wait ms while early_update_cb is
 " working.
+" Tries to update infinitely many entries unless it's live_exec, where only the
+" viewport rendering makes sense.
 fu! esearch#out#win#update#can_finish_early(es) abort
   if !a:es.request.async | retu 1 | en
 
-  let original_early_update_limit = a:es.early_update_limit
-  let a:es.early_update_limit *= 1000
+  let original_early_update_limit = a:es.early_upd_max
+  if !a:es.live_exec | let a:es.early_upd_max = s:INF | en
   try
     retu a:es.request.is_consumed(a:es.early_finish_wait)
           \ && (len(a:es.request.data) - a:es.request.cursor) <= a:es.final_batch_size
   finally
-    let a:es.early_update_limit = original_early_update_limit
+    let a:es.early_upd_max = original_early_update_limit
   endtry
 endfu
 
@@ -96,7 +96,7 @@ fu! s:early_update_cb(es) abort
     cal esearch#out#win#appearance#ctx_syntax#hl_viewport(es)
   en
 
-  if es.request.cursor >= es.early_update_limit
+  if es.request.cursor >= es.early_upd_max
     let es.request.cb.update = 0
     let es.request.cb.schedule_finish = 0
     retu
@@ -107,14 +107,14 @@ fu! s:early_update_cb(es) abort
 endfu
 
 fu! s:update_timer_cb(es, bufnr, timer) abort
-  let elapsed = reltimefloat(reltime(a:es.last_update_at)) * 1000
-  if elapsed < a:es.win_update_throttle_wait | retu | en
+  let dt = reltimefloat(reltime(a:es.upd_at)) * 1000
+  if dt < a:es.win_update_throttle_wait | retu | en
 
   cal esearch#out#win#update#update(a:es.bufnr)
 
   let request = a:es.request
   if request.finished && len(request.data) == request.cursor
-    let a:es.updates_timer = -1
+    let a:es.upd_timer = -1
     cal esearch#out#win#update#schedule_finish(a:es.bufnr)
     cal timer_stop(a:timer)
   en
@@ -159,7 +159,7 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
   cal esearch#util#setline(a:bufnr, 1, es.header_text())
   cal setbufvar(a:bufnr, '&modifiable', 0)
 
-  let es.last_update_at = reltime()
+  let es.upd_at = reltime()
 endfu
 
 fu! esearch#out#win#update#schedule_finish(bufnr) abort
@@ -186,7 +186,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
   cal esearch#out#win#update#uninit(es)
   cal setbufvar(a:bufnr, '&modifiable', 1)
 
-  if !es.current_adapter.is_success(es.request)
+  if !es._adapter.is_success(es.request)
     cal esearch#stderr#finish(es)
   en
   let es.header_text = function('esearch#out#win#header#finished_render')

@@ -57,8 +57,8 @@ fu! esearch#out#qflist#update(...) abort
     try
       let parsed = es.parse(data, from, to)[0]
       if es.adapter ==# 'git'
-        if !has_key(es, 'git_dir') | let es.git_dir = esearch#git#dir(es.cwd) | endif
-        call s:set_git_urls(es.git_dir, parsed)
+        if !has_key(es, '_git_dir') | let es._git_dir = es.git_dir(es.cwd) | endif
+        call s:set_git_urls(es, es._git_dir, parsed)
       endif
 
       if esearch#buf#qftype(bufnr('%')) ==# 'qf'
@@ -74,9 +74,9 @@ fu! esearch#out#qflist#update(...) abort
   endif
 endfu
 
-fu! s:set_git_urls(dir, entries) abort
+fu! s:set_git_urls(es, dir, entries) abort
   for e in a:entries
-    if get(e, 'rev') | let e.module = e.filename | let e.filename = esearch#git#url(a:dir, e.filename) | en
+    if get(e, 'rev') | let e.module = e.filename | let e.filename = a:es.git_url(e.filename, a:dir) | en
   endfor
 endfu
 

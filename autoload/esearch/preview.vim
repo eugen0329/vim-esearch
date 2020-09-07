@@ -27,10 +27,6 @@ let g:esearch#preview#last    = {}
 fu! esearch#preview#open(filename, line, ...) abort
   let opts = get(a:000, 0, {})
 
-  if !filereadable(a:filename)
-    return s:false
-  endif
-
   let shape = s:Shape.new({
         \ 'width':     get(opts, 'width',  s:null),
         \ 'height':    get(opts, 'height', s:null),
@@ -41,15 +37,11 @@ fu! esearch#preview#open(filename, line, ...) abort
   let close_on += get(opts, 'close_on',  ['CursorMoved', 'CursorMovedI', 'InsertEnter'])
   let close_on  = uniq(copy(close_on))
 
-  let location = {
-        \ 'filename': a:filename,
-        \ 'line':     a:line,
-        \ }
+  let location = {'filename': a:filename, 'line': a:line}
   let win_vars = {'&foldenable': s:false}
   let win_vars['&winhighlight'] = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat,Conceal:esearchConcealFloat'
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
-
-  let enter = get(opts, 'enter', s:false)
+  let enter = get(opts, 'enter')
   if has_key(opts, 'emphasis')
     let emphasis = opts.emphasis
   else

@@ -263,3 +263,20 @@ fu! esearch#util#find_up(path, markers) abort
   endwhile
   return ''
 endfu
+
+fu! esearch#util#by_key(pair1, pair2) abort
+  return a:pair1[0] == a:pair2[0] ? 0 : +a:pair1[0] > +a:pair2[0] ? 1 : -1
+endfu
+
+if g:esearch#has#timers
+fu! esearch#util#try_defer(funcref, ...) abort
+  call timer_start(0, function('s:defr_cb', [a:funcref, a:000]))
+endfu
+fu! s:defr_cb(func, argv, _) abort
+  return call(a:func, a:argv)
+endfu
+else
+  fu! esearch#util#try_defer(funcref, ...) abort
+    call call(a:funcref, a:000)
+  endfu
+endif

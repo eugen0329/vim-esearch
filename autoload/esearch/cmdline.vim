@@ -127,7 +127,7 @@ fu! s:reducer(state, action) abort
 endfu
 
 fu! s:cycle_mode(state, mode_name) abort
-  let kinds = keys(a:state.current_adapter[a:mode_name])
+  let kinds = keys(a:state._adapter[a:mode_name])
   let i = index(kinds, a:state[a:mode_name])
 
   if i >= len(kinds) - 1

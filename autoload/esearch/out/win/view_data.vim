@@ -33,12 +33,12 @@ endfu
 fu! s:ctx_view() abort dict
   let line = self.line_in_file()
   let state = esearch#out#win#_state(self)
-  let linenr = printf(g:esearch#out#win#linenr_format, state.line_numbers_map[line('.')])
+  let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[line('.')])
   return { 'lnum': line,  'col': max([0, col('.') - strlen(linenr) - 1]) }
 endfu
 
 fu! s:line_in_file() abort dict
-  return (matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*'))
+  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
 endfu
 
 fu! s:filetype(...) abort dict
@@ -61,10 +61,10 @@ fu! s:filetype(...) abort dict
 endfu
 
 fu! s:git_url(es, filename) abort
-  if !has_key(a:es, 'git_dir')
-    let a:es.git_dir = esearch#git#dir(a:es.cwd)
+  if !has_key(a:es, '_git_dir')
+    let a:es._git_dir = a:es.git_dir(a:es.cwd)
   endif
-  return esearch#git#url(a:es.git_dir, a:filename)
+  return a:es.git_url(a:filename, a:es._git_dir)
 endfu
 
 fu! s:unescaped_filename(...) abort dict

@@ -42,7 +42,7 @@ fu! s:preview_enter(...) abort dict
 endfu
 
 fu! s:preview_open(...) abort dict
-  if !self.is_current() || esearch#util#is_visual(mode()) | return | endif
+  if !self.is_current() || self.is_blank() || esearch#util#is_visual(mode()) | return | endif
   return call(function('esearch#preview#open'),
         \ [self.unescaped_filename(), self.line_in_file()] + a:000)
 endfu

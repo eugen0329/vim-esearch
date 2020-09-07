@@ -3,13 +3,13 @@ fu! esearch#middleware#adapter#apply(esearch) abort
   call s:set_parser(a:esearch)
 
   if type(a:esearch.regex) !=# type('')
-    let a:esearch.regex = a:esearch.current_adapter.bool2regex[!!a:esearch.regex]
+    let a:esearch.regex = a:esearch._adapter.bool2regex[!!a:esearch.regex]
   endif
   if type(a:esearch.case) !=# type('')
-    let a:esearch.case = a:esearch.current_adapter.bool2case[!!a:esearch.case]
+    let a:esearch.case = a:esearch._adapter.bool2case[!!a:esearch.case]
   endif
   if type(a:esearch.textobj) !=# type('')
-    let a:esearch.textobj = a:esearch.current_adapter.bool2textobj[!!a:esearch.textobj]
+    let a:esearch.textobj = a:esearch._adapter.bool2textobj[!!a:esearch.textobj]
   endif
 
   return a:esearch
@@ -23,7 +23,7 @@ fu! s:set_current_adapter(esearch) abort
     let a:esearch.adapters[a:esearch.adapter] =
           \ esearch#adapter#{a:esearch.adapter}#new()
   endif
-  let a:esearch.current_adapter = a:esearch.adapters[a:esearch.adapter]
+  let a:esearch._adapter = a:esearch.adapters[a:esearch.adapter]
 endfu
 
 fu! s:set_parser(esearch) abort

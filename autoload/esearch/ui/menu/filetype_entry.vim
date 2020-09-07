@@ -10,7 +10,7 @@ fu! s:FiletypeEntry.render() abort dict
   if empty(self.props.filetypes)
     let result += [['Comment', ' (none)']]
   else
-    let result += [['Comment', ' ('.self.props.current_adapter.filetypes2args(self.props.filetypes).')']]
+    let result += [['Comment', ' ('.self.props._adapter.filetypes2args(self.props.filetypes).')']]
   endif
 
   return result
@@ -24,7 +24,7 @@ fu! s:FiletypeEntry.keypress(event) abort dict
   end
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['filetypes', 'current_adapter'])
+let s:map_state_to_props = esearch#util#slice_factory(['filetypes', '_adapter'])
 
 fu! esearch#ui#menu#filetype_entry#import() abort
   return esearch#ui#connect(s:FiletypeEntry, s:map_state_to_props)

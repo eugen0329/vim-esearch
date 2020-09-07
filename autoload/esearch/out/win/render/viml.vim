@@ -47,7 +47,7 @@ fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
         end
       end
 
-      call add(lines, printf(g:esearch#out#win#entry_format, parsed[i].lnum, text))
+      call add(lines, printf(g:esearch#out#win#entry_fmt, parsed[i].lnum, text))
       call add(a:esearch.line_numbers_map, parsed[i].lnum)
       call add(a:esearch.ctx_ids_map, a:esearch.contexts[-1].id)
       let a:esearch.contexts[-1].lines[parsed[i].lnum] = parsed[i].text

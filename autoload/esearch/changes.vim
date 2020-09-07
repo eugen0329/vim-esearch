@@ -33,7 +33,6 @@ fu! esearch#changes#listen_for_current_buffer(...) abort
   else
     let b:__undotree = esearch#undotree#new({})
   endif
-  call setline(line('.'), getline('.')) " initialize undo
 
   call s:record_state_change('n')
   call s:record_state_change('n')

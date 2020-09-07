@@ -99,6 +99,8 @@ fu! s:SearchInputController.render_initial_selection() abort dict
     if empty(self.props.cmdline)
       let self.cmdline = ''
     else
+      " required if switched to esearch#init from another input()
+      call esearch#ui#soft_clear()
       let [self.cmdline, finish, retype] = s:SelectionController.new().render()
       if finish
         call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': self.cmdline})
