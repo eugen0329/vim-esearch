@@ -5,18 +5,19 @@ fu! esearch#middleware#pattern#apply(esearch) abort
 
   if empty(get(esearch, 'pattern'))
     let esearch.pattern = esearch#prefill#try(esearch)
-    " PP
+    call esearch.pattern.adapt(esearch._adapter)
     let esearch = esearch#cmdline#read(esearch)
-    if empty(esearch.pattern.curr().str) | call s:cancel(esearch) | endif
-    call esearch.pattern.convert(esearch)
-    " let esearch.pattern = s:cached_or_new(esearch.cmdline, esearch)
+    if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif
+
+    call esearch.pattern.splice(esearch)
     let g:esearch.last_pattern = esearch.pattern
   else
     if type(esearch.pattern) ==# type('')
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
     endif
+    call esearch.pattern.adapt(esearch._adapter)
     " avoid live_update if the pattern is present unless is it's a part of live_exec flow
-    call esearch.pattern.convert(esearch)
+    call esearch.pattern.splice(esearch)
     let esearch.live_update = esearch.live_exec
   endif
 
@@ -35,7 +36,7 @@ fu! s:cached_or_new(text, esearch) abort
   if g:esearch#middleware#pattern#cache.has(a:text)
     let pattern = g:esearch#middleware#pattern#cache.get(a:text)
   else
-    let pattern = esearch#pattern#new(a:esearch._adapter.patterns, a:text)
+    let pattern = esearch#pattern#new(a:esearch._adapter, a:text)
     call g:esearch#middleware#pattern#cache.set(a:text, pattern)
   endif
 

@@ -19,7 +19,7 @@ fu! s:SearchPrompt.new(props) abort dict
 endfu
 
 fu! s:SearchPrompt.render() abort dict
-  let result = [['NONE', 'pattern ']]
+  let result = [['NONE', self.props.adapter.' ']]
   for item in self.items
     let result += item.render()
   endfor

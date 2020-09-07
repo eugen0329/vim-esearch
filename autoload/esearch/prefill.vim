@@ -16,20 +16,20 @@ fu! esearch#prefill#try(esearch) abort
 
     if !empty(pattern)
       if type(pattern) == s:t_string
-        return esearch#pattern#new(pattern)
+        return esearch#pattern#new(a:esearch._adapter, pattern)
       else
         return pattern
       endif
     endif
   endfor
 
-  return esearch#pattern#new(a:esearch._adapter.patterns, '')
+  return esearch#pattern#new(a:esearch._adapter, '')
 endfu
 
 fu! esearch#prefill#region(esearch) abort
   if !empty(get(a:esearch, 'region'))
     let text = esearch#util#region_text(a:esearch.region)
-    return esearch#pattern#new(a:esearch._adapter.patterns, text)
+    return esearch#pattern#new(a:esearch._adapter, text)
   endif
 endfu
 
@@ -44,10 +44,12 @@ fu! esearch#prefill#hlsearch(esearch) abort
   if empty(str) | return | endif
 
   if a:esearch.regex
-    return esearch#pattern#new(a:esearch._adapter.patterns, esearch#pattern#vim2pcre#convert(str))
+    let text = esearch#pattern#vim2pcre#convert(str)
   else
-    return esearch#pattern#new(a:esearch._adapter.patterns, esearch#pattern#vim2literal#convert(str))
+    let text = esearch#pattern#vim2literal#convert(str)
   endif
+
+  return esearch#pattern#new(a:esearch._adapter, text)
 endfu
 
 fu! esearch#prefill#last(_esearch) abort
@@ -55,13 +57,15 @@ fu! esearch#prefill#last(_esearch) abort
 endfu
 
 fu! esearch#prefill#current(_esearch) abort
-  if exists('b:esearch') | return get(b:esearch, 'pattern') | endif
+  if exists('b:esearch')
+    return get(b:esearch, 'pattern')
+  endif
 endfu
 
 fu! esearch#prefill#cword(esearch) abort
   let cword = expand('<cword>')
   if !empty(cword)
-    return esearch#pattern#new(a:esearch._adapter.patterns, cword)
+    return esearch#pattern#new(a:esearch._adapter, cword)
   endif
 endfu
 
@@ -74,5 +78,6 @@ fu! esearch#prefill#clipboard(esearch) abort
   else
     let register = '"'
   endif
-  return esearch#pattern#new(a:esearch._adapter.patterns, getreg(register))
+
+  return esearch#pattern#new(a:esearch._adapter, getreg(register))
 endfu

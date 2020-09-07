@@ -6,7 +6,10 @@ let g:esearch#cmdline#mappings = [
       \ ['c', '<C-r><C-r>', '<Plug>(esearch-cycle-regex)'],
       \ ['c', '<C-s><C-s>', '<Plug>(esearch-cycle-case)'],
       \ ['c', '<C-t><C-t>', '<Plug>(esearch-cycle-textobj)'],
-      \ ['c', '<C-p>',      '<Plug>(esearch-cycle-pattern)'],
+      \ ['c', '<C-p>',      '<Plug>(esearch-add-pattern)'],
+      \ ['c', '<bs>',        '<Plug>(esearch-BS)',    {'nowait': 1}],
+      \ ['c', '<c-w>',      '<Plug>(esearch-CTRL_W)', {'nowait': 1}],
+      \ ['c', '<c-h>',      '<Plug>(esearch-CTRL_H)', {'nowait': 1}],
       \]
 
 if !exists('g:esearch#cmdline#dir_icon')
@@ -91,7 +94,7 @@ fu! s:initial_state(esearch) abort
   let initial_state.location = 'search_input'
   let initial_state.did_select_prefilled = 0
   let initial_state.cursor = 0
-  let initial_state.cmdpos = strchars(initial_state.pattern.curr().str) + 1
+  let initial_state.cmdpos = strchars(initial_state.pattern.peek().str) + 1
   return initial_state
 endfu
 
@@ -104,8 +107,10 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
   elseif a:action.type ==# 'NEXT_TEXTOBJ'
     return extend(copy(a:state), {'textobj': s:cycle_mode(a:state, 'textobj')})
-  elseif a:action.type ==# 'NEXT_PATTERN'
-    return extend(copy(a:state), {'pattern': s:cycle_pattern(a:state)})
+  elseif a:action.type ==# 'ADD_PATTERN'
+    return extend(copy(a:state), {'pattern': s:push_pattern(a:state)})
+  elseif a:action.type ==# 'POP_PATTERN'
+    return extend(copy(a:state), {'pattern': s:pop_pattern(a:state)})
   elseif a:action.type ==# 'SET_CURSOR'
     return extend(copy(a:state), {'cursor': a:action.cursor})
   elseif a:action.type ==# 'SET_VALUE'
@@ -131,10 +136,21 @@ fu! s:reducer(state, action) abort
   endif
 endfu
 
-fu! s:cycle_pattern(state) abort
-  let state = copy(a:state)
-  if !empty(state._adapter.patterns) | call state.pattern.next() | endif
-  return state.pattern
+fu! s:pop_pattern(state) abort
+  let pattern = a:state.pattern
+  call pattern.pop()
+  return pattern
+endfu
+
+fu! s:push_pattern(state) abort
+  let pattern = a:state.pattern
+  if empty(pattern.peek().str)
+    call pattern.next()
+    return pattern
+  else
+    call pattern.push()
+    return pattern
+  endif
 endfu
 
 fu! s:cycle_mode(state, mode_name) abort

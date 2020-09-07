@@ -27,7 +27,6 @@ fu! s:withcol(data, from, to) abort dict
       let name_end = match(line, '[-:]\d\+[-:]\d\+[-:]', name_end + 1)
       if name_end < 0 | break | endif
       let name = strpart(line, 0 , name_end)
-      echomsg name
       if filereadable(name)
         let m = matchlist(line, '\(\d\+\)[-:]\d\+[-:]\(.*\)', name_end)[1:2]
         if !empty(m)

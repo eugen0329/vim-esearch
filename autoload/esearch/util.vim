@@ -235,19 +235,47 @@ fu! s:Cycle.new(list) abort dict
   return extend(copy(self), {'list': a:list, 'i': 0})
 endfu
 
-fu! s:Cycle.curr() abort dict
-  return self.list[self.i]
-endfu
-
-fu! s:Cycle.replace(new_curr) abort dict
-  let self.list[self.i] = a:new_curr
+fu! s:Cycle.peek() abort dict
   return self.list[self.i]
 endfu
 
 fu! s:Cycle.next() abort dict
   let next = self.list[self.i]
-  let self.i = self.i == len(self.list) - 1 ? 0 : self.i + 1
+  let self.i = (self.i + 1) % len(self.list)
   return next
+endfu
+
+fu! esearch#util#stack(list) abort
+  return s:Stack.new(a:list)
+endfu
+
+let s:Stack = {}
+
+fu! s:Stack.new(list) abort dict
+  return extend(copy(self), {'list': a:list})
+endfu
+
+fu! s:Stack.top() abort dict
+  return self.list[-1]
+endfu
+
+fu! s:Stack.len() abort dict
+  return len(self.list)
+endfu
+
+" .top() = val; in cpp
+fu! s:Stack.replace(new_top) abort dict
+  let self.list[-1] = a:new_top
+  return self.list[-1]
+endfu
+
+fu! s:Stack.push(val) abort dict
+  return add(self.list, a:val)
+endfu
+
+fu! s:Stack.pop() abort dict
+  let [self.list, popped] = [self.list[:-2], self.list[-1]]
+  return popped
 endfu
 
 fu! esearch#util#deprecate(message) abort
@@ -305,3 +333,8 @@ else
     call call(a:funcref, a:000)
   endfu
 endif
+
+" let cy = s:Cycle.new([1,2,3])
+" call cy.next()
+" call cy.next()
+" ec cy.tolist()

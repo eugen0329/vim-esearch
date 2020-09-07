@@ -15,12 +15,12 @@ call extend(s:Gogrep, {
       \ 'before':  0,
       \ 'after':   0,
       \ 'parser':  'withcol',
-      \ 'patterns': [
-      \   {'opt': '-x', 'regex': 0},
-      \   {'opt': '-g', 'regex': 0},
-      \   {'opt': '-v', 'regex': 0},
-      \   {'opt': '-a', 'regex': 0},
-      \],
+      \ 'pattern_kinds': [
+      \   {'opt': '-x ', 'regex': 0},
+      \   {'opt': '-g ', 'regex': 0},
+      \   {'opt': '-v ', 'regex': 0},
+      \   {'opt': '-a ', 'regex': 0},
+      \ ],
       \ 'context': {'hint': 'parent nodes', 'opt': '-p'},
       \})
 
@@ -40,7 +40,6 @@ fu! s:Gogrep.command(esearch) abort dict
         \ self.mandatory_options,
         \ self.options,
         \ context,
-        \ '-x',
         \ a:esearch.pattern.arg,
         \ paths,
         \], ' ')

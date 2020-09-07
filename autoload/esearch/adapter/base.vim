@@ -7,7 +7,7 @@ let s:Base = {
       \ 'options': 'NotImplemented',
       \ 'mandatory_options': 'NotImplemented',
       \ 'parser': 'generic',
-      \ 'patterns': [{'opt': '', 'regex': 1}],
+      \ 'pattern_kinds': [{'opt': '', 'regex': 1}],
       \ 'before':   {'hint': 'lines before', 'opt': '-A'},
       \ 'after':    {'hint': 'lines after' , 'opt': '-B'},
       \ 'context':  {'hint': 'lines around', 'opt': '-C'},

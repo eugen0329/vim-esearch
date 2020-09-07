@@ -138,6 +138,10 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', '+',      in: "_\n__+_",    line: 2, column: 3..4
           include_context 'finds 1 entry of', '++',     in: "_\n__++_",   line: 2, column: 3..5
           include_context 'finds 1 entry of', '**',     in: "_\n__**_",   line: 2, column: 3..5
+          # shellescape special
+          include_context 'finds 1 entry of', '\\%',      in: "_\n__\\%__",   line: 2, column: 3..4
+          include_context 'finds 1 entry of', '\\#',      in: "_\n__\\#__",   line: 2, column: 3..4
+          include_context 'finds 1 entry of', '\\!',      in: "_\n__\\!__",   line: 2, column: 3..4
         end
       end
     end

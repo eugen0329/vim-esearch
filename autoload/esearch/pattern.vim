@@ -1,96 +1,120 @@
-fu! esearch#pattern#new(spec, ...) abort
-  return s:PatternSet.new(a:spec, get(a:, 1, ''))
+fu! esearch#pattern#new(adapter, str) abort
+  return s:PatternSet.new(a:adapter.pattern_kinds, a:str)
 endfu
 
 let s:PatternSet = {}
-
-fu! s:PatternSet.new(spec, str) abort dict
-  let new = copy(self)
-  let new.spec = esearch#util#cycle(a:spec)
-  let kind = a:spec[0]
-  let new.patterns = esearch#util#cycle([kind.regex ? s:Regex.new(a:str, kind.opt) : s:Literal.new(a:str, kind.opt)])
-  return new
-endfu
 
 " Produce |Dict| that holds different views of the same pattern:
 " .arg     - in a syntax to pass as a search util argument
 " .vim     - in vim 'nomagic' syntax to hl or interact with matches within vim
 " .literal - in --fixed-strings sytax for prefilling the cmdline
 " .pcre    - in perl compatible syntax for prefilling the cmdline
+" .str     - in string representatino of a pattern for buffer names
 
-fu! s:PatternSet.convert(esearch) abort dict
-  let self.converted = map(copy(self.patterns.list), 'v:val.convert(a:esearch)')
-  let self.arg = join(map(copy(self.converted), 'shellescape(v:val.arg)'), ' ')
+fu! s:PatternSet.splice(esearch) abort dict
+  let self.arg = join(map(copy(self.patterns.list), 'v:val.opt . v:val.convert(a:esearch).arg'))
 
-  let first = self.converted[0]
-  if has_key(first, 'literal') | let self.literal = first.literal | endif
-  if has_key(first, 'pcre')    | let self.pcre = first.pcre       | endif
-  if len(self.converted) > 1 | return | endif
+  let top = self.patterns.top()
+  if self.patterns.len() > 1 || !empty(top.opt)
+    let self.str = self.arg
+    return
+  endif
 
-  if has_key(first, 'vim') | let self.vim = first.vim | endif
+  let self.str = top.str
+  if has_key(top, 'literal') | let self.literal = top.literal | endif
+  if has_key(top, 'pcre')    | let self.pcre = top.pcre       | endif
+  if has_key(top, 'vim') | let self.vim = top.vim | endif
+endfu
+
+fu! s:PatternSet.new(kinds, str) abort dict
+  let new = copy(self)
+  let new.kinds = esearch#util#cycle(a:kinds)
+  let new.patterns = esearch#util#stack([s:Pattern.from_kind(new.kinds.next(), a:str)])
+  return new
+endfu
+
+fu! s:PatternSet.adapt(adapter) abort dict
+  let kinds = a:adapter.pattern_kinds
+
+  if kinds !=# self.kinds.list
+    let self.kinds = esearch#util#cycle(kinds)
+    let self.patterns = esearch#util#stack([s:Pattern.from_kind(self.kinds.next(), self.patterns.top().str)])
+  endif
 endfu
 
 fu! s:PatternSet.replace(str) abort dict
-  let curr = self.patterns.curr()
-  return extend(curr, {'str': a:str})
+  return self.patterns.replace(extend(copy(self.patterns.top()), {'str': a:str}))
+endfu
+
+fu! s:PatternSet.push() abort dict
+  return self.patterns.push(s:Pattern.from_kind(self.kinds.next(), ''))
+endfu
+
+fu! s:PatternSet.pop() abort dict
+  if self.patterns.len() < 2 | return | endif
+  return self.patterns.pop()
 endfu
 
 fu! s:PatternSet.next() abort dict
-  let curr = self.patterns.curr()
-  if !empty(curr.str) | return self.patterns.next() | endif
-
-  let kind = self.spec.next()
-  let blank_pattern = kind.regex ? s:Regex.new('', kind.opt) : s:Literal.new('', kind.opt)
-  return self.patterns.replace(blank_pattern)
+  return self.patterns.replace(s:Pattern.from_kind(self.kinds.next(), self.peek().str))
 endfu
 
-fu! s:PatternSet.curr() abort dict
-  return self.patterns.curr()
+fu! s:PatternSet.peek() abort dict
+  return self.patterns.top()
 endfu
 
-let s:Regex = {}
+let s:Pattern = {}
 
-fu! s:Regex.new(str, ...) abort dict
-  return extend(copy(self), {'str': a:str, 'opt': get(a:, 1, '')})
+fu! s:Pattern.new(opt, str) abort dict
+  return extend(copy(self), {'opt': a:opt, 'str': a:str})
 endfu
+
+fu! s:Pattern.from_kind(kind, str) abort
+  let klass = a:kind.regex ? s:Regex : s:Plaintext
+  return klass.new(a:kind.opt, a:str)
+endfu
+
+let s:Regex = copy(s:Pattern)
 
 fu! s:Regex.convert(esearch) abort dict
   " Conversions literal2pcre(str) or pcre2literal(str) don't happen, as these
   " attrs are only used to prefill the cmdline in further searches, so no strong
   " need to implement extra converters
-  let new = {'arg': self.str, 'literal': self.str, 'pcre': self.str}
+  let self.arg = shellescape(self.str)
+  let self.literal = self.str
+  let self.pcre = self.str
 
   if a:esearch.regex ==# 'literal'
-    let new.vim = esearch#pattern#literal2vim#convert(self.str)
+    let self.vim = esearch#pattern#literal2vim#convert(self.str)
   else
-    let new.vim = esearch#pattern#pcre2vim#convert(self.str)
+    let self.vim = esearch#pattern#pcre2vim#convert(self.str)
   endif
 
   if a:esearch.case ==# 'ignore'
-    let new.vim = new.vim.'\c'
+    let self.vim = self.vim.'\c'
   elseif a:esearch.case ==# 'sensitive'
-    let new.vim = new.vim.'\C'
+    let self.vim = self.vim.'\C'
   elseif a:esearch.case ==# 'smart'
-    let new.vim = new.vim . (esearch#util#has_upper(self.str) ? '\C' : '\c')
+    let self.vim = self.vim . (esearch#util#has_upper(self.str) ? '\C' : '\c')
   elseif g:esearch#env isnot# 0
     echoerr 'Unknown case option ' . a:esearch.case
   endif
 
   if a:esearch.textobj ==# 'word'
-    let new.vim = '\%(\<\|\>\)'.new.vim.'\%(\<\|\>\)'
+    let self.vim = '\%(\<\|\>\)'.self.vim.'\%(\<\|\>\)'
   elseif a:esearch.textobj ==# 'line'
-    let new.vim = '^'.new.vim.'$'
+    let self.vim = '^'.self.vim.'$'
   endif
 
-  return new
+  return self
 endfu
 
-let s:Literal = {}
+let s:Plaintext = copy(s:Pattern)
 
-fu! s:Literal.new(str, ...) abort dict
-  return extend(copy(self), {'str': a:str, 'opt': get(a:, 1, '')})
-endfu
+fu! s:Plaintext.convert(_esearch) abort dict
+  let self.arg = shellescape(self.str)
+  let self.literal = self.str
+  let self.pcre = self.str
 
-fu! s:Literal.convert(esearch) abort dict
-  return {'arg': self.str, 'literal': self.str, 'pcre': self.str}
+  return self
 endfu

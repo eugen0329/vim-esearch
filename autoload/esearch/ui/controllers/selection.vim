@@ -6,7 +6,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:SelectionController = esearch#ui#component()
 
 fu! s:SelectionController.render() abort dict
-  let str =  self.props.pattern.curr().str
+  let str =  self.props.pattern.peek().str
 
   call esearch#ui#render(s:SearchPrompt.new())
   call esearch#ui#render([['Visual', substitute(str, "\n", '\\n', 'g')]])

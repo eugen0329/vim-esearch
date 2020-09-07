@@ -5,7 +5,7 @@ let s:max_len = 120
 
 fu! esearch#middleware#name#apply(esearch) abort
   if has_key(a:esearch, 'name') | return a:esearch | endif
-  let a:esearch.name = s:title(a:esearch, a:esearch.pattern.arg)
+  let a:esearch.name = s:name(a:esearch, a:esearch.pattern.str)
   return a:esearch
 endfu
 
@@ -13,7 +13,7 @@ endfu
 "   Search <pattern>modifiers
 " else:
 "   Search #id <ellipsized_pattern>modifiers
-fu! s:title(esearch, pattern) abort
+fu! s:name(esearch, pattern) abort
   let format = s:format(a:esearch)
   let [id, pattern] = s:informative_parts(a:esearch, a:pattern)
   let pattern = esearch#util#escape_for_statusline(pattern)
