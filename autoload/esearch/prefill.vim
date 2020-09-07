@@ -16,20 +16,20 @@ fu! esearch#prefill#try(esearch) abort
 
     if !empty(pattern)
       if type(pattern) == s:t_string
-        return esearch#pattern#set(pattern)
+        return esearch#pattern#new(pattern)
       else
         return pattern
       endif
     endif
   endfor
 
-  return esearch#pattern#set(a:esearch._adapter.patterns, '')
+  return esearch#pattern#new(a:esearch._adapter.patterns, '')
 endfu
 
 fu! esearch#prefill#region(esearch) abort
   if !empty(get(a:esearch, 'region'))
     let text = esearch#util#region_text(a:esearch.region)
-    return esearch#pattern#set(a:esearch._adapter.patterns, text)
+    return esearch#pattern#new(a:esearch._adapter.patterns, text)
   endif
 endfu
 
@@ -43,10 +43,10 @@ fu! esearch#prefill#hlsearch(esearch) abort
   let str = getreg('/')
   if empty(str) | return | endif
 
-  if esearch.regex
-    return esearch#pattern#set(a:esearch._adapter.patterns, esearch#pattern#vim2pcre#convert(str))
+  if a:esearch.regex
+    return esearch#pattern#new(a:esearch._adapter.patterns, esearch#pattern#vim2pcre#convert(str))
   else
-    return esearch#pattern#set(a:esearch._adapter.patterns, esearch#pattern#vim2literal#convert(str))
+    return esearch#pattern#new(a:esearch._adapter.patterns, esearch#pattern#vim2literal#convert(str))
   endif
 endfu
 
@@ -58,14 +58,14 @@ fu! esearch#prefill#current(_esearch) abort
   if exists('b:esearch') | return get(b:esearch, 'pattern') | endif
 endfu
 
-fu! esearch#prefill#cword(_esearch) abort
+fu! esearch#prefill#cword(esearch) abort
   let cword = expand('<cword>')
   if !empty(cword)
-    return esearch#pattern#set(a:esearch._adapter.patterns, cword)
+    return esearch#pattern#new(a:esearch._adapter.patterns, cword)
   endif
 endfu
 
-fu! esearch#prefill#clipboard(_esearch) abort
+fu! esearch#prefill#clipboard(esearch) abort
   let clipboards = split(&clipboard, ',')
   if index(clipboards, 'unnamedplus') >= 0
     let register = '+'
@@ -74,5 +74,5 @@ fu! esearch#prefill#clipboard(_esearch) abort
   else
     let register = '"'
   endif
-  return esearch#pattern#set(a:esearch._adapter.patterns, getreg(register))
+  return esearch#pattern#new(a:esearch._adapter.patterns, getreg(register))
 endfu

@@ -89,7 +89,7 @@ local function parse_name_with_revision_prefix(line, cache)
   end
 end
 
-function M.parse_line(line, cache)
+function M.parse_line_generic(line, cache)
   local name, lnum, text
   local rev = nil -- flag to determine whether it belong to a git repo
 
@@ -100,7 +100,6 @@ function M.parse_line(line, cache)
   -- if the line starts with "
   if line:sub(1, 1) == '"' then
     name, lnum, text = parse_with_quoted_name(line)
-    print('asd', name, filereadable(name, cache))
     if name and filereadable(name, cache) then return name, lnum, text, rev end
   end
 
@@ -112,5 +111,31 @@ function M.parse_line(line, cache)
 
   return name, lnum, text, rev
 end
+
+-- Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
+function M.parse_line_with_column_number(line, cache)
+  local name, lnum, text
+  local rev = nil
+  name, lnum, text = line:match('(.-)[:%-](%d+)[:%-]%d+[:%-](.*)')
+  if name and text and filereadable(name, cache) then return name, lnum, text, rev end
+
+
+  local name_end = 1
+  while true do
+    name_end = line:find('[:%-]%d+[:%-]%d+[:%-]', name_end + 1)
+    if not name_end then return end
+
+    name = line:sub(1, name_end - 1)
+    if filereadable(name, cache) then
+      lnum, text = line:match('[:%-](%d+)[:%-]%d+[:%-](.*)', name_end)
+      return name, lnum, text, rev
+    end
+  end
+end
+
+M.PARSERS = {
+  generic = M.parse_line_generic,
+  withcol = M.parse_line_with_column_number
+}
 
 return M

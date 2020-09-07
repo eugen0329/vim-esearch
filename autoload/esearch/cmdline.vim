@@ -91,7 +91,7 @@ fu! s:initial_state(esearch) abort
   let initial_state.location = 'search_input'
   let initial_state.did_select_prefilled = 0
   let initial_state.cursor = 0
-  let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
+  let initial_state.cmdpos = strchars(initial_state.pattern.curr().str) + 1
   return initial_state
 endfu
 

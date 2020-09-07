@@ -3,8 +3,8 @@ local util  = require'esearch/util'
 
 local M = {}
 
-function M.render(data, esearch)
-  local parsed, _separators_count = parse.lines(data)
+function M.render(data, esearch, parser)
+  local parsed, _separators_count = parse.lines(data, parser)
   local contexts         = esearch.contexts
   local line_numbers_map = esearch.line_numbers_map
   local ctx_ids_map      = esearch.ctx_ids_map

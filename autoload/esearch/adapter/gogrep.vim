@@ -14,6 +14,7 @@ call extend(s:Gogrep, {
       \ 'case':    {},
       \ 'before':  0,
       \ 'after':   0,
+      \ 'parser':  'withcol',
       \ 'patterns': [
       \   {'opt': '-x', 'regex': 0},
       \   {'opt': '-g', 'regex': 0},
@@ -40,7 +41,7 @@ fu! s:Gogrep.command(esearch) abort dict
         \ self.options,
         \ context,
         \ '-x',
-        \ shellescape(a:esearch.pattern.arg),
+        \ a:esearch.pattern.arg,
         \ paths,
         \], ' ')
 endfu

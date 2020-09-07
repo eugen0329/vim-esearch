@@ -30,6 +30,6 @@ fu! s:set_parser(esearch) abort
   if a:esearch.parse_strategy ==# 'lua'
     let a:esearch.parse = esearch#adapter#parse#lua#import()
   else
-    let a:esearch.parse = esearch#adapter#parse#viml#import()
+    let a:esearch.parse = esearch#adapter#parse#viml#import()[a:esearch._adapter.parser]
   endif
 endfu

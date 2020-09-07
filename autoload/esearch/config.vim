@@ -59,7 +59,7 @@ fu! esearch#config#init(esearch) abort
         \ 'write_cb':                              function('s:write_cb'),
         \ 'git_dir':                               function('esearch#git#dir'),
         \ 'git_url':                               function('esearch#git#url'),
-        \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend ==# 'system',
+        \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend !=# 'system',
         \ 'live_update_debounce_wait':             50,
         \ 'live_update_min_len':                   3,
         \ 'live_exec':                             0,

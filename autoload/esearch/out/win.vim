@@ -26,7 +26,6 @@ let g:esearch#out#win#entry_fmt = ' %3d %s'
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort
-  " echomsg [a:esearch.live_exec, a:esearch.live_update, esearch#util#is_skip_exec(a:esearch)]
   if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
 
   if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif

@@ -1,7 +1,46 @@
 " Legacy parser
 
 fu! esearch#adapter#parse#viml#import() abort
-  return function('esearch#adapter#parse#viml#parse')
+  return s:export
+endfu
+
+" Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
+fu! s:withcol(data, from, to) abort dict
+  if empty(a:data) | return [[], 0] | endif
+  let entries = []
+  let separators_count = 0
+
+  let i = a:from
+  let limit = a:to + 1
+
+  while i < limit
+    let line = a:data[i]
+
+    if empty(line) || line ==# '--'
+      let separators_count += 1
+      let i += 1 | continue
+    endif
+
+    let name_end = 0
+    let name = ''
+    while 1
+      let name_end = match(line, '[-:]\d\+[-:]\d\+[-:]', name_end + 1)
+      if name_end < 0 | break | endif
+      let name = strpart(line, 0 , name_end)
+      echomsg name
+      if filereadable(name)
+        let m = matchlist(line, '\(\d\+\)[-:]\d\+[-:]\(.*\)', name_end)[1:2]
+        if !empty(m)
+          call add(entries, {'filename': name, 'lnum': m[0], 'text': m[1]})
+        endif
+        break
+      endif
+    endwhile
+
+    let i += 1
+  endwhile
+
+  return [entries, separators_count]
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
@@ -18,8 +57,8 @@ let g:esearch#adapter#parse#viml#controls = {
       \}
 
 " Parse lines in format (rev:)?filename[-:]line_number[-:]text
-fu! esearch#adapter#parse#viml#parse(data, from, to) abort dict
-  if empty(a:data) | return [] | endif
+fu! s:generic(data, from, to) abort dict
+  if empty(a:data) | return [[], 0] | endif
   let entries = []
   let separators_count = 0
 
@@ -126,3 +165,8 @@ fu! s:parse_from_pos(line, end, rev) abort
   let name = strpart(a:line, 0, a:end)
   return {'filename': name, 'lnum': m[0], 'text': m[1], 'rev': a:rev}
 endfu
+
+let s:export = {
+        \ 'generic': function('<SID>generic'),
+        \ 'withcol': function('<SID>withcol'),
+        \}
