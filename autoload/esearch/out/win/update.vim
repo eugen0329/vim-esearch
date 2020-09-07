@@ -22,7 +22,7 @@ fu! esearch#out#win#update#init(es) abort
 endfu
 
 fu! s:init_async_updates(es) abort
-  cal extend(a:es, {'upd_at': reltime(), 'upd_timer':  -1, 'early_upd_max':  &lines})
+  cal extend(a:es, {'upd_at': reltime(), 'upd_timer':  -1, 'early_upd_max': a:es.live_exec ? &lines : a:es.batch_size})
 
   aug esearch_win_updates
     au! * <buffer>

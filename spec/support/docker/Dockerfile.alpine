@@ -12,7 +12,7 @@ RUN set -eux; \
 
 # Build rspec stage
 ##########################################
-FROM ruby:2.7-alpine3.10
+FROM ruby:2.7.1-alpine3.1
 
 ARG APP_DIR=/app
 ARG DEPS_DIR=/deps
