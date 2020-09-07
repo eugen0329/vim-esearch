@@ -116,7 +116,7 @@ describe 'Writing in modifiable mode', :window, :modifiable do
         expect do
           motion.call
           editor.send_keys_separately ':write', :enter, 'y'
-          expect(esearch).to have_output_message("Done")
+          expect(esearch).to have_output_message('Done')
         end.to change { ctx.file.readlines.map(&:chomp) }
           .to(instance_exec(&expected_lines))
           .and not_to_change { untouched_ctx.file.readlines }

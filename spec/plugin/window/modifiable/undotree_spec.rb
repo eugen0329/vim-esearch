@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Undoing in modifiable mode', :window, :modifiable do
+describe 'Undoing in modifiable mode', :window do
   include Helpers::FileSystem
   include VimlValue::SerializationHelpers
   include Helpers::Modifiable
