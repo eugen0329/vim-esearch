@@ -133,14 +133,13 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
   if a:bufnr != bufnr('%') | return | endif
 
   let esearch = getbufvar(a:bufnr, 'esearch')
-  let batched = get(a:, 1, 0)
   let request = esearch.request
   let data = request.data
   let data_size = len(data)
 
   call setbufvar(a:bufnr, '&modifiable', 1)
   if data_size > request.cursor
-    if !batched
+    if get(a:, 1)
           \ || data_size - request.cursor - 1 <= esearch.batch_size
           \ || (request.finished && data_size - request.cursor - 1 <= esearch.final_batch_size)
       let [from, to] = [request.cursor, data_size - 1]
@@ -175,7 +174,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
   call esearch#util#doautocmd('User esearch_win_finish_pre')
   let esearch = getbufvar(a:bufnr, 'esearch')
 
-  call esearch#out#win#update#update(a:bufnr, 0)
+  call esearch#out#win#update#update(a:bufnr, 1)
   " TODO
   let esearch.contexts[-1].end = line('$')
   if esearch.win_context_len_annotations
