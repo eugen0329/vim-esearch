@@ -166,6 +166,7 @@ fu! esearch#out#win#update#schedule_finish(bufnr) abort
   if a:bufnr == bufnr('%')
     retu esearch#out#win#update#finish(a:bufnr)
   en
+  if !bufexists(a:bufnr) | retu | endif
 
   " Bind event to finish the search as soon as the buffer is entered
   aug esearch_win_updates

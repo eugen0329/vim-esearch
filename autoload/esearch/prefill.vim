@@ -16,20 +16,20 @@ fu! esearch#prefill#try(esearch) abort
 
     if !empty(pattern)
       if type(pattern) == s:t_string
-        return {'literal': pattern, 'pcre': pattern}
+        return esearch#pattern#set(pattern)
       else
         return pattern
       endif
     endif
   endfor
 
-  return {'literal': '', 'pcre': ''}
+  return esearch#pattern#set(a:esearch._adapter.patterns, '')
 endfu
 
 fu! esearch#prefill#region(esearch) abort
   if !empty(get(a:esearch, 'region'))
     let text = esearch#util#region_text(a:esearch.region)
-    return {'pcre': text, 'literal': text}
+    return esearch#pattern#set(a:esearch._adapter.patterns, text)
   endif
 endfu
 
@@ -43,10 +43,11 @@ fu! esearch#prefill#hlsearch(esearch) abort
   let str = getreg('/')
   if empty(str) | return | endif
 
-  return {
-        \  'pcre':    esearch#pattern#vim2pcre#convert(str),
-        \  'literal': esearch#pattern#vim2literal#convert(str)
-        \ }
+  if esearch.regex
+    return esearch#pattern#set(a:esearch._adapter.patterns, esearch#pattern#vim2pcre#convert(str))
+  else
+    return esearch#pattern#set(a:esearch._adapter.patterns, esearch#pattern#vim2literal#convert(str))
+  endif
 endfu
 
 fu! esearch#prefill#last(_esearch) abort
@@ -60,7 +61,7 @@ endfu
 fu! esearch#prefill#cword(_esearch) abort
   let cword = expand('<cword>')
   if !empty(cword)
-    return {'literal': cword, 'pcre': expand('<cword>')}
+    return esearch#pattern#set(a:esearch._adapter.patterns, cword)
   endif
 endfu
 
@@ -73,6 +74,5 @@ fu! esearch#prefill#clipboard(_esearch) abort
   else
     let register = '"'
   endif
-
-  return {'literal': getreg(register), 'pcre': getreg(register)}
+  return esearch#pattern#set(a:esearch._adapter.patterns, getreg(register))
 endfu

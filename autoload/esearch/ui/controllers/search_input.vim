@@ -2,10 +2,11 @@ let s:SelectionController = esearch#ui#controllers#selection#import()
 let s:SearchPrompt        = esearch#ui#prompt#search#import()
 let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 
-cnoremap <Plug>(esearch-toggle-regex)   <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-toggle-case)    <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-toggle-textobj) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-open-menu)      <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
+cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
+cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
+cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
+cnoremap <Plug>(esearch-cycle-pattern) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_PATTERN')<CR><CR>
+cnoremap <Plug>(esearch-open-menu)     <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
 let s:self = 0
 let s:SearchInputController = esearch#ui#component()
@@ -44,7 +45,7 @@ fu! s:SearchInputController.init_live_update() dict abort
   aug END
   let s:live_update = esearch#async#debounce(function('s:live_update'),
         \ self.props.live_update_debounce_wait)
-  call s:live_update.apply(self.props.cmdline)
+  call s:live_update.apply(self.props.pattern.curr().str)
 
   if self.props.win_update_throttle_wait > 0
     let timeout = self.props.win_update_throttle_wait
@@ -72,12 +73,9 @@ fu! s:live_update(...) abort
 endfu
 
 fu! s:live_exec(cmdline) abort
-  return esearch#init(extend(copy(s:self.__context__().store.state), {
-        \ 'pattern': a:cmdline,
-        \ 'remember': [],
-        \ 'live_exec': 1,
-        \ 'name': '[esearch]',
-        \ }, 'force'))
+  let state = copy(s:self.__context__().store.state)
+  call state.pattern.replace(a:cmdline)
+  return esearch#init(extend(state, {'remember': [], 'live_exec': 1, 'name': '[esearch]' }))
 endfu
 
 fu! s:redraw(_) abort
@@ -91,12 +89,12 @@ endfu
 
 fu! s:SearchInputController.render_initial_selection() abort dict
   if self.props.did_select_prefilled
-    let self.cmdline = self.props.cmdline
+    let self.cmdline = self.props.pattern.curr().str
   elseif !self.props.select_prefilled
-    let self.cmdline = self.props.cmdline
+    let self.cmdline = self.props.pattern.curr().str
     call self.props.dispatch({'type': 'SET_DID_SELECT_PREFILLED'})
   else
-    if empty(self.props.cmdline)
+    if empty(self.props.pattern.curr().str)
       let self.cmdline = ''
     else
       " required if switched to esearch#init from another input()
@@ -161,7 +159,7 @@ fu! s:next_mode(event_type) abort dict
   call s:self.props.dispatch({'type': a:event_type})
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'cmdpos',
+let s:map_state_to_props = esearch#util#slice_factory(['pattern', 'cmdpos',
       \ 'did_select_prefilled', 'select_prefilled', 'win_update_throttle_wait',
       \ 'live_update_debounce_wait', 'live_update', 'live_update_min_len'])
 

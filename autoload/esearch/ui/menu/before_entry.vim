@@ -6,9 +6,9 @@ fu! s:BeforeEntry.new(props) abort dict
   let instance.entry = s:UnsignedIntEntry.new()
   let instance.entry.props['+'] = 'b'
   let instance.entry.props['-'] = 'B'
-  let instance.entry.props.option = '-B'
   let instance.entry.props.name = 'before'
-  let instance.entry.props.hint = 'lines before'
+  let instance.entry.props.option = a:props._adapter.before.opt
+  let instance.entry.props.hint = a:props._adapter.before.hint
   let instance.entry.props.value = a:props.before
   let instance.entry.props.i = a:props.i
   let up = g:esearch#has#unicode ? g:esearch#unicode#up : 'v'
@@ -25,7 +25,7 @@ fu! s:BeforeEntry.keypress(event) abort dict
   return self.entry.keypress(a:event)
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['before'])
+let s:map_state_to_props = esearch#util#slice_factory(['before', '_adapter'])
 
 fu! esearch#ui#menu#before_entry#import() abort
   return esearch#ui#connect(s:BeforeEntry, s:map_state_to_props)
