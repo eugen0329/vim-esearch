@@ -45,7 +45,7 @@ else
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
       let a:esearch.files_count =
-            \ luaeval('esearch.render(_A.d, _A.e)', 
+            \ luaeval('esearch.render(_A.d, _A.e, _A.p)', 
             \   {'d': a:data[a:from : a:to], 'e': a:esearch, 'p': a:esearch._adapter.parser})
     finally
       call cwd.restore()

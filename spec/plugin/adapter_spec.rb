@@ -2,7 +2,6 @@
 
 require 'spec_helper'
 require 'plugin/shared_examples/backend'
-require 'plugin/shared_examples/abortable_backend'
 
 # TODO: testing
 # - test directories with spaces in names

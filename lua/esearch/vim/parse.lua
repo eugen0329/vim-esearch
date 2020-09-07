@@ -2,7 +2,6 @@ local PARSERS = require('esearch/shared/adapter/parse').PARSERS
 
 local M = {}
 
--- parse lines in format filename[-:]line_number[-:]text
 function M.lines(data, parser)
   local parsed = vim.list()
   local separators_count = 0
