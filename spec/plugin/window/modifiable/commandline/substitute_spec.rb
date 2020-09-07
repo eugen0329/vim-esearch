@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window', :window, :modifiable do
+describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window', :window do
   include Helpers::Modifiable
   include Helpers::Modifiable::Commandline
   Context ||= Helpers::Modifiable::Context
