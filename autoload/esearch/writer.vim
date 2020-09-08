@@ -25,7 +25,7 @@ fu! s:Writer.write(bang) abort dict
       if !self.verify_readable(ctx, path) | continue | endif
 
       let buf = s:Handle.new(path)
-      if !self.verify_not_modified(ctx, buf) | continue | endif
+      if a:bang && !self.verify_not_modified(ctx, buf) | continue | endif
 
       if !empty(ctx.modified) | call self.replace_lines(ctx.modified, buf) | endif
       if !empty(ctx.deleted)  | call self.delete_lines(ctx.deleted, buf)  | endif

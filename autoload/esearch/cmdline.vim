@@ -3,9 +3,13 @@ let s:App  = esearch#ui#app#import()
 
 let g:esearch#cmdline#mappings = [
       \ ['c', '<C-o>',      '<Plug>(esearch-open-menu)'],
-      \ ['c', '<C-r><C-r>', '<Plug>(esearch-toggle-regex)'],
-      \ ['c', '<C-s><C-s>', '<Plug>(esearch-toggle-case)'],
-      \ ['c', '<C-t><C-t>', '<Plug>(esearch-toggle-textobj)'],
+      \ ['c', '<C-r><C-r>', '<Plug>(esearch-cycle-regex)'],
+      \ ['c', '<C-s><C-s>', '<Plug>(esearch-cycle-case)'],
+      \ ['c', '<C-t><C-t>', '<Plug>(esearch-cycle-textobj)'],
+      \ ['c', '<C-p>',      '<Plug>(esearch-add-pattern)'],
+      \ ['c', '<bs>',        '<Plug>(esearch-BS)',    {'nowait': 1}],
+      \ ['c', '<c-w>',      '<Plug>(esearch-CTRL_W)', {'nowait': 1}],
+      \ ['c', '<c-h>',      '<Plug>(esearch-CTRL_H)', {'nowait': 1}],
       \]
 
 if !exists('g:esearch#cmdline#dir_icon')
@@ -90,7 +94,7 @@ fu! s:initial_state(esearch) abort
   let initial_state.location = 'search_input'
   let initial_state.did_select_prefilled = 0
   let initial_state.cursor = 0
-  let initial_state.cmdpos = strchars(initial_state.cmdline) + 1
+  let initial_state.cmdpos = strchars(initial_state.pattern.peek().str) + 1
   return initial_state
 endfu
 
@@ -103,6 +107,10 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
   elseif a:action.type ==# 'NEXT_TEXTOBJ'
     return extend(copy(a:state), {'textobj': s:cycle_mode(a:state, 'textobj')})
+  elseif a:action.type ==# 'ADD_PATTERN'
+    return extend(copy(a:state), {'pattern': s:push_pattern(a:state)})
+  elseif a:action.type ==# 'POP_PATTERN'
+    return extend(copy(a:state), {'pattern': s:pop_pattern(a:state)})
   elseif a:action.type ==# 'SET_CURSOR'
     return extend(copy(a:state), {'cursor': a:action.cursor})
   elseif a:action.type ==# 'SET_VALUE'
@@ -118,11 +126,30 @@ fu! s:reducer(state, action) abort
   elseif a:action.type ==# 'SET_DID_SELECT_PREFILLED'
     return extend(copy(a:state), {'did_select_prefilled': 1})
   elseif a:action.type ==# 'SET_CMDLINE'
-    return extend(copy(a:state), {'cmdline': a:action.cmdline})
+    let pattern = copy(a:state.pattern)
+    call pattern.replace(a:action.cmdline)
+    return extend(copy(a:state), {'pattern': pattern})
   elseif a:action.type ==# 'SET_LOCATION'
     return extend(copy(a:state), {'location': a:action.location})
   else
     throw 'Unknown action ' . string(a:action)
+  endif
+endfu
+
+fu! s:pop_pattern(state) abort
+  let pattern = a:state.pattern
+  call pattern.pop()
+  return pattern
+endfu
+
+fu! s:push_pattern(state) abort
+  let pattern = a:state.pattern
+  if empty(pattern.peek().str)
+    call pattern.next()
+    return pattern
+  else
+    call pattern.push()
+    return pattern
   endif
 endfu
 

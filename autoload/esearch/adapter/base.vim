@@ -5,7 +5,13 @@ endfu
 let s:Base = {
       \ 'bin': 'NotImplemented',
       \ 'options': 'NotImplemented',
-      \ 'mandatory_options': 'NotImplemented'}
+      \ 'mandatory_options': 'NotImplemented',
+      \ 'parser': 'generic',
+      \ 'pattern_kinds': [{'opt': '', 'regex': 1}],
+      \ 'before':   {'hint': 'lines before', 'opt': '-A'},
+      \ 'after':    {'hint': 'lines after' , 'opt': '-B'},
+      \ 'context':  {'hint': 'lines around', 'opt': '-C'},
+      \}
 
 fu! s:Base.command(esearch) abort dict
   let regex = self.regex[a:esearch.regex].option
@@ -33,7 +39,7 @@ fu! s:Base.command(esearch) abort dict
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
         \ '--',
-        \ shellescape(a:esearch.pattern.arg),
+        \ a:esearch.pattern.arg,
         \ paths,
         \], ' ')
 endfu

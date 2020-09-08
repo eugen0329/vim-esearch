@@ -1,11 +1,17 @@
 let s:SelectionController = esearch#ui#controllers#selection#import()
 let s:SearchPrompt        = esearch#ui#prompt#search#import()
 let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
+let s:INF = 88888888
 
-cnoremap <Plug>(esearch-toggle-regex)   <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-toggle-case)    <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-toggle-textobj) <C-r>=<SID>interrupt('<SID>next_mode', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-open-menu)      <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
+cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>emit', 'NEXT_REGEX')<CR><CR>
+cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>emit', 'NEXT_CASE')<CR><CR>
+cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>emit', 'NEXT_TEXTOBJ')<CR><CR>
+cnoremap <Plug>(esearch-add-pattern)   <C-r>=<SID>interrupt('<SID>emit', 'ADD_PATTERN')<CR><CR>
+cnoremap <Plug>(esearch-open-menu)     <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
+
+cnoremap <expr> <Plug>(esearch-BS)     <SID>check_if_pop_needed("\<bs>")
+cnoremap <expr> <Plug>(esearch-CTRL_W) <SID>check_if_pop_needed("\<c-w>")
+cnoremap <expr> <Plug>(esearch-CTRL_H) <SID>check_if_pop_needed("\<c-h>")
 
 let s:self = 0
 let s:SearchInputController = esearch#ui#component()
@@ -44,7 +50,8 @@ fu! s:SearchInputController.init_live_update() dict abort
   aug END
   let s:live_update = esearch#async#debounce(function('s:live_update'),
         \ self.props.live_update_debounce_wait)
-  call s:live_update.apply(self.props.cmdline)
+  
+  call s:live_update.apply(self.props.pattern.peek().str)
 
   if self.props.win_update_throttle_wait > 0
     let timeout = self.props.win_update_throttle_wait
@@ -72,12 +79,9 @@ fu! s:live_update(...) abort
 endfu
 
 fu! s:live_exec(cmdline) abort
-  return esearch#init(extend(copy(s:self.__context__().store.state), {
-        \ 'pattern': a:cmdline,
-        \ 'remember': [],
-        \ 'live_exec': 1,
-        \ 'name': '[esearch]',
-        \ }, 'force'))
+  let state = copy(s:self.__context__().store.state)
+  call state.pattern.replace(a:cmdline)
+  return esearch#init(extend(state, {'remember': [], 'live_exec': 1, 'name': '[esearch]' }))
 endfu
 
 fu! s:redraw(_) abort
@@ -91,12 +95,12 @@ endfu
 
 fu! s:SearchInputController.render_initial_selection() abort dict
   if self.props.did_select_prefilled
-    let self.cmdline = self.props.cmdline
+    let self.cmdline = self.props.pattern.peek().str
   elseif !self.props.select_prefilled
-    let self.cmdline = self.props.cmdline
+    let self.cmdline = self.props.pattern.peek().str
     call self.props.dispatch({'type': 'SET_DID_SELECT_PREFILLED'})
   else
-    if empty(self.props.cmdline)
+    if empty(self.props.pattern.peek().str)
       let self.cmdline = ''
     else
       " required if switched to esearch#init from another input()
@@ -117,13 +121,16 @@ fu! s:SearchInputController.render_initial_selection() abort dict
   return 1
 endfu
 
+" redraw before is required here to clear possible output leftovers from multiline calls
 fu! s:SearchInputController.render_input() abort
-  " redraw is required here to clear possible output leftovers from multiline calls
   call esearch#ui#soft_clear()
 
   let self.cmdline .= self.restore_cmdpos_chars()
   let self.pressed_mapped_key = 0
-  let self.cmdline = self.input()
+
+  try
+    let self.cmdline = self.input()
+  endtry
 
   if !empty(self.pressed_mapped_key)
     return call(self.pressed_mapped_key.handler, self.pressed_mapped_key.args)
@@ -142,7 +149,22 @@ fu! s:SearchInputController.input() abort dict
 endfu
 
 fu! s:SearchInputController.restore_cmdpos_chars() abort
+  if self.props.cmdpos == s:INF | return "\<End>" | endif
   return repeat("\<Left>", strchars(self.cmdline) + 1 - self.props.cmdpos)
+endfu
+
+fu! s:check_if_pop_needed(fallback) abort
+  if empty(getcmdline()) && len(s:self.props.pattern.patterns.list) > 1
+    let s:self.pressed_mapped_key = {'handler': function('<SID>pop'), 'args': a:000}
+    call s:self.props.dispatch({'type': 'SET_CMDPOS', 'cmdpos': s:INF})
+    return "\<cr>"
+  endif
+
+  return a:fallback
+endfu
+
+fu! s:pop(...) abort
+  call s:self.props.dispatch({'type': 'POP_PATTERN'})
 endfu
 
 fu! s:interrupt(func, ...) abort
@@ -156,12 +178,12 @@ fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
-fu! s:next_mode(event_type) abort dict
+fu! s:emit(event_type) abort dict
   call s:self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': s:self.cmdline})
   call s:self.props.dispatch({'type': a:event_type})
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'cmdpos',
+let s:map_state_to_props = esearch#util#slice_factory(['pattern', 'cmdpos',
       \ 'did_select_prefilled', 'select_prefilled', 'win_update_throttle_wait',
       \ 'live_update_debounce_wait', 'live_update', 'live_update_min_len'])
 

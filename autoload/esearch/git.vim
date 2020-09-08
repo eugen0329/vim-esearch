@@ -17,7 +17,7 @@ fu! esearch#git#read_cmd(path) abort
   " set modifiable to allow reloads
   setlocal modifiable noswapfile buftype=nofile
   call esearch#util#doautocmd('BufReadPre')
-  let [dir, filename] = matchlist(a:path, 'esearchgit://\(.\{-}\)//\(\x\{40\}:.\+\)')[1:2]
+  let [dir, filename] = split(a:path, '//')[1:2]
   let dir = s:Prelude.substitute_path_separator(shellescape(dir, 1))
   let filename = s:Prelude.substitute_path_separator(shellescape(filename, 1)) 
   " lockmarks to preserve the cursor location on open

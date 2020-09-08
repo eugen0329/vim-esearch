@@ -1,14 +1,14 @@
-local parse_line = require('esearch/shared/adapter/parse').parse_line
+local PARSERS = require('esearch/shared/adapter/parse').PARSERS
 
 local M = {}
 
--- parse lines in format filename[-:]line_number[-:]text
-function M.lines(data)
+function M.lines(data, parser)
   local parsed = {}
   local separators_count = 0
   -- must be invalidated across calls to prevent using stale file presence information
   local cache = {}
   local filename, lnum, text, rev
+  local parse_line = PARSERS[parser]
 
   for i = 1, #data do
     local line = data[i]

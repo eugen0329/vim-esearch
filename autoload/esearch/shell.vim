@@ -1,3 +1,4 @@
+let s:List     = vital#esearch#import('Data.List')
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:Lexer    = vital#esearch#import('Text.Lexer')
 let s:Parser   = vital#esearch#import('Text.Parser')
@@ -11,6 +12,29 @@ fu! esearch#shell#split(string) abort
   let splitter = s:Splitter.new(a:string)
   return [splitter.split(), splitter.error]
 endfu
+
+" If an element of <pathspec> starts with '-', it goes after '--' to prevent
+" parsing them as an option. <tree> cannot be passed after '--', so partitioning
+" is required.
+fu! esearch#shell#join_pathspec(args) abort
+  if !g:esearch#has#posix_shell
+    " temporarty workaround for windows shell
+    if match(a:args, ' [''"\\]\=-') >= 0
+      return ' -- ' . a:args
+    else
+      return  a:args . ' -- '
+    endif
+  endif
+
+  let [trees_or_pathspecs, pathspecs] = s:List.partition(s:by_not_option, a:args)
+  return esearch#shell#join(trees_or_pathspecs)
+        \ . (empty(pathspecs) ? '' : ' -- ' . esearch#shell#join(pathspecs))
+endfu
+
+fu! s:not_option(p) abort
+  return a:p.str[0] !=# '-'
+endfu
+let s:by_not_option = function('s:not_option')
 
 fu! esearch#shell#join(args) abort
   if !g:esearch#has#posix_shell | return a:args | endif

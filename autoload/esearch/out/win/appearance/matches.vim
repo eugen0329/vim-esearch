@@ -14,6 +14,9 @@
 nnoremap <Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
 
 fu! esearch#out#win#appearance#matches#init(es) abort
+  let a:es.hl_strategy = ''
+  if !has_key(a:es.pattern, 'vim') | retu esearch#out#win#appearance#matches#uninit(get(b:, 'esearch', {})) | en
+
   if a:es.win_matches_highlight_strategy ==# 'viewport'
     let a:es.last_hl_range = [0,0]
     let a:es.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
@@ -45,8 +48,6 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     let a:es.hl_strategy = 'matchadd'
     retu
   endif
-
-  let a:es.hl_strategy = ''
 endfu
 
 fu! esearch#out#win#appearance#matches#uninit(es) abort

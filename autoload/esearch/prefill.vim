@@ -16,20 +16,20 @@ fu! esearch#prefill#try(esearch) abort
 
     if !empty(pattern)
       if type(pattern) == s:t_string
-        return {'literal': pattern, 'pcre': pattern}
+        return esearch#pattern#new(a:esearch._adapter, pattern)
       else
         return pattern
       endif
     endif
   endfor
 
-  return {'literal': '', 'pcre': ''}
+  return esearch#pattern#new(a:esearch._adapter, '')
 endfu
 
 fu! esearch#prefill#region(esearch) abort
   if !empty(get(a:esearch, 'region'))
     let text = esearch#util#region_text(a:esearch.region)
-    return {'pcre': text, 'literal': text}
+    return esearch#pattern#new(a:esearch._adapter, text)
   endif
 endfu
 
@@ -43,10 +43,13 @@ fu! esearch#prefill#hlsearch(esearch) abort
   let str = getreg('/')
   if empty(str) | return | endif
 
-  return {
-        \  'pcre':    esearch#pattern#vim2pcre#convert(str),
-        \  'literal': esearch#pattern#vim2literal#convert(str)
-        \ }
+  if a:esearch.regex
+    let text = esearch#pattern#vim2pcre#convert(str)
+  else
+    let text = esearch#pattern#vim2literal#convert(str)
+  endif
+
+  return esearch#pattern#new(a:esearch._adapter, text)
 endfu
 
 fu! esearch#prefill#last(_esearch) abort
@@ -54,17 +57,19 @@ fu! esearch#prefill#last(_esearch) abort
 endfu
 
 fu! esearch#prefill#current(_esearch) abort
-  if exists('b:esearch') | return get(b:esearch, 'pattern') | endif
-endfu
-
-fu! esearch#prefill#cword(_esearch) abort
-  let cword = expand('<cword>')
-  if !empty(cword)
-    return {'literal': cword, 'pcre': expand('<cword>')}
+  if exists('b:esearch')
+    return get(b:esearch, 'pattern')
   endif
 endfu
 
-fu! esearch#prefill#clipboard(_esearch) abort
+fu! esearch#prefill#cword(esearch) abort
+  let cword = expand('<cword>')
+  if !empty(cword)
+    return esearch#pattern#new(a:esearch._adapter, cword)
+  endif
+endfu
+
+fu! esearch#prefill#clipboard(esearch) abort
   let clipboards = split(&clipboard, ',')
   if index(clipboards, 'unnamedplus') >= 0
     let register = '+'
@@ -74,5 +79,5 @@ fu! esearch#prefill#clipboard(_esearch) abort
     let register = '"'
   endif
 
-  return {'literal': getreg(register), 'pcre': getreg(register)}
+  return esearch#pattern#new(a:esearch._adapter, getreg(register))
 endfu

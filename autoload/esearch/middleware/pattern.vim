@@ -4,18 +4,20 @@ fu! esearch#middleware#pattern#apply(esearch) abort
   let esearch = extend(a:esearch, {'cmdline': ''}, 'keep')
 
   if empty(get(esearch, 'pattern'))
-    let pattern_type = esearch.regex ==# 'literal' ? 'literal' : 'pcre'
-    let esearch.cmdline = esearch#prefill#try(esearch)[pattern_type]
+    let esearch.pattern = esearch#prefill#try(esearch)
+    call esearch.pattern.adapt(esearch._adapter)
     let esearch = esearch#cmdline#read(esearch)
-    if empty(esearch.cmdline) | call s:cancel(esearch) | endif
-    let esearch.pattern = s:cached_or_new(esearch.cmdline, esearch)
+    if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif
+
+    call esearch.pattern.splice(esearch)
     let g:esearch.last_pattern = esearch.pattern
   else
     if type(esearch.pattern) ==# type('')
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
     endif
-    " avoid live_update if the pattern is present unless is it's a part of
-    " live_exec flow
+    call esearch.pattern.adapt(esearch._adapter)
+    " avoid live_update if the pattern is present unless is it's a part of live_exec flow
+    call esearch.pattern.splice(esearch)
     let esearch.live_update = esearch.live_exec
   endif
 
@@ -23,10 +25,10 @@ fu! esearch#middleware#pattern#apply(esearch) abort
 endfu
 
 fu! s:cancel(esearch) abort
-  if a:esearch.live_update && a:esearch.live_update_bufnr >= 0
+  if a:esearch.live_update && bufexists(a:esearch.live_update_bufnr)
     exe a:esearch.live_update_bufnr 'bwipeout'
-    let a:esearch.live_update_bufnr = -1
   endif
+  let a:esearch.live_update_bufnr = -1
   throw 'Cancel'
 endfu
 
@@ -34,11 +36,7 @@ fu! s:cached_or_new(text, esearch) abort
   if g:esearch#middleware#pattern#cache.has(a:text)
     let pattern = g:esearch#middleware#pattern#cache.get(a:text)
   else
-    let pattern = esearch#pattern#new(
-          \ a:text,
-          \ a:esearch.regex,
-          \ a:esearch.case,
-          \ a:esearch.textobj)
+    let pattern = esearch#pattern#new(a:esearch._adapter, a:text)
     call g:esearch#middleware#pattern#cache.set(a:text, pattern)
   endif
 
