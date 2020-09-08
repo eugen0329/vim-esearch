@@ -55,18 +55,18 @@ fu! esearch#out#qflist#update(...) abort
 
     let cwd = esearch#win#lcd(es.cwd)
     try
-      let parsed = es.parse(data, from, to)[0]
+      let entries = es.parse(data, from, to)[0]
       if es.adapter ==# 'git'
         if !has_key(es, '_git_dir') | let es._git_dir = es.git_dir(es.cwd) | endif
-        call s:set_git_urls(es, es._git_dir, parsed)
+        call s:set_git_urls(es, es._git_dir, entries)
       endif
 
       if esearch#buf#qftype(bufnr('%')) ==# 'qf'
         let curpos = getcurpos()[1:]
-        noau call setqflist(parsed, 'a')
+        noau call setqflist(entries, 'a')
         call cursor(curpos)
       else
-        noau call setqflist(parsed, 'a')
+        noau call setqflist(entries, 'a')
       endif
     finally
       call cwd.restore()

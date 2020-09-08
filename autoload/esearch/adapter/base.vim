@@ -45,7 +45,7 @@ fu! s:Base.command(esearch) abort dict
 endfu
 
 fu! s:Base.filetypes2args(filetypes) abort dict
-  return substitute(a:filetypes, '\<', '--', 'g')
+  return ''
 endfu
 
 " Some adapters require pwd to set explicitly (like grep) using '.'. For
@@ -62,5 +62,5 @@ fu! s:Base.outputs_separators(esearch) abort
 endfu
 
 fu! s:Base.is_success(request) abort
-  throw 'NotImplemented'
+  return a:request.status == 0
 endfu

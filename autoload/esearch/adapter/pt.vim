@@ -38,15 +38,11 @@ call extend(s:Pt, {
 
 let s:Pt.filetypes = ''
 
-fu! s:Pt.filetypes2args(filetypes) abort dict
-  return ''
-endfu
+fu! s:Pt.pwd() abort dict	
+  return '.'	
+endfu	
 
-fu! s:Pt.pwd() abort dict
-  return '.'
-endfu
-
-fu! s:Pt.is_success(request) abort
-  " https://github.com/monochromegane/the_platinum_searcher/issues/150
-  return a:request.status == 0
+fu! s:Pt.is_success(request) abort	
+  " https://github.com/monochromegane/the_platinum_searcher/issues/150	
+  return a:request.status == 0	
 endfu

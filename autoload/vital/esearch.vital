@@ -1,5 +1,5 @@
 esearch
-cfb276773e8640531d546e3fdfa0b412bea8d9df
+08087a6270f290e8d1974885f6705131b95691d9
 
 Async.Promise
 Data.OrderedSet
@@ -13,3 +13,4 @@ System.Filepath
 Vim.Highlight
 Vim.BufferManager
 Mapping
+Web.JSON

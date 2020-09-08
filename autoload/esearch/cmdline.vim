@@ -2,12 +2,12 @@ let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
 let g:esearch#cmdline#mappings = [
-      \ ['c', '<C-o>',      '<Plug>(esearch-open-menu)'],
-      \ ['c', '<C-r><C-r>', '<Plug>(esearch-cycle-regex)'],
-      \ ['c', '<C-s><C-s>', '<Plug>(esearch-cycle-case)'],
-      \ ['c', '<C-t><C-t>', '<Plug>(esearch-cycle-textobj)'],
-      \ ['c', '<C-p>',      '<Plug>(esearch-add-pattern)'],
-      \ ['c', '<bs>',        '<Plug>(esearch-BS)',    {'nowait': 1}],
+      \ ['c', '<C-o>',      '<Plug>(esearch-open-menu)'            ],
+      \ ['c', '<C-r><C-r>', '<Plug>(esearch-cycle-regex)'          ],
+      \ ['c', '<C-s><C-s>', '<Plug>(esearch-cycle-case)'           ],
+      \ ['c', '<C-t><C-t>', '<Plug>(esearch-cycle-textobj)'        ],
+      \ ['c', '<C-p>',      '<Plug>(esearch-add-pattern)'          ],
+      \ ['c', '<bs>',       '<Plug>(esearch-BS)',     {'nowait': 1}],
       \ ['c', '<c-w>',      '<Plug>(esearch-CTRL_W)', {'nowait': 1}],
       \ ['c', '<c-h>',      '<Plug>(esearch-CTRL_H)', {'nowait': 1}],
       \]

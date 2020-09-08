@@ -49,7 +49,7 @@ fu! esearch#out#win#header#in_progress() abort dict
   let spinner = s:spinner[self.header_tick % s:spinner_frames_count]
   let self.header_tick += 1
   return printf(self.header_fmt,
-        \ len(self.request.data)  - self.separators_count,
+        \ len(self.request.data)  - self.lines_delta,
         \ spinner,
         \ self.files_count,
         \ spinner
@@ -60,7 +60,7 @@ fu! esearch#out#win#header#finished_backend() abort dict
   let spinner = s:spinner[self.header_tick % s:spinner_frames_count]
   let self.header_tick += 1
   return printf(self.header_fmt,
-        \ len(self.request.data) - self.separators_count,
+        \ len(self.request.data) - self.lines_delta,
         \ self.files_count,
         \ spinner
         \ )
@@ -68,8 +68,8 @@ endfu
 
 fu! esearch#out#win#header#finished_render() abort dict
   return printf(s:finished_header,
-        \ len(self.request.data) - self.separators_count,
-        \ len(self.request.data) - self.separators_count == 1 ? 'line' : 'lines',
+        \ len(self.request.data) - self.lines_delta,
+        \ len(self.request.data) - self.lines_delta == 1 ? 'line' : 'lines',
         \ self.files_count,
         \ self.files_count == 1 ? 'file' : 'files',
         \ )
@@ -77,5 +77,5 @@ endfu
 
 fu! s:lines_word(esearch) abort
   if !empty(a:esearch.precision_hint) | return 'line(s)' | endif
-  return len(a:esearch.request.data) - a:esearch.separators_count == 1 ? 'line' : 'lines'
+  return len(a:esearch.request.data) - a:esearch.lines_delta == 1 ? 'line' : 'lines'
 endfu

@@ -25,7 +25,6 @@ call extend(s:Gogrep, {
       \})
 
 fu! s:Gogrep.command(esearch) abort dict
-
   if empty(a:esearch.paths)
     let paths = self.pwd()
   else
@@ -49,12 +48,4 @@ let s:Gogrep.filetypes = ''
 
 fu! s:Gogrep.pwd() abort dict
   return './...'
-endfu
-
-fu! s:Gogrep.filetypes2agogreps(filetypes) abort dict
-  return ''
-endfu
-
-fu! s:Gogrep.is_success(request) abort
-  return a:request.status == 0
 endfu

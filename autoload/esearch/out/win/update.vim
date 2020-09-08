@@ -1,14 +1,18 @@
 let s:INF = 88888888
 
+" lines_delta is used to update statistics in the header. It can be more or less
+" than zero depending on outputted separators ('' or '--') or multiple results
+" within a single line (happens only for semgrep at the moment). Lines list
+" isn't stored for performance reasons.
 fu! esearch#out#win#update#init(es) abort
   cal extend(a:es, {
-        \ 'contexts':           [],
-        \ 'files_count':        0,
-        \ 'separators_count':   0,
-        \ 'line_numbers_map':   [],
-        \ 'ctx_by_name':        {},
-        \ 'ctx_ids_map':        [],
-        \ 'render':             function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
+        \ 'contexts':         [],
+        \ 'files_count':      0,
+        \ 'lines_delta':      0,
+        \ 'line_numbers_map': [],
+        \ 'ctx_by_name':      {},
+        \ 'ctx_ids_map':      [],
+        \ 'render':           function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
         \})
   aug esearch_win_updates " init blank to prevent errors on cleanup
   aug END
