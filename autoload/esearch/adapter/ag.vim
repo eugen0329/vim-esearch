@@ -44,6 +44,6 @@ fu! s:Ag.is_success(request) abort
         \ || (a:request.status == 1 && empty(a:request.errors) && empty(a:request.data))
 endfu
 
-fu! s:Base.filetypes2args(filetypes) abort dict
+fu! s:Ag.filetypes2args(filetypes) abort dict
   return substitute(a:filetypes, '\<', '--', 'g')
 endfu

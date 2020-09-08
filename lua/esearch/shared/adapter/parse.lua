@@ -2,8 +2,12 @@ local util = require('esearch/util')
 local code = util.code
 local decode = util.decode
 local filereadable = util.filereadable
-local map = util.map
 local json_decode = util.json_decode
+local start = util.start
+local stop = util.stop
+local NIL = util.NIL
+local list = util.list
+local append = util.append
 
 local M = {}
 
@@ -136,25 +140,27 @@ function M.parse_line_with_column_number(line, cache)
   end
 end
 
--- Static Analysis Results Interchange Format
-function M.parse_semgrep(lines, entry, first_index)
+function M.parse_semgrep(lines, entry)
   local filename, lnum
   local entries = {}
-  local errors = {}
+  local errors = list()
 
-  for i = first_index, (#lines - 1 + first_index)  do
+  for i = start, stop(lines)  do
     local line = lines[i]
     local json = json_decode(line)
 
-    if json.errors and json.errors ~= {} then
-       errors = map(json.errors, function(e) return e.long_msg end)
+    if errors and json.errors ~= {} then
+      for j = start, stop(json.errors)  do
+        append(errors, json.errors[j].long_msg)
+      end
     end
 
     if json.results and json.results ~= {} then
-      for _, result in pairs(json.results) do
+      for j = start, stop(json.results)  do
+        local result = json.results[j]
         filename = result.path
-        local l = result.start.line
 
+        local l = result.start.line
         for text in result.extra.lines:gmatch("([^\n]+)") do
           lnum = tostring(l)
           entries[#entries + 1] = entry({
@@ -172,21 +178,21 @@ function M.parse_semgrep(lines, entry, first_index)
     end
   end
 
-  return entries, 0, errors
+  local lines_delta = #lines - #entries
+  return entries, lines_delta, errors
 end
 
-function M.parse(parserfn, lines, entry, first_index)
-  local separators_count = 0
+function M.parse(parserfn, lines, entry)
+  local lines_delta = 0
   local filename, lnum, text, rev
   local cache = {}
-  local errors = {}
 
   local entries = {}
-  for i = first_index, (#lines - 1 + first_index)  do
+  for i = start, stop(lines)  do
     local line = lines[i]
 
     if line:len() == 0 or line == '--' then
-      separators_count = separators_count + 1
+      lines_delta = lines_delta + 1
     else
       filename, lnum, text, rev = parserfn(line, cache)
       if filename then
@@ -200,7 +206,8 @@ function M.parse(parserfn, lines, entry, first_index)
     end
   end
 
-  return entries, separators_count, errors
+  local errors = NIL
+  return entries, lines_delta, errors
 end
 
 M.PARSERS = {

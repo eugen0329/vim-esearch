@@ -32,9 +32,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     retu
   endif
 
-  if !has_key(a:es.pattern, 'hl_match')
-    let a:es.pattern.hl_match = esearch#out#win#matches#pattern_each(a:es)
-  endif
+  let a:es.pattern.hl_match = esearch#out#win#matches#pattern_each(a:es)
 
   if a:es.win_matches_highlight_strategy ==# 'hlsearch'
     let @/ = a:es.pattern.hl_match

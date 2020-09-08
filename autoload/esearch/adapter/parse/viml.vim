@@ -14,7 +14,6 @@ endfu
 fu! s:semgrep(data, from, to) abort dict
   if empty(a:data) | return [[], 0] | endif
   let entries = []
-  let separators_count = 0
   let errors = 0
 
   let i = a:from
@@ -45,14 +44,15 @@ fu! s:semgrep(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return [entries, separators_count, errors]
+  let lines_delta = a:to + 1 - a:from - len(entries)
+  return [entries, lines_delta, errors]
 endfu
 
 " Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
 fu! s:withcol(data, from, to) abort dict
   if empty(a:data) | return [[], 0] | endif
   let entries = []
-  let separators_count = 0
+  let lines_delta = 0
 
   let i = a:from
   let limit = a:to + 1
@@ -61,7 +61,7 @@ fu! s:withcol(data, from, to) abort dict
     let line = a:data[i]
 
     if empty(line) || line ==# '--'
-      let separators_count += 1
+      let lines_delta += 1
       let i += 1 | continue
     endif
 
@@ -83,7 +83,7 @@ fu! s:withcol(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return [entries, separators_count, 0]
+  return [entries, lines_delta, 0]
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
@@ -103,7 +103,7 @@ let g:esearch#adapter#parse#viml#controls = {
 fu! s:generic(data, from, to) abort dict
   if empty(a:data) | return [[], 0] | endif
   let entries = []
-  let separators_count = 0
+  let lines_delta = 0
 
   let i = a:from
   let limit = a:to + 1
@@ -112,7 +112,7 @@ fu! s:generic(data, from, to) abort dict
     let line = a:data[i]
 
     if empty(line) || line ==# '--'
-      let separators_count += 1
+      let lines_delta += 1
       let i += 1 | continue
     endif
 
@@ -127,7 +127,7 @@ fu! s:generic(data, from, to) abort dict
     if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
   endwhile
 
-  return [entries, separators_count, 0]
+  return [entries, lines_delta, 0]
 endfu
 
 " Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename

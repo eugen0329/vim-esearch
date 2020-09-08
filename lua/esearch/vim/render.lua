@@ -4,7 +4,7 @@ local util  = require'esearch/util'
 local M = {}
 
 function M.render(data, esearch, parser)
-  local parsed, _separators_count = parse.lines(data, parser)
+  local parsed, lines_delta, errors = parse.lines(data, parser)
   local contexts         = esearch.contexts
   local line_numbers_map = esearch.line_numbers_map
   local ctx_ids_map      = esearch.ctx_ids_map
@@ -75,7 +75,7 @@ function M.render(data, esearch, parser)
     line = line + 1
   end
 
-  return tostring(files_count)
+  return tostring(files_count), tostring(lines_delta), errors
 end
 
 return M

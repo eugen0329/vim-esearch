@@ -23,7 +23,7 @@ if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let [a:esearch.files_count, separators_count, contexts, ctx_ids_map,
+      let [a:esearch.files_count, lines_delta, contexts, ctx_ids_map,
          \ line_numbers_map, ctx_by_name, a:esearch.slow_hl_enabled, errors] =
          \   luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])', [
          \     a:data[a:from : a:to], a:esearch.contexts[-1],
@@ -31,15 +31,12 @@ if g:esearch#has#nvim_lua
     finally
       call cwd.restore()
     endtry
-    let a:esearch.separators_count += separators_count
+    let a:esearch.lines_delta += lines_delta
     let a:esearch.contexts[-1] = contexts[0]
     call extend(a:esearch.contexts, contexts[1:])
     call extend(a:esearch.ctx_ids_map, ctx_ids_map)
     call extend(a:esearch.line_numbers_map, line_numbers_map)
-    if !empty(errors)
-      call esearch#stderr#incremental(a:esearch.adapter, errors) 
-      let a:esearch.request.errors += errors
-    endif
+    if !empty(errors) | call esearch#stderr#append(a:esearch, errors) | endif
     if type(ctx_by_name) ==# type({})
       call extend(a:esearch.ctx_by_name, ctx_by_name)
     endif
@@ -48,9 +45,10 @@ else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let a:esearch.files_count =
-            \ luaeval('esearch.render(_A.d, _A.e, _A.p)', 
+      let [a:esearch.files_count, a:esearch.lines_delta, errors] =
+            \ luaeval('vim.list({esearch.render(_A.d, _A.e, _A.p)})', 
             \   {'d': a:data[a:from : a:to], 'e': a:esearch, 'p': a:esearch._adapter.parser})
+      if !empty(errors) | call esearch#stderr#append(a:esearch, errors) | endif
     finally
       call cwd.restore()
     endtry

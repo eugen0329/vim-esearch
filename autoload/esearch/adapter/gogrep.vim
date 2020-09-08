@@ -25,7 +25,6 @@ call extend(s:Gogrep, {
       \})
 
 fu! s:Gogrep.command(esearch) abort dict
-
   if empty(a:esearch.paths)
     let paths = self.pwd()
   else

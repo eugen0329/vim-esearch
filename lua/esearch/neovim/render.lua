@@ -3,7 +3,7 @@ local util  = require'esearch/util'
 
 local M = {renderers = {}}
 
-function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to, separators_count, from_line)
+function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to, lines_delta, from_line)
   local contexts = {last_context}
   local line_numbers_map = {}
   local ctx_ids_map = {}
@@ -77,7 +77,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
   end
 
   return lines, files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name,
-         separators_count, slow_hl_enabled, deferred_calls
+         lines_delta, slow_hl_enabled, deferred_calls
 end
 
 function M.submit_updates(lines, contexts, deferred_calls, from_line)
@@ -94,7 +94,7 @@ function M.submit_updates(lines, contexts, deferred_calls, from_line)
 end
 
 function M.render(data, last_context, files_count, slow_hl_enabled, parser)
-  local parsed, separators_count, errors = parse.lines(data, parser)
+  local parsed, lines_delta, errors = parse.lines(data, parser)
   local lines, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
 
@@ -104,16 +104,16 @@ function M.render(data, last_context, files_count, slow_hl_enabled, parser)
   ctx_ids_map,
   line_numbers_map,
   ctx_by_name,
-  separators_count,
+  lines_delta,
   slow_hl_enabled,
   deferred_calls = M.prepare(last_context, files_count, slow_hl_enabled, parsed,
-                             1, #parsed, separators_count, from_line)
+                             1, #parsed, lines_delta, from_line)
 
   M.submit_updates(lines, contexts, deferred_calls, from_line)
 
   return {
     files_count,
-    separators_count,
+    lines_delta,
     contexts,
     ctx_ids_map,
     line_numbers_map,

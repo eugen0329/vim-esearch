@@ -1,6 +1,22 @@
 local M = {}
 
 if vim.api then
+  M.start = 1
+
+  function M.stop(tbl)
+    return #tbl
+  end
+
+  M.NIL = vim.NIL or {}
+
+  function M.list()
+    return {}
+  end
+
+  function M.append(tbl, val)
+    tbl[#tbl + 1] = val
+  end
+
   if vim.fn then -- neovim >= 0.5
     function M.json_decode(text)
       return vim.fn.json_decode(text)
@@ -33,6 +49,20 @@ if vim.api then
     end
   end
 else -- vim
+  M.start = 0
+  function M.stop(tbl)
+    return #tbl - 1
+  end
+  M.NIL = vim.list()
+
+  function M.list()
+    return vim.list()
+  end
+
+  function M.append(tbl, val)
+    tbl[#tbl] = val
+  end
+
   function M.json_decode(text)
     return vim.funcref('json_decode')(text)
   end
@@ -47,12 +77,6 @@ else -- vim
     cache[path] = result
     return result
   end
-end
-
-function M.map(tbl, cb)
-  local mapped = {}
-  for k, v in pairs(tbl) do mapped[k] = cb(v) end
-  return mapped
 end
 
 function M.is_true(val)
