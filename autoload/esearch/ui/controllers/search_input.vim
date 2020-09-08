@@ -127,10 +127,7 @@ fu! s:SearchInputController.render_input() abort
 
   let self.cmdline .= self.restore_cmdpos_chars()
   let self.pressed_mapped_key = 0
-
-  try
-    let self.cmdline = self.input()
-  endtry
+  let self.cmdline = self.input()
 
   if !empty(self.pressed_mapped_key)
     return call(self.pressed_mapped_key.handler, self.pressed_mapped_key.args)

@@ -26,11 +26,12 @@ fu! esearch#config#init(esearch) abort
 
   let g:esearch = extend(g:esearch, {
         \ 'last_id':                               0,
+        \ 'last_pattern':                          0,
         \ 'out':                                   'win',
         \ 'regex':                                 'literal',
         \ 'textobj':                               'none',
         \ 'adapters':                              {},
-        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'filetypes', 'paths', 'after', 'context', 'adapters', '_adapter'],
+        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'filetypes', 'paths', 'after', 'context', 'last_pattern', 'adapters', '_adapter'],
         \ 'paths':                                 esearch#shell#argv([]),
         \ 'filetypes':                             '',
         \ 'after':                                 0,

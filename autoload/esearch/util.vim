@@ -38,51 +38,6 @@ fu! esearch#util#clip(value, from, to) abort
   endif
 endfu
 
-fu! esearch#util#region_pos(region) abort
-  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
-  try
-    if esearch#util#is_visual(a:region.type)
-      silent exe 'normal! gv\<esc>'
-    elseif a:region.type ==# 'line'
-      silent exe "normal! '[V']\<esc>"
-    else
-      silent exe "normal! `[v`]\<esc>"
-    endif
-
-    return [getpos("'<")[1:2], getpos("'>")[1:2]]
-  finally
-    call options.restore()
-  endtry
-endfu
-
-fu! esearch#util#region_text(region) abort
-  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
-
-  try
-    if esearch#util#is_visual(a:region.type)
-      silent exe 'normal! gvy'
-    elseif a:region.type ==# 'line'
-      silent exe "normal! '[V']y"
-    else
-      silent exe 'normal! `[v`]y'
-    endif
-
-    return @@
-  finally
-    call options.restore()
-  endtry
-endfu
-
-fu! esearch#util#type2region(type) abort
-  if esearch#util#is_visual(a:type)
-    return {'type': a:type, 'begin': "'<", 'end': "'>"}
-  elseif a:type ==# 'line'
-    return {'type': a:type, 'begin': "'[", 'end': "']"}
-  else
-    return {'type': a:type, 'begin': '`[', 'end': '`]'}
-  endif
-endfu
-
 fu! esearch#util#operator_expr(operatorfunc) abort
   if mode(1)[:1] ==# 'no'
     return 'g@'

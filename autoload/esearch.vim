@@ -15,11 +15,11 @@ fu! esearch#init(...) abort
 endfu
 
 fu! esearch#opfunc_prefill(type) abort
-  return esearch#init({'prefill': ['region'], 'region': esearch#util#type2region(a:type)})
+  return esearch#init({'prefill': ['region'], 'region': a:type})
 endfu
 
 fu! esearch#opfunc_exec(type) abort
-  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type))})
+  return esearch#init({'pattern': esearch#region#text(a:type)})
 endfu
 
 " DEPRECATED

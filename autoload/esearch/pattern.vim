@@ -35,11 +35,10 @@ endfu
 
 fu! s:PatternSet.adapt(adapter) abort dict
   let kinds = a:adapter.pattern_kinds
+  if kinds ==# self.kinds.list | return | endif
 
-  if kinds !=# self.kinds.list
-    let self.kinds = esearch#util#cycle(kinds)
-    let self.patterns = esearch#util#stack([s:Pattern.from_kind(self.kinds.next(), self.patterns.top().str)])
-  endif
+  let self.kinds = esearch#util#cycle(kinds)
+  let self.patterns = esearch#util#stack([s:Pattern.from_kind(self.kinds.next(), self.patterns.top().str)])
 endfu
 
 fu! s:PatternSet.replace(str) abort dict

@@ -361,7 +361,7 @@ g:esearch.remember                                            *g:esearch.remembe
         Allowed values: a list of |g:esearch| field names
         Default: >
           ['case', 'textobj', 'regex', 'before',
-                \ 'filetypes', 'paths', 'after', 'context']
+                \ 'filetypes', 'paths', 'after', 'context', 'last_pattern']
 <        Example:~
 >
         let g:esearch.remember = ['case', 'regex', 'filetypes']

@@ -81,19 +81,13 @@ fu! esearch#out#win#modifiable#d(type) abort
 endfu
 
 fu! s:delete_region(type, key) abort
-  let [begin, end] = esearch#util#region_pos(esearch#util#type2region(a:type))
+  let [begin, end] = esearch#region#pos(a:type)
   let [line1, col1] = begin
   let [line2, col2] = end
 
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
   try
-    if esearch#util#is_visual(a:type)
-      silent exe 'normal! gv'.a:key
-    elseif a:type ==# 'line'
-      silent exe "normal! '[V']".a:key
-    else
-      silent exe 'normal! `[v`]'.a:key
-    endif
+    call esearch#region#exec(a:type, a:key)
 
     let state = deepcopy(b:esearch.undotree.head.state)
     if esearch#util#is_linewise(a:type)
@@ -105,7 +99,6 @@ fu! s:delete_region(type, key) abort
     endif
   finally
     call b:esearch.undotree.synchronize(state)
-    " call esearch#changes#unlock()
     call options.restore()
   endtry
 endfu

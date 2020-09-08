@@ -16,7 +16,7 @@ fu! s:PathInputController.render() abort dict
     endtry
 
     let [paths, error] = esearch#shell#split(user_input_in_shell_format)
-    if empty(error) == 0 | break | endif
+    if empty(error) | break | endif
 
     call s:Log.echon('ErrorMsg', " can't parse paths: " . error)
     call getchar()

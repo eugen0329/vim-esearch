@@ -28,7 +28,7 @@ endfu
 
 fu! esearch#prefill#region(esearch) abort
   if !empty(get(a:esearch, 'region'))
-    let text = esearch#util#region_text(a:esearch.region)
+    let text = esearch#region#text(a:esearch.region)
     return esearch#pattern#new(a:esearch._adapter, text)
   endif
 endfu

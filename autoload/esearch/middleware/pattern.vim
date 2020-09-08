@@ -10,16 +10,16 @@ fu! esearch#middleware#pattern#apply(esearch) abort
     if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif
 
     call esearch.pattern.splice(esearch)
-    let g:esearch.last_pattern = esearch.pattern
   else
     if type(esearch.pattern) ==# type('')
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
     endif
     call esearch.pattern.adapt(esearch._adapter)
-    " avoid live_update if the pattern is present unless is it's a part of live_exec flow
     call esearch.pattern.splice(esearch)
+    " avoid live_update if the pattern is present unless is it's a part of live_exec flow
     let esearch.live_update = esearch.live_exec
   endif
+  let esearch.last_pattern = esearch.pattern
 
   return esearch
 endfu
