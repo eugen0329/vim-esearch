@@ -3,10 +3,6 @@ let s:String  = vital#esearch#import('Data.String')
 " Handle stderr from backends
 
 fu! esearch#stderr#incremental(adapter, errors) abort
-
-endfu
-
-fu! esearch#stderr#incremental(adapter, errors) abort
   for message in a:errors
     call esearch#util#warn(a:adapter . ': ' . message)
   endfor
