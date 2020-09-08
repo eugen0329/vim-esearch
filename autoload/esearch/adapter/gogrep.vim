@@ -50,11 +50,3 @@ let s:Gogrep.filetypes = ''
 fu! s:Gogrep.pwd() abort dict
   return './...'
 endfu
-
-fu! s:Gogrep.filetypes2agogreps(filetypes) abort dict
-  return ''
-endfu
-
-fu! s:Gogrep.is_success(request) abort
-  return a:request.status == 0
-endfu

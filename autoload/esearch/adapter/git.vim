@@ -73,7 +73,6 @@ fu! s:Git.command(esearch) abort dict
         \ self.mandatory_options,
         \ self.options,
         \ context,
-        \ self.filetypes2args(a:esearch.filetypes),
         \ a:esearch.pattern.arg,
         \ paths,
         \], ' ')
@@ -81,10 +80,6 @@ fu! s:Git.command(esearch) abort dict
 endfu
 
 let s:Git.filetypes = ''
-
-fu! s:Git.filetypes2args(filetypes) abort dict
-  return ''
-endfu
 
 fu! s:Git.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors

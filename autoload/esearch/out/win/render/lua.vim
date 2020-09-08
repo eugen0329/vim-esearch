@@ -24,7 +24,7 @@ if g:esearch#has#nvim_lua
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
       let [a:esearch.files_count, separators_count, contexts, ctx_ids_map,
-         \ line_numbers_map, ctx_by_name, a:esearch.slow_hl_enabled] =
+         \ line_numbers_map, ctx_by_name, a:esearch.slow_hl_enabled, errors] =
          \   luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])', [
          \     a:data[a:from : a:to], a:esearch.contexts[-1],
          \     a:esearch.files_count, a:esearch.slow_hl_enabled, a:esearch._adapter.parser])
@@ -36,6 +36,10 @@ if g:esearch#has#nvim_lua
     call extend(a:esearch.contexts, contexts[1:])
     call extend(a:esearch.ctx_ids_map, ctx_ids_map)
     call extend(a:esearch.line_numbers_map, line_numbers_map)
+    if !empty(errors)
+      call esearch#stderr#incremental(a:esearch.adapter, errors) 
+      let a:esearch.request.errors += errors
+    endif
     if type(ctx_by_name) ==# type({})
       call extend(a:esearch.ctx_by_name, ctx_by_name)
     endif

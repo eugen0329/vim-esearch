@@ -1,5 +1,9 @@
 local util = require('esearch/util')
-local code, decode, filereadable = util.code, util.decode, util.filereadable
+local code = util.code
+local decode = util.decode
+local filereadable = util.filereadable
+local map = util.map
+local json_decode = util.json_decode
 
 local M = {}
 
@@ -119,7 +123,6 @@ function M.parse_line_with_column_number(line, cache)
   name, lnum, text = line:match('(.-)[:%-](%d+)[:%-]%d+[:%-](.*)')
   if name and text and filereadable(name, cache) then return name, lnum, text, rev end
 
-
   local name_end = 1
   while true do
     name_end = line:find('[:%-]%d+[:%-]%d+[:%-]', name_end + 1)
@@ -133,9 +136,77 @@ function M.parse_line_with_column_number(line, cache)
   end
 end
 
+-- Static Analysis Results Interchange Format
+function M.parse_semgrep(lines, entry, first_index)
+  local filename, lnum
+  local entries = {}
+  local errors = {}
+
+  for i = first_index, (#lines - 1 + first_index)  do
+    local line = lines[i]
+    local json = json_decode(line)
+
+    if json.errors and json.errors ~= {} then
+       errors = map(json.errors, function(e) return e.long_msg end)
+    end
+
+    if json.results and json.results ~= {} then
+      for _, result in pairs(json.results) do
+        filename = result.path
+        local l = result.start.line
+
+        for text in result.extra.lines:gmatch("([^\n]+)") do
+          lnum = tostring(l)
+          entries[#entries + 1] = entry({
+            filename = filename,
+            lnum = lnum,
+            text  = text,
+          })
+          l = l + 1
+        end
+
+        if l - 1 ~= result['end'].line then
+          print('semgrep: wrong lines parsing')
+        end
+      end
+    end
+  end
+
+  return entries, 0, errors
+end
+
+function M.parse(parserfn, lines, entry, first_index)
+  local separators_count = 0
+  local filename, lnum, text, rev
+  local cache = {}
+  local errors = {}
+
+  local entries = {}
+  for i = first_index, (#lines - 1 + first_index)  do
+    local line = lines[i]
+
+    if line:len() == 0 or line == '--' then
+      separators_count = separators_count + 1
+    else
+      filename, lnum, text, rev = parserfn(line, cache)
+      if filename then
+        entries[#entries + 1] = entry({
+          filename = filename,
+          lnum     = lnum,
+          text     = text:gsub("[\r\n]", ''),
+          rev      = rev,
+        })
+      end
+    end
+  end
+
+  return entries, separators_count, errors
+end
+
 M.PARSERS = {
-  generic = M.parse_line_generic,
-  withcol = M.parse_line_with_column_number
+  generic = function(...) return M.parse(M.parse_line_generic, ...)            end,
+  withcol = function(...) return M.parse(M.parse_line_with_column_number, ...) end,
+  semgrep = function(...) return M.parse_semgrep(...)                          end
 }
 
 return M

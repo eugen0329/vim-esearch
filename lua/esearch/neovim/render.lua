@@ -94,7 +94,7 @@ function M.submit_updates(lines, contexts, deferred_calls, from_line)
 end
 
 function M.render(data, last_context, files_count, slow_hl_enabled, parser)
-  local parsed, separators_count = parse.lines(data, parser)
+  local parsed, separators_count, errors = parse.lines(data, parser)
   local lines, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
 
@@ -119,6 +119,7 @@ function M.render(data, last_context, files_count, slow_hl_enabled, parser)
     line_numbers_map,
     ctx_by_name,
     slow_hl_enabled,
+    errors
   }
 end
 
