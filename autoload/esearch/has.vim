@@ -7,6 +7,7 @@ let g:esearch#has#timers = has('timers')
 let g:esearch#has#debounce = has('timers')
 let g:esearch#has#throttle = has('timers')
 let g:esearch#has#bufadd = exists('*bufadd')
+let g:esearch#has#json_decode = exists('*json_decode')
 let g:esearch#has#bufline_functions = exists('*setbufline') && exists('*deletebufline')
 let g:esearch#has#meta_key = has('nvim') || has('gui_running')
 let g:esearch#has#gui_colors = has('gui_running') || has('termguicolors') && &termguicolors || has('nvim') && $NVIM_TUI_ENABLE_TRUE_COLOR " from papercolors

@@ -4,7 +4,12 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 fu! esearch#out#win#render#viml#do(bufnr, data, from, to, esearch) abort
   let cwd = esearch#win#lcd(a:esearch.cwd)
   try
-    let [parsed, separators_count] = a:esearch.parse(a:data, a:from, a:to)
+    let [parsed, separators_count, errors] = a:esearch.parse(a:data, a:from, a:to)
+    if !empty(errors)
+      call esearch#stderr#incremental(a:esearch.adapter, errors) 
+      let a:esearch.request.errors += errors
+    endif
+
     let a:esearch.separators_count += separators_count
     let line = line('$') + 1
     let i = 0

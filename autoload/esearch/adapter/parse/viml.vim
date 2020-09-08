@@ -1,7 +1,51 @@
-" Legacy parser
+" Legacy parsers
+
+if g:esearch#has#json_decode
+  let s:json_decode = function('json_decode')
+else
+  let s:json_decode = vital#esearch#import('Web.JSON').decode
+endif
 
 fu! esearch#adapter#parse#viml#import() abort
   return s:export
+endfu
+
+" Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
+fu! s:semgrep(data, from, to) abort dict
+  if empty(a:data) | return [[], 0] | endif
+  let entries = []
+  let separators_count = 0
+  let errors = 0
+
+  let i = a:from
+  let limit = a:to + 1
+
+  while i < limit
+    let json = s:json_decode(a:data[i])
+
+    if has_key(json, 'errors') && !empty(json.errors)
+      let errors = map(json.errors, 'v:val.long_msg')
+    endif
+
+    if has_key(json, 'results') && !empty(json.results)
+      for result in json.results
+        let filename = result.path
+        let l = result.start.line
+        for text in split(result.extra.lines, "\n")
+          call add(entries, {'filename': filename, 'lnum': string(result.start.line), 'text': text})
+          let l += l
+        endfor
+      endfor
+
+      if l - 1 != result['end'].line
+        echo 'semgrep: wrong lines parsing'
+      endif
+    endif
+
+    let i += 1
+  endwhile
+
+  return [entries, separators_count, errors]
 endfu
 
 " Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
@@ -39,7 +83,7 @@ fu! s:withcol(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return [entries, separators_count]
+  return [entries, separators_count, 0]
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
@@ -83,7 +127,7 @@ fu! s:generic(data, from, to) abort dict
     if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
   endwhile
 
-  return [entries, separators_count]
+  return [entries, separators_count, 0]
 endfu
 
 " Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename
@@ -168,4 +212,5 @@ endfu
 let s:export = {
         \ 'generic': function('<SID>generic'),
         \ 'withcol': function('<SID>withcol'),
+        \ 'semgrep': function('<SID>semgrep'),
         \}
