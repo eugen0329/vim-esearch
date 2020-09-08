@@ -14,12 +14,12 @@ let s:PatternSet = {}
 fu! s:PatternSet.splice(esearch) abort dict
   let self.arg = join(map(copy(self.patterns.list), 'v:val.opt . v:val.convert(a:esearch).arg'))
 
-  let top = self.patterns.top()
-  if self.patterns.len() > 1 || !empty(top.opt)
+  if self.patterns.len() > 1
     let self.str = self.arg
     return
   endif
 
+  let top = self.patterns.top()
   let self.str = top.str
   if has_key(top, 'literal') | let self.literal = top.literal | endif
   if has_key(top, 'pcre')    | let self.pcre = top.pcre       | endif

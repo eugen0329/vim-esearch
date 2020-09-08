@@ -333,8 +333,3 @@ else
     call call(a:funcref, a:000)
   endfu
 endif
-
-" let cy = s:Cycle.new([1,2,3])
-" call cy.next()
-" call cy.next()
-" ec cy.tolist()
