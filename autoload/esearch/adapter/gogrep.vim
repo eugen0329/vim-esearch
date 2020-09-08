@@ -58,4 +58,3 @@ endfu
 fu! s:Gogrep.is_success(request) abort
   return a:request.status == 0
 endfu
-

@@ -57,7 +57,7 @@ fu! s:Git.command(esearch) abort dict
   if empty(a:esearch.paths)
     let paths = self.pwd()
   else
-    let paths = esearch#shell#join(a:esearch.paths)
+    let paths = esearch#shell#join_pathspec(a:esearch.paths)
   endif
 
   let context = ''
@@ -75,9 +75,9 @@ fu! s:Git.command(esearch) abort dict
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
         \ a:esearch.pattern.arg,
-        \ '--',
         \ paths,
         \], ' ')
+
 endfu
 
 let s:Git.filetypes = ''
