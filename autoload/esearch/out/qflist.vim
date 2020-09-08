@@ -55,7 +55,9 @@ fu! esearch#out#qflist#update(...) abort
 
     let cwd = esearch#win#lcd(es.cwd)
     try
-      let entries = es.parse(data, from, to)[0]
+      let [entries, _, errors] = es.parse(data, from, to)
+      if !empty(errors) | call esearch#stderr#append(es, errors) | endif
+
       if es.adapter ==# 'git'
         if !has_key(es, '_git_dir') | let es._git_dir = es.git_dir(es.cwd) | endif
         call s:set_git_urls(es, es._git_dir, entries)

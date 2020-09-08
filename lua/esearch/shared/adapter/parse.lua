@@ -3,11 +3,9 @@ local code = util.code
 local decode = util.decode
 local filereadable = util.filereadable
 local json_decode = util.json_decode
-local start = util.start
-local stop = util.stop
+local start, stop = util.start, util.stop
 local NIL = util.NIL
-local list = util.list
-local append = util.append
+local list, append = util.list, util.append
 
 local M = {}
 
@@ -140,6 +138,7 @@ function M.parse_line_with_column_number(line, cache)
   end
 end
 
+-- Parse lines in JSON format from semgrep adapter
 function M.parse_semgrep(lines, entry)
   local filename, lnum
   local entries = {}

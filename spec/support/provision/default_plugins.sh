@@ -5,11 +5,6 @@
 
 plugins_dir="${1:-"$provision_dir/../vim_plugins"}"
 
-install_vim_plugin                            \
-  'https://github.com/rhysd/clever-f.vim.git' \
-  "$plugins_dir/clever-f.vim"                 \
-  '48706f4124d77d814de0ad5fa264fd73ab35df38'
-
 install_vim_plugin                                \
   'https://github.com/mg979/vim-visual-multi.git' \
   "$plugins_dir/vim-visual-multi"

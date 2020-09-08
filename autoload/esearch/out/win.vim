@@ -35,7 +35,7 @@ fu! esearch#out#win#init(esearch) abort
   if !was_clean && has_key(b:esearch, 'view') | let view = remove(b:esearch, 'view') | endif
   let b:esearch = extend(a:esearch, {
         \ 'bufnr':           bufnr('%'),
-        \ 'mode':            'normal',
+        \ 'modifiable':      0,
         \ 'reload':          function('<SID>reload'),
         \ 'slow_hl_enabled': a:esearch.win_contexts_syntax || a:esearch.win_cursor_linenr_highlight,
         \})
@@ -96,12 +96,14 @@ endfu
 
 fu! s:init_live_updated(esearch) abort
   let b:esearch.live_exec = 0
+  let abspath = esearch#util#abspath(a:esearch.cwd, a:esearch.name)
   try
-    call esearch#buf#rename(s:Filepath.join(a:esearch.cwd, a:esearch.name))
+    call esearch#buf#rename(abspath)
+    redrawstatus
   catch /E95:/ " Buffer with this name already exists
-    let bufnr = bufnr('')
-    call a:esearch.win_new(a:esearch)
-    if bufnr !=# bufnr('') | exe bufnr 'bwipeout' | endif
+    let bufnr = esearch#buf#find(abspath)
+    exe bufnr 'bdelete'
+    call esearch#buf#rename(abspath)
   endtry
   return a:esearch
 endfu
@@ -197,7 +199,12 @@ fu! s:init_mappings() abort
   vnoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
   onoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
 
-  cnoremap <silent><buffer> <Plug>(esearch-win-CR) <C-\>eesearch#out#win#modifiable#cmdline#replace()<CR><CR>
+  cnoremap <silent><buffer>       <Plug>(esearch-win-CR) <C-\>eesearch#out#win#modifiable#cmdline#replace()<CR><CR>
+  inoremap <expr><silent><buffer> <Plug>(esearch-win-CR) esearch#out#win#modifiable#i_CR()
+
+
+  noremap <expr><silent><Plug>(esearch-win-d) esearch#util#operator_expr('esearch#out#win#modifiable#d')
+  noremap <expr><silent><Plug>(esearch-win-c) esearch#util#operator_expr('esearch#out#win#modifiable#c')
 
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
@@ -209,18 +216,6 @@ fu! s:reload() abort dict
   call esearch#backend#{self.backend}#abort(self.bufnr)
   let self.live_update = 0
   return esearch#init(self)
-endfu
-
-fu! esearch#out#win#_state(esearch) abort
-  if a:esearch.mode ==# 'normal'
-    " Probably a better idea would be to return only paris, stored in states.
-    " Storing in normal mode within undotree with a single node is not the best
-    " option as it seems to create extra overhead during #update call
-    " (especially on searches with thousands results; according to profiling).
-    return a:esearch
-  else
-    return a:esearch.undotree.head.state
-  endif
 endfu
 
 " Bind view to a line within a context.

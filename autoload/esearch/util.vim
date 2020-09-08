@@ -38,6 +38,23 @@ fu! esearch#util#clip(value, from, to) abort
   endif
 endfu
 
+fu! esearch#util#region_pos(region) abort
+  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+  try
+    if esearch#util#is_visual(a:region.type)
+      silent exe 'normal! gv\<esc>'
+    elseif a:region.type ==# 'line'
+      silent exe "normal! '[V']\<esc>"
+    else
+      silent exe "normal! `[v`]\<esc>"
+    endif
+
+    return [getpos("'<")[1:2], getpos("'>")[1:2]]
+  finally
+    call options.restore()
+  endtry
+endfu
+
 fu! esearch#util#region_text(region) abort
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
 
@@ -79,6 +96,14 @@ endfu
 
 fu! esearch#util#is_visual(mode) abort
   return a:mode =~? "^[vs\<C-v>]$"
+endfu
+
+fu! esearch#util#is_linewise(mode) abort
+  return a:mode ==# "V" || a:mode ==# 'line'
+endfu
+
+fu! esearch#util#is_charwise(mode) abort
+  return a:mode ==# "v" || a:mode ==# 'char'
 endfu
 
 fu! esearch#util#slice(dict, keys) abort

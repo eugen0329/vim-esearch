@@ -4,9 +4,14 @@ let s:FiletypeInputController = esearch#ui#component()
 fu! s:FiletypeInputController.render() abort dict
   let s:_adapter = self.props._adapter
   redraw!
-  let filetypes = input('[filetypes] > ',
-        \ self.props.filetypes,
-        \ 'customlist,esearch#ui#controllers#filetype_input#complete')
+
+  try
+    let filetypes = input('[filetypes] > ',
+          \ self.props.filetypes,
+          \ 'customlist,esearch#ui#controllers#filetype_input#complete')
+  catch /Vim:Interrupt/
+    return self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
+  endtry
 
   call self.props.dispatch({'type': 'SET_FILETYPES', 'filetypes': filetypes})
   call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})

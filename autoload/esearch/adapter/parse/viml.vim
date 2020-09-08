@@ -10,7 +10,7 @@ fu! esearch#adapter#parse#viml#import() abort
   return s:export
 endfu
 
-" Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
+" Parse lines in JSON format from semgrep adapter
 fu! s:semgrep(data, from, to) abort dict
   if empty(a:data) | return [[], 0] | endif
   let entries = []

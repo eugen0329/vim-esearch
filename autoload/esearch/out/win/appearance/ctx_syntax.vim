@@ -126,7 +126,7 @@ endfu
 
 fu! s:hl(es, l1, l2) abort
   if !a:es.slow_hl_enabled || line('$') < 3 || !a:es.is_current() | retu | en
-  let s = esearch#out#win#_state(a:es)
+  let s = a:es.modifiable ? a:es.undotree.head.state : a:es
   for c in b:esearch.contexts[s.ctx_ids_map[a:l1]:s.ctx_ids_map[a:l2]]
     if !c.loaded_syntax | cal s:def_ctx_region(a:es,c) | en
   endfo

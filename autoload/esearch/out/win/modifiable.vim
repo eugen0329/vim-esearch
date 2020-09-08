@@ -1,38 +1,47 @@
 fu! esearch#out#win#modifiable#init() abort
-  let b:esearch.mode = 'edit'
-  let v:errors = []
-  setl modifiable
-  setl undolevels=1000
-  setl noautoindent nosmartindent " problems with insert
-  setl formatoptions=
-  setl noswapfile
+  let b:esearch.modifiable = 1
+  setlocal modifiable undolevels=1000 noautoindent nosmartindent formatoptions= noswapfile nomodified
 
-  set buftype=acwrite
-  aug ESearchWinModifiable
+  setl buftype=acwrite
+  aug esearch_win_modifiable
     au! * <buffer>
     au BufWriteCmd <buffer> call s:write_cmd()
+    au TextChanged,TextChangedI,TextChangedP <buffer> call s:text_changed()
   aug END
-
   let b:esearch.undotree = esearch#undotree#new({
         \ 'ctx_ids_map': b:esearch.ctx_ids_map,
         \ 'line_numbers_map': b:esearch.line_numbers_map,
-        \ })
-  call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
-  call esearch#changes#add_observer(function('<SID>handle'))
-
-  call esearch#option#make_local_to_buffer('backspace', 'indent,start', 'InsertEnter')
-  set nomodified
+        \})
 
   call esearch#compat#visual_multi#init()
-  call esearch#compat#multiple_cursors#init()
 endfu
 
 fu! esearch#out#win#modifiable#uninit(esearch) abort
-  call esearch#option#reset()
-  aug ESearchWinModifiable
+  aug esearch_win_modifiable
     au! * <buffer>
   aug END
-  call esearch#changes#unlisten_for_current_buffer()
+endfu
+
+fu! s:text_changed() abort
+  if has_key(b:esearch.undotree.nodes, changenr())
+    call b:esearch.undotree.checkout(changenr())
+  endif
+
+  let state = b:esearch.undotree.head.state
+  let delta = len(state.line_numbers_map) - (line('$') + 1)
+  if delta == 0 | return | endif
+
+  if delta < 0
+    let state = deepcopy(state)
+    let state.line_numbers_map += repeat([state.ctx_ids_map[-1]], -delta)
+    let state.ctx_ids_map += repeat([state.ctx_ids_map[-1]], -delta)
+  elseif delta > 0
+    let state = deepcopy(state)
+    call remove(state.line_numbers_map, -delta, -1)
+    call remove(state.ctx_ids_map, -delta, -1)
+  endif
+
+  call b:esearch.undotree.synchronize(state)
 endfu
 
 fu! s:write_cmd() abort
@@ -59,34 +68,44 @@ fu! s:write_cmd() abort
   call esearch#writer#do(diff, b:esearch, v:cmdbang)
 endfu
 
-fu! s:handle(event) abort
-  if a:event.id =~# '^n-motion' || a:event.id =~# '^n-change'
-        \  || a:event.id =~# '^v-delete' || a:event.id =~# '^V-line-delete'
-        \  || a:event.id =~# '^V-line-change'
-    call esearch#out#win#modifiable#delete_multiline#handle(a:event)
-  elseif a:event.id =~# 'undo'
-    call esearch#out#win#modifiable#undo#handle(a:event)
-  elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-gn'
-        \ || a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
-    let debug = esearch#out#win#modifiable#normal#inline#handle(a:event)
-  elseif a:event.id =~# 'i-inline'
-    let debug = esearch#out#win#modifiable#insert#inline#handle(a:event)
-  elseif  a:event.id =~# 'i-delete-newline'
-    let debug = esearch#out#win#modifiable#insert#delete_newlines#handle(a:event)
-  elseif  a:event.id =~# 'blockwise-visual'
-    call esearch#out#win#modifiable#blockwise_visual#handle(a:event)
-  elseif  a:event.id =~# 'i-add-newline'
-    call esearch#out#win#modifiable#insert#add_newlines#handle(a:event)
-  elseif a:event.id =~# 'join'
-    call esearch#out#win#modifiable#unsupported#handle(a:event)
-  else
-    call esearch#out#win#modifiable#unsupported#handle(a:event)
-  endif
+fu! esearch#out#win#modifiable#i_CR() abort
+  return ''
+endfu
 
-  if g:esearch#env isnot 0
-    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
-    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
-    let a:event.errors = len(v:errors)
-    " call esearch#debug#log(a:event,  len(v:errors))
-  endif
+fu! esearch#out#win#modifiable#c(type) abort
+  return s:delete_region(a:type, 'c')
+endfu
+
+fu! esearch#out#win#modifiable#d(type) abort
+  return s:delete_region(a:type, 'd')
+endfu
+
+fu! s:delete_region(type, key) abort
+  let [begin, end] = esearch#util#region_pos(esearch#util#type2region(a:type))
+  let [line1, col1] = begin
+  let [line2, col2] = end
+
+  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+  try
+    if esearch#util#is_visual(a:type)
+      silent exe 'normal! gv'.a:key
+    elseif a:type ==# 'line'
+      silent exe "normal! '[V']".a:key
+    else
+      silent exe 'normal! `[v`]'.a:key
+    endif
+
+    let state = deepcopy(b:esearch.undotree.head.state)
+    if esearch#util#is_linewise(a:type)
+      call remove(state.line_numbers_map, line1, line2)
+      call remove(state.ctx_ids_map, line1, line2)
+    elseif esearch#util#is_charwise(a:type) && line1 < line2
+      call remove(state.line_numbers_map, line1 + 1, line2)
+      call remove(state.ctx_ids_map, line1 + 1, line2)
+    endif
+  finally
+    call b:esearch.undotree.synchronize(state)
+    " call esearch#changes#unlock()
+    call options.restore()
+  endtry
 endfu
