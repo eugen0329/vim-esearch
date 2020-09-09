@@ -3,15 +3,15 @@ let s:SearchPrompt        = esearch#ui#prompt#search#import()
 let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 let s:INF = 88888888
 
-cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>emit', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>emit', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>emit', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-add-pattern)   <C-r>=<SID>interrupt('<SID>emit', 'ADD_PATTERN')<CR><CR>
+cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<CR><CR>
+cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<CR><CR>
+cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<CR><CR>
+cnoremap <Plug>(esearch-add-pattern)   <C-r>=<SID>interrupt('<SID>dispatch', 'ADD_PATTERN')<CR><CR>
 cnoremap <Plug>(esearch-open-menu)     <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
-cnoremap <expr> <Plug>(esearch-BS)     <SID>check_if_pop_needed("\<bs>")
-cnoremap <expr> <Plug>(esearch-CTRL_W) <SID>check_if_pop_needed("\<c-w>")
-cnoremap <expr> <Plug>(esearch-CTRL_H) <SID>check_if_pop_needed("\<c-h>")
+cnoremap <expr> <Plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
+cnoremap <expr> <Plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
+cnoremap <expr> <Plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
 
 let s:self = 0
 let s:SearchInputController = esearch#ui#component()
@@ -150,7 +150,7 @@ fu! s:SearchInputController.restore_cmdpos_chars() abort
   return repeat("\<Left>", strchars(self.cmdline) + 1 - self.props.cmdpos)
 endfu
 
-fu! s:check_if_pop_needed(fallback) abort
+fu! s:try_pop_pattern(fallback) abort
   if empty(getcmdline()) && len(s:self.props.pattern.patterns.list) > 1
     let s:self.pressed_mapped_key = {'handler': function('<SID>pop'), 'args': a:000}
     call s:self.props.dispatch({'type': 'SET_CMDPOS', 'cmdpos': s:INF})
@@ -175,7 +175,7 @@ fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
-fu! s:emit(event_type) abort dict
+fu! s:dispatch(event_type) abort dict
   call s:self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': s:self.cmdline})
   call s:self.props.dispatch({'type': a:event_type})
 endfu

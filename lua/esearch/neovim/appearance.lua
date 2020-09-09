@@ -40,11 +40,11 @@ function M.highlight_ui(bufnr, from, to)
     if i == 1 and from < 1 then
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
       local pos1, pos2 =  text:find('%d+')
-      if not pos2 then goto continue end
+      if (pos1 or 0) < 2 then goto continue end
       -- 2 is subtracted to capture less-than-or-equl-to sign
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
       pos1, pos2 =  text:find('%d+', pos2 + 1)
-      if not pos2 then goto continue end
+      if (pos1 or 0) < 1 then goto continue end
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
     elseif text:len() == 0 then -- luacheck: ignore
       -- separators are not highlighted

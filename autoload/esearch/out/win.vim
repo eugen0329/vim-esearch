@@ -89,7 +89,9 @@ fu! esearch#out#win#init(esearch) abort
   " If there are any results ready - try to add the highlights prematurely
   " without waiting for debouncing callback firing.
   call esearch#out#win#appearance#matches#hl_viewport(b:esearch)
-  call esearch#out#win#appearance#ctx_syntax#hl_viewport(b:esearch)
+  if b:esearch.win_contexts_syntax
+    call esearch#out#win#appearance#ctx_syntax#hl_viewport(b:esearch)
+  endif
 
   return b:esearch
 endfu
@@ -164,47 +166,50 @@ fu! esearch#out#win#map(lhs, rhs) abort
 endfu
 
 fu! s:init_mappings() abort
-  nnoremap <silent><buffer> <Plug>(esearch-win-reload)            :<C-U>cal b:esearch.reload()<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-open)              :<C-U>cal b:esearch.open('edit')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-tabopen)           :<C-U>cal b:esearch.open('tabnew')<cr>
-  nnoremap <silent><buffer> <Plug>(esearch-win-tabopen:stay)      :<C-U>cal b:esearch.open('tabnew', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split)             :<C-U>cal b:esearch.open('new')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split:stay)        :<C-U>cal b:esearch.open('new', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split:reuse)       :<C-U>cal b:esearch.open('new', {'reuse': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-split:reuse:stay)  :<C-U>cal b:esearch.open('new', {'stay': 1, 'reuse': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit)            :<C-U>cal b:esearch.open('vnew')<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit:stay)       :<C-U>cal b:esearch.open('vnew', {'stay': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit:reuse)      :<C-U>cal b:esearch.open('vnew', {'reuse': 1})<CR>
-  nnoremap <silent><buffer> <Plug>(esearch-win-vsplit:reuse:stay) :<C-U>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<CR>
+  nnoremap <silent><buffer> <plug>(esearch-win-reload)            :<c-u>cal b:esearch.reload()<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-open)              :<c-u>cal b:esearch.open('edit')<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-tabopen)           :<c-u>cal b:esearch.open('tabnew')<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-tabopen:stay)      :<c-u>cal b:esearch.open('tabnew', {'stay': 1})<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-split)             :<c-u>cal b:esearch.open('new')<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-split:stay)        :<c-u>cal b:esearch.open('new', {'stay': 1})<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-split:reuse)       :<c-u>cal b:esearch.open('new', {'reuse': 1})<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-split:reuse:stay)  :<c-u>cal b:esearch.open('new', {'stay': 1, 'reuse': 1})<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-vsplit)            :<c-u>cal b:esearch.open('vnew')<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-vsplit:stay)       :<c-u>cal b:esearch.open('vnew', {'stay': 1})<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse)      :<c-u>cal b:esearch.open('vnew', {'reuse': 1})<cr>
+  nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse:stay) :<c-u>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<cr>
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview)         :<C-U>cal b:esearch.preview_zoom()<CR>
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview:enter)   :<C-U>cal b:esearch.preview_enter()<CR>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.preview_zoom()<cr>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.preview_enter()<cr>
   else
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview)         :<C-U>cal b:esearch.split_preview_open('vnew')<CR>
-    nnoremap <silent><buffer> <Plug>(esearch-win-preview:enter)   :<C-U>cal b:esearch.split_preview_open('vnew', {'stay': 0})<CR>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.split_preview_open('vnew')<cr>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.split_preview_open('vnew', {'stay': 0})<cr>
   endif
 
-  noremap  <silent><buffer> <Plug>(esearch-win-jump:filename:up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1)<CR>
-  noremap  <silent><buffer> <Plug>(esearch-win-jump:filename:down) :<C-U>cal b:esearch.jump2filename(1, v:count1)<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump:filename:up)   :<C-U>cal b:esearch.jump2filename(-1, v:count1, 'v')<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump:filename:down) :<C-U>cal b:esearch.jump2filename(1, v:count1, 'v')<CR>
+  noremap  <silent><buffer> <plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-1, v:count1)<cr>
+  noremap  <silent><buffer> <plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(1, v:count1)<cr>
+  vnoremap <silent><buffer> <plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-1, v:count1, 'v')<cr>
+  vnoremap <silent><buffer> <plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(1, v:count1, 'v')<cr>
 
-  noremap  <silent><buffer> <Plug>(esearch-win-jump:entry:up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1)<CR>
-  noremap  <silent><buffer> <Plug>(esearch-win-jump:entry:down)    :<C-U>cal b:esearch.jump2entry(1, v:count1)<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump:entry:up)      :<C-U>cal b:esearch.jump2entry(-1, v:count1, 'v')<CR>
-  vnoremap <silent><buffer> <Plug>(esearch-win-jump:entry:down)    :<C-U>cal b:esearch.jump2entry(1, v:count1, 'v')<CR>
+  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-1, v:count1)<cr>
+  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(1, v:count1)<cr>
+  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-1, v:count1, 'v')<cr>
+  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(1, v:count1, 'v')<cr>
 
-  vnoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
-  onoremap <silent><buffer> <Plug>(textobj-esearch-match-i) :<C-U>cal esearch#out#win#textobj#match_i(v:count1)<CR>
-  vnoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
-  onoremap <silent><buffer> <Plug>(textobj-esearch-match-a) :<C-U>cal esearch#out#win#textobj#match_a(v:count1)<CR>
+  vnoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(v:count1)<cr>
+  onoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(v:count1)<cr>
+  vnoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(v:count1)<cr>
+  onoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(v:count1)<cr>
 
-  cnoremap <silent><buffer>       <Plug>(esearch-win-CR) <C-\>eesearch#out#win#modifiable#cmdline#replace()<CR><CR>
-  inoremap <expr><silent><buffer> <Plug>(esearch-win-CR) esearch#out#win#modifiable#i_CR()
+  cnoremap <silent><buffer>       <Plug>(esearch-cr) <C-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
+  inoremap <expr><silent><buffer> <Plug>(esearch-cr) esearch#out#win#modifiable#i_CR()
 
+  noremap  <expr><silent><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
+  noremap  <expr><silent><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
+  noremap  <expr><silent><plug>(esearch-c)  esearch#out#win#modifiable#c_pre().esearch#operator#expr('esearch#out#win#modifiable#c')
+  noremap  <expr><silent><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
+  nnoremap       <silent><plug>(esearch-.)  :call esearch#repeat#run(v:count)<cr>
 
-  noremap <expr><silent><Plug>(esearch-win-d) esearch#util#operator_expr('esearch#out#win#modifiable#d')
-  noremap <expr><silent><Plug>(esearch-win-c) esearch#util#operator_expr('esearch#out#win#modifiable#c')
 
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))

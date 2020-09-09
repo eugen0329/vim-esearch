@@ -112,7 +112,7 @@ endfu
 
 " Can be used to highlight 
 fu! esearch#out#win#appearance#ctx_syntax#hl_viewport(es) abort
-  if !get(a:es, 'loaded_ctx_syntaxes', 0) | retu | en
+  if !get(a:es, 'loaded_ctx_syntaxes') | retu | en
   let l1 = esearch#util#clip(line('w0'), 3, line('$'))
   let l2 = esearch#util#clip(line('w$'), 3, line('$'))
   retu s:hl(a:es, l1, l2)

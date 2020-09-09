@@ -1,7 +1,5 @@
 fu! esearch#out#win#textobj#init(esearch) abort
-  if !has_key(a:esearch.pattern, 'seek_match')
-    let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch)
-  endif
+  let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch)
 endfu
 
 fu! esearch#out#win#textobj#match_a(count) abort

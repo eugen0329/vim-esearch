@@ -38,27 +38,8 @@ fu! esearch#util#clip(value, from, to) abort
   endif
 endfu
 
-fu! esearch#util#operator_expr(operatorfunc) abort
-  if mode(1)[:1] ==# 'no'
-    return 'g@'
-  elseif mode() ==# 'n'
-    let &operatorfunc = a:operatorfunc
-    return 'g@'
-  else
-    return ":\<C-u>call ".a:operatorfunc."(visualmode())\<CR>"
-  endif
-endfu
-
 fu! esearch#util#is_visual(mode) abort
   return a:mode =~? "^[vs\<C-v>]$"
-endfu
-
-fu! esearch#util#is_linewise(mode) abort
-  return a:mode ==# "V" || a:mode ==# 'line'
-endfu
-
-fu! esearch#util#is_charwise(mode) abort
-  return a:mode ==# "v" || a:mode ==# 'char'
 endfu
 
 fu! esearch#util#slice(dict, keys) abort
@@ -313,3 +294,14 @@ else
     call call(a:funcref, a:000)
   endfu
 endif
+
+fu! esearch#util#clipboard_reg() abort
+  let clipboards = split(&clipboard, ',')
+  if index(clipboards, 'unnamedplus') >= 0
+    return '+'
+  elseif index(clipboards, 'unnamed') >= 0
+    return '*'
+  endif
+
+  return '"'
+endfu

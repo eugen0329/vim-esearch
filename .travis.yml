@@ -74,6 +74,7 @@ install:
 
     bundle exec rake generate_lexer generate_parser
     git config --global core.precomposeunicode true  ; git config --global core.quotePath false
+    git clone --depth=1 https://github.com/junegunn/vader.vim.git
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi
@@ -116,7 +117,12 @@ jobs:
       script: bundle exec rake RSPEC_OPTS='--tag commandline'
       os: linux
     - name: 'Unit tests'
-      script: bundle exec parallel_test spec/unit -n 2 --type rspec
+      script: |
+        bundle exec parallel_test spec/unit -n 2 --type rspec
+        vim -Nu <(cat << VIMRC
+        set rtp+=vader.vim
+        set rtp+=.
+        VIMRC) -c 'Vader! spec/*.vader' > /dev/null
       os: linux
     - name: 'Linters (luacheck, rubocop, vint, shellcheck)'
       env: LINT=1 INSTALL_PYTHON_VERSION=3.6.1

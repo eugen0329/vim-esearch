@@ -28,7 +28,7 @@ endfu
 
 fu! esearch#prefill#region(esearch) abort
   if !empty(get(a:esearch, 'region'))
-    let text = esearch#region#text(a:esearch.region)
+    let text = esearch#operator#text(a:esearch.region)
     return esearch#pattern#new(a:esearch._adapter, text)
   endif
 endfu
@@ -70,14 +70,5 @@ fu! esearch#prefill#cword(esearch) abort
 endfu
 
 fu! esearch#prefill#clipboard(esearch) abort
-  let clipboards = split(&clipboard, ',')
-  if index(clipboards, 'unnamedplus') >= 0
-    let register = '+'
-  elseif index(clipboards, 'unnamed') >= 0
-    let register = '*'
-  else
-    let register = '"'
-  endif
-
-  return esearch#pattern#new(a:esearch._adapter, getreg(register))
+  return esearch#pattern#new(a:esearch._adapter, getreg(esearch#util#clipboard_reg()))
 endfu

@@ -108,11 +108,13 @@ fu! esearch#config#init(esearch) abort
           \ [' ',  '{',    '<Plug>(esearch-win-jump:filename:up)'  ],
           \ ['ov', 'im',   '<Plug>(textobj-esearch-match-i)',      ],
           \ ['ov', 'am',   '<Plug>(textobj-esearch-match-a)',      ],
-          \ ['ic', '<CR>', '<Plug>(esearch-win-CR)', {'nowait': 1} ],
-          \ [' ',  'd',    '<Plug>(esearch-win-d)'                 ],
-          \ ['x',  'x',    '<Plug>(esearch-win-d)'                 ],
-          \ [' ',  'c',    '<Plug>(esearch-win-c)'                 ],
-          \ ['x',  's',    '<Plug>(esearch-win-c)'                 ],
+          \ ['ic', '<CR>', '<Plug>(esearch-cr)', {'nowait': 1}     ],
+          \ [' ',  'd',    '<Plug>(esearch-d)'                     ],
+          \ ['x',  'x',    '<Plug>(esearch-d)'                     ],
+          \ [' ',  'c',    '<Plug>(esearch-c)'                     ],
+          \ [' ',  'C',    '<Plug>(esearch-c)$'                    ],
+          \ ['x',  's',    '<Plug>(esearch-c)'                     ],
+          \ ['n',  '.',    '<Plug>(esearch-.)'                     ],
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])

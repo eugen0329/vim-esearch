@@ -19,7 +19,7 @@ fu! esearch#opfunc_prefill(type) abort
 endfu
 
 fu! esearch#opfunc_exec(type) abort
-  return esearch#init({'pattern': esearch#region#text(a:type)})
+  return esearch#init({'pattern': esearch#operator#text(a:type)})
 endfu
 
 " DEPRECATED
