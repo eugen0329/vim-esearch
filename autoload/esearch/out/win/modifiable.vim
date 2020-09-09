@@ -88,7 +88,7 @@ fu! esearch#out#win#modifiable#c_dot(wise) abort
 endfu
 
 fu! esearch#out#win#modifiable#c_pre() abort
-  if mode() !=# 'n' | return '' | endif
+  if mode(1) !=# 'n' | return '' | endif
   let stop_recording = empty(s:reg_recording()) ? '' : 'q'
   return ":\<c-u>call esearch#out#win#modifiable#save_reg()\<cr>".stop_recording.'q"'
 endfu
@@ -240,3 +240,12 @@ else
     return ''
   endfu
 endif
+
+fu! esearch#out#win#modifiable#operator() abort
+  if v:operator ==# 'g@'
+    let operator = matchlist(&operatorfunc, '^esearch#out#win#modifiable#\([cd]\)\%(_dot\)')
+    if !empty(operator) | return operator[1] | endif
+  endif
+
+  return v:operator
+endfu

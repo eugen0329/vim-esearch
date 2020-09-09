@@ -24,9 +24,9 @@ fu! esearch#operator#expr(operatorfunc) abort
     return 'g@'
   elseif mode() ==# 'n'
     let [s:count, s:reg, &operatorfunc] = [v:count, v:register, a:operatorfunc]
-    return (s:count ? s:count : '').(empty(s:reg) ? '' : '"'.s:reg).'g@'
+    return ":\<c-u>\<cr>".(s:count ? s:count : '').(empty(s:reg) ? '' : '"'.s:reg).'g@'
   else
-    let [s:count, s:reg] = [v:count, v:reg]
+    let [s:count, s:reg] = [v:count, v:register]
     return ":\<c-u>call ".a:operatorfunc."(visualmode())\<cr>"
   endif
 endfu

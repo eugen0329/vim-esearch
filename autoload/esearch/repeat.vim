@@ -4,7 +4,7 @@ fu! esearch#repeat#run(count) abort
   try
     let result = repeat#run(a:count)
     if type(result) ==# type('') | exe result | endif
-  catch /^E117:/
+  catch /E117:/
     if !exists('s:changedtick') || s:changedtick != b:changedtick
       exe 'norm! '.(a:count ? a:count : '').'.'
     else
@@ -17,7 +17,7 @@ endfu
 fu! esearch#repeat#set(seq, count) abort
   try
     return repeat#set(a:seq, a:count)
-  catch /^E117:/
+  catch /E117:/
     let [s:changedtick, s:seq, s:count] = [b:changedtick, a:seq, a:count]
   endtry
 endfu
@@ -25,7 +25,7 @@ endfu
 fu! esearch#repeat#setreg(seq, reg) abort
   try
     return repeat#setreg(a:seq, a:reg)
-  catch /^E117:/
+  catch /E117:/
     let s:reg = {}
     let s:reg[a:seq] = a:reg
   endtry

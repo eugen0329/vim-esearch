@@ -196,10 +196,10 @@ fu! s:init_mappings() abort
   vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-1, v:count1, 'v')<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(1, v:count1, 'v')<cr>
 
-  vnoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(v:count1)<cr>
-  onoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(v:count1)<cr>
-  vnoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(v:count1)<cr>
-  onoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(v:count1)<cr>
+  vnoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(1, v:count1)<cr>
+  onoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(0, v:count1)<cr>
+  vnoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(1, v:count1)<cr>
+  onoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
 
   cnoremap <silent><buffer>       <Plug>(esearch-cr) <C-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
   inoremap <expr><silent><buffer> <Plug>(esearch-cr) esearch#out#win#modifiable#i_CR()
@@ -208,7 +208,7 @@ fu! s:init_mappings() abort
   noremap  <expr><silent><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
   noremap  <expr><silent><plug>(esearch-c)  esearch#out#win#modifiable#c_pre().esearch#operator#expr('esearch#out#win#modifiable#c')
   noremap  <expr><silent><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
-  nnoremap       <silent><plug>(esearch-.)  :call esearch#repeat#run(v:count)<cr>
+  nnoremap       <silent><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
 
 
   for args in b:esearch.win_map
