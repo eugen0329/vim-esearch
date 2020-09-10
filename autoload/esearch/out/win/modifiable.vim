@@ -165,13 +165,13 @@ fu! esearch#out#win#modifiable#d_dot(wise) abort
 endfu
 
 fu! s:visual2range(last_visual) abort
-  return [getcurpos()[1:2], [line('.') + a:last_visual[0], col('.') + a:last_visual[1]]]
+  return [getcurpos()[1:2], [line('.') + a:last_visual.lnum, col('.') + a:last_visual.col]]
 endfu
 
 fu! s:delete_visual_cmd(wise, last_visual, seq) abort
   return 'norm! ' . a:wise
-        \ . (a:last_visual[0]  ? a:last_visual[0]  . 'j' : '')
-        \ . (a:last_visual[1] && !esearch#operator#is_linewise(a:wise) ? a:last_visual[1] . 'l' : '')
+        \ . (a:last_visual.lnum  ? a:last_visual.lnum  . 'j' : '')
+        \ . (a:last_visual.col && !esearch#operator#is_linewise(a:wise) ? a:last_visual.col . 'l' : '')
         \ . a:seq
 endfu
 
@@ -230,7 +230,7 @@ fu! s:region(wise) abort
 endfu
 
 fu! s:save_visual() abort
-  return [abs(line("'>") - line("'<")), abs(col("'>") - col("'<"))]
+  return {'lnum': abs(line("'>") - line("'<")), 'col': abs(col("'>") - col("'<"))}
 endfu
 
 if g:esearch#has#reg_recording
@@ -243,8 +243,8 @@ endif
 
 fu! esearch#out#win#modifiable#operator() abort
   if v:operator ==# 'g@'
-    let operator = matchlist(&operatorfunc, '^esearch#out#win#modifiable#\([cd]\)\%(_dot\)')
-    if !empty(operator) | return operator[1] | endif
+    let operator = matchstr(&operatorfunc, '\v^esearch#out#win#modifiable#\zs[cd]\ze%(_dot)?$')
+    if !empty(operator) | return operator | endif
   endif
 
   return v:operator

@@ -1,6 +1,3 @@
-noremap         <sid>(cancel) <nop>
-inoremap <expr> <sid>(cancel) exists('#textobj_undo_empty_change')?"\<esc>":''
-
 fu! esearch#out#win#textobj#init(esearch) abort
   let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch)
 endfu
@@ -15,15 +12,15 @@ endfu
 
 fu! s:select_match(is_visual, count, is_around) abort
   let i = 0
+  let s:view = winsaveview()
 
-  let view = winsaveview()
   let [i, begin, end] = s:seek_under_cursor(i, a:count)
   if i < a:count
     let [i, begin, end] = s:seek_forward(i, a:count)
   endif
 
   if begin == [0,0] || end == [0,0]
-    return s:cancel(a:is_visual, view)
+    return s:cancel(a:is_visual)
   endif
 
   if a:is_around
@@ -33,11 +30,10 @@ fu! s:select_match(is_visual, count, is_around) abort
   endif
 endfu
 
-fu! s:cancel(is_visual, view) abort
+fu! s:cancel(is_visual) abort
   if a:is_visual
     exec 'norm! gv'
   elseif index(['c', 'd'], esearch#out#win#modifiable#operator()) >= 0
-    let s:view = a:view
     let undo_seq = "\<esc>:undo|redraw"
           \."|echo 'esearch: no more matches found ahead'"
           \."|call esearch#out#win#textobj#winrestview()\<CR>"

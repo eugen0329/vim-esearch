@@ -1,4 +1,5 @@
-" Limited Tim Pope's vim-repeat support.
+" Wrapper around Tim Pope's vim-repeat with fallback to minimal functionality to
+" avoid hard dependency
 
 fu! esearch#repeat#run(count) abort
   try

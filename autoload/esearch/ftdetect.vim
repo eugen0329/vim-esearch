@@ -97,7 +97,11 @@ fu! esearch#ftdetect#async_prewarm_cache() abort
 endfu
 
 fu! s:blocking_make_cache() abort
-  let lines = split(s:Log.capture('autocmd filetypedetect'), "\n")
+  try
+    let lines = split(s:Log.capture('autocmd filetypedetect'), "\n")
+  catch /E216:/
+    return 0
+  endtry
 
   let definitions = []
   for line in lines
@@ -131,7 +135,7 @@ fu! s:blocking_make_cache() abort
     let definitions = []
   endfor
 
-  return s:true
+  return 1
 endfu
 
 fu! s:make_cache() abort
@@ -149,7 +153,7 @@ fu! s:make_cache() abort
     call s:blocking_make_cache()
   endif
 
-  return s:true
+  return 1
 endfu
 
 fu! s:failed_with(reason, error) abort

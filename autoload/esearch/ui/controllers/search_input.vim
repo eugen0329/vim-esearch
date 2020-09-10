@@ -20,24 +20,29 @@ fu! s:SearchInputController.render() abort dict
   let s:self = self
   try
     let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
-    let original_statusline = self.render_path_prompt()
+    let original_options = self.set_options()
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
-    if !empty(original_statusline) | call original_statusline.restore() | endif
+    if !empty(original_options) | call original_options.restore() | endif
     call original_mappings.restore()
   endtry
 endfu
 
-fu! s:SearchInputController.render_path_prompt() dict abort
-  let prompt = s:PathTitlePrompt.new().render()
-  if empty(prompt) | return 0 | endif
+fu! s:SearchInputController.set_options() dict abort
+  let options = {'&synmaxcol': &columns}
 
-  let self.statusline = esearch#ui#to_statusline(prompt)
-  let options = esearch#let#restorable({'&statusline': self.statusline})
-  redrawstatus!
-  return options
+  let prompt = s:PathTitlePrompt.new().render()
+  if !empty(prompt)
+    let self.statusline = esearch#ui#to_statusline(prompt)
+    let options['&statusline'] = self.statusline
+  endif
+
+  let restorable = esearch#let#restorable(options)
+  if has_key(options, '&statusline') | redrawstatus! | endif
+
+  return restorable
 endfu
 
 fu! s:SearchInputController.init_live_update() dict abort
