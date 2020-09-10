@@ -32,11 +32,11 @@ fu! esearch#operator#expr(operatorfunc) abort
 endfu
 
 fu! esearch#operator#is_linewise(wise) abort
-  return a:wise ==# 'V' || a:wise ==# 'line'
+  return a:wise =~# 'V$' || a:wise ==# 'line' " V, noV
 endfu
 
 fu! esearch#operator#is_charwise(wise) abort
-  return a:wise ==# 'v' || a:wise ==# 'char'
+  return a:wise =~# 'v' || a:wise ==# 'char'
 endfu
 
 fu! esearch#operator#vars() abort

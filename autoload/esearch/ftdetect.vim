@@ -99,7 +99,7 @@ endfu
 fu! s:blocking_make_cache() abort
   try
     let lines = split(s:Log.capture('autocmd filetypedetect'), "\n")
-  catch /E216:/
+  catch /E216:/ " E216: No such group or event
     return 0
   endtry
 

@@ -30,6 +30,7 @@ fu! s:select_match(is_visual, count, is_around) abort
   endif
 endfu
 
+" inspired by junegunn code and CountJump implementation
 fu! s:cancel(is_visual) abort
   if a:is_visual
     exec 'norm! gv'

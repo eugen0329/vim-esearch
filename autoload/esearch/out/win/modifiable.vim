@@ -20,7 +20,7 @@ endfu
 
 fu! s:text_changed() abort
   if has_key(b:esearch.undotree.nodes, changenr())
-    call b:esearch.undotree.checkout(changenr())
+    return b:esearch.undotree.checkout(changenr())
   endif
 
   let state = b:esearch.undotree.head.state
@@ -79,7 +79,6 @@ fu! esearch#out#win#modifiable#c_dot(wise) abort
     else
       call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, seq, s:reg))
     endif
-
   finally
     call options.restore()
   endtry
@@ -120,7 +119,9 @@ fu! esearch#out#win#modifiable#c(wise) abort
   endif
 
   let last_line = line('$')
-  let [begin, end] = s:delete_lines(a:wise, cmd)
+  let [begin, end] = s:region(a:wise)
+  let begin[0] += 1
+  let [begin, end] = s:delete_lines(a:wise, cmd, [begin, end])
 
   if esearch#operator#is_linewise(a:wise)
     exe 'norm!' (end[0] == last_line ? 'o' : 'O')
@@ -150,13 +151,10 @@ fu! esearch#out#win#modifiable#d_dot(wise) abort
   try
     if esearch#util#is_visual(a:wise)
       let cmd = s:delete_visual_cmd(a:wise, s:last_visual, 'd')
-      let pos = s:visual2range(s:last_visual)
+      call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
     else
-      let cmd = esearch#operator#cmd(a:wise, 'd', s:reg)
-      let pos = 0
+      call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, 'd', s:reg))
     endif
-
-    call s:delete_lines(a:wise, cmd, pos)
   finally
     call options.restore()
   endtry
@@ -208,12 +206,14 @@ fu! s:delete_region_from_state(wise, state, region) abort
   let [line1, _col1] = begin
   let [line2, _col2] = end
 
-  if esearch#operator#is_linewise(a:wise)
-    call remove(a:state.line_numbers_map, line1, line2)
-    call remove(a:state.ctx_ids_map, line1, line2)
-  elseif esearch#operator#is_charwise(a:wise) && line1 < line2
-    call remove(a:state.line_numbers_map, line1 + 1, line2)
-    call remove(a:state.ctx_ids_map, line1 + 1, line2)
+  if line1 <= line2
+    if esearch#operator#is_linewise(a:wise)
+      call remove(a:state.line_numbers_map, line1, line2)
+      call remove(a:state.ctx_ids_map, line1, line2)
+    elseif esearch#operator#is_charwise(a:wise) && line1 < line2
+      call remove(a:state.line_numbers_map, line1 + 1, line2)
+      call remove(a:state.ctx_ids_map, line1 + 1, line2)
+    endif
   endif
 
   return a:state

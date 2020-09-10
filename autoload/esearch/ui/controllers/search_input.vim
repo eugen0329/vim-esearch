@@ -31,7 +31,7 @@ fu! s:SearchInputController.render() abort dict
 endfu
 
 fu! s:SearchInputController.set_options() dict abort
-  let options = {'&synmaxcol': &columns}
+  let options = {'&synmaxcol': &columns} " prevent freezes on live_update
 
   let prompt = s:PathTitlePrompt.new().render()
   if !empty(prompt)
