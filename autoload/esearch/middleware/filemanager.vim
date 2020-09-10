@@ -29,7 +29,9 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
   finally
     call cwd.restore()
   endtry
-  let a:esearch.remember = filter(copy(a:esearch.remember), 'v:val !=# "paths"')
+  if type(a:esearch.remember) == type([])
+    let a:esearch.remember = filter(copy(a:esearch.remember), 'v:val !=# "paths"')
+  endif
 
   return a:esearch
 endfu

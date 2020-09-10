@@ -19,6 +19,7 @@ Before:
   call esearch#init(g:params)
   norm! gg
   let @r = ''
+  Log [b:esearch]
 
 After:
   doau TextChanged
