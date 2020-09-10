@@ -3,15 +3,15 @@ let s:SearchPrompt        = esearch#ui#prompt#search#import()
 let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 let s:INF = 88888888
 
-cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>emit', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>emit', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>emit', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-add-pattern)   <C-r>=<SID>interrupt('<SID>emit', 'ADD_PATTERN')<CR><CR>
+cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<CR><CR>
+cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<CR><CR>
+cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<CR><CR>
+cnoremap <Plug>(esearch-add-pattern)   <C-r>=<SID>interrupt('<SID>dispatch', 'ADD_PATTERN')<CR><CR>
 cnoremap <Plug>(esearch-open-menu)     <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
-cnoremap <expr> <Plug>(esearch-BS)     <SID>check_if_pop_needed("\<bs>")
-cnoremap <expr> <Plug>(esearch-CTRL_W) <SID>check_if_pop_needed("\<c-w>")
-cnoremap <expr> <Plug>(esearch-CTRL_H) <SID>check_if_pop_needed("\<c-h>")
+cnoremap <expr> <Plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
+cnoremap <expr> <Plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
+cnoremap <expr> <Plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
 
 let s:self = 0
 let s:SearchInputController = esearch#ui#component()
@@ -20,24 +20,29 @@ fu! s:SearchInputController.render() abort dict
   let s:self = self
   try
     let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
-    let original_statusline = self.render_path_prompt()
+    let original_options = self.set_options()
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
-    if !empty(original_statusline) | call original_statusline.restore() | endif
+    if !empty(original_options) | call original_options.restore() | endif
     call original_mappings.restore()
   endtry
 endfu
 
-fu! s:SearchInputController.render_path_prompt() dict abort
-  let prompt = s:PathTitlePrompt.new().render()
-  if empty(prompt) | return 0 | endif
+fu! s:SearchInputController.set_options() dict abort
+  let options = {'&synmaxcol': &columns} " prevent freezes on live_update
 
-  let self.statusline = esearch#ui#to_statusline(prompt)
-  let options = esearch#let#restorable({'&statusline': self.statusline})
-  redrawstatus!
-  return options
+  let prompt = s:PathTitlePrompt.new().render()
+  if !empty(prompt)
+    let self.statusline = esearch#ui#to_statusline(prompt)
+    let options['&statusline'] = self.statusline
+  endif
+
+  let restorable = esearch#let#restorable(options)
+  if has_key(options, '&statusline') | redrawstatus! | endif
+
+  return restorable
 endfu
 
 fu! s:SearchInputController.init_live_update() dict abort
@@ -127,10 +132,7 @@ fu! s:SearchInputController.render_input() abort
 
   let self.cmdline .= self.restore_cmdpos_chars()
   let self.pressed_mapped_key = 0
-
-  try
-    let self.cmdline = self.input()
-  endtry
+  let self.cmdline = self.input()
 
   if !empty(self.pressed_mapped_key)
     return call(self.pressed_mapped_key.handler, self.pressed_mapped_key.args)
@@ -153,7 +155,7 @@ fu! s:SearchInputController.restore_cmdpos_chars() abort
   return repeat("\<Left>", strchars(self.cmdline) + 1 - self.props.cmdpos)
 endfu
 
-fu! s:check_if_pop_needed(fallback) abort
+fu! s:try_pop_pattern(fallback) abort
   if empty(getcmdline()) && len(s:self.props.pattern.patterns.list) > 1
     let s:self.pressed_mapped_key = {'handler': function('<SID>pop'), 'args': a:000}
     call s:self.props.dispatch({'type': 'SET_CMDPOS', 'cmdpos': s:INF})
@@ -178,7 +180,7 @@ fu! s:open_menu(...) abort dict
   call s:self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
-fu! s:emit(event_type) abort dict
+fu! s:dispatch(event_type) abort dict
   call s:self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': s:self.cmdline})
   call s:self.props.dispatch({'type': a:event_type})
 endfu

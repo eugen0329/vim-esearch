@@ -1,38 +1,43 @@
 fu! esearch#out#win#modifiable#init() abort
-  let b:esearch.mode = 'edit'
-  let v:errors = []
-  setl modifiable
-  setl undolevels=1000
-  setl noautoindent nosmartindent " problems with insert
-  setl formatoptions=
-  setl noswapfile
-
-  set buftype=acwrite
-  aug ESearchWinModifiable
+  let b:esearch.modifiable = 1
+  setlocal modifiable undolevels=1000 noautoindent nosmartindent formatoptions= noswapfile nomodified buftype=acwrite
+  aug esearch_win_modifiable
     au! * <buffer>
     au BufWriteCmd <buffer> call s:write_cmd()
+    au TextChanged,TextChangedI,TextChangedP <buffer> call s:text_changed()
   aug END
-
   let b:esearch.undotree = esearch#undotree#new({
         \ 'ctx_ids_map': b:esearch.ctx_ids_map,
-        \ 'line_numbers_map': b:esearch.line_numbers_map,
-        \ })
-  call esearch#changes#listen_for_current_buffer(b:esearch.undotree)
-  call esearch#changes#add_observer(function('<SID>handle'))
-
-  call esearch#option#make_local_to_buffer('backspace', 'indent,start', 'InsertEnter')
-  set nomodified
-
+        \ 'line_numbers_map': b:esearch.line_numbers_map})
   call esearch#compat#visual_multi#init()
-  call esearch#compat#multiple_cursors#init()
 endfu
 
 fu! esearch#out#win#modifiable#uninit(esearch) abort
-  call esearch#option#reset()
-  aug ESearchWinModifiable
+  aug esearch_win_modifiable
     au! * <buffer>
   aug END
-  call esearch#changes#unlisten_for_current_buffer()
+endfu
+
+fu! s:text_changed() abort
+  if has_key(b:esearch.undotree.nodes, changenr())
+    return b:esearch.undotree.checkout(changenr())
+  endif
+
+  let state = b:esearch.undotree.head.state
+  let delta = len(state.line_numbers_map) - (line('$') + 1)
+  if delta == 0 | return | endif
+
+  if delta < 0
+    let state = deepcopy(state)
+    let state.line_numbers_map += repeat([state.line_numbers_map[-1]], -delta)
+    let state.ctx_ids_map += repeat([state.ctx_ids_map[-1]], -delta)
+  elseif delta > 0
+    let state = deepcopy(state)
+    call remove(state.line_numbers_map, -delta, -1)
+    call remove(state.ctx_ids_map, -delta, -1)
+  endif
+
+  call b:esearch.undotree.synchronize(state)
 endfu
 
 fu! s:write_cmd() abort
@@ -59,34 +64,188 @@ fu! s:write_cmd() abort
   call esearch#writer#do(diff, b:esearch, v:cmdbang)
 endfu
 
-fu! s:handle(event) abort
-  if a:event.id =~# '^n-motion' || a:event.id =~# '^n-change'
-        \  || a:event.id =~# '^v-delete' || a:event.id =~# '^V-line-delete'
-        \  || a:event.id =~# '^V-line-change'
-    call esearch#out#win#modifiable#delete_multiline#handle(a:event)
-  elseif a:event.id =~# 'undo'
-    call esearch#out#win#modifiable#undo#handle(a:event)
-  elseif a:event.id =~# 'n-inline-paste' || a:event.id =~# 'n-inline-repeat-gn'
-        \ || a:event.id =~# 'n-inline\d\+' || a:event.id =~# 'v-inline'
-    let debug = esearch#out#win#modifiable#normal#inline#handle(a:event)
-  elseif a:event.id =~# 'i-inline'
-    let debug = esearch#out#win#modifiable#insert#inline#handle(a:event)
-  elseif  a:event.id =~# 'i-delete-newline'
-    let debug = esearch#out#win#modifiable#insert#delete_newlines#handle(a:event)
-  elseif  a:event.id =~# 'blockwise-visual'
-    call esearch#out#win#modifiable#blockwise_visual#handle(a:event)
-  elseif  a:event.id =~# 'i-add-newline'
-    call esearch#out#win#modifiable#insert#add_newlines#handle(a:event)
-  elseif a:event.id =~# 'join'
-    call esearch#out#win#modifiable#unsupported#handle(a:event)
+fu! esearch#out#win#modifiable#i_CR() abort
+  return ''
+endfu
+
+fu! esearch#out#win#modifiable#c_dot(wise) abort
+  let options = esearch#let#restorable({'&whichwrap': ''})
+  try
+    let seq = @. == s:last_inserted_text ? 'd' : '".p'
+
+    if esearch#util#is_visual(a:wise)
+      let cmd = s:delete_visual_cmd(a:wise, s:last_visual, seq)
+      call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
+    else
+      call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, seq, s:reg))
+    endif
+  finally
+    call options.restore()
+  endtry
+
+  call s:repeat_set()
+endfu
+
+fu! esearch#out#win#modifiable#c_pre() abort
+  if mode(1) !=# 'n' | return '' | endif
+  let stop_recording = empty(s:reg_recording()) ? '' : 'q'
+  return ":\<c-u>call esearch#out#win#modifiable#save_reg()\<cr>".stop_recording.'q"'
+endfu
+
+fu! esearch#out#win#modifiable#save_reg() abort
+  let s:original_reg = @"
+endfu
+
+fu! esearch#out#win#modifiable#c(wise) abort
+  let [s:count, s:reg] = esearch#operator#vars()
+  let s:last_inserted_text = @.
+
+  if esearch#util#is_visual(a:wise)
+    let s:repeat_seq = a:wise . "\<plug>(esearch-c.)"
+    let s:last_visual = s:save_visual()
+
+    let cmd = esearch#operator#cmd(a:wise, 'd', s:reg)
   else
-    call esearch#out#win#modifiable#unsupported#handle(a:event)
+    norm! q
+    let [seq, @"] = [@", s:original_reg]
+
+    if seq ==# 'w'
+      let s:repeat_seq = "\<plug>(esearch-c.)e"
+      let cmd = s:norm('de', s:reg)
+    else
+      let s:repeat_seq = "\<plug>(esearch-c.)" . seq
+      let cmd = esearch#operator#cmd(a:wise, 'd', s:reg)
+    endif
   endif
 
-  if g:esearch#env isnot 0
-    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.ctx_ids_map))
-    call assert_equal(line('$') + 1, len(b:esearch.undotree.head.state.line_numbers_map))
-    let a:event.errors = len(v:errors)
-    " call esearch#debug#log(a:event,  len(v:errors))
+  let last_line = line('$')
+  let [begin, end] = s:region(a:wise)
+  let begin[0] += 1
+  let [begin, end] = s:delete_lines(a:wise, cmd, [begin, end])
+
+  if esearch#operator#is_linewise(a:wise)
+    exe 'norm!' (end[0] == last_line ? 'o' : 'O')
   endif
+  startinsert
+
+  aug esearch_change
+    au InsertLeave * call s:repeat_set() | au! esearch_change
+  aug END
+  call s:repeat_set()
+endfu
+
+fu! s:norm(seq, reg) abort
+  return 'norm! '
+        \ . (empty(s:count) ? '' : s:count)
+        \ . (empty(a:reg) ? '' : '"'.a:reg)
+        \ . a:seq
+endfu
+
+fu! s:repeat_set(...) abort
+  call esearch#repeat#set(s:repeat_seq, s:count)
+  call esearch#repeat#setreg(s:repeat_seq, s:reg)
+endfu
+
+fu! esearch#out#win#modifiable#d_dot(wise) abort
+  let options = esearch#let#restorable({'&whichwrap': ''})
+  try
+    if esearch#util#is_visual(a:wise)
+      let cmd = s:delete_visual_cmd(a:wise, s:last_visual, 'd')
+      call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
+    else
+      call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, 'd', s:reg))
+    endif
+  finally
+    call options.restore()
+  endtry
+
+  call s:repeat_set()
+endfu
+
+fu! s:visual2range(last_visual) abort
+  return [getcurpos()[1:2], [line('.') + a:last_visual.lnum, col('.') + a:last_visual.col]]
+endfu
+
+fu! s:delete_visual_cmd(wise, last_visual, seq) abort
+  return 'norm! ' . a:wise
+        \ . (a:last_visual.lnum  ? a:last_visual.lnum  . 'j' : '')
+        \ . (a:last_visual.col && !esearch#operator#is_linewise(a:wise) ? a:last_visual.col . 'l' : '')
+        \ . a:seq
+endfu
+
+fu! esearch#out#win#modifiable#d(wise) abort
+  let [s:count, s:reg] = esearch#operator#vars()
+  let last_visual = s:save_visual()
+  call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, 'd', s:reg))
+
+  if esearch#util#is_visual(a:wise)
+    let s:last_visual = last_visual
+    let s:repeat_seq =  a:wise . "\<plug>(esearch-d.)"
+    call s:repeat_set()
+  endif
+endfu
+
+fu! s:delete_lines(wise, cmd, ...) abort
+  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+  try
+    let region = empty(get(a:, 1)) ? s:region(a:wise) : a:1
+
+    silent exe a:cmd
+
+    let state = deepcopy(b:esearch.undotree.head.state)
+    let state = s:delete_region_from_state(a:wise, state, region)
+    return region
+  finally
+    call b:esearch.undotree.synchronize(state)
+    call options.restore()
+  endtry
+endfu
+
+fu! s:delete_region_from_state(wise, state, region) abort
+  let [begin, end] = a:region
+  let [line1, _col1] = begin
+  let [line2, _col2] = end
+
+  if line1 <= line2
+    if esearch#operator#is_linewise(a:wise)
+      call remove(a:state.line_numbers_map, line1, line2)
+      call remove(a:state.ctx_ids_map, line1, line2)
+    elseif esearch#operator#is_charwise(a:wise) && line1 < line2
+      call remove(a:state.line_numbers_map, line1 + 1, line2)
+      call remove(a:state.ctx_ids_map, line1 + 1, line2)
+    endif
+  endif
+
+  return a:state
+endfu
+
+fu! s:region(wise) abort
+  let view = winsaveview()
+  try
+    exe esearch#operator#cmd(a:wise, "\<esc>", '_')
+    return [getpos("'<")[1:2], getpos("'>")[1:2]]
+  finally
+    call winrestview(view)
+  endtry
+endfu
+
+fu! s:save_visual() abort
+  return {'lnum': abs(line("'>") - line("'<")), 'col': abs(col("'>") - col("'<"))}
+endfu
+
+if g:esearch#has#reg_recording
+  let s:reg_recording = function('reg_recording')
+else
+  fu! s:reg_recording() abort
+    return ''
+  endfu
+endif
+
+fu! esearch#out#win#modifiable#operator() abort
+  if v:operator ==# 'g@'
+    let operator = matchstr(&operatorfunc, '\v^esearch#out#win#modifiable#\zs[cd]\ze%(_dot)?$')
+    if !empty(operator) | return operator | endif
+  endif
+
+  return v:operator
 endfu

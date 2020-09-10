@@ -18,10 +18,9 @@ else
   let s:Git.options = '-I --no-untracked'
 endif
 
-" --or is ommited as it's the default
-
 " -H - show filenames
 " -I - don't search binary files
+" --or is ommited in pattern kinds as it's the default
 let s:Git.mandatory_options = '-H --no-color --line-number'
 call extend(s:Git, {
       \ 'bool2regex': ['literal', 'basic'],
@@ -76,7 +75,6 @@ fu! s:Git.command(esearch) abort dict
         \ a:esearch.pattern.arg,
         \ paths,
         \], ' ')
-
 endfu
 
 let s:Git.filetypes = ''

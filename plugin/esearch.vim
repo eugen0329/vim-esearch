@@ -11,5 +11,5 @@ endif
 nnoremap <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
 xmap             <Plug>(esearch) <Plug>(operator-esearch-prefill)
 
-noremap <expr><silent><Plug>(operator-esearch-prefill) esearch#util#operator_expr('esearch#opfunc_prefill')
-noremap <expr><silent><Plug>(operator-esearch-exec)    esearch#util#operator_expr('esearch#opfunc_exec')
+noremap <expr><silent><Plug>(operator-esearch-prefill) esearch#operator#expr('esearch#opfunc_prefill')
+noremap <expr><silent><Plug>(operator-esearch-exec)    esearch#operator#expr('esearch#opfunc_exec')

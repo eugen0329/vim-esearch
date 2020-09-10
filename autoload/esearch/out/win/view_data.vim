@@ -32,7 +32,7 @@ endfu
 " Returns dict that can be forwarded into builtin winrestview()
 fu! s:ctx_view() abort dict
   let line = self.line_in_file()
-  let state = esearch#out#win#_state(self)
+  let state = self.modifiable ? self.undotree.head.state : self
   let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[line('.')])
   return { 'lnum': line,  'col': max([0, col('.') - strlen(linenr) - 1]) }
 endfu
@@ -80,7 +80,7 @@ endfu
 fu! s:ctx_at(line) dict abort
   if self.is_blank() | return {} | endif
 
-  let ctx = esearch#out#win#repo#ctx#new(self, esearch#out#win#_state(self))
+  let ctx = esearch#out#win#repo#ctx#new(self, self.modifiable ? self.undotree.head.state : self)
         \.by_line(a:line)
   if ctx.id == 0
     return self.contexts[1]

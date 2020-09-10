@@ -25,7 +25,7 @@ let g:esearch#preview#win     = s:null
 let g:esearch#preview#last    = {}
 
 fu! esearch#preview#open(filename, line, ...) abort
-  let opts = get(a:000, 0, {})
+  let opts = get(a:, 1, {})
 
   let shape = s:Shape.new({
         \ 'width':     get(opts, 'width',  s:null),

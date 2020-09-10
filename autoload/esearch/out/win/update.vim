@@ -141,15 +141,12 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
   if a:bufnr != bufnr('%') | retu | en
 
   let es = getbufvar(a:bufnr, 'esearch')
-  let batched = get(a:, 1, 0)
   let r = es.request
-  let data = r.data
-  let len = len(data)
+  let len = len(r.data)
 
   cal setbufvar(a:bufnr, '&modifiable', 1)
   if len > r.cursor
-    if !batched
-          \ || len - r.cursor - 1 <= es.batch_size
+    if get(a:, 1) || len - r.cursor - 1 <= es.batch_size
           \ || (r.finished && len - r.cursor - 1 <= es.final_batch_size)
       let [from, to] = [r.cursor, len - 1]
       let r.cursor = len
@@ -158,7 +155,7 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
       let r.cursor += es.batch_size
     en
 
-    cal es.render(a:bufnr, data, from, to, es)
+    cal es.render(a:bufnr, r.data, from, to, es)
   en
   cal esearch#util#setline(a:bufnr, 1, es.header_text())
   cal setbufvar(a:bufnr, '&modifiable', 0)
@@ -166,15 +163,15 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
   let es.upd_at = reltime()
 endfu
 
-fu! esearch#out#win#update#schedule_finish(bufnr) abort
-  if a:bufnr == bufnr('%')
-    retu esearch#out#win#update#finish(a:bufnr)
+fu! esearch#out#win#update#schedule_finish(n) abort
+  if a:n == bufnr('%') || !bufexists(a:n)
+    retu esearch#out#win#update#finish(a:n)
   en
-  if !bufexists(a:bufnr) | retu | endif
+  if !bufexists(a:n) | retu | en
 
   " Bind event to finish the search as soon as the buffer is entered
   aug esearch_win_updates
-    exe printf('au BufEnter <buffer=%d> cal esearch#out#win#update#finish(%d)', a:bufnr, a:bufnr)
+    exe printf('au BufEnter <buffer=%d> cal esearch#out#win#update#finish(%d)', a:n, a:n)
   aug END
 endfu
 
@@ -184,7 +181,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
   cal esearch#util#doautocmd('User esearch_win_finish_pre')
   let es = getbufvar(a:bufnr, 'esearch')
 
-  cal esearch#out#win#update#update(a:bufnr, 0)
+  cal esearch#out#win#update#update(a:bufnr, 1)
   " TODO
   let es.contexts[-1].end = line('$')
   cal esearch#out#win#appearance#annotations#init(es)

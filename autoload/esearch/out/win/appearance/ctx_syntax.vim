@@ -112,7 +112,7 @@ endfu
 
 " Can be used to highlight 
 fu! esearch#out#win#appearance#ctx_syntax#hl_viewport(es) abort
-  if !get(a:es, 'loaded_ctx_syntaxes', 0) | retu | en
+  if !get(a:es, 'loaded_ctx_syntaxes') | retu | en
   let l1 = esearch#util#clip(line('w0'), 3, line('$'))
   let l2 = esearch#util#clip(line('w$'), 3, line('$'))
   retu s:hl(a:es, l1, l2)
@@ -126,7 +126,7 @@ endfu
 
 fu! s:hl(es, l1, l2) abort
   if !a:es.slow_hl_enabled || line('$') < 3 || !a:es.is_current() | retu | en
-  let s = esearch#out#win#_state(a:es)
+  let s = a:es.modifiable ? a:es.undotree.head.state : a:es
   for c in b:esearch.contexts[s.ctx_ids_map[a:l1]:s.ctx_ids_map[a:l2]]
     if !c.loaded_syntax | cal s:def_ctx_region(a:es,c) | en
   endfo

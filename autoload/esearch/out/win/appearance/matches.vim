@@ -81,7 +81,7 @@ endf
 
 fu! s:hl(es, l1, l2) abort
   let p = a:es.pattern.vim
-  let state = esearch#out#win#_state(a:es)
+  let state = a:es.modifiable ? a:es.undotree.head.state : a:es
   let lnrs = state.line_numbers_map
   let ids = state.ctx_ids_map
   if len(ids) < a:l2 | retu | en

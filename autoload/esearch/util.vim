@@ -38,45 +38,6 @@ fu! esearch#util#clip(value, from, to) abort
   endif
 endfu
 
-fu! esearch#util#region_text(region) abort
-  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
-
-  try
-    if esearch#util#is_visual(a:region.type)
-      silent exe 'normal! gvy'
-    elseif a:region.type ==# 'line'
-      silent exe "normal! '[V']y"
-    else
-      silent exe 'normal! `[v`]y'
-    endif
-
-    return @@
-  finally
-    call options.restore()
-  endtry
-endfu
-
-fu! esearch#util#type2region(type) abort
-  if esearch#util#is_visual(a:type)
-    return {'type': a:type, 'begin': "'<", 'end': "'>"}
-  elseif a:type ==# 'line'
-    return {'type': a:type, 'begin': "'[", 'end': "']"}
-  else
-    return {'type': a:type, 'begin': '`[', 'end': '`]'}
-  endif
-endfu
-
-fu! esearch#util#operator_expr(operatorfunc) abort
-  if mode(1)[:1] ==# 'no'
-    return 'g@'
-  elseif mode() ==# 'n'
-    let &operatorfunc = a:operatorfunc
-    return 'g@'
-  else
-    return ":\<C-u>call ".a:operatorfunc."(visualmode())\<CR>"
-  endif
-endfu
-
 fu! esearch#util#is_visual(mode) abort
   return a:mode =~? "^[vs\<C-v>]$"
 endfu
@@ -333,3 +294,14 @@ else
     call call(a:funcref, a:000)
   endfu
 endif
+
+fu! esearch#util#clipboard_reg() abort
+  let clipboards = split(&clipboard, ',')
+  if index(clipboards, 'unnamedplus') >= 0
+    return '+'
+  elseif index(clipboards, 'unnamed') >= 0
+    return '*'
+  endif
+
+  return '"'
+endfu

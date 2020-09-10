@@ -32,17 +32,12 @@ let s:substitute_command_re = '\v^:*'
       \ .   ')='
       \ . ')=$'
 
-fu! esearch#out#win#modifiable#cmdline#replace() abort
-  let cmdline = getcmdline()
-  let default_pattern = @/
-  if getcmdtype() !=# ':'
-    return cmdline
-  endif
+fu! esearch#out#win#modifiable#cmdline#replace(cmdline, cmdtype) abort
+  if a:cmdtype !=# ':' | return a:cmdline | endif
 
-  let parsed = s:maybe_substitute(getcmdline(), default_pattern)
-  if empty(parsed)
-    return cmdline
-  endif
+  let default_pattern = @/
+  let parsed = s:maybe_substitute(a:cmdline, default_pattern)
+  if empty(parsed) | return a:cmdline | endif
 
   if match(parsed.command, 'E\%[Substitute]') >= 0
     call s:warn_cmd_deprecated('esearch: '.parsed.command.' command is deprecated. Use :sbustitute/ and :write commands instead.')

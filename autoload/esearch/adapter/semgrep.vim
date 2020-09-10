@@ -40,7 +40,7 @@ fu! s:Semgrep.command(esearch) abort dict
         \], ' ')
 endfu
 
-let s:Semgrep.filetypes = 'go java js json python ruby c ocaml'
+let s:Semgrep.filetypes = split('go java js json python ruby c ocaml')
 
 fu! s:Semgrep.filetypes2args(filetypes) abort dict
   return substitute(a:filetypes, '\<', '--lang=', 'g')

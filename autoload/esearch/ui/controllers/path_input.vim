@@ -1,4 +1,4 @@
-let s:Log             = esearch#log#import()
+let s:Log = esearch#log#import()
 let s:PathInputController = esearch#ui#component()
 
 fu! s:PathInputController.render() abort dict
@@ -7,19 +7,20 @@ fu! s:PathInputController.render() abort dict
 
   redraw!
   while 1
-    let user_input_in_shell_format = input('[paths] > ',
-          \ user_input_in_shell_format,
-          \'customlist,esearch#ui#controllers#path_input#complete')
+    try
+      let user_input_in_shell_format = input('[paths] > ',
+            \ user_input_in_shell_format,
+            \'customlist,esearch#ui#controllers#path_input#complete')
+    catch /Vim:Interrupt/
+      return self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
+    endtry
 
     let [paths, error] = esearch#shell#split(user_input_in_shell_format)
+    if empty(error) | break | endif
 
-    if error isnot 0
-      call s:Log.echon('ErrorMsg', " can't parse paths: " . error)
-      call getchar()
-      redraw!
-    else
-      break
-    endif
+    call s:Log.echon('ErrorMsg', " can't parse paths: " . error)
+    call getchar()
+    redraw!
   endwhile
 
   call self.props.dispatch({'type': 'SET_PATHS',    'paths': paths})
