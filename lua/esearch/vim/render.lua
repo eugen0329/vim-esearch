@@ -20,10 +20,18 @@ function M.render(data, esearch, parser)
   local b = vim.buffer()
   local line = vim.eval('line("$") + 1')
 
+  vim.command('let g:test = get(g:, "test", [])')
+  local test = vim.eval("g:test")
   for i = 0, #parsed - 1 do
     local entry = parsed[i]
     local filename, text, rev = entry.filename, entry.text, entry.rev
 
+    test:add('|||||||contexts|||||||')
+    test:add(contexts)
+    test:add('|||||||filenames|||||||')
+    test:add(filename)
+    test:add(contexts[#contexts - 1].filename)
+    test:add('||||||||||||')
     -- IF new filename encountered
     if filename ~= contexts[#contexts - 1].filename then
       contexts[#contexts - 1]['end'] = line

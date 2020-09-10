@@ -96,11 +96,11 @@ jobs:
   include:
     - name: 'Unit tests'
       script: |
-        bundle exec parallel_test spec/unit -n 2 --type rspec
         vim -Nu <(cat << VIMRC
         set rtp+=vader.vim
         set rtp+=.
         VIMRC) -c 'Vader! spec/*.vader' > /dev/null
+        bundle exec parallel_test spec/unit -n 2 --type rspec
       os: linux
     - name: 'Acceptance tests of #backend#system patterns'
       script: bundle exec parallel_split_test spec/plugin/backend/patterns_spec.rb --tag system --tag ~render:viml
