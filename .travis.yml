@@ -41,6 +41,7 @@ before_install:
     gem install bundler
 install:
   - |
+    apt-get install -y ansible
     ansible-playbook spec/support/provision/site.yml
     # [ "$DOCKER_BUILD" = '1' ] && spec/support/docker/build-alpine && return
 
@@ -98,7 +99,7 @@ jobs:
     - name: 'Unit tests'
       script: |
         vim -Nu <(cat << VIMRC
-        set rtp+=vader.vim
+        set rtp+=~/.cache/esearch-dev/plugins/vader.vim
         set rtp+=.
         VIMRC) -c 'Vader! spec/*.vader' > /dev/null
         bundle exec parallel_test spec/unit -n 2 --type rspec
