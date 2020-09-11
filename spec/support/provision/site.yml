@@ -1,0 +1,110 @@
+- hosts: 127.0.0.1
+  gather_facts: yes
+  connection: local
+  tasks:
+    - {include_vars: debian.yml, when: ansible_os_family == 'Debian'}
+    - {include_vars: darwin.yml, when: ansible_os_family == 'Darwin'}
+
+    - name: Setup global dependencies
+      block:
+        - name: Packages
+          package:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - luarocks
+            - vim
+            - neovim
+            - git
+            - curl
+            - ragel
+            - "{{ tar_package_name }}"
+            - unzip
+            - "{{ pip_package_name }}"
+            - "{{ ps_package_name }}"
+        - name: Lua linter
+          command: luarocks install luacheck
+          args:
+            creates: /usr/local/bin/luacheck
+        - name: Vim lint
+          pip:
+            name: ['vim-vint']
+            state: present
+
+    - name: Setup greppers
+      block:
+        - name: From system package manager
+          package:
+            name: '{{ item }}'
+            state: present
+          with_items:
+            - "{{ ag_package_name }}"
+            - "{{ ack_package_name }}"
+
+        - name: From PIP
+          pip:
+            name: ['semgrep']
+            state: present
+
+        - name: Install prebuilt
+          block:
+            - name: Download
+              unarchive:
+                src: "{{ item.download_url }}"
+                dest: /tmp
+                remote_src: yes
+              with_items: "{{ greppers }}"
+            - name: Find
+              find:
+                paths: /tmp
+                recurse: yes
+                patterns: '{{ item.bin }}'
+              register: bins
+              with_items: '{{ greppers }}'
+            - name: Copy into /usr/local/bin
+              copy:
+                src: '{{ item }}'
+                dest: '/usr/local/bin/{{ item | basename }}'
+              with_items: '{{ bins | json_query("results[*].files[0].path") }}'
+            - name: Make executable
+              file:
+                dest: '/usr/local/bin/{{ item.bin }}'
+                mode: a+x
+              with_items: '{{ greppers }}'
+          vars:
+            - greppers:
+              - {bin: pt, download_url: "{{ pt_download_url }}"}
+              - {bin: rg, download_url: "{{ rg_download_url }}"}
+
+        - name: Configure git-grep
+          block:
+            - git_config: {scope: global, name: core.precomposeunicode, value: 'true'}
+            - git_config: {scope: global, name: core.quotePath, value: 'false'}
+
+    - name: Setup plugins
+      git:
+        repo: https://github.com/mg979/vim-visual-multi.git
+        dest: ~/.cache/esearch-dev/plugins/vim-visual-multi
+
+    - name: Setup testing dependencies
+      block:
+        - name: Install rvm # official role isn't used to not create an extra dependency
+          shell: |
+             gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+             curl -sSL https://get.rvm.io | bash -s stable --path $HOME/.rvm
+             echo 'export PATH="$PATH:$HOME/.rvm/bin"' >> $HOME/.bashrc
+          args:
+            creates: $HOME/.rvm
+        - name: Install ruby
+          command: $HOME/.rvm/bin/rvm install 2.7.1
+          args:
+            creates: $HOME/.rvm/rubies/ruby-2.7.1/bin/ruby
+        - name: Install Gems
+          bundler:
+            executable: ~/.rvm/rubies/ruby-2.7.1/bin/bundle
+            state: present
+          environment: {PATH: "{{ lookup('env', 'PATH') }}:{{ lookup('env', 'HOME') }}/.rvm/rubies/ruby-2.7.1/bin"}
+        - name: Setup vader
+          git:
+            repo: https://github.com/junegunn/vader.vim.git
+            dest: ~/.cache/esearch-dev/plugins/vader.vim

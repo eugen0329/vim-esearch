@@ -10,7 +10,7 @@ env:
   HOMEBREW_NO_AUTO_UPDATE=1
   VIM_GUI=1
   NVIM_GUI=0
-  DOCKER_BUILD=0
+  # DOCKER_BUILD=0
   PARALLEL_SPLIT_TEST_PROCESSES=2
 
 rvm: 2.7.1     # https://docs.travis-ci.com/user/reference/osx/#ruby-versionsimplementations
@@ -18,8 +18,7 @@ language: ruby # https://docs.travis-ci.com/user/reference/xenial/#ruby-support
 
 before_cache:
   - which brew && brew cleanup # https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
-  -
-    test "$DOCKER_BUILD" = '1' && docker save -o docker_images/images.tar $(docker images -a -q) || true
+  # - test "$DOCKER_BUILD" = '1' && docker save -o docker_images/images.tar $(docker images -a -q) || true
 cache:
   bundler: true
   apt: true
@@ -37,44 +36,46 @@ cache:
 before_install:
   # https://docs.travis-ci.com/user/languages/ruby/#bundler-20
   - |
-    [ "$DOCKER_BUILD" = '1' ] && (docker load -i docker_images/images.tar || true) && return
+    # [ "$DOCKER_BUILD" = '1' ] && (docker load -i docker_images/images.tar || true) && return
     yes | gem update --system --force
     gem install bundler
 install:
   - |
-    [ "$DOCKER_BUILD" = '1' ] && spec/support/docker/build-alpine && return
+    ansible-playbook spec/support/provision/site.yml
+    # [ "$DOCKER_BUILD" = '1' ] && spec/support/docker/build-alpine && return
 
-    if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
-      which pyenv
-      whereis pyenv
-      eval "$(pyenv init -)"
-      pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
-      pyenv global "$INSTALL_PYTHON_VERSION"
-      pyenv shell "$INSTALL_PYTHON_VERSION"
-      pyenv local "$INSTALL_PYTHON_VERSION"
-      pyenv rehash
-      python --version
-      pip --version
-      pip3 --version
-    fi
+    # if [ ! -z "$INSTALL_PYTHON_VERSION" ]; then
+    #   which pyenv
+    #   whereis pyenv
+    #   eval "$(pyenv init -)"
+    #   pyenv install --skip-existing "$INSTALL_PYTHON_VERSION"
+    #   pyenv global "$INSTALL_PYTHON_VERSION"
+    #   pyenv shell "$INSTALL_PYTHON_VERSION"
+    #   pyenv local "$INSTALL_PYTHON_VERSION"
+    #   pyenv rehash
+    #   python --version
+    #   pip --version
+    #   pip3 --version
+    # fi
 
-    bundle install
+    # bundle install
 
-    if [ "$LINT" = 1 ]; then
-      pip3 install vim-vint==0.3.21
-      sudo apt-get install -y luarocks
-      sudo luarocks install luacheck
-    fi
+    # if [ "$LINT" = 1 ]; then
+    #   pip3 install vim-vint==0.3.21
+    #   sudo apt-get install -y luarocks
+    #   sudo luarocks install luacheck
+    # fi
 
-    if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
-    else
-      sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
-    fi
+    # if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+    #   sh spec/support/provision/osx.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+    # else
+    #   sh spec/support/provision/debian.sh "$TRAVIS_BUILD_DIR/spec/support/bin" "$TRAVIS_BUILD_DIR/spec/support/vim_plugins"
+    # fi
 
-    bundle exec rake generate_lexer generate_parser
-    git config --global core.precomposeunicode true  ; git config --global core.quotePath false
-    git clone --depth=1 https://github.com/junegunn/vader.vim.git
+    # bundle exec rake generate_lexer generate_parser
+    # git config --global core.precomposeunicode true
+    # git config --global core.quotePath false
+    # git clone --depth=1 https://github.com/junegunn/vader.vim.git
 
 before_script:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then (( sudo Xvfb :99 -ac -screen 0 1024x768x8; echo ok) &); sleep 5; fi

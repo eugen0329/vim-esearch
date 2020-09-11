@@ -106,7 +106,7 @@ module Configuration
   end
 
   def plugins_dir
-    @plugins_dir ||= Pathname(env_fetch('PLUGINS_DIR') { root.join('spec', 'support', 'vim_plugins') })
+    @plugins_dir ||= Pathname(env_fetch('PLUGINS_DIR') { '~/.cache/esearch-dev/plugins' }).expand_path
   end
 
   def dangerously_maximize_performance?
