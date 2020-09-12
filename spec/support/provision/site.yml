@@ -64,9 +64,10 @@
               with_items: '{{ greppers }}'
             - name: Copy into /usr/local/bin
               copy:
-                src: '{{ item }}'
-                dest: '/usr/local/bin/{{ item | basename }}'
-              with_items: '{{ bins | json_query("results[*].files[0].path") }}'
+                src: '{{ item.path }}'
+                dest: '/usr/local/bin/{{ item.path | basename }}'
+              become: "{{ package_become }}"
+              with_items: '{{ bins.results | map(attribute="files") | map("first") | list }}'
             - name: Make executable
               file:
                 dest: '/usr/local/bin/{{ item.bin }}'
