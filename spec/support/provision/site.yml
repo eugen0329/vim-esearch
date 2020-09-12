@@ -1,9 +1,8 @@
-- hosts: 127.0.0.1
+- hosts: localhost
   gather_facts: yes
   connection: local
   tasks:
-    - {include_vars: debian.yml, when: ansible_os_family == 'Debian'}
-    - {include_vars: darwin.yml, when: ansible_os_family == 'Darwin'}
+    - include_vars: "{{ ansible_os_family | lower }}.yml"
 
     - name: Setup global dependencies
       block:
@@ -13,13 +12,13 @@
             state: present
           with_items:
             - luarocks
-            - vim
-            - neovim
             - git
             - curl
             - ragel
-            - "{{ tar_package_name }}"
             - unzip
+            - neovim
+            - "{{ vim_package_name }}"
+            - "{{ tar_package_name }}"
             - "{{ pip_package_name }}"
             - "{{ ps_package_name }}"
         - name: Lua linter
@@ -40,7 +39,6 @@
           with_items:
             - "{{ ag_package_name }}"
             - "{{ ack_package_name }}"
-
         - name: From PIP
           pip:
             name: ['semgrep']
@@ -75,36 +73,22 @@
             - greppers:
               - {bin: pt, download_url: "{{ pt_download_url }}"}
               - {bin: rg, download_url: "{{ rg_download_url }}"}
-
         - name: Configure git-grep
           block:
             - git_config: {scope: global, name: core.precomposeunicode, value: 'true'}
             - git_config: {scope: global, name: core.quotePath, value: 'false'}
 
-    - name: Setup plugins
+    - name: Setup plugin dependencies
       git:
         repo: https://github.com/mg979/vim-visual-multi.git
         dest: ~/.cache/esearch-dev/plugins/vim-visual-multi
 
     - name: Setup testing dependencies
       block:
-        - name: Install rvm # official role isn't used to not create an extra dependency
-          shell: |
-             gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-             curl -sSL https://get.rvm.io | bash -s stable --path $HOME/.rvm
-             echo 'export PATH="$PATH:$HOME/.rvm/bin"' >> $HOME/.bashrc
-          args:
-            creates: $HOME/.rvm
-        - name: Install ruby
-          command: $HOME/.rvm/bin/rvm install 2.7.1
-          args:
-            creates: $HOME/.rvm/rubies/ruby-2.7.1/bin/ruby
-        - name: Install Gems
+        - name: Install libs
           bundler:
-            executable: ~/.rvm/rubies/ruby-2.7.1/bin/bundle
             state: present
-          environment: {PATH: "{{ lookup('env', 'PATH') }}:{{ lookup('env', 'HOME') }}/.rvm/rubies/ruby-2.7.1/bin"}
-        - name: Setup vader
+        - name: Setup vader testing framework
           git:
             repo: https://github.com/junegunn/vader.vim.git
             dest: ~/.cache/esearch-dev/plugins/vader.vim

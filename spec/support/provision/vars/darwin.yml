@@ -1,3 +1,4 @@
+vim_package_name: macvim
 tar_package_name: gnu-tar
 pip_package_name: python3
 ack_package_name: ack
