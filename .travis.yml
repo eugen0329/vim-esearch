@@ -20,6 +20,7 @@ before_install:
 install:
   - |
     pip install --user ansible
+    sudo apt-get update
     ansible-playbook --version
     make host-provision serializer
 before_script:
