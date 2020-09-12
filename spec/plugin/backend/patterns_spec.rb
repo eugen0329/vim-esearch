@@ -71,26 +71,6 @@ describe 'esearch#backend', :backend do
           include_context 'finds 1 entry of', /3\d*5/, in: '__345',   line: 1, column: 3..6
           include_context 'finds 1 entry of', /5$/,    in: "\n__5_5", line: 2, column: 5..6
           include_context 'finds 1 entry of', /^5/,    in: "_5_\n5_", line: 2, column: 1..2
-
-          # are required mostly to choose the best commandline options for adapters
-          context 'compatibility with syntax', :compatibility_regexps do
-            include_context 'finds 1 entry of', /[[:digit:]]{2}/, in: "\n__12_", line: 2, column: 3..5, other_files: [
-              file("1\n2_3\n4",    '1.txt'),
-              file("a\n\nbb\nccc", '2.txt'),
-            ]
-            include_context 'finds 1 entry of', /a{2}/,  in: "a\n__aa_a_", line: 2, column: 3..5
-            include_context 'finds 1 entry of', /\d{2}/, in: "\n__12_",    line: 2, column: 3..5, other_files: [
-              file("1\n2_3\n4",    '1.txt'),
-              file("a\n\nbb\nccc", '2.txt'),
-            ]
-            include_context 'finds 1 entry of', /(?<=the)cat/, in: "\nthecat", line: 2, column: 4..7, other_files: [
-              file("\n___cat", '1.txt'),
-              file("\n_hecat", '2.txt'),
-            ]
-            include_context 'finds 1 entry of', /(?<name>\d)+5/,  in: "\n__345", line: 2, column: 3..6
-            include_context 'finds 1 entry of', '(?P<name>\d)+5', in: "\n__345", line: 2, column: 3..6
-            include_context 'finds 1 entry of', /(?:\d)+34/,      in: "\n__345", line: 2, column: 3..6
-          end
         end
 
         context 'when matching literal', :literal do
@@ -135,7 +115,7 @@ describe 'esearch#backend', :backend do
     end
   end
 
-  shared_examples 'a backend 2' do |backend|
+  shared_examples 'a backend' do |backend|
     context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
       let(:backend) { backend }
 
@@ -148,8 +128,8 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'ack'
         include_context 'works with adapter', 'git'
         include_context 'works with adapter', 'grep'
-        include_context 'works with adapter', 'pt', Configuration.pt_path
-        include_context 'works with adapter', 'rg', Configuration.rg_path
+        include_context 'works with adapter', 'pt'
+        include_context 'works with adapter', 'rg'
       end
     end
   end
@@ -157,8 +137,7 @@ describe 'esearch#backend', :backend do
   describe '#system', :system do
     before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
-    include_context 'a backend',   'system'
-    include_context 'a backend 2', 'system'
+    include_context 'a backend', 'system'
   end
 
   describe '#vim8', :vim8 do
@@ -168,14 +147,12 @@ describe 'esearch#backend', :backend do
       before { esearch.configure(win_render_strategy: 'lua', parse_strategy: 'lua') }
 
       include_context 'a backend', 'vim8'
-      include_context 'a backend 2', 'vim8'
     end
 
     context 'when rendering with viml', render: :viml do
       before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
       include_context 'a backend', 'vim8'
-      include_context 'a backend 2', 'vim8'
     end
   end
 end

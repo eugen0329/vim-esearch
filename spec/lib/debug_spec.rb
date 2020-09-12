@@ -25,42 +25,7 @@ describe Debug do
       end
     end
 
-    context 'when vim server' do
-      it_behaves_like 'it reads and outputs plugin log'
-    end
-
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      it_behaves_like 'it reads and outputs plugin log'
-    end
-  end
-
-  describe '.nvim_log' do
-    let(:server) { Configuration.vim.server }
-
-    context 'when vim server' do
-      # or should it be an exception?
-      it { expect(debug.nvim_log).to be_nil }
-    end
-
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      context 'when present' do
-        it do
-          expect(server).to receive(:nvim_log_file).and_return(log_file.path)
-          expect(debug.nvim_log).to eq(log_file.lines)
-        end
-      end
-
-      context 'when missing' do
-        it do
-          expect(server).to receive(:nvim_log_file).and_return('missing')
-          expect(debug.nvim_log).to be_nil
-        end
-      end
-    end
+    it_behaves_like 'it reads and outputs plugin log'
   end
 
   describe '.running_processes' do
@@ -72,42 +37,7 @@ describe Debug do
       end
     end
 
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      include_examples 'outputs running processes'
-    end
-
-    context 'when vim server' do
-      include_examples 'outputs running processes'
-    end
-  end
-
-  describe '.verbose_log_file' do
-    let(:server) { Configuration.vim.server }
-
-    context 'when vim server' do
-      # or should it be an exception?
-      it { expect(debug.verbose_log).to be_nil }
-    end
-
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      context 'when present' do
-        it do
-          expect(server).to receive(:verbose_log_file).and_return(log_file.path)
-          expect(debug.verbose_log).to eq(log_file.lines)
-        end
-      end
-
-      context 'when missing' do
-        it do
-          expect(server).to receive(:verbose_log_file).and_return('missing')
-          expect(debug.verbose_log).to be_nil
-        end
-      end
-    end
+    include_examples 'outputs running processes'
   end
 
   describe '.working_directories' do

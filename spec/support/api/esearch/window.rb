@@ -59,8 +59,6 @@ class API::ESearch::Window
   end
 
   def has_filename_highlight?(relative_path)
-    return true if Debug.neovim?
-
     # Both a valid. The only difference is that vim escapes > and + only when
     # they are leading
     filename_variations = [editor.escape_regexp(editor.escape_filename(relative_path)),
@@ -71,8 +69,6 @@ class API::ESearch::Window
   end
 
   def has_search_highlight?(relative_path, line, column)
-    return true if Debug.neovim?
-
     entry = find_entry(relative_path, line)
     raise MissingEntryError if entry.empty?
 

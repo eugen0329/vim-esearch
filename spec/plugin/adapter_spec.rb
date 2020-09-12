@@ -254,18 +254,9 @@ describe 'esearch#adapter', :adapters do
   shared_examples '[filetypes] testing examples' do
     include_examples 'adapter filetypes testing examples', 'ag'
     include_examples 'adapter filetypes testing examples', 'ack'
-    # include_examples 'adapter filetypes testing examples', 'rg', Configuration.rg_path
+    include_examples 'adapter filetypes testing examples', 'rg'
   end
 
-  # describe '#nvim', :neovim do
-  #   around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-  #   include_examples '[path] testing examples'
-  #   include_examples '[filetypes] testing examples'
-  # end
-
-  describe '#vim' do
-    include_examples '[path] testing examples'
-    include_examples '[filetypes] testing examples'
-  end
+  include_examples '[path] testing examples'
+  include_examples '[filetypes] testing examples'
 end

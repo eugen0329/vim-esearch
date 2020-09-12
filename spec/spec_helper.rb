@@ -31,7 +31,6 @@ ActiveSupport::Dependencies.autoload_paths += [
   Configuration.root.join('spec/support/lib'),
 ]
 require 'support/client'
-require 'support/server'
 
 EDITOR = Editor.new
 def editor
@@ -89,7 +88,6 @@ RSpec.configure do |c|
   # overrule vimrunner
   c.around(:each) { |e| Dir.chdir(Configuration.root, &e) }
 
-  c.filter_run_excluding(:compatibility_regexps) if Configuration.skip_compatibility_regexps?
   c.filter_run_excluding(:neovim)
   c.filter_run_excluding(:osx_only) unless Configuration.osx?
   c.filter_run_excluding(:multibyte_commandline) # TODO
@@ -113,7 +111,7 @@ Vimrunner::RSpec.configure do |c|
   c.reuse_server = true
 
   c.start_vim do
-    load_runtime!(Client.new(Server.vim(
+    load_runtime!(Client.new(Vimrunner::Server.new(
       name:       "VIMRUNER#{Time.now.to_f}#{ENV['TEST_ENV_NUMBER']}",
       executable: Configuration.vim_path,
       vimrc:      Configuration.vimrc_path,

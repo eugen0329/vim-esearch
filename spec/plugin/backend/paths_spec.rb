@@ -204,7 +204,7 @@ describe 'esearch#backend', :backend do
     end
   end
 
-  shared_examples 'a backend 2' do |backend|
+  shared_examples 'a backend' do |backend|
     context "works with backend: #{backend}", backend.to_sym, backend: backend.to_sym do
       let(:backend) { backend }
 
@@ -217,8 +217,8 @@ describe 'esearch#backend', :backend do
         include_context 'works with adapter', 'ack'
         include_context 'works with adapter', 'git'
         include_context 'works with adapter', 'grep'
-        include_context 'works with adapter', 'pt', Configuration.pt_path
-        include_context 'works with adapter', 'rg', Configuration.rg_path
+        include_context 'works with adapter', 'pt'
+        include_context 'works with adapter', 'rg'
 
         context 'when rev-list in paths' do
           before { esearch.configure(paths: '`git rev-list --all`') }
@@ -232,8 +232,7 @@ describe 'esearch#backend', :backend do
   describe '#system', :system do
     before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
-    include_context 'a backend',   'system'
-    include_context 'a backend 2', 'system'
+    include_context 'a backend', 'system'
   end
 
   describe '#vim8', :vim8 do
@@ -241,14 +240,12 @@ describe 'esearch#backend', :backend do
       before { esearch.configure(win_render_strategy: 'lua', parse_strategy: 'lua') }
 
       include_context 'a backend', 'vim8'
-      include_context 'a backend 2', 'vim8'
     end
 
     context 'when rendering with viml', render: :viml do
       before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
       include_context 'a backend', 'vim8'
-      include_context 'a backend 2', 'vim8'
     end
   end
 end

@@ -18,7 +18,8 @@ describe 'esearch#backend', :backend do
   before do
     esearch.configure(
       root_markers:              [],
-      live_update_debounce_wait: live_update_debounce_wait
+      live_update_debounce_wait: live_update_debounce_wait,
+      live_update:               1
     )
   end
 

@@ -77,10 +77,6 @@ module Configuration
     @scripts_dir ||= Pathname(env_fetch('SCRIPTS_DIR') { root.join('spec', 'support', 'scripts') })
   end
 
-  def skip_compatibility_regexps?
-    env_fetch('SKIP_COMPATIBILITY_REGEXPS', '1') == '1' || ci?
-  end
-
   def plugins_dir
     @plugins_dir ||= Pathname(env_fetch('PLUGINS_DIR') { '~/.cache/esearch-dev/plugins' }).expand_path
   end

@@ -56,18 +56,6 @@ module Debug
     `ps -A -o pid,command`.split("\n")
   end
 
-  def verbose_log
-    return readlines(server.verbose_log_file) if neovim?
-
-    nil
-  end
-
-  def nvim_log
-    return readlines(server.nvim_log_file) if neovim?
-
-    nil
-  end
-
   def messages
     reader.echo(func('execute', 'messages')).split("\n")
   end
@@ -93,10 +81,6 @@ module Debug
     return path if $CHILD_STATUS.success?
 
     nil
-  end
-
-  def neovim?
-    server.is_a?(VimrunnerNeovim::Server)
   end
 
   private

@@ -24,7 +24,6 @@ describe DumpEditorStateOnErrorFormatter do
       # expect(Debug).to receive(:runtimepaths).and_return(['<runtimepaths>'])
       # expect(Debug).to receive(:sourced_scripts).and_return(['<sourced_scripts>'])
       # expect(Debug).to receive(:user_autocommands).and_return(['<user_autocommands>'])
-      # expect(Debug).to receive(:nvim_log).and_return(['<nvim_log>'])
     end
 
     it 'outputs all the debug data' do
@@ -44,7 +43,6 @@ describe DumpEditorStateOnErrorFormatter do
       # .and include('<user_autocommands>')
       # .and  include('<runtimepaths>')
       # .and include('<sourced_scripts>')
-      # .and include('<nvim_log>')
     end
 
     it 'outputs colorized' do

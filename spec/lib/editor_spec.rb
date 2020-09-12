@@ -119,29 +119,13 @@ describe Editor, :editor do
     end
   end
 
-  context 'vim', :vim do
-    context 'when reader == Editor::Read::Eager' do
-      include_examples 'it works with reader', Editor::Read::Eager
-    end
-
-    context 'when reader == Editor::Read::Batched' do
-      include_examples 'it works with reader', Editor::Read::Batched do
-        it_behaves_like 'it optimizes #lines with prefetching in blocks'
-      end
-    end
+  context 'when reader == Editor::Read::Eager' do
+    include_examples 'it works with reader', Editor::Read::Eager
   end
 
-  context 'neovim', :neovim do
-    around  { |e| use_nvim(&e) }
-
-    context 'when reader == Editor::Read::Eager' do
-      include_examples 'it works with reader', Editor::Read::Eager
-    end
-
-    context 'when reader == Editor::Read::Batched' do
-      include_examples 'it works with reader', Editor::Read::Batched do
-        it_behaves_like 'it optimizes #lines with prefetching in blocks'
-      end
+  context 'when reader == Editor::Read::Batched' do
+    include_examples 'it works with reader', Editor::Read::Batched do
+      it_behaves_like 'it optimizes #lines with prefetching in blocks'
     end
   end
 end
