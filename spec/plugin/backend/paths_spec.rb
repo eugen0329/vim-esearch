@@ -47,14 +47,11 @@ describe 'esearch#backend', :backend do
     end
   end
 
-  shared_examples 'works with adapter' do |adapter, adapter_bin|
+  shared_examples 'works with adapter' do |adapter|
     context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       let(:adapter) { adapter }
 
-      before do
-        esearch.configure(adapter: adapter, regex: 0)
-        esearch.configuration.adapter_bin = adapter_bin if adapter_bin
-      end
+      before { esearch.configure(adapter: adapter, regex: 0) }
 
       context 'when weird path' do
         context 'when filenames contain adapter output separators' do

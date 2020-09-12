@@ -22,7 +22,7 @@ install:
   - |
     sudo apt-get update
     sudo apt-get -y install ansible ruby-dev
-    make provision-host build-serializer DOCKER_RUN=
+    make setup-host build-serializer DOCKER_RUN=
 before_script:
   - |
     vim --version || true
@@ -35,12 +35,13 @@ before_script:
 jobs:
   include:
     - name: 'Unit tests'
-      script: |
-        vim -Nu <(cat << VIMRC
-        set rtp+=~/.cache/esearch-dev/plugins/vader.vim
-        set rtp+=.
-        VIMRC) -c 'Vader! spec/*.vader' > /dev/null
-        bundle exec parallel_test -n 2 --type rspec spec/unit/
+      script:
+        - |
+          vim -Nu <(cat << VIMRC
+          set rtp+=~/.cache/esearch-dev/plugins/vader.vim
+          set rtp+=.
+          VIMRC) -c 'Vader! spec/*.vader' > /dev/null
+        - bundle exec parallel_test -n 2 --type rspec spec/unit/
       os: linux
     - name: 'Acceptance tests of #backend#system patterns'
       script: bundle exec parallel_split_test spec/plugin/backend/patterns_spec.rb --tag system --tag ~render:viml

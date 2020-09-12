@@ -5,11 +5,11 @@ all: testing-image serializer
 login: 
 	$(DOCKER_RUN) bash
 
-provision-host:
-	ansible-playbook spec/support/provision/site.yml
+setup-host:
+	ansible-playbook spec/support/setup/site.yml
 
 build-testing-image:
-	docker build -t esearch -f spec/support/provision/Dockerfile .
+	docker build -t esearch -f spec/support/setup/Dockerfile .
 
 build-serializer: spec/support/lib/viml_value/lexer.rb spec/support/lib/viml_value/parser.rb
 
@@ -19,4 +19,4 @@ build-serializer: spec/support/lib/viml_value/lexer.rb spec/support/lib/viml_val
 %.rb: %.y
 	$(DOCKER_RUN) racc --output-file=$@ $<
 
-.PHONY: serializer build-testing-image provision-host
+.PHONY: serializer build-testing-image setup-host

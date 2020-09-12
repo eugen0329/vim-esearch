@@ -45,7 +45,6 @@ if Configuration.dangerously_maximize_performance?
   Editor.cache_enabled = true
   Editor.reader_class = Editor::Read::Batched
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = false
-  VimrunnerNeovim::Server.remote_expr_execution_mode = :fallback_to_prepending_with_escape_press_on_timeout
   Configuration.vimrunner_switch_to_neovim_callback_scope = :all
 
   ESEARCH = API::ESearch::Facade.new(editor)
@@ -61,7 +60,6 @@ else
   Editor.cache_enabled = false
   Editor.reader_class = Editor::Read::Eager
   API::ESearch::Window::Entry.rollback_inside_buffer_on_open = true
-  VimrunnerNeovim::Server.remote_expr_execution_mode = :prepend_with_escape_press
   Configuration.vimrunner_switch_to_neovim_callback_scope = :each
 
   API::ESearch::Window.search_event_timeout    = 16.seconds
@@ -120,21 +118,6 @@ Vimrunner::RSpec.configure do |c|
       executable: Configuration.vim_path,
       vimrc:      Configuration.vimrc_path,
       timeout:    10
-    ).start))
-  end
-end
-
-VimrunnerNeovim::RSpec.configure do |c|
-  c.reuse_server = true
-
-  c.start_nvim do
-    load_runtime!(Client.new(Server.neovim(
-      name:          "NVIMRUNER#{Time.now.to_f}#{Configuration.test_env_number}",
-      nvim:          Configuration.nvim_path,
-      gui:           Configuration.nvim_gui?,
-      vimrc:         Configuration.vimrc_path,
-      timeout:       10,
-      verbose_level: 0
     ).start))
   end
 end

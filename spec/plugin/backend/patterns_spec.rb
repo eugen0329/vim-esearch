@@ -30,14 +30,7 @@ describe 'esearch#backend', :backend do
         esearch.configuration.submit!
         esearch.cd! test_directory
       end
-
-      append_after do
-        # TODO: fix perormance and uncomment
-        # if Configuration.debug_specs_performance? && backend == 'system'
-        #   expect(VimrunnerSpy.echo_call_history.count).to be < 7
-        # end
-        esearch.cleanup!
-      end
+      append_after { esearch.cleanup! }
 
       include_context 'report editor state on error'
 
@@ -61,14 +54,11 @@ describe 'esearch#backend', :backend do
     end
   end
 
-  shared_examples 'works with adapter' do |adapter, adapter_bin|
+  shared_examples 'works with adapter' do |adapter|
     context "works with adapter: #{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       let(:adapter) { adapter }
 
-      before do
-        esearch.configure(adapter: adapter, regex: 0)
-        esearch.configuration.adapter_bin = adapter_bin if adapter_bin
-      end
+      before { esearch.configure(adapter: adapter, regex: 0) }
 
       context 'when weird search strings' do
         context 'when matching regexp', :regexp, matching: :regexp do

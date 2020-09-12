@@ -1,6 +1,6 @@
 FROM ruby:2.7.0-buster
 
-COPY Gemfile* spec/support/provision/ /
+COPY Gemfile* spec/support/setup/ /
 RUN set -eux;                                     \
     apt-get update; apt-get install -y ansible;   \
     ansible-playbook site.yml;                    \

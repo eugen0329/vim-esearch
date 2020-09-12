@@ -16,14 +16,6 @@ module Configuration
     :process_check_timeout,
     :search_freeze_timeout
 
-  def pt_path
-    env_fetch('PT_PATH') { bin_dir.join('pt') }
-  end
-
-  def rg_path
-    env_fetch('RG_PATH') { bin_dir.join('rg') }
-  end
-
   def test_env_number
     # For parallel_tests and parallel_split_test
     # Imitation of --first-is-1 of parallel_tests for parallel_split_test as it
@@ -35,23 +27,11 @@ module Configuration
     env_fetch('LOG_LEVEL') { 'info' }
   end
 
-  def nvim_path
-    @nvim_path ||= env_fetch('NVIM_PATH') do
-      if linux?
-        bin_dir.join('squashfs-root', 'usr', 'bin', 'nvim').to_s
-      else
-        bin_dir.join('nvim').to_s
-      end
-    end
-  end
-
   def vim_path
-    @vim_path ||= env_fetch('VIM_PATH') do
-      if vim_gui?
-        Vimrunner::Platform.gvim
-      else
-        Vimrunner::Platform.vim
-      end
+    if vim_gui?
+      Vimrunner::Platform.gvim
+    else
+      Vimrunner::Platform.vim
     end
   end
 
@@ -91,10 +71,6 @@ module Configuration
 
   def ci?
     ENV['TRAVIS_BUILD_ID'].present?
-  end
-
-  def bin_dir
-    @bin_dir ||= Pathname(env_fetch('BIN_DIR') { root.join('spec', 'support', 'bin') })
   end
 
   def scripts_dir
