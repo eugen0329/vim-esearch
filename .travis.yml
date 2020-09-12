@@ -1,5 +1,5 @@
 sudo: required
-dist: precise
+dist: focal
 env:
   DISPLAY=":99.0"
   PARALLEL_SPLIT_TEST_PROCESSES=2
