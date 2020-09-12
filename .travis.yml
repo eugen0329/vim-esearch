@@ -20,8 +20,7 @@ before_install:
 install:
   - |
     sudo apt-get update
-    pip install --user ansible jmespath
-    ansible-playbook --version
+    sudo apt-get -y install ansible
     make host-provision serializer
 before_script:
   - |
