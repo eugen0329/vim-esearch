@@ -3,7 +3,7 @@ dist: focal
 env:
   DISPLAY=":99.0"
   PARALLEL_SPLIT_TEST_PROCESSES=2
-rvm: 2.7.1
+rvm: 2.7.0
 language: ruby
 cache:
   bundler: true
@@ -11,7 +11,6 @@ cache:
   pip: true
   directories:
     - $HOME/.rvm
-    - /usr/local/Homebrew
     - $HOME/.cache/pip
 before_install:
   - |
@@ -21,7 +20,7 @@ install:
   - |
     sudo apt-get update
     sudo apt-get -y install ansible
-    make host-provision serializer
+    make build-testing-image build-serializer
 before_script:
   - |
     vim --version || true
