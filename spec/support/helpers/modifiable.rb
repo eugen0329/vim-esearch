@@ -93,10 +93,6 @@ module Helpers::Modifiable
     end
 
     after do
-      editor.command <<~TEARDOWN
-        call clever_f#reset()
-      TEARDOWN
-
       messages = Debug.messages.join
       errors = editor.echo(var('v:errors'))
       lines = editor.lines
