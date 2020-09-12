@@ -19,7 +19,7 @@ describe 'esearch#adapter', :adapters do
 
   before { esearch.configure(prefill: [], root_markers: [], adapters: {grep: {options: '--exclude-dir=.git'}}) }
 
-  shared_examples 'adapter paths testing examples' do |adapter, adapter_bin|
+  shared_examples 'adapter paths testing examples' do |adapter|
     describe "##{adapter}", adapter.to_sym, adapter: adapter.to_sym do
       before do
         esearch.configure(
@@ -28,7 +28,6 @@ describe 'esearch#adapter', :adapters do
           backend: 'system',
           regex:   (adapter =~ /grep|git/ ? 'pcre' : 1)
         )
-        esearch.configuration.adapter_bin = adapter_bin if adapter_bin
         esearch.configuration.submit!
       end
       after { esearch.cleanup! }
@@ -117,7 +116,6 @@ describe 'esearch#adapter', :adapters do
             after:   after_lines,
             context: context_lines
           )
-          esearch.configuration.adapter_bin = adapter_bin if adapter_bin
           esearch.configuration.submit!
         end
         let!(:test_directory) { directory(files).persist! }
@@ -219,7 +217,7 @@ describe 'esearch#adapter', :adapters do
     end
   end
 
-  shared_examples 'adapter filetypes testing examples' do |adapter, adapter_bin|
+  shared_examples 'adapter filetypes testing examples' do |adapter|
     before do
       esearch.configure(
         adapter: adapter,
@@ -227,7 +225,6 @@ describe 'esearch#adapter', :adapters do
         backend: 'system',
         regex:   (adapter =~ /grep|git/ ? 'pcre' : 1)
       )
-      esearch.configuration.adapter_bin = adapter_bin if adapter_bin
       esearch.configuration.submit!
       editor.cd! test_directory
     end
@@ -250,25 +247,16 @@ describe 'esearch#adapter', :adapters do
     include_examples 'adapter paths testing examples', 'ack'
     include_examples 'adapter paths testing examples', 'git'
     include_examples 'adapter paths testing examples', 'grep'
-    include_examples 'adapter paths testing examples', 'pt', Configuration.pt_path
-    include_examples 'adapter paths testing examples', 'rg', Configuration.rg_path
+    include_examples 'adapter paths testing examples', 'pt'
+    include_examples 'adapter paths testing examples', 'rg'
   end
 
   shared_examples '[filetypes] testing examples' do
     include_examples 'adapter filetypes testing examples', 'ag'
     include_examples 'adapter filetypes testing examples', 'ack'
-    # include_examples 'adapter filetypes testing examples', 'rg', Configuration.rg_path
+    include_examples 'adapter filetypes testing examples', 'rg'
   end
 
-  # describe '#nvim', :neovim do
-  #   around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-  #   include_examples '[path] testing examples'
-  #   include_examples '[filetypes] testing examples'
-  # end
-
-  describe '#vim' do
-    include_examples '[path] testing examples'
-    include_examples '[filetypes] testing examples'
-  end
+  include_examples '[path] testing examples'
+  include_examples '[filetypes] testing examples'
 end

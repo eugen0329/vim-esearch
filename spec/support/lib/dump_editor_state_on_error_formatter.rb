@@ -42,14 +42,12 @@ class DumpEditorStateOnErrorFormatter
       buffer_configuration: format_hash(Debug.configuration('b:esearch')),
       messages:             format_array(Debug.messages),
       plugin_log:           format_array(Debug.plugin_log),
-      verbose_log:          format_array(Debug.verbose_log),
       screenshot_path:      prepend_indent(Debug.screenshot!),
       # global_configuration: format_hash(Debug.global_configuration),
       # running_processes:    format_array(Debug.running_processes),
       # runtimepaths:         format_array(Debug.runtimepaths),
       # sourced_scripts:      format_array(Debug.sourced_scripts),
       # user_autocommands:    format_array(Debug.user_autocommands),
-      # nvim_log:             format_array(Debug.nvim_log),
     }
   end
 

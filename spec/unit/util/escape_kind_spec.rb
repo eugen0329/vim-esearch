@@ -38,10 +38,8 @@ describe 'esearch#util' do
     end
 
     context 'multibyte alphabet' do
-
-      context 'with escaping', :neovim, :multibyte do
-        around { |e| use_nvim(&e) }
-
+      # TODO: VADER migration :neovim
+      xcontext 'with escaping', :multibyte do
         ('α'..'ω').to_a.concat(('Α'..'Ω').to_a).sample(5).each do |char|
           include_examples 'it recognizes with all escapes except Shift-*', char
         end

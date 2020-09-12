@@ -23,10 +23,6 @@ RSpec.shared_examples 'a backend' do |backend|
 
         before do
           esearch.configure!(regex: 0)
-
-          esearch.configuration.adapter_bin = Configuration.pt_path if adapter == 'pt'
-          esearch.configuration.adapter_bin = Configuration.rg_path if adapter == 'rg'
-
           editor.cd! context_fixtures_path
         end
         after { esearch.cleanup! }

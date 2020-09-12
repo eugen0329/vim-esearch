@@ -75,7 +75,7 @@ endfu
 
 fu! s:live_update(...) abort
   let cmdline = a:0 ? a:1 : getcmdline()
-  if s:self.executed_cmdline ==# cmdline || len(cmdline) < s:self.props.live_update_min_len
+  if s:self.executed_cmdline ==# cmdline || empty(cmdline) || len(cmdline) < s:self.props.live_update_min_len
     return
   endif
   let s:self.executed_cmdline = cmdline

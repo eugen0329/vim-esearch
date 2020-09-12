@@ -17,34 +17,6 @@ require 'support/known_issues'
 # #skip! and pending! follow RSpec semantics
 # #random_failure! works like pending, but won't fail if an example is succeeded
 KnownIssues.allow_tests_to_fail_matching_by_metadata do
-  # Aren't implemented by grep
-  pending! '[[:digit:]]', /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '\d{2}',       /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! 'a{2}',        /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '/(?:',        /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '/(?<=',       /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '(?<name>',    /position_inside_file/, adapter: :grep, matching: :regexp
-  pending! '(?P<name>',   /position_inside_file/, adapter: :grep, matching: :regexp
-
-  # Aren't implemented by git-grep
-  pending! '[[:digit:]]{2}', /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '\d{2}',          /position_inside_file/, adapter: :git, matching: :regexp
-  pending! 'a{2}',           /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '/(?:',           /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '/(?<=',          /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '/(?<name>',      /position_inside_file/, adapter: :git, matching: :regexp
-  pending! '(?P<name>',      /position_inside_file/, adapter: :git, matching: :regexp
-
-  # https://github.com/google/re2/wiki/Syntax
-  pending! '/(?<name>', /reported_errors/, adapter: :pt, matching: :regexp
-  # TODO: output should handle status codes from adapters
-  pending! '/(?<=',     /reported_errors/, adapter: :pt, matching: :regexp
-
-  # TODO: implement support for later versions with --pcre2
-  # https://github.com/BurntSushi/ripgrep/blob/master/CHANGELOG.md
-  pending! '/(?<=',     /reported_errors/, adapter: :rg, matching: :regexp
-  pending! '/(?<name>', /reported_errors/, adapter: :rg, matching: :regexp
-
   # TODO: investigate
   skip! '/3\d+5/', adapter: :git, matching: :regexp
   skip! '/3\d*5/', adapter: :git, matching: :regexp
@@ -59,13 +31,4 @@ KnownIssues.allow_tests_to_fail_matching_by_metadata do
   # Ack cannot work with files named ~
   pending! 'searching in a file with name "~"', /MissingEntry/, adapter: :ack
   pending! 'searching in a file with name "-"', /MissingEntry/, adapter: :ack
-
-  # Can be fixed by storing data as a single string instead of list of lines.
-  # Can reduce freezes on stdout callbacks, but seems too hard to implement for
-  # now.
-  skip! 'searching in a file with name "a\\n"', adapter: :ag
-  skip! 'searching in a file with name "a\\n"', adapter: :ack
-  skip! 'searching in a file with name "a\\n"', adapter: :pt
-  skip! 'searching in a file with name "a\\n"', adapter: :rg
-  skip! 'searching in a file with name "a\\n"', adapter: :grep
 end

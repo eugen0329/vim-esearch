@@ -1,3 +1,0 @@
-#!/bin/sh
-
-docker build -t esearch-provision-bats "$(dirname "$0")"
