@@ -24,6 +24,7 @@
             - "{{ ps_package_name }}"
         - name: Lua linter
           command: luarocks install luacheck
+          become: "{{ package_become }}"
           args:
             creates: /usr/local/bin/luacheck
         - name: Vim lint
