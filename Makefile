@@ -1,7 +1,9 @@
 DOCKER_RUN = docker run --rm -v $$PWD:/app -it esearch
-DOCKER_BUILD = docker run --rm -v $$PWD:/app -it esearch
 
 all: testing-image serializer
+
+login: 
+	$(DOCKER_RUN) bash
 
 provision-host:
 	ansible-playbook spec/support/provision/site.yml

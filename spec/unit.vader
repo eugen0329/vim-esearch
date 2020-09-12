@@ -19,7 +19,6 @@ Before:
   call esearch#init(g:params)
   norm! gg
   let @r = ''
-  Log [b:esearch, get(g:, 'test')]
 
 After:
   doau TextChanged

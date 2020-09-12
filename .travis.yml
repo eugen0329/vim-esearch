@@ -3,6 +3,8 @@ dist: focal
 env:
   DISPLAY=":99.0"
   PARALLEL_SPLIT_TEST_PROCESSES=2
+services:
+  - xvfb
 rvm: 2.7.0
 language: ruby
 cache:
