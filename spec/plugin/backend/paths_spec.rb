@@ -115,7 +115,7 @@ describe 'esearch#backend', :backend do
             include_context 'searches in path', path: "a\a"
             include_context 'searches in path', path: "a\b"
             include_context 'searches in path', path: "a\t"
-            # TODO lookahead parser
+            # TODO: lookahead parser
             # include_context 'searches in path', path: "a\n"
             include_context 'searches in path', path: "a\v"
             include_context 'searches in path', path: "a\f"
@@ -233,20 +233,20 @@ describe 'esearch#backend', :backend do
   describe '#system', :system do
     before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
-    include_context 'a backend', 'system'
+    it_behaves_like 'a backend', 'system'
   end
 
   describe '#vim8', :vim8 do
     context 'when rendering with lua', render: :lua do
       before { esearch.configure(win_render_strategy: 'lua', parse_strategy: 'lua') }
 
-      include_context 'a backend', 'vim8'
+      it_behaves_like 'a backend', 'vim8'
     end
 
     context 'when rendering with viml', render: :viml do
       before { esearch.configure(win_render_strategy: 'viml', parse_strategy: 'viml') }
 
-      include_context 'a backend', 'vim8'
+      it_behaves_like 'a backend', 'vim8'
     end
   end
 end

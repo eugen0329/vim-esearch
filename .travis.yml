@@ -14,15 +14,13 @@ cache:
   directories:
     - $HOME/.rvm
     - $HOME/.cache/pip
-before_install:
+install:
   - |
     yes | gem update --system --force
     gem install bundler
-install:
-  - |
     sudo apt-get update
     sudo apt-get -y install ansible ruby-dev
-    make setup-host build-serializer DOCKER_RUN=
+    make setup-host setup-serializer DOCKER_RUN=
 before_script:
   - |
     vim --version || true
