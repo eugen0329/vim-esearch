@@ -19,8 +19,9 @@ before_install:
     gem install bundler
 install:
   - |
-    pip install --user ansible
+    # pip install --user ansible jmespath
     sudo apt-get update
+    sudo apt-get install ansible
     ansible-playbook --version
     make host-provision serializer
 before_script:
