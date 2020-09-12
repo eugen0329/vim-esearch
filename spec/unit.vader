@@ -39,6 +39,7 @@ Expect:
 ###########
 Execute (delete match 3 "inner" textobj):
   norm 3dim
+
 Expect:
   Matches in 2 lines, 1 file. Finished.
 
