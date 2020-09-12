@@ -20,7 +20,7 @@ install:
   - |
     sudo apt-get update
     sudo apt-get -y install ansible
-    make build-testing-image build-serializer
+    make provision-host build-serializer
 before_script:
   - |
     vim --version || true

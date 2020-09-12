@@ -1,4 +1,4 @@
-FROM ruby:2.7-buster
+FROM ruby:2.7.0-buster
 
 COPY Gemfile* spec/support/provision/ /
 RUN set -eux;                                     \
