@@ -1,3 +1,4 @@
+sudo: required
 dist: xenial
 env:
   DISPLAY=":99.0"
@@ -12,10 +13,12 @@ cache:
     - $HOME/.rvm
     - /usr/local/Homebrew
     - $HOME/.cache/pip
-install:
+before_install:
   - |
     yes | gem update --system --force
     gem install bundler
+install:
+  - |
     apt-get install -y ansible
     make host-provision serializer
 before_script:
