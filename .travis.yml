@@ -19,7 +19,7 @@ before_install:
     gem install bundler
 install:
   - |
-    sudo apt-get install -y ansible
+    pip install --user ansible
     ansible-playbook --version
     make host-provision serializer
 before_script:
