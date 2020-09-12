@@ -10,6 +10,7 @@
           package:
             name: "{{ item }}"
             state: present
+          become: "{{ package_become }}"
           with_items:
             - luarocks
             - git
@@ -36,6 +37,7 @@
           package:
             name: '{{ item }}'
             state: present
+          become: "{{ package_become }}"
           with_items:
             - "{{ ag_package_name }}"
             - "{{ ack_package_name }}"

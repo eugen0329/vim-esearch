@@ -6,3 +6,4 @@ ag_package_name: the_silver_searcher
 pt_download_url: https://github.com/monochromegane/the_platinum_searcher/releases/download/v2.2.0/pt_darwin_amd64.zip
 rg_download_url: https://github.com/BurntSushi/ripgrep/releases/download/12.1.1/ripgrep-12.1.1-x86_64-apple-darwin.tar.gz
 ps_package_name:
+package_become: no
