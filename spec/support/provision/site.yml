@@ -72,6 +72,7 @@
               file:
                 dest: '/usr/local/bin/{{ item.bin }}'
                 mode: a+x
+              become: "{{ package_become }}"
               with_items: '{{ greppers }}'
           vars:
             - greppers:
