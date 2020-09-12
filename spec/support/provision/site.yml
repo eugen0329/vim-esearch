@@ -2,15 +2,15 @@
   gather_facts: yes
   connection: local
   tasks:
-    - include_vars: "{{ ansible_os_family | lower }}.yml"
+    - include_vars: '{{ ansible_os_family | lower }}.yml'
 
     - name: Setup global dependencies
       block:
         - name: Packages
           package:
-            name: "{{ item }}"
+            name: '{{ item }}'
             state: present
-          become: "{{ package_become }}"
+          become: '{{ package_become }}'
           with_items:
             - luarocks
             - git
@@ -18,13 +18,13 @@
             - ragel
             - unzip
             - neovim
-            - "{{ vim_package_name }}"
-            - "{{ tar_package_name }}"
-            - "{{ pip_package_name }}"
-            - "{{ ps_package_name }}"
+            - '{{ vim_package_name }}'
+            - '{{ tar_package_name }}'
+            - '{{ pip_package_name }}'
+            - '{{ ps_package_name }}'
         - name: Lua linter
           command: luarocks install luacheck
-          become: "{{ package_become }}"
+          become: '{{ package_become }}'
           args:
             creates: /usr/local/bin/luacheck
         - name: Vim lint
@@ -38,10 +38,10 @@
           package:
             name: '{{ item }}'
             state: present
-          become: "{{ package_become }}"
+          become: '{{ package_become }}'
           with_items:
-            - "{{ ag_package_name }}"
-            - "{{ ack_package_name }}"
+            - '{{ ag_package_name }}'
+            - '{{ ack_package_name }}'
         - name: From PIP
           pip:
             name: ['semgrep']
@@ -51,10 +51,10 @@
           block:
             - name: Download
               unarchive:
-                src: "{{ item.download_url }}"
+                src: '{{ item.download_url }}'
                 dest: /tmp
                 remote_src: yes
-              with_items: "{{ greppers }}"
+              with_items: '{{ greppers }}'
             - name: Find
               find:
                 paths: /tmp
@@ -66,18 +66,18 @@
               copy:
                 src: '{{ item.path }}'
                 dest: '/usr/local/bin/{{ item.path | basename }}'
-              become: "{{ package_become }}"
+              become: '{{ package_become }}'
               with_items: '{{ bins.results | map(attribute="files") | map("first") | list }}'
             - name: Make executable
               file:
                 dest: '/usr/local/bin/{{ item.bin }}'
                 mode: a+x
-              become: "{{ package_become }}"
+              become: '{{ package_become }}'
               with_items: '{{ greppers }}'
           vars:
             - greppers:
-              - {bin: pt, download_url: "{{ pt_download_url }}"}
-              - {bin: rg, download_url: "{{ rg_download_url }}"}
+              - {bin: pt, download_url: '{{ pt_download_url }}'}
+              - {bin: rg, download_url: '{{ rg_download_url }}'}
         - name: Configure git-grep
           block:
             - git_config: {scope: global, name: core.precomposeunicode, value: 'true'}
@@ -93,6 +93,7 @@
         - name: Install libs
           bundler:
             state: present
+            extra_args: '--without development'
         - name: Setup vader testing framework
           git:
             repo: https://github.com/junegunn/vader.vim.git

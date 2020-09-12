@@ -36,7 +36,6 @@ GEM
       method_source (~> 1.0)
     racc (1.5.0)
     rainbow (3.0.0)
-    rake (13.0.1)
     regexp_parser (1.7.1)
     reverse_markdown (2.0.0)
       nokogiri
@@ -99,7 +98,6 @@ DEPENDENCIES
   parallel_tests
   pry
   racc
-  rake
   rspec
   rubocop
   solargraph
