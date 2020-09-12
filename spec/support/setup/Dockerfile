@@ -9,6 +9,7 @@ RUN set -eux;                                     \
 
 WORKDIR /app
 ENV DISPLAY=:99
+ENV LANG=C.UTF-8
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["bash"]

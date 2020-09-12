@@ -19,7 +19,7 @@ describe 'esearch#backend', :backend do
     esearch.configure(
       root_markers:              [],
       live_update_debounce_wait: live_update_debounce_wait,
-      live_update:               1
+      live_update_min_len:       0
     )
   end
 
@@ -54,7 +54,7 @@ describe 'esearch#backend', :backend do
               .and have_not_reported_errors
               .and have_valid_buffer_basename(search_string)
           end
-          expect(editor.buffers.count).to eq(1)
+          expect(editor.buffers.count).to eq(2) # Search <...> and [esearch]
         end
       end
 

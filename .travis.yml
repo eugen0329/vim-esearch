@@ -64,7 +64,7 @@ jobs:
     - name: 'Acceptance tests of commandline'
       script: bundle exec parallel_test -n 2 --type rspec spec/plugin/commandline/
       os: linux
-    - name: 'Linters (luacheck, rubocop, vint, shellcheck)'
+    - name: 'Linters'
       script:
         - luacheck lua/
         - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
