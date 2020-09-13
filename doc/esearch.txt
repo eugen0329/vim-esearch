@@ -594,8 +594,9 @@ g:esearch.win_map                                              *g:esearch.win_ma
         NOTE `' '` is used to create a keymap using regular |:map| command.
         NOTE When jumping from the header <plug>(esearch-win-jump:dirname:down)
         jumps to the 2nd directory filename for convenience reasons, as opening
-        when the cursor is above the header leads to opening the 1st file.
-        Use <plug>(esearch-win-jump:filename:up) to focus the 1st filename.
+        when the cursor is above the header leads to opening a file from the 1st
+        directory.
+        Use <plug>(esearch-win-jump:dirname:up) to focus the 1st filename.
 
         See also: |nvim_set_keymap()|.
 

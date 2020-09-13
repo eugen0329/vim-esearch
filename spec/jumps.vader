@@ -126,3 +126,27 @@ Expect:
      1 line1
 
   dir2
+
+Execute (with "2(" jump to filename 1 from the header):
+  exe 'norm gg2('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/')
+
+Execute (with "2(" jump to filename 1 from file 3 entry 1):
+  exe 'norm G2('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/')
+
+Execute (with "2)" jump to filename 3 from the header):
+  exe 'norm gg2)'
+Then:
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/')
+
+Execute (with "2)" jump to filename 3 from entry 1):
+  exe 'norm G2)'
+Then:
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/')

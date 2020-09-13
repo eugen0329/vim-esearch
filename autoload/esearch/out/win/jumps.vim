@@ -99,10 +99,8 @@ fu! s:jump2entry(count, ...) abort dict
     endif
   endif
 
-  " Locate the first column after a line number
-  norm! 0
-  let pos = searchpos('\s\+\d\+\s', 'Wne')
-  call cursor(pos[0], pos[1] + 1)
+  " Locate the first column/virtual column after a line number
+  norm! ^f l
 
   return 1
 endfu
