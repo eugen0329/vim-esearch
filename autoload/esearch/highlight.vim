@@ -19,6 +19,10 @@ fu! esearch#highlight#set() abort
   hi def link esearchCursorLineNr CursorLineNr
   hi def      esearchHeader       cterm=bold gui=bold
 
+  let esearchBasename = extend(s:gethl('Directory'), {'cterm': 'bold', 'gui': 'bold'})
+  call s:sethl('esearchBasename', esearchBasename, {'default': 1})
+  
+
   let s:is_dark = s:detect_dark_background()
   call s:set_matches_highlight()
   if g:esearch#has#nvim | call s:set_float_win_highlights() | endif

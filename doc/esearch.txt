@@ -450,6 +450,8 @@ mapping definitions to |g:esearch.win_map| list:
 <plug>(esearch-win-jump:entry:up)      |  K   | Jump up to the previous outputted line
 <plug>(esearch-win-jump:filename:down) |  }   | Jump down to the next filename
 <plug>(esearch-win-jump:filename:up)   |  {   | Jump up to the previous filename
+<plug>(esearch-win-jump:dirname:down)  |  )   | Jump down to the filename from another directory
+<plug>(esearch-win-jump:dirname:up)    |  (   | Jump up to the filename from another directory
 <plug>(textobj-esearch-match-i)        |  im  | Seek forward and operate the next match
 <plug>(textobj-esearch-match-a)        |  am  | Same as above, but also capture surrounding spaces
  --------------------------------------+------+----------------------------------------------------------
@@ -555,19 +557,46 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <plug>(esearch-win-jump:filename:up)        *<plug>(esearch-win-jump:filename:up)*
 <plug>(esearch-win-jump:filename:down)    *<plug>(esearch-win-jump:filename:down)*
         Move cursor to a filename up or down.
-        Default: see |esearch-win-map-defaults|
+        Default: `{` and `}`
         Example:~
 >
         let g:esearch.win_map = [
-        \ [' ', ']f', '<plug>(esearch-win-jump:filename:down)'],
-        \ [' ', '[f', '<plug>(esearch-win-jump:filename:up)']
+        \ [' ', ']f', '<plug>(esearch-win-jump:filename:down)zz'],
+        \ [' ', '[f', '<plug>(esearch-win-jump:filename:up)zz']
         \]
 <
+        The example above defines `]f` and `[f` mappings to jump between filenames
+        center the screen after a jump.
+
         NOTE `' '` is used to create a keymap using regular |:map| command.
-        NOTE <plug>(esearch-win-jump:filename:down) jumps to the 2nd filename
-        for convenience reasons, as opening when the cursor is above the header
-        leads to opening the 1st file.
+        NOTE When jumping from the header <plug>(esearch-win-jump:filename:down)
+        navigates the 2nd filename for convenience reasons, as opening when the
+        cursor is above the header leads to opening the 1st file.
         Use <plug>(esearch-win-jump:filename:up) to focus the 1st filename.
+
+        See also: |nvim_set_keymap()|.
+
+<plug>(esearch-win-jump:dirname:up)          *<plug>(esearch-win-jump:dirname:up)*
+<plug>(esearch-win-jump:dirname:down)      *<plug>(esearch-win-jump:dirname:down)*
+        Move cursor to the filename from a different directory up or down.
+        Default: `(` and `)`
+        Example:~
+>
+        let s:echo_dir = ':<c-u>echo fnamemodify(b:esearch.filename(), ":h")<cr>'
+        let g:esearch.win_map = [
+        \ [' ', ']]', '<plug>(esearch-win-jump:dirname:down)'.s:echo_dir],
+        \ [' ', '[[', '<plug>(esearch-win-jump:dirname:up)'.s:echo_dir]
+        \]
+<
+        The example above defines `[[` and `]]` mappings to jump between filenames
+        from different directories and print a hovered directory after the jump.
+
+        NOTE `' '` is used to create a keymap using regular |:map| command.
+        NOTE When jumping from the header <plug>(esearch-win-jump:dirname:down)
+        jumps to the 2nd directory filename for convenience reasons, as opening
+        when the cursor is above the header leads to opening a file from the 1st
+        directory.
+        Use <plug>(esearch-win-jump:dirname:up) to focus the 1st filename.
 
         See also: |nvim_set_keymap()|.
 
@@ -1095,6 +1124,7 @@ and extra methods to interact with the search window.
  `.split_preview_open()` | Open split preview window. A wrapper around |b:esearch.open()|
  `.jump2entry()`         | Move the cursor to the next/prev entry
  `.jump2filename()`      | Move the cursor to the next/prev filename
+ `.jump2dirname()`       | Move the cursor to the filename from then next/prev directory
  `.is_filename()`        | Return |TRUE| if the cursor is above a filename
  `.is_entry()`           | Return |TRUE| if the cursor is above an entry
  `.is_current()`         | Return |TRUE| if the window related to |b:esearch| is current

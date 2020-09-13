@@ -8,6 +8,8 @@ local M = {
     ATTACHED_ANNOTATIONS = {},
 }
 
+local LAST_PATH_SEPARATOR = "/[^/]*$"
+
 local function matches_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to == old_to then
     vim.api.nvim_buf_clear_namespace(0, M.MATCHES_NS, from, to)
@@ -55,6 +57,8 @@ function M.highlight_ui(bufnr, from, to)
       end
     else
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchFilename', from + i - 1, 0, -1)
+      local col = string.find(text, LAST_PATH_SEPARATOR) or 0
+      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchBasename', from + i - 1, col, -1)
     end
     ::continue::
   end

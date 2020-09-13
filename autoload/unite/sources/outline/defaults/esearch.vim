@@ -12,5 +12,5 @@ let s:outline_info = {
       \}
 
 function! s:outline_info.create_heading(_which, heading_line, _matched_line, _context) abort
-    return {'word' : a:heading_line, 'type' : 'generic'}
+    return {'word' : a:heading_line, 'type' : 'filename'}
 endfunction
