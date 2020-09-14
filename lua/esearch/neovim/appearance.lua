@@ -51,9 +51,14 @@ function M.highlight_ui(bufnr, from, to)
     elseif text:len() == 0 then -- luacheck: ignore
       -- separators are not highlighted
     elseif text:sub(1,1) == ' ' then
-      local _, pos2 =  text:find('^%s+%d+%s')
+      local _, pos2 =  text:find('^%s+[v^]?%d+%s')
       if pos2 then
         vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
+
+        local pos1 = text:find('^%s+[v^]')
+        if pos1 then
+          vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchDiffAdd', from + i - 1 , pos1 + 1, pos1 + 2)
+        end
       end
     else
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchFilename', from + i - 1, 0, -1)

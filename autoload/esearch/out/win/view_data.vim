@@ -38,7 +38,7 @@ fu! s:ctx_view() abort dict
 endfu
 
 fu! s:line_in_file() abort dict
-  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
+  return matchstr(getline(s:result_line()), '^\s\+[v^]\=\zs\d\+\ze.*')
 endfu
 
 fu! s:filetype(...) abort dict

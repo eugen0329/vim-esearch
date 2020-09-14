@@ -8,8 +8,8 @@ let s:Base = {
       \ 'mandatory_options': 'NotImplemented',
       \ 'parser': 'generic',
       \ 'pattern_kinds': [{'opt': '', 'regex': 1}],
-      \ 'before':   {'hint': 'lines before', 'opt': '-A'},
-      \ 'after':    {'hint': 'lines after' , 'opt': '-B'},
+      \ 'after':    {'hint': 'lines after' , 'opt': '-A'},
+      \ 'before':   {'hint': 'lines before', 'opt': '-B'},
       \ 'context':  {'hint': 'lines around', 'opt': '-C'},
       \}
 

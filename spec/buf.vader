@@ -1,0 +1,163 @@
+Before:
+  fu! Fixture(path, lines) abort
+    if !isdirectory(fnamemodify(a:path, ':h'))
+      call mkdir(fnamemodify(a:path, ':h'), 'p')
+    endif
+    exe 'edit' fnameescape(a:path)
+    %delete
+    call setline(1, a:lines)
+    write!
+    return a:path
+  endfu
+  let g:Handle = esearch#buf#handle()
+  call setline(1, ['l0', 'l1', 'l2'])
+  let g:file = 'spec/fixtures/file.txt'
+  let g:original_options = esearch#let#restorable({'&confirm': 0})
+
+After:
+  call g:original_options.restore()
+
+Execute (#new sets buffer attributes):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+Then:
+  AssertEqual g:buf.bufnr, bufnr(g:file)
+  AssertEqual g:buf.filename, g:file
+
+Execute (#new sets .existed = 0 when the buffer didn't exist):
+  exe 'bwipe' Fixture(g:file, ['line1', 'line2'])
+  let g:buf = g:Handle.new(g:file)
+Then:
+  AssertEqual g:buf.existed, 0
+
+Execute (#new sets .existed = 1 when the buffer existed):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+Then:
+  AssertEqual g:buf.existed, 1
+
+Execute (#getline returns 1-indexed line context):
+  let g:buf = g:Handle.new(bufname(''))
+  $tabnew
+Then:
+  AssertEqual g:buf.getline(1), 'l0'
+  AssertEqual g:buf.getline(2), 'l1'
+  AssertEqual g:buf.getline(3), 'l2'
+
+Execute(#setline sets a single line):
+  let g:buf = g:Handle.new(bufname(''))
+  $tabnew
+  call g:buf.setlines(1, ['changed'])
+Then:
+  AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['changed', 'l1', 'l2',]
+
+Execute (#setlines replaces first line with multiple lines):
+  let g:buf = g:Handle.new(bufname(''))
+  $tabnew
+  call g:buf.setlines(1, ['changed0', 'changed1'])
+Then:
+  AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['changed0', 'changed1', 'l1', 'l2',]
+
+Execute (#setlines replaces last line with multiple lines):
+  let g:buf = g:Handle.new(bufname(''))
+  $tabnew
+  call g:buf.setlines(3, ['changed2', 'changed3', 'changed4'])
+Then:
+  AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['l0', 'l1', 'changed2', 'changed3', 'changed4']
+
+Execute (#appendlines appends lines after the last line):
+  let g:buf = g:Handle.new(bufname(''))
+  $tabnew
+  call g:buf.appendlines(3, ['appended3', 'appended4'])
+Then:
+  AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['l0', 'l1', 'l2', 'appended3', 'appended4']
+
+Execute (#appendlines appends lines before the first line):
+  let g:buf = g:Handle.new(bufname(''))
+  $tabnew
+  call g:buf.appendlines(0, ['appended0', 'appended1'])
+Then:
+  AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['appended0', 'appended1', 'l0', 'l1', 'l2']
+
+Execute (#open opens the buffer with the opener):
+  let g:buf = g:Handle.new(bufname(''))
+  let tabs_count_was = tabpagenr('$')
+  call g:buf.open('tabnew')
+Then:
+  AssertEqual tabs_count_was, tabpagenr('$') - 1
+  AssertEqual g:buf.bufnr, bufnr('')
+  AssertEqual g:buf.filename, bufname('')
+
+Execute (#write without "!" when existing isn't changed):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.setlines(1, ['changed'])
+  $tabnew
+Then:
+  Assert getbufvar(g:buf.bufnr, '&modified')
+  silent call g:buf.write(0)
+  Assert !getbufvar(g:buf.bufnr, '&modified')
+
+Execute (#write with "!" when existing isn't changed):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.setlines(1, ['changed'])
+  $tabnew
+Then:
+  Assert getbufvar(g:buf.bufnr, '&modified')
+  silent call g:buf.write(1)
+  Assert !getbufvar(g:buf.bufnr, '&modified')
+
+Execute (#bdelete without "!" when not modified):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  $tabnew
+  silent call g:buf.bdelete(0)
+Then:
+  Assert bufexists(g:buf.bufnr)
+  Assert !buflisted(g:buf.bufnr)
+  Assert !bufloaded(g:buf.bufnr)
+
+Execute (#bdelete without "!" when modified):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.setlines(1, ['changed'])
+  $tabnew
+  silent call g:buf.bdelete(0)
+Then:
+  Assert bufexists(g:buf.bufnr)
+  Assert buflisted(g:buf.bufnr)
+  Assert bufloaded(g:buf.bufnr)
+
+Execute (#bdelete with "!" when modified):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.setlines(1, ['changed'])
+  $tabnew
+  silent call g:buf.bdelete(1)
+Then:
+  Assert bufexists(g:buf.bufnr)
+  Assert !buflisted(g:buf.bufnr)
+  Assert !bufloaded(g:buf.bufnr)
+
+Execute (#bwipeout without "!" when not modified):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  $tabnew
+  silent call g:buf.bwipeout(0)
+Then:
+  Assert !bufexists(g:buf.bufnr)
+  Assert !buflisted(g:buf.bufnr)
+  Assert !bufloaded(g:buf.bufnr)
+
+Execute (#bwipeout without "!" when modified):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.setlines(1, ['changed'])
+  $tabnew
+  silent call g:buf.bwipeout(0)
+Then:
+  Assert bufexists(g:buf.bufnr)
+  Assert buflisted(g:buf.bufnr)
+  Assert bufloaded(g:buf.bufnr)
+
+Execute (#bdelete with "!" when modified):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.setlines(1, ['changed'])
+  $tabnew
+  silent call g:buf.bwipeout(1)
+Then:
+  Assert !bufexists(g:buf.bufnr)
+  Assert !buflisted(g:buf.bufnr)
+  Assert !bufloaded(g:buf.bufnr)

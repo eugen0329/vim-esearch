@@ -10,8 +10,6 @@ Execute:
     write
   endfor
   set virtualedit=onemore
-
-Before:
   let g:params = {
   \ 'backend': 'system',
   \ 'pattern': '.',
@@ -22,74 +20,76 @@ Before:
   \ 'cwd': 'spec/fixtures/jumps/',
   \ 'root_markers': [],
   \}
+
+Before:
   call esearch#init(g:params)
 
 Execute (with "(" jump to filename 1 from the header):
   exe 'norm gg('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
-  AssertEqual col('.'), len('dir1/')
+  AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "(" jump to filename 1 from filename 1):
   exe 'norm 3gg('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
-  AssertEqual col('.'), len('dir1/')
+  AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "(" jump to filename 1 from file 1 entry 1):
   exe 'norm 4gg('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
-  AssertEqual col('.'), len('dir1/')
+  AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "(" jump to filename 2 from file 3 entry 1):
   exe 'norm G('
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
-  AssertEqual col('.'), len('dir2/')
+  AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with ")" jump to filename 2 from filename 3):
   exe 'norm G('
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
-  AssertEqual col('.'), len('dir2/')
+  AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with ")" jump to filename 2 from the header):
   exe 'norm gg)'
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
-  AssertEqual col('.'), len('dir2/')
+  AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with ")" jump to filename 2 from filename 1):
   exe 'norm 3gg)'
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
-  AssertEqual col('.'), len('dir2/')
+  AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with ")" jump to filename 1 from file 1 entry 1):
   exe 'norm 4gg)'
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
-  AssertEqual col('.'), len('dir2/')
+  AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with "(" jump to filename 3 from file 3 entry 1):
   exe 'norm G)'
 Then:
   AssertEqual getline('.'), 'dir3/file3.txt'
-  AssertEqual col('.'), len('dir3/')
+  AssertEqual col('.'), len('dir3/') + 1
 
 Execute (with ")" jump to filename 3 from filename 3):
   exe 'norm Gk)'
 Then:
   AssertEqual getline('.'), 'dir3/file3.txt'
-  AssertEqual col('.'), len('dir3/')
+  AssertEqual col('.'), len('dir3/') + 1
 
 Execute (with ")" stay visual mode):
   exe 'norm gg0v))'
 Then:
   AssertEqual mode(), 'v'
   AssertEqual getline('.'), 'dir3/file3.txt'
-  AssertEqual col('.'), len('dir3/')
+  AssertEqual col('.'), len('dir3/') + 1
   AssertEqual getpos("'<")[1:2], [1, 1]
 
 Execute (with "(" stay visual mode):
@@ -97,7 +97,7 @@ Execute (with "(" stay visual mode):
 Then:
   AssertEqual mode(), 'v'
   AssertEqual getline('.'), 'dir1/file1.txt'
-  AssertEqual col('.'), len('dir1/')
+  AssertEqual col('.'), len('dir1/') + 1
   AssertEqual getpos("'>")[1:2], [line('$'), len(getline('$'))]
 
 Execute (with ")" in operator mode):
@@ -108,7 +108,7 @@ Then:
 Expect:
   Matches in 3 lines, 3 files. Finished.
 
-  /file2.txt
+  file2.txt
      1 line2
 
   dir3/file3.txt
@@ -125,28 +125,28 @@ Expect:
   dir1/file1.txt
      1 line1
 
-  dir2
+  dir2/
 
 Execute (with "2(" jump to filename 1 from the header):
   exe 'norm gg2('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
-  AssertEqual col('.'), len('dir1/')
+  AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "2(" jump to filename 1 from file 3 entry 1):
   exe 'norm G2('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
-  AssertEqual col('.'), len('dir1/')
+  AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "2)" jump to filename 3 from the header):
   exe 'norm gg2)'
 Then:
   AssertEqual getline('.'), 'dir3/file3.txt'
-  AssertEqual col('.'), len('dir3/')
+  AssertEqual col('.'), len('dir3/') + 1
 
 Execute (with "2)" jump to filename 3 from entry 1):
   exe 'norm G2)'
 Then:
   AssertEqual getline('.'), 'dir3/file3.txt'
-  AssertEqual col('.'), len('dir3/')
+  AssertEqual col('.'), len('dir3/') + 1

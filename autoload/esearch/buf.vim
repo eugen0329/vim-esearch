@@ -104,7 +104,7 @@ endfu
 fu! s:bufdo(bufnr, cmd, bang) abort
   let cur_buffer = esearch#buf#stay()
   try
-    exe a:bufnr 'bufdo' a:cmd . (a:bang ? '!' : '') |
+    exe a:bufnr 'bufdo' a:cmd.(a:bang ? '!' : '') |
     return 1
   catch   | call esearch#util#warn(v:exception) | return 0
   finally | call cur_buffer.restore()
@@ -127,11 +127,16 @@ if g:esearch#has#bufadd && g:esearch#has#bufline_functions
   endfu
 
   fu! s:Handle.getline(lnum) abort dict
-    return getbufline(self.bufnr, a:lnum)[0]
+    return get(getbufline(self.bufnr, a:lnum), 0)
   endfu
 
-  fu! s:Handle.setline(lnum, replacement) abort dict
-    return setbufline(self.bufnr, a:lnum, a:replacement)
+  fu! s:Handle.setlines(lnum, replacement) abort dict
+    call setbufline(self.bufnr, a:lnum, a:replacement[0])
+    call appendbufline(self.bufnr, a:lnum, a:replacement[1:])
+  endfu
+
+  fu! s:Handle.appendlines(lnum, texts) abort
+    call appendbufline(self.bufnr, a:lnum, a:texts)
   endfu
 
   fu! s:Handle.deleteline(lnum) abort dict
@@ -167,7 +172,7 @@ else
     return getline(a:lnum)
   endfu
 
-  fu! s:Handle.setline(lnum, replacement) abort dict
+  fu! s:Handle.setlines(lnum, replacement) abort dict
     if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
     return setline(a:lnum, a:replacement)
   endfu

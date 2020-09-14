@@ -44,27 +44,45 @@ fu! s:write_cmd() abort
   let parsed = esearch#out#win#parse#entire()
   if has_key(parsed, 'error') | throw parsed.error | endif
 
-  let diff = esearch#out#win#diff#do(parsed.contexts, b:esearch.contexts[1:])
-  if diff.statistics.files == 0 | echo 'Nothing to save' | return | endi
+  let diff = esearch#out#win#diff#do(parsed, b:esearch)
+  if diff.stats.files == 0 | echo 'Nothing to save' | return | endi
 
-  let [kinds, total_changes] = [[], diff.statistics.modified + diff.statistics.deleted]
-  if diff.statistics.modified > 0 |
-    let kinds += [diff.statistics.modified . ' modified']
-  endif
-  if diff.statistics.deleted > 0
-    let kinds += [diff.statistics.deleted . ' deleted']
-  endif
+  let [kinds, total_changes] = [[], diff.stats.modified + diff.stats.deleted + diff.stats.added]
+  if diff.stats.added > 0    | let kinds += [diff.stats.added . ' added']       | endif
+  if diff.stats.modified > 0 | let kinds += [diff.stats.modified . ' modified'] | endif
+  if diff.stats.deleted > 0  | let kinds += [diff.stats.deleted . ' deleted']   | endif
+
   let message = printf('Write changes? (%s %s in %d %s)',
-        \ join(kinds, ', '),
-        \ total_changes == 1 ? 'line' : 'lines',
-        \ diff.statistics.files,
-        \ diff.statistics.files == 1 ? 'file' : 'files')
-  if esearch#ui#confirm#show(message, ['Yes', 'No']) != 1 | return |endif
+        \ join(kinds, ', '), total_changes == 1 ? 'line' : 'lines',
+        \ diff.stats.files, diff.stats.files == 1 ? 'file' : 'files')
+  if !get(g:, 'esearch_yes') && confirm(message, "&Yes\n&Cancel") != 1 | return |endif
 
   call esearch#writer#do(diff, b:esearch, v:cmdbang)
 endfu
 
 fu! esearch#out#win#modifiable#i_CR() abort
+  if b:esearch.is_entry()
+    let state = deepcopy(b:esearch.undotree.head.state)
+    let line = line('.')
+    call insert(state.line_numbers_map, state.line_numbers_map[line], line+1)
+    call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
+    call b:esearch.undotree.synchronize(state)
+
+    let close_completion_popup = pumvisible() ? "\<c-y>" : ''
+    let prefix = '^\s\+[v^]\=\d\+\s' . (&g:autoindent ? '\+' : '')
+    let prefix = substitute(matchstr(getline('.'), prefix), ' \(\d\+\)', 'v\1', '')
+    return close_completion_popup."\<cr>".prefix
+  elseif b:esearch.is_filename()
+    let state = deepcopy(b:esearch.undotree.head.state)
+    let line = line('.')
+    call insert(state.line_numbers_map, 1, line+1)
+    call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
+    call b:esearch.undotree.synchronize(state)
+
+    let close_completion_popup = pumvisible() ? "\<c-y>" : ''
+    let prefix = substitute(printf(g:esearch#out#win#linenr_fmt, 1), ' \(\d\+\)', '^\1', '')
+    return close_completion_popup."\<cr>".prefix
+  endif
   return ''
 endfu
 

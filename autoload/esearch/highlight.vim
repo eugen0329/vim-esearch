@@ -25,6 +25,7 @@ fu! esearch#highlight#set() abort
 
   let s:is_dark = s:detect_dark_background()
   call s:set_matches_highlight()
+  call s:set_add_highlight()
   if g:esearch#has#nvim | call s:set_float_win_highlights() | endif
 
   if hlexists('esearchLnum')
@@ -33,6 +34,14 @@ fu! esearch#highlight#set() abort
   if hlexists('esearchFName')
     call s:copyhl('esearchFName', 'esearchFilename', {'force': 1})
   endif
+endfu
+
+
+fu! s:set_add_highlight() abort
+  let DiffAdd = s:gethl('DiffAdd')
+  unlet! DiffAdd['ctermbg']
+  unlet! DiffAdd['guibg']
+  call s:sethl('esearchDiffAdd', DiffAdd, {'default': 1})
 endfu
 
 " Try to emphasize enough without overruling foregrounds, that are used by
