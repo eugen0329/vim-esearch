@@ -6,7 +6,7 @@ fu! esearch#out#win#diff#do(parsed, esearch) abort
         \  'stats': {
         \    'deleted':  0,
         \    'modified': 0,
-        \    'added': 0,
+        \    'added':    0,
         \    'files':    0,
         \  },
         \}

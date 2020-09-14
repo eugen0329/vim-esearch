@@ -19,7 +19,7 @@ let g:esearch#out#win#legacy_mappings = {
 
 let g:esearch#out#win#entry_re = '^\s\+[v^]\=\d\+\s\+.*'
 let g:esearch#out#win#filename_re = '^[^ ]'
-let g:esearch#out#win#result_text_regex_prefix_re = '\%>1l\%(\s\+\d\+\s.*\)\@<='
+let g:esearch#out#win#result_text_regex_prefix_re = '\%>1l\%(\s\+[v^]\=\d\+\s.*\)\@<='
 let g:esearch#out#win#linenr_fmt = ' %3d '
 let g:esearch#out#win#entry_fmt = ' %3d %s'
 
@@ -154,6 +154,7 @@ fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_matches_highlight_strategy !=# 'viewport'
     call esearch#out#win#appearance#matches#soft_stop(b:esearch)
   endif
+  silent! syn clear esearchDiffAdd
   call g:esearch#out#win#searches_with_stopped_highlights.set(b:esearch.request.command, 1)
 endfu
 
@@ -233,7 +234,7 @@ endfu
 " Bind view to a line within a context.
 fu! s:winsaveview(es) abort
   let view = winsaveview()
-  let view.ctx_lnum = matchstr(getline('.'), '^\s\+\zs\d\+\ze.*')
+  let view.ctx_lnum = matchstr(getline('.'), '^\s\+[v^]\=\zs\d\+\ze.*')
   let view.filename = a:es.contexts[a:es.ctx_ids_map[view.lnum]].filename
   return view
 endfu

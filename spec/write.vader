@@ -21,7 +21,7 @@ Execute(Before all):
 Before:
   let g:cwd = 'spec/fixtures/write'.g:test_number.next().'/'
   let g:file = g:cwd.'file.txt'
-  let g:untouched_file = g:cwd.'untouched_file.txt'
+  let g:untouched_file = g:cwd.'untouched.txt'
   let g:esearch = {
   \ 'backend': 'system',
   \ 'pattern': '.',
@@ -36,7 +36,6 @@ Before:
 
   call Fixture(g:file, ['l1', 'l2', 'l3'])
   call Fixture(g:untouched_file, ['untouched_line1', 'untouched_line2'])
-  call esearch#init()
 
 After:
   AssertEqual readfile(g:untouched_file), ['untouched_line1', 'untouched_line2']
@@ -46,18 +45,21 @@ After:
 ### Handle delete
 
 Execute (Resolve "-line2" with "~line2" after search):
+  call esearch#init()
   call writefile(['l1', 'changed2', 'l3'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'changed2', 'l3']
 
 Execute (Resolve "-line2" with "+line4" below after search):
+  call esearch#init()
   call writefile(['l1', 'l2', 'l3', 'added4'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l3', 'added4']
 
 Execute (Resolve "-line2" with "+line0" after search):
+  call esearch#init()
   call writefile(['added0', 'l1', 'l2', 'l3'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
@@ -65,12 +67,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "-line2" with "-line3" after search):
+  call esearch#init()
   call writefile(['l1', 'l2'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1']
 
 Execute (Resolve "-line2" with "-line1" after search):
+  call esearch#init()
   call writefile(['l2', 'l3'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
@@ -78,12 +82,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "-line2" with "~line3" after search):
+  call esearch#init()
   call writefile(['l1', 'l2', 'changed3'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'changed3']
 
 Execute (Resolve "-line2" with "~line1" after search):
+  call esearch#init()
   call writefile(['changed1', 'l2', 'l3'], g:file)
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
@@ -92,6 +98,7 @@ Then:
 ### Handle change
 
 Execute (Resolve "~line2" with "~line2" after search):
+  call esearch#init()
   call writefile(['l1', 'changed2', 'l3'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
@@ -99,12 +106,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "~line2" with "+line4" below after search):
+  call esearch#init()
   call writefile(['l1', 'l2', 'l3', 'added4'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~', 'l3', 'added4']
 
 Execute (Resolve "~line2" with "+line0" after search):
+  call esearch#init()
   call writefile(['added0', 'l1', 'l2', 'l3'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
@@ -112,12 +121,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "~line2" with "-line3" after search):
+  call esearch#init()
   call writefile(['l1', 'l2'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~']
 
 Execute (Resolve "~line2" with "-line1" after search):
+  call esearch#init()
   call writefile(['l2', 'l3'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
@@ -125,12 +136,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "~line2" with "~line3" after search):
+  call esearch#init()
   call writefile(['l1', 'l2', 'changed3'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~', 'changed3']
 
 Execute (Resolve "~line2" with "~line1" after search):
+  call esearch#init()
   call writefile(['changed1', 'l2', 'l3'], g:file)
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
@@ -139,6 +152,7 @@ Then:
 ### Handle add
 
 Execute (Resolve "+line2" with "~line2" after search):
+  call esearch#init()
   call writefile(['l1', 'changed2', 'l3'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
@@ -146,12 +160,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "v+line2" with "+line4" below after search):
+  call esearch#init()
   call writefile(['l1', 'l2', 'l3', 'added4'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', '~~~', 'l3', 'added4']
 
 Execute (Resolve "v+line2" with "+line0" after search):
+  call esearch#init()
   call writefile(['added0', 'l1', 'l2', 'l3'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
@@ -159,12 +175,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "v+line2" with "-line3" after search):
+  call esearch#init()
   call writefile(['l1', 'l2'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', '~~~']
 
 Execute (Resolve "v+line2" with "-line1" after search):
+  call esearch#init()
   call writefile(['l2', 'l3'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
@@ -172,12 +190,14 @@ Then:
   Assert CantWrite('file.txt')
 
 Execute (Resolve "v+line2" with "~line3" after search):
+  call esearch#init()
   call writefile(['l1', 'l2', 'changed3'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', '~~~', 'changed3']
 
 Execute (Resolve "v+line2" with "~line1" after search):
+  call esearch#init()
   call writefile(['changed1', 'l2', 'l3'], g:file)
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
@@ -186,6 +206,13 @@ Then:
 ### Handle specific lines adding
 
 Execute (Resolve "^+line1"):
-  exe "norm {A\<CR>~~~\<esc>:write\<CR>"
+  call esearch#init()
+  exe "norm /file.txt\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['~~~', 'l1', 'l2', 'l3']
+
+Execute (Resolve "v+line$"):
+  call esearch#init()
+  exe "norm /l3\<CR>A\<CR>~~~\<esc>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3', '~~~'] 

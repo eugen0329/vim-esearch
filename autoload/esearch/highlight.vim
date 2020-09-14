@@ -21,7 +21,6 @@ fu! esearch#highlight#set() abort
 
   let esearchBasename = extend(s:gethl('Directory'), {'cterm': 'bold', 'gui': 'bold'})
   call s:sethl('esearchBasename', esearchBasename, {'default': 1})
-  
 
   let s:is_dark = s:detect_dark_background()
   call s:set_matches_highlight()
@@ -35,7 +34,6 @@ fu! esearch#highlight#set() abort
     call s:copyhl('esearchFName', 'esearchFilename', {'force': 1})
   endif
 endfu
-
 
 fu! s:set_add_highlight() abort
   let DiffAdd = s:gethl('DiffAdd')
@@ -118,7 +116,7 @@ endfu
 
 fu! s:set_float_win_highlights_with_adjusted_brightness(hl, percent) abort
   let [hl, percent] = [a:hl, a:percent]
-  
+
   if s:is_hex(hl.Normal, 'guibg')
     let hl.Normal.guibg = s:change_brightness(hl.Normal.guibg, percent)
   endif
