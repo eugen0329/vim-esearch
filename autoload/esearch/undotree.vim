@@ -11,10 +11,11 @@ fu! esearch#undotree#new(state) abort
         \ 'synchronize':             function('<SID>synchronize'),
         \ 'mark_block_as_corrupted': function('<SID>mark_block_as_corrupted'),
         \ 'checkout':                function('<SID>checkout'),
+        \ 'squash':                  function('<SID>squash'),
         \ 'locate_synchronized':     function('<SID>locate_synchronized'),
         \ 'head':                    initial,
         \ 'nodes':                   nodes,
-        \ }
+        \}
 endfu
 
 fu! s:node(state) abort
@@ -29,7 +30,8 @@ fu! s:synchronize(...) abort dict
 endfu
 
 fu! s:mark_block_as_corrupted(...) abort dict
-  " If the block contains state recovered using :undo (instead of setlines()).
+ 
+ " If the block contains state recovered using :undo (instead of setline()).
   " In future can be used to notify users on a try to checkout to this entry,
   " that it contains invalid buffer state and should not be replayed
   call self.synchronize()
@@ -61,6 +63,12 @@ fu! s:checkout(changenr, ...) abort dict
   call s:Log.error(message)
 endfu
 
+fu! s:squash(state) abort dict
+  let self.head = s:node(a:state)
+  let self.nodes = {'0': self.head}
+  let self.nodes[changenr()] = self.head
+endfu
+
 " traverse undotree using :undo or :redo using command specified in a:command
 fu! s:locate_synchronized(command) abort dict
   let found_changenr = -1
@@ -76,22 +84,3 @@ fu! s:locate_synchronized(command) abort dict
 
   return -1
 endfu
-
-if g:esearch#env isnot# 0
-  command! T call s:debug()
-  fu! s:debug() abort
-    let tree = deepcopy(b:esearch.undotree)
-
-    let tree.active = tree.head.changenr
-    let tree.nodes = map(keys(tree.nodes), 'str2nr(v:val)')
-    unlet tree.head
-
-    for key in keys(tree)
-      if type(tree[key]) == type(function('tr'))
-        unlet tree[key]
-      endif
-    endfor
-
-    PP tree
-  endfu
-endif

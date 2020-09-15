@@ -1,4 +1,4 @@
-let s:filename_re = g:esearch#out#win#filename_re . '\%>2l'
+let s:filename_re = g:esearch#out#win#filename_re
 
 " Applied rules for better UX to save keystrokes:
 " - Jumps DOWN and UP skip the first and the last target respectivly.

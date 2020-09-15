@@ -38,7 +38,7 @@ fu! s:ctx_view() abort dict
 endfu
 
 fu! s:line_in_file() abort dict
-  return matchstr(getline(s:result_line()), '^\s\+[v^]\=\zs\d\+\ze.*')
+  return matchstr(getline(s:result_line()), g:esearch#out#win#line_in_file_re)
 endfu
 
 fu! s:filetype(...) abort dict
@@ -94,7 +94,7 @@ fu! s:is_entry(...) abort dict
 endfu
 
 fu! s:is_filename(...) abort dict
-  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#filename_re
+  return search(g:esearch#out#win#filename_re.'\%'.line('.').'l', 'cnbW') == line('.')
 endfu
 
 " Is used to prevent problems with asynchronous code

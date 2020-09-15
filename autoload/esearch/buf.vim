@@ -121,7 +121,7 @@ if g:esearch#has#bufadd && g:esearch#has#bufline_functions
   fu! s:Handle.new(filename) abort dict
     let existed = bufexists(a:filename)
     let bufnr = bufadd(a:filename)
-    call bufload(a:filename)
+    call bufload(bufnr)
     call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
     return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
   endfu
@@ -130,12 +130,11 @@ if g:esearch#has#bufadd && g:esearch#has#bufline_functions
     return get(getbufline(self.bufnr, a:lnum), 0)
   endfu
 
-  fu! s:Handle.setlines(lnum, replacement) abort dict
-    call setbufline(self.bufnr, a:lnum, a:replacement[0])
-    call appendbufline(self.bufnr, a:lnum, a:replacement[1:])
+  fu! s:Handle.setline(lnum, replacement) abort dict
+    call setbufline(self.bufnr, a:lnum, a:replacement)
   endfu
 
-  fu! s:Handle.appendlines(lnum, texts) abort
+  fu! s:Handle.appendline(lnum, texts) abort
     call appendbufline(self.bufnr, a:lnum, a:texts)
   endfu
 
@@ -171,8 +170,8 @@ else
     if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
     return getline(a:lnum)
   endfu
-
-  fu! s:Handle.setlines(lnum, replacement) abort dict
+ 
+ fu! s:Handle.setline(lnum, replacement) abort dict
     if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
     return setline(a:lnum, a:replacement)
   endfu

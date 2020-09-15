@@ -41,10 +41,7 @@ fu! s:text_changed() abort
 endfu
 
 fu! s:write_cmd() abort
-  let parsed = esearch#out#win#parse#entire()
-  if has_key(parsed, 'error') | throw parsed.error | endif
-
-  let diff = esearch#out#win#diff#do(parsed, b:esearch)
+  let diff = esearch#out#win#diff#do()
   if diff.stats.files == 0 | echo 'Nothing to save' | return | endi
 
   let [kinds, total_changes] = [[], diff.stats.modified + diff.stats.deleted + diff.stats.added]
@@ -61,29 +58,56 @@ fu! s:write_cmd() abort
 endfu
 
 fu! esearch#out#win#modifiable#i_CR() abort
+  let line = line('.')
+  let ctx = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.undotree.head.state).by_line(line)
+  let align = len(string(max(keys(ctx.lines)))) + 1
+  let realign = "\<c-o>:call esearch#out#win#modifiable#align(".ctx.id.','.align.")\<cr>"
+  let close_completion_popup = pumvisible() ? "\<c-y>" : ''
+
   if b:esearch.is_entry()
     let state = deepcopy(b:esearch.undotree.head.state)
-    let line = line('.')
     call insert(state.line_numbers_map, state.line_numbers_map[line], line+1)
     call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
     call b:esearch.undotree.synchronize(state)
 
-    let close_completion_popup = pumvisible() ? "\<c-y>" : ''
-    let prefix = '^\s\+[v^]\=\d\+\s' . (&g:autoindent ? '\+' : '')
-    let prefix = substitute(matchstr(getline('.'), prefix), ' \(\d\+\)', 'v\1', '')
-    return close_completion_popup."\<cr>".prefix
+    let linenr_and_offset_re = g:esearch#out#win#capture_sign_and_linenr_re.'\(\s'.(&g:autoindent ? '\+' : '').'\)'
+    let [sign, linenr, offset] = matchlist(getline('.'), linenr_and_offset_re)[1:3]
+    let prefix = printf(' '.(empty(sign) ? '+' : sign).'%'.align.'s', linenr) . offset
+
+    return close_completion_popup."\<cr>".realign.prefix
   elseif b:esearch.is_filename()
     let state = deepcopy(b:esearch.undotree.head.state)
-    let line = line('.')
     call insert(state.line_numbers_map, 1, line+1)
     call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
     call b:esearch.undotree.synchronize(state)
 
-    let close_completion_popup = pumvisible() ? "\<c-y>" : ''
-    let prefix = substitute(printf(g:esearch#out#win#linenr_fmt, 1), ' \(\d\+\)', '^\1', '')
-    return close_completion_popup."\<cr>".prefix
+    let prefix = printf(' ^%'.align.'s ', '1')
+
+    return close_completion_popup."\<cr>".realign.prefix
   endif
-  return ''
+
+  return "\<cr>"
+endfu
+
+fu! esearch#out#win#modifiable#align(id, align) abort
+  let ctx = b:esearch.contexts[a:id]
+  let begin = ctx.begin + 1
+  let end = esearch#util#clip(ctx.end+1, begin, line('$'))
+  let range = (ctx.begin + 1).','.end
+  let pattern = g:esearch#out#win#capture_sign_and_linenr_re
+  let replacement = '\=printf(" %s%'.a:align.'s", empty(submatch(1)) ? " " : submatch(1), submatch(2))'
+
+  let cmd = range.'s/'.pattern.'/'.replacement
+  let view = winsaveview()
+  try
+    silent! exe cmd
+  finally
+    call winrestview(view)
+  endtry
+
+  if g:esearch.win_ui_nvim_syntax
+    call luaeval('esearch.appearance.highlight_ui(_A[1], _A[2], _A[3])', [bufnr(''), begin-1, end-1])
+  endif
 endfu
 
 fu! esearch#out#win#modifiable#c_dot(wise) abort

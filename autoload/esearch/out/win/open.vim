@@ -38,6 +38,7 @@ fu! s:open(opener, ...) abort dict
   let view = self.ctx_view()
   let view.topline = str2nr(view.lnum) - (line('.') - line('w0'))
 
+  call esearch#util#doautocmd('User esearch_open_pre')
   try
     let Open = reuse ? function('s:open_reusable') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)

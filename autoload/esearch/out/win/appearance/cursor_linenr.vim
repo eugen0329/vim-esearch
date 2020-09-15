@@ -59,7 +59,7 @@ endfu
 fu! s:hl_cursor_linenr() abort
   call esearch#util#safe_matchdelete(b:esearch.linenr_hl_id)
   let b:esearch.linenr_hl_id = matchadd('esearchCursorLineNr',
-        \ '^\s\+[v^]\=\d\+\s\%' . line('.') . 'l', -1)
+        \ g:esearch#out#win#linenr_re . '\%'.line('.').'l', -1)
 endfu
 
 fu! s:clear_cursor_line_number() abort

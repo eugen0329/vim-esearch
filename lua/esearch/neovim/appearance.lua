@@ -9,8 +9,8 @@ local M = {
 }
 
 local LAST_PATH_SEPARATOR_RE = "/[^/]*$"
-local ABOVE_OR_BELOW_ICON_RE = '^%s+[v^]'
-local LINENR_RE = '^%s+[v^]?%d+%s'
+local ABOVE_OR_BELOW_ICON_RE = '^%s+[+^]'
+local LINENR_RE              = '^%s+[+^]?%s*%d+%s'
 
 local function matches_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to == old_to then
@@ -60,9 +60,9 @@ function M.highlight_ui(bufnr, from, to)
       local _, pos2 =  text:find(LINENR_RE)
       if pos2 then
         vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
-        local pos1 = text:find(ABOVE_OR_BELOW_ICON_RE)
+        local _, pos1 = text:find(ABOVE_OR_BELOW_ICON_RE)
         if pos1 then
-          vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchDiffAdd', from + i - 1 , pos1 + 1, pos1 + 2)
+          vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchDiffAdd', from + i - 1 , pos1 - 1, pos1)
         end
       end
     else
@@ -145,7 +145,7 @@ end
 
 function M.highlight_cursor_linenr()
   local current_line = vim.api.nvim_get_current_line()
-  local _, last_column = current_line:find('^%s+%d+%s')
+  local _, last_column = current_line:find(LINENR_RE)
   local line = vim.api.nvim_win_get_cursor(0)[1] - 1
   local ns = M.CURSOR_LINENR_NS
   local bufnr = vim.api.nvim_get_current_buf()

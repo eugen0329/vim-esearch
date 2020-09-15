@@ -17,11 +17,19 @@ let g:esearch#out#win#legacy_mappings = {
       \ 'prev-file':          '<Plug>(esearch-win-jump:filename:up)',
       \}
 
-let g:esearch#out#win#entry_re = '^\s\+[v^]\=\d\+\s\+.*'
-let g:esearch#out#win#filename_re = '^[^ ]'
-let g:esearch#out#win#result_text_regex_prefix_re = '\%>1l\%(\s\+[v^]\=\d\+\s.*\)\@<='
-let g:esearch#out#win#linenr_fmt = ' %3d '
-let g:esearch#out#win#entry_fmt = ' %3d %s'
+let g:esearch#out#win#prefix_re                  = '^\s[+^]\=\s*'
+let g:esearch#out#win#linenr_re                  = '^\s[+^]\=\s*\d\+\s'
+let g:esearch#out#win#line_in_file_re            = '^\s[+^]\=\s*\zs\d\+\ze.*'
+let g:esearch#out#win#entry_re                   = '^\s[+^]\=\s*\d\+\s\+.*'
+let g:esearch#out#win#capture_entry_re           = '^\s[+^]\=\s*\(\d\+\)\s\(.*\)'
+let g:esearch#out#win#capture_line_re            = '^\s\([+^]\)\=\s*\(\d\+\)\s\(.*\)'
+let g:esearch#out#win#capture_text_re            = '^\s\+[+^]\=\s*\d\+\s\zs.*'
+let g:esearch#out#win#capture_sign_and_linenr_re = '^\s\+\([+^]\)\=\s*\(\d\+\)'
+let g:esearch#out#win#ignore_ui_re               = '\%>1l\%(\s[+^]\=\s*\d\+\s.*\)\@<='
+let g:esearch#out#win#ignore_ui_hat_re           = '\%>1l\%(\s[+^]\=\s*\d\+\s\)\@<='
+let g:esearch#out#win#filename_re = '^[^ ]\%>2l'
+let g:esearch#out#win#linenr_fmt  = ' %3d '
+let g:esearch#out#win#entry_fmt   = ' %3d %s'
 
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
@@ -197,11 +205,10 @@ fu! s:init_mappings() abort
   vnoremap <silent><buffer> <plug>(esearch-win-jump:dirname:up)   :<c-u>cal b:esearch.jump2dirname(-v:count1, 'v')<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:dirname:down) :<c-u>cal b:esearch.jump2dirname(v:count1, 'v')<cr>
 
-
-  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-v:count1)<cr>
-  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(v:count1)<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-v:count1, 'v')<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(v:count1, 'v')<cr>
+  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:up)   :<c-u>cal b:esearch.jump2entry(-v:count1)<cr>
+  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:down) :<c-u>cal b:esearch.jump2entry(v:count1)<cr>
+  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:up)   :<c-u>cal b:esearch.jump2entry(-v:count1, 'v')<cr>
+  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:down) :<c-u>cal b:esearch.jump2entry(v:count1, 'v')<cr>
 
   vnoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(1, v:count1)<cr>
   onoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(0, v:count1)<cr>
@@ -211,18 +218,23 @@ fu! s:init_mappings() abort
   cnoremap       <silent><buffer> <Plug>(esearch-cr) <C-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
   inoremap <expr><silent><buffer> <Plug>(esearch-cr) esearch#out#win#modifiable#i_CR()
 
-  nnoremap <expr><silent><buffer><plug>(esearch-I)  b:esearch.is_entry() ? '0ela' : 'I'
+  nnoremap <expr><silent><buffer><plug>(esearch-I)  <SID>I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
   noremap  <expr><silent><buffer><plug>(esearch-c)  esearch#out#win#modifiable#c_pre().esearch#operator#expr('esearch#out#win#modifiable#c')
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
   nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
 
-
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
     call esearch#keymap#set(args[0], args[1], args[2], opts)
   endfor
+endfu
+
+fu! s:I() abort
+  if !b:esearch.is_entry() | return 'I' | endif
+  let [line, col] = searchpos(g:esearch#out#win#linenr_re.'\%'.line('.').'l', 'bce')
+  return line . 'gg' . col . '|a'
 endfu
 
 fu! s:reload() abort dict
@@ -234,8 +246,9 @@ endfu
 " Bind view to a line within a context.
 fu! s:winsaveview(es) abort
   let view = winsaveview()
-  let view.ctx_lnum = matchstr(getline('.'), '^\s\+[v^]\=\zs\d\+\ze.*')
-  let view.filename = a:es.contexts[a:es.ctx_ids_map[view.lnum]].filename
+  let view.ctx_lnum = matchstr(getline('.'), '^\s\+[+^]\=\zs\d\+\ze.*')
+  let state = a:es.modifiable ? a:es.undotree.head.state : a:es
+  let view.filename = a:es.contexts[state.ctx_ids_map[view.lnum]].filename
   return view
 endfu
 

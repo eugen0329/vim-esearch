@@ -1,0 +1,304 @@
+Include: helper.vader
+
+Before:
+  let g:esearch.cwd = 'spec/fixtures/simple_write_undo'.g:test_number.next().'/'
+  let g:file = g:esearch.cwd.'file.txt'
+  call Fixture(g:file, ['l1', 'l2', 'l3'])
+
+After:
+  Assert UndotreeIsConsistent()
+
+### Delte an arbitrary line in the window
+##########################################
+
+Execute (Write "-line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>dd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l3
+
+" Execute (undo->written saved "-line2"):
+"   call esearch#init()
+"   exe "norm /l2\<CR>dd:write\<CR>u"
+" Expect:
+"   Matches in 3 lines, 1 file. Finished.
+
+"   file.txt
+"      1 l1
+"    + 2 l2
+"      3 l3
+
+Execute (undo->written saved "-line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>dd:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2x times undo->write of saved "-line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>dd:write\<CR>u:write\<CR>"
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l3
+
+### Delte the last line in the window
+##########################################
+
+Execute (Write "-line3"):
+  call esearch#init()
+  exe "norm Gdd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+
+Execute (undo->write of saved "-line3"):
+  call esearch#init()
+  exe "norm Gdd:write\<CR>u"
+  doau TextChanged
+  exe "norm :write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2x times undo->write of saved "-line3"):
+  call esearch#init()
+  exe "norm Gdd:write\<CR>"
+  for _ in range(2)
+    undo | doau TextChanged | write
+  endfor
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+
+### Modify an arbitrary line in the window
+##########################################
+
+Execute (Write "~line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>A~~~\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2~~~', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2~~~
+     3 l3
+
+" Execute (undo->written saved "~line2"):
+"   call esearch#init()
+"   exe "norm /l2\<CR>A~~~\<ESC>:write\<CR>u"
+" Expect:
+"   Matches in 3 lines, 1 file. Finished.
+
+"   file.txt
+"      1 l1
+"      2 l2
+"      3 l3
+
+Execute (undo->written saved "~line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>A~~~\<ESC>:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2x times undo->write of saved "~line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>A~~~\<ESC>:write\<CR>u:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2~~~', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2~~~
+     3 l3
+
+### Modify the last line in the window
+##########################################
+
+Execute (Write "~line3"):
+  call esearch#init()
+  exe "norm GA~~~\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3~~~']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3~~~
+
+Execute (undo->write of saved "~line3"):
+  call esearch#init()
+  exe "norm GA~~~\<ESC>:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2x times undo->write of saved "~line3"):
+  call esearch#init()
+  exe "norm GA~~~\<ESC>:write\<CR>u:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3~~~']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3~~~
+
+
+### Add a line at an arbitrary position
+##########################################
+
+Execute (Write "+line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>A\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'added', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 added
+     4 l3
+
+" Execute (undo->written saved "+line2"):
+"   call esearch#init()
+"   exe "norm /l2\<CR>A\<CR>added\<ESC>:write\<CR>u"
+" Expect:
+"   Matches in 3 lines, 1 file. Finished.
+
+"   file.txt
+"      1 l1
+"      2 l2
+"      3 l3
+
+Execute (undo->written saved "+line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>A\<CR>added\<ESC>:write\<CR>"
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2x times undo->write of saved "+line2"):
+  call esearch#init()
+  exe "norm /l2\<CR>A\<CR>added\<ESC>:write\<CR>u:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'added', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 added
+     4 l3
+
+" ### Add after the last line in the window
+" ##########################################
+
+Execute (Write "+line3"):
+  call esearch#init()
+  exe "norm GA\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3', 'added']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+     4 added
+
+Execute (undo->write of saved "+line3"):
+  call esearch#init()
+  exe "norm GA\<CR>added\<ESC>:write\<CR>"
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2x times undo->write of saved "+line3"):
+  call esearch#init()
+  exe "norm GA\<CR>added\<ESC>:write\<CR>u:write\<CR>u:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3', 'added']
+Expect:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+     4 added
+

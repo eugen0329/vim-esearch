@@ -11,7 +11,7 @@
 " ANSI escape sequences.
 
 " idea from incsearch.vim
-nnoremap <Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
+nnoremap <silent><Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
 
 fu! esearch#out#win#appearance#matches#init(es) abort
   let a:es.hl_strategy = ''

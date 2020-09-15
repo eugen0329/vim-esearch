@@ -1,29 +1,18 @@
+Include: helper.vader
+
 Execute:
-  if !isdirectory('spec/fixtures/vader/')
-    call mkdir('spec/fixtures/vader/')
-  endif
-  edit spec/fixtures/vader/file.txt
-  %delete
-  call setline(1, ['word1 word2', 'word3 word4'])
-  write
+  let g:esearch.cwd = 'spec/fixtures/modifiable/'
+  let g:esearch.pattern = '\w+'
+  call Fixture(g:esearch.cwd.'file.txt', ['word1 word2', 'word3 word4'])
 
 Before:
-  let g:params = {
-  \ 'backend': 'system',
-  \ 'pattern': '\w+',
-  \ 'regex': 1,
-  \ 'live_update': 0,
-  \ 'cwd': 'spec/fixtures/vader/',
-  \ 'root_markers': [],
-  \}
-  call esearch#init(g:params)
+  call esearch#init()
   norm! gg
   let @r = ''
 
+" TODO
 After:
   doau TextChanged
-  AssertEqual len(b:esearch.undotree.head.state.line_numbers_map) - 1, line('$')
-  AssertEqual len(b:esearch.undotree.head.state.ctx_ids_map) - 1, line('$')
 
 ###########
 Execute (delete match 1 "inner" textobj):

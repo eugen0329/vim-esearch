@@ -3,7 +3,7 @@ function! unite#sources#outline#defaults#esearch#outline_info() abort
 endfunction
 
 let s:outline_info = {
-      \ 'heading'  : g:esearch#out#win#filename_re . '\%>2l',
+      \ 'heading'  : g:esearch#out#win#filename_re,
       \ 'highlight_rules': [
       \     { 'name'     : 'filename',
       \       'pattern'  : '/^.*/',

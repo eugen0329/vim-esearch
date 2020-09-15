@@ -81,11 +81,11 @@ endfu
 fu! s:safe_pattern(original_pattern, default_pattern) abort
   let pattern = empty(a:original_pattern) ? a:default_pattern : a:original_pattern
 
-  if s:String.starts_with(pattern, g:esearch#out#win#result_text_regex_prefix_re)
+  if s:String.starts_with(pattern, g:esearch#out#win#ignore_ui_re)
     return a:original_pattern
   endif
 
-  return g:esearch#out#win#result_text_regex_prefix_re . pattern
+  return g:esearch#out#win#ignore_ui_re . pattern
 endfu
 
 fu! s:str() abort dict
