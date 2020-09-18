@@ -12,7 +12,7 @@ Execute (Realign when adding new lines using <CR>):
   exe "norm /b\<CR>A\<CR>|\<ESC>"
   exe "norm /c\<CR>A\<CR>|\<ESC>"
 
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -42,7 +42,7 @@ Execute ("I" starts insert after virtual LineNr column):
   " and from zero pos
   exe "norm /e$\<CR>x0I|\<ESC>"
 
-Expect(to locate the right position on):
+Expect esearch_test(to locate the right position on):
   Matches in 5 lines, 1 file. Finished.
 
   file.txt

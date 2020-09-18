@@ -15,7 +15,7 @@ Execute (Resolve "-line2" with "~line2" after search):
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -27,7 +27,7 @@ Execute (del 1):
   exe "norm /l1\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l2', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -39,7 +39,7 @@ Execute (del 3):
   exe "norm Gdd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -51,7 +51,7 @@ Execute (del 1-2):
   exe "norm /l1\<CR>dj:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -62,7 +62,7 @@ Execute (del 2-3):
   exe "norm Gdk:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -73,7 +73,7 @@ Execute (del 1 change 2):
   exe "norm /l1\<CR>ddA~~~\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l2~~~', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -85,7 +85,7 @@ Execute (change 2 del 3):
   exe "norm /l2\<CR>A~~~\<ESC>/l3\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -97,7 +97,7 @@ Execute (add before 1):
   exe "norm /file.txt\<CR>A\<CR>added\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['added', 'l1', 'l2', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -111,7 +111,7 @@ Execute (add after 1):
   exe "norm /l1\<CR>A\<CR>added\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'added', 'l2', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -125,7 +125,7 @@ Execute (add after 2):
   exe "norm /l2\<CR>A\<CR>added\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', 'added', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -139,7 +139,7 @@ Execute (add after 3):
   exe "norm /l3\<CR>A\<CR>added\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', 'l3', 'added']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -156,7 +156,7 @@ Execute (add 3 before line1 and del line2 and 3):
   exe "norm /l2\<CR>dddd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['added1', 'added2', 'added3', 'l1']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -173,7 +173,7 @@ Execute (add 3 before line1 del line 1 replace line 2):
   exe "norm /l1\<CR>dd/l2\<CR>A~~~\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['added1', 'added2', 'added3', 'l2~~~', 'l3']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -188,7 +188,7 @@ Execute (del line1 change line2 and aff after line 3):
   exe "norm /l1\<CR>dd/l2\<CR>A~~~\<ESC>GA\<CR>added\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l2~~~', 'l3', 'added']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -201,7 +201,7 @@ Execute (del line 1-2 change 3 and add line after 3):
   exe "norm /l1\<CR>dj/l3\<CR>A~~~\<ESC>GA\<CR>added\<ESC>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l3~~~', 'added']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
@@ -217,7 +217,7 @@ Execute (add 2 lines before line 1, del others):
 " TODO?
 Then:
   AssertEqual readfile(g:file), ['added1', 'added2', '']
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt

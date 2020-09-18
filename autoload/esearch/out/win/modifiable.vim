@@ -1,3 +1,5 @@
+let s:Log = esearch#log#import()
+
 fu! esearch#out#win#modifiable#init() abort
   let b:esearch.modifiable = 1
   setlocal modifiable undolevels=1000 noautoindent nosmartindent formatoptions= noswapfile nomodified buftype=acwrite
@@ -41,7 +43,13 @@ fu! s:text_changed() abort
 endfu
 
 fu! s:write_cmd() abort
-  let diff = esearch#out#win#diff#do()
+  try
+    let diff = esearch#out#win#diff#do()
+  catch  /^DiffError:/
+    exe matchstr(v:exception, 'at line \zs\d\+\ze')
+    return s:Log.error(substitute(v:exception, '^DiffError:', '', ''))
+  endtry
+
   if diff.stats.files == 0 | echo 'Nothing to save' | return | endi
 
   let [kinds, total_changes] = [[], diff.stats.modified + diff.stats.deleted + diff.stats.added]

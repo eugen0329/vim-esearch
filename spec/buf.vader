@@ -10,6 +10,13 @@ Before:
 After:
   call g:original_options.restore()
 
+Execute (#for sets buffer attributes):
+  let g:buf = g:Handle.for(bufnr(Fixture(g:file, ['line1', 'line2'])))
+Then:
+  AssertEqual g:buf.bufnr, bufnr(g:file)
+  AssertEqual g:buf.filename, g:file
+  Assert g:buf.existed
+
 Execute (#new sets buffer attributes):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
 Then:
@@ -36,6 +43,12 @@ Execute (#new sets .existed = 1 when the buffer existed):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
 Then:
   AssertEqual g:buf.existed, 1
+
+Execute (#linecount returns the buffer lines count):
+  let g:buf = g:Handle.new(Fixture(g:file, repeat(['line'], Rand(5, 10))))
+  $tabnew
+Then:
+  AssertEqual g:buf.linecount(), len(readfile(g:file))
 
 Execute (#getline returns 1-indexed line context):
   let g:buf = g:Handle.new(bufname(''))

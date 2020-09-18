@@ -92,7 +92,7 @@ Execute (with ")" in operator mode):
 Then:
   AssertEqual getcurpos()[1:2], [3, 1]
 
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 3 files. Finished.
 
   file2.txt
@@ -107,7 +107,7 @@ Execute (with ")" in operator mode):
 Then:
   AssertEqual getcurpos()[1:2], [line('$'), len(getline('$')) + 1]
 
-Expect:
+Expect esearch_test:
   Matches in 3 lines, 3 files. Finished.
 
   dir1/file1.txt

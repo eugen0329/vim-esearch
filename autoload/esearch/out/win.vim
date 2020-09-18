@@ -17,16 +17,17 @@ let g:esearch#out#win#legacy_mappings = {
       \ 'prev-file':          '<Plug>(esearch-win-jump:filename:up)',
       \}
 
-let g:esearch#out#win#prefix_re                  = '^\s[+^]\=\s*'
-let g:esearch#out#win#linenr_re                  = '^\s[+^]\=\s*\d\+\s'
-let g:esearch#out#win#line_in_file_re            = '^\s[+^]\=\s*\zs\d\+\ze.*'
-let g:esearch#out#win#entry_re                   = '^\s[+^]\=\s*\d\+\s\+.*'
-let g:esearch#out#win#capture_entry_re           = '^\s[+^]\=\s*\(\d\+\)\s\(.*\)'
-let g:esearch#out#win#capture_line_re            = '^\s\([+^]\)\=\s*\(\d\+\)\s\(.*\)'
-let g:esearch#out#win#capture_text_re            = '^\s\+[+^]\=\s*\d\+\s\zs.*'
-let g:esearch#out#win#capture_sign_and_linenr_re = '^\s\+\([+^]\)\=\s*\(\d\+\)'
-let g:esearch#out#win#ignore_ui_re               = '\%>1l\%(\s[+^]\=\s*\d\+\s.*\)\@<='
-let g:esearch#out#win#ignore_ui_hat_re           = '\%>1l\%(\s[+^]\=\s*\d\+\s\)\@<='
+let g:esearch#out#win#prefix_re                  = '^\s\+[+^_]\=\s*'
+let g:esearch#out#win#linenr_re                  = '^\s\+[+^_]\=\s*\d\+\s'
+let g:esearch#out#win#line_in_file_re            = '^\s\+[+^_]\=\s*\zs\d\+\ze.*'
+let g:esearch#out#win#entry_re                   = '^\s\+[+^_]\=\s*\d\+\s\+.*'
+let g:esearch#out#win#capture_entry_re           = '^\s\+[+^_]\=\s*\(\d\+\)\s\(.*\)'
+let g:esearch#out#win#capture_line_re            = '^\s\+\([+^_]\)\=\s*\(\d\+\)\s\(.*\)'
+let g:esearch#out#win#capture_text_re            = '^\s\+[+^_]\=\s*\d\+\s\zs.*'
+let g:esearch#out#win#capture_sign_and_linenr_re = '^\s\+\([+^_]\)\=\s*\(\d\+\)'
+let g:esearch#out#win#capture_lnum_re            = '^\s\+[+^_]\=\zs\d\+\ze.*'
+let g:esearch#out#win#ignore_ui_re               = '\%>1l\%(\s[+^_]\=\s*\d\+\s.*\)\@<='
+let g:esearch#out#win#ignore_ui_hat_re           = '\%>1l\%(\s[+^_]\=\s*\d\+\s\)\@<='
 let g:esearch#out#win#filename_re = '^[^ ]'
 let g:esearch#out#win#linenr_fmt  = ' %3d '
 let g:esearch#out#win#entry_fmt   = ' %3d %s'
@@ -246,7 +247,7 @@ endfu
 " Bind view to a line within a context.
 fu! s:winsaveview(es) abort
   let view = winsaveview()
-  let view.ctx_lnum = matchstr(getline('.'), '^\s\+[+^]\=\zs\d\+\ze.*')
+  let view.ctx_lnum = matchstr(getline('.'), g:esearch#out#win#capture_lnum_re)
   let state = a:es.modifiable ? a:es.undotree.head.state : a:es
   let view.filename = a:es.contexts[state.ctx_ids_map[view.lnum]].filename
   return view

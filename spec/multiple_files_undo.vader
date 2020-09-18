@@ -22,7 +22,7 @@ Execute (write file1-2: "-line2" file2: "-line2"):
 Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -44,7 +44,7 @@ Execute (:undo->:write saved file1-2: "-line2" file2: "-line2"):
 Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -70,7 +70,7 @@ Execute (2 times :undo->:write saved file1-2: "-line2" file2: "-line2"):
 Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -93,7 +93,7 @@ Execute (write file1: "-line1-2" file2: "-line1-2"):
 Then:
   AssertEqual readfile(g:file1), ['1.l3']
   AssertEqual readfile(g:file2), ['2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -113,7 +113,7 @@ Execute (:undo->:write saved file1: "-line1-2" file2: "-line1-2"):
 Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -139,7 +139,7 @@ Execute (2 times :undo->:write saved file1: "-line1-2" file2: "-line1-2"):
 Then:
   AssertEqual readfile(g:file1), ['1.l3']
   AssertEqual readfile(g:file2), ['2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -164,7 +164,7 @@ Execute (write file1-2: "-line1 ~line2 +line3"):
 Then:
   AssertEqual readfile(g:file1), ['1.l2~~~', '1.l3', '1.added']
   AssertEqual readfile(g:file2), ['2.l2~~~', '2.l3', '2.added']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -192,7 +192,7 @@ Execute (:undo->:write saved file1-2: "-line1 ~line2 +line3"):
 Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -222,7 +222,7 @@ Execute (2 times :undo->:write saved file1-2: "-line1 ~line2 +line3"):
 Then:
   AssertEqual readfile(g:file1), ['1.l2~~~', '1.l3', '1.added']
   AssertEqual readfile(g:file2), ['2.l2~~~', '2.l3', '2.added']
-Expect:
+Expect esearch_test:
   Matches in 6 lines, 2 files. Finished.
 
   file1.txt
@@ -251,7 +251,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l3']
   AssertEqual readfile(g:file3), ['3.l1', '3.l3']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -280,7 +280,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
   AssertEqual readfile(g:file3), ['3.l1', '3.l2', '3.l3']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -314,7 +314,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l3']
   AssertEqual readfile(g:file3), ['3.l1', '3.l3']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -345,7 +345,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1']
   AssertEqual readfile(g:file2), ['2.l1']
   AssertEqual readfile(g:file3), ['3.l1']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -371,7 +371,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
   AssertEqual readfile(g:file3), ['3.l1', '3.l2', '3.l3']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -405,7 +405,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1']
   AssertEqual readfile(g:file2), ['2.l1']
   AssertEqual readfile(g:file3), ['3.l1']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -440,7 +440,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l2~~~', '1.l3', '1.added']
   AssertEqual readfile(g:file2), ['2.l2~~~', '2.l3', '2.added']
   AssertEqual readfile(g:file3), ['3.l2~~~', '3.l3', '3.added']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -480,7 +480,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
   AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
   AssertEqual readfile(g:file3), ['3.l1', '3.l2', '3.l3']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt
@@ -522,7 +522,7 @@ Then:
   AssertEqual readfile(g:file1), ['1.l2~~~', '1.l3', '1.added']
   AssertEqual readfile(g:file2), ['2.l2~~~', '2.l3', '2.added']
   AssertEqual readfile(g:file3), ['3.l2~~~', '3.l3', '3.added']
-Expect:
+Expect esearch_test:
   Matches in 9 lines, 3 files. Finished.
 
   file1.txt

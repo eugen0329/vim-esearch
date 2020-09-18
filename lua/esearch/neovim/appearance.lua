@@ -9,8 +9,8 @@ local M = {
 }
 
 local LAST_PATH_SEPARATOR_RE = "/[^/]*$"
-local ABOVE_OR_BELOW_ICON_RE = '^%s+[+^]'
-local LINENR_RE              = '^%s+[+^]?%s*%d+%s'
+local ABOVE_OR_BELOW_ICON_RE = '^%s+[+^_]'
+local LINENR_RE              = '^%s+[+^_]?%s*%d+%s'
 
 local function matches_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to == old_to then

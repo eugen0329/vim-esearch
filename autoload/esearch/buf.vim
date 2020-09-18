@@ -118,6 +118,12 @@ endfu
 let s:Handle = {}
 
 if g:esearch#has#bufadd && g:esearch#has#bufline_functions
+  fu! s:Handle.for(bufnr) abort dict
+    call bufload(a:bufnr)
+    call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
+    return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
+  endfu
+
   fu! s:Handle.new(filename) abort dict
     let existed = bufexists(a:filename)
     let bufnr = bufadd(a:filename)
@@ -125,6 +131,16 @@ if g:esearch#has#bufadd && g:esearch#has#bufline_functions
     call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
     return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
   endfu
+
+  if exists('*nvim_buf_line_count')
+    fu! s:Handle.linecount() abort dict
+      return nvim_buf_line_count(self.bufnr)
+    endfu
+  else
+    fu! s:Handle.linecount() abort dict
+      return getbufinfo(self.bufnr)[0].linecount
+    endfu
+  endif
 
   fu! s:Handle.getline(lnum) abort dict
     return get(getbufline(self.bufnr, a:lnum), 0)

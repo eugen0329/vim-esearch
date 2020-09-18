@@ -1,9 +1,10 @@
 let s:by_key = function('esearch#util#by_key')
 
+let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must be " {[+^]?} {line_number} {text}".'
+let s:broken_header_fmt        = 'Broken header at line %d.'
 let s:unexpected_filename_fmt  = 'Unexpected filename at line %d. Each filename must be preceded with a blank line separator.'
 let s:unexpected_prepend_fmt   = 'Unexpected "^" at line %d. Prepended lines must be placed before the base or appended lines.'
 let s:unexpected_append_fmt    = 'Unexpected "+" at line %d. Appended lines must be placed after the base line.'
-let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must be " {[+^]?} {line_number} {text}".'
 let s:unexpected_lnum_fmt      = 'Unexpected line number at line %d. Line numbers sequence must be increasing.'
 let s:missing_filename_fmt     = 'Missing filename before entries at line %d.'
 let s:unexpected_separator_fmt = 'Unexpected blank linese parator at line %d.'
@@ -46,6 +47,9 @@ let s:DiffIterator = {
       \ }
 
 fu! s:DiffIterator.new(lines, esearch, stats) abort dict
+  if stridx(a:lines[1], 'Matches in') != 0 | throw s:err(s:broken_header_fmt, 1) | endif
+  if !empty(a:lines[2]) | throw s:err(s:broken_header_fmt, 2) | endif
+
   return extend(copy(self), {
         \ 'lines': a:lines,
         \ 'ctx_ids_map': a:esearch.undotree.head.state.ctx_ids_map,
@@ -108,6 +112,10 @@ fu! s:DiffIterator.next() abort dict
       elseif sign ==# '+'
         if !has_key(edits, lnum) | let edits[lnum] = [] | endif
         call add(edits[lnum], {'func': 'appendline', 'args': [lnum, text], 'wlnum': self.wlnum - 1, 'lnum': lnum})
+        let self.stats.added += 1
+      elseif sign ==# '_'
+        if !has_key(edits, lnum) | let edits[lnum] = [] | endif
+        call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'wlnum': self.wlnum, 'lnum': lnum, 'first': 1})
         let self.stats.added += 1
       else
         throw s:err(s:unexpected_sign_fmt, self.wlnum)
@@ -192,9 +200,13 @@ fu! s:undo_edits(edits, lines_a, ctx, offsets, begin, lnums_b) abort
         let lnum_offset -= 1
       endif
     elseif edit.func ==# 'setline'
-      let lnum = edit.lnum + a:offsets[wlnum - begin]
-      let line = printf(' %'.align.'d ', lnum) . lines_a[edit.lnum]
-      call add(undo, {'func': 'setline', 'args': [wlnum, line], 'lnum': lnum, 'wlnum': wlnum})
+      if get(edit, 'first')
+        call add(undo, {'func': 'deleteline', 'args': [wlnum], 'wlnum': wlnum - 1})
+      else
+        let lnum = edit.lnum + a:offsets[wlnum - begin]
+        let line = printf(' %'.align.'d ', lnum) . lines_a[edit.lnum]
+        call add(undo, {'func': 'setline', 'args': [wlnum, line], 'lnum': lnum, 'wlnum': wlnum})
+      endif
     endif
   endfor
 
@@ -210,7 +222,7 @@ fu! s:offsets(edits, lnums_b) abort
     while e < len(edits) && l < len(lnums_b) && +edits[e].lnum <= +lnums_b[l]
       if edits[e].func ==# 'deleteline'
         let offset -= 1
-      elseif edits[e].func ==# 'appendline'
+      elseif edits[e].func ==# 'appendline' || get(edits[e], 'first')
         call add(offsets, offset)
         let offset += 1
         let l += 1

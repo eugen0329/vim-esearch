@@ -28,6 +28,12 @@ Execute(setup):
     return expected ==# actual
   endfu
 
+  " linear congruential generator
+  fu! Rand(from, to) abort 
+    let s:next = (4096 * get(s:, 'next', 1) + 150889) % 714025
+    return a:from + s:next % (a:to - a:from)
+  endfu
+
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
   let g:esearch = {
@@ -40,3 +46,6 @@ Execute(setup):
   \ 'live_update': 0,
   \ 'root_markers': [],
   \}
+
+  set shortmess=lnTtoOfF
+  set nomore

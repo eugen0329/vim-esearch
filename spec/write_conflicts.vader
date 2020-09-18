@@ -22,7 +22,7 @@ Execute (Resolve "-line2" with "~line2" after search):
 Then:
   AssertEqual readfile(g:file), ['l1', 'changed2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -38,7 +38,7 @@ Execute (Resolve "-line2" with "+line4" below after search):
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l3', 'added4']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -55,7 +55,7 @@ Execute (Resolve "-line2" with "+line0" after search):
 Then:
   AssertEqual readfile(g:file), ['added0', 'l1', 'l2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -72,7 +72,7 @@ Execute (Resolve "-line2" with "-line3" after search):
 Then:
   AssertEqual readfile(g:file), ['l1']
 # TODO?
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -89,7 +89,7 @@ Execute (Resolve "-line2" with "-line1" after search):
 Then:
   AssertEqual readfile(g:file), ['l2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -105,7 +105,7 @@ Execute (Resolve "-line2" with "~line3" after search):
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'changed3']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -121,7 +121,7 @@ Execute (Resolve "-line2" with "~line1" after search):
   exe "norm /l2\<CR>dd:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['changed1', 'l3']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -140,7 +140,7 @@ Execute (Resolve "~line2" with "~line2" after search):
 Then:
   AssertEqual readfile(g:file), ['l1', 'changed2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -157,7 +157,7 @@ Execute (Resolve "~line2" with "+line4" below after search):
   exe "norm /l2\<CR>A~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~', 'l3', 'added4']
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -175,7 +175,7 @@ Execute (Resolve "~line2" with "+line0" after search):
 Then:
   AssertEqual readfile(g:file), ['added0', 'l1', 'l2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -193,7 +193,7 @@ Execute (Resolve "~line2" with "-line3" after search):
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~']
 # TODO?
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -211,7 +211,7 @@ Execute (Resolve "~line2" with "-line1" after search):
 Then:
   AssertEqual readfile(g:file), ['l2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -229,7 +229,7 @@ Execute (Resolve "~line2" with "~line3" after search):
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2~~~', 'changed3']
 # TODO?
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -247,7 +247,7 @@ Execute (Resolve "~line2" with "~line1" after search):
 Then:
   AssertEqual readfile(g:file), ['changed1', 'l2~~~', 'l3']
 # TODO?
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -267,7 +267,7 @@ Execute (Resolve "+line2" with "~line2" after search):
 Then:
   AssertEqual readfile(g:file), ['l1', 'changed2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -285,7 +285,7 @@ Execute (Resolve "v+line2" with "+line4" below after search):
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', '~~~', 'l3', 'added4']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -304,7 +304,7 @@ Execute (Resolve "v+line2" with "+line0" after search):
 Then:
   AssertEqual readfile(g:file), ['added0', 'l1', 'l2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -322,7 +322,7 @@ Execute (Resolve "v+line2" with "-line3" after search):
   exe "norm /l2\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', '~~~']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -341,7 +341,7 @@ Execute (Resolve "v+line2" with "-line1" after search):
 Then:
   AssertEqual readfile(g:file), ['l2', 'l3']
   Assert CantWrite('file.txt')
-Expect:
+Expect esearch_test:
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -360,7 +360,7 @@ Execute (Resolve "v+line2" with "~line3" after search):
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', '~~~', 'changed3']
 # TODO?
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -379,7 +379,7 @@ Execute (Resolve "v+line2" with "~line1" after search):
 Then:
   AssertEqual readfile(g:file), ['changed1', 'l2', '~~~', 'l3']
 # TODO?
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -398,7 +398,7 @@ Execute (Resolve "^+line1"):
   exe "norm /file.txt\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['~~~', 'l1', 'l2', 'l3']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
@@ -415,7 +415,7 @@ Execute (Resolve "v+line$"):
   exe "norm /l3\<CR>A\<CR>~~~\<esc>:write\<CR>"
 Then:
   AssertEqual readfile(g:file), ['l1', 'l2', 'l3', '~~~']
-Expect(rerender line numbers):
+Expect esearch_test(rerender line numbers):
   Matches in 4 lines, 2 files. Finished.
 
   file.txt
