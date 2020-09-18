@@ -34,8 +34,7 @@ jobs:
   include:
     - name: 'Unit tests'
       script:
-        - |
-          vim -Nu spec/vimrc -c 'Vader! spec/*.vader' /dev/null
+        - vim -Nu spec/vimrc -c 'Vader! spec/*.vader' /dev/null
         - bundle exec parallel_test -n 2 --type rspec spec/unit/
       os: linux
     - name: 'Acceptance tests of #backend#system patterns'

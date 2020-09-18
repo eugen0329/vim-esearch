@@ -170,7 +170,7 @@ else
     if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
     return getline(a:lnum)
   endfu
- 
+
  fu! s:Handle.setline(lnum, replacement) abort dict
     if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
     return setline(a:lnum, a:replacement)

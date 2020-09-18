@@ -10,7 +10,7 @@ delfunction s:_SID
 let s:save_cpo = &cpo
 set cpo&vim
 
-" Use a Funcref as a fileial term _UNDEFINED
+" Use a Funcref as a special term _UNDEFINED
 function! s:_undefined() abort
   return 'undefined'
 endfunction
@@ -124,7 +124,7 @@ function! s:_new_variable(name, ...) abort
       call s:_throw(printf(
             \ join([
             \   'An variable name "%s" requires to start from b:, w:, t:, or g:',
-            \   'while no {namespace} is fileified',
+            \   'while no {namespace} is specified',
             \ ]),
             \ a:name,
             \))
@@ -207,7 +207,7 @@ function! s:store(targets) abort
         call add(resources, s:_new_environment(meta))
       else
         call s:_throw(printf(
-              \ 'Unknown value "%s" was fileified',
+              \ 'Unknown value "%s" was specified',
               \ meta
               \))
       endif

@@ -241,7 +241,6 @@ fu! s:RegularBuffer.edit_allowing_swap_prompt() abort dict
 
   let current_buffer_id = bufnr('%')
   if current_buffer_id != self.id && bufexists(self.id) && empty(bufname(self.id)) && !bufloaded(self.id)
-    " Wipeout an empty buffer
     exe self.id . 'bwipeout'
   endif
   let self.id = current_buffer_id

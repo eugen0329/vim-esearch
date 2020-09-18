@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'plugin/shared_examples/backend'
 
 # TODO: testing
 # - test directories with spaces in names

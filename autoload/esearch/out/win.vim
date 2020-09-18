@@ -27,7 +27,7 @@ let g:esearch#out#win#capture_text_re            = '^\s\+[+^]\=\s*\d\+\s\zs.*'
 let g:esearch#out#win#capture_sign_and_linenr_re = '^\s\+\([+^]\)\=\s*\(\d\+\)'
 let g:esearch#out#win#ignore_ui_re               = '\%>1l\%(\s[+^]\=\s*\d\+\s.*\)\@<='
 let g:esearch#out#win#ignore_ui_hat_re           = '\%>1l\%(\s[+^]\=\s*\d\+\s\)\@<='
-let g:esearch#out#win#filename_re = '^[^ ]\%>2l'
+let g:esearch#out#win#filename_re = '^[^ ]'
 let g:esearch#out#win#linenr_fmt  = ' %3d '
 let g:esearch#out#win#entry_fmt   = ' %3d %s'
 

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'plugin/shared_examples/backend'
 require 'plugin/shared_examples/abortable_backend'
 
 describe 'esearch#backend', :backend do

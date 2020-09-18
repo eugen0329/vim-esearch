@@ -10,9 +10,8 @@ Before:
   norm! gg
   let @r = ''
 
-" TODO
 After:
-  doau TextChanged
+  undo
 
 ###########
 Execute (delete match 1 "inner" textobj):
