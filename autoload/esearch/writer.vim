@@ -105,8 +105,7 @@ fu! s:Writer.apply_edits(buf, diff) abort
     call call(a:buf[edit.func], edit.args)
   endfor
 
-  if edits[-1].func ==# 'deleteline'
-        \ && a:buf.linecount() ==# 1
+  if edits[-1].func ==# 'deleteline' && a:buf.oneliner()
     let a:diff.undo[0].args[1][0] = substitute(a:diff.undo[0].args[1][0], '^\s\+\zs^\ze', '_', '')
   endif
 

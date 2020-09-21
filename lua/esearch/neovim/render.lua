@@ -27,7 +27,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
 
     -- IF new filename encountered
     if filename ~= contexts[#contexts].filename then
-      contexts[#contexts]['end'] = line
+      contexts[#contexts]['end'] = line + 1
 
       if util.is_true(slow_hl_enabled) and contexts[#contexts].id > win_contexts_syntax_clear_on_files_count then
         slow_hl_enabled = false

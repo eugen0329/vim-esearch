@@ -133,16 +133,16 @@ if g:esearch#has#bufadd && g:esearch#has#bufline_functions
   endfu
 
   if exists('*nvim_buf_line_count')
-    fu! s:Handle.linecount() abort dict
-      return nvim_buf_line_count(self.bufnr)
+    fu! s:Handle.oneliner() abort dict
+      return nvim_buf_line_count(self.bufnr) == 1
+    endfu
+  elseif g:esearch#has#getbufinfo_linecount
+    fu! s:Handle.oneliner() abort dict
+      return getbufinfo(self.bufnr)[0].linecount == 1
     endfu
   else
-    fu! s:Handle.linecount() abort dict
-      try
-        return getbufinfo(self.bufnr)[0].linecount
-      catch 
-        throw string([self.bufnr, getbufinfo(self.bufnr), split(execute('ls!'), "\n")])
-      endtry
+    fu! s:Handle.oneliner() abort dict
+      return getbufline(self.bufnr, 2) == []
     endfu
   endif
 
