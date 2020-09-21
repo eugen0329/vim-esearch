@@ -77,16 +77,15 @@ fu! s:Writer.squash_undotree(win_update_edits, lnums_ranges, win_undo_edits) abo
     silent! %yank s
 
     " try
-      exe 'undo' b:esearch.undotree.written.changenr
+    exe 'undo' b:esearch.undotree.written.changenr
     " catch /^Vim(undo):E830:/
-      " throw string(b:esearch.name)
     " endtry
 
     call esearch#util#safe_undojoin()
     call self.undo_win(a:win_undo_edits)
     let state = self.undo_state(a:win_undo_edits)
     call b:esearch.undotree.squash(state)
-    call esearch#util#safe_undojoin()
+    " call esearch#util#safe_undojoin()
     call esearch#util#squash_undo()
 
     keepjumps %delete _

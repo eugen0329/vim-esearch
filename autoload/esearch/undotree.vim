@@ -7,6 +7,7 @@ fu! esearch#undotree#new(state) abort
   let nodes[0] = initial
   let nodes[changenr()] = initial
   let head = s:node(deepcopy(a:state))
+  let written = extend(copy(head), {'changenr': empty(undotree().entries) ? 0 : changenr()})
   return {
         \ 'synchronize':             function('<SID>synchronize'),
         \ 'mark_block_as_corrupted': function('<SID>mark_block_as_corrupted'),
@@ -14,7 +15,7 @@ fu! esearch#undotree#new(state) abort
         \ 'squash':                  function('<SID>squash'),
         \ 'locate_synchronized':     function('<SID>locate_synchronized'),
         \ 'on_write':                function('<SID>on_write'),
-        \ 'written':                 initial,
+        \ 'written':                 written,
         \ 'head':                    initial,
         \ 'nodes':                   nodes,
         \}

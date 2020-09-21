@@ -38,13 +38,12 @@ Execute(setup):
 
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
-  let s:nr = esearch#util#counter()
   let g:esearch = {
   \ 'backend': 'system',
   \ 'pattern': '.',
   \ 'regex': 1,
   \ 'adapter': 'rg',
-  \ 'win_new': {_-> execute('noswap edit [esearch-vader'.g:vader_file.s:nr.next().']')},
+  \ 'win_new': {_-> execute('noswap edit [esearch-vader]')},
   \ 'adapters': {'rg': {'options': '--sort path'}},
   \ 'live_update': 0,
   \ 'root_markers': [],

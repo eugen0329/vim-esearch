@@ -1,7 +1,9 @@
 fu! esearch#out#win#appearance#annotations#init(es) abort
   if a:es.win_context_len_annotations && a:es.win_render_strategy ==# 'lua'
-    cal luaeval('esearch.appearance.set_context_len_annotation(_A[1], _A[2])',
-          \ [a:es.contexts[-1].begin, len(a:es.contexts[-1].lines)])
+    if a:es.contexts[-1].id > 0
+      cal luaeval('esearch.appearance.set_context_len_annotation(_A[1], _A[2])',
+            \ [a:es.contexts[-1].begin, len(a:es.contexts[-1].lines)])
+    en
     cal luaeval('esearch.appearance.buf_attach_annotations()')
   en
 endfu

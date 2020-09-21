@@ -138,7 +138,11 @@ if g:esearch#has#bufadd && g:esearch#has#bufline_functions
     endfu
   else
     fu! s:Handle.linecount() abort dict
-      return getbufinfo(self.bufnr)[0].linecount
+      try
+        return getbufinfo(self.bufnr)[0].linecount
+      catch 
+        throw string([self.bufnr, getbufinfo(self.bufnr), split(execute('ls!'), "\n")])
+      endtry
     endfu
   endif
 
