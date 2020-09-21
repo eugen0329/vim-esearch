@@ -25,7 +25,9 @@ Execute(setup):
 
     let expected = map(line_numbers_map, '+v:val')
     let actual = map(copy(b:esearch.undotree.head.state.line_numbers_map), '+v:val')
+
     return expected ==# actual
+      \ && len(b:esearch.undotree.head.state.ctx_ids_map) - 1 == line('$')
   endfu
 
   " linear congruential generator
@@ -36,12 +38,13 @@ Execute(setup):
 
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
+  let s:nr = esearch#util#counter()
   let g:esearch = {
   \ 'backend': 'system',
   \ 'pattern': '.',
   \ 'regex': 1,
   \ 'adapter': 'rg',
-  \ 'win_new': {_-> esearch#buf#goto_or_open('[esearch-vader]', 'noswap tabnew')},
+  \ 'win_new': {_-> execute('noswap edit [esearch-vader'.g:vader_file.s:nr.next().']')},
   \ 'adapters': {'rg': {'options': '--sort path'}},
   \ 'live_update': 0,
   \ 'root_markers': [],

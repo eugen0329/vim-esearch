@@ -417,7 +417,7 @@ Expect esearch_test:
   file3.txt
      1 3.l1
 
-" ######################
+######################
 
 Execute (write 3 files: "-line1 ~line2 +line3"):
   call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])

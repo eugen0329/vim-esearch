@@ -24,7 +24,7 @@ fu! esearch#highlight#set() abort
 
   let s:is_dark = s:detect_dark_background()
   call s:set_matches_highlight()
-  call s:set_add_highlight()
+  call s:set_virtual_sign_highlight()
   if g:esearch#has#nvim | call s:set_float_win_highlights() | endif
 
   if hlexists('esearchLnum')
@@ -35,7 +35,7 @@ fu! esearch#highlight#set() abort
   endif
 endfu
 
-fu! s:set_add_highlight() abort
+fu! s:set_virtual_sign_highlight() abort
   let DiffAdd = s:gethl('DiffAdd')
   unlet! DiffAdd['ctermbg']
   unlet! DiffAdd['guibg']
@@ -204,7 +204,7 @@ fu! s:copyhl(from, to, options) abort
 endfu
 
 fu! s:sethl(name, attributes, options) abort
-  if a:attributes ==# {'cleared': 1}
+  if a:attributes ==# {'cleared': 1} || empty(a:attributes)
     let new_highlight = {'name': a:name, 'attrs': {'clear': 1}}
   else
     let new_highlight = {

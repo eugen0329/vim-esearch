@@ -214,12 +214,43 @@ Execute (add 2 lines before line 1, del others):
   exe "norm A\<CR>added2"
   exe "norm /l1\<CR>V/l3\<CR>d"
   write
-" TODO?
 Then:
-  AssertEqual readfile(g:file), ['added1', 'added2', '']
+  AssertEqual readfile(g:file), ['added1', 'added2']
 Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
   file.txt
      1 added1
      2 added2
+
+Execute ():
+  call Fixture(g:file, ['l1', 'l2', 'l3', 'l4', 'l5'])
+  call esearch#init()
+  exe "norm /l2\<CR>dd"
+  exe "norm /l4\<CR>dd"
+  write
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l3', 'l5']
+Expect esearch_test:
+  Matches in 5 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l3
+     3 l5
+
+Execute ():
+  call Fixture(g:file, ['l1', 'l2', 'l3', 'l4', 'l5'])
+  call esearch#init()
+  exe "norm /l1\<CR>dd"
+  exe "norm /l3\<CR>dd"
+  exe "norm /l5\<CR>dd"
+  write
+Then:
+  AssertEqual readfile(g:file), ['l2', 'l4']
+Expect esearch_test:
+  Matches in 5 lines, 1 file. Finished.
+
+  file.txt
+     1 l2
+     2 l4

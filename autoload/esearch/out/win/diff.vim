@@ -107,15 +107,15 @@ fu! s:DiffIterator.next() abort dict
         endif
 
         if !has_key(edits, lnum-1) | let edits[lnum-1] = [] | endif
-        call add(edits[lnum-1], {'func': 'appendline', 'args': [lnum-1, text], 'wlnum': self.wlnum - 1, 'lnum': lnum})
+        call add(edits[lnum-1], {'func': 'appendline', 'args': [lnum-1, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '^'})
         let self.stats.added += 1
       elseif sign ==# '+'
         if !has_key(edits, lnum) | let edits[lnum] = [] | endif
-        call add(edits[lnum], {'func': 'appendline', 'args': [lnum, text], 'wlnum': self.wlnum - 1, 'lnum': lnum})
+        call add(edits[lnum], {'func': 'appendline', 'args': [lnum, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '+'})
         let self.stats.added += 1
       elseif sign ==# '_'
-        if !has_key(edits, lnum) | let edits[lnum] = [] | endif
-        call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'wlnum': self.wlnum, 'lnum': lnum, 'first': 1})
+        if !has_key(edits, 0) | let edits[0] = [] | endif
+        call add(edits[0], {'func': 'setline', 'args': [1, text], 'wlnum': self.wlnum, 'lnum': 1, 'first': 1})
         let self.stats.added += 1
       else
         throw s:err(s:unexpected_sign_fmt, self.wlnum)
@@ -162,9 +162,10 @@ let s:Diff = {}
 
 fu! s:Diff.new(edits, begin, end, ctx, lnums_b) abort
   if empty(a:edits) | return {'edits': []} | endif
-  let edits = s:flatten(a:edits)
+  let edits = s:flatten(a:edits, a:lnums_b)
   let offsets = s:offsets(edits, a:lnums_b)
-  let undo_edits = s:undo_edits(edits, a:ctx.lines, a:ctx, offsets, a:begin, a:lnums_b)
+  let undo = s:undo_edits(edits, a:ctx.lines, a:ctx, offsets, a:ctx.begin + 1, a:lnums_b)
+  let a:ctx.begin = a:begin - 1 " TODO side effect
   return {
         \ 'ctx': a:ctx,
         \ 'edits': edits,
@@ -172,53 +173,55 @@ fu! s:Diff.new(edits, begin, end, ctx, lnums_b) abort
         \ 'end': a:end,
         \ 'lnums': a:lnums_b,
         \ 'offsets': offsets,
-        \ 'undo': undo_edits
+        \ 'undo': undo,
         \}
 endfu
 
 fu! s:undo_edits(edits, lines_a, ctx, offsets, begin, lnums_b) abort
-  let [begin, lines_a, lnums_b] = [a:begin, a:lines_a, a:lnums_b]
-  let [offset, lnum_offset] = [0, 0]
-  let align = max([3, len(max(keys(lines_a)))])
+  let align = max([3, len(max(keys(a:lines_a)))])
+  let fmt = ' %s %'.align.'d '
+  let [lines_a, lnums_a, lnums_b] =  [a:lines_a, sort(keys(a:ctx.lines), 'N'), a:lnums_b]
+  let [lines, lnum] = [[], []]
+  let [offset, a, b] = [0, 0, 0]
 
-  let [undo, l] = [[], 0]
-  for edit in reverse(copy(a:edits))
-    let wlnum = edit.wlnum
-    " fastforward to the next affected line
-    while l < len(lnums_b) && +lnums_b[l] <= +edit.lnum | let l += 1 | endwhile
-
-    if edit.func ==# 'deleteline'
-      let lnum = edit.lnum  - lnum_offset
-      let line = printf(' ^%'.align.'d ', lnum) . lines_a[edit.lnum]
-      call add(undo, {'func': 'appendline', 'args': [wlnum - 1 + offset, line], 'lnum': lnum, 'wlnum': wlnum, 'id': a:ctx.id})
-      let offset -= 1
-      let lnum_offset += 1
-    elseif edit.func ==# 'appendline'
-      call add(undo, {'func': 'deleteline', 'args': [wlnum + 1], 'wlnum': wlnum})
-      let offset += 1
-      if l < len(lnums_b) && edit.args[0] < lnums_b[l]
-        let lnum_offset -= 1
-      endif
-    elseif edit.func ==# 'setline'
-      if get(edit, 'first')
-        call add(undo, {'func': 'deleteline', 'args': [wlnum], 'wlnum': wlnum - 1})
-      else
-        let lnum = edit.lnum + a:offsets[wlnum - begin]
-        let line = printf(' %'.align.'d ', lnum) . lines_a[edit.lnum]
-        call add(undo, {'func': 'setline', 'args': [wlnum, line], 'lnum': lnum, 'wlnum': wlnum})
-      endif
+  while a < len(lnums_a) && b < len(lnums_b)
+    if lnums_a[a] ==# lnums_b[b]
+      call add(lnum, lnums_a[a] + offset)
+      call add(lines, printf(fmt, ' ', lnum[-1]).lines_a[lnums_a[a]])
+      let [a, b] = [a + 1, b + 1]
+    elseif +lnums_a[a] < +lnums_b[b]
+      while a < len(lnums_a) && +lnums_a[a] < +lnums_b[b]
+        call add(lnum, lnums_a[a] + offset)
+        call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
+        let [offset, a] = [offset - 1, a + 1]
+      endw
+      let b += 1
+    else
+      call add(lnum, lnums_a[a] + offset)
+      call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
+      while b < len(lnums_b) && +lnums_a[a] > +lnums_b[b]
+        let b += 1
+      endw
+      let [offset, a] = [offset - 1, a + 1]
     endif
-  endfor
+  endw
 
-  return reverse(undo)
+  while a < len(lnums_a)
+    call add(lnum, lnums_a[a] + offset)
+    call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
+    let [offset, a] = [offset - 1, a + 1]
+  endw
+
+  return [{'func': 'setline', 'args': [a:begin, lines], 'lnum': lnum}]
 endfu
 
 " List to apply to line numbers after writing changes
 fu! s:offsets(edits, lnums_b) abort
-  let [edits, lnums_b] = [reverse(copy(a:edits)), a:lnums_b]
+  let [edits, lnums_b] = [a:edits, a:lnums_b]
   let [offsets, offset, e, l] = [[], 0, 0, 0]
 
   while l < len(lnums_b)
+
     while e < len(edits) && l < len(lnums_b) && +edits[e].lnum <= +lnums_b[l]
       if edits[e].func ==# 'deleteline'
         let offset -= 1
@@ -237,7 +240,43 @@ fu! s:offsets(edits, lnums_b) abort
   return offsets
 endfu
 
-fu! s:flatten(edits) abort
+fu! s:flatten(edits, lnums_b) abort
+  let edits = []
+
+  for lnum in sort(keys(a:edits), 'N')
+    let edits += a:edits[lnum]
+  endfor
+
+  let offset = 0
+  let e = 0
+  while e < len(edits)
+    if edits[e].func ==# 'appendline'
+      let edits[e].orig = edits[e].args[0]
+      let edits[e].args[0] += offset
+      let offset += 1
+      let e += 1
+    elseif edits[e].func ==# 'deleteline'
+      let cnt = 0
+      while e < len(edits) && edits[e].func ==# 'deleteline'
+      let edits[e].orig = edits[e].args[0]
+        let edits[e].args[0] += offset - cnt
+        let e += 1
+        let cnt += 1
+      endwhile
+
+      let offset = offset - cnt
+    else
+      let edits[e].orig = edits[e].args[0]
+      let edits[e].args[0] += offset
+      if get(edits[e], 'first') | let offset += 1 | endif
+      let e += 1
+    endif
+  endwhile
+
+  return edits
+endfu
+
+fu! s:reverse_flatten(edits) abort
   let edits = []
 
   for lnum in reverse(sort(keys(a:edits), 'N'))

@@ -44,7 +44,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
       lines[#lines + 1] = util.fnameescape(filename)
       contexts[#contexts + 1] = {
         ['id']            = contexts[#contexts].id + 1,
-        ['begin']         = line,
+        ['begin']         = line + 1,
         ['end']           = 0,
         ['filename']      = filename,
         ['filetype']      = 0,

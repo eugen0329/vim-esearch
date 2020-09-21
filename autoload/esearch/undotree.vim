@@ -13,6 +13,8 @@ fu! esearch#undotree#new(state) abort
         \ 'checkout':                function('<SID>checkout'),
         \ 'squash':                  function('<SID>squash'),
         \ 'locate_synchronized':     function('<SID>locate_synchronized'),
+        \ 'on_write':                function('<SID>on_write'),
+        \ 'written':                 initial,
         \ 'head':                    initial,
         \ 'nodes':                   nodes,
         \}
@@ -27,6 +29,10 @@ fu! s:synchronize(...) abort dict
   let state = a:0 ? a:1 : self.head.state
   let self.head = s:node(state)
   let self.nodes[self.head.changenr] = self.head
+endfu
+
+fu! s:on_write() abort dict
+  let self.written = self.head
 endfu
 
 fu! s:mark_block_as_corrupted(...) abort dict

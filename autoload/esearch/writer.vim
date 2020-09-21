@@ -76,11 +76,16 @@ fu! s:Writer.squash_undotree(win_update_edits, lnums_ranges, win_undo_edits) abo
     let updated_state = self.update_state(b:esearch.undotree.head.state, a:lnums_ranges)
     silent! %yank s
 
+    " try
+      exe 'undo' b:esearch.undotree.written.changenr
+    " catch /^Vim(undo):E830:/
+      " throw string(b:esearch.name)
+    " endtry
+
     call esearch#util#safe_undojoin()
     call self.undo_win(a:win_undo_edits)
     let state = self.undo_state(a:win_undo_edits)
     call b:esearch.undotree.squash(state)
-
     call esearch#util#safe_undojoin()
     call esearch#util#squash_undo()
 
@@ -89,6 +94,7 @@ fu! s:Writer.squash_undotree(win_update_edits, lnums_ranges, win_undo_edits) abo
     keepjumps 1delete _
 
     call b:esearch.undotree.synchronize(updated_state)
+    call b:esearch.undotree.on_write()
   finally
     let @s = original_register
   endtry
@@ -101,10 +107,8 @@ fu! s:Writer.apply_edits(buf, diff) abort
   endfor
 
   if edits[-1].func ==# 'deleteline'
-        \ && a:diff.undo[-1].func ==# 'appendline'
-        \ && a:diff.undo[-1].lnum ==# 1
         \ && a:buf.linecount() ==# 1
-    let a:diff.undo[0].args[1] = substitute(a:diff.undo[0].args[1], '^\s\+\zs^\ze', '_', '')
+    let a:diff.undo[0].args[1][0] = substitute(a:diff.undo[0].args[1][0], '^\s\+\zs^\ze', '_', '')
   endif
 
   call call(a:buf[edits[-1].func], edits[-1].args)
@@ -120,7 +124,7 @@ endfu
 
 fu! s:Writer.update_state(state, lnums_ranges) abort
   let state = b:esearch.undotree.head.state
-  for lnums_range in a:lnums_ranges
+  for lnums_range in reverse(a:lnums_ranges)
     let begin = lnums_range[0]
     let end = begin + len(lnums_range[1]) - 1
     let state.line_numbers_map[begin : end] = lnums_range[1]
@@ -129,20 +133,11 @@ fu! s:Writer.update_state(state, lnums_ranges) abort
 endfu
 
 fu! s:Writer.undo_state(win_undo_edits) abort dict
-  let state = deepcopy(b:esearch.undotree.head.state)
-  for file_undo in a:win_undo_edits
+  let state = b:esearch.undotree.written.state
+  for file_undo in reverse(a:win_undo_edits)
     for edit in file_undo
-      if edit.func ==# 'deleteline'
-        call remove(state.ctx_ids_map, edit.wlnum + 1)
-        call remove(state.line_numbers_map, edit.wlnum + 1)
-      elseif edit.func ==# 'setline'
-        let state.line_numbers_map[edit.wlnum] = edit.lnum
-      elseif edit.func ==# 'appendline'
-        call insert(state.ctx_ids_map, edit.id, edit.args[0] + 1)
-        call insert(state.line_numbers_map, edit.lnum, edit.args[0] + 1)
-      else
-        throw 'Unknown func: ' . edit.func
-      endif
+      if empty(edit.lnum) | continue | endif
+      let state.line_numbers_map[edit.args[0]:edit.args[0]+len(edit.lnum)-1] = edit.lnum
     endfor
   endfor
   return state
@@ -151,6 +146,7 @@ endfu
 fu! s:Writer.undo_win(win_undo_edits) abort dict
   for file_undo in reverse(a:win_undo_edits)
     for edit in file_undo
+      " call nvim_buf_set_lines(0, edit.args[0] - 1, edit.end, 0, edit.args[1])
       call call(self.search_buf[edit.func], edit.args)
     endfor
   endfor

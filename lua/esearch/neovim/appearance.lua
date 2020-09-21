@@ -127,9 +127,9 @@ end
 
 function M.set_context_len_annotation(line, size)
   if size == 1 then
-    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line, {{size .. ' line', 'Comment'}}, {})
+    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line - 1, {{size .. ' line', 'Comment'}}, {})
   else
-    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line, {{size .. ' lines', 'Comment'}}, {})
+    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line - 1, {{size .. ' lines', 'Comment'}}, {})
   end
 end
 
