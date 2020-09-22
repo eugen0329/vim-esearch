@@ -46,6 +46,14 @@ hi def link es_typescriptOperator           Identifier
 hi def link es_typescriptForOperator        Repeat
 hi def link es_typescriptRepeat             Repeat
 hi def link es_typescriptImport             Special
+hi def link es_typescriptExport             Special	
+hi def link es_typescriptModule             Special	
+hi def link es_typescriptCastKeyword        Special	
+hi def link es_typescriptDecorator          Special	
+hi def link es_typescriptTry                Special	
+hi def link es_typescriptExceptions         Special	
+hi def link es_typescriptAmbientDeclaration Special	
+hi def link es_typescriptAbstract           Special
 hi def link es_typescriptBoolean            Boolean
 hi def link es_typescriptNull               Boolean
 hi def link es_typescriptConditional        Conditional

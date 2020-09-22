@@ -78,7 +78,7 @@ fu! esearch#out#win#modifiable#i_CR() abort
     call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
     call b:esearch.undotree.commit(state)
 
-    let linenr_and_offset_re = g:esearch#out#win#capture_sign_and_linenr_re.'\(\s'.(&g:autoindent ? '\+' : '').'\)'
+    let linenr_and_offset_re = g:esearch#out#win#capture_sign_and_lnum_re.'\(\s'.(&g:autoindent ? '\+' : '').'\)'
     let [sign, linenr, offset] = matchlist(getline('.'), linenr_and_offset_re)[1:3]
     let prefix = printf(' '.(empty(sign) ? '+' : sign).'%'.align.'s', linenr) . offset
 
@@ -102,7 +102,7 @@ fu! esearch#out#win#modifiable#align(id, align) abort
   let begin = ctx.begin + 1
   let end = esearch#util#clip(ctx.end+1, begin, line('$'))
   let range = (ctx.begin + 1).','.end
-  let pattern = g:esearch#out#win#capture_sign_and_linenr_re
+  let pattern = g:esearch#out#win#capture_sign_and_lnum_re
   let replacement = '\=printf(" %s%'.a:align.'s", empty(submatch(1)) ? " " : submatch(1), submatch(2))'
 
   let cmd = range.'s/'.pattern.'/'.replacement

@@ -119,7 +119,7 @@ endfunction
 let s:variable = {}
 function! s:_new_variable(name, ...) abort
   if a:0 == 0
-    let m = matchlist(a:name, '^\([bwtgv]:\)\(.*\)$')
+    let m = matchlist(a:name, '^\([bwtg]:\)\(.*\)$')
     if empty(m)
       call s:_throw(printf(
             \ join([
@@ -130,7 +130,6 @@ function! s:_new_variable(name, ...) abort
             \))
     endif
     let [prefix, name] = m[1 : 2]
-    echomsg prefix
     let namespace = eval(prefix)
   else
     let name = a:name
@@ -195,7 +194,7 @@ function! s:store(targets) abort
         call s:_throw('List assignment requires one or two elements')
       endif
     elseif type(meta) == type('')
-      if meta =~# '^[bwtglsv]:'
+      if meta =~# '^[bwtgls]:'
         " Note:
         " To improve an error message, handle l:XXX or s:XXX as well
         call add(resources, s:_new_variable(meta))

@@ -98,7 +98,7 @@ fu! s:Writer.update_file(buf, diff) abort
 
   if edits[-1].func ==# 'deleteline' && a:buf.oneliner()
     let a:diff.win_undos[0].args[1][-1] =
-          \ substitute(a:diff.win_undos[0].args[1][-1], '^\s\+\zs^\ze', '_', '')
+          \ substitute(a:diff.win_undos[0].args[1][-1], g:esearch#out#win#capture_sign_re, '_', '')
   endif
 
   call call(a:buf[edits[-1].func], edits[-1].args)

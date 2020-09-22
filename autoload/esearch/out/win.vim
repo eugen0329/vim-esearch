@@ -17,17 +17,14 @@ let g:esearch#out#win#legacy_mappings = {
       \ 'prev-file':          '<Plug>(esearch-win-jump:filename:up)',
       \}
 
-let g:esearch#out#win#prefix_re                  = '^\s\+[+^_]\=\s*'
-let g:esearch#out#win#linenr_re                  = '^\s\+[+^_]\=\s*\d\+\s'
-let g:esearch#out#win#line_in_file_re            = '^\s\+[+^_]\=\s*\zs\d\+\ze.*'
-let g:esearch#out#win#entry_re                   = '^\s\+[+^_]\=\s*\d\+\s\+.*'
-let g:esearch#out#win#capture_entry_re           = '^\s\+[+^_]\=\s*\(\d\+\)\s\(.*\)'
-let g:esearch#out#win#capture_line_re            = '^\s\+\([+^_]\)\=\s*\(\d\+\)\s\(.*\)'
-let g:esearch#out#win#capture_text_re            = '^\s\+[+^_]\=\s*\d\+\s\zs.*'
-let g:esearch#out#win#capture_sign_and_linenr_re = '^\s\+\([+^_]\)\=\s*\(\d\+\)'
-let g:esearch#out#win#capture_lnum_re            = '^\s\+[+^_]\=\zs\d\+\ze.*'
-let g:esearch#out#win#ignore_ui_re               = '\%>1l\%(\s[+^_]\=\s*\d\+\s.*\)\@<='
-let g:esearch#out#win#ignore_ui_hat_re           = '\%>1l\%(\s[+^_]\=\s*\d\+\s\)\@<='
+let g:esearch#out#win#column_re                = '^\s\+[+^_]\=\s*\d\+\s'
+let g:esearch#out#win#entry_re                 = '^\s\+[+^_]\=\s*\d\+\s\+.*'
+let g:esearch#out#win#capture_sign_re          = '^\s\+\zs^\ze'
+let g:esearch#out#win#capture_lnum_re          = '^\s\+[+^_]\=\s*\zs\d\+\ze.*'
+let g:esearch#out#win#capture_entry_re         = '^\s\+\([+^_]\)\=\s*\(\d\+\)\s\(.*\)'
+let g:esearch#out#win#capture_sign_and_lnum_re = '^\s\+\([+^_]\)\=\s*\(\d\+\)'
+let g:esearch#out#win#ignore_ui_re             = '\%>1l\%(\s[+^_]\=\s*\d\+\s.*\)\@<='
+let g:esearch#out#win#ignore_ui_hat_re         = '\%>1l\%(\s[+^_]\=\s*\d\+\s\)\@<='
 let g:esearch#out#win#filename_re = '^[^ ]'
 let g:esearch#out#win#linenr_fmt  = ' %3d '
 let g:esearch#out#win#entry_fmt   = ' %3d %s'
@@ -234,7 +231,7 @@ endfu
 
 fu! s:I() abort
   if !b:esearch.is_entry() | return 'I' | endif
-  let [line, col] = searchpos(g:esearch#out#win#linenr_re.'\%'.line('.').'l', 'bce')
+  let [line, col] = searchpos(g:esearch#out#win#column_re.'\%'.line('.').'l', 'bce')
   return line . 'gg' . col . '|a'
 endfu
 

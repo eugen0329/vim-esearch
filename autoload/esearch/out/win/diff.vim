@@ -1,8 +1,7 @@
 let s:Dict   = vital#esearch#import('Data.Dict')
 let s:by_key = function('esearch#util#by_key')
 
-let s:padding = 0
-let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must be " {[+^]?} {line_number} {text}".'
+let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must be " {sign} {line_number} {text}".'
 let s:broken_header_fmt        = 'Broken header at line %d.'
 let s:unexpected_filename_fmt  = 'Unexpected filename at line %d. Each filename must be preceded with a blank line separator.'
 let s:unexpected_prepend_fmt   = 'Unexpected "^" at line %d. Prepended lines must be placed before the base or appended lines.'
@@ -17,7 +16,7 @@ let s:unexpected_sign_fmt      = 'Unexpected sign at line %d.'
 fu! esearch#out#win#diff#do() abort
   let stats = {'deleted':  0, 'modified': 0, 'added': 0, 'files': 0}
   let diffs = {'by_id': {}, 'stats': stats}
-  let iter = s:DiffIterator.new(getline(1, '$'), b:esearch, stats)
+  let iter = s:DiffsIterator.new(getline(1, '$'), b:esearch, stats)
   while iter.has_next()
     let diff = iter.next()
 
@@ -30,9 +29,9 @@ fu! esearch#out#win#diff#do() abort
   return diffs
 endfu
 
-let s:DiffIterator = {'wlnum': 3}
+let s:DiffsIterator = {'wlnum': 3}
 
-fu! s:DiffIterator.new(lines, esearch, stats) abort dict
+fu! s:DiffsIterator.new(lines, esearch, stats) abort dict
   if a:lines !=# ['']
     if stridx(a:lines[0], 'Matches in') != 0 | throw s:err(s:broken_header_fmt, 1) | endif
     if !empty(get(a:lines, 1)) | throw s:err(s:broken_header_fmt, 2) | endif
@@ -47,7 +46,7 @@ fu! s:DiffIterator.new(lines, esearch, stats) abort dict
         \})
 endfu
 
-fu! s:DiffIterator.has_next() abort dict
+fu! s:DiffsIterator.has_next() abort dict
   return self.wlnum < len(self.lines) || !empty(self.deleted_ctxs_a)
 endfu
 
@@ -56,12 +55,12 @@ endfu
 " wlnum - search window lnum
 " edits - script to apply changes in a buffer
 " undo - script to revert changes in the search window
-fu! s:DiffIterator.next() abort dict
+fu! s:DiffsIterator.next() abort dict
   if self.wlnum < len(self.lines) | return self.next_modified() | endif
   return self.next_deleted()
 endfu
 
-fu! s:DiffIterator.next_deleted() abort dict
+fu! s:DiffsIterator.next_deleted() abort dict
   if !has_key(self, 'sorted_deleted_ctxs_a')
     let self.sorted_deleted_ctxs_a = sort(keys(self.deleted_ctxs_a), 'N')
   endif
@@ -74,9 +73,9 @@ fu! s:DiffIterator.next_deleted() abort dict
   return s:Diff.new(self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b)
 endfu
 
-fu! s:DiffIterator.next_modified() abort
-  let [lnum_was, sign_was] = [-1, ''] " backtrack one line back
-  let [edits, filename_b, lnums_b, texts_b] = [{}, '', [], []]
+fu! s:DiffsIterator.next_modified() abort
+  let [filename_b, lnum_was, sign_was] = ['', -1, ''] " backtrack one line back
+  let [edits, deleted_lines_a, begin, lnums_b, texts_b] = [{}, {}, -1, [], []]
 
   while self.wlnum < len(self.lines)
     let line = self.lines[self.wlnum]
@@ -90,7 +89,7 @@ fu! s:DiffIterator.next_modified() abort
     if line[0] ==# ' '
       if empty(filename_b) | throw s:err(s:missing_filename_fmt, self.wlnum) | endif
 
-      let entry = matchlist(line, g:esearch#out#win#capture_line_re)[1:3]
+      let entry = matchlist(line, g:esearch#out#win#capture_entry_re)[1:3]
       if empty(entry) | throw s:err(s:broken_entry_fmt, self.wlnum) | endif
 
       let [sign, lnum, text] = entry
@@ -151,7 +150,7 @@ fu! s:DiffIterator.next_modified() abort
   return s:Diff.new(self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b)
 endfu
 
-fu! s:DiffIterator.add_deletes(edits, deleted_lines_a) abort dict
+fu! s:DiffsIterator.add_deletes(edits, deleted_lines_a) abort dict
   if empty(a:deleted_lines_a) | return a:edits | endif
 
   for [lnum, text] in sort(items(a:deleted_lines_a), s:by_key)
@@ -248,7 +247,7 @@ fu! s:undo_edits(lines_a, ctx, begin, lnums_b) abort
     endif
   endw
 
-  while a < len(lnums_a) " last lines from B was deleted
+  while a < len(lnums_a) " last lines from B are missing
     call add(lnums, lnums_a[a] + offset)
     call add(lines, printf(lnum_fmt, '^', lnums[-1]).lines_a[lnums_a[a]])
     let [offset, a] = [offset - 1, a + 1]

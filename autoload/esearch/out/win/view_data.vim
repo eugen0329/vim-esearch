@@ -38,7 +38,7 @@ fu! s:ctx_view() abort dict
 endfu
 
 fu! s:line_in_file() abort dict
-  return matchstr(getline(s:result_line()), g:esearch#out#win#line_in_file_re)
+  return matchstr(getline(s:result_line()), g:esearch#out#win#capture_lnum_re)
 endfu
 
 fu! s:filetype(...) abort dict
