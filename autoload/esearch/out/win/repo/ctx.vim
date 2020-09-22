@@ -8,24 +8,24 @@ endfu
 
 fu! s:by_line(line) abort dict
   let line = a:line
-  if len(self.state.ctx_ids_map) <= line
+  if len(self.state.wlnum2ctx_id) <= line
     return 0
   endif
-  let ctx = self.esearch.contexts[self.state.ctx_ids_map[line]]
+  let ctx = self.esearch.contexts[self.state.wlnum2ctx_id[line]]
 
   " read-through cache synchronization
-  let ctx.begin = s:line_begin(self.state.ctx_ids_map, ctx, line)
-  let ctx.end   = s:line_end(self.state.ctx_ids_map, ctx, line)
+  let ctx._begin = s:line_begin(self.state.wlnum2ctx_id, ctx, line)
+  let ctx._end   = s:line_end(self.state.wlnum2ctx_id, ctx, line)
 
   return ctx
 endfu
 
-fu! s:line_begin(ctx_ids_map, ctx, line) abort
+fu! s:line_begin(wlnum2ctx_id, ctx, line) abort
   let line = a:line
-  let ctx_ids_map = a:ctx_ids_map
+  let wlnum2ctx_id = a:wlnum2ctx_id
 
   while line > 0
-    if ctx_ids_map[line - 1] !=# a:ctx.id
+    if wlnum2ctx_id[line - 1] !=# a:ctx.id
       return line
     endif
 
@@ -35,18 +35,18 @@ fu! s:line_begin(ctx_ids_map, ctx, line) abort
   return 1
 endfu
 
-fu! s:line_end(ctx_ids_map, ctx, line) abort
+fu! s:line_end(wlnum2ctx_id, ctx, line) abort
   let line = a:line
-  let ctx_ids_map = a:ctx_ids_map
+  let wlnum2ctx_id = a:wlnum2ctx_id
 
-  while line < len(ctx_ids_map) - 1
-    if ctx_ids_map[line + 1] !=# a:ctx.id
+  while line < len(wlnum2ctx_id) - 1
+    if wlnum2ctx_id[line + 1] !=# a:ctx.id
       return line
     endif
 
     let line += 1
   endwhile
 
-  return len(ctx_ids_map) - 1
+  return len(wlnum2ctx_id) - 1
   throw "Can't find ctx begin: " . string([a:ctx, a:line])
 endfu

@@ -23,8 +23,8 @@ if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let [a:esearch.files_count, lines_delta, contexts, ctx_ids_map,
-         \ line_numbers_map, ctx_by_name, a:esearch.slow_hl_enabled, errors] =
+      let [a:esearch.files_count, lines_delta, contexts, wlnum2ctx_id,
+         \ wlnum2lnum, ctx_by_name, a:esearch.slow_hl_enabled, errors] =
          \   luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])', [
          \     a:data[a:from : a:to], a:esearch.contexts[-1],
          \     a:esearch.files_count, a:esearch.slow_hl_enabled, a:esearch._adapter.parser])
@@ -34,8 +34,8 @@ if g:esearch#has#nvim_lua
     let a:esearch.lines_delta += lines_delta
     let a:esearch.contexts[-1] = contexts[0]
     call extend(a:esearch.contexts, contexts[1:])
-    call extend(a:esearch.ctx_ids_map, ctx_ids_map)
-    call extend(a:esearch.line_numbers_map, line_numbers_map)
+    call extend(a:esearch.wlnum2ctx_id, wlnum2ctx_id)
+    call extend(a:esearch.wlnum2lnum, wlnum2lnum)
     if !empty(errors) | call esearch#stderr#append(a:esearch, errors) | endif
     if type(ctx_by_name) ==# type({})
       call extend(a:esearch.ctx_by_name, ctx_by_name)

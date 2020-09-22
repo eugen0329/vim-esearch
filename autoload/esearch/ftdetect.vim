@@ -39,7 +39,7 @@ if !exists('g:esearch_ftdetect_re2filetype')
         \ }
 endif
 
-fu! esearch#ftdetect#complete(filename) abort
+fu! esearch#ftdetect#slow(filename) abort
   let filetype = esearch#ftdetect#fast(a:filename)
   if filetype isnot# s:null | return filetype | endif
 

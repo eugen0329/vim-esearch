@@ -15,7 +15,7 @@ fu! esearch#out#win#view_data#init(esearch) abort
         \ 'is_entry':           function('<SID>is_entry'),
         \ 'is_current':         function('<SID>is_current'),
         \ 'is_blank':           function('<SID>is_blank'),
-        \ })
+        \})
 endfu
 
 fu! esearch#out#win#view_data#filename(es, ctx) abort
@@ -33,12 +33,12 @@ endfu
 fu! s:ctx_view() abort dict
   let line = self.line_in_file()
   let state = self.modifiable ? self.undotree.head.state : self
-  let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[line('.')])
+  let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[line('.')])
   return { 'lnum': line,  'col': max([0, col('.') - strlen(linenr) - 1]) }
 endfu
 
 fu! s:line_in_file() abort dict
-  return matchstr(getline(s:result_line()), '^\s\+\zs\d\+\ze.*')
+  return matchstr(getline(s:result_line()), g:esearch#out#win#capture_lnum_re)
 endfu
 
 fu! s:filetype(...) abort dict
@@ -51,7 +51,7 @@ fu! s:filetype(...) abort dict
     let opts = get(a:000)
 
     if get(opts, 'fast', 0)
-      let ctx.filetype = esearch#ftdetect#complete(ctx.filename)
+      let ctx.filetype = esearch#ftdetect#slow(ctx.filename)
     else
       let ctx.filetype = esearch#ftdetect#fast(ctx.filename)
     endif
@@ -94,7 +94,7 @@ fu! s:is_entry(...) abort dict
 endfu
 
 fu! s:is_filename(...) abort dict
-  return getline(get(a:, 1, line('.'))) =~# g:esearch#out#win#filename_re
+  return search(g:esearch#out#win#filename_re.'\%'.line('.').'l', 'cnbW') == line('.')
 endfu
 
 " Is used to prevent problems with asynchronous code

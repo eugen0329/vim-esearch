@@ -120,6 +120,12 @@ fu! esearch#util#safe_undojoin() abort
   endtry
 endfu
 
+fu! esearch#util#squash_undo() abort
+  let undolevels = esearch#let#restorable({'&l:undolevels': -1})
+  keepjumps call setline('.', getline('.'))
+  call undolevels.restore()
+endfu
+
 fu! esearch#util#safe_matchdelete(id) abort
   if a:id < 1 | return | endif " E802
 

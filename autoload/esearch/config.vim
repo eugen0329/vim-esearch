@@ -117,6 +117,7 @@ fu! esearch#config#init(esearch) abort
           \ [' ',  'C',    '<Plug>(esearch-c)$'                     ],
           \ ['x',  's',    '<Plug>(esearch-c)'                      ],
           \ ['n',  '.',    '<Plug>(esearch-.)'                      ],
+          \ ['n',  'I',    '<Plug>(esearch-I)'                      ],
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])

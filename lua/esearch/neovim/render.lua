@@ -5,8 +5,8 @@ local M = {renderers = {}}
 
 function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to, lines_delta, from_line)
   local contexts = {last_context}
-  local line_numbers_map = {}
-  local ctx_ids_map = {}
+  local wlnum2lnum = {}
+  local wlnum2ctx_id = {}
   local ctx_by_name = {}
   local win_contexts_syntax_clear_on_files_count =
     vim.api.nvim_eval('g:esearch.win_contexts_syntax_clear_on_files_count')
@@ -27,7 +27,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
 
     -- IF new filename encountered
     if filename ~= contexts[#contexts].filename then
-      contexts[#contexts]['end'] = line
+      contexts[#contexts]['end'] = line + 1
 
       if util.is_true(slow_hl_enabled) and contexts[#contexts].id > win_contexts_syntax_clear_on_files_count then
         slow_hl_enabled = false
@@ -36,15 +36,15 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
 
       -- add SEPARATOR
       lines[#lines + 1] = ''
-      ctx_ids_map[#ctx_ids_map + 1]  = contexts[#contexts].id
-      line_numbers_map[#line_numbers_map + 1] = 0
+      wlnum2ctx_id[#wlnum2ctx_id + 1]  = contexts[#contexts].id
+      wlnum2lnum[#wlnum2lnum + 1] = 0
       line = line + 1
 
       -- add FILENAME
       lines[#lines + 1] = util.fnameescape(filename)
       contexts[#contexts + 1] = {
         ['id']            = contexts[#contexts].id + 1,
-        ['begin']         = line,
+        ['begin']         = line + 1,
         ['end']           = 0,
         ['filename']      = filename,
         ['filetype']      = 0,
@@ -53,8 +53,8 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
         ['rev']           = entry.rev,
         }
       ctx_by_name[filename] = contexts[#contexts]
-      ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts].id
-      line_numbers_map[#line_numbers_map + 1] = 0
+      wlnum2ctx_id[#wlnum2ctx_id + 1] = contexts[#contexts].id
+      wlnum2lnum[#wlnum2lnum + 1] = 0
       files_count = files_count + 1
       line = line + 1
     end
@@ -70,13 +70,13 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
 
     -- add LINE
     lines[#lines + 1] = string.format(' %3d %s', entry.lnum, text)
-    ctx_ids_map[#ctx_ids_map + 1] = contexts[#contexts].id
-    line_numbers_map[#line_numbers_map + 1] = entry.lnum
+    wlnum2ctx_id[#wlnum2ctx_id + 1] = contexts[#contexts].id
+    wlnum2lnum[#wlnum2lnum + 1] = entry.lnum
     contexts[#contexts]['lines'][entry.lnum] = text
     line = line + 1
   end
 
-  return lines, files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name,
+  return lines, files_count, contexts, wlnum2ctx_id, wlnum2lnum, ctx_by_name,
          lines_delta, slow_hl_enabled, deferred_calls
 end
 
@@ -95,14 +95,14 @@ end
 
 function M.render(data, last_context, files_count, slow_hl_enabled, parser)
   local parsed, lines_delta, errors = parse.lines(data, parser)
-  local lines, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, deferred_calls
+  local lines, contexts, wlnum2ctx_id, wlnum2lnum, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
 
   lines,
   files_count,
   contexts,
-  ctx_ids_map,
-  line_numbers_map,
+  wlnum2ctx_id,
+  wlnum2lnum,
   ctx_by_name,
   lines_delta,
   slow_hl_enabled,
@@ -115,8 +115,8 @@ function M.render(data, last_context, files_count, slow_hl_enabled, parser)
     files_count,
     lines_delta,
     contexts,
-    ctx_ids_map,
-    line_numbers_map,
+    wlnum2ctx_id,
+    wlnum2lnum,
     ctx_by_name,
     slow_hl_enabled,
     errors

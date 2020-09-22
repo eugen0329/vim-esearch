@@ -1,5 +1,4 @@
-let s:Dict     = vital#esearch#import('Data.Dict')
-let s:Log  = esearch#log#import()
+let s:Log = esearch#log#import()
 
 fu! esearch#undotree#new(state) abort
   let initial = s:node(a:state)
@@ -7,14 +6,18 @@ fu! esearch#undotree#new(state) abort
   let nodes[0] = initial
   let nodes[changenr()] = initial
   let head = s:node(deepcopy(a:state))
+  let written = extend(copy(head), {'changenr': empty(undotree().entries) ? 0 : changenr()})
   return {
-        \ 'synchronize':             function('<SID>synchronize'),
+        \ 'commit':             function('<SID>commit'),
         \ 'mark_block_as_corrupted': function('<SID>mark_block_as_corrupted'),
         \ 'checkout':                function('<SID>checkout'),
+        \ 'squash':                  function('<SID>squash'),
         \ 'locate_synchronized':     function('<SID>locate_synchronized'),
+        \ 'on_write':                function('<SID>on_write'),
+        \ 'written':                 written,
         \ 'head':                    initial,
         \ 'nodes':                   nodes,
-        \ }
+        \}
 endfu
 
 fu! s:node(state) abort
@@ -22,17 +25,22 @@ fu! s:node(state) abort
 endfu
 
 " Synchronizes with builtin undotree
-fu! s:synchronize(...) abort dict
+fu! s:commit(...) abort dict
   let state = a:0 ? a:1 : self.head.state
   let self.head = s:node(state)
   let self.nodes[self.head.changenr] = self.head
 endfu
 
+fu! s:on_write() abort dict
+  let self.written = self.head
+endfu
+
 fu! s:mark_block_as_corrupted(...) abort dict
-  " If the block contains state recovered using :undo (instead of setlines()).
+ 
+ " If the block contains state recovered using :undo (instead of setline()).
   " In future can be used to notify users on a try to checkout to this entry,
   " that it contains invalid buffer state and should not be replayed
-  call self.synchronize()
+  call self.commit()
   let self.head.corrupted = 1
 endfu
 
@@ -61,6 +69,12 @@ fu! s:checkout(changenr, ...) abort dict
   call s:Log.error(message)
 endfu
 
+fu! s:squash(state) abort dict
+  let self.head = s:node(a:state)
+  let self.nodes = {'0': self.head}
+  let self.nodes[changenr()] = self.head
+endfu
+
 " traverse undotree using :undo or :redo using command specified in a:command
 fu! s:locate_synchronized(command) abort dict
   let found_changenr = -1
@@ -76,22 +90,3 @@ fu! s:locate_synchronized(command) abort dict
 
   return -1
 endfu
-
-if g:esearch#env isnot# 0
-  command! T call s:debug()
-  fu! s:debug() abort
-    let tree = deepcopy(b:esearch.undotree)
-
-    let tree.active = tree.head.changenr
-    let tree.nodes = map(keys(tree.nodes), 'str2nr(v:val)')
-    unlet tree.head
-
-    for key in keys(tree)
-      if type(tree[key]) == type(function('tr'))
-        unlet tree[key]
-      endif
-    endfor
-
-    PP tree
-  endfu
-endif

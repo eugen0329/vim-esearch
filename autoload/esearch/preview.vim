@@ -22,6 +22,7 @@ let g:esearch#preview#silent_open_eventignore =
 
 let g:esearch#preview#buffers = {}
 let g:esearch#preview#win     = s:null
+let g:esearch#preview#buffer  = s:null
 let g:esearch#preview#last    = {}
 
 fu! esearch#preview#open(filename, line, ...) abort
@@ -82,7 +83,16 @@ fu! esearch#preview#close(...) abort
   if esearch#preview#is_open() && !s:Buffer.is_cmdwin()
     call esearch#preview#reset()
     call g:esearch#preview#win.close()
+    let g:esearch#preview#buffer = g:esearch#preview#win.buffer
     let g:esearch#preview#win = s:null
+  endif
+endfu
+
+fu! esearch#preview#wipeout(...) abort
+  call esearch#preview#close()
+  let buffer = g:esearch#preview#buffer
+  if buffer isnot# s:null && get(buffer, 'viewed') && bufexists(buffer.id) && getbufvar(buffer.id, '&readonly')
+    exe buffer.id 'bwipeout'
   endif
 endfu
 
@@ -206,6 +216,7 @@ fu! s:RegularBuffer.view() abort dict
   let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})
   try
     exe 'keepj view ' . fnameescape(self.filename)
+    let self.viewed = 1
   finally
     call eventignore.restore()
   endtry
@@ -223,13 +234,13 @@ fu! s:RegularBuffer.edit_allowing_swap_prompt() abort dict
   endtry
   " When (Q)uit or (A)bort are pressed - vim unloads the current buffer as it
   " was with an existing swap
-  if empty(bufname('%'))
+  if empty(bufname('%')) && !bufloaded('%')
     exe self.id . 'bwipeout'
     return s:false
   endif
 
   let current_buffer_id = bufnr('%')
-  if current_buffer_id != self.id && bufexists(self.id)
+  if current_buffer_id != self.id && bufexists(self.id) && empty(bufname(self.id)) && !bufloaded(self.id)
     exe self.id . 'bwipeout'
   endif
   let self.id = current_buffer_id
@@ -436,6 +447,7 @@ fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
     au!
     exe 'au ' . autocommands . ' * ++once call esearch#preview#close()'
     exe 'au ' . g:esearch#preview#reset_on . ' * ++once call esearch#preview#reset()'
+    au User esearch_open_pre ++once call esearch#preview#close()
     " Prevent options inheritance
     au TabNewEntered * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
 

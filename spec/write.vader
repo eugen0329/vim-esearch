@@ -1,0 +1,256 @@
+Include: helper.vader
+
+Before:
+  let g:esearch.cwd = 'spec/fixtures/resolve_edits'.g:test_number.next().'/'
+  let g:file = g:esearch.cwd.'file.txt'
+  call Fixture(g:file, ['l1', 'l2', 'l3'])
+
+After:
+  Assert UndotreeIsConsistent()
+
+### Handle delete
+
+Execute (Resolve "-line2" with "~line2" after search):
+  call esearch#init()
+  exe "norm /l2\<CR>dd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l3
+
+Execute (del 1):
+  call esearch#init()
+  exe "norm /l1\<CR>dd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l2', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l2
+     2 l3
+
+Execute (del 3):
+  call esearch#init()
+  exe "norm Gdd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+
+Execute (del 1-2):
+  call esearch#init()
+  exe "norm /l1\<CR>dj:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l3
+
+Execute (del 2-3):
+  call esearch#init()
+  exe "norm Gdk:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+
+Execute (del 1 change 2):
+  call esearch#init()
+  exe "norm /l1\<CR>ddA~~~\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l2~~~', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l2~~~
+     2 l3
+
+Execute (change 2 del 3):
+  call esearch#init()
+  exe "norm /l2\<CR>A~~~\<ESC>/l3\<CR>dd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2~~~']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2~~~
+
+Execute (add before 1):
+  call esearch#init()
+  exe "norm /file.txt\<CR>A\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['added', 'l1', 'l2', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 added
+     2 l1
+     3 l2
+     4 l3
+
+Execute (add after 1):
+  call esearch#init()
+  exe "norm /l1\<CR>A\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'added', 'l2', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 added
+     3 l2
+     4 l3
+
+Execute (add after 2):
+  call esearch#init()
+  exe "norm /l2\<CR>A\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'added', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 added
+     4 l3
+
+Execute (add after 3):
+  call esearch#init()
+  exe "norm /l3\<CR>A\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3', 'added']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+     4 added
+
+Execute (add 3 before line1 and del line2 and 3):
+  call esearch#init()
+  exe "norm /file.txt\<CR>A\<CR>added1"
+  exe "norm A\<CR>added2"
+  exe "norm A\<CR>added3"
+  exe "norm /l2\<CR>dddd:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['added1', 'added2', 'added3', 'l1']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 added1
+     2 added2
+     3 added3
+     4 l1
+
+Execute (add 3 before line1 del line 1 replace line 2):
+  call esearch#init()
+  exe "norm /file.txt\<CR>A\<CR>added1"
+  exe "norm A\<CR>added2"
+  exe "norm A\<CR>added3"
+  exe "norm /l1\<CR>dd/l2\<CR>A~~~\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['added1', 'added2', 'added3', 'l2~~~', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 added1
+     2 added2
+     3 added3
+     4 l2~~~
+     5 l3
+
+Execute (del line1 change line2 and aff after line 3):
+  call esearch#init()
+  exe "norm /l1\<CR>dd/l2\<CR>A~~~\<ESC>GA\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l2~~~', 'l3', 'added']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l2~~~
+     2 l3
+     3 added
+
+Execute (del line 1-2 change 3 and add line after 3):
+  call esearch#init()
+  exe "norm /l1\<CR>dj/l3\<CR>A~~~\<ESC>GA\<CR>added\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l3~~~', 'added']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l3~~~
+     2 added
+
+Execute (add 2 lines before line 1, del others):
+  call esearch#init()
+  exe "norm /file.txt\<CR>A\<CR>added1"
+  exe "norm A\<CR>added2"
+  exe "norm /l1\<CR>V/l3\<CR>d"
+  write
+Then:
+  AssertEqual readfile(g:file), ['added1', 'added2', '']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 added1
+     2 added2
+
+Execute ():
+  call Fixture(g:file, ['l1', 'l2', 'l3', 'l4', 'l5'])
+  call esearch#init()
+  exe "norm /l2\<CR>dd"
+  exe "norm /l4\<CR>dd"
+  write
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l3', 'l5']
+Expect esearch_test:
+  Matches in 5 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l3
+     3 l5
+
+Execute ():
+  call Fixture(g:file, ['l1', 'l2', 'l3', 'l4', 'l5'])
+  call esearch#init()
+  exe "norm /l1\<CR>dd"
+  exe "norm /l3\<CR>dd"
+  exe "norm /l5\<CR>dd"
+  write
+Then:
+  AssertEqual readfile(g:file), ['l2', 'l4']
+Expect esearch_test:
+  Matches in 5 lines, 1 file. Finished.
+
+  file.txt
+     1 l2
+     2 l4

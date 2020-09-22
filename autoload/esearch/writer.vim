@@ -1,43 +1,140 @@
-let s:Handle = esearch#buf#handle()
+let s:List = vital#esearch#import('Data.List')
+let s:Buf = esearch#buf#handle()
 let s:by_key = function('esearch#util#by_key')
 
-fu! esearch#writer#do(diff, esearch, bang) abort
-  return s:Writer.new(a:diff, a:esearch).write(a:bang)
+fu! esearch#writer#do(diffs, esearch, bang) abort
+  return s:Writer.new(a:diffs, a:esearch).write(a:bang)
 endfu
 
 let s:Writer = {}
 
-fu! s:Writer.new(diff, esearch) abort
-  return extend(copy(self), {'diff': a:diff, 'esearch': a:esearch})
+fu! s:Writer.new(diffs, esearch) abort dict
+  return extend(deepcopy(self), {
+        \ 'diffs': a:diffs,
+        \ 'esearch': a:esearch,
+        \ 'search_buf': s:Buf.for(a:esearch.bufnr),
+        \ 'win_edits': [],
+        \ 'state_edits': [],
+        \ 'win_undos': [],
+        \ 'state_undos': [],
+        \ 'conflicts': [],
+        \})
 endfu
 
 fu! s:Writer.write(bang) abort dict
-  let cwd = self.esearch.cwd
-  let self.conflicts = []
-  let contexts = self.diff.contexts
   let WriteCb = self.esearch.write_cb
+  let [current_window, current_buffer, view] = [esearch#win#stay(), esearch#buf#stay(), winsaveview()]
 
-  let [current_buffer, current_window] = [esearch#buf#stay(), esearch#win#stay()]
   call esearch#util#doautocmd('User esearch_write_pre')
+ " Wipeout preview buffer if was viewed ignoring swap to prevent missing
+ " swapexists messages later
+  call esearch#preview#wipeout()
+  aug esearch_write
+    au!
+    au SwapExists * let v:swapchoice = 'q'
+  aug END
   try
-    for [id, ctx] in sort(items(contexts), s:by_key)
-      let path = esearch#out#win#view_data#filename(self.esearch, ctx.original)
-      if !self.verify_readable(ctx, path) | continue | endif
+    for [id, diff] in sort(items(self.diffs.by_id), s:by_key)
+      let path = esearch#out#win#view_data#filename(self.esearch, diff.ctx)
+      if !self.verify_readable(diff, path) | continue | endif
 
-      let buf = s:Handle.new(path)
-      if a:bang && !self.verify_not_modified(ctx, buf) | continue | endif
+      try
+        let buf = s:Buf.new(path)
+      catch /E325:/ " swapexists exception, will be handled by v:swapchoice set above
+        call self.handle_existing_swap(path)
+        continue
+      endtry
+      if !a:bang
+        if !self.verify_not_modified(diff, buf) | continue | endif
+      endif
 
-      if !empty(ctx.modified) | call self.replace_lines(ctx.modified, buf) | endif
-      if !empty(ctx.deleted)  | call self.delete_lines(ctx.deleted, buf)  | endif
+      let self.win_edits   = diff.win_edits + self.win_edits
+      let self.state_edits = diff.state_edits + self.state_edits
+      let self.win_undos   = self.update_file(buf, diff) + self.win_undos
+      let self.state_undos = diff.state_undos + self.state_undos
+      let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
+      let self.esearch.contexts[diff.ctx.id].begin = diff.begin
+
       if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
     endfor
   finally
+    au! esearch_write
     call current_window.restore()
     call current_buffer.restore()
+    call self.create_undo_entry()
+    call winrestview(view)
   endtry
   call self.log()
   " Deferring is required to execute the autocommand with avoiding BufWriteCmd side effects
   call esearch#util#try_defer(function('esearch#util#doautocmd'), 'User esearch_write_post')
+endfu
+
+fu! s:Writer.create_undo_entry() abort dict
+  let original_register = @s
+  try
+    call self.update_win(self.win_edits)
+    let latest_state = self.update_state(self.esearch.undotree.head.state, self.state_edits)
+    silent! %yank s
+
+    exe 'undo' self.esearch.undotree.written.changenr
+    call self.update_win(self.win_undos)
+    let undone_state = self.update_state(self.esearch.undotree.written.state, self.state_undos)
+    call self.esearch.undotree.squash(undone_state)
+    call esearch#util#squash_undo()
+    keepjumps %delete _
+    keepjumps %put s
+    keepjumps 1delete _
+
+    call self.esearch.undotree.commit(latest_state)
+    call self.esearch.undotree.on_write()
+  finally
+    let @s = original_register
+  endtry
+endfu
+
+fu! s:Writer.update_file(buf, diff) abort
+  let edits = a:diff.edits
+  for edit in edits[:-2]
+    call call(a:buf[edit.func], edit.args)
+  endfor
+
+  if edits[-1].func ==# 'deleteline' && a:buf.oneliner()
+    let a:diff.win_undos[0].args[1][-1] =
+          \ substitute(a:diff.win_undos[0].args[1][-1], g:esearch#out#win#capture_sign_re, '_', '')
+  endif
+
+  call call(a:buf[edits[-1].func], edits[-1].args)
+
+  return a:diff.win_undos
+endfu
+
+fu! s:Writer.update_win(win_edits) abort
+  for edit in a:win_edits
+    call call(self.search_buf[edit.func], edit.args)
+  endfor
+endfu
+
+fu! s:Writer.update_state(state, state_edits) abort
+  let state = a:state
+  for edit in a:state_edits
+    let begin = edit.args[0]
+    let end = begin + len(edit.args[1]) - 1
+    let state.wlnum2lnum[begin : end] = edit.args[1]
+  endfor
+  return state
+endfu
+
+fu! s:Writer.handle_existing_swap(path) abort dict
+  call add(self.conflicts, {'filename': a:path, 'reason': 'swapfile exists'})
+
+  if bufexists(a:path)
+    let bufnr = esearch#buf#find(a:path)
+    let bufname = simplify(resolve(bufname(bufnr)))
+    " Delete ONLY buffer we've loaded to reload swapchoice prompt
+    if bufname ==# simplify(resolve(a:path))
+      exe bufnr . 'bdelete'
+    endif
+  endif
 endfu
 
 fu! s:Writer.log() abort dict
@@ -51,9 +148,9 @@ fu! s:Writer.log() abort dict
   call esearch#util#warn(message)
 endfu
 
-fu! s:Writer.verify_readable(ctx, path) abort dict
+fu! s:Writer.verify_readable(diff, path) abort dict
   if filereadable(a:path) | return 1 | endif
-  if get(a:ctx.original, 'rev')
+  if get(a:diff.ctx, 'rev')
     call add(self.conflicts, {'filename': a:path, 'reason': 'is a git blob'})
   else
     call add(self.conflicts, {'filename': a:path, 'reason': 'is not readable'})
@@ -61,35 +158,19 @@ fu! s:Writer.verify_readable(ctx, path) abort dict
   return 0
 endfu
 
-fu! s:Writer.verify_not_modified(ctx, buf) abort dict
-  let original_lines = a:ctx.original.lines
-  for modified_line in a:ctx.deleted + keys(a:ctx.modified)
-    if a:buf.getline(modified_line) ==# original_lines[modified_line] | continue | endif
+fu! s:Writer.verify_not_modified(diff, buf) abort dict
+  let ours_lines = a:diff.ctx.lines
+  for edit in a:diff.edits
+    if !has_key(ours_lines, edit.args[0]) || a:buf.getline(edit.args[0]) is# ours_lines[edit.args[0]]
+      continue
+    endif
 
     call add(self.conflicts, {
-          \ 'filename': a:ctx.filename,
-          \ 'reason':   'line '.modified_line.' has changed',
+          \ 'filename': a:diff.ctx.filename,
+          \ 'reason':   'line '.edit.args[0].' has changed',
           \})
     return 0
   endfor
 
   return 1
-endfu
-
-fu! s:Writer.replace_lines(modified, buf) abort dict
-  for [lnum, text] in reverse(sort(items(a:modified), s:by_key))
-    call a:buf.setline(lnum, text)
-  endfor
-  if !has_key(a:buf, 'lnum') || lnum < a:buf.lnum
-    call extend(a:buf, {'lnum': lnum, 'text': text})
-  endif
-endfu
-
-fu! s:Writer.delete_lines(deleted, buf) abort dict
-  for lnum in reverse(sort(a:deleted, 'N'))
-    call a:buf.deleteline(lnum)
-  endfor
-  if !has_key(a:buf, 'lnum') || lnum < a:buf.lnum
-    call extend(a:buf, {'lnum': lnum, 'text': '[deleted]'})
-  endif
 endfu

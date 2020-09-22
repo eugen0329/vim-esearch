@@ -104,7 +104,7 @@ endfu
 fu! s:bufdo(bufnr, cmd, bang) abort
   let cur_buffer = esearch#buf#stay()
   try
-    exe a:bufnr 'bufdo' a:cmd . (a:bang ? '!' : '') |
+    exe a:bufnr 'bufdo' a:cmd.(a:bang ? '!' : '') |
     return 1
   catch   | call esearch#util#warn(v:exception) | return 0
   finally | call cur_buffer.restore()
@@ -118,20 +118,44 @@ endfu
 let s:Handle = {}
 
 if g:esearch#has#bufadd && g:esearch#has#bufline_functions
+  fu! s:Handle.for(bufnr) abort dict
+    call bufload(a:bufnr)
+    call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
+    return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
+  endfu
+
   fu! s:Handle.new(filename) abort dict
     let existed = bufexists(a:filename)
     let bufnr = bufadd(a:filename)
-    call bufload(a:filename)
+    call bufload(bufnr)
     call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
     return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
   endfu
 
+  if exists('*nvim_buf_line_count')
+    fu! s:Handle.oneliner() abort dict
+      return nvim_buf_line_count(self.bufnr) == 1
+    endfu
+  elseif g:esearch#has#getbufinfo_linecount
+    fu! s:Handle.oneliner() abort dict
+      return getbufinfo(self.bufnr)[0].linecount == 1
+    endfu
+  else
+    fu! s:Handle.oneliner() abort dict
+      return getbufline(self.bufnr, 2) == []
+    endfu
+  endif
+
   fu! s:Handle.getline(lnum) abort dict
-    return getbufline(self.bufnr, a:lnum)[0]
+    return get(getbufline(self.bufnr, a:lnum), 0)
   endfu
 
   fu! s:Handle.setline(lnum, replacement) abort dict
-    return setbufline(self.bufnr, a:lnum, a:replacement)
+    call setbufline(self.bufnr, a:lnum, a:replacement)
+  endfu
+
+  fu! s:Handle.appendline(lnum, texts) abort
+    call appendbufline(self.bufnr, a:lnum, a:texts)
   endfu
 
   fu! s:Handle.deleteline(lnum) abort dict
@@ -167,7 +191,7 @@ else
     return getline(a:lnum)
   endfu
 
-  fu! s:Handle.setline(lnum, replacement) abort dict
+ fu! s:Handle.setline(lnum, replacement) abort dict
     if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
     return setline(a:lnum, a:replacement)
   endfu

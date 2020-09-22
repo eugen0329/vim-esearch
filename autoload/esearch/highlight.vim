@@ -21,10 +21,10 @@ fu! esearch#highlight#set() abort
 
   let esearchBasename = extend(s:gethl('Directory'), {'cterm': 'bold', 'gui': 'bold'})
   call s:sethl('esearchBasename', esearchBasename, {'default': 1})
-  
 
   let s:is_dark = s:detect_dark_background()
   call s:set_matches_highlight()
+  call s:set_virtual_sign_highlight()
   if g:esearch#has#nvim | call s:set_float_win_highlights() | endif
 
   if hlexists('esearchLnum')
@@ -33,6 +33,13 @@ fu! esearch#highlight#set() abort
   if hlexists('esearchFName')
     call s:copyhl('esearchFName', 'esearchFilename', {'force': 1})
   endif
+endfu
+
+fu! s:set_virtual_sign_highlight() abort
+  let DiffAdd = s:gethl('DiffAdd')
+  unlet! DiffAdd['ctermbg']
+  unlet! DiffAdd['guibg']
+  call s:sethl('esearchDiffAdd', DiffAdd, {'default': 1})
 endfu
 
 " Try to emphasize enough without overruling foregrounds, that are used by
@@ -109,7 +116,7 @@ endfu
 
 fu! s:set_float_win_highlights_with_adjusted_brightness(hl, percent) abort
   let [hl, percent] = [a:hl, a:percent]
-  
+
   if s:is_hex(hl.Normal, 'guibg')
     let hl.Normal.guibg = s:change_brightness(hl.Normal.guibg, percent)
   endif
@@ -197,7 +204,7 @@ fu! s:copyhl(from, to, options) abort
 endfu
 
 fu! s:sethl(name, attributes, options) abort
-  if a:attributes ==# {'cleared': 1}
+  if a:attributes ==# {'cleared': 1} || empty(a:attributes)
     let new_highlight = {'name': a:name, 'attrs': {'clear': 1}}
   else
     let new_highlight = {

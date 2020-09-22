@@ -199,7 +199,7 @@ endfu
 
 " Try to find the last path separator
 fu! s:inline_jump2basename() abort
-  norm! $F/
+  norm! $T/
   if col('.') == col('$') - 1
     norm! 0
   endif

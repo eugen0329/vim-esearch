@@ -8,7 +8,9 @@ local M = {
     ATTACHED_ANNOTATIONS = {},
 }
 
-local LAST_PATH_SEPARATOR = "/[^/]*$"
+local LAST_PATH_SEPARATOR_RE = "/[^/]*$"
+local ABOVE_OR_BELOW_ICON_RE = '^%s+[+^_]'
+local LINENR_RE              = '^%s+[+^_]?%s*%d+%s'
 
 local function matches_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to == old_to then
@@ -28,6 +30,17 @@ function M.buf_attach_matches()
   end
 end
 
+local function highlight_header(bufnr, text)
+  vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
+  local pos1, pos2 =  text:find('%d+')
+  if (pos1 or 0) < 2 then return end
+  -- 2 is subtracted to capture less-than-or-equl-to sign
+  vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
+  pos1, pos2 =  text:find('%d+', pos2 + 1)
+  if (pos1 or 0) < 1 then return end
+  vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
+end
+
 function M.highlight_ui(bufnr, from, to)
   if vim.api.nvim_call_function('bufexists', {bufnr}) == 0 then return end
   vim.api.nvim_buf_clear_namespace(bufnr, M.UI_NS, from, to)
@@ -40,27 +53,23 @@ function M.highlight_ui(bufnr, from, to)
 
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
-      local pos1, pos2 =  text:find('%d+')
-      if (pos1 or 0) < 2 then goto continue end
-      -- 2 is subtracted to capture less-than-or-equl-to sign
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
-      pos1, pos2 =  text:find('%d+', pos2 + 1)
-      if (pos1 or 0) < 1 then goto continue end
-      vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
+      highlight_header(bufnr, text)
     elseif text:len() == 0 then -- luacheck: ignore
       -- separators are not highlighted
     elseif text:sub(1,1) == ' ' then
-      local _, pos2 =  text:find('^%s+%d+%s')
+      local _, pos2 =  text:find(LINENR_RE)
       if pos2 then
         vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchLineNr', from + i - 1 , 0, pos2)
+        local _, pos1 = text:find(ABOVE_OR_BELOW_ICON_RE)
+        if pos1 then
+          vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchDiffAdd', from + i - 1 , pos1 - 1, pos1)
+        end
       end
     else
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchFilename', from + i - 1, 0, -1)
-      local col = string.find(text, LAST_PATH_SEPARATOR) or 0
+      local col = string.find(text, LAST_PATH_SEPARATOR_RE) or 0
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchBasename', from + i - 1, col, -1)
     end
-    ::continue::
   end
 end
 
@@ -118,9 +127,9 @@ end
 
 function M.set_context_len_annotation(line, size)
   if size == 1 then
-    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line, {{size .. ' line', 'Comment'}}, {})
+    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line - 1, {{size .. ' line', 'Comment'}}, {})
   else
-    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line, {{size .. ' lines', 'Comment'}}, {})
+    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line - 1, {{size .. ' lines', 'Comment'}}, {})
   end
 end
 
@@ -136,7 +145,7 @@ end
 
 function M.highlight_cursor_linenr()
   local current_line = vim.api.nvim_get_current_line()
-  local _, last_column = current_line:find('^%s+%d+%s')
+  local _, last_column = current_line:find(LINENR_RE)
   local line = vim.api.nvim_win_get_cursor(0)[1] - 1
   local ns = M.CURSOR_LINENR_NS
   local bufnr = vim.api.nvim_get_current_buf()

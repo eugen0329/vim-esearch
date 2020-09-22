@@ -9,9 +9,9 @@ fu! esearch#out#win#update#init(es) abort
         \ 'contexts':         [],
         \ 'files_count':      0,
         \ 'lines_delta':      0,
-        \ 'line_numbers_map': [],
+        \ 'wlnum2lnum': [],
         \ 'ctx_by_name':      {},
-        \ 'ctx_ids_map':      [],
+        \ 'wlnum2ctx_id':      [],
         \ 'render':           function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
         \})
   aug esearch_win_updates " init blank to prevent errors on cleanup
@@ -52,8 +52,8 @@ fu! s:init_header_ctx(es) abort
   cal esearch#out#win#update#add_context(a:es.contexts, '', 1, 0) " add blank header context
   let header_ctx = a:es.contexts[0]
   let header_ctx.end = 2
-  let a:es.ctx_ids_map += [header_ctx.id, header_ctx.id]
-  let a:es.line_numbers_map += [0, 0]
+  let a:es.wlnum2ctx_id += [header_ctx.id, header_ctx.id]
+  let a:es.wlnum2lnum += [0, 0]
   setl modifiable
   keepjumps silent %delete_
   cal esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())

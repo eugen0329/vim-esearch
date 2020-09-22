@@ -1,35 +1,23 @@
+Include: helper.vader
+
 Execute:
-  if !isdirectory('spec/fixtures/vader/')
-    call mkdir('spec/fixtures/vader/')
-  endif
-  edit spec/fixtures/vader/file.txt
-  %delete
-  call setline(1, ['word1 word2', 'word3 word4'])
-  write
+  let g:esearch.cwd = 'spec/fixtures/modifiable/'
+  let g:esearch.pattern = '\w+'
+  call Fixture(g:esearch.cwd.'file.txt', ['word1 word2', 'word3 word4'])
 
 Before:
-  let g:params = {
-  \ 'backend': 'system',
-  \ 'pattern': '\w+',
-  \ 'regex': 1,
-  \ 'live_update': 0,
-  \ 'cwd': 'spec/fixtures/vader/',
-  \ 'root_markers': [],
-  \}
-  call esearch#init(g:params)
+  call esearch#init()
   norm! gg
   let @r = ''
 
 After:
-  doau TextChanged
-  AssertEqual len(b:esearch.undotree.head.state.line_numbers_map) - 1, line('$')
-  AssertEqual len(b:esearch.undotree.head.state.ctx_ids_map) - 1, line('$')
+  undo
 
 ###########
 Execute (delete match 1 "inner" textobj):
   norm dim
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -40,7 +28,7 @@ Expect:
 Execute (delete match 3 "inner" textobj):
   norm 3dim
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -54,7 +42,7 @@ Execute (delete into @r register):
 Then:
   AssertEqual getreg('r'), 'word1'
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -71,7 +59,7 @@ Then:
   norm! q
   AssertEqual getreg('"'), 'original'
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -83,7 +71,7 @@ Execute (delete multiple lines with j motion):
   norm! 3gg
   norm dj
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
      2 word3 word4
@@ -93,7 +81,7 @@ Execute (delete multiple lines with dd motion):
   norm! 3gg
   norm 2dd
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
      2 word3 word4
@@ -105,7 +93,7 @@ Execute (delete inline using side motion):
   norm! 5gg9|
   norm 3dh
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -119,7 +107,7 @@ Execute (delete inline using f and t motions):
   norm! 5gg7|
   norm 2dtd
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -131,7 +119,7 @@ Execute (delete current line with dd):
   norm! 4gg
   norm dd
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -142,7 +130,7 @@ Execute (delete current line using linewise-visual):
   norm! 4gg
   norm Vd
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -152,7 +140,7 @@ Expect:
 Execute (change match 1 "inner" textobj):
   norm cim
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -163,7 +151,7 @@ Expect:
 Execute (change match 3 "inner" textobj):
   norm 3cim
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -177,7 +165,7 @@ Execute (change into @r register):
 Then:
   AssertEqual getreg('r'), 'word1'
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -194,7 +182,7 @@ Then:
   norm! q
   AssertEqual getreg('"'), 'original'
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -206,7 +194,7 @@ Execute (change multiple lines with j motion):
   norm! 3gg
   norm cj
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
 
@@ -217,7 +205,7 @@ Execute (change multiple lines with c motion):
   norm! 3gg
   norm 2cc
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
 
@@ -227,7 +215,7 @@ Execute (change current line cc):
   norm! 4gg
   norm cc
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -238,7 +226,7 @@ Execute (change current line using linewise-visual):
   norm! 4gg
   norm Vczzz
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -250,7 +238,7 @@ Execute (change multiple lines using linewise-visual):
   norm! 3gg
   norm Vjczzz
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   zzz
@@ -263,7 +251,7 @@ Execute (change inline using side motion):
   norm! 5gg9|
   norm 3chz
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt
@@ -277,7 +265,7 @@ Execute (change inline using f and t motions):
   norm! 5gg7|
   norm 2ctdz
 
-Expect:
+Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   file.txt

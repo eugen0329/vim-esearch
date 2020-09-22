@@ -1,0 +1,57 @@
+Execute(setup):
+  fu! Fixture(path, lines) abort
+    if !isdirectory(fnamemodify(a:path, ':h'))
+      call mkdir(fnamemodify(a:path, ':h'), 'p')
+    endif
+    noswap exe 'edit' fnameescape(a:path)
+    %delete
+    call setline(1, a:lines)
+    write!
+    return a:path
+  endfu
+
+  fu! CantWrite(path) abort
+    let messages = split(execute('messages'), "\n")[-2:-1]
+    return messages[0] ==# 'Can''t write changes to the following files:'
+      \ && messages[1] =~# '^\^I'.fnamemodify(a:path, ':.')
+  endfu
+
+  fu! UndotreeIsConsistent() abort
+    let wlnum2lnum = [0]
+    let lines = getline(1, '$')
+    if lines !=# ['']
+      for line in lines
+        let matches = matchlist(line, g:esearch#out#win#capture_entry_re)
+        call add(wlnum2lnum, empty(matches) ? 0 : matches[2])
+      endfor
+    endif
+
+    let expected = map(wlnum2lnum, '+v:val')
+    let actual = map(copy(b:esearch.undotree.head.state.wlnum2lnum), '+v:val')
+
+    return expected ==# actual
+      \ && (len(b:esearch.undotree.head.state.wlnum2ctx_id) - 1 == line('$')
+      \     || b:esearch.undotree.head.state.wlnum2ctx_id == [0])
+  endfu
+
+  " linear congruential generator
+  fu! Rand(from, to) abort 
+    let s:next = (4096 * get(s:, 'next', 1) + 150889) % 714025
+    return a:from + s:next % (a:to - a:from)
+  endfu
+
+  let g:test_number = esearch#util#counter()
+  let g:esearch_yes = 1
+  let g:esearch = {
+  \ 'backend': 'system',
+  \ 'pattern': '.',
+  \ 'regex': 1,
+  \ 'adapter': 'rg',
+  \ 'win_new': {_-> execute('noswap edit [esearch-vader]')},
+  \ 'adapters': {'rg': {'options': '--sort path'}},
+  \ 'live_update': 0,
+  \ 'root_markers': [],
+  \}
+
+  set shortmess=lnTtoOfF
+  set nomore
