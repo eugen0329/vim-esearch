@@ -19,7 +19,7 @@ fu! s:on_after_cmd() abort
   if !exists('b:esearch')
     return
   endif
-  call b:esearch.undotree.synchronize()
+  call b:esearch.undotree.commit()
 endfu
 
 fu! s:on_start() abort

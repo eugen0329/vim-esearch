@@ -8,7 +8,7 @@ fu! esearch#undotree#new(state) abort
   let head = s:node(deepcopy(a:state))
   let written = extend(copy(head), {'changenr': empty(undotree().entries) ? 0 : changenr()})
   return {
-        \ 'synchronize':             function('<SID>synchronize'),
+        \ 'commit':             function('<SID>commit'),
         \ 'mark_block_as_corrupted': function('<SID>mark_block_as_corrupted'),
         \ 'checkout':                function('<SID>checkout'),
         \ 'squash':                  function('<SID>squash'),
@@ -25,7 +25,7 @@ fu! s:node(state) abort
 endfu
 
 " Synchronizes with builtin undotree
-fu! s:synchronize(...) abort dict
+fu! s:commit(...) abort dict
   let state = a:0 ? a:1 : self.head.state
   let self.head = s:node(state)
   let self.nodes[self.head.changenr] = self.head
@@ -40,7 +40,7 @@ fu! s:mark_block_as_corrupted(...) abort dict
  " If the block contains state recovered using :undo (instead of setline()).
   " In future can be used to notify users on a try to checkout to this entry,
   " that it contains invalid buffer state and should not be replayed
-  call self.synchronize()
+  call self.commit()
   let self.head.corrupted = 1
 endfu
 

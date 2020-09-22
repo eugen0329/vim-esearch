@@ -39,7 +39,7 @@ fu! s:text_changed() abort
     call remove(state.ctx_ids_map, -delta, -1)
   endif
 
-  call b:esearch.undotree.synchronize(state)
+  call b:esearch.undotree.commit(state)
 endfu
 
 fu! s:write_cmd() abort
@@ -76,7 +76,7 @@ fu! esearch#out#win#modifiable#i_CR() abort
     let state = deepcopy(b:esearch.undotree.head.state)
     call insert(state.line_numbers_map, state.line_numbers_map[line], line+1)
     call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
-    call b:esearch.undotree.synchronize(state)
+    call b:esearch.undotree.commit(state)
 
     let linenr_and_offset_re = g:esearch#out#win#capture_sign_and_linenr_re.'\(\s'.(&g:autoindent ? '\+' : '').'\)'
     let [sign, linenr, offset] = matchlist(getline('.'), linenr_and_offset_re)[1:3]
@@ -87,7 +87,7 @@ fu! esearch#out#win#modifiable#i_CR() abort
     let state = deepcopy(b:esearch.undotree.head.state)
     call insert(state.line_numbers_map, 1, line+1)
     call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
-    call b:esearch.undotree.synchronize(state)
+    call b:esearch.undotree.commit(state)
 
     let prefix = printf(' ^%'.align.'s ', '1')
 
@@ -246,7 +246,7 @@ fu! s:delete_lines(wise, cmd, ...) abort
     let state = s:delete_region_from_state(a:wise, state, region)
     return region
   finally
-    call b:esearch.undotree.synchronize(state)
+    call b:esearch.undotree.commit(state)
     call options.restore()
   endtry
 endfu

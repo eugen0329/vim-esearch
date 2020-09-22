@@ -9,28 +9,26 @@ endfu
 let s:Writer = {}
 
 fu! s:Writer.new(diffs, esearch) abort dict
-  return extend(copy(self), {
+  return extend(deepcopy(self), {
         \ 'diffs': a:diffs,
         \ 'esearch': a:esearch,
-        \ 'search_buf': s:Buf.for(a:esearch.bufnr)
+        \ 'search_buf': s:Buf.for(a:esearch.bufnr),
+        \ 'win_edits': [],
+        \ 'state_edits': [],
+        \ 'win_undos': [],
+        \ 'state_undos': [],
+        \ 'conflicts': [],
         \})
 endfu
 
 fu! s:Writer.write(bang) abort dict
-  let cwd = self.esearch.cwd
-  let self.conflicts = []
   let WriteCb = self.esearch.write_cb
-
   let [current_buffer, current_window] = [esearch#buf#stay(), esearch#win#stay()]
+
   call esearch#util#doautocmd('User esearch_write_pre')
-  let win_update_edits = []
-  let lnums_ranges = []
-  let win_undo_edits = []
-
  " Wipeout preview buffer if was viewed ignoring swap to prevent missing
- " swapexists messages in the future
+ " swapexists messages later
   call esearch#preview#wipeout()
-
   aug esearch_write
     au!
     au SwapExists * let v:swapchoice = 'q'
@@ -50,11 +48,11 @@ fu! s:Writer.write(bang) abort dict
         if !self.verify_not_modified(diff, buf) | continue | endif
       endif
 
-      let [edit, lnums_range] = self.update_win_lnums(diff)
-      if !empty(edit) | call add(win_update_edits, edit) | endif
-      if !empty(lnums_range) | call add(lnums_ranges, lnums_range) | endif
-
-      call add(win_undo_edits, self.apply_edits(buf, diff))
+      let self.win_edits   = diff.win_edits + self.win_edits
+      let self.state_edits = diff.state_edits + self.state_edits
+      let self.win_undos   = self.update_file(buf, diff) + self.win_undos
+      let self.state_undos = diff.state_undos + self.state_undos
+      let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
 
       if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
     endfor
@@ -62,87 +60,66 @@ fu! s:Writer.write(bang) abort dict
     au! esearch_write
     call current_window.restore()
     call current_buffer.restore()
-    call self.squash_undotree(win_update_edits, lnums_ranges, win_undo_edits)
+    call self.create_undo_entry()
   endtry
   call self.log()
   " Deferring is required to execute the autocommand with avoiding BufWriteCmd side effects
   call esearch#util#try_defer(function('esearch#util#doautocmd'), 'User esearch_write_post')
 endfu
 
-fu! s:Writer.squash_undotree(win_update_edits, lnums_ranges, win_undo_edits) abort dict
+fu! s:Writer.create_undo_entry() abort dict
   let original_register = @s
   try
-    call self.update_win(a:win_update_edits)
-    let updated_state = self.update_state(b:esearch.undotree.head.state, a:lnums_ranges)
+    call self.update_win(self.win_edits)
+    let latest_state = self.update_state(self.esearch.undotree.head.state, self.state_edits)
     silent! %yank s
-    exe 'undo' b:esearch.undotree.written.changenr
 
-    call esearch#util#safe_undojoin()
-    call self.undo_win(a:win_undo_edits)
-    let state = self.undo_state(a:win_undo_edits)
-    call b:esearch.undotree.squash(state)
-    " call esearch#util#safe_undojoin()
+    exe 'undo' self.esearch.undotree.written.changenr
+    call self.update_win(self.win_undos)
+    let undone_state = self.update_state(self.esearch.undotree.written.state, self.state_undos)
+    call self.esearch.undotree.squash(undone_state)
     call esearch#util#squash_undo()
-
     keepjumps %delete _
     keepjumps %put s
     keepjumps 1delete _
 
-    call b:esearch.undotree.synchronize(updated_state)
-    call b:esearch.undotree.on_write()
+    call self.esearch.undotree.commit(latest_state)
+    call self.esearch.undotree.on_write()
   finally
     let @s = original_register
   endtry
 endfu
 
-fu! s:Writer.apply_edits(buf, diff) abort
+fu! s:Writer.update_file(buf, diff) abort
   let edits = a:diff.edits
   for edit in edits[:-2]
     call call(a:buf[edit.func], edit.args)
   endfor
 
   if edits[-1].func ==# 'deleteline' && a:buf.oneliner()
-    let a:diff.undo[0].args[1][-1] = substitute(a:diff.undo[0].args[1][-1], '^\s\+\zs^\ze', '_', '')
+    let a:diff.win_undos[0].args[1][-1] =
+          \ substitute(a:diff.win_undos[0].args[1][-1], '^\s\+\zs^\ze', '_', '')
   endif
 
   call call(a:buf[edits[-1].func], edits[-1].args)
 
-  return a:diff.undo
+  return a:diff.win_undos
 endfu
 
-fu! s:Writer.update_win(win_update_edits) abort
-  for edit in a:win_update_edits
-    call call(self.search_buf.setline, edit)
+fu! s:Writer.update_win(win_edits) abort
+  for edit in a:win_edits
+    call call(self.search_buf[edit.func], edit.args)
   endfor
 endfu
 
-fu! s:Writer.update_state(state, lnums_ranges) abort
-  let state = b:esearch.undotree.head.state
-  for lnums_range in reverse(a:lnums_ranges)
-    let begin = lnums_range[0]
-    let end = begin + len(lnums_range[1]) - 1
-    let state.line_numbers_map[begin : end] = lnums_range[1]
-  endfor
-  return state
-endfu
-
-fu! s:Writer.undo_state(win_undo_edits) abort dict
-  let state = b:esearch.undotree.written.state
-  for file_undo in reverse(a:win_undo_edits)
-    for edit in file_undo
-      if empty(edit.lnum) | continue | endif
-      let state.line_numbers_map[edit.args[0]:edit.args[0]+len(edit.lnum)-1] = edit.lnum
-    endfor
+fu! s:Writer.update_state(state, state_edits) abort
+  let state = a:state
+  for edit in a:state_edits
+    let begin = edit.args[0]
+    let end = begin + len(edit.args[1]) - 1
+    let state.line_numbers_map[begin : end] = edit.args[1]
   endfor
   return state
-endfu
-
-fu! s:Writer.undo_win(win_undo_edits) abort dict
-  for file_undo in reverse(a:win_undo_edits)
-    for edit in file_undo
-      call call(self.search_buf[edit.func], edit.args)
-    endfor
-  endfor
 endfu
 
 fu! s:Writer.handle_existing_swap(path) abort dict
@@ -151,41 +128,11 @@ fu! s:Writer.handle_existing_swap(path) abort dict
   if bufexists(a:path)
     let bufnr = esearch#buf#find(a:path)
     let bufname = simplify(resolve(bufname(bufnr)))
-    " Delete ONLY buffer we are loaded to reload swapchoice
+    " Delete ONLY buffer we've loaded to reload swapchoice prompt
     if bufname ==# simplify(resolve(a:path))
       exe bufnr . 'bdelete'
     endif
   endif
-endfu
-
-fu! s:Writer.update_win_lnums(diff) abort dict
-  let lines = {}
-  let lnums = a:diff.lnums
-
-  if empty(lnums)
-    let lnums_range = []
-    let edit        = []
-  else
-    let wlnum = a:diff.begin
-    let lnums_range = [wlnum, []]
-    let edit      = [wlnum, []]
-    let offsets = a:diff.offsets
-    let align = max([3, len(string(lnums[-1] + offsets[-1]))])
-    let j = 0
-    let end = wlnum + len(lnums)
-    while wlnum < end
-      let new_lnum = offsets[j]+lnums[j]
-      let text = matchstr(self.search_buf.getline(wlnum), g:esearch#out#win#capture_text_re)
-      let lines[new_lnum] = text
-      call add(edit[1], printf(' %'.align.'d ', new_lnum) . text)
-      call add(lnums_range[1], new_lnum)
-      let wlnum += 1
-      let j += 1
-    endw
-  endif
-
-  let b:esearch.contexts[a:diff.ctx.id].lines = lines
-  return [edit, lnums_range]
 endfu
 
 fu! s:Writer.log() abort dict
