@@ -1,5 +1,7 @@
+let s:Dict   = vital#esearch#import('Data.Dict')
 let s:by_key = function('esearch#util#by_key')
 
+let s:padding = 0
 let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must be " {[+^]?} {line_number} {text}".'
 let s:broken_header_fmt        = 'Broken header at line %d.'
 let s:unexpected_filename_fmt  = 'Unexpected filename at line %d. Each filename must be preceded with a blank line separator.'
@@ -12,8 +14,8 @@ let s:missing_filename_fmt     = 'Missing filename before entries at line %d.'
 let s:unexpected_separator_fmt = 'Unexpected blank linese parator at line %d.'
 let s:unexpected_sign_fmt      = 'Unexpected sign at line %d.'
 
+
 fu! esearch#out#win#diff#do() abort
-  let lines = ['padding'] + getline(1, '$')
   let stats = {
         \ 'deleted':  0,
         \ 'modified': 0,
@@ -21,9 +23,7 @@ fu! esearch#out#win#diff#do() abort
         \ 'files':    0,
         \}
   let diffs = { 'by_id': {}, 'stats': stats}
-
-  let iter = s:DiffIterator.new(lines, b:esearch, stats)
-
+  let iter = s:DiffIterator.new(getline(1, '$'), b:esearch, stats)
   while iter.has_next()
     let diff = iter.next()
 
@@ -39,29 +39,31 @@ endfu
 let s:DiffIterator = {
       \ 'wlnum': 3,
       \ 'edits': {},
-      \ 'lnum_was': -1,
-      \ 'sign_was': '',
       \ 'lines_a': {},
       \ 'begin': -1,
       \ 'ctx': {},
       \ 'deleted_lines_a': {},
       \ 'lnums_b': [],
+      \ 'eof': 0,
       \ }
 
 fu! s:DiffIterator.new(lines, esearch, stats) abort dict
-  if stridx(a:lines[1], 'Matches in') != 0 | throw s:err(s:broken_header_fmt, 1) | endif
-  if !empty(a:lines[2]) | throw s:err(s:broken_header_fmt, 2) | endif
+  if a:lines !=# ['']
+    if stridx(a:lines[0], 'Matches in') != 0 | throw s:err(s:broken_header_fmt, 1) | endif
+    if !empty(get(a:lines, 1)) | throw s:err(s:broken_header_fmt, 2) | endif
+  endif
 
   return extend(copy(self), {
-        \ 'lines': a:lines,
+        \ 'lines': ['padding'] + a:lines,
         \ 'ctx_ids_map': a:esearch.undotree.head.state.ctx_ids_map,
         \ 'contexts': a:esearch.contexts,
         \ 'stats': a:stats,
-        \ })
+        \ 'deleted_ctxs_a': s:Dict.make_index(range(1, len(a:esearch.contexts) - 1)),
+        \})
 endfu
 
 fu! s:DiffIterator.has_next() abort dict
-  return self.wlnum < len(self.lines)
+  return self.wlnum < len(self.lines) || !empty(self.deleted_ctxs_a)
 endfu
 
 " Diff ctx A (ours) and ctx B (theirs)
@@ -70,6 +72,23 @@ endfu
 " edits - script to apply changes in a buffer
 " undo - script to revert changes in the search window
 fu! s:DiffIterator.next() abort dict
+  if self.wlnum < len(self.lines) | return self.next_modified() | endif
+  return self.next_deleted()
+endfu
+
+fu! s:DiffIterator.next_deleted() abort dict
+  if !has_key(self, 'sorted_deleted_ctxs_a')
+    let self.sorted_deleted_ctxs_a = sort(keys(self.deleted_ctxs_a), 'N')
+  endif
+
+  let id = remove(self.sorted_deleted_ctxs_a, 0)
+  call remove(self.deleted_ctxs_a, id)
+  let ctx = self.contexts[id]
+  let self.deleted_lines_a = copy(ctx.lines)
+  return s:Diff.new(self.add_deletes({}), -1, ctx, [])
+endfu
+
+fu! s:DiffIterator.next_modified() abort
   let [lnum_was, sign_was] = [-1, ''] " backtrack one line back
   let [edits, filename_b, lnums_b] = [{}, '', []]
 
@@ -79,7 +98,7 @@ fu! s:DiffIterator.next() abort dict
     if empty(line)
       if empty(filename_b) | throw s:err(s:unexpected_separator_fmt, self.wlnum) | endif
       let self.wlnum += 1
-      return s:Diff.new(self.add_deletes(edits), self.begin, self.wlnum, self.ctx, lnums_b)
+      return s:Diff.new(self.add_deletes(edits), self.begin, self.ctx, lnums_b)
     endif
 
     if line[0] ==# ' '
@@ -100,7 +119,7 @@ fu! s:DiffIterator.next() abort dict
         " if setting an arbitrary line in the file or if the text has changed
         if self.lines_a[lnum] !=# text
           if !has_key(edits, lnum) | let edits[lnum] = [] | endif
-          call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'wlnum': self.wlnum, 'lnum': lnum})
+          call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'lnum': lnum})
           let self.stats.modified += 1
         endif
 
@@ -111,15 +130,15 @@ fu! s:DiffIterator.next() abort dict
         endif
 
         if !has_key(edits, lnum) | let edits[lnum] = [] | endif
-        call add(edits[lnum], {'func': 'appendline', 'args': [lnum-1, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '^'})
+        call add(edits[lnum], {'func': 'appendline', 'args': [lnum-1, text], 'lnum': lnum, 'type': '^'})
         let self.stats.added += 1
       elseif sign ==# '+'
         if !has_key(edits, lnum) | let edits[lnum] = [] | endif
-        call add(edits[lnum], {'func': 'appendline', 'args': [lnum, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '+'})
+        call add(edits[lnum], {'func': 'appendline', 'args': [lnum, text], 'lnum': lnum, 'type': '+'})
         let self.stats.added += 1
       elseif sign ==# '_'
         if !has_key(edits, lnum) | let edits[lnum] = [] | endif
-        call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'wlnum': self.wlnum, 'lnum': 1, 'first': 1})
+        call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'lnum': 1, 'first': 1})
         let self.stats.added += 1
       else
         throw s:err(s:unexpected_sign_fmt, self.wlnum)
@@ -129,7 +148,7 @@ fu! s:DiffIterator.next() abort dict
     else
       let filename_b = line
       let self.ctx = self.contexts[self.ctx_ids_map[self.wlnum]]
-
+      silent! unlet self.deleted_ctxs_a[self.ctx.id]
 
       if !empty(self.lines[self.wlnum - 1]) || fnameescape(filename_b) !=# self.ctx.filename
         throw s:err(s:unexpected_filename_fmt, self.wlnum)
@@ -143,20 +162,15 @@ fu! s:DiffIterator.next() abort dict
     let self.wlnum += 1
   endwhile
 
-  return s:Diff.new(self.add_deletes(edits), self.begin, self.wlnum - 1, self.ctx, lnums_b)
+  return s:Diff.new(self.add_deletes(edits), self.begin, self.ctx, lnums_b)
 endfu
 
 fu! s:DiffIterator.add_deletes(edits) abort dict
   if empty(self.deleted_lines_a) | return a:edits | endif
 
-  let [wlnum2offset, offset] = [{}, 0]
-  for lnum in sort(keys(self.lines_a), 'N')
-    let [wlnum2offset[lnum], offset] = [offset, offset + 1]
-  endfor
-
   for [lnum, text] in sort(items(self.deleted_lines_a), s:by_key)
     if !has_key(a:edits, lnum) | let a:edits[lnum] = [] | endif
-    call add(a:edits[lnum], {'func': 'deleteline', 'args': [lnum], 'wlnum': self.begin + wlnum2offset[lnum], 'lnum': lnum})
+    call add(a:edits[lnum], {'func': 'deleteline', 'args': [lnum], 'lnum': lnum})
     let self.stats.deleted += 1
   endfor
 
@@ -165,7 +179,7 @@ endfu
 
 let s:Diff = {}
 
-fu! s:Diff.new(edits, begin, end, ctx, lnums_b) abort
+fu! s:Diff.new(edits, begin, ctx, lnums_b) abort
   if empty(a:edits) | return {'edits': []} | endif
   let edits = s:reverse_flatten(a:edits)
   let offsets = s:offsets(reverse(deepcopy(edits)), a:lnums_b)
@@ -175,7 +189,6 @@ fu! s:Diff.new(edits, begin, end, ctx, lnums_b) abort
         \ 'ctx': a:ctx,
         \ 'edits': edits,
         \ 'begin': a:begin,
-        \ 'end': a:end,
         \ 'lnums': a:lnums_b,
         \ 'offsets': offsets,
         \ 'undo': undo,

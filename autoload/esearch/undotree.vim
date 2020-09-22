@@ -1,5 +1,4 @@
-let s:Dict     = vital#esearch#import('Data.Dict')
-let s:Log  = esearch#log#import()
+let s:Log = esearch#log#import()
 
 fu! esearch#undotree#new(state) abort
   let initial = s:node(a:state)

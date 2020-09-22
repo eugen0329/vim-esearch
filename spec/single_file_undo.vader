@@ -8,7 +8,7 @@ Before:
 After:
   Assert UndotreeIsConsistent()
 
-##### Delte all lines
+##### delete all lines
 
 Execute (Write "-line*"):
   call esearch#init()
@@ -49,7 +49,44 @@ Expect esearch_test:
 
   file.txt
 
-##### Delte all lines and prepend the first line
+##### delete entire context
+
+Execute (Write "-ctx1"):
+  call esearch#init()
+  exe "norm /l1\<CR>dap"
+  write
+Then:
+  AssertEqual readfile(g:file), []
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+Execute (:undo->:write saved "-ctx1"):
+  call esearch#init()
+  exe "norm /l1\<CR>dap"
+  write
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 l1
+     2 l2
+     3 l3
+
+Execute (2 times :undo->:write saved "-ctx1"):
+  call esearch#init()
+  exe "norm /l1\<CR>dap"
+  write
+  undo | doau TextChanged | write
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file), []
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+##### delete all lines and prepend the first line
 
 Execute (Write "-line* +line1"):
   call esearch#init()
@@ -96,7 +133,7 @@ Expect esearch_test:
   file.txt
      1 added1
 
-##### Delte the middle line
+##### delete the middle line
 
 Execute (Write "-line2"):
   call esearch#init()
@@ -138,7 +175,7 @@ Expect esearch_test:
      1 l1
      2 l3
 
-##### Delte the last line
+##### delete the last line
 
 Execute (Write "-line3"):
   call esearch#init()

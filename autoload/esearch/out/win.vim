@@ -249,17 +249,20 @@ fu! s:winsaveview(es) abort
   let view = winsaveview()
   let view.ctx_lnum = matchstr(getline('.'), g:esearch#out#win#capture_lnum_re)
   let state = a:es.modifiable ? a:es.undotree.head.state : a:es
-  let view.filename = a:es.contexts[state.ctx_ids_map[view.lnum]].filename
+  let id = get(state.ctx_ids_map, view.lnum)
+  if id | let view.filename = a:es.contexts[state.ctx_ids_map[view.lnum]].filename | endif
   return view
 endfu
 
 fu! s:winrestview(es, view) abort
-  let ctx = get(a:es.ctx_by_name, remove(a:view, 'filename'), 0)
-  if empty(ctx) | return winrestview(a:view) | endif
+  if has_key(a:view, 'filename')
+    let ctx = get(a:es.ctx_by_name, remove(a:view, 'filename'), 0)
+    if empty(ctx) | return winrestview(a:view) | endif
 
-  let offset = index(sort(keys(ctx.lines), 'N'), remove(a:view, 'ctx_lnum'))
-  let lnum = ctx.begin + offset + 2
-  let a:view.topline += lnum - a:view.lnum
-  let a:view.lnum = lnum
+    let offset = index(sort(keys(ctx.lines), 'N'), remove(a:view, 'ctx_lnum'))
+    let lnum = ctx.begin + offset + 2
+    let a:view.topline += lnum - a:view.lnum
+    let a:view.lnum = lnum
+  endif
   call winrestview(a:view)
 endfu

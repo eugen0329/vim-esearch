@@ -12,6 +12,254 @@ After:
 
 ######################
 
+Execute (write deleted all lines):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm ggdG"
+  write
+Then:
+  AssertEqual readfile(g:file1), []
+  AssertEqual readfile(g:file2), []
+  AssertEqual getline(1, '$'), ['']
+
+Execute (:undo->:write saved deleted all lines):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm ggdG"
+  write
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
+  AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file1.txt
+     1 1.l1
+     2 1.l2
+     3 1.l3
+
+  file2.txt
+     1 2.l1
+     2 2.l2
+     3 2.l3
+
+Execute (2 times :undo->:write saved deleted all lines):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm ggdG"
+  write
+  for _ in range(2)
+    undo | doau TextChanged | write
+  endfor
+Then:
+  AssertEqual readfile(g:file1), []
+  AssertEqual readfile(g:file2), []
+  AssertEqual getline(1, '$'), ['']
+
+######################
+
+Execute (write -ctx1 file2: "-line1 ~line2 +line3"):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /1.l1\<CR>dap"
+  exe "norm /2.l1\<CR>dd"
+  exe "norm /2.l2\<CR>A~~~"
+  exe "norm /2.l3\<CR>A\<CR>2.added"
+  write
+Then:
+  AssertEqual readfile(g:file1), []
+  AssertEqual readfile(g:file2), ['2.l2~~~', '2.l3', '2.added']
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file2.txt
+     1 2.l2~~~
+     2 2.l3
+     3 2.added
+
+Execute (:undo->:write saved -ctx1 file2: "-line1 ~line2 +line3"):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /1.l1\<CR>dap"
+  exe "norm /2.l1\<CR>dd"
+  exe "norm /2.l2\<CR>A~~~"
+  exe "norm /2.l3\<CR>A\<CR>2.added"
+  write
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
+  AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file1.txt
+     1 1.l1
+     2 1.l2
+     3 1.l3
+
+  file2.txt
+     1 2.l1
+     2 2.l2
+     3 2.l3
+
+Execute (2 times :undo->:write saved -ctx1 file2: "-line1 ~line2 +line3"):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /1.l1\<CR>dap"
+  exe "norm /2.l1\<CR>dd"
+  exe "norm /2.l2\<CR>A~~~"
+  exe "norm /2.l3\<CR>A\<CR>2.added"
+  write
+  for _ in range(2)
+    undo | doau TextChanged | write
+  endfor
+Then:
+  AssertEqual readfile(g:file1), []
+  AssertEqual readfile(g:file2), ['2.l2~~~', '2.l3', '2.added']
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file2.txt
+     1 2.l2~~~
+     2 2.l3
+     3 2.added
+
+######################
+
+Execute (write -ctx2 file1: "-line1 ~line2 +line3"):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /2.l1\<CR>dap"
+  exe "norm /1.l1\<CR>dd"
+  exe "norm /1.l2\<CR>A~~~"
+  exe "norm /1.l3\<CR>A\<CR>1.added"
+  write
+Then:
+  AssertEqual readfile(g:file1), ['1.l2~~~', '1.l3', '1.added']
+  AssertEqual readfile(g:file2), []
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file1.txt
+     1 1.l2~~~
+     2 1.l3
+     3 1.added
+
+Execute (:undo->:write saved -ctx2 file1: "-line1 ~line2 +line3"):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /2.l1\<CR>dap"
+  exe "norm /1.l1\<CR>dd"
+  exe "norm /1.l2\<CR>A~~~"
+  exe "norm /1.l3\<CR>A\<CR>1.added"
+  write
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
+  AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file1.txt
+     1 1.l1
+     2 1.l2
+     3 1.l3
+
+  file2.txt
+     1 2.l1
+     2 2.l2
+     3 2.l3
+
+Execute (2 times :undo->:write saved -ctx2 file1: "-line1 ~line2 +line3"):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /2.l1\<CR>dap"
+  exe "norm /1.l1\<CR>dd"
+  exe "norm /1.l2\<CR>A~~~"
+  exe "norm /1.l3\<CR>A\<CR>1.added"
+  write
+  for _ in range(2)
+    undo | doau TextChanged | write
+  endfor
+Then:
+  AssertEqual readfile(g:file1), ['1.l2~~~', '1.l3', '1.added']
+  AssertEqual readfile(g:file2), []
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file1.txt
+     1 1.l2~~~
+     2 1.l3
+     3 1.added
+
+######################
+
+Execute (write -ctx*):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /1.l2\<CR>dap"
+  exe "norm /2.l2\<CR>dap"
+  write
+Then:
+  AssertEqual readfile(g:file1), []
+  AssertEqual readfile(g:file2), []
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+Execute (:undo->:write saved -ctx*):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /1.l2\<CR>dap"
+  exe "norm /2.l2\<CR>dap"
+  write
+  undo | doau TextChanged | write
+Then:
+  AssertEqual readfile(g:file1), ['1.l1', '1.l2', '1.l3']
+  AssertEqual readfile(g:file2), ['2.l1', '2.l2', '2.l3']
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+  file1.txt
+     1 1.l1
+     2 1.l2
+     3 1.l3
+
+  file2.txt
+     1 2.l1
+     2 2.l2
+     3 2.l3
+
+Execute (2 times :undo->:write saved -ctx*):
+  call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
+  call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])
+  call esearch#init()
+  exe "norm /1.l2\<CR>dap"
+  exe "norm /2.l2\<CR>dap"
+  write
+  for _ in range(2)
+    undo | doau TextChanged | write
+  endfor
+Then:
+  AssertEqual readfile(g:file1), []
+  AssertEqual readfile(g:file2), []
+Expect esearch_test:
+  Matches in 6 lines, 2 files. Finished.
+
+
+######################
+
 Execute (write file1-2: "-line2" file2: "-line2"):
   call Fixture(g:file1, ['1.l1', '1.l2', '1.l3'])
   call Fixture(g:file2, ['2.l1', '2.l2', '2.l3'])

@@ -140,7 +140,6 @@ endfu
 fu! s:Writer.undo_win(win_undo_edits) abort dict
   for file_undo in reverse(a:win_undo_edits)
     for edit in file_undo
-      " call nvim_buf_set_lines(0, edit.args[0] - 1, edit.end, 0, edit.args[1])
       call call(self.search_buf[edit.func], edit.args)
     endfor
   endfor
