@@ -44,15 +44,23 @@ Execute (#new sets .existed = 1 when the buffer existed):
 Then:
   AssertEqual g:buf.existed, 1
 
-Execute (#oneliner returns the buffer lines count):
-  let g:buf1 = g:Handle.new(Fixture(g:file, repeat(['line'], Rand(5, 10))))
-  let g:buf2 = g:Handle.new(Fixture(g:file, ['line']))
-  let g:buf3 = g:Handle.new(Fixture(g:file, []))
+Execute (#oneliner returns true if the buffer contains n lines):
+  let g:buf = g:Handle.new(Fixture(g:file, repeat(['line'], Rand(5, 10))))
   $tabnew
 Then:
-  AssertNot g:buf1.oneliner()
-  Assert g:buf2.oneliner()
-  Assert g:buf3.oneliner()
+  Assert !g:buf.oneliner()
+
+Execute (#oneliner returns true if the buffer contains 1 line):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line']))
+  $tabnew
+Then:
+  Assert g:buf.oneliner()
+
+Execute (#oneliner returns true if the buffer contains 1 line):
+  let g:buf = g:Handle.new(Fixture(g:file, ['line']))
+  $tabnew
+Then:
+  Assert g:buf.oneliner()
 
 Execute (#getline returns 1-indexed line context):
   let g:buf = g:Handle.new(bufname(''))

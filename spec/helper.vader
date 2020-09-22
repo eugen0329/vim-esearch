@@ -51,3 +51,4 @@ Execute(setup):
 
   set shortmess=lnTtoOfF
   set nomore
+  set bufhidden=hide

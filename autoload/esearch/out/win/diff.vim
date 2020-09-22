@@ -106,16 +106,16 @@ fu! s:DiffIterator.next() abort dict
           throw s:err(s:unexpected_prepend_fmt, self.wlnum)
         endif
 
-        if !has_key(edits, lnum-1) | let edits[lnum-1] = [] | endif
-        call add(edits[lnum-1], {'func': 'appendline', 'args': [lnum-1, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '^'})
+        if !has_key(edits, lnum) | let edits[lnum] = [] | endif
+        call add(edits[lnum], {'func': 'appendline', 'args': [lnum-1, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '^'})
         let self.stats.added += 1
       elseif sign ==# '+'
         if !has_key(edits, lnum) | let edits[lnum] = [] | endif
         call add(edits[lnum], {'func': 'appendline', 'args': [lnum, text], 'wlnum': self.wlnum - 1, 'lnum': lnum, 'type': '+'})
         let self.stats.added += 1
       elseif sign ==# '_'
-        if !has_key(edits, 0) | let edits[0] = [] | endif
-        call add(edits[0], {'func': 'setline', 'args': [1, text], 'wlnum': self.wlnum, 'lnum': 1, 'first': 1})
+        if !has_key(edits, lnum) | let edits[lnum] = [] | endif
+        call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'wlnum': self.wlnum, 'lnum': 1, 'first': 1})
         let self.stats.added += 1
       else
         throw s:err(s:unexpected_sign_fmt, self.wlnum)
@@ -125,6 +125,7 @@ fu! s:DiffIterator.next() abort dict
     else
       let filename_b = line
       let self.ctx = self.contexts[self.ctx_ids_map[self.wlnum]]
+
 
       if !empty(self.lines[self.wlnum - 1]) || fnameescape(filename_b) !=# self.ctx.filename
         throw s:err(s:unexpected_filename_fmt, self.wlnum)
@@ -162,9 +163,9 @@ let s:Diff = {}
 
 fu! s:Diff.new(edits, begin, end, ctx, lnums_b) abort
   if empty(a:edits) | return {'edits': []} | endif
-  let edits = s:flatten(a:edits, a:lnums_b)
-  let offsets = s:offsets(edits, a:lnums_b)
-  let undo = s:undo_edits(edits, a:ctx.lines, a:ctx, offsets, a:ctx.begin + 1, a:lnums_b)
+  let edits = s:reverse_flatten(a:edits)
+  let offsets = s:offsets(reverse(deepcopy(edits)), a:lnums_b)
+  let undo = s:undo_edits(a:ctx.lines, a:ctx, offsets, a:ctx.begin + 1, a:lnums_b)
   let a:ctx.begin = a:begin - 1 " TODO side effect
   return {
         \ 'ctx': a:ctx,
@@ -177,7 +178,7 @@ fu! s:Diff.new(edits, begin, end, ctx, lnums_b) abort
         \}
 endfu
 
-fu! s:undo_edits(edits, lines_a, ctx, offsets, begin, lnums_b) abort
+fu! s:undo_edits(lines_a, ctx, offsets, begin, lnums_b) abort
   let align = max([3, len(max(keys(a:lines_a)))])
   let fmt = ' %s %'.align.'d '
   let [lines_a, lnums_a, lnums_b] =  [a:lines_a, sort(keys(a:ctx.lines), 'N'), a:lnums_b]
@@ -188,25 +189,35 @@ fu! s:undo_edits(edits, lines_a, ctx, offsets, begin, lnums_b) abort
     if lnums_a[a] ==# lnums_b[b]
       call add(lnum, lnums_a[a] + offset)
       call add(lines, printf(fmt, ' ', lnum[-1]).lines_a[lnums_a[a]])
-      let [a, b] = [a + 1, b + 1]
-    elseif +lnums_a[a] < +lnums_b[b]
+      let b += 1
+      while b < len(lnums_b) && lnums_a[a] ==# lnums_b[b]
+        let [offset, b] = [offset + 1, b + 1]
+      endw
+      let a += 1
+    elseif +lnums_a[a] < +lnums_b[b] " line A is missing in B, it was a deletion
       while a < len(lnums_a) && +lnums_a[a] < +lnums_b[b]
         call add(lnum, lnums_a[a] + offset)
         call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
         let [offset, a] = [offset - 1, a + 1]
       endw
-      let b += 1
-    else
-      call add(lnum, lnums_a[a] + offset)
-      call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
+    else  " line B is missing above A (^), it was a prepending
+      let b = b + 1
       while b < len(lnums_b) && +lnums_a[a] > +lnums_b[b]
-        let b += 1
+        let [offset, b] = [offset + 1, b + 1]
       endw
-      let [offset, a] = [offset - 1, a + 1]
+
+      if b < len(lnums_b) &&  lnums_a[a] ==# lnums_b[b]
+        call add(lnum, lnums_a[a] + offset + 1)
+        call add(lines, printf(fmt, ' ', lnum[-1]).lines_a[lnums_a[a]])
+      else
+        call add(lnum, lnums_a[a] + offset + 1)
+        call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
+      endif
+      let a = a + 1
     endif
   endw
 
-  while a < len(lnums_a)
+  while a < len(lnums_a) " last lines from B was deleted
     call add(lnum, lnums_a[a] + offset)
     call add(lines, printf(fmt, '^', lnum[-1]).lines_a[lnums_a[a]])
     let [offset, a] = [offset - 1, a + 1]

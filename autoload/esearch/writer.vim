@@ -75,11 +75,7 @@ fu! s:Writer.squash_undotree(win_update_edits, lnums_ranges, win_undo_edits) abo
     call self.update_win(a:win_update_edits)
     let updated_state = self.update_state(b:esearch.undotree.head.state, a:lnums_ranges)
     silent! %yank s
-
-    " try
     exe 'undo' b:esearch.undotree.written.changenr
-    " catch /^Vim(undo):E830:/
-    " endtry
 
     call esearch#util#safe_undojoin()
     call self.undo_win(a:win_undo_edits)
@@ -106,7 +102,7 @@ fu! s:Writer.apply_edits(buf, diff) abort
   endfor
 
   if edits[-1].func ==# 'deleteline' && a:buf.oneliner()
-    let a:diff.undo[0].args[1][0] = substitute(a:diff.undo[0].args[1][0], '^\s\+\zs^\ze', '_', '')
+    let a:diff.undo[0].args[1][-1] = substitute(a:diff.undo[0].args[1][-1], '^\s\+\zs^\ze', '_', '')
   endif
 
   call call(a:buf[edits[-1].func], edits[-1].args)

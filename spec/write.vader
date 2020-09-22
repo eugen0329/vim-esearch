@@ -215,7 +215,7 @@ Execute (add 2 lines before line 1, del others):
   exe "norm /l1\<CR>V/l3\<CR>d"
   write
 Then:
-  AssertEqual readfile(g:file), ['added1', 'added2']
+  AssertEqual readfile(g:file), ['added1', 'added2', '']
 Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
