@@ -15,7 +15,7 @@ fu! esearch#out#win#view_data#init(esearch) abort
         \ 'is_entry':           function('<SID>is_entry'),
         \ 'is_current':         function('<SID>is_current'),
         \ 'is_blank':           function('<SID>is_blank'),
-        \ })
+        \})
 endfu
 
 fu! esearch#out#win#view_data#filename(es, ctx) abort
@@ -51,7 +51,7 @@ fu! s:filetype(...) abort dict
     let opts = get(a:000)
 
     if get(opts, 'fast', 0)
-      let ctx.filetype = esearch#ftdetect#complete(ctx.filename)
+      let ctx.filetype = esearch#ftdetect#slow(ctx.filename)
     else
       let ctx.filetype = esearch#ftdetect#fast(ctx.filename)
     endif

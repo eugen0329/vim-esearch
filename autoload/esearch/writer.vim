@@ -23,7 +23,7 @@ endfu
 
 fu! s:Writer.write(bang) abort dict
   let WriteCb = self.esearch.write_cb
-  let [current_buffer, current_window] = [esearch#buf#stay(), esearch#win#stay()]
+  let [current_window, current_buffer, view] = [esearch#win#stay(), esearch#buf#stay(), winsaveview()]
 
   call esearch#util#doautocmd('User esearch_write_pre')
  " Wipeout preview buffer if was viewed ignoring swap to prevent missing
@@ -62,6 +62,7 @@ fu! s:Writer.write(bang) abort dict
     call current_window.restore()
     call current_buffer.restore()
     call self.create_undo_entry()
+    call winrestview(view)
   endtry
   call self.log()
   " Deferring is required to execute the autocommand with avoiding BufWriteCmd side effects
