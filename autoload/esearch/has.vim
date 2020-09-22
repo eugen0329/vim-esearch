@@ -33,4 +33,4 @@ let g:esearch#has#lua = g:esearch#has#nvim_lua || g:esearch#has#vim_lua
 let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#has#nvim_add_highlight
 let g:esearch#has#annotations = exists('*nvim_buf_attach') && exists('*nvim_buf_set_virtual_text') && g:esearch#has#lua
 let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight && g:esearch#has#lua
-let g:esearch#has#getbufinfo_linecount = has('patch8.2.0019')
+let g:esearch#has#getbufinfo_linecount = has('patch-8.2.0019')

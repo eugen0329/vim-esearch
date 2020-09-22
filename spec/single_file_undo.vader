@@ -732,11 +732,15 @@ Expect esearch_test:
 
 #####
 
-Execute (Write "^line1(3) ~line2 +line3"):
+Execute (Write "^line1(2) +line2(2)"):
   call Fixture(g:file, ['l1', 'l2', 'l3'])
   call esearch#init()
-  exe "norm /file.txt\<CR>A\<CR>a\<CR>b"
-  exe "norm /l1\<CR>A\<CR>c\<CR>d"
+  exe "norm /file.txt\<CR>"
+  exe "norm A\<CR>a"
+  exe "norm A\<CR>b"
+  exe "norm /l1\<CR>A"
+  exe "norm A\<CR>c"
+  exe "norm A\<CR>d"
   write
 Then:
   AssertEqual readfile(g:file), ['a', 'b', 'l1', 'c', 'd', 'l2', 'l3']
@@ -752,11 +756,15 @@ Expect esearch_test:
      6 l2
      7 l3
 
-Execute (:undo->:write saved "^line1(3) ~line2 +line3"):
+Execute (:undo->:write saved "^line1(2) +line2(2)"):
   call Fixture(g:file, ['l1', 'l2', 'l3'])
   call esearch#init()
-  exe "norm /file.txt\<CR>A\<CR>a\<CR>b"
-  exe "norm /l1\<CR>A\<CR>c\<CR>d"
+  exe "norm /file.txt\<CR>"
+  exe "norm A\<CR>a"
+  exe "norm A\<CR>b"
+  exe "norm /l1\<CR>A"
+  exe "norm A\<CR>c"
+  exe "norm A\<CR>d"
   write
   undo | doau TextChanged | write
 Then:
@@ -769,11 +777,15 @@ Expect esearch_test:
      2 l2
      3 l3
 
-Execute (2 times :undo->:write saved "^line1(3) ~line2 +line3"):
+Execute (2 times :undo->:write saved "^line1(2) +line2(2)"):
   call Fixture(g:file, ['l1', 'l2', 'l3'])
   call esearch#init()
-  exe "norm /file.txt\<CR>A\<CR>a\<CR>b"
-  exe "norm /l1\<CR>A\<CR>c\<CR>d"
+  exe "norm /file.txt\<CR>"
+  exe "norm A\<CR>a"
+  exe "norm A\<CR>b"
+  exe "norm /l1\<CR>A"
+  exe "norm A\<CR>c"
+  exe "norm A\<CR>d"
   write
   for _ in range(2)
     undo | doau TextChanged | write

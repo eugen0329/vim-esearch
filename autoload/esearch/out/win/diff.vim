@@ -5,6 +5,8 @@ let s:broken_header_fmt        = 'Broken header at line %d.'
 let s:unexpected_filename_fmt  = 'Unexpected filename at line %d. Each filename must be preceded with a blank line separator.'
 let s:unexpected_prepend_fmt   = 'Unexpected "^" at line %d. Prepended lines must be placed before the base or appended lines.'
 let s:unexpected_append_fmt    = 'Unexpected "+" at line %d. Appended lines must be placed after the base line.'
+let s:duplicate_set_fmt        = 'Duplicate line number at line %d.'
+let s:unexpected_set_fmt       = "Unexpected line number at line %d. Can't set an arbitrary line in the file."
 let s:unexpected_lnum_fmt      = 'Unexpected line number at line %d. Line numbers sequence must be increasing.'
 let s:missing_filename_fmt     = 'Missing filename before entries at line %d.'
 let s:unexpected_separator_fmt = 'Unexpected blank linese parator at line %d.'
@@ -68,7 +70,7 @@ endfu
 " edits - script to apply changes in a buffer
 " undo - script to revert changes in the search window
 fu! s:DiffIterator.next() abort dict
-  let [lnum_was, sign_was] = [-1, '']
+  let [lnum_was, sign_was] = [-1, ''] " backtrack one line back
   let [edits, filename_b, lnums_b] = [{}, '', []]
 
   while self.wlnum < len(self.lines)
@@ -92,9 +94,11 @@ fu! s:DiffIterator.next() abort dict
 
       if empty(sign)
         if sign_was ==# '+' && lnum ==# lnum_was | throw s:err(s:unexpected_append_fmt, self.wlnum - 1) | endif
+        if empty(sign_was) && lnum ==# lnum_was | throw s:err(s:duplicate_set_fmt, self.wlnum) | endif
+        if !has_key(self.lines_a, lnum) | throw s:err(s:unexpected_set_fmt, self.wlnum) | endif
 
         " if setting an arbitrary line in the file or if the text has changed
-        if !has_key(self.lines_a, lnum) || self.lines_a[lnum] !=# text
+        if self.lines_a[lnum] !=# text
           if !has_key(edits, lnum) | let edits[lnum] = [] | endif
           call add(edits[lnum], {'func': 'setline', 'args': [lnum, text], 'wlnum': self.wlnum, 'lnum': lnum})
           let self.stats.modified += 1
