@@ -214,10 +214,10 @@ fu! s:remove_cursors_overlapping_interface(offset_from_linenr) abort
   let i = 0
   for cursor in b:VM_Selection.Insert.cursors
     let ctx = contexts.by_line(cursor.l)
-    if cursor.l == ctx.begin || (cursor.l == ctx.end && cursor.l != line('$'))
+    if cursor.l == ctx._begin || (cursor.l == ctx._end && cursor.l != line('$'))
       call add(removable_indexes, i)
     else
-      let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[cursor.l])
+      let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[cursor.l])
       if cursor._a <= strlen(linenr) + a:offset_from_linenr
         call add(removable_indexes, i)
       endif
@@ -248,10 +248,10 @@ fu! s:regions_overlapping_interface(offset_from_linenr) abort
   let regions = []
 
   for region in b:VM_Selection.Regions
-    if region.l == contexts.by_line(region.l).begin
+    if region.l == contexts.by_line(region.l)._begin
       call add(regions, region)
     else
-      let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[region.l])
+      let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[region.l])
       if region.a <= strlen(linenr) + a:offset_from_linenr
         call add(regions, region)
       endif
@@ -278,7 +278,7 @@ fu! s:CtrlW(orig) abort
     let line = cursor.L
     let col = cursor._a
     let text = getline(line)
-    let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[line])
+    let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[line])
     if col <= strlen(linenr) + 1 || text[strlen(linenr): col - 2] =~# '^\s\+$'
       return ''
     endif
@@ -314,8 +314,8 @@ fu! s:vm_icmds_x(cmd) abort
   for r in s:R()
 
     """""" modified block start
-    let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[r.l])
-    if r.a <= strlen(linenr) + s:offset_from_linenr || r.l == s:contexts.by_line(r.l).begin
+    let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[r.l])
+    if r.a <= strlen(linenr) + s:offset_from_linenr || r.l == s:contexts.by_line(r.l)._begin
       continue
     endif
     """""" modified block end

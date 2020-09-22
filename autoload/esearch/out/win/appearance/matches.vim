@@ -82,8 +82,8 @@ endf
 fu! s:hl(es, l1, l2) abort
   let p = a:es.pattern.vim
   let state = a:es.modifiable ? a:es.undotree.head.state : a:es
-  let lnrs = state.line_numbers_map
-  let ids = state.ctx_ids_map
+  let lnrs = state.wlnum2lnum
+  let ids = state.wlnum2ctx_id
   if len(ids) < a:l2 | retu | en
   let done = a:es.lines_with_hl_matches
   let a:es.last_hl_range = [a:l1,a:l2]

@@ -17,21 +17,21 @@ Execute(setup):
   endfu
 
   fu! UndotreeIsConsistent() abort
-    let line_numbers_map = [0]
+    let wlnum2lnum = [0]
     let lines = getline(1, '$')
     if lines !=# ['']
       for line in lines
         let matches = matchlist(line, g:esearch#out#win#capture_entry_re)
-        call add(line_numbers_map, empty(matches) ? 0 : matches[2])
+        call add(wlnum2lnum, empty(matches) ? 0 : matches[2])
       endfor
     endif
 
-    let expected = map(line_numbers_map, '+v:val')
-    let actual = map(copy(b:esearch.undotree.head.state.line_numbers_map), '+v:val')
+    let expected = map(wlnum2lnum, '+v:val')
+    let actual = map(copy(b:esearch.undotree.head.state.wlnum2lnum), '+v:val')
 
     return expected ==# actual
-      \ && (len(b:esearch.undotree.head.state.ctx_ids_map) - 1 == line('$')
-      \     || b:esearch.undotree.head.state.ctx_ids_map == [0])
+      \ && (len(b:esearch.undotree.head.state.wlnum2ctx_id) - 1 == line('$')
+      \     || b:esearch.undotree.head.state.wlnum2ctx_id == [0])
   endfu
 
   " linear congruential generator

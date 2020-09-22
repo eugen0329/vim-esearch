@@ -9,8 +9,8 @@ fu! esearch#out#win#modifiable#init() abort
     au TextChanged,TextChangedI,TextChangedP <buffer> call s:text_changed()
   aug END
   let b:esearch.undotree = esearch#undotree#new({
-        \ 'ctx_ids_map': b:esearch.ctx_ids_map,
-        \ 'line_numbers_map': b:esearch.line_numbers_map})
+        \ 'wlnum2ctx_id': b:esearch.wlnum2ctx_id,
+        \ 'wlnum2lnum': b:esearch.wlnum2lnum})
   call esearch#compat#visual_multi#init()
 endfu
 
@@ -26,17 +26,17 @@ fu! s:text_changed() abort
   endif
 
   let state = b:esearch.undotree.head.state
-  let delta = len(state.line_numbers_map) - (line('$') + 1)
+  let delta = len(state.wlnum2lnum) - (line('$') + 1)
   if delta == 0 | return | endif
 
   if delta < 0
     let state = deepcopy(state)
-    let state.line_numbers_map += repeat([state.line_numbers_map[-1]], -delta)
-    let state.ctx_ids_map += repeat([state.ctx_ids_map[-1]], -delta)
+    let state.wlnum2lnum += repeat([state.wlnum2lnum[-1]], -delta)
+    let state.wlnum2ctx_id += repeat([state.wlnum2ctx_id[-1]], -delta)
   elseif delta > 0
     let state = deepcopy(state)
-    call remove(state.line_numbers_map, -delta, -1)
-    call remove(state.ctx_ids_map, -delta, -1)
+    call remove(state.wlnum2lnum, -delta, -1)
+    call remove(state.wlnum2ctx_id, -delta, -1)
   endif
 
   call b:esearch.undotree.commit(state)
@@ -74,8 +74,8 @@ fu! esearch#out#win#modifiable#i_CR() abort
 
   if b:esearch.is_entry()
     let state = deepcopy(b:esearch.undotree.head.state)
-    call insert(state.line_numbers_map, state.line_numbers_map[line], line+1)
-    call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
+    call insert(state.wlnum2lnum, state.wlnum2lnum[line], line+1)
+    call insert(state.wlnum2ctx_id, state.wlnum2ctx_id[line], line+1)
     call b:esearch.undotree.commit(state)
 
     let linenr_and_offset_re = g:esearch#out#win#capture_sign_and_lnum_re.'\(\s'.(&g:autoindent ? '\+' : '').'\)'
@@ -85,8 +85,8 @@ fu! esearch#out#win#modifiable#i_CR() abort
     return close_completion_popup."\<cr>".realign.prefix
   elseif b:esearch.is_filename()
     let state = deepcopy(b:esearch.undotree.head.state)
-    call insert(state.line_numbers_map, 1, line+1)
-    call insert(state.ctx_ids_map, state.ctx_ids_map[line], line+1)
+    call insert(state.wlnum2lnum, 1, line+1)
+    call insert(state.wlnum2ctx_id, state.wlnum2ctx_id[line], line+1)
     call b:esearch.undotree.commit(state)
 
     let prefix = printf(' ^%'.align.'s ', '1')
@@ -99,9 +99,9 @@ endfu
 
 fu! esearch#out#win#modifiable#align(id, align) abort
   let ctx = b:esearch.contexts[a:id]
-  let begin = ctx.begin + 1
-  let end = esearch#util#clip(ctx.end+1, begin, line('$'))
-  let range = (ctx.begin + 1).','.end
+  let begin = ctx._begin + 1
+  let end = esearch#util#clip(ctx._end + 1, begin, line('$'))
+  let range = (ctx._begin + 1).','.end
   let pattern = g:esearch#out#win#capture_sign_and_lnum_re
   let replacement = '\=printf(" %s%'.a:align.'s", empty(submatch(1)) ? " " : submatch(1), submatch(2))'
 
@@ -258,11 +258,11 @@ fu! s:delete_region_from_state(wise, state, region) abort
 
   if line1 <= line2
     if esearch#operator#is_linewise(a:wise)
-      call remove(a:state.line_numbers_map, line1, line2)
-      call remove(a:state.ctx_ids_map, line1, line2)
+      call remove(a:state.wlnum2lnum, line1, line2)
+      call remove(a:state.wlnum2ctx_id, line1, line2)
     elseif esearch#operator#is_charwise(a:wise) && line1 < line2
-      call remove(a:state.line_numbers_map, line1 + 1, line2)
-      call remove(a:state.ctx_ids_map, line1 + 1, line2)
+      call remove(a:state.wlnum2lnum, line1 + 1, line2)
+      call remove(a:state.wlnum2ctx_id, line1 + 1, line2)
     endif
   endif
 

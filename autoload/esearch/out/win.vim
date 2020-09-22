@@ -246,8 +246,8 @@ fu! s:winsaveview(es) abort
   let view = winsaveview()
   let view.ctx_lnum = matchstr(getline('.'), g:esearch#out#win#capture_lnum_re)
   let state = a:es.modifiable ? a:es.undotree.head.state : a:es
-  let id = get(state.ctx_ids_map, view.lnum)
-  if id | let view.filename = a:es.contexts[state.ctx_ids_map[view.lnum]].filename | endif
+  let id = get(state.wlnum2ctx_id, view.lnum)
+  if id | let view.filename = a:es.contexts[state.wlnum2ctx_id[view.lnum]].filename | endif
   return view
 endfu
 

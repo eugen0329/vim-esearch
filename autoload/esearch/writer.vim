@@ -53,6 +53,7 @@ fu! s:Writer.write(bang) abort dict
       let self.win_undos   = self.update_file(buf, diff) + self.win_undos
       let self.state_undos = diff.state_undos + self.state_undos
       let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
+      let self.esearch.contexts[diff.ctx.id].begin = diff.begin
 
       if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
     endfor
@@ -117,7 +118,7 @@ fu! s:Writer.update_state(state, state_edits) abort
   for edit in a:state_edits
     let begin = edit.args[0]
     let end = begin + len(edit.args[1]) - 1
-    let state.line_numbers_map[begin : end] = edit.args[1]
+    let state.wlnum2lnum[begin : end] = edit.args[1]
   endfor
   return state
 endfu

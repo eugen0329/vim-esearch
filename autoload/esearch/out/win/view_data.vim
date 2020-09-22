@@ -33,7 +33,7 @@ endfu
 fu! s:ctx_view() abort dict
   let line = self.line_in_file()
   let state = self.modifiable ? self.undotree.head.state : self
-  let linenr = printf(g:esearch#out#win#linenr_fmt, state.line_numbers_map[line('.')])
+  let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[line('.')])
   return { 'lnum': line,  'col': max([0, col('.') - strlen(linenr) - 1]) }
 endfu
 

@@ -39,7 +39,7 @@ fu! s:DiffsIterator.new(lines, esearch, stats) abort dict
 
   return extend(copy(self), {
         \ 'lines': ['padding'] + a:lines,
-        \ 'ctx_ids_map': a:esearch.undotree.head.state.ctx_ids_map,
+        \ 'wlnum2ctx_id': a:esearch.undotree.head.state.wlnum2ctx_id,
         \ 'contexts': a:esearch.contexts,
         \ 'stats': a:stats,
         \ 'deleted_ctxs_a': s:Dict.make_index(range(1, len(a:esearch.contexts) - 1)),
@@ -94,7 +94,7 @@ fu! s:DiffsIterator.next_modified() abort
 
       let [sign, lnum, text] = entry
       if +lnum < +lnum_was | throw s:err(s:unexpected_lnum_fmt, self.wlnum) | endif
-      call add(lnums_b, lnum) |
+      call add(lnums_b, lnum)
       call add(texts_b, text)
 
       if empty(sign)
@@ -132,7 +132,7 @@ fu! s:DiffsIterator.next_modified() abort
       let [lnum_was, sign_was] = [lnum, sign]
     else
       let filename_b = line
-      let ctx = self.contexts[self.ctx_ids_map[self.wlnum]]
+      let ctx = self.contexts[self.wlnum2ctx_id[self.wlnum]]
       silent! unlet self.deleted_ctxs_a[ctx.id]
 
       if !empty(self.lines[self.wlnum - 1]) || fnameescape(filename_b) !=# ctx.filename
@@ -141,7 +141,7 @@ fu! s:DiffsIterator.next_modified() abort
 
       let lines_a = ctx.lines
       let deleted_lines_a = copy(lines_a)
-      let begin = self.wlnum + 1
+      let begin = self.wlnum
     endif
 
     let self.wlnum += 1
@@ -167,9 +167,8 @@ let s:Diff = {}
 fu! s:Diff.new(edits, begin, ctx, lnums_b, texts_b) abort
   if empty(a:edits) | return {'edits': []} | endif
   let edits = s:reverse_flatten(a:edits)
-  let [win_undos, state_undos] = s:undo_edits(a:ctx.lines, a:ctx, a:ctx.begin + 1, a:lnums_b)
+  let [win_undos, state_undos] = s:undo_edits(a:ctx.lines, a:ctx, a:ctx.begin, a:lnums_b)
   let [win_edits, state_edits, lines_b] = s:win_write_post_edits(edits, a:lnums_b, a:texts_b, a:begin)
-  let a:ctx.begin = a:begin - 1 " TODO side effect
   return {
         \ 'ctx': a:ctx,
         \ 'edits': edits,
@@ -201,8 +200,8 @@ fu! s:win_write_post_edits(edits, lnums_b, texts_b, begin) abort
     let i += 1
   endwhile
 
-  let win_edits = [{'func': 'setline', 'args': [a:begin, new_win_lines]}]
-  let state_edits = [{'func': 'setlnum', 'args':[a:begin, new_lnums]}]
+  let win_edits =   [{'func': 'setline', 'args': [a:begin + 1, new_win_lines]}]
+  let state_edits = [{'func': 'setlnum', 'args': [a:begin + 1, new_lnums]}]
   return [win_edits, state_edits, lines_b]
 endfu
 
@@ -253,8 +252,8 @@ fu! s:undo_edits(lines_a, ctx, begin, lnums_b) abort
     let [offset, a] = [offset - 1, a + 1]
   endw
 
-  let win_undos = [{'func': 'setline', 'args': [a:begin, lines]}]
-  let state_undos = [{'func': 'setrange', 'args': [a:begin, lnums]}]
+  let win_undos   = [{'func': 'setline',  'args': [a:begin + 1, lines]}]
+  let state_undos = [{'func': 'setrange', 'args': [a:begin + 1, lnums]}]
   return [win_undos, state_undos]
 endfu
 
