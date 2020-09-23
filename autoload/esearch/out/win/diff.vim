@@ -50,7 +50,7 @@ fu! s:DiffsIterator.has_next() abort dict
   return self.wlnum < len(self.lines) || !empty(self.deleted_ctxs_a)
 endfu
 
-" Diff ctx A (ours) and ctx B (theirs)
+" Diff each ctx A (ours) and ctx B (theirs).
 " line := sign + lnum + text
 " wlnum - search window lnum
 " edits - script to apply changes in a buffer
