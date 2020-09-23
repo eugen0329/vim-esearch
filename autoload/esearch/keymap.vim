@@ -59,7 +59,7 @@ fu! esearch#keymap#maparg2set_command(maparg) abort
   let lhs = substitute(maparg.lhs, '\V|', '<Bar>', 'g')
   let rhs = substitute(maparg.rhs, '\V|', '<Bar>', 'g')
   if stridx(rhs, '<SID>') >= 0
-    let rhs = substitute(rhs, '<SID>', '<SNR>'.maparg.sid.'_', '')
+    let rhs = substitute(rhs, '<SID>', '<SNR>'.maparg.sid.'_', 'g')
     let maparg.script = 1
   endif
 
