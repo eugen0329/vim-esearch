@@ -52,13 +52,18 @@ fu! s:Guard.restore() abort dict
 endfu
 
 fu! esearch#keymap#maparg2set_command(maparg) abort
-  let cmd = get(a:maparg, 'noremap') ? 'noremap' : 'map'
-  let cmd = a:maparg.mode ==# '!' ? cmd . '!' : a:maparg.mode . cmd
+  let maparg = a:maparg
+  let cmd = get(maparg, 'noremap') ? 'noremap' : 'map'
+  let cmd = maparg.mode ==# '!' ? cmd . '!' : maparg.mode . cmd
 
-  let lhs = substitute(a:maparg.lhs, '\V|', '<Bar>', 'g')
-  let rhs = substitute(a:maparg.rhs, '\V|', '<Bar>', 'g')
+  let lhs = substitute(maparg.lhs, '\V|', '<Bar>', 'g')
+  let rhs = substitute(maparg.rhs, '\V|', '<Bar>', 'g')
+  if stridx(rhs, '<SID>') >= 0
+    let rhs = substitute(rhs, '<SID>', '<SNR>'.maparg.sid.'_', '')
+    let maparg.script = 1
+  endif
 
-  return join([cmd, s:Mapping.options_dict2raw(a:maparg), lhs, rhs])
+  return join([cmd, s:Mapping.options_dict2raw(maparg), lhs, rhs])
 endfu
 
 " from arpeggio.vim
