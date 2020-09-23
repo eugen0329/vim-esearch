@@ -40,6 +40,13 @@ Execute(setup):
     return a:from + s:next % (a:to - a:from)
   endfu
 
+  fu! Maparg(name, mode) abort
+    let dict = maparg(a:name, a:mode, 0, 1)
+    silent! call remove(dict, 'lnum')
+    silent! call remove(dict, 'sid')
+    return dict
+  endfu
+
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
   let g:esearch = {

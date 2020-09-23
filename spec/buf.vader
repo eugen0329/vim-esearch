@@ -56,8 +56,8 @@ Execute (#oneliner returns true if the buffer contains 1 line):
 Then:
   Assert g:buf.oneliner()
 
-Execute (#oneliner returns true if the buffer contains 1 line):
-  let g:buf = g:Handle.new(Fixture(g:file, ['line']))
+Execute (#oneliner returns true if the buffer contains no lines):
+  let g:buf = g:Handle.new(Fixture(g:file, []))
   $tabnew
 Then:
   Assert g:buf.oneliner()
