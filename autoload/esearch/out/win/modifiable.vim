@@ -122,7 +122,7 @@ fu! esearch#out#win#modifiable#c_dot(wise) abort
   if b:esearch.modifiable
     let options = esearch#let#restorable({'&whichwrap': ''})
     try
-      let seq = @. == s:last_inserted_text ? 'd' : '".p'
+      let seq = s:changes_count == 0 ? 'd' : '".p'
 
       if esearch#util#is_visual(a:wise)
         let cmd = s:delete_visual_cmd(a:wise, s:last_visual, seq)
@@ -150,7 +150,6 @@ endfu
 
 fu! esearch#out#win#modifiable#c(wise) abort
   let [s:count, s:reg] = esearch#operator#vars()
-  let s:last_inserted_text = @.
 
   if esearch#util#is_visual(a:wise)
     if !b:esearch.modifiable | return | endif
@@ -182,8 +181,9 @@ fu! esearch#out#win#modifiable#c(wise) abort
   endif
   startinsert
 
+  let s:changes_count = -b:changedtick
   aug esearch_change
-    au InsertLeave * call s:repeat_set() | au! esearch_change
+    au InsertLeave * call s:repeat_set() | let s:changes_count += b:changedtick | au! esearch_change
   aug END
   call s:repeat_set()
 endfu
@@ -244,12 +244,12 @@ endfu
 
 fu! s:delete_lines(wise, cmd, ...) abort
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+  let state = deepcopy(b:esearch.undotree.head.state)
   try
     let region = empty(get(a:, 1)) ? s:region(a:wise) : a:1
 
     silent exe a:cmd
 
-    let state = deepcopy(b:esearch.undotree.head.state)
     let state = s:delete_region_from_state(a:wise, state, region)
     return region
   finally
