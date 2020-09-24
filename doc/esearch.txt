@@ -96,11 +96,11 @@ Edit results~
     |Insert| mode to add new lines below or above the line with results. Use `im`
     and `am` text-objects to jump to the following match and start operating on
     it (works similar to |gn| sequence). E.g. use `cim` and type the replacement.
-    Press `.` to repeat replacement on the further matches.
+    Press `.` to repeat the replacement on the further matches.
 
 Write changes~
-    Type `:write<cr>` to save changes into files. Press `u` or use `:undo<cr>` command
-    followed by `:write<cr>` to revert changes made earlier. 
+    Type `:write<cr>` to save changes into files. Use undo followed by `:write<cr>`
+    to revert changes made earlier. 
 
 Preview~
     Press `p` to open a preview window. Use multiple `p` to zoom it and capital
@@ -396,7 +396,6 @@ g:esearch.backend                                              *g:esearch.backen
 >
         let g:esearch.backend = 'system'
 <
-
 g:esearch.out                                                      *g:esearch.out*
         Name of a target to output results.
         Type: |String|
@@ -419,7 +418,6 @@ g:esearch.git_dir({cwd})                                     *g:esearch.git_dir(
 >
         let g:esearch.git_dir = {cwd -> FugitiveExtractGitDir(cwd)}
 <
-
 g:esearch.git_url({path}, {dir})                             *g:esearch.git_url()*
         Function to generate urls for blobs viewing.
         Type: |Funcref|
@@ -432,7 +430,6 @@ g:esearch.git_url({path}, {dir})                             *g:esearch.git_url(
 >
         let g:esearch.git_url = {path, dir -> FugitiveFind(path, dir)}
 <
-
 g:esearch.filemanager_integration              *g:esearch.filemanager_integration*
         Flag to toggle integration with filemanagers (nerdtree, dirvish,
         netranger, defx). If withing a filemanager window, the plugin will

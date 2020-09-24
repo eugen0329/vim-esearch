@@ -60,7 +60,4 @@ Execute(setup):
   \}
 
   let g:mapleader = ","
-
-  set shortmess=lnTtoOfF
-  set nomore
-  set splitright splitbelow
+  set nomore splitright splitbelow shortmess=lnTtoOfF

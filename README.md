@@ -70,7 +70,7 @@ the insert mode. Use any other operator including user-defined to capture matche
 
 Use `:substitute/` command without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
 
-Type `:write<cr>` to save changes into files. Use `u` and `:write<cr>` again to revert.
+Type `:write<cr>` to save changes into files. Use undo and `:write<cr>` command again to revert.
 
 Press `p` to open a preview window. Use multiple `p` to zoom it and capital `P`
 to enter the preview for superficial changes (without jumping to a separate split window).
