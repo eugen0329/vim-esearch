@@ -7,7 +7,8 @@ Before:
   let g:esearch.cwd = 'spec/fixtures/docs/'
   let g:esearch.backend = 'system'
   let g:file = Fixture(g:esearch.cwd.'file.txt', ['l1', 'l2'])
-  call esearch#stderr#incremental('workaround to get around vader bug', ['with autoload fail'])
+  call esearch#stderr#incremental('workaround to avoid vader bug', ['with autoload fail'])
+  let @+ = ''
 After:
   if exists('#test')
     au! test *
@@ -16,6 +17,8 @@ After:
   Restore g:esearch
 
 Execute(.win_map):
+  call g:esearch.win_new({})
+  bwipe!
   let g:esearch.win_map = [
    \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @"<cr>'                ],
    \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                          ],
@@ -25,31 +28,32 @@ Execute(.win_map):
    \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'         ],
    \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'         ],
    \]
-
    let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
    let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
    let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
    let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
 Then:
    call esearch#init({'pattern': '.'})
-   exe "norm yf"
+   norm yf
    AssertEqual @+, g:file
-   exe "norm t"
+   norm t
    Assert split(execute('messages'), "\n")[-1] =~# 'Not an editor command: NewTabdrop'
-   exe "norm 4+"
+   norm 4+
    AssertEqual b:esearch.after, 4
-   exe "norm 2-"
+   norm 2-
    AssertEqual b:esearch.after, 2
-   exe "norm gq"
+   norm gq
    AssertEqual &ft, 'qf'
    AssertEqual line('$'), len(readfile(g:file))
    cclose
-   exe "norm gsp"
+   norm gsp
    Assert b:esearch.request.command =~# '--sort path', 'expected to sort by path'
-   exe "norm gsd"
+   norm gsd
    Assert b:esearch.request.command =~# '--sort modified', 'expected to sort by date'
 
 Execute(split autopreview):
+  call g:esearch.win_new({})
+  bwipe!
   aug test
     au!
     autocmd User esearch_win_config
@@ -65,6 +69,8 @@ Then:
 
 Execute(float autopreview):
   if !has('nvim') | finish | endif
+  call g:esearch.win_new({})
+  bwipe!
   aug test
     au!
     autocmd User esearch_win_config
@@ -79,7 +85,7 @@ Then:
   call esearch#init({'pattern': '.'})
   doau CursorMoved
   sleep 500m
-  AssertEqual winnr('$'), 2
+  AssertEqual nvim_win_get_config(g:esearch#preview#win.id).relative, 'win'
 
 Execute(float win_new):
   if  !has('nvim') | finish | endif
