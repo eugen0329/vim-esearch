@@ -1,16 +1,18 @@
+let s:modes = ['case', 'regex', 'textobj']
+
 fu! esearch#middleware#adapter#apply(esearch) abort
   call s:set_current_adapter(a:esearch)
   call s:set_parser(a:esearch)
 
-  if type(a:esearch.regex) !=# type('') && !empty(a:esearch._adapter.textobj)
-    let a:esearch.regex = a:esearch._adapter.bool2regex[!!a:esearch.regex]
-  endif
-  if type(a:esearch.case) !=# type('') && !empty(a:esearch._adapter.textobj)
-    let a:esearch.case = a:esearch._adapter.bool2case[!!a:esearch.case]
-  endif
-  if type(a:esearch.textobj) !=# type('') && !empty(a:esearch._adapter.textobj)
-    let a:esearch.textobj = a:esearch._adapter.bool2textobj[!!a:esearch.textobj]
-  endif
+  for mode in s:modes
+    if !empty(a:esearch._adapter[mode])
+      if type(a:esearch[mode]) !=# type('')
+        let a:esearch[mode] = a:esearch._adapter['bool2'.mode][!!a:esearch[mode]]
+      elseif !has_key(a:esearch._adapter[mode], a:esearch[mode])
+        let a:esearch[mode] = a:esearch._adapter['bool2'.mode][0]
+      endif
+    endif
+  endfor
 
   return a:esearch
 endfu

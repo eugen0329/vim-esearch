@@ -2,6 +2,7 @@ Include: helper.vader
 
 Before:
   let g:esearch.cwd = 'spec/fixtures/jumps/'
+  let g:esearch.pattern = '.'
   for i in range(1, 3)
     call Fixture(g:esearch.cwd.'/dir'.i.'/file'.i.'.txt', ['line'.i])
   endfor

@@ -1,0 +1,131 @@
+Include: helper.vader
+
+Before:
+  let g:spy = 'original'
+
+After:
+  silent! unmap [lhs]
+  silent! unmap [lhs<bar>]
+  silent! unmap <buffer> [lhs]
+  silent! unmap! [lhs]
+  silent! unmap! <buffer> [lhs]
+
+Execute(#restorable restores " " keymap):
+  map [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', ' ')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b']])
+Then:
+  AssertNotEqual Maparg('[lhs]', ' '), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', ' '), g:expected_maparg
+
+Execute(#restorable restores "nore" keymap):
+  noremap [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', ' ')
+  let g:original = esearch#keymap#restorable([[' ', '[lhs]', 'b', {'noremap': 1}]])
+Then:
+  AssertNotEqual Maparg('[lhs]', ' '), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', ' '), g:expected_maparg
+
+Execute(#restorable restores "c" keymap):
+  cmap [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', 'c')
+  let g:original = esearch#keymap#restorable([['c', '[lhs]', 'b']])
+Then:
+  AssertNotEqual Maparg('[lhs]', 'c'), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', 'c'), g:expected_maparg
+
+Execute(#restorable restores <buffer> keymap):
+  nmap <buffer> [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', 'n')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b', {'buffer': 1}]])
+Then:
+  AssertNotEqual Maparg('[lhs]', 'n'), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', 'n'), g:expected_maparg
+
+Execute(#restorable restores <nowait> keymap):
+  nmap <nowait> [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', 'n')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b', {'nowait': 1}]])
+Then:
+  AssertNotEqual Maparg('[lhs]', 'n'), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', 'n'), g:expected_maparg
+
+Execute(#restorable restores <silent> keymap):
+  nmap <silent> [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', 'n')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b', {'silent': 1}]])
+Then:
+  AssertNotEqual Maparg('[lhs]', 'n'), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', 'n'), g:expected_maparg
+
+Execute(#restorable restores <expr> keymap):
+  nmap <expr> [lhs] a
+  let g:expected_maparg = Maparg('[lhs]', 'n')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b', {'expr': 1}]])
+Then:
+  AssertNotEqual Maparg('[lhs]', 'n'), g:expected_maparg
+  call g:original.restore()
+  AssertEqual Maparg('[lhs]', 'n'), g:expected_maparg
+
+Execute(#restorable restores "!" keymap):
+  map! [lhs] a
+  let g:expected_mapargs = [Maparg('[lhs]', 'i'), Maparg('[lhs]', 'c')]
+  let g:original = esearch#keymap#restorable([['ic', '[lhs]', 'b']])
+Then:
+  AssertNotEqual [Maparg('[lhs]', 'i'), Maparg('[lhs]', 'c')], g:expected_mapargs
+  call g:original.restore()
+  AssertEqual [Maparg('[lhs]', 'i'), Maparg('[lhs]', 'c')], g:expected_mapargs
+
+Execute(#restorable restores <script> keymap):
+  fu! s:rhs(arg)
+    let g:spy = a:arg
+    return ''
+  endfu
+  nmap <expr><script> [lhs] <SID>rhs('a')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b', {'script': 1}]])
+Then:
+  norm [lhs]
+  AssertEqual g:spy, 'original'
+  call g:original.restore()
+  norm [lhs]
+  AssertEqual g:spy, 'a'
+
+Execute(#restorable restores <script> keymap with multiple <SID>):
+  fu! s:rhs(arg)
+    let g:spy = a:arg
+    return ''
+  endfu
+  nmap <expr><script> [lhs] <SID>rhs('a').<SID>rhs('z')
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b', {'script': 1}]])
+Then:
+  norm [lhs]
+  AssertEqual g:spy, 'original'
+  call g:original.restore()
+  norm [lhs]
+  AssertEqual g:spy, 'z'
+
+Execute(#restorable restores keymap with | in lhs):
+  nmap [lhs<bar>] :let g:spy = 'a'<CR>
+  let g:original = esearch#keymap#restorable([['n', '[lhs|]', 'b']])
+Then:
+  norm [lhs|]
+  AssertEqual g:spy, 'original'
+  call g:original.restore()
+  norm [lhs|]
+  AssertEqual g:spy, 'a'
+
+Execute(#restorable restores keymap with | in rhs):
+  nmap [lhs] :let g:spy = 'a'\|let g:spy = 'z'<CR>
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b']])
+Then:
+  norm [lhs]
+  AssertEqual g:spy, 'original'
+  call g:original.restore()
+  norm [lhs]
+  AssertEqual g:spy, 'z'

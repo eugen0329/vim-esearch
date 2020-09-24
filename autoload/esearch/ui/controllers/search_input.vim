@@ -23,6 +23,9 @@ fu! s:SearchInputController.render() abort dict
     let original_options = self.set_options()
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
+  catch /Vim:Interrupt/
+    call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
+    call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
     if !empty(original_options) | call original_options.restore() | endif

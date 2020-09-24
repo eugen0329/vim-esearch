@@ -60,12 +60,15 @@ Add one of the following lines depending on your plugin manager:
     Plugin 'eugen0329/vim-esearch'
 <
 Recommended: install [rg], [ag], [ack] or [pt] for faster searching and extra
-features. Otherwise, grep or git-grep will be used.
+features. Install [semgrep] and [gogrep] for semantic searching. Otherwise,
+grep or git-grep will be used.
 
-              [rg]  https://github.com/BurntSushi/ripgrep#installation
-              [ag]  https://github.com/ggreer/the_silver_searcher#installing
-              [ack] https://beyondgrep.com/install/
-              [pt]  https://github.com/monochromegane/the_platinum_searcher#user
+          [rg]      https://github.com/BurntSushi/ripgrep#installation
+          [ag]      https://github.com/ggreer/the_silver_searcher#installing
+          [ack]     https://beyondgrep.com/install/
+          [pt]      https://github.com/monochromegane/the_platinum_searcher#user
+          [semgrep] https://github.com/returntocorp/semgrep
+          [gogrep]  https://github.com/mvdan/gogrep
 
 ================================================================================
 QUICK START                                                   *esearch-quickstart*
@@ -79,17 +82,25 @@ Start searching~
 
 Navigation~
     Within the search window use `J` and `K` to jump between entries or `{`
-    and `}` to jump between filenames.
+    and `}` to jump between filenames. Use `(` and `)` to jump between filenames from
+    different directories.
 
 Open files~
-    To open a line in a file press `<Enter>` (open in the current window), `o`
+    To open a line in a file press `<enter>` (open in the current window), `o`
     (open in a split), `s` (split vertically) or `t` to open in a new tab. Use
     the keys with shift pressed (`O`, `S` and `T`) to open staying in the
     search window.
 
+Edit results~
+    Modify or delete results right inside the search window. Press <enter> in
+    |Insert| mode to add new lines below or above the line with results. Use `im`
+    and `am` text-objects to jump to the following match and start operating on
+    it (works similar to |gn| sequence). E.g. use `cim` and type the replacement.
+    Press `.` to repeat the replacement on the further matches.
+
 Write changes~
-    Modify or delete the results right inside the search window and type
-    `:write<CR>`` to save your changes into files.
+    Type `:write<cr>` to save changes into files. Use undo followed by `:write<cr>`
+    to revert changes made earlier. 
 
 Preview~
     Press `p` to open a preview window. Use multiple `p` to zoom it and capital
@@ -162,7 +173,7 @@ To customize the plugin you must initialize it first with:
  `.filetypes`               | String with filetypes to search in (space separated)
  `.paths`                   | String with paths to search in using shell syntax
  `.live_update`             | Start and update the output while you're typing
- `.write_cb`                | Callback to write a buffer after applying changes
+ `.write_cb()`              | Callback to write a buffer after applying changes
  `.select_prefilled`        | Flag to visually select a prefilled prompt text
  `.default_mappings`        | Flag to toggle all default mappings
  `.adapter`                 | Search util (ag, rg, grep etc.) adapter name
@@ -369,7 +380,8 @@ g:esearch.remember                                            *g:esearch.remembe
 g:esearch.adapter                                              *g:esearch.adapter*
         Name of a search util to use.
         Type: |String|
-        Allowed values: `'rg'`, `'ag'`, `'ack'`, `'pt'`, `'git'` or `'grep'`
+        Allowed values:
+              `'rg'`, `'ag'`, `'ack'`, `'pt'`, `'git'`, `'gogrep'`, `'semgrep'` or `'grep'`
         Default: depends on executables availability.
         Example:~
 >
@@ -384,7 +396,6 @@ g:esearch.backend                                              *g:esearch.backen
 >
         let g:esearch.backend = 'system'
 <
-
 g:esearch.out                                                      *g:esearch.out*
         Name of a target to output results.
         Type: |String|
@@ -403,7 +414,10 @@ g:esearch.git_dir({cwd})                                     *g:esearch.git_dir(
         Default: function that searches up for .git/HEAD file
         Parameters:~
             {cwd}   |String| with directory used for .git extraction
-
+        Example:~
+>
+        let g:esearch.git_dir = {cwd -> FugitiveExtractGitDir(cwd)}
+<
 g:esearch.git_url({path}, {dir})                             *g:esearch.git_url()*
         Function to generate urls for blobs viewing.
         Type: |Funcref|
@@ -412,6 +426,10 @@ g:esearch.git_url({path}, {dir})                             *g:esearch.git_url(
             {path}   |String| with path in rev:filename format
             {dir}    |String| with extracted git directory
 
+        Example:~
+>
+        let g:esearch.git_url = {path, dir -> FugitiveFind(path, dir)}
+<
 g:esearch.filemanager_integration              *g:esearch.filemanager_integration*
         Flag to toggle integration with filemanagers (nerdtree, dirvish,
         netranger, defx). If withing a filemanager window, the plugin will
@@ -1012,6 +1030,10 @@ NOTE Double clicks are used to prevent any conflicts with the default mappings
 
 Press <c-o> to open the menu to configure search paths, filetypes and other
 options.
+For [gogrep], [semgrep] and [git-grep] <c-p> key can be used to add multiple
+patterns for searching. Press <c-p> multiple times to cycle through pattern
+kinds. Use <bs> with empty input to drop the last pattern and start editing the
+previous.
 
 ________________________________________________________________________________~
 COMMANDLINE MENU                                            *esearch-cmdline-menu*
@@ -1184,11 +1206,10 @@ they are changed during a request.
         \ 'remember': ['regex', 'case']
         \})<cr>
 <
-3. Search in front-end files using explicitly set cwd.
+3. Search in front-end files using explicitly set paths.
 >
     nnoremap <leader>fe :call esearch#init({
         \ 'paths': '**/*.{js,css,html}',
-        \ 'cwd':   '~/another-dir'
         \ 'remember': 0
         \})<cr>
 <
@@ -1200,10 +1221,7 @@ If you use OSX, install the latest bash version first using:
 
 Or the same query if one of [ag], [rg] or [ack] is available:
 >
-    nnoremap <leader>fe :call esearch#init({
-        \ 'filetypes': 'js css html',
-        \ 'cwd': '~/another-dir'
-        \})<cr>
+    nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 <
 See also: |g:esearch.paths| for globbing details.
 
@@ -1223,7 +1241,7 @@ but they must be preceded by `\` to be expanded within `""` quotes.
 See also: |key-notation|, |lambda|.
 
                                                             *esearch-git-examples*
-5. Use backticks in |g:esearch.paths| to search in modified files only.
+5. Use backticks in |g:esearch.paths| to search using git information.
 
 Search in modified files only.
 >
@@ -1240,7 +1258,18 @@ Search in commits made since the beginning of a sprint (if 2 weeks long).
         \ 'remember': 0
         \})<cr>
 <
+Search in commits from an inputted branch.
+>
+    function! CompleteBranches(...)
+      return system('git branch --format="%(refname:short)"')
+    endfunction
 
+    nnoremap <c-f><c-b> :call esearch#init({
+          \ 'adapter':  'git',
+          \ 'paths':    '`git rev-list '.input('branch> ', '', 'custom,CompleteBranches').'`',
+          \ 'remember': 0
+          \})<cr>
+<
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*
 
@@ -1289,7 +1318,7 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
       Keymap       What will do~
      -------+-------------------------------------------------------------------
        yf   | Yank a hovered file absolute path.
-       t    | Use a custom command to open a file in a tab.
+       t    | Use a custom command to open the file in a tab.
        +    | Render [count] more context lines after a line with matches.
        -    | Render [count] less context lines after a line with matches.
        gq   | Populate QuickFix list using results of the current pattern search.

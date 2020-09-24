@@ -40,18 +40,24 @@ Execute(setup):
     return a:from + s:next % (a:to - a:from)
   endfu
 
+  fu! Maparg(name, mode) abort
+    let dict = maparg(a:name, a:mode, 0, 1)
+    silent! call remove(dict, 'lnum')
+    silent! call remove(dict, 'sid')
+    return dict
+  endfu
+
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
   let g:esearch = {
   \ 'backend': 'system',
-  \ 'pattern': '.',
   \ 'regex': 1,
   \ 'adapter': 'rg',
-  \ 'win_new': {_-> execute('noswap edit [esearch-vader]')},
+  \ 'win_new': {_-> esearch#buf#goto_or_open('[esearch-vader]', 'noswap tabnew')},
   \ 'adapters': {'rg': {'options': '--sort path'}},
   \ 'live_update': 0,
   \ 'root_markers': [],
   \}
 
-  set shortmess=lnTtoOfF
-  set nomore
+  let g:mapleader = ","
+  set nomore splitright splitbelow shortmess=lnTtoOfF

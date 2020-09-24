@@ -42,9 +42,9 @@ call extend(s:Git, {
       \ },
       \ 'pattern_kinds': [
       \   {'opt': '-e ',             'regex': 1},
+      \   {'opt': '--and --not -e ', 'regex': 1},
       \   {'opt': '--and -e ',       'regex': 1},
       \   {'opt': '--not -e ',       'regex': 1},
-      \   {'opt': '--and --not -e ', 'regex': 1},
       \ ],
       \})
 

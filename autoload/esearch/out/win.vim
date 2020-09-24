@@ -257,7 +257,7 @@ fu! s:winrestview(es, view) abort
     if empty(ctx) | return winrestview(a:view) | endif
 
     let offset = index(sort(keys(ctx.lines), 'N'), remove(a:view, 'ctx_lnum'))
-    let lnum = ctx.begin + offset + 2
+    let lnum = ctx.begin + offset + 1
     let a:view.topline += lnum - a:view.lnum
     let a:view.lnum = lnum
   endif

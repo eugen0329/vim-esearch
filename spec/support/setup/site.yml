@@ -85,8 +85,11 @@
 
     - name: Setup plugin dependencies
       git:
-        repo: https://github.com/mg979/vim-visual-multi.git
-        dest: ~/.cache/esearch-dev/plugins/vim-visual-multi
+        repo: "{{ item }}"
+        dest: "~/.cache/esearch-dev/plugins/{{ item | urlsplit('path') | basename | splitext | first }}"
+      with_items:
+        - https://github.com/mg979/vim-visual-multi.git
+        - https://github.com/tpope/vim-fugitive.git
 
     - name: Setup testing dependencies
       block:

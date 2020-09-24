@@ -15,7 +15,7 @@ fu! esearch#keymap#set(mode, lhs, rhs, opts) abort
 endfu
 
 fu! esearch#keymap#del(mode, lhs, opts) abort
-  return s:Mapping.get_unmap_command(a:mode, a:opts, a:lhs)
+  exe s:Mapping.get_unmap_command(a:mode, a:opts, a:lhs)
 endfu
 
 fu! esearch#keymap#restorable(maps) abort
@@ -49,13 +49,18 @@ fu! s:Guard.restore() abort dict
 endfu
 
 fu! esearch#keymap#maparg2set_command(maparg) abort
-  let cmd = get(a:maparg, 'noremap') ? 'noremap' : 'map'
-  let cmd = a:maparg.mode ==# '!' ? cmd . '!' : a:maparg.mode . cmd
+  let maparg = a:maparg
+  let cmd = get(maparg, 'noremap') ? 'noremap' : 'map'
+  let cmd = maparg.mode ==# '!' ? cmd . '!' : maparg.mode . cmd
 
-  let lhs = substitute(a:maparg.lhs, '\V|', '<Bar>', 'g')
-  let rhs = substitute(a:maparg.rhs, '\V|', '<Bar>', 'g')
+  let lhs = substitute(maparg.lhs, '\V|', '<Bar>', 'g')
+  let rhs = substitute(maparg.rhs, '\V|', '<Bar>', 'g')
+  if stridx(rhs, '<SID>') >= 0
+    let rhs = substitute(rhs, '<SID>', '<SNR>'.maparg.sid.'_', 'g')
+    let maparg.script = 1
+  endif
 
-  return join([cmd, s:Mapping.options_dict2raw(a:maparg), lhs, rhs])
+  return join([cmd, s:Mapping.options_dict2raw(maparg), lhs, rhs])
 endfu
 
 " from arpeggio.vim
@@ -75,23 +80,22 @@ endfu
 fu! esearch#keymap#escape_kind(char) abort
   call s:generate_escape_tables()
 
-  let printable = strtrans(a:char)
-
-   if (!empty(s:meta_prefix_re) && printable =~# s:meta_prefix_re) || s:is_keys_combination(s:meta_keys, printable)
-     return 'meta'
-   elseif s:is_keys_combination(s:shift_keys, printable)
-     return 'shift'
-   elseif a:char =~# '^[[:cntrl:]]' || s:is_keys_combination(s:control_keys, printable)
-     return 'control'
-   elseif s:is_keys_combination(s:function_keys, printable)
-      return 'f'
-   endif
+  let char = strtrans(a:char)
+  if (!empty(s:meta_prefix_re) && char =~# s:meta_prefix_re) || s:is_keys_combination(s:meta_keys, char)
+    return 'meta'
+  elseif s:is_keys_combination(s:shift_keys, char)
+    return 'shift'
+  elseif a:char =~# '^[[:cntrl:]]' || s:is_keys_combination(s:control_keys, char)
+    return 'control'
+  elseif s:is_keys_combination(s:function_keys, char)
+    return 'f'
+  endif
 
   return ''
 endfu
 
-fu! s:is_keys_combination(group, c) abort
-  return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
+fu! s:is_keys_combination(group, char) abort
+  return index(a:group, a:char[:-2]) >= 0 || index(a:group, a:char) >= 0
 endfu
 
 fu! s:generate_escape_tables() abort

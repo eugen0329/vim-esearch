@@ -62,14 +62,15 @@ To open a line in a file press `<enter>` (open in the current window), `o` (open
 `s` (split vertically) or `t` to open in a new tab. Use the keys with shift
 pressed (`O`, `S` and `T`) to open staying in the search window.
 
+Modify or delete results right inside the search window. Press `<enter>` in insert mode to add new lines below or above the line with results.
+
 Use `im` and `am` text-objects to jump to the following match and start operating on it. E.g.
 press `dam` to delete "a match" with trailing whitespaces under the cursor or jump to the nearest, `cim` to delete "inner match" and start
 the insert mode. Use any other operator including user-defined to capture matched text. Use `.` to repeat the last change.
 
 Use `:substitute/` command without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
 
-Modify or delete the results right inside the search window and type
-`:write<cr>` to save changes into files.
+Type `:write<cr>` to save changes into files. Use undo and `:write<cr>` command again to revert.
 
 Press `p` to open a preview window. Use multiple `p` to zoom it and capital `P`
 to enter the preview for superficial changes (without jumping to a separate split window).
@@ -86,6 +87,7 @@ Default mappings cheatsheet:
 | `O` / `S` / `T`                                 | Same as above, but stay in the window _[window]_                                                        |
 | `J` / `K`                                       | Jump to the next/previous **search entry** _[window]_                                                   |
 | `{` / `}`                                       | Jump to the next/previous **filename** _[window]_                                                       |
+| `(` / `)`                                       | Jump to the next/previous filename from another **directory** _[window]_                                                       |
 | `cim` / `dim` / `vim`                           | Jump to the **next match** and change/delete/select it _[window]_                                                            |
 | `cam` / `dam` / `vam`                           | Same as above, but capture trailing whitespaces as well _[window]_                                      |
 | `:write<cr>`                                    | **Write** changes into files _[window]_                                                                 |
@@ -180,7 +182,7 @@ let g:esearch.write_cb = {buf, bang -> buf.write(bang) && (!buf.existed && buf.b
 
 " Append buffers data to a location list for reviewing, open it and display the first entry.
 let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
-au User esearch_write_post lopen | wincmd p | lfirst
+autocmd User esearch_write_post lopen | wincmd p | lfirst
 ```
 
 Add mappings for window using `g:esearch.win_map` list.
@@ -190,7 +192,7 @@ let g:esearch = {}
 "   Keymap |     What it does
 " ---------+---------------------------------------------------------------------------------------------
 "    yf    | Yank a hovered file absolute path.
-"    t     | Use a custom command to open a file in a tab.
+"    t     | Use a custom command to open the file in a tab.
 "    +     | Render [count] more lines after a line with matches. Ex: + adds 1 line, 10+ adds 10.
 "    -     | Render [count] less lines after a line with matches. Ex: - hides 1 line, 10- hides 10.
 "    gq    | Populate QuickFix list using results of the current pattern search.
@@ -230,11 +232,11 @@ nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'rege
 " they are changed during a request.
 nnoremap <leader>fl :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
 
-" Search in front-end files using explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
+" Search in front-end files using explicitly set paths. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
-nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/another-dir'})<cr>
+nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 " or if one of ag, rg or ack is available
-nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
+nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 
 " Use a callable prefiller to search python functions. Initial cursor position will be before
 " the opening bracket due to \<s-left> added.
@@ -266,7 +268,7 @@ nnoremap <c-f><c-g> :call esearch#init({
 " Search in commits made since yesterday using an inputted branch.
 nnoremap <c-f><c-b> :call esearch#init({
       \ 'adapter':  'git',
-      \ 'paths':    '`git rev-list --since=yesterday '.input('rev> ', '', 'customlist,fugitive#CompleteObject').'`',
+      \ 'paths':    '`git rev-list --since=yesterday '.input('branch> ', '', 'customlist,fugitive#CompleteObject').'`',
       \ 'remember': 0
       \})<cr>
 ```

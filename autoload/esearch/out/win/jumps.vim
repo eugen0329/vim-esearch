@@ -167,12 +167,16 @@ fu! s:jump2dirname_up(esearch, count, last_filename, last_dirname) abort
   let [last_filename, last_dirname] = [a:last_filename, a:last_dirname]
 
   " Start searching from the filename
-  call search(s:filename_re,  'Wbe')
+  if a:esearch.is_filename()
+    norm! 0
+  else
+    call search(s:filename_re,  'Wb')
+  endif
 
   " if no filenames forward (the cursor is within the last ctx) - jump to
   " the filename before the last ctx
   if !a:esearch.is_filename() && !search(s:filename_re,  'Wn')
-    call search(s:filename_re,  'Wbe')
+    call search(s:filename_re,  'Wb')
   endif
 
   let times = -a:count

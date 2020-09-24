@@ -50,7 +50,7 @@ fu! s:DiffsIterator.has_next() abort dict
   return self.wlnum < len(self.lines) || !empty(self.deleted_ctxs_a)
 endfu
 
-" Diff ctx A (ours) and ctx B (theirs)
+" Diff each ctx A (ours) and ctx B (theirs).
 " line := sign + lnum + text
 " wlnum - search window lnum
 " edits - script to apply changes in a buffer
@@ -135,7 +135,7 @@ fu! s:DiffsIterator.next_modified() abort
       let ctx = self.contexts[self.wlnum2ctx_id[self.wlnum]]
       silent! unlet self.deleted_ctxs_a[ctx.id]
 
-      if !empty(self.lines[self.wlnum - 1]) || fnameescape(filename_b) !=# ctx.filename
+      if !empty(self.lines[self.wlnum - 1]) || filename_b !=# fnameescape(ctx.filename)
         throw s:err(s:unexpected_filename_fmt, self.wlnum)
       endif
 

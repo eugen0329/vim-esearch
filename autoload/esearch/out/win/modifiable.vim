@@ -119,19 +119,21 @@ fu! esearch#out#win#modifiable#align(id, align) abort
 endfu
 
 fu! esearch#out#win#modifiable#c_dot(wise) abort
-  let options = esearch#let#restorable({'&whichwrap': ''})
-  try
-    let seq = @. == s:last_inserted_text ? 'd' : '".p'
+  if b:esearch.modifiable
+    let options = esearch#let#restorable({'&whichwrap': ''})
+    try
+      let seq = s:changes_count == 0 ? 'd' : '".p'
 
-    if esearch#util#is_visual(a:wise)
-      let cmd = s:delete_visual_cmd(a:wise, s:last_visual, seq)
-      call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
-    else
-      call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, seq, s:reg))
-    endif
-  finally
-    call options.restore()
-  endtry
+      if esearch#util#is_visual(a:wise)
+        let cmd = s:delete_visual_cmd(a:wise, s:last_visual, seq)
+        call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
+      else
+        call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, seq, s:reg))
+      endif
+    finally
+      call options.restore()
+    endtry
+  endif
 
   call s:repeat_set()
 endfu
@@ -148,9 +150,9 @@ endfu
 
 fu! esearch#out#win#modifiable#c(wise) abort
   let [s:count, s:reg] = esearch#operator#vars()
-  let s:last_inserted_text = @.
 
   if esearch#util#is_visual(a:wise)
+    if !b:esearch.modifiable | return | endif
     let s:repeat_seq = a:wise . "\<plug>(esearch-c.)"
     let s:last_visual = s:save_visual()
 
@@ -158,6 +160,7 @@ fu! esearch#out#win#modifiable#c(wise) abort
   else
     norm! q
     let [seq, @"] = [@", s:original_reg]
+    if !b:esearch.modifiable | return | endif
 
     if seq ==# 'w'
       let s:repeat_seq = "\<plug>(esearch-c.)e"
@@ -178,8 +181,9 @@ fu! esearch#out#win#modifiable#c(wise) abort
   endif
   startinsert
 
+  let s:changes_count = -b:changedtick
   aug esearch_change
-    au InsertLeave * call s:repeat_set() | au! esearch_change
+    au InsertLeave * call s:repeat_set() | let s:changes_count += b:changedtick | au! esearch_change
   aug END
   call s:repeat_set()
 endfu
@@ -197,17 +201,19 @@ fu! s:repeat_set(...) abort
 endfu
 
 fu! esearch#out#win#modifiable#d_dot(wise) abort
-  let options = esearch#let#restorable({'&whichwrap': ''})
-  try
-    if esearch#util#is_visual(a:wise)
-      let cmd = s:delete_visual_cmd(a:wise, s:last_visual, 'd')
-      call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
-    else
-      call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, 'd', s:reg))
-    endif
-  finally
-    call options.restore()
-  endtry
+  if b:esearch.modifiable
+    let options = esearch#let#restorable({'&whichwrap': ''})
+    try
+      if esearch#util#is_visual(a:wise)
+        let cmd = s:delete_visual_cmd(a:wise, s:last_visual, 'd')
+        call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
+      else
+        call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, 'd', s:reg))
+      endif
+    finally
+      call options.restore()
+    endtry
+  endif
 
   call s:repeat_set()
 endfu
@@ -224,6 +230,7 @@ fu! s:delete_visual_cmd(wise, last_visual, seq) abort
 endfu
 
 fu! esearch#out#win#modifiable#d(wise) abort
+  if !b:esearch.modifiable | return | endif
   let [s:count, s:reg] = esearch#operator#vars()
   let last_visual = s:save_visual()
   call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, 'd', s:reg))
@@ -237,12 +244,12 @@ endfu
 
 fu! s:delete_lines(wise, cmd, ...) abort
   let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+  let state = deepcopy(b:esearch.undotree.head.state)
   try
     let region = empty(get(a:, 1)) ? s:region(a:wise) : a:1
 
     silent exe a:cmd
 
-    let state = deepcopy(b:esearch.undotree.head.state)
     let state = s:delete_region_from_state(a:wise, state, region)
     return region
   finally
