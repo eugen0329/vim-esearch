@@ -100,7 +100,7 @@ Edit results~
 
 Write changes~
     Type `:write<cr>` to save changes into files. Press `u` or use `:undo<cr>` command
-    followed by `:write<cr>` revert changes made earlier. 
+    followed by `:write<cr>` to revert changes made earlier. 
 
 Preview~
     Press `p` to open a preview window. Use multiple `p` to zoom it and capital
@@ -432,7 +432,6 @@ g:esearch.git_url({path}, {dir})                             *g:esearch.git_url(
 >
         let g:esearch.git_url = {path, dir -> FugitiveFind(path, dir)}
 <
-
 
 g:esearch.filemanager_integration              *g:esearch.filemanager_integration*
         Flag to toggle integration with filemanagers (nerdtree, dirvish,
@@ -1210,11 +1209,10 @@ they are changed during a request.
         \ 'remember': ['regex', 'case']
         \})<cr>
 <
-3. Search in front-end files using explicitly set cwd.
+3. Search in front-end files using explicitly set paths.
 >
     nnoremap <leader>fe :call esearch#init({
         \ 'paths': '**/*.{js,css,html}',
-        \ 'cwd':   '~/another-dir'
         \ 'remember': 0
         \})<cr>
 <
@@ -1226,10 +1224,7 @@ If you use OSX, install the latest bash version first using:
 
 Or the same query if one of [ag], [rg] or [ack] is available:
 >
-    nnoremap <leader>fe :call esearch#init({
-        \ 'filetypes': 'js css html',
-        \ 'cwd': '~/another-dir'
-        \})<cr>
+    nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 <
 See also: |g:esearch.paths| for globbing details.
 

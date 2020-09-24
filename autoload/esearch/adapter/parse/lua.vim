@@ -9,7 +9,7 @@ if g:esearch#has#nvim_lua
 else
   fu! esearch#adapter#parse#lua#parse(data, from, to) abort dict
     let [parsed, lines_delta, errors] =
-          \ luaeval('vim.list({esearch.parse.lines(_A[1], _A[2])})',
+          \ luaeval('vim.list({esearch.parse.lines(_A[0], _A[1])})',
           \         [a:data[a:from : a:to], self._adapter.parser])
     return [parsed, float2nr(lines_delta), errors]
   endfu

@@ -43,10 +43,10 @@ fu! esearch#prefill#hlsearch(esearch) abort
   let str = getreg('/')
   if empty(str) | return | endif
 
-  if a:esearch.regex
-    let text = esearch#pattern#vim2pcre#convert(str)
-  else
+  if a:esearch.regex is# 'literal' && !empty(a:esearch._adapter.regex)
     let text = esearch#pattern#vim2literal#convert(str)
+  else
+    let text = esearch#pattern#vim2pcre#convert(str)
   endif
 
   return esearch#pattern#new(a:esearch._adapter, text)

@@ -83,7 +83,7 @@ fu! s:Regex.convert(esearch) abort dict
   let self.literal = self.str
   let self.pcre = self.str
 
-  if a:esearch.regex ==# 'literal'
+  if a:esearch.regex is# 'literal'
     let self.vim = esearch#pattern#literal2vim#convert(self.str)
   else
     let self.vim = esearch#pattern#pcre2vim#convert(self.str)

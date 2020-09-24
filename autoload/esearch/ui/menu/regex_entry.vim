@@ -3,7 +3,7 @@ let s:List       = vital#esearch#import('Data.List')
 let s:RegexEntry = esearch#ui#component()
 
 fu! s:RegexEntry.render() abort dict
-  let icon = self.props.regex ==# 'literal' ? ['Comment', '\.\*'] : ['String', '/.*/']
+  let icon = self.props.regex is# 'literal' ? ['Comment', '\.\*'] : ['String', '/.*/']
 
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' regex match']]
   let option = self.props._adapter.regex[self.props.regex].option

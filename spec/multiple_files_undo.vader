@@ -2,6 +2,7 @@ Include: helper.vader
 
 Before:
   let g:esearch.cwd = 'spec/fixtures/multiple_files_undo'.g:test_number.next().'/'
+  let g:esearch.pattern = '.'
   let g:file = g:esearch.cwd.'file.txt'
   let g:file1 = g:esearch.cwd.'file1.txt'
   let g:file2 = g:esearch.cwd.'file2.txt'

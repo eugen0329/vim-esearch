@@ -51,14 +51,16 @@ Execute(setup):
   let g:esearch_yes = 1
   let g:esearch = {
   \ 'backend': 'system',
-  \ 'pattern': '.',
   \ 'regex': 1,
   \ 'adapter': 'rg',
-  \ 'win_new': {_-> execute('noswap edit [esearch-vader]')},
+  \ 'win_new': {_-> esearch#buf#goto_or_open('[esearch-vader]', 'noswap tabnew')},
   \ 'adapters': {'rg': {'options': '--sort path'}},
   \ 'live_update': 0,
   \ 'root_markers': [],
   \}
 
+  let g:mapleader = ","
+
   set shortmess=lnTtoOfF
   set nomore
+  set splitright splitbelow

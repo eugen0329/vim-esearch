@@ -2,14 +2,26 @@ fu! esearch#middleware#adapter#apply(esearch) abort
   call s:set_current_adapter(a:esearch)
   call s:set_parser(a:esearch)
 
-  if type(a:esearch.regex) !=# type('') && !empty(a:esearch._adapter.textobj)
-    let a:esearch.regex = a:esearch._adapter.bool2regex[!!a:esearch.regex]
+  if !empty(a:esearch._adapter.regex)
+    if type(a:esearch.regex) !=# type('')
+      let a:esearch.regex = a:esearch._adapter.bool2regex[!!a:esearch.regex]
+    elseif !has_key(a:esearch._adapter.regex, a:esearch.regex)
+      let a:esearch.regex = a:esearch._adapter.bool2regex[0]
+    endif
   endif
-  if type(a:esearch.case) !=# type('') && !empty(a:esearch._adapter.textobj)
-    let a:esearch.case = a:esearch._adapter.bool2case[!!a:esearch.case]
+  if !empty(a:esearch._adapter.case)
+    if type(a:esearch.case) !=# type('') && !empty(a:esearch._adapter.case)
+      let a:esearch.case = a:esearch._adapter.bool2case[!!a:esearch.case]
+    elseif !has_key(a:esearch._adapter.case, a:esearch.case)
+      let a:esearch.case = a:esearch._adapter.bool2case[0]
+    endif
   endif
-  if type(a:esearch.textobj) !=# type('') && !empty(a:esearch._adapter.textobj)
-    let a:esearch.textobj = a:esearch._adapter.bool2textobj[!!a:esearch.textobj]
+  if !empty(a:esearch._adapter.textobj)
+    if type(a:esearch.textobj) !=# type('') && !empty(a:esearch._adapter.textobj)
+      let a:esearch.textobj = a:esearch._adapter.bool2textobj[!!a:esearch.textobj]
+    elseif !has_key(a:esearch._adapter.textobj, a:esearch.textobj)
+      let a:esearch.textobj = a:esearch._adapter.bool2textobj[0]
+    endif
   endif
 
   return a:esearch

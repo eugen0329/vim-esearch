@@ -182,7 +182,7 @@ let g:esearch.write_cb = {buf, bang -> buf.write(bang) && (!buf.existed && buf.b
 
 " Append buffers data to a location list for reviewing, open it and display the first entry.
 let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
-au User esearch_write_post lopen | wincmd p | lfirst
+autocmd User esearch_write_post lopen | wincmd p | lfirst
 ```
 
 Add mappings for window using `g:esearch.win_map` list.
@@ -232,11 +232,11 @@ nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'rege
 " they are changed during a request.
 nnoremap <leader>fl :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
 
-" Search in front-end files using explicitly set cwd. NOTE `set shell=bash\ -O\ globstar`
+" Search in front-end files using explicitly set paths. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
-nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}', 'cwd': '~/another-dir'})<cr>
+nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 " or if one of ag, rg or ack is available
-nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html', 'cwd': '~/another-dir'})<cr>
+nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 
 " Use a callable prefiller to search python functions. Initial cursor position will be before
 " the opening bracket due to \<s-left> added.

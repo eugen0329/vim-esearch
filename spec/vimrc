@@ -1,4 +1,6 @@
-set rtp+=~/.cache/esearch-dev/plugins/vader.vim
 set rtp+=.
+set rtp+=~/.cache/esearch-dev/plugins/vader.vim
+set rtp+=~/.cache/esearch-dev/plugins/vim-fugitive/
+set rtp+=~/.cache/esearch-dev/plugins/vim-visual-multi/
 filetype plugin indent on
 syntax enable
