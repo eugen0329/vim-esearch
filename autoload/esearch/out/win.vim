@@ -236,6 +236,9 @@ fu! s:I() abort
 endfu
 
 fu! s:reload() abort dict
+  if &modified && confirm('The window is modified. Reload?', "&Yes\n&Cancel") == 0
+    return
+  endif
   call esearch#backend#{self.backend}#abort(self.bufnr)
   let self.live_update = 0
   return esearch#init(self)

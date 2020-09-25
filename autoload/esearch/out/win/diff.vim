@@ -10,7 +10,7 @@ let s:duplicate_set_fmt        = 'Duplicate line number at line %d.'
 let s:unexpected_set_fmt       = "Unexpected line number at line %d. Can't set an arbitrary line in the file."
 let s:unexpected_lnum_fmt      = 'Unexpected line number at line %d. Line numbers sequence must be increasing.'
 let s:missing_filename_fmt     = 'Missing filename before entries at line %d.'
-let s:unexpected_separator_fmt = 'Unexpected blank linese parator at line %d.'
+let s:unexpected_separator_fmt = 'Unexpected blank line parator at line %d.'
 let s:unexpected_sign_fmt      = 'Unexpected sign at line %d.'
 
 fu! esearch#out#win#diff#do() abort
