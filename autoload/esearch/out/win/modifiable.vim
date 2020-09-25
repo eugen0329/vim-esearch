@@ -145,7 +145,7 @@ fu! esearch#out#win#modifiable#c_pre() abort
 endfu
 
 fu! esearch#out#win#modifiable#save_reg() abort
-  let s:original_reg = @"
+  let [s:original_reg, @"] = [@", '']
 endfu
 
 fu! esearch#out#win#modifiable#c(wise) abort
@@ -183,7 +183,7 @@ fu! esearch#out#win#modifiable#c(wise) abort
 
   let s:changes_count = -b:changedtick
   aug esearch_change
-    au InsertLeave * call s:repeat_set() | let s:changes_count += b:changedtick | au! esearch_change
+    au InsertLeave * let s:changes_count += b:changedtick | au! esearch_change
   aug END
   call s:repeat_set()
 endfu
