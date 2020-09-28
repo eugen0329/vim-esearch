@@ -18,6 +18,7 @@ local M = {
   buf_attach_matches          = matches.buf_attach_matches,
 
   UI_NS                       = ui.UI_NS,
+  ATTACHED_UI                 = ui.ATTACHED_UI,
   highlight_header            = ui.highlight_header,
   buf_attach_ui               = ui.buf_attach_ui,
   highlight_ui                = ui.highlight_ui,
