@@ -18,16 +18,21 @@ fu! esearch#out#win#appearance#matches#init(es) abort
   if !has_key(a:es.pattern, 'vim') | retu esearch#out#win#appearance#matches#uninit(get(b:, 'esearch', {})) | en
 
   if a:es.win_matches_highlight_strategy ==# 'viewport'
-    let a:es.last_hl_range = [0,0]
-    let a:es.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
-    let a:es.lines_with_hl_matches = {}
-    let Callback = function('s:hl_viewport_cb', [a:es])
-    let a:es.hl_matches = esearch#async#debounce(Callback, a:es.win_matches_highlight_debounce_wait)
-
-    aug esearch_win_hl_matches
-      au CursorMoved <buffer> call b:esearch.hl_matches.apply()
-    aug to
-    call luaeval('esearch.appearance.buf_attach_matches()')
+    if g:esearch#has#nvim_lua_regex
+      aug esearch_win_hl_matches
+        au CursorMoved <buffer> call v:lua.esearch.appearance.deferred_highlight_viewport()
+      aug END
+    else
+      let a:es.last_hl_range = [0,0]
+      let a:es.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
+      let a:es.lines_with_hl_matches = {}
+      let Callback = function('s:hl_viewport_cb', [a:es])
+      let a:es.hl_matches = esearch#async#debounce(Callback, a:es.win_matches_highlight_debounce_wait)
+      aug esearch_win_hl_matches
+        au CursorMoved <buffer> call b:esearch.hl_matches.apply()
+      aug END
+      call luaeval('esearch.appearance.buf_attach_matches()')
+    endif
     let a:es.hl_strategy = 'viewport'
     retu
   endif
@@ -52,7 +57,7 @@ fu! esearch#out#win#appearance#matches#uninit(es) abort
   if has_key(a:es, 'hl_matches')
     aug esearch_win_hl_matches
       au! * <buffer>
-    aug to
+    aug END
     call a:es.hl_matches.cancel()
   elsei has_key(a:es, 'matches_hl_id')
     call esearch#util#safe_matchdelete(a:es.matches_hl_id)
@@ -63,9 +68,15 @@ fu! esearch#out#win#appearance#matches#soft_stop(es) abort
   call esearch#out#win#appearance#matches#uninit(a:es)
 endfu
 
-fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
-  if a:es.hl_strategy ==# 'viewport' | cal s:hl(a:es, line('w0'), line('w$')) | en
-endf
+if g:esearch#has#nvim_lua_regex
+  fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
+    if a:es.hl_strategy ==# 'viewport' | call luaeval('esearch.appearance.highlight_viewport()') | en
+  endf
+else
+  fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
+    if a:es.hl_strategy ==# 'viewport' | cal s:hl(a:es, line('w0'), line('w$')) | en
+  endf
+endif
 
 fu! s:hl_viewport_cb(es) abort
   if !a:es.is_current() | retu | en

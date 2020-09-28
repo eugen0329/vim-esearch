@@ -79,6 +79,16 @@ else -- vim
   end
 end
 
+function M.restart_timer(timer, delay, interval, callback)
+  if timer then
+    timer:stop()
+    timer:close()
+  end
+  timer = vim.loop.new_timer()
+  timer:start(delay, interval, callback)
+  return timer
+end
+
 function M.is_true(val)
   return val == 1 or val == true
 end

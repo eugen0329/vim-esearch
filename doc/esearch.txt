@@ -936,7 +936,7 @@ g:esearch.win_viewport_off_screen_margin
 
         NOTE Has no affect if |g:esearch.win_contexts_syntax| is |FALSE| and
         |g:esearch.win_matches_highlight_strategy| is not `'viewport'`. Also
-        has no effect if OS-level KeyHold debounce timeout is lower than 
+        won't have effect if OS-level KeyHold debounce timeout is lower than 
         |g:esearch.win_contexts_syntax_debounce_wait| or
         |g:esearch.win_matches_highlight_debounce_wait|, as it'll cause
         debounce timer reset earlier than highlight callbacks are started.
