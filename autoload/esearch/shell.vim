@@ -14,7 +14,7 @@ fu! esearch#shell#split(string) abort
 endfu
 
 " If an element of <pathspec> starts with '-', it goes after '--' to prevent
-" parsing them as an option. <tree> cannot be passed after '--', so partitioning
+" parsing it as an option. <tree> cannot be passed after '--', so partitioning
 " is required.
 fu! esearch#shell#join_pathspec(args) abort
   if !g:esearch#has#posix_shell

@@ -8,17 +8,16 @@ fu! esearch#middleware#pattern#apply(esearch) abort
     call esearch.pattern.adapt(esearch._adapter)
     let esearch = esearch#cmdline#read(esearch)
     if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif
-
-    call esearch.pattern.splice(esearch)
   else
     if type(esearch.pattern) ==# type('')
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
     endif
     call esearch.pattern.adapt(esearch._adapter)
-    call esearch.pattern.splice(esearch)
     " avoid live_update if the pattern is present unless is it's a part of live_exec flow
     let esearch.live_update = esearch.live_exec
   endif
+
+  call esearch.pattern.splice(esearch)
   let esearch.last_pattern = esearch.pattern
 
   return esearch

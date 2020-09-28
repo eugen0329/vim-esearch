@@ -5,12 +5,12 @@ fu! esearch#middleware#adapter#apply(esearch) abort
   call s:set_parser(a:esearch)
 
   for mode in s:modes
-    if !empty(a:esearch._adapter[mode])
-      if type(a:esearch[mode]) !=# type('')
-        let a:esearch[mode] = a:esearch._adapter['bool2'.mode][!!a:esearch[mode]]
-      elseif !has_key(a:esearch._adapter[mode], a:esearch[mode])
-        let a:esearch[mode] = a:esearch._adapter['bool2'.mode][0]
-      endif
+    if empty(a:esearch._adapter[mode]) | continue | endif
+
+    if type(a:esearch[mode]) !=# type('')
+      let a:esearch[mode] = a:esearch._adapter['bool2'.mode][!!a:esearch[mode]]
+    elseif !has_key(a:esearch._adapter[mode], a:esearch[mode])
+      let a:esearch[mode] = a:esearch._adapter['bool2'.mode][0]
     endif
   endfor
 

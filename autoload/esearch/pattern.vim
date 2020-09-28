@@ -23,7 +23,7 @@ fu! s:PatternSet.splice(esearch) abort dict
   let self.str = top.str
   if has_key(top, 'literal') | let self.literal = top.literal | endif
   if has_key(top, 'pcre')    | let self.pcre = top.pcre       | endif
-  if has_key(top, 'vim') | let self.vim = top.vim | endif
+  if has_key(top, 'vim')     | let self.vim = top.vim         | endif
 endfu
 
 fu! s:PatternSet.new(kinds, str) abort dict

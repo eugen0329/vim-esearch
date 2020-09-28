@@ -31,10 +31,9 @@ endfu
 
 " Returns dict that can be forwarded into builtin winrestview()
 fu! s:ctx_view() abort dict
-  let line = self.line_in_file()
-  let state = self.modifiable ? self.undotree.head.state : self
-  let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[line('.')])
-  return { 'lnum': line,  'col': max([0, col('.') - strlen(linenr) - 1]) }
+  let lnum = self.line_in_file()
+  let offset = len(printf(g:esearch#out#win#linenr_fmt, lnum))
+  return { 'lnum': lnum,  'col': max([0, col('.') - offset - 1]) }
 endfu
 
 fu! s:line_in_file() abort dict

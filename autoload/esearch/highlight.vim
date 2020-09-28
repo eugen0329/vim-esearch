@@ -19,7 +19,8 @@ fu! esearch#highlight#set() abort
   hi def link esearchCursorLineNr CursorLineNr
   hi def      esearchHeader       cterm=bold gui=bold
 
-  let esearchBasename = extend(s:gethl('Directory'), {'cterm': 'bold', 'gui': 'bold'})
+  let esearchBasename = extend(s:resolvehl('esearchFilename', {'fallback': 'Directory'}),
+        \ {'cterm': 'bold', 'gui': 'bold'})
   call s:sethl('esearchBasename', esearchBasename, {'default': 1})
 
   let s:is_dark = s:detect_dark_background()
@@ -163,14 +164,16 @@ fu! s:sethl_float_win(hl) abort
   call s:sethl('esearchSignColumnFloat',   a:hl.SignColumn,   {'default': 1})
 endfu
 
-fu! s:resolvehl(name, kwargs) abort
+fu! s:resolvehl(name, ...) abort
   if hlexists(a:name)
     let hl = s:gethl(a:name)
     if has_key(hl, 'link') && hlexists(hl.link)
       let hl = s:gethl(hl.link)
     endif
+  elseif a:0
+    let hl = s:gethl(a:1.fallback)
   else
-    let hl = s:gethl(a:kwargs.fallback)
+    let hl = {}
   endif
 
   return hl

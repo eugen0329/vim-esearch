@@ -48,7 +48,7 @@ fu! s:Base.filetypes2args(filetypes) abort dict
   return ''
 endfu
 
-" Some adapters require pwd to set explicitly (like grep) using '.'. For
+" Some adapters require pwd to be set explicitly (like grep) using '.'. For
 " others it cause unwanted './' prefix. Exact path doesn't need to be
 " specified as it's set using :lcd command and outherwise would cause a full
 " path to be rendered.

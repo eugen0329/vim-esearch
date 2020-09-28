@@ -5,11 +5,11 @@ local M = {}
 
 function M.render(data, esearch, parser)
   local parsed, lines_delta, errors = parse.lines(data, parser)
-  local contexts         = esearch.contexts
-  local wlnum2lnum = esearch.wlnum2lnum
-  local wlnum2ctx_id      = esearch.wlnum2ctx_id
-  local files_count      = esearch.files_count
-  local ctx_by_name      = esearch.ctx_by_name
+  local contexts     = esearch.contexts
+  local wlnum2lnum   = esearch.wlnum2lnum
+  local wlnum2ctx_id = esearch.wlnum2ctx_id
+  local files_count  = esearch.files_count
+  local ctx_by_name  = esearch.ctx_by_name
   local win_contexts_syntax_clear_on_files_count =
     vim.eval('g:esearch.win_contexts_syntax_clear_on_files_count')
   local win_context_syntax_max_line_len =

@@ -49,7 +49,7 @@ fu! s:semgrep(data, from, to) abort dict
 endfu
 
 " Parse lines in format (rev:)?filename[-:]line_number[-:]column_number[-:]text
-fu! s:withcol(data, from, to) abort dict
+fu! s:with_col(data, from, to) abort dict
   if empty(a:data) | return [[], 0] | endif
   let entries = []
   let lines_delta = 0
@@ -210,7 +210,7 @@ fu! s:parse_from_pos(line, end, rev) abort
 endfu
 
 let s:export = {
-        \ 'generic': function('<SID>generic'),
-        \ 'withcol': function('<SID>withcol'),
-        \ 'semgrep': function('<SID>semgrep'),
+        \ 'generic':  function('<SID>generic'),
+        \ 'with_col': function('<SID>with_col'),
+        \ 'semgrep':  function('<SID>semgrep'),
         \}

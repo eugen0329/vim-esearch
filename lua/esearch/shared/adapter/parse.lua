@@ -210,9 +210,9 @@ function M.parse(parserfn, lines, entry)
 end
 
 M.PARSERS = {
-  generic = function(...) return M.parse(M.parse_line_generic, ...)            end,
-  withcol = function(...) return M.parse(M.parse_line_with_column_number, ...) end,
-  semgrep = function(...) return M.parse_semgrep(...)                          end
+  generic  = function(...) return M.parse(M.parse_line_generic, ...)            end,
+  with_col = function(...) return M.parse(M.parse_line_with_column_number, ...) end,
+  semgrep  = function(...) return M.parse_semgrep(...)                          end
 }
 
 return M

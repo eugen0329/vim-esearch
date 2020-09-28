@@ -2,10 +2,10 @@ let s:filename_re = g:esearch#out#win#filename_re . '\%>2l'
 
 " Applied rules for better UX to save keystrokes:
 " - Jumps DOWN and UP skip the first and the last target respectivly.
-"   E.g. when navigating down to the filename from line 1, column 1, the cursor
+"   Ex: when navigating down to the filename from line 1, column 1, the cursor
 "   moves to the second filename.
 " - To jump to the first or the last target, use the opposite direction jump.
-"   E.g. for moving cursor from line 1 col 1 to the first entry, use jump UP.
+"   Ex: for moving cursor from line 1 col 1 to the first entry, use jump UP.
 
 fu! esearch#out#win#jumps#init(esearch) abort
   call extend(a:esearch, {
@@ -201,7 +201,6 @@ fu! s:jump2dirname_up(esearch, count, last_filename, last_dirname) abort
   return last_dirname
 endfu
 
-" Try to find the last path separator
 fu! s:inline_jump2basename() abort
   norm! $T/
   if col('.') == col('$') - 1

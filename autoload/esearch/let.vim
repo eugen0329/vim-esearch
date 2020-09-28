@@ -6,7 +6,7 @@ let s:GenericLet = function('esearch#let#generic')
 fu! esearch#let#generic(variables) abort
   " Most parts are inspired by Vim.Guard source code
   for [name, value] in items(a:variables)
-    if name =~# '^[bwtgv]:'
+    if name =~# '^[bwtg]:'
       call s:let_var(name, value)
     elseif name =~# '^&'
       exe printf('let %s = %s', name, string(value))

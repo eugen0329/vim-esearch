@@ -51,7 +51,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
         ['loaded_syntax'] = 0,
         ['lines']         = {},
         ['rev']           = entry.rev,
-        }
+      }
       ctx_by_name[filename] = contexts[#contexts]
       wlnum2ctx_id[#wlnum2ctx_id + 1] = contexts[#contexts].id
       wlnum2lnum[#wlnum2lnum + 1] = 0

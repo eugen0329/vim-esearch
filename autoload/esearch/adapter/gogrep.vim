@@ -14,7 +14,7 @@ call extend(s:Gogrep, {
       \ 'case':    {},
       \ 'before':  0,
       \ 'after':   0,
-      \ 'parser':  'withcol',
+      \ 'parser':  'with_col',
       \ 'pattern_kinds': [
       \   {'opt': '-x ', 'regex': 0},
       \   {'opt': '-g ', 'regex': 0},

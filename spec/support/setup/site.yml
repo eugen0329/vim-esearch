@@ -55,7 +55,7 @@
                 dest: /tmp
                 remote_src: yes
               with_items: '{{ greppers }}'
-            - name: Find
+            - name: Find extracted binary
               find:
                 paths: /tmp
                 recurse: yes

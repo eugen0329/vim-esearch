@@ -746,8 +746,10 @@ distractions:
         highlight link esearchHeader     Comment
         " Don't emphasize numbers lines/files count in the header with colors
         highlight link esearchStatistics esearchHeader
-        highlight link esearchFilename   Label
-        highlight      esearchMatch      cterm=bold,underline gui=bold,underline
+        highlight link esearchFilename   Function
+        " Don't emphasize basename with bold text attribute
+        highlight link esearchBasename   esearchFilename
+        highlight link esearchMatch      String
         let g:esearch = extend(get(g:, 'esearch', {}), {
               \ 'win_context_len_annotations': 0,
               \ 'win_contexts_syntax': 0,
@@ -757,12 +759,12 @@ See also: |highlight-ctermfg|, |highlight-guifg|, |highlight-groups|.
 
                                                      *esearch-appearance-overview*
 
-            esearchHeader
-  vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-             +--------+--------------------- esearchStatistics
+              esearchHeader
+  <----------------------------------->
+             +--------+---------------------- esearchStatistics
              v        v
   Matches in 2 lines, 1 file. Finished.
-
+               <------>---------------------- esearchBasename
  +>   /path/to/file.txt 2 lines <------------ Annotation {2}
  |  +> 1 `matched text`
  |  |  `2` another |line with `matched text`
@@ -790,6 +792,10 @@ esearchStatistics                                           *hl-esearchStatistic
 esearchFilename                                               *hl-esearchFilename*
         Filename above each context highlight.
         Default: link to |hl-Directory|
+
+esearchBasename                                               *hl-esearchFilename*
+        Basename of the current filename. Neovim only.
+        Default: |esearchFilename| with |bald| attribute set
 
 esearchLineNr                                                   *hl-esearchLineNr*
         Virtual UI line number highlight.
@@ -1272,7 +1278,6 @@ Search in commits from an inputted branch.
 <
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*
-
 6. Show the preview automatically and update it after 100ms timeout. Change
 'vsplit' to 'split' to open the preview horizontally.
 >
@@ -1331,7 +1336,6 @@ NOTE that "gsp" and "gsd" keymaps are [rg]-specific. Alternatively, you can use
 
                                                     *g:esearch.win_new()-examples*
                                                         *esearch-exec-in-floatwin*
-
 8. Use a popup-like floating window to render search results.
 >
     let g:esearch = {}
@@ -1357,7 +1361,6 @@ NOTE Neovim >=0.4.0 is required.
 See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
 
                                                    *g:esearch.write_cb()-examples*
-
 9. Use write callback to adjust the behavior of writing the window.
 
 Sublime Text-like opening buffers without saving.
@@ -1378,7 +1381,6 @@ display the first entry.
 See also: |g:esearch.write_cb()|, |esearch_write_post|.
 
                                               *esearch-offscreen-filename-example*
-
 10. Show context filenames in 'statusline' that are above the viewport.
 >
     function! s:offscreen_filename() abort
