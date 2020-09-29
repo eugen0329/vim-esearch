@@ -7,7 +7,8 @@ let s:Base = {
       \ 'options': 'NotImplemented',
       \ 'mandatory_options': 'NotImplemented',
       \ 'parser': 'generic',
-      \ 'pattern_kinds': [{'opt': '', 'regex': 1}],
+      \ 'pattern_kinds': [{'icon': '', 'opt': '', 'regex': 1}],
+      \ 'single_pattern': 1,
       \ 'after':    {'hint': 'lines after' , 'opt': '-A'},
       \ 'before':   {'hint': 'lines before', 'opt': '-B'},
       \ 'context':  {'hint': 'lines around', 'opt': '-C'},
@@ -25,9 +26,9 @@ fu! s:Base.command(esearch) abort dict
   endif
 
   let context = ''
-  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
-  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
-  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
+  if a:esearch.after > 0   | let context .= '-A ' . a:esearch.after   | endif
+  if a:esearch.before > 0  | let context .= '-B ' . a:esearch.before  | endif
+  if a:esearch.context > 0 | let context .= '-C ' . a:esearch.context | endif
 
   return join([
         \ self.bin,

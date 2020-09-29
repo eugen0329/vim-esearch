@@ -6,14 +6,14 @@ let s:INF = 88888888
 cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<CR><CR>
 cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<CR><CR>
 cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-add-pattern)   <C-r>=<SID>interrupt('<SID>dispatch', 'ADD_PATTERN')<CR><CR>
+cnoremap <Plug>(esearch-push-pattern)  <C-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<CR><CR>
 cnoremap <Plug>(esearch-open-menu)     <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
 
 cnoremap <expr> <Plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
 cnoremap <expr> <Plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
 cnoremap <expr> <Plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
 
-let s:self = 0
+let s:self = {}
 let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
@@ -160,7 +160,7 @@ endfu
 
 fu! s:try_pop_pattern(fallback) abort
   if empty(getcmdline()) && len(s:self.props.pattern.patterns.list) > 1
-    let s:self.pressed_mapped_key = {'handler': function('<SID>pop'), 'args': a:000}
+    let s:self.pressed_mapped_key = {'handler': function('<SID>dispatch_try_pop_pattern'), 'args': a:000}
     call s:self.props.dispatch({'type': 'SET_CMDPOS', 'cmdpos': s:INF})
     return "\<cr>"
   endif
@@ -168,8 +168,8 @@ fu! s:try_pop_pattern(fallback) abort
   return a:fallback
 endfu
 
-fu! s:pop(...) abort
-  call s:self.props.dispatch({'type': 'POP_PATTERN'})
+fu! s:dispatch_try_pop_pattern(...) abort
+  call s:self.props.dispatch({'type': 'TRY_POP_PATTERN'})
 endfu
 
 fu! s:interrupt(func, ...) abort

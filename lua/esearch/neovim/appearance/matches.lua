@@ -1,5 +1,5 @@
 local ui = require('esearch/neovim/appearance/ui')
-local set_timeout = require('esearch/util').set_timeout
+local debounce = require('esearch/util').debounce
 
 local M = {
   MATCHES_NS       = vim.api.nvim_create_namespace('esearch_matches'),
@@ -24,8 +24,7 @@ function M.buf_attach_matches()
   end
 end
 
-local function matches_ranges(pattern_string, lines, lnum_from)
-  local pattern = vim.regex(pattern_string)
+local function matches_ranges(pattern, lines, lnum_from)
   local ranges = {}
 
   for i, line in ipairs(lines) do
@@ -33,14 +32,20 @@ local function matches_ranges(pattern_string, lines, lnum_from)
 
     local _, offset = line:find(ui.LINENR_RE)
     if not offset then goto continue end
+    offset = offset + 1
 
     while true do
-      if offset >= line:len() then break end
+      if offset > line:len() then break end
       local col_from, col_to = pattern:match_str(line:sub(offset))
       if not col_from then break end
 
-      table.insert(ranges, {lnum_from + i - 1, col_from + offset - 1, col_to + offset - 1})
-      offset = offset + col_to
+      if col_from == col_to then
+        table.insert(ranges, {lnum_from + i - 1, col_from + offset - 1, col_to + offset})
+        offset = offset + 1
+      else
+        table.insert(ranges, {lnum_from + i - 1, col_from + offset - 1, col_to + offset - 1})
+        offset = offset + col_to
+      end
     end
 
     ::continue::
@@ -49,7 +54,7 @@ local function matches_ranges(pattern_string, lines, lnum_from)
   return ranges
 end
 
-local function set_matches_at_ranges(bufnr, ranges, lnum_from, lnum_to)
+local function set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, lnum_from, lnum_to)
   for _, range in pairs(ranges) do
     vim.api.nvim_buf_add_highlight(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
@@ -57,38 +62,43 @@ local function set_matches_at_ranges(bufnr, ranges, lnum_from, lnum_to)
 end
 
 local function viewport()
-  return vim.fn.line('w0') - 1, vim.fn.line('w$')
+  local win_viewport_off_screen_margin = vim.api.nvim_eval('b:esearch.win_viewport_off_screen_margin')
+  return math.max(3, vim.fn.line('w0') - 1 - win_viewport_off_screen_margin),
+         vim.fn.line('w$') + win_viewport_off_screen_margin
 end
 
-local old_coordinates
 
-function M.deferred_highlight_viewport()
-  local changedtick = vim.api.nvim_eval('b:changedtick')
+local function _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, bufnr, changedtick)
+  vim.schedule(function()
+    local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
+    local pattern = vim.regex(pattern_string)
+    local ranges = matches_ranges(pattern, lines, lnum_from, bufnr, changedtick)
+    set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
+  end)
+end
+_deferred_highlight_viewport = debounce(
+  _deferred_highlight_viewport,
+  vim.api.nvim_eval('g:esearch.win_matches_highlight_debounce_wait')
+)
+
+local old_coordinates
+M.deferred_highlight_viewport = function()
+  local changedtick = vim.api.nvim_buf_get_var(0, 'changedtick')
   local bufnr = vim.api.nvim_get_current_buf()
   local lnum_from, lnum_to = viewport()
   local new_coordinates = {changedtick, lnum_from, lnum_to, bufnr}
   if vim.deep_equal(old_coordinates, new_coordinates) then return end
   old_coordinates = new_coordinates
-
-  local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, 1)
-  local pattern = vim.api.nvim_eval('b:esearch.pattern.vim')
-
-  M.timer = set_timeout(function()
-    local ranges = matches_ranges(pattern, lines, lnum_from, bufnr, changedtick)
-
-    vim.schedule(function()
-      if vim.api.nvim_eval('b:changedtick') ~= changedtick then return end
-      set_matches_at_ranges(bufnr, ranges, lnum_from, lnum_to)
-    end)
-  end, 0)
+  local pattern_string = vim.api.nvim_eval('b:esearch.pattern.vim')
+  _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, bufnr, changedtick)
 end
 
 function M.highlight_viewport()
   local lnum_from, lnum_to = viewport()
-  local lines = vim.api.nvim_buf_get_lines(0, lnum_from, lnum_to, 1)
-  local pattern = vim.api.nvim_eval('b:esearch.pattern.vim')
+  local lines = vim.api.nvim_buf_get_lines(0, lnum_from, lnum_to, false)
+  local pattern = vim.regex(vim.api.nvim_eval('b:esearch.pattern.vim'))
   local ranges = matches_ranges(pattern, lines, lnum_from)
-  set_matches_at_ranges(0, ranges, lnum_from, lnum_to)
+  set_matches_in_ranges(0, ranges, lnum_from, lnum_to)
 end
 
 return M

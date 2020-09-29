@@ -7,7 +7,7 @@ let s:outline_info = {
       \ 'highlight_rules': [
       \     { 'name'     : 'filename',
       \       'pattern'  : '/^.*/',
-      \       'highlight': unite#sources#outline#get_highlight('esearchFilename') },
+      \       'highlight': 'esearchFilename' },
       \ ]
       \}
 

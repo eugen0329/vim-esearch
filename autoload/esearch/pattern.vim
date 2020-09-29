@@ -12,10 +12,15 @@ let s:PatternSet = {}
 " .str     - in string representatino of a pattern for buffer names
 
 fu! s:PatternSet.splice(esearch) abort dict
+  silent! unlet self['vim']
+  silent! unlet self['pcre']
+  silent! unlet self['literal']
   let self.arg = join(map(copy(self.patterns.list), 'v:val.opt . v:val.convert(a:esearch).arg'))
 
   if self.patterns.len() > 1
     let self.str = self.arg
+    let vim = join(map(filter(copy(self.patterns.list), 'v:val.klass ==# "Regex"'), 'v:val.vim'), '\M\|')
+    if !empty(vim) | let self.vim = vim | endif
     return
   endif
 
@@ -49,7 +54,7 @@ fu! s:PatternSet.push() abort dict
   return self.patterns.push(s:Pattern.from_kind(self.kinds.next(), ''))
 endfu
 
-fu! s:PatternSet.pop() abort dict
+fu! s:PatternSet.try_pop() abort dict
   if self.patterns.len() < 2 | return | endif
   return self.patterns.pop()
 endfu
@@ -64,16 +69,16 @@ endfu
 
 let s:Pattern = {}
 
-fu! s:Pattern.new(opt, str) abort dict
-  return extend(copy(self), {'opt': a:opt, 'str': a:str})
+fu! s:Pattern.new(icon, opt, str) abort dict
+  return extend(copy(self), {'icon': a:icon, 'opt': a:opt, 'str': a:str})
 endfu
 
 fu! s:Pattern.from_kind(kind, str) abort
   let klass = a:kind.regex ? s:Regex : s:Plaintext
-  return klass.new(a:kind.opt, a:str)
+  return klass.new(a:kind.icon, a:kind.opt, a:str)
 endfu
 
-let s:Regex = copy(s:Pattern)
+let s:Regex = extend(copy(s:Pattern), {'klass': 'Regex'})
 
 fu! s:Regex.convert(esearch) abort dict
   " Conversions literal2pcre(str) or pcre2literal(str) don't happen, as these
@@ -108,7 +113,7 @@ fu! s:Regex.convert(esearch) abort dict
   return self
 endfu
 
-let s:Plaintext = copy(s:Pattern)
+let s:Plaintext = extend(copy(s:Pattern), {'klass': 'Plaintext'})
 
 fu! s:Plaintext.convert(_esearch) abort dict
   let self.arg = shellescape(self.str)

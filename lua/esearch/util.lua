@@ -79,12 +79,29 @@ else -- vim
   end
 end
 
-function M.set_timeout(callback, delay)
+function M.debounce(callback, wait)
+  local fn = {}
+
+  setmetatable(fn, {__call = function(_, ...)
+    if fn.timer then
+      fn.timer:stop()
+      if not fn.timer:is_closing() then
+        fn.timer:close()
+      end
+    end
+    fn.timer = M.set_timeout(callback, wait, ...)
+  end})
+
+  return fn
+end
+
+function M.set_timeout(callback, delay, ...)
   local timer = vim.loop.new_timer()
+  local args = {...}
   timer:start(delay, 0, function()
     timer:stop()
     timer:close()
-    callback()
+    callback(unpack(args))
   end)
   return timer
 end

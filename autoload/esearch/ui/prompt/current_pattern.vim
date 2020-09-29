@@ -1,12 +1,9 @@
 let s:CurrentPattern = esearch#ui#component()
 
 fu! s:CurrentPattern.render() abort dict
-  if empty(self.props._adapter.pattern_kinds) | return [] | endif
+  if self.props._adapter.single_pattern | return [] | endif
 
-  let curr = self.props.pattern.peek()
-  if empty(curr.opt) | return [] | endif
-
-  let opt = substitute(curr.opt, ' $', '', '')
+  let opt = self.props.pattern.peek().icon
   let args = self.get_args()
   return [['NONE', args.(len(args) ? ' ' : '').opt]]
 endfu

@@ -164,16 +164,14 @@ fu! s:sethl_float_win(hl) abort
   call s:sethl('esearchSignColumnFloat',   a:hl.SignColumn,   {'default': 1})
 endfu
 
-fu! s:resolvehl(name, ...) abort
+fu! s:resolvehl(name, kwargs) abort
   if hlexists(a:name)
     let hl = s:gethl(a:name)
     if has_key(hl, 'link') && hlexists(hl.link)
       let hl = s:gethl(hl.link)
     endif
-  elseif a:0
-    let hl = s:gethl(a:1.fallback)
   else
-    let hl = {}
+    let hl = s:gethl(a:kwargs.fallback)
   endif
 
   return hl

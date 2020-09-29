@@ -15,11 +15,12 @@ call extend(s:Gogrep, {
       \ 'before':  0,
       \ 'after':   0,
       \ 'parser':  'with_col',
+      \ 'single_pattern': 0,
       \ 'pattern_kinds': [
-      \   {'opt': '-x ', 'regex': 0},
-      \   {'opt': '-g ', 'regex': 0},
-      \   {'opt': '-v ', 'regex': 0},
-      \   {'opt': '-a ', 'regex': 0},
+      \   {'icon': '-x', 'opt': '-x ', 'regex': 0},
+      \   {'icon': '-g', 'opt': '-g ', 'regex': 0},
+      \   {'icon': '-v', 'opt': '-v ', 'regex': 0},
+      \   {'icon': '-a', 'opt': '-a ', 'regex': 0},
       \ ],
       \ 'context': {'hint': 'parent nodes', 'opt': '-p'},
       \})

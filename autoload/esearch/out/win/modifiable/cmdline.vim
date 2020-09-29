@@ -85,7 +85,7 @@ fu! s:safe_pattern(original_pattern, default_pattern) abort
     return a:original_pattern
   endif
 
-  return g:esearch#out#win#ignore_ui_re . pattern
+  return g:esearch#out#win#ignore_ui_re . '\%(' . pattern . '\M\)'
 endfu
 
 fu! s:str() abort dict

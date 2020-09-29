@@ -33,6 +33,8 @@ call extend(s:Rg, {
       \   'line':     {'icon': 'l', 'option': '--line-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
+      \ 'single_pattern': 0,
+      \ 'pattern_kinds': [{'icon': '', 'opt': '-e ', 'regex': 1}],
       \ 'case': {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
@@ -42,6 +44,37 @@ call extend(s:Rg, {
 
 " rg --type-list | cut -d: -f1 | tr '\n' ' '
 let s:Rg.filetypes = split('agda aidl amake asciidoc asm asp ats avro awk bazel bitbake brotli buildstream bzip2 c cabal cbor ceylon clojure cmake coffeescript config coq cpp creole crystal cs csharp cshtml css csv cython d dart dhall diff docker ebuild edn elisp elixir elm erb erlang fidl fish fortran fsharp gap gn go gradle groovy gzip h haml haskell hbs hs html idris java jinja jl js json jsonl julia jupyter k kotlin less license lisp lock log lua lz4 lzma m4 make mako man markdown matlab md mk ml msbuild nim nix objc objcpp ocaml org pascal pdf perl php pod postscript protobuf ps puppet purs py qmake qml r rdoc readme robot rst ruby rust sass scala sh slim smarty sml soy spark spec sql stylus sv svg swift swig systemd taskpaper tcl tex textile tf thrift toml ts twig txt typoscript vala vb verilog vhdl vim vimscript webidl wiki xml xz yacc yaml zig zsh zstd')
+
+fu! s:Rg.command(esearch) abort dict
+  let regex = self.regex[a:esearch.regex].option
+  let case = self.textobj[a:esearch.textobj].option
+  let textobj = self.case[a:esearch.case].option
+
+  if empty(a:esearch.paths)
+    let paths = self.pwd()
+  else
+    let paths = esearch#shell#join(a:esearch.paths)
+  endif
+
+  let context = ''
+  if a:esearch.after > 0   | let context .= '-A ' . a:esearch.after   | endif
+  if a:esearch.before > 0  | let context .= '-B ' . a:esearch.before  | endif
+  if a:esearch.context > 0 | let context .= '-C ' . a:esearch.context | endif
+
+  return join([
+        \ self.bin,
+        \ regex,
+        \ case,
+        \ textobj,
+        \ self.mandatory_options,
+        \ self.options,
+        \ context,
+        \ self.filetypes2args(a:esearch.filetypes),
+        \ a:esearch.pattern.arg,
+        \ '--',
+        \ paths,
+        \], ' ')
+endfu
 
 fu! s:Rg.filetypes2args(filetypes) abort dict
   return substitute(a:filetypes, '\<', '--type ', 'g')

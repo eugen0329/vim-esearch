@@ -6,7 +6,7 @@ let g:esearch#cmdline#mappings = [
       \ ['c', '<C-r><C-r>', '<Plug>(esearch-cycle-regex)'        ],
       \ ['c', '<C-s><C-s>', '<Plug>(esearch-cycle-case)'         ],
       \ ['c', '<C-t><C-t>', '<Plug>(esearch-cycle-textobj)'      ],
-      \ ['c', '<C-p>',      '<Plug>(esearch-add-pattern)'        ],
+      \ ['c', '<C-p>',      '<Plug>(esearch-push-pattern)'       ],
       \ ['c', '<bs>',       '<Plug>(esearch-bs)',   {'nowait': 1}],
       \ ['c', '<c-w>',      '<Plug>(esearch-c-w)',  {'nowait': 1}],
       \ ['c', '<c-h>',      '<Plug>(esearch-c-h)',  {'nowait': 1}],
@@ -107,10 +107,10 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'regex': s:cycle_mode(a:state, 'regex')})
   elseif a:action.type ==# 'NEXT_TEXTOBJ'
     return extend(copy(a:state), {'textobj': s:cycle_mode(a:state, 'textobj')})
-  elseif a:action.type ==# 'ADD_PATTERN'
+  elseif a:action.type ==# 'PUSH_PATTERN'
     return extend(copy(a:state), {'pattern': s:push_pattern(a:state)})
-  elseif a:action.type ==# 'POP_PATTERN'
-    return extend(copy(a:state), {'pattern': s:pop_pattern(a:state)})
+  elseif a:action.type ==# 'TRY_POP_PATTERN'
+    return extend(copy(a:state), {'pattern': s:try_pop_pattern(a:state)})
   elseif a:action.type ==# 'SET_CURSOR'
     return extend(copy(a:state), {'cursor': a:action.cursor})
   elseif a:action.type ==# 'SET_VALUE'
@@ -136,13 +136,15 @@ fu! s:reducer(state, action) abort
   endif
 endfu
 
-fu! s:pop_pattern(state) abort
+fu! s:try_pop_pattern(state) abort
   let pattern = a:state.pattern
-  call pattern.pop()
+  call pattern.try_pop()
   return pattern
 endfu
 
 fu! s:push_pattern(state) abort
+  if a:state._adapter.single_pattern | return a:state.pattern | endif
+
   let pattern = a:state.pattern
   if empty(pattern.peek().str)
     call pattern.next()
