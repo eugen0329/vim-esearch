@@ -15,7 +15,7 @@ call extend(s:Gogrep, {
       \ 'before':  0,
       \ 'after':   0,
       \ 'parser':  'with_col',
-      \ 'single_pattern': 0,
+      \ 'multi_pattern': 1,
       \ 'pattern_kinds': [
       \   {'icon': '-x', 'opt': '-x ', 'regex': 0},
       \   {'icon': '-g', 'opt': '-g ', 'regex': 0},

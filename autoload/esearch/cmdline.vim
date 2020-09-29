@@ -143,7 +143,7 @@ fu! s:try_pop_pattern(state) abort
 endfu
 
 fu! s:push_pattern(state) abort
-  if a:state._adapter.single_pattern | return a:state.pattern | endif
+  if !a:state._adapter.multi_pattern | return a:state.pattern | endif
 
   let pattern = a:state.pattern
   if empty(pattern.peek().str)

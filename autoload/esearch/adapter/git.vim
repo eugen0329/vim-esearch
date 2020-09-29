@@ -40,7 +40,7 @@ call extend(s:Git, {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': ''},
       \ },
-      \ 'single_pattern': 0,
+      \ 'multi_pattern': 1,
       \ 'pattern_kinds': [
       \   {'icon': '',            'opt': '-e ',             'regex': 1},
       \   {'icon': '--and --not', 'opt': '--and --not -e ', 'regex': 0},

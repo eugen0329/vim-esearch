@@ -1,7 +1,7 @@
 let s:CurrentPattern = esearch#ui#component()
 
 fu! s:CurrentPattern.render() abort dict
-  if self.props._adapter.single_pattern | return [] | endif
+  if !self.props._adapter.multi_pattern | return [] | endif
 
   let opt = self.props.pattern.peek().icon
   let args = self.get_args()

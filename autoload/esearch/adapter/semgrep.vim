@@ -16,7 +16,7 @@ call extend(s:Semgrep, {
       \ 'after':   0,
       \ 'context': 0,
       \ 'parser':  'semgrep',
-      \ 'single_pattern': 0,
+      \ 'multi_pattern': 1,
       \ 'pattern_kinds': [
       \   {'icon': '-e', 'opt': '-e ', 'regex': 0},
       \ ],

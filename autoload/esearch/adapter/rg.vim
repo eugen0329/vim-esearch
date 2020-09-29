@@ -33,7 +33,7 @@ call extend(s:Rg, {
       \   'line':     {'icon': 'l', 'option': '--line-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
-      \ 'single_pattern': 0,
+      \ 'multi_pattern': 1,
       \ 'pattern_kinds': [{'icon': '', 'opt': '-e ', 'regex': 1}],
       \ 'case': {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
