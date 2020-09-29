@@ -20,6 +20,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
   if a:es.win_matches_highlight_strategy ==# 'viewport'
     if g:esearch#has#nvim_lua_regex
       aug esearch_win_hl_matches
+        au! * <buffer>
         au CursorMoved <buffer> call v:lua.esearch.appearance.deferred_highlight_viewport()
       aug END
     else
@@ -29,6 +30,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
       let Callback = function('s:hl_viewport_cb', [a:es])
       let a:es.hl_matches = esearch#async#debounce(Callback, a:es.win_matches_highlight_debounce_wait)
       aug esearch_win_hl_matches
+        au! * <buffer>
         au CursorMoved <buffer> call b:esearch.hl_matches.apply()
       aug END
       call luaeval('esearch.appearance.buf_attach_matches()')

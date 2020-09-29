@@ -79,13 +79,13 @@ else -- vim
   end
 end
 
-function M.restart_timer(timer, delay, interval, callback)
-  if timer then
+function M.set_timeout(callback, delay)
+  local timer = vim.loop.new_timer()
+  timer:start(delay, 0, function()
     timer:stop()
     timer:close()
-  end
-  timer = vim.loop.new_timer()
-  timer:start(delay, interval, callback)
+    callback()
+  end)
   return timer
 end
 

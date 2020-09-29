@@ -6,7 +6,6 @@ local M = {
   LINENR_RE              = '^%s+[+^_]?%s*%d+%s',
 }
 
-
 local function highlight_header(bufnr, text)
   vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
   local pos1, pos2 =  text:find('%d+')
@@ -31,8 +30,6 @@ function M.highlight_ui(bufnr, from, to)
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then
       highlight_header(bufnr, text)
-    elseif text:len() == 0 then -- luacheck: ignore
-      -- separators are not highlighted
     elseif text:sub(1,1) == ' ' then
       local _, pos2 =  text:find(M.LINENR_RE)
       if pos2 then
@@ -44,7 +41,7 @@ function M.highlight_ui(bufnr, from, to)
       end
     else
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchFilename', from + i - 1, 0, -1)
-      local col = string.find(text, M.LAST_PATH_SEPARATOR_RE) or 0
+      local col = text:find(M.LAST_PATH_SEPARATOR_RE) or 0
       vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchBasename', from + i - 1, col, -1)
     end
   end
