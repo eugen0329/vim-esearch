@@ -19,13 +19,13 @@ Then:
   AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "(" jump to filename 1 from filename 1):
-  exe 'norm 3gg('
+  exe 'norm 3G('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
   AssertEqual col('.'), len('dir1/') + 1
 
 Execute (with "(" jump to filename 1 from file 1 entry 1):
-  exe 'norm 4gg('
+  exe 'norm 4G('
 Then:
   AssertEqual getline('.'), 'dir1/file1.txt'
   AssertEqual col('.'), len('dir1/') + 1
@@ -49,13 +49,13 @@ Then:
   AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with ")" jump to filename 2 from filename 1):
-  exe 'norm 3gg)'
+  exe 'norm 3G)'
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
   AssertEqual col('.'), len('dir2/') + 1
 
 Execute (with ")" jump to filename 1 from file 1 entry 1):
-  exe 'norm 4gg)'
+  exe 'norm 4G)'
 Then:
   AssertEqual getline('.'), 'dir2/file2.txt'
   AssertEqual col('.'), len('dir2/') + 1
@@ -89,7 +89,7 @@ Then:
   AssertEqual getpos("'>")[1:2], [line('$'), len(getline('$'))]
 
 Execute (with ")" in operator mode):
-  exe 'norm 3gg0d)'
+  exe 'norm 3G0d)'
 Then:
   AssertEqual getcurpos()[1:2], [3, 1]
 

@@ -100,7 +100,7 @@ Edit results~
 
 Write changes~
     Type `:write<cr>` to save changes into files. Use undo followed by `:write<cr>`
-    to revert changes made earlier. 
+    to revert changes made earlier.
 
 Preview~
     Press `p` to open a preview window. Use multiple `p` to zoom it and capital
@@ -112,8 +112,8 @@ GLOBAL                                                            *esearch-globa
 
 GLOBAL MAPPINGS                                               *esearch-global-map*
                                                      *esearch-global-map-overview*
-                                   *<plug>(esearch)* *<plug>(operator-esearch-exec)*    
-                                                *<plug>(operator-esearch-prefill)* 
+                                   *<plug>(esearch)* *<plug>(operator-esearch-exec)*
+                                                *<plug>(operator-esearch-prefill)*
 
            Map                        Default                  What does ~
  ---------------------------------+------------+----------------------------------------------
@@ -128,7 +128,7 @@ Example custom configuration: >
     map  <c-m-f>    <plug>(operator-esearch-exec)
 <
 In NORMAL mode press:
-  - <c-f><c-f> (double control-f) to start the input prompt prefilled using one 
+  - <c-f><c-f> (double control-f) to start the input prompt prefilled using one
     of specified strategies, e.g. clipboard, word under the cursor etc.
     (see |g:esearch.prefill|)
   - <c-f>i" to start the prompt prefilled with double quotes inner text.
@@ -141,11 +141,14 @@ In VISUAL mode press:
 Another simplified example: >
     nmap <m-f> <plug>(esearch)
     vmap <m-f> <plug>(operator-esearch-exec)
+    au FileType nerdtree map <buffer> <m-f> <Plug>(operator-esearch-prefill)
 <
 In NORMAL mode press:
   - <m-f> (meta-f or alt-f) to start the input prompt.
 In VISUAL mode press:
   - <m-f> to start searching for the selected text instantly.
+Withing NERDTree buffer:
+  - <m-f> to prefill searching directories with selected nodes.
 
 See also: |object-select|, |operator|.
 
@@ -502,7 +505,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         \]
 <
         NOTE Multiple mode characters are specified for `'-'` key to define the
-        same keymap for multiple modes and to not-repeat-yourself. 
+        same keymap for multiple modes and to not-repeat-yourself.
 
         The example above is equivalent to using |esearch_win_config| autocommand
         and vim |:map| command.
@@ -675,7 +678,7 @@ Search window-related configurations are added to |g:esearch| dictionary.
  -----------------------------+-------------------------------------------------
 
 g:esearch.win_new({esearch})                                 *g:esearch.win_new()*
-        Function to open a new search window. 
+        Function to open a new search window.
         Type: |Funcref|
         Default: function that reuse windows with the same patterns
         Parameters:~
@@ -936,7 +939,7 @@ g:esearch.win_viewport_off_screen_margin
 
         NOTE Has no affect if |g:esearch.win_contexts_syntax| is |FALSE| and
         |g:esearch.win_matches_highlight_strategy| is not `'viewport'`. Also
-        won't have effect if OS-level KeyHold debounce timeout is lower than 
+        won't have effect if OS-level KeyHold debounce timeout is lower than
         |g:esearch.win_contexts_syntax_debounce_wait| or
         |g:esearch.win_matches_highlight_debounce_wait|, as it'll cause
         debounce timer reset earlier than highlight callbacks are started.
@@ -1327,7 +1330,7 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
        +    | Render [count] more context lines after a line with matches.
        -    | Render [count] less context lines after a line with matches.
        gq   | Populate QuickFix list using results of the current pattern search.
-       gsp  | Sort the results by path. 
+       gsp  | Sort the results by path.
        gsd  | Sort the results by modification date.
      -------+-------------------------------------------------------------------
 

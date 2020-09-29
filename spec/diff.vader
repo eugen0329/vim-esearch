@@ -8,28 +8,28 @@ Before:
 Execute (broken header):
   call Fixture(g:file1, ['l1', 'l2'])
   call esearch#init({'pattern': '.'})
-  norm! 1ggdw
+  norm! ggdw
 Then:
   AssertThrows call esearch#out#win#diff#do()
 
 Execute (deleted 2nd line):
   call Fixture(g:file1, ['l1', 'l2'])
   call esearch#init({'pattern': '.'})
-  norm! 2ggdd
+  norm! 2Gdd
 Then:
   AssertThrows call esearch#out#win#diff#do()
 
 Execute (modified 2nd line):
   call Fixture(g:file1, ['l1', 'l2'])
   call esearch#init({'pattern': '.'})
-  norm! 2ggichanged
+  norm! 2Gichanged
 Then:
   AssertThrows call esearch#out#win#diff#do()
 
 Execute (extra line after the 2nd line):
   call Fixture(g:file1, ['l1', 'l2'])
   call esearch#init({'pattern': '.'})
-  exe "norm! 2ggi\<CR>"
+  exe "norm! 2Gi\<CR>"
 Then:
   AssertThrows call esearch#out#win#diff#do()
 

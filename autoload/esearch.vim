@@ -14,12 +14,12 @@ fu! esearch#init(...) abort
   return esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! esearch#opfunc_prefill(type) abort
-  call esearch#init({'prefill': ['region'], 'region': a:type})
+fu! esearch#opfunc_prefill(wise) abort
+  call esearch#init({'prefill': ['region'], 'region': a:wise})
 endfu
 
-fu! esearch#opfunc_exec(type) abort
-  call esearch#init({'pattern': esearch#operator#text(a:type)})
+fu! esearch#opfunc_exec(wise) abort
+  call esearch#init({'pattern': esearch#operator#text(a:wise)})
 endfu
 
 " DEPRECATED

@@ -42,3 +42,13 @@ endfu
 fu! esearch#operator#vars() abort
   return [s:count, s:reg]
 endfu
+
+fu! esearch#operator#range(wise) abort
+  if esearch#util#is_visual(a:wise)
+    return ["'<", "'>"]
+  elseif a:wise ==# ''
+    return ["'[", "']"]
+  else
+    return ['`[', '`]']
+  endif
+endfu

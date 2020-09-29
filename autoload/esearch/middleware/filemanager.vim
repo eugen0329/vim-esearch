@@ -8,7 +8,9 @@ let g:esearch#middleware#filemanager#filetype2filer = {
       \ }
 
 fu! esearch#middleware#filemanager#apply(esearch) abort
-  if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype) || !a:esearch.filemanager_integration
+  if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype)
+        \ || !a:esearch.filemanager_integration
+        \ || !empty(get(a:esearch, 'paths'))
     return a:esearch
   endif
 
@@ -37,7 +39,8 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
 endfu
 
 fu! s:paths_in_range(filer, region) abort
-  let paths = a:filer.paths_in_range(line(a:region.begin), line(a:region.end))
+  let [begin, end] = esearch#operator#range(a:region)
+  let paths = a:filer.paths_in_range(line(begin), line(end))
   return esearch#shell#argv(paths)
 endfu
 

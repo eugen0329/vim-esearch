@@ -68,7 +68,7 @@ Expect esearch_test:
 
 ###########
 Execute (delete multiple lines with j motion):
-  norm! 3gg
+  norm! 3G
   norm dj
 
 Expect esearch_test:
@@ -78,7 +78,7 @@ Expect esearch_test:
 
 ###########
 Execute (delete multiple lines with dd motion):
-  norm! 3gg
+  norm! 3G
   norm 2dd
 
 Expect esearch_test:
@@ -88,9 +88,9 @@ Expect esearch_test:
 
 #######
 Execute (delete inline using side motion):
-  norm! 4gg7|
+  norm! 4G7|
   norm dh
-  norm! 5gg9|
+  norm! 5G9|
   norm 3dh
 
 Expect esearch_test:
@@ -102,9 +102,9 @@ Expect esearch_test:
 
 #######
 Execute (delete inline using f and t motions):
-  norm! 4gg7|
+  norm! 4G7|
   norm dfd
-  norm! 5gg7|
+  norm! 5G7|
   norm 2dtd
 
 Expect esearch_test:
@@ -116,7 +116,7 @@ Expect esearch_test:
 
 ###########
 Execute (delete current line with dd):
-  norm! 4gg
+  norm! 4G
   norm dd
 
 Expect esearch_test:
@@ -127,7 +127,7 @@ Expect esearch_test:
 
 ###########
 Execute (delete current line using linewise-visual):
-  norm! 4gg
+  norm! 4G
   norm Vd
 
 Expect esearch_test:
@@ -191,7 +191,7 @@ Expect esearch_test:
 
 ###########
 Execute (change multiple lines with j motion):
-  norm! 3gg
+  norm! 3G
   norm cj
 
 Expect esearch_test:
@@ -202,7 +202,7 @@ Expect esearch_test:
 
 ###########
 Execute (change multiple lines with c motion):
-  norm! 3gg
+  norm! 3G
   norm 2cc
 
 Expect esearch_test:
@@ -212,7 +212,7 @@ Expect esearch_test:
      2 word3 word4
 ###########
 Execute (change current line cc):
-  norm! 4gg
+  norm! 4G
   norm cc
 
 Expect esearch_test:
@@ -223,7 +223,7 @@ Expect esearch_test:
      2 word3 word4
 ###########
 Execute (change current line using linewise-visual):
-  norm! 4gg
+  norm! 4G
   norm Vczzz
 
 Expect esearch_test:
@@ -235,7 +235,7 @@ Expect esearch_test:
 
 ###########
 Execute (change multiple lines using linewise-visual):
-  norm! 3gg
+  norm! 3G
   norm Vjczzz
 
 Expect esearch_test:
@@ -246,9 +246,9 @@ Expect esearch_test:
 
 #######
 Execute (change inline using side motion):
-  norm! 4gg7|
+  norm! 4G7|
   norm chz
-  norm! 5gg9|
+  norm! 5G9|
   norm 3chz
 
 Expect esearch_test:
@@ -260,9 +260,9 @@ Expect esearch_test:
 
 #######
 Execute (change inline using f and t motions):
-  norm! 4gg7|
+  norm! 4G7|
   norm cfdz
-  norm! 5gg7|
+  norm! 5G7|
   norm 2ctdz
 
 Expect esearch_test:
