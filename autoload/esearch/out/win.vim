@@ -76,7 +76,7 @@ fu! esearch#out#win#init(esearch) abort
     call esearch#out#win#appearance#cursor_linenr#init(b:esearch)
   endif
   if g:esearch.win_ui_nvim_syntax
-    call luaeval('esearch.appearance.highlight_header(true)')
+    call luaeval('esearch.appearance.highlight_header(0, true)')
   endif
 
   aug esearch_win_config

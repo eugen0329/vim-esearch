@@ -68,12 +68,15 @@ function M.buf_attach_ui()
   end
 end
 
-function M.highlight_header(instant)
-  if instant then return M.highlight_ui(0, 0, 1) end -- to prevent blinking on reload
+function M.highlight_header(bufnr, instant)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if instant then return M.highlight_ui(bufnr, 0, 1) end -- to prevent blinking on reload
 
-  local bufnr = vim.api.nvim_get_current_buf()
   vim.schedule(function()
-    M.highlight_ui(bufnr, 0, 1)
+    -- without this check neovim throws segmentation fault
+    if vim.api.nvim_get_current_buf() == bufnr then
+      M.highlight_ui(bufnr, 0, 1)
+    end
   end)
 end
 

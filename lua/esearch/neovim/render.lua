@@ -80,20 +80,20 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
          lines_delta, slow_hl_enabled, deferred_calls
 end
 
-function M.submit_updates(lines, contexts, deferred_calls, from_line)
+function M.submit_updates(bufnr, lines, contexts, deferred_calls, from_line)
   for _, call in pairs(deferred_calls) do vim.api.nvim_eval(call) end
 
-  vim.api.nvim_buf_set_lines(0, -1, -1, 0, lines)
+  vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, lines)
   if vim.api.nvim_eval('g:esearch.win_ui_nvim_syntax') == 1 then
-    esearch.appearance.highlight_header()
-    esearch.appearance.highlight_ui(0, from_line, -1)
+    esearch.appearance.highlight_header(bufnr)
+    esearch.appearance.highlight_ui(bufnr, from_line, -1)
   end
   if vim.api.nvim_eval('g:esearch.win_context_len_annotations') == 1 then
     esearch.appearance.annotate(contexts)
   end
 end
 
-function M.render(data, last_context, files_count, slow_hl_enabled, parser)
+function M.render(bufnr, data, last_context, files_count, slow_hl_enabled, parser)
   local parsed, lines_delta, errors = parse.lines(data, parser)
   local lines, contexts, wlnum2ctx_id, wlnum2lnum, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
@@ -109,7 +109,7 @@ function M.render(data, last_context, files_count, slow_hl_enabled, parser)
   deferred_calls = M.prepare(last_context, files_count, slow_hl_enabled, parsed,
                              1, #parsed, lines_delta, from_line)
 
-  M.submit_updates(lines, contexts, deferred_calls, from_line)
+  M.submit_updates(bufnr, lines, contexts, deferred_calls, from_line)
 
   return {
     files_count,

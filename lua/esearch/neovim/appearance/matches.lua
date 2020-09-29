@@ -55,9 +55,12 @@ local function matches_ranges(pattern, lines, lnum_from)
 end
 
 local function set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
-  vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, lnum_from, lnum_to)
-  for _, range in pairs(ranges) do
-    vim.api.nvim_buf_add_highlight(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
+  -- without this check neovim throws segmentation fault
+  if vim.api.nvim_get_current_buf() == bufnr then
+    vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, lnum_from, lnum_to)
+    for _, range in pairs(ranges) do
+      vim.api.nvim_buf_add_highlight(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
+    end
   end
 end
 

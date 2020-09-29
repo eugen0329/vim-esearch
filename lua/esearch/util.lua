@@ -9,12 +9,20 @@ if vim.api then
 
   M.NIL = vim.NIL or {}
 
-  function M.list()
-    return {}
+  function M.list(tbl)
+    return tbl
+  end
+
+  function M.dict(tbl)
+    return tbl
   end
 
   function M.append(tbl, val)
     tbl[#tbl + 1] = val
+  end
+
+  function M.buf_get_lines(bufnr)
+    return vim.api.nvim_buf_get_lines(bufnr or 0, 0, -1, true)
   end
 
   if vim.fn then -- neovim >= 0.5
@@ -55,12 +63,16 @@ else -- vim
   end
   M.NIL = vim.list()
 
-  function M.list()
-    return vim.list()
+  function M.list(tbl)
+    return vim.list(tbl)
+  end
+
+  function M.dict(tbl)
+    return vim.dict(tbl)
   end
 
   function M.append(tbl, val)
-    tbl[#tbl] = val
+    tbl:add(val)
   end
 
   function M.json_decode(text)
@@ -76,6 +88,10 @@ else -- vim
     local result = vim.funcref('filereadable')(path) == 1
     cache[path] = result
     return result
+  end
+
+  function M.buf_get_lines(bufnr)
+    return vim.buffer(bufnr)
   end
 end
 

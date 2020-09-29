@@ -25,8 +25,8 @@ if g:esearch#has#nvim_lua
     try
       let [a:esearch.files_count, lines_delta, contexts, wlnum2ctx_id,
          \ wlnum2lnum, ctx_by_name, a:esearch.slow_hl_enabled, errors] =
-         \   luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])', [
-         \     a:data[a:from : a:to], a:esearch.contexts[-1],
+         \   luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6])', [
+         \     a:bufnr, a:data[a:from : a:to], a:esearch.contexts[-1],
          \     a:esearch.files_count, a:esearch.slow_hl_enabled, a:esearch._adapter.parser])
     finally
       call cwd.restore()
