@@ -53,12 +53,12 @@ fu! esearch#prefill#hlsearch(esearch) abort
 endfu
 
 fu! esearch#prefill#last(_esearch) abort
-  return get(g:esearch, 'last_pattern')
+  return deepcopy(get(g:esearch, 'last_pattern'))
 endfu
 
 fu! esearch#prefill#current(_esearch) abort
   if exists('b:esearch')
-    return get(b:esearch, 'pattern')
+    return deepcopy(get(b:esearch, 'pattern'))
   endif
 endfu
 

@@ -66,11 +66,12 @@ end
 
 local function viewport()
   local win_viewport_off_screen_margin = vim.api.nvim_eval('b:esearch.win_viewport_off_screen_margin')
-  return math.max(3, vim.fn.line('w0') - 1 - win_viewport_off_screen_margin),
-         vim.fn.line('w$') + win_viewport_off_screen_margin
+  local lnum_from = math.max(3, vim.fn.line('w0') - 1 - win_viewport_off_screen_margin)
+  local lnum_to = vim.fn.line('w$') + win_viewport_off_screen_margin
+  return lnum_from, lnum_to
 end
 
-local function _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, bufnr, changedtick)
+local function _deferred_highlight_viewport(pattern_string, changedtick, lnum_from, lnum_to, bufnr)
   vim.schedule(function()
     local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
     local pattern = vim.regex(pattern_string)
@@ -78,7 +79,6 @@ local function _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, 
     set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   end)
 end
-
 -- highlighting using set_timeout(cb, 0), but it cause seg fault when "|" in the
 -- pattern are used
 _deferred_highlight_viewport = debounce(
@@ -87,15 +87,14 @@ _deferred_highlight_viewport = debounce(
 )
 
 local old_coordinates
-M.deferred_highlight_viewport = function()
+function M.deferred_highlight_viewport(bufnr)
   local changedtick = vim.api.nvim_buf_get_var(0, 'changedtick')
-  local bufnr = vim.api.nvim_get_current_buf()
   local lnum_from, lnum_to = viewport()
   local new_coordinates = {changedtick, lnum_from, lnum_to, bufnr}
   if vim.deep_equal(old_coordinates, new_coordinates) then return end
   old_coordinates = new_coordinates
   local pattern_string = vim.api.nvim_eval('b:esearch.pattern.vim')
-  _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, bufnr, changedtick)
+  _deferred_highlight_viewport(pattern_string, changedtick, lnum_from, lnum_to, bufnr)
 end
 
 function M.highlight_viewport()

@@ -21,7 +21,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     if g:esearch#has#nvim_lua_regex
       aug esearch_win_hl_matches
         au! * <buffer>
-        au CursorMoved <buffer> call v:lua.esearch.appearance.deferred_highlight_viewport()
+        au CursorMoved <buffer> call luaeval('esearch.appearance.deferred_highlight_viewport(_A)', +expand('<abuf>'))
       aug END
     else
       let a:es.last_hl_range = [0,0]
