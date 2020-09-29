@@ -43,11 +43,7 @@ fu! esearch#preview#open(filename, line, ...) abort
   let win_vars['&winhighlight'] = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat,Conceal:esearchConcealFloat'
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
   let enter = get(opts, 'enter')
-  if has_key(opts, 'emphasis')
-    let emphasis = opts.emphasis
-  else
-    let emphasis = [esearch#emphasis#sign(), esearch#emphasis#highlighted_line()]
-  endif
+  let emphasis = get(opts, 'emphasis', g:esearch#emphasis#default)
 
   let g:esearch#preview#last = s:Preview
         \.new(location, shape, emphasis, win_vars, opts, close_on, enter)
@@ -461,8 +457,7 @@ fu! s:FloatingWindow.place_emphasis(emphasis) abort dict
   let self.emphasis = []
 
   for e in a:emphasis
-    call add(self.emphasis, e.new(self.id, self.location.line))
-    call self.emphasis[-1].place()
+    call add(self.emphasis, e.new(self.id, self.location.line).place())
   endfor
 endfu
 

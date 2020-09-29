@@ -1,13 +1,10 @@
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-
+let g:esearch#emphasis#default = []
 let s:sign_name  = 'esearchEmphasisSign'
 let s:sign_group = 'esearchEmphasisSigns'
 let s:sign_id    = 502012117
 " Prio should be big enought to overrule less important signs at the moment
 " of previewing like linter signs etc.
 let s:priority   = 1000
-let s:line_ns = nvim_create_namespace('esearch_line_emphasis')
 
 fu! esearch#emphasis#sign() abort
   return s:SignEmphasis
@@ -19,12 +16,11 @@ endfu
 
 let s:Base = {}
 
-fu! s:Base.new(win_handle, line) abort dict
+fu! s:Base.new(win_handle, lnum) abort dict
   let instance            = copy(self)
   let instance.win_handle = a:win_handle
-  let instance.line       = a:line + 0
-  let instance.signcolumn = s:null
-  let instance.bufnr = esearch#win#bufnr(a:win_handle)
+  let instance.lnum       = +a:lnum
+  let instance.bufnr      = esearch#win#bufnr(a:win_handle)
 
   return instance
 endfu
@@ -43,7 +39,7 @@ fu! s:SignEmphasis.place() abort dict
         \ s:sign_group,
         \ s:sign_name,
         \ self.bufnr,
-        \ {'lnum': self.line, 'priority': s:priority})
+        \ {'lnum': self.lnum, 'priority': s:priority})
 
   return self
 endfu
@@ -53,14 +49,34 @@ fu! s:SignEmphasis.unplace() abort dict
   call self.signcolumn.restore()
 endfu
 
+let g:esearch#emphasis#default += [esearch#emphasis#sign()]
+
 let s:HighlightLineEmphasis = copy(s:Base)
 
-fu! s:HighlightLineEmphasis.place() abort dict
-  call nvim_buf_add_highlight(self.bufnr, s:line_ns, 'esearchMatch', self.line - 1, 0, -1)
+if g:esearch#has#nvim_add_highlight
+  let s:line_ns = nvim_create_namespace('esearch_line_emphasis')
+  fu! s:HighlightLineEmphasis.place() abort dict
+    call nvim_buf_add_highlight(self.bufnr, s:line_ns, 'esearchMatch', self.lnum - 1, 0, -1)
 
-  return self
-endfu
+    return self
+  endfu
 
-fu! s:HighlightLineEmphasis.unplace() abort dict
-  call nvim_buf_clear_namespace(self.bufnr, s:line_ns, 0, -1)
-endfu
+  fu! s:HighlightLineEmphasis.unplace() abort dict
+    call nvim_buf_clear_namespace(self.bufnr, s:line_ns, 0, -1)
+  endfu
+
+  let g:esearch#emphasis#default += [esearch#emphasis#highlighted_line()]
+elseif g:esearch#has#matchadd_win
+  fu! s:HighlightLineEmphasis.place() abort dict
+    let self.winid = esearch#win#id(self.win_handle)
+    let self.id = matchaddpos('esearchMatch', [self.lnum], 1, -1, {'window': self.winid})
+
+    return self
+  endfu
+
+  fu! s:HighlightLineEmphasis.unplace() abort dict
+    call matchdelete(self.id, self.winid)
+  endfu
+
+  let g:esearch#emphasis#default += [esearch#emphasis#highlighted_line()]
+endif

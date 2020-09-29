@@ -35,3 +35,4 @@ let g:esearch#has#annotations = exists('*nvim_buf_attach') && exists('*nvim_buf_
 let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight && g:esearch#has#lua
 let g:esearch#has#nvim_lua_regex = g:esearch#has#nvim_lua && luaeval('not not vim.regex')
 let g:esearch#has#getbufinfo_linecount = has('patch-8.2.0019')
+let g:esearch#has#matchadd_win = has('patch-8.1.1084')
