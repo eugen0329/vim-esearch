@@ -1,7 +1,7 @@
 local parse = require'esearch/neovim/parse'
 local util  = require'esearch/util'
 
-local M = {renderers = {}}
+local M = {}
 
 function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to, lines_delta, from_line)
   local contexts = {last_context}

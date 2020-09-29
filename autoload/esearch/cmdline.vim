@@ -2,14 +2,14 @@ let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
 let g:esearch#cmdline#mappings = [
-      \ ['c', '<C-o>',      '<Plug>(esearch-open-menu)'          ],
-      \ ['c', '<C-r><C-r>', '<Plug>(esearch-cycle-regex)'        ],
-      \ ['c', '<C-s><C-s>', '<Plug>(esearch-cycle-case)'         ],
-      \ ['c', '<C-t><C-t>', '<Plug>(esearch-cycle-textobj)'      ],
-      \ ['c', '<C-p>',      '<Plug>(esearch-push-pattern)'       ],
-      \ ['c', '<bs>',       '<Plug>(esearch-bs)',   {'nowait': 1}],
-      \ ['c', '<c-w>',      '<Plug>(esearch-c-w)',  {'nowait': 1}],
-      \ ['c', '<c-h>',      '<Plug>(esearch-c-h)',  {'nowait': 1}],
+      \ ['c', '<c-o>',      '<Plug>(esearch-open-menu)'         ],
+      \ ['c', '<c-r><c-r>', '<Plug>(esearch-cycle-regex)'       ],
+      \ ['c', '<c-s><c-s>', '<Plug>(esearch-cycle-case)'        ],
+      \ ['c', '<c-t><c-t>', '<Plug>(esearch-cycle-textobj)'     ],
+      \ ['c', '<c-p>',      '<Plug>(esearch-push-pattern)'      ],
+      \ ['c', '<bs>',       '<Plug>(esearch-bs)',  {'nowait': 1}],
+      \ ['c', '<c-w>',      '<Plug>(esearch-c-w)', {'nowait': 1}],
+      \ ['c', '<c-h>',      '<Plug>(esearch-c-h)', {'nowait': 1}],
       \]
 
 if !exists('g:esearch#cmdline#dir_icon')
@@ -24,42 +24,42 @@ if !exists('g:esearch#cmdline#clear_selection_chars')
   let g:esearch#cmdline#clear_selection_chars = []
 endif
 let g:esearch#cmdline#clear_selection_chars += [
-      \ "\<Del>",
-      \ "\<Bs>",
-      \ "\<C-w>",
-      \ "\<C-h>",
-      \ "\<C-u>",
-      \ ]
+      \ "\<del>",
+      \ "\<bs>",
+      \ "\<c-w>",
+      \ "\<c-h>",
+      \ "\<c-u>",
+      \]
 if g:esearch#has#meta_key
   let g:esearch#cmdline#clear_selection_chars += [
-        \ "\<M-d>",
-        \ "\<M-BS>",
-        \ "\<M-C-h>",
-        \ ]
+        \ "\<m-d>",
+        \ "\<m-bs>",
+        \ "\<m-c-h>",
+        \]
 endif
 if !exists('g:esearch#cmdline#start_search_chars')
   let g:esearch#cmdline#start_search_chars = [
-        \ "\<Enter>",
-        \ ]
+        \ "\<enter>",
+        \]
 endif
 if !exists('g:esearch#cmdline#cancel_selection_and_retype_chars')
   let g:esearch#cmdline#cancel_selection_and_retype_chars = [
-        \ "\<Left>",
-        \ "\<Right>",
-        \ "\<Up>",
-        \ "\<Down>",
-        \ ]
+        \ "\<left>",
+        \ "\<right>",
+        \ "\<up>",
+        \ "\<down>",
+        \]
 endif
 if !exists('g:esearch#cmdline#cancel_selection_chars')
   let g:esearch#cmdline#cancel_selection_chars = [
-        \ "\<Esc>",
-        \ "\<C-c>",
-        \ ]
+        \ "\<esc>",
+        \ "\<c-c>",
+        \]
 endif
 if !exists('g:esearch#cmdline#insert_register_content_chars')
   let g:esearch#cmdline#insert_register_content_chars = [
-        \ "\<C-r>",
-        \ ]
+        \ "\<c-r>",
+        \]
 endif
 
 fu! esearch#cmdline#read(esearch) abort

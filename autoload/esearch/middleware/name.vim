@@ -23,7 +23,7 @@ fu! s:name(esearch, pattern) abort
 endfu
 
 fu! s:format(esearch) abort
-  if index([0, 'literal'], a:esearch.regex)
+  if index([0, 'literal'], a:esearch.regex) >= 0
     if g:esearch#has#unicode
       return 'Search %s'.g:esearch#unicode#quote_left.'%s'.g:esearch#unicode#quote_right.'%s'
     else

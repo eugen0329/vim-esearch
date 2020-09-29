@@ -15,7 +15,9 @@ fu! esearch#keymap#set(mode, lhs, rhs, opts) abort
 endfu
 
 fu! esearch#keymap#del(mode, lhs, opts) abort
-  exe s:Mapping.get_unmap_command(a:mode, a:opts, a:lhs)
+  for mode in split(a:mode, '\zs')
+    exe s:Mapping.get_unmap_command(mode, a:opts, a:lhs)
+  endfor
 endfu
 
 fu! esearch#keymap#restorable(maps) abort
@@ -40,7 +42,7 @@ endfu
 
 fu! s:Guard.restore() abort dict
   for map in self.maps
-    call esearch#keymap#del(map[0], map[1], get(map, 3, {}))
+    silent! call esearch#keymap#del(map[0], map[1], get(map, 3, {}))
   endfor
 
   for maparg in self.original_mapargs

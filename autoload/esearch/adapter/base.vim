@@ -26,9 +26,9 @@ fu! s:Base.command(esearch) abort dict
   endif
 
   let context = ''
-  if a:esearch.after > 0   | let context .= '-A ' . a:esearch.after   | endif
-  if a:esearch.before > 0  | let context .= '-B ' . a:esearch.before  | endif
-  if a:esearch.context > 0 | let context .= '-C ' . a:esearch.context | endif
+  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
+  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
+  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
 
   return join([
         \ self.bin,

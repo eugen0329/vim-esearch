@@ -11,18 +11,31 @@ fu! esearch#compat#visual_multi#init() abort
   endif
   let g:esearch_visual_multi_loaded = 1
 
-  au User visual_multi_start     call s:on_start()
-  au User visual_multi_after_cmd call s:on_after_cmd()
+
+  let g:VM_plugins_compatibilty = extend(get(g:, 'VM_plugins_compatibilty', {}), {
+            \ 'esearch': {
+            \   'test': function('<SID>test'),
+            \   'enable': 'call esearch#out#win#init_user_mappings()',
+            \   'disable': 'call esearch#out#win#uninit_user_mappings()',
+            \ },
+            \})
+  aug esearch_visual_multi
+    au!
+    au User visual_multi_start     call s:visual_multi_start()
+    au User visual_multi_after_cmd call s:visual_multi_after_cmd()
+  aug END
 endfu
 
-fu! s:on_after_cmd() abort
-  if !exists('b:esearch')
-    return
-  endif
+fu! s:test() abort
+  return &filetype ==# 'esearch'
+endfu
+
+fu! s:visual_multi_after_cmd() abort
+  if !exists('b:esearch') | return | endif
   call b:esearch.undotree.commit()
 endfu
 
-fu! s:on_start() abort
+fu! s:visual_multi_start() abort
   if exists('b:esearch_visual_multi_loaded') || !exists('b:esearch')
     return
   endif
@@ -30,30 +43,24 @@ fu! s:on_start() abort
 
   aug esearch_visual_multi
     au! * <buffer>
-    au TextChangedP,TextChangedI <buffer> call s:remove_cursors_overlapping_interface(0)
+    au TextChangedP,TextChangedI <buffer> call s:remove_cursors_overlapping_ui(0)
   aug END
 
-  " NOTE that all the commented code lines below are left intentionally to
-  " keep track on what is in TODO status and what is reviewed and is not
-  " required to be wrapped or disabled with s:unsupported() method.
-
-  call s:nremap('<Plug>(VM-D)',                  '<SID>without_regions_overlapping_interface(%s, 0)')
-  " <Plug>(VM-Y)
-  call s:nremap('<Plug>(VM-x)',                  '<SID>without_regions_overlapping_interface(%s, 0)')
-  call s:nremap('<Plug>(VM-X)',                  '<SID>without_regions_overlapping_interface(%s, 1)')
+  call s:nremap('<Plug>(VM-D)',                  '<SID>clear_regions_overlapping_ui(%s, 0)')
+  call s:nremap('<Plug>(VM-x)',                  '<SID>clear_regions_overlapping_ui(%s, 0)')
+  call s:nremap('<Plug>(VM-X)',                  '<SID>clear_regions_overlapping_ui(%s, 1)')
   call s:nremap('<Plug>(VM-J)',                  '<SID>unsupported(%s, "Is not supported")')
-  call s:nremap('<Plug>(VM-~)',                  '<SID>without_regions_overlapping_interface(%s, 0)')
+  call s:nremap('<Plug>(VM-~)',                  '<SID>clear_regions_overlapping_ui(%s, 0)')
   " What is it for?
   " <Plug>(VM-&)
-  call s:nremap('<Plug>(VM-Del)',                '<SID>without_regions_overlapping_interface(%s, 1)')
+  call s:nremap('<Plug>(VM-Del)',                '<SID>clear_regions_overlapping_ui(%s, 1)')
   call s:nremap('<Plug>(VM-Dot)',                '<SID>unsupported(%s, "Is not supported")')
-  call s:nremap('<Plug>(VM-Increase)',           '<SID>without_regions_overlapping_interface(%s, 0)')
-  call s:nremap('<Plug>(VM-Decrease)',           '<SID>without_regions_overlapping_interface(%s, 0)')
-  call s:nremap('<Plug>(VM-Alpha-Increase)',     '<SID>without_regions_overlapping_interface(%s, 0)')
-  call s:nremap('<Plug>(VM-Alpha-Decrease)',     '<SID>without_regions_overlapping_interface(%s, 0)')
-  call s:nremap('<Plug>(VM-a)',                  '<SID>without_regions_overlapping_interface(%s, -1)')
-  " call s:nremap('<Plug>(VM-A)',                  '<SID>unsupported(%s, "Is not supported")')
-  call s:nremap('<Plug>(VM-i)',                  '<SID>without_regions_overlapping_interface(%s, 0)')
+  call s:nremap('<Plug>(VM-Increase)',           '<SID>clear_regions_overlapping_ui(%s, 0)')
+  call s:nremap('<Plug>(VM-Decrease)',           '<SID>clear_regions_overlapping_ui(%s, 0)')
+  call s:nremap('<Plug>(VM-Alpha-Increase)',     '<SID>clear_regions_overlapping_ui(%s, 0)')
+  call s:nremap('<Plug>(VM-Alpha-Decrease)',     '<SID>clear_regions_overlapping_ui(%s, 0)')
+  call s:nremap('<Plug>(VM-a)',                  '<SID>clear_regions_overlapping_ui(%s, -1)')
+  call s:nremap('<Plug>(VM-i)',                  '<SID>clear_regions_overlapping_ui(%s, 0)')
   call s:nremap('<Plug>(VM-I)',                  '<SID>unsupported(%s, "Is not supported")')
   call s:nremap('<Plug>(VM-o)',                  '<SID>unsupported(%s, "Inserting newlines is not supported")')
   call s:nremap('<Plug>(VM-O)',                  '<SID>unsupported(%s, "Inserting newlines is not supported")')
@@ -62,7 +69,7 @@ fu! s:on_start() abort
   call s:nremap('<Plug>(VM-C)',                  '<SID>unsupported(%s, "Is not supported")')
   call s:nremap('<Plug>(VM-Delete)',             '<SID>d_operator(%s, 0, v:count1, v:register)')
   call s:nremap('<Plug>(VM-Delete-Exit)',        '<SID>d_operator(%s, 0, v:count1, v:register)')
-  call s:nremap('<Plug>(VM-Replace-Characters)', '<SID>without_regions_overlapping_interface(%s, -1)')
+  call s:nremap('<Plug>(VM-Replace-Characters)', '<SID>clear_regions_overlapping_ui(%s, -1)')
   call s:nremap('<Plug>(VM-Replace)',            '<SID>unsupported(%s, "Is not supported")')
   " TODO can be implemented
   call s:nremap('<Plug>(VM-Transform-Regions)',  '<SID>unsupported(%s, "Is not supported")')
@@ -70,14 +77,7 @@ fu! s:on_start() abort
   call s:nremap('<Plug>(VM-P-Paste-Regions)',    '<SID>unsupported(%s, "Is not supported")')
   call s:nremap('<Plug>(VM-p-Paste-Vimreg)',     '<SID>unsupported(%s, "Is not supported")')
   call s:nremap('<Plug>(VM-P-Paste-Vimreg)',     '<SID>unsupported(%s, "Is not supported")')
-  " <Plug>(VM-Yank)
 
-  "" Arrow movements, safe to skip
-  """""""""""""""""""""""""""""
-  " <Plug>(VM-I-Arrow-w) <Plug>(VM-I-Arrow-b) <Plug>(VM-I-Arrow-W
-  " <Plug>(VM-I-Arrow-B) <Plug>(VM-I-Arrow-e) <Plug>(VM-I-Arrow-ge)
-  " <Plug>(VM-I-Arrow-E) <Plug>(VM-I-Arrow-gE) <Plug>(VM-I-Left-Arrow)
-  " <Plug>(VM-I-Right-Arrow) <Plug>(VM-I-Up-Arrow) <Plug>(VM-I-Down-Arrow)
   call s:iremap('<Plug>(VM-I-Return)',      '<SID>unsupported(%s, "Inserting newlines is not supported")')
   call s:iremap('<Plug>(VM-I-BS)',          '<SID>i_delete_char(%s, 1)')
   call s:iremap('<Plug>(VM-I-Paste)',       '<SID>unsupported(%s, "Is not supported")')
@@ -85,28 +85,7 @@ fu! s:on_start() abort
   call s:iremap('<Plug>(VM-I-CtrlU)',       '<SID>CtrlW(%s)')
   call s:iremap('<Plug>(VM-I-CtrlD)',       '<SID>i_delete_char(%s, -2)')
   call s:iremap('<Plug>(VM-I-Del)',         '<SID>i_delete_char(%s, -2)')
-  "" Movements, safe to skip
-  " <Plug>(VM-I-Arrow-ge) <Plug>(VM-I-Arrow-E) <Plug>(VM-I-Arrow-gE)
-  " <Plug>(VM-I-Left-Arrow) <Plug>(VM-I-Right-Arrow) <Plug>(VM-I-Up-Arrow)
-  " <Plug>(VM-I-Down-Arrow) <Plug>(VM-I-Next) <Plug>(VM-I-Prev)
   call s:iremap('<Plug>(VM-I-Replace)',     '<SID>unsupported(%s, "Is not supported")')
-
-  "" Cursor managing stuff, should be safe..
-  """""""""""""""""""""""""""""""""""""""""""
-  " <Plug>(VM-Move-Right) <Plug>(VM-Move-Left) <Plug>(VM-Transpose)
-  " <Plug>(VM-Rotate) <Plug>(VM-Duplicate)
-
-  "" Dangerous, but useful. Lets keep unhandled
-  """""""""""""""""""""""""""""""""""""""""""""""
-  " <Plug>(VM-Align) <Plug>(VM-Align-Char) <Plug>(VM-Align-Regex)
-  " <Plug>(VM-Numbers) <Plug>(VM-Numbers-Append) <Plug>(VM-Zero-Numbers)
-  " <Plug>(VM-Zero-Numbers-Append) <Plug>(VM-Run-Dot) <Plug>(VM-Surround)
-  " <Plug>(VM-Run-Macro) <Plug>(VM-Run-Ex) <Plug>(VM-Run-Last-Ex)
-  " <Plug>(VM-Run-Normal) <Plug>(VM-Run-Last-Normal) <Plug>(VM-Run-Visual)
-  " <Plug>(VM-Run-Last-Visual)
-
-  ""Cmdline. Seem too useful to disable
-  " <expr> <Plug>(VM-:) <expr> <Plug>(VM-/) <expr> <Plug>(VM-?)
 endfu
 
 fu! s:nremap(lhs, rhs) abort
@@ -144,7 +123,7 @@ fu! s:c_operator(orig, offset_from_linenr, count, register) abort
 endfu
 
 fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whitelist1, whitelist2) abort
-  let regions = s:regions_overlapping_interface(a:offset_from_linenr)
+  let regions = s:regions_overlapping_ui(a:offset_from_linenr)
   if len(regions) == len(b:VM_Selection.Regions)
     return
   else
@@ -202,7 +181,7 @@ endfu
 
 " According to visual-multi source code, regions are roughly the same as
 " cursors, but cursors are used only in INSERT mode
-fu! s:remove_cursors_overlapping_interface(offset_from_linenr) abort
+fu! s:remove_cursors_overlapping_ui(offset_from_linenr) abort
   if empty(b:VM_Selection)
     return
   endif
@@ -242,7 +221,7 @@ fu! s:remove_cursors_overlapping_interface(offset_from_linenr) abort
   endfor
 endfu
 
-fu! s:regions_overlapping_interface(offset_from_linenr) abort
+fu! s:regions_overlapping_ui(offset_from_linenr) abort
   let state = b:esearch.undotree.head.state
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let regions = []
@@ -261,8 +240,8 @@ fu! s:regions_overlapping_interface(offset_from_linenr) abort
   return regions
 endfu
 
-fu! s:without_regions_overlapping_interface(orig, offset_from_linenr) abort
-  let regions = s:regions_overlapping_interface(a:offset_from_linenr)
+fu! s:clear_regions_overlapping_ui(orig, offset_from_linenr) abort
+  let regions = s:regions_overlapping_ui(a:offset_from_linenr)
   if len(regions) == len(b:VM_Selection.Regions)
     return
   else

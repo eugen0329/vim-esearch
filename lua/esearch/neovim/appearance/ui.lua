@@ -47,24 +47,25 @@ function M.highlight_ui(bufnr, from, to)
   end
 end
 
-local function ui_cb(_event_name, bufnr, _changedtick, from, _old_to, to, _old_byte_size)
-  vim.schedule(function()
-    M.highlight_ui(bufnr, from, to)
-  end)
+local function on_lines(_event_name, bufnr, _changedtick, from, _old_to, to, _old_byte_size)
+  -- prevent header blinks
+  if from == 0 then M.highlight_ui(bufnr, 0, 1) end
+  -- schedule to prevent wrong highlight on undo
+  vim.schedule(function() M.highlight_ui(bufnr, from, to) end)
 end
 
-local function detach_ui_cb(bufnr)
+local function on_detach(bufnr)
   M.ATTACHED_UI[bufnr] = nil
 end
 
 function M.buf_attach_ui()
   local bufnr = vim.api.nvim_get_current_buf()
 
-  M.highlight_header(true) -- tmp measure to prevent missing highlights on live updates
+  M.highlight_header(bufnr, true) -- tmp measure to prevent missing highlights on live updates
 
   if not M.ATTACHED_UI[bufnr] then
     M.ATTACHED_UI[bufnr] = true
-    vim.api.nvim_buf_attach(0, false, {on_lines=ui_cb, on_detach=detach_ui_cb})
+    vim.api.nvim_buf_attach(0, false, {on_lines=on_lines, on_detach=on_detach})
   end
 end
 

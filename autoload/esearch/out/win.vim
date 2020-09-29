@@ -76,7 +76,7 @@ fu! esearch#out#win#init(esearch) abort
     call esearch#out#win#appearance#cursor_linenr#init(b:esearch)
   endif
   if g:esearch.win_ui_nvim_syntax
-    call luaeval('esearch.appearance.highlight_header(0, true)')
+    call luaeval('esearch.appearance.highlight_header(nil, true)')
   endif
 
   aug esearch_win_config
@@ -223,9 +223,20 @@ fu! s:init_mappings() abort
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
   nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
 
+  call esearch#out#win#init_user_mappings()
+endfu
+
+fu! esearch#out#win#init_user_mappings() abort
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
     call esearch#keymap#set(args[0], args[1], args[2], opts)
+  endfor
+endfu
+
+fu! esearch#out#win#uninit_user_mappings() abort
+  for args in b:esearch.win_map
+    let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
+    silent! call esearch#keymap#del(args[0], args[1], opts)
   endfor
 endfu
 

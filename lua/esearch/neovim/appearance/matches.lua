@@ -6,13 +6,13 @@ local M = {
   ATTACHED_MATCHES = {},
 }
 
-local function matches_cb(_event_name, _bufnr, _changedtick, from, old_to, to, _old_byte_size)
+local function on_lines(_event_name, bufnr, _changedtick, from, old_to, to, _old_byte_size)
   if to == old_to then
-    vim.api.nvim_buf_clear_namespace(0, M.MATCHES_NS, from, to)
+    vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, from, to)
   end
 end
 
-local function detach_matches_cb(bufnr)
+local function on_detach(bufnr)
   M.ATTACHED_MATCHES[bufnr] = nil
 end
 
@@ -20,7 +20,7 @@ function M.buf_attach_matches()
   local bufnr = vim.api.nvim_get_current_buf()
   if not M.ATTACHED_MATCHES[bufnr] then
     M.ATTACHED_MATCHES[bufnr] = true
-    vim.api.nvim_buf_attach(0, false, {on_lines=matches_cb, on_detach=detach_matches_cb})
+    vim.api.nvim_buf_attach(0, false, {on_lines=on_lines, on_detach=on_detach})
   end
 end
 
@@ -70,7 +70,6 @@ local function viewport()
          vim.fn.line('w$') + win_viewport_off_screen_margin
 end
 
-
 local function _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, bufnr, changedtick)
   vim.schedule(function()
     local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
@@ -79,6 +78,9 @@ local function _deferred_highlight_viewport(pattern_string, lnum_from, lnum_to, 
     set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   end)
 end
+
+-- highlighting using set_timeout(cb, 0), but it cause seg fault when "|" in the
+-- pattern are used
 _deferred_highlight_viewport = debounce(
   _deferred_highlight_viewport,
   vim.api.nvim_eval('g:esearch.win_matches_highlight_debounce_wait')
@@ -98,10 +100,11 @@ end
 
 function M.highlight_viewport()
   local lnum_from, lnum_to = viewport()
-  local lines = vim.api.nvim_buf_get_lines(0, lnum_from, lnum_to, false)
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
   local pattern = vim.regex(vim.api.nvim_eval('b:esearch.pattern.vim'))
   local ranges = matches_ranges(pattern, lines, lnum_from)
-  set_matches_in_ranges(0, ranges, lnum_from, lnum_to)
+  set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
 end
 
 return M
