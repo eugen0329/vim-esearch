@@ -42,14 +42,14 @@ fu! esearch#out#win#appearance#matches#init(es) abort
   endif
 
   if a:es.win_matches_highlight_strategy ==# 'hlsearch'
-    let @/ = a:es.pattern.hl_match . \%>1l
+    let @/ = a:es.pattern.hl_match . '\%>1l'
     call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
     let a:es.hl_strategy = 'hlsearch'
     retu
   endif
 
   if a:es.win_matches_highlight_strategy ==# 'matchadd'
-    let a:es.matches_hl_id = matchadd('esearchMatch', a:es.pattern.hl_match . \%>1l, -1)
+    let a:es.matches_hl_id = matchadd('esearchMatch', a:es.pattern.hl_match . '\%>1l', -1)
     let a:es.hl_strategy = 'matchadd'
     retu
   endif

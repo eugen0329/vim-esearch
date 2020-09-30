@@ -54,12 +54,9 @@ local function matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
 end
 
 local function set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
-  -- without this check neovim throws segmentation fault
-  if vim.api.nvim_get_current_buf() == bufnr then
-    vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, lnum_from, lnum_to)
-    for _, range in pairs(ranges) do
-      vim.api.nvim_buf_add_highlight(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
-    end
+  vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, lnum_from, lnum_to)
+  for _, range in pairs(ranges) do
+    vim.api.nvim_buf_add_highlight(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
   end
 end
 
@@ -73,6 +70,7 @@ end
 local old_coordinates
 function M.deferred_highlight_viewport(bufnr)
   vim.schedule(function()
+    if vim.api.nvim_get_current_buf() ~= bufnr then return end
     local lnum_from, lnum_to = viewport()
     local pattern_string = vim.api.nvim_eval('b:esearch.pattern.hl_match')
     local changedtick = vim.api.nvim_buf_get_var(0, 'changedtick')

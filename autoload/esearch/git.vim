@@ -14,7 +14,8 @@ fu! esearch#git#dir(cwd) abort
 endfu
 
 fu! esearch#git#read_cmd(path) abort
-  setlocal modifiable noswapfile buftype=nowrite undolevels=-1
+  let undolevels = esearch#let#restorable({'&l:undolevels': -1})
+  setlocal noswapfile buftype=nowrite readonly
   call esearch#util#doautocmd('BufReadPre')
   let [dir, filename] = split(a:path, '//')[1:2]
   let dir = s:Prelude.substitute_path_separator(shellescape(dir, 1))
@@ -22,6 +23,6 @@ fu! esearch#git#read_cmd(path) abort
   " lockmarks to preserve the cursor location on open
   exe 'lockmarks 0read ++edit !git -C' dir 'cat-file -p' filename
   keepjumps silent $delete_
-  setlocal nomodifiable readonly
+  call undolevels.restore()
   call esearch#util#doautocmd('BufReadPost')
 endfu
