@@ -1,6 +1,5 @@
 let s:Prelude = vital#esearch#import('Prelude')
 
-let g:asd = []
 aug esearch_git
   au!
   au BufReadCmd esearchgit://* cal esearch#git#read_cmd(expand('<amatch>'))

@@ -11,7 +11,6 @@ fu! esearch#middleware#paths#apply(esearch) abort
       let a:esearch.paths = paths
     endif
   endif
-  " echomsg a:esearch.paths
 
   return a:esearch
 endfu

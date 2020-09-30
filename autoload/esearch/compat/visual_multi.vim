@@ -11,7 +11,6 @@ fu! esearch#compat#visual_multi#init() abort
   endif
   let g:esearch_visual_multi_loaded = 1
 
-
   let g:VM_plugins_compatibilty = extend(get(g:, 'VM_plugins_compatibilty', {}), {
             \ 'esearch': {
             \   'test': function('<SID>test'),

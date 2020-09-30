@@ -52,7 +52,6 @@ endfu
 let g:esearch#emphasis#default += [esearch#emphasis#sign()]
 
 let s:HighlightLineEmphasis = copy(s:Base)
-
 if g:esearch#has#nvim_add_highlight
   let s:line_ns = nvim_create_namespace('esearch_line_emphasis')
   fu! s:HighlightLineEmphasis.place() abort dict

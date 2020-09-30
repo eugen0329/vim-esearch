@@ -243,7 +243,7 @@ fu! esearch#out#win#modifiable#d(wise) abort
 endfu
 
 fu! s:delete_lines(wise, cmd, ...) abort
-  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
+  let options = esearch#let#restorable({'&selection': 'inclusive', '@@': ''})
   let state = deepcopy(b:esearch.undotree.head.state)
   try
     let region = empty(get(a:, 1)) ? s:region(a:wise) : a:1

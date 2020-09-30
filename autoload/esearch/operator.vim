@@ -10,7 +10,7 @@ fu! esearch#operator#cmd(wise, seq, reg) abort
 endfu
 
 fu! esearch#operator#text(wise) abort
-  let options = esearch#let#restorable({'&selection': 'inclusive'})
+  let options = esearch#let#restorable({'&selection': 'inclusive', '@@': ''})
   try
     exe esearch#operator#cmd(a:wise, 'y', '')
     return @@
