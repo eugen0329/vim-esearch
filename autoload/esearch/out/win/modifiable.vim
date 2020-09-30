@@ -65,7 +65,7 @@ fu! s:write_cmd() abort
   call esearch#writer#do(diff, b:esearch, v:cmdbang)
 endfu
 
-fu! esearch#out#win#modifiable#i_CR() abort
+fu! esearch#out#win#modifiable#cr() abort
   let line = line('.')
   let ctx = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.undotree.head.state).by_line(line)
   let align = len(string(max(keys(ctx.lines)))) + 1
@@ -83,7 +83,9 @@ fu! esearch#out#win#modifiable#i_CR() abort
     let prefix = printf(' '.(empty(sign) ? '+' : sign).'%'.align.'s', linenr) . offset
 
     return close_completion_popup."\<cr>".realign.prefix
-  elseif b:esearch.is_filename()
+  endif
+
+  if b:esearch.is_filename()
     let state = deepcopy(b:esearch.undotree.head.state)
     call insert(state.wlnum2lnum, 1, line+1)
     call insert(state.wlnum2ctx_id, state.wlnum2ctx_id[line], line+1)
@@ -93,6 +95,11 @@ fu! esearch#out#win#modifiable#i_CR() abort
 
     return close_completion_popup."\<cr>".realign.prefix
   endif
+
+  let state = deepcopy(b:esearch.undotree.head.state)
+  call insert(state.wlnum2lnum, 0, line+1)
+  call insert(state.wlnum2ctx_id, state.wlnum2ctx_id[line], line+1)
+  call b:esearch.undotree.commit(state)
 
   return "\<cr>"
 endfu
@@ -116,6 +123,12 @@ fu! esearch#out#win#modifiable#align(id, align) abort
   if g:esearch.win_ui_nvim_syntax
     call luaeval('esearch.appearance.highlight_ui(_A[1], _A[2], _A[3])', [bufnr(''), begin-1, end-1])
   endif
+endfu
+
+fu! esearch#out#win#modifiable#I() abort
+  if !b:esearch.is_entry() | return 'I' | endif
+  let [line, col] = searchpos(g:esearch#out#win#column_re.'\%'.line('.').'l', 'bce')
+  return line . 'gg' . col . '|a'
 endfu
 
 fu! esearch#out#win#modifiable#c_dot(wise) abort

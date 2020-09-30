@@ -23,8 +23,8 @@ let g:esearch#out#win#capture_sign_re          = '^\s\+\zs^\ze'
 let g:esearch#out#win#capture_lnum_re          = '^\s\+[+^_]\=\s*\zs\d\+\ze.*'
 let g:esearch#out#win#capture_entry_re         = '^\s\+\([+^_]\)\=\s*\(\d\+\)\s\(.*\)'
 let g:esearch#out#win#capture_sign_and_lnum_re = '^\s\+\([+^_]\)\=\s*\(\d\+\)'
-let g:esearch#out#win#ignore_ui_re             = '\%>1l\%(\s[+^_]\=\s*\d\+\s.*\)\@<='
-let g:esearch#out#win#ignore_ui_hat_re         = '\%>1l\%(\s[+^_]\=\s*\d\+\s\)\@<='
+let g:esearch#out#win#ignore_ui_re             = '\%(\s[+^_]\=\s*\d\+\s.*\)\@<='
+let g:esearch#out#win#ignore_ui_hat_re         = '\%(\s[+^_]\=\s*\d\+\s\)\@<='
 let g:esearch#out#win#filename_re = '^[^ ]'
 let g:esearch#out#win#linenr_fmt  = ' %3d '
 let g:esearch#out#win#entry_fmt   = ' %3d %s'
@@ -214,19 +214,19 @@ fu! s:init_mappings() abort
   onoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
 
   cnoremap       <silent><buffer> <Plug>(esearch-cr) <C-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
-  inoremap <expr><silent><buffer> <Plug>(esearch-cr) esearch#out#win#modifiable#i_CR()
+  inoremap <expr><silent><buffer> <Plug>(esearch-cr) esearch#out#win#modifiable#cr()
 
-  nnoremap <expr><silent><buffer><plug>(esearch-I)  <SID>I()
+  nnoremap <expr><silent><buffer><plug>(esearch-I)  esearch#out#win#modifiable#I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-dd) esearch#operator#expr('esearch#out#win#modifiable#d').'g@'
   noremap  <expr><silent><buffer><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
-  nnoremap <expr><silent><buffer><plug>(esearch-D)  esearch#operator#expr('esearch#out#win#modifiable#d').'$'
-  xnoremap <expr><silent><buffer><plug>(esearch-D)  esearch#operator#expr('esearch#out#win#modifiable#d')
+  nnoremap <expr><silent><buffer><plug>(esearch-D)  (col('.')==col('$')?'$':'').esearch#operator#expr('esearch#out#win#modifiable#d').'$'
+  xnoremap <expr><silent><buffer><plug>(esearch-D)  'V'.esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-c)  esearch#out#win#modifiable#seq().esearch#operator#expr('esearch#out#win#modifiable#c')
   noremap  <expr><silent><buffer><plug>(esearch-cc) esearch#out#win#modifiable#seq("g@").esearch#operator#expr('esearch#out#win#modifiable#c').'g@'
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
-  nnoremap <expr><silent><buffer><plug>(esearch-C)  esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
-  xnoremap <expr><silent><buffer><plug>(esearch-C)  esearch#operator#expr('esearch#out#win#modifiable#c')
+  nnoremap <expr><silent><buffer><plug>(esearch-C)  (col('.')==col('$')?'$':'').esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
+  xnoremap <expr><silent><buffer><plug>(esearch-C)  'V'.esearch#operator#expr('esearch#out#win#modifiable#c')
   nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
 
   call esearch#out#win#init_user_mappings()
@@ -244,12 +244,6 @@ fu! esearch#out#win#uninit_user_mappings() abort
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
     silent! call esearch#keymap#del(args[0], args[1], opts)
   endfor
-endfu
-
-fu! s:I() abort
-  if !b:esearch.is_entry() | return 'I' | endif
-  let [line, col] = searchpos(g:esearch#out#win#column_re.'\%'.line('.').'l', 'bce')
-  return line . 'gg' . col . '|a'
 endfu
 
 fu! s:reload() abort dict

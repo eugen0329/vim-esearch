@@ -1,5 +1,5 @@
 fu! esearch#out#win#textobj#init(esearch) abort
-  let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch)
+  let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch) . '\%>1l'
 endfu
 
 fu! esearch#out#win#textobj#match_a(is_visual, count) abort

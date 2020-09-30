@@ -93,7 +93,7 @@ fu! s:is_entry(...) abort dict
 endfu
 
 fu! s:is_filename(...) abort dict
-  return search(g:esearch#out#win#filename_re.'\%'.line('.').'l', 'cnbW') == line('.')
+  return search(g:esearch#out#win#filename_re.'\%'.line('.').'l\%>1l', 'cnbW') == line('.')
 endfu
 
 " Is used to prevent problems with asynchronous code

@@ -1,4 +1,3 @@
-local ui = require('esearch/neovim/appearance/ui')
 local debounce = require('esearch/util').debounce
 
 local M = {
@@ -24,31 +23,31 @@ function M.buf_attach_matches()
   end
 end
 
-local function matches_ranges(pattern, lines, lnum_from)
+local function advance(lnum, offset, col_from, col_to)
+  if col_from == col_to then -- if zero length match
+    return  {lnum, col_from + offset, col_to + offset + 1}, offset + 1
+  else
+    return {lnum, col_from + offset, col_to + offset}, offset + col_to
+  end
+end
+
+local function matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
+  local pattern = vim.regex(pattern_string)
   local ranges = {}
+  local columns = vim.fn.winsaveview().leftcol + vim.o.columns
+  local range
 
-  for i, line in ipairs(lines) do
-    if line:sub(1,1) ~= ' ' then goto continue end
-
-    local _, offset = line:find(ui.LINENR_RE)
-    if not offset then goto continue end
-    offset = offset + 1
-
+  local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
+  for lnum = lnum_from, lnum_to - 1 do
+    local offset = 0
+    local col_lim = math.min(lines[lnum - lnum_from + 1]:len(), columns)
     while true do
-      if offset > line:len() then break end
-      local col_from, col_to = pattern:match_str(line:sub(offset))
+      local col_from, col_to = pattern:match_line(bufnr, lnum, offset, col_lim)
       if not col_from then break end
 
-      if col_from == col_to then
-        table.insert(ranges, {lnum_from + i - 1, col_from + offset - 1, col_to + offset})
-        offset = offset + 1
-      else
-        table.insert(ranges, {lnum_from + i - 1, col_from + offset - 1, col_to + offset - 1})
-        offset = offset + col_to
-      end
+      range, offset = advance(lnum, offset, col_from, col_to)
+      table.insert(ranges, range)
     end
-
-    ::continue::
   end
 
   return ranges
@@ -67,43 +66,38 @@ end
 local function viewport()
   local win_viewport_off_screen_margin = vim.api.nvim_eval('b:esearch.win_viewport_off_screen_margin')
   local lnum_from = math.max(3, vim.fn.line('w0') - 1 - win_viewport_off_screen_margin)
-  local lnum_to = vim.fn.line('w$') + win_viewport_off_screen_margin
+  local lnum_to = math.min(vim.api.nvim_buf_line_count(0), vim.fn.line('w$') + win_viewport_off_screen_margin)
   return lnum_from, lnum_to
 end
 
-local function _deferred_highlight_viewport(pattern_string, changedtick, lnum_from, lnum_to, bufnr)
+local old_coordinates
+function M.deferred_highlight_viewport(bufnr)
   vim.schedule(function()
+    local lnum_from, lnum_to = viewport()
+    local pattern_string = vim.api.nvim_eval('b:esearch.pattern.hl_match')
+    local changedtick = vim.api.nvim_buf_get_var(0, 'changedtick')
+    local new_coordinates = {changedtick, lnum_from, lnum_to, vim.fn.winsaveview().leftcol, bufnr}
+    if vim.deep_equal(old_coordinates, new_coordinates) then return end
+    old_coordinates = new_coordinates
     if not vim.api.nvim_buf_is_loaded(bufnr) then return end
-    local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
-    local pattern = vim.regex(pattern_string)
-    local ranges = matches_ranges(pattern, lines, lnum_from, bufnr, changedtick)
+
+    local ranges = matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
     set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   end)
 end
--- highlighting using set_timeout(cb, 0) is more preferable, but it cause seg
--- fault when "|" in the pattern are used
-_deferred_highlight_viewport = debounce(
-  _deferred_highlight_viewport,
+-- Collecting match ranges in the background is more preferable, but it cause
+-- seg fault when "|" in the pattern are used and cannot work properly with "^",
+-- as column offsets only work for buffer lines.
+M.deferred_highlight_viewport = debounce(
+  M.deferred_highlight_viewport,
   vim.api.nvim_eval('g:esearch.win_matches_highlight_debounce_wait')
 )
-
-local old_coordinates
-function M.deferred_highlight_viewport(bufnr)
-  local changedtick = vim.api.nvim_buf_get_var(0, 'changedtick')
-  local lnum_from, lnum_to = viewport()
-  local new_coordinates = {changedtick, lnum_from, lnum_to, bufnr}
-  if vim.deep_equal(old_coordinates, new_coordinates) then return end
-  old_coordinates = new_coordinates
-  local pattern_string = vim.api.nvim_eval('b:esearch.pattern.vim')
-  _deferred_highlight_viewport(pattern_string, changedtick, lnum_from, lnum_to, bufnr)
-end
 
 function M.highlight_viewport()
   local lnum_from, lnum_to = viewport()
   local bufnr = vim.api.nvim_get_current_buf()
-  local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
-  local pattern = vim.regex(vim.api.nvim_eval('b:esearch.pattern.vim'))
-  local ranges = matches_ranges(pattern, lines, lnum_from)
+  local pattern_string = vim.api.nvim_eval('b:esearch.pattern.hl_match')
+  local ranges = matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
   set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
 end
 
