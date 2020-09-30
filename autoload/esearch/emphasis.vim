@@ -62,6 +62,7 @@ if g:esearch#has#nvim_add_highlight
   endfu
 
   fu! s:HighlightLineEmphasis.unplace() abort dict
+    if !nvim_buf_is_loaded(self.bufnr) | return | endif
     call nvim_buf_clear_namespace(self.bufnr, s:line_ns, 0, -1)
   endfu
 
@@ -75,6 +76,7 @@ elseif g:esearch#has#matchadd_win
   endfu
 
   fu! s:HighlightLineEmphasis.unplace() abort dict
+    if winbufnr(self.winid) == -1 | return | endif
     call matchdelete(self.id, self.winid)
   endfu
 

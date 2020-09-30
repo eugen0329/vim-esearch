@@ -73,6 +73,7 @@ end
 
 local function _deferred_highlight_viewport(pattern_string, changedtick, lnum_from, lnum_to, bufnr)
   vim.schedule(function()
+    if not vim.api.nvim_buf_is_loaded(bufnr) then return end
     local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
     local pattern = vim.regex(pattern_string)
     local ranges = matches_ranges(pattern, lines, lnum_from, bufnr, changedtick)
