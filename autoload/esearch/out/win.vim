@@ -218,8 +218,12 @@ fu! s:init_mappings() abort
 
   nnoremap <expr><silent><buffer><plug>(esearch-I)  <SID>I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
+  noremap  <expr><silent><buffer><plug>(esearch-dd) esearch#operator#expr('esearch#out#win#modifiable#d').'g@'
   noremap  <expr><silent><buffer><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
+  nnoremap <expr><silent><buffer><plug>(esearch-D)  esearch#operator#expr('esearch#out#win#modifiable#d').'$'
+  xnoremap <expr><silent><buffer><plug>(esearch-D)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-c)  esearch#out#win#modifiable#seq().esearch#operator#expr('esearch#out#win#modifiable#c')
+  noremap  <expr><silent><buffer><plug>(esearch-cc) esearch#out#win#modifiable#seq("g@").esearch#operator#expr('esearch#out#win#modifiable#c').'g@'
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
   nnoremap <expr><silent><buffer><plug>(esearch-C)  esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
   xnoremap <expr><silent><buffer><plug>(esearch-C)  esearch#operator#expr('esearch#out#win#modifiable#c')

@@ -327,7 +327,7 @@ Expect esearch_test:
      2 word3 word4
 
 ###########
-Execute (change current line using linewise-visual):
+Execute (change current line with C using linewise-visual):
   exe "norm! /word1\<CR>"
   norm VCzzz
 
@@ -339,7 +339,7 @@ Expect esearch_test:
      2 word3 word4
 
 ###########
-Execute (change multiple lines using linewise-visual):
+Execute (change multiple lines with C using linewise-visual):
   norm! 3G
   norm VjCzzz
 
@@ -347,4 +347,79 @@ Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
   zzz
+     2 word3 word4
+
+###########
+Execute (delete with D):
+  exe "norm! /word1\<CR>"
+  norm f1D
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+     2 word3 word4
+
+###########
+Execute (delete with 2C):
+  exe "norm! /word1\<CR>"
+  norm f12D
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+
+###########
+Execute (delete with D into @r register):
+  exe "norm! /word1\<CR>"
+  norm f1"rD
+
+Then:
+  AssertEqual getreg('r'), '1 word2'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+     2 word3 word4
+
+###########
+Execute (delete with D avoiding recording):
+  let @" = 'original'
+  exe "norm! /word1\<CR>"
+  norm f1D
+
+Then:
+  AssertEqual reg_recording(), ''
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+     2 word3 word4
+
+###########
+Execute (delete current line with D using linewise-visual):
+  exe "norm! /word1\<CR>"
+  norm VD
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     2 word3 word4
+
+###########
+Execute (delete multiple lines with D using linewise-visual):
+  norm! 3G
+  norm VjD
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
      2 word3 word4

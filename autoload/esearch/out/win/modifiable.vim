@@ -126,10 +126,14 @@ fu! esearch#out#win#modifiable#c_dot(wise) abort
 
       if esearch#util#is_visual(a:wise)
         let cmd = s:delete_visual_cmd(a:wise, s:last_visual, seq)
-        call s:delete_lines(a:wise, cmd, s:visual2range(s:last_visual))
+        let [begin, end] = s:visual2range(s:last_visual)
       else
-        call s:delete_lines(a:wise, esearch#operator#cmd(a:wise, seq, s:reg))
+        let cmd = esearch#operator#cmd(a:wise, seq, s:reg)
+        let [begin, end] = s:region(a:wise)
       endif
+      let begin[0] += 1
+
+      call s:delete_lines(a:wise, cmd, [begin, end])
     finally
       call options.restore()
     endtry
@@ -146,12 +150,8 @@ fu! esearch#out#win#modifiable#seq(...) abort
     return ''
   endif
 
-  let stop_recording = empty(s:reg_recording()) ? '' : 'q'
-  return ":\<c-u>call esearch#out#win#modifiable#save_reg()\<cr>".stop_recording.'q"'
-endfu
-
-fu! esearch#out#win#modifiable#save_reg() abort
   let [s:original_reg, @"] = [@", '']
+  return (empty(s:reg_recording()) ? '' : 'q').'q"'
 endfu
 
 fu! esearch#out#win#modifiable#c(wise) abort
