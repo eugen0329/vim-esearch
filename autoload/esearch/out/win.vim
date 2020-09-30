@@ -219,8 +219,10 @@ fu! s:init_mappings() abort
   nnoremap <expr><silent><buffer><plug>(esearch-I)  <SID>I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
-  noremap  <expr><silent><buffer><plug>(esearch-c)  esearch#out#win#modifiable#c_pre().esearch#operator#expr('esearch#out#win#modifiable#c')
+  noremap  <expr><silent><buffer><plug>(esearch-c)  esearch#out#win#modifiable#seq().esearch#operator#expr('esearch#out#win#modifiable#c')
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
+  nnoremap <expr><silent><buffer><plug>(esearch-C)  esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
+  xnoremap <expr><silent><buffer><plug>(esearch-C)  esearch#operator#expr('esearch#out#win#modifiable#c')
   nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
 
   call esearch#out#win#init_user_mappings()

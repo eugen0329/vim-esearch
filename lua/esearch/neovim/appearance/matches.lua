@@ -80,8 +80,8 @@ local function _deferred_highlight_viewport(pattern_string, changedtick, lnum_fr
     set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   end)
 end
--- highlighting using set_timeout(cb, 0), but it cause seg fault when "|" in the
--- pattern are used
+-- highlighting using set_timeout(cb, 0) is more preferable, but it cause seg
+-- fault when "|" in the pattern are used
 _deferred_highlight_viewport = debounce(
   _deferred_highlight_viewport,
   vim.api.nvim_eval('g:esearch.win_matches_highlight_debounce_wait')

@@ -14,7 +14,7 @@ function M.highlight_cursor_linenr()
   vim.schedule(function()
     if vim.api.nvim_call_function('bufexists', {bufnr}) == 0 then return end
 
-    -- the condition is needed to prevent adding highlights to buffer when leaving them
+    -- the condition is needed to prevent adding highlights to the buffer when leaving them
     if bufnr ~= vim.api.nvim_get_current_buf() then return end
 
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)

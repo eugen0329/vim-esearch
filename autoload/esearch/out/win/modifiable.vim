@@ -138,8 +138,14 @@ fu! esearch#out#win#modifiable#c_dot(wise) abort
   call s:repeat_set()
 endfu
 
-fu! esearch#out#win#modifiable#c_pre() abort
+fu! esearch#out#win#modifiable#seq(...) abort
   if mode(1) !=# 'n' | return '' | endif
+
+  if a:0
+    let s:seq = a:1
+    return ''
+  endif
+
   let stop_recording = empty(s:reg_recording()) ? '' : 'q'
   return ":\<c-u>call esearch#out#win#modifiable#save_reg()\<cr>".stop_recording.'q"'
 endfu
@@ -158,8 +164,13 @@ fu! esearch#out#win#modifiable#c(wise) abort
 
     let cmd = esearch#operator#cmd(a:wise, 'd', s:reg)
   else
-    norm! q
-    let [seq, @"] = [@", s:original_reg]
+    if exists('s:seq')
+      let seq = s:seq
+      unlet s:seq
+    else
+      norm! q
+      let [seq, @"] = [@", s:original_reg]
+    endif
     if !b:esearch.modifiable | return | endif
 
     if seq ==# 'w'
@@ -171,7 +182,7 @@ fu! esearch#out#win#modifiable#c(wise) abort
     endif
   endif
 
-  let last_line = line('$')
+  let [last_line, last_col] = [line('$'), col('$')]
   let [begin, end] = s:region(a:wise)
   let begin[0] += 1
   let [begin, end] = s:delete_lines(a:wise, cmd, [begin, end])
@@ -179,7 +190,7 @@ fu! esearch#out#win#modifiable#c(wise) abort
   if esearch#operator#is_linewise(a:wise)
     exe 'norm!' (end[0] == last_line ? 'o' : 'O')
   endif
-  startinsert
+  exe 'startinsert' . (end[1] + 1 == last_col ? '!' : '')
 
   let s:changes_count = -b:changedtick
   aug esearch_change

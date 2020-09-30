@@ -271,3 +271,80 @@ Expect esearch_test:
   file.txt
      1 wz1 word2
      2 wzd4
+
+###########
+Execute (change with C):
+  exe "norm! /word1\<CR>"
+  norm f1Czzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+     2 word3 word4
+
+###########
+Execute (change with 2C):
+  exe "norm! /word1\<CR>"
+  norm f12Czzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+
+###########
+Execute (change with C into @r register):
+  exe "norm! /word1\<CR>"
+  norm f1"rCzzz
+
+Then:
+  AssertEqual getreg('r'), '1 word2'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+     2 word3 word4
+
+###########
+Execute (change with C avoiding recording):
+  let @" = 'original'
+  exe "norm! /word1\<CR>"
+  norm f1Czzz
+
+Then:
+  AssertEqual reg_recording(), ''
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+     2 word3 word4
+
+###########
+Execute (change current line using linewise-visual):
+  exe "norm! /word1\<CR>"
+  norm VCzzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+  zzz
+     2 word3 word4
+
+###########
+Execute (change multiple lines using linewise-visual):
+  norm! 3G
+  norm VjCzzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  zzz
+     2 word3 word4
