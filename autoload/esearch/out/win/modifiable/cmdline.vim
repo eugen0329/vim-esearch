@@ -7,7 +7,7 @@ endfu
 
 fu! esearch#out#win#modifiable#cmdline#repeat(count1)
   try
-    let cmd = s:parse(@:, [s:Delete, s:Substitute, s:Global, s:Any]).make_safe().str()
+    let cmd = s:parse(@:, s:recognized_commands).make_safe().str()
   catch /^MakeSafeError/
     return ''
   endtry
@@ -21,7 +21,7 @@ fu! esearch#out#win#modifiable#cmdline#replace(cmdline, cmdtype) abort
   endif
 
   try
-    return  s:parse(a:cmdline, [s:Delete, s:Substitute, s:Global, s:Any]).make_safe().str()
+    return  s:parse(a:cmdline, s:recognized_commands).make_safe().str()
   catch /^MakeSafeError/
     return ''
   endtry
@@ -69,9 +69,9 @@ let s:global_command_re = '\v^'
       \ .     '(\3)(.*)='
       \ .   ')='
       \ . ')=$'
+
 fu! s:Global.parse(cmdline) abort dict
   let matches = s:matchlist(a:cmdline, s:global_command_re, 1, 6)
-
   return extend(copy(self), {
         \ 'range':   matches[0],
         \ 'global':  matches[1],
@@ -85,7 +85,8 @@ endfu
 fu! s:Global.make_safe() abort dict
   if self.cmd.klass ==# 'Delete'
     let self.cmd.is_safe = 1
-    exe extend(copy(self), {'cmd': s:Any.parse('call add(g:esearch#out#win#modifiable#delete, line("."))')}).str()
+    let dry_run = s:Any.parse('call add(g:esearch#out#win#modifiable#delete, line("."))')
+    exe extend(copy(self), {'cmd': dry_run}).str()
   else
     let self.cmd = self.cmd.make_safe()
   endif
@@ -106,10 +107,10 @@ let s:delete_re = '\v^'
       \ .   '%('
       \ .     s:count_re.'='
       \ .   ')='
-      \ . ')=\s*$'
+      \ . ')=$'
+
 fu! s:Delete.parse(cmdline) abort dict
   let matches = s:matchlist(a:cmdline, s:delete_re, 1, 4)
-
   return extend(copy(self), {
         \ 'range':    matches[0],
         \ 'delete':   matches[1],
@@ -153,7 +154,6 @@ let s:substitute_command_re = '\v^'
 
 fu! s:Substitute.parse(cmdline) abort dict
   let matches = s:matchlist(a:cmdline, s:substitute_command_re, 1, 7)
-
   return extend(copy(self), {
         \ 'range':      matches[0],
         \ 'substitute': matches[1],

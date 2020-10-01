@@ -68,7 +68,7 @@ Use `im` and `am` text-objects to jump to the following match and start operatin
 press `dam` to delete "a match" with trailing whitespaces under the cursor or jump to the nearest, `cim` to delete "inner match" and start
 the insert mode. Use any other operator including user-defined to capture matched text. Use `.` to repeat the last change.
 
-Use `:substitute/` command without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
+Use `:s/` and `:g/.../d` commands without worrying about matched layout (filenames, line numbers). They will be preserved from changes.
 
 Type `:write<cr>` to save changes into files. Use undo and `:write<cr>` command again to revert.
 

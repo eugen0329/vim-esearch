@@ -229,7 +229,7 @@ fu! s:init_mappings() abort
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
   nnoremap <expr><silent><buffer><plug>(esearch-C)  col('$')==1 ? 'i' : (col('.')==col('$')?'$':'').esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
   xnoremap <expr><silent><buffer><plug>(esearch-C)  'V'.esearch#operator#expr('esearch#out#win#modifiable#c')
-  nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
+  nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>exe esearch#repeat#run(v:count)<cr>
   nnoremap       <silent><buffer><plug>(esearch-@:) :<c-u>exe esearch#out#win#modifiable#cmdline#repeat(v:count1)<cr>
 
   call esearch#out#win#init_user_mappings()
