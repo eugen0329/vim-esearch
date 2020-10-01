@@ -5,7 +5,7 @@ fu! esearch#out#win#modifiable#cmdline#import() abort
   return s:
 endfu
 
-fu! esearch#out#win#modifiable#cmdline#repeat(count1)
+fu! esearch#out#win#modifiable#cmdline#repeat(count1) abort
   try
     let cmd = s:parse(@:, s:recognized_commands).make_safe().str()
   catch /^MakeSafeError/
