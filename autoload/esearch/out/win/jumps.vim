@@ -15,17 +15,17 @@ fu! esearch#out#win#jumps#init(esearch) abort
         \ })
 endfu
 
-fu! s:jump2filename(count, ...) abort dict
+fu! s:jump2filename(count1, ...) abort dict
   if get(a:, 1) is# 'v'
     norm! gv
   endif
 
   " When jumping down from the header context, it locates the second filenme
-  if a:count > 0
+  if a:count1 > 0
     if line('.') <= 2
       norm! 3gg0
     endif
-    let times = a:count
+    let times = a:count1
     while times > 0
       if !search(s:filename_re, 'W') && !self.is_filename()
         " if no filenames forward (the cursor is within the last ctx) - jump to
@@ -49,7 +49,7 @@ fu! s:jump2filename(count, ...) abort dict
       call search(s:filename_re,  'Wbe')
     endif
 
-    let times = -a:count
+    let times = -a:count1
     while times > 0
       if !search(s:filename_re,  'Wbe') && !self.is_filename()
         " if no filenames backward (the cursor is within the first ctx) - jump to
@@ -64,7 +64,7 @@ fu! s:jump2filename(count, ...) abort dict
   return 1
 endfu
 
-fu! s:jump2entry(count, ...) abort dict
+fu! s:jump2entry(count1, ...) abort dict
   if self.is_blank()
     return 0
   endif
@@ -77,8 +77,8 @@ fu! s:jump2entry(count, ...) abort dict
 
   " When jumping down from the header context, it locates the second entry as
   " clicking on the header cause opening the first encountered entry below.
-  if a:count > 0
-    let times = a:count
+  if a:count1 > 0
+    let times = a:count1
     let pattern .= line('$') <= 4 ? '\%>3l' : '\%>4l'
 
     while times > 0
@@ -91,7 +91,7 @@ fu! s:jump2entry(count, ...) abort dict
       call search(pattern, 'W')
     else
       let pattern .= '\%<'.line('.').'l'
-      let times = -a:count
+      let times = -a:count1
       while times > 0
         call search(pattern,  'Wb')
         let times -= 1
@@ -105,7 +105,7 @@ fu! s:jump2entry(count, ...) abort dict
   return 1
 endfu
 
-fu! s:jump2dirname(count, ...) abort dict
+fu! s:jump2dirname(count1, ...) abort dict
   if get(a:, 1) is# 'v'
     norm! gv
   endif
@@ -114,7 +114,7 @@ fu! s:jump2dirname(count, ...) abort dict
   let last_dirname = fnamemodify(last_filename, ':h')
   let first_dirname = last_dirname
 
-  if a:count > 0
+  if a:count1 > 0
     if line('.') <= 2
       norm! 3gg0
     endif
@@ -126,21 +126,21 @@ fu! s:jump2dirname(count, ...) abort dict
       return s:inline_jump2basename()
     endif
 
-    let last_dirname = s:jump2dirname_down(self, a:count, last_filename, last_dirname)
+    let last_dirname = s:jump2dirname_down(self, a:count1, last_filename, last_dirname)
   else
     if line('.') <= 2 " When jumping up from the header context, it locates the first filename below
       norm! 3gg0
       return s:inline_jump2basename()
     endif
 
-    let last_dirname = s:jump2dirname_up(self, a:count, last_filename, last_dirname)
+    let last_dirname = s:jump2dirname_up(self, a:count1, last_filename, last_dirname)
   endif
 
   return s:inline_jump2basename()
 endfu
 
-fu! s:jump2dirname_down(esearch, count, last_filename, last_dirname) abort
-  let [last_filename, last_dirname, times] = [a:last_filename, a:last_dirname, a:count]
+fu! s:jump2dirname_down(esearch, count1, last_filename, last_dirname) abort
+  let [last_filename, last_dirname, times] = [a:last_filename, a:last_dirname, a:count1]
 
   while times > 0
     if !search(s:filename_re, 'W') && !a:esearch.is_filename()
@@ -163,7 +163,7 @@ fu! s:jump2dirname_down(esearch, count, last_filename, last_dirname) abort
   return last_dirname
 endfu
 
-fu! s:jump2dirname_up(esearch, count, last_filename, last_dirname) abort
+fu! s:jump2dirname_up(esearch, count1, last_filename, last_dirname) abort
   let [last_filename, last_dirname] = [a:last_filename, a:last_dirname]
 
   " Start searching from the filename
@@ -179,7 +179,7 @@ fu! s:jump2dirname_up(esearch, count, last_filename, last_dirname) abort
     call search(s:filename_re,  'Wb')
   endif
 
-  let times = -a:count
+  let times = -a:count1
   while times > 0
     if !search(s:filename_re,  'Wbe') && !a:esearch.is_filename()
       " if no filenames backward (the cursor is within the first ctx) - jump to

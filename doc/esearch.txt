@@ -7,12 +7,13 @@ Features overview     |esearch-features|
 Install               |esearch-install|
 Quick start           |esearch-quickstart|
 Global                |esearch-global|
-  Mappings              |esearch-global-map|
+  Keymaps             |esearch-global-map|
   Configurations        |esearch-global-config|
 Search window         |esearch-win|
-  Mappings              |esearch-win-map|
+  Keymaps               |esearch-win-map|
   Configurations        |esearch-win-config|
   Preview               |esearch-win-preview|
+  Editing               |esearch-win-editing|
 Commandline           |esearch-cmdline|
   Prompt                |esearch-cmdline-prompt|
   Menu                  |esearch-cmdline-menu|
@@ -110,12 +111,12 @@ Preview~
 ================================================================================
 GLOBAL                                                            *esearch-global*
 
-GLOBAL MAPPINGS                                               *esearch-global-map*
+GLOBAL KEYMAPS                                                *esearch-global-map*
                                                      *esearch-global-map-overview*
                                    *<plug>(esearch)* *<plug>(operator-esearch-exec)*
                                                 *<plug>(operator-esearch-prefill)*
 
-           Map                        Default                  What does ~
+           Keymap                     Default                  What does ~
  ---------------------------------+------------+----------------------------------------------
  <plug>(esearch)                  | <leader>ff | Start the input prompt
  <plug>(operator-esearch-prefill) | <leader>f  | Start the prompt prefilled with a text-object
@@ -178,7 +179,7 @@ To customize the plugin you must initialize it first with:
  `.live_update`             | Start and update the output while you're typing
  `.write_cb()`              | Callback to write a buffer after applying changes
  `.select_prefilled`        | Flag to visually select a prefilled prompt text
- `.default_mappings`        | Flag to toggle all default mappings
+ `.default_mappings`        | Flag to toggle all default keymaps
  `.adapter`                 | Search util (ag, rg, grep etc.) adapter name
  `.backend`                 | Processing backend (|job-control|, |system()| etc.) name
  `.out`                     | Output target name (window or quickfix list)
@@ -188,8 +189,8 @@ To customize the plugin you must initialize it first with:
  -------------------------+-----------------------------------------------------
 
 g:esearch.default_mappings                            *g:esearch.default_mappings*
-        Flag to disable all default mappings including both global and search
-        window local mappings.
+        Flag to disable all default keymaps including both global and search
+        window local keymaps.
         Type: |Boolean|
         Default: 0
         Example:~
@@ -447,15 +448,15 @@ g:esearch.filemanager_integration              *g:esearch.filemanager_integratio
 ================================================================================
 SEARCH WINDOW                                                        *esearch-win*
 
-SEARCH WINDOW MAPPINGS                                           *esearch-win-map*
+SEARCH WINDOW KEYMAPS                                            *esearch-win-map*
 
                                                         *esearch-win-map-overview*
                                                         *esearch-win-map-defaults*
 
-Mappings, that can be used to customize the behavior by adding elements with
-mapping definitions to |g:esearch.win_map| list:
+Keymaps, that can be used to customize the behavior by adding elements with
+keymaps definitions to |g:esearch.win_map| list:
 
-                 Map                   Default               What does~
+              Keymap                   Default               What does~
  --------------------------------------+------+----------------------------------------------------------
 <plug>(esearch-win-reload)             |  R   | Reload current search
 <plug>(esearch-win-tabopen)            |  t   | Open a file under the cursor in a tab
@@ -479,8 +480,8 @@ mapping definitions to |g:esearch.win_map| list:
 
 g:esearch.win_map                                              *g:esearch.win_map*
         List of keymap definitions in builtin |nvim_set_keymap()| function
-        arguments format to extend default mappings. To override default
-        mappings use it with |g:esearch.default_mappings| set to `0`.
+        arguments format to extend default keymaps. To override default
+        keymaps use it with |g:esearch.default_mappings| set to `0`.
         Type: |List| of |List|s
         Default: see |esearch-win-map-defaults| table above
         Format: >
@@ -586,7 +587,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         \ [' ', '[f', '<plug>(esearch-win-jump:filename:up)zz']
         \]
 <
-        The example above defines `]f` and `[f` mappings to jump between filenames
+        The example above defines `]f` and `[f` keymaps to jump between filenames
         center the screen after a jump.
 
         NOTE `' '` is used to create a keymap using regular |:map| command.
@@ -609,7 +610,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         \ [' ', '[[', '<plug>(esearch-win-jump:dirname:up)'.s:echo_dir]
         \]
 <
-        The example above defines `[[` and `]]` mappings to jump between filenames
+        The example above defines `[[` and `]]` keymaps to jump between filenames
         from different directories and print a hovered directory after the jump.
 
         NOTE `' '` is used to create a keymap using regular |:map| command.
@@ -656,7 +657,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
         \ ['ov', 'ar', '<plug>(textobj-esearch-match-a)']
         \]
 <
-        NOTE Multiple mode chars are used to define the same mappings for both
+        NOTE Multiple mode chars are used to define the same keymaps for both
         |Visual| and |Operator-pending| modes.
 
         See also: |operator|, |text-objects|.
@@ -737,7 +738,70 @@ preview window press `p` key multiple times. To enter the preview window press
 capital `P`. Use |<plug>(esearch-win-preview:enter)| to map a custom key to enter
 the preview window.
 
-See also: |g:esearch.win_map| for mappings customization.
+See also: |g:esearch.win_map| for keymaps customization.
+
+________________________________________________________________________________~
+SEARCH WINDOW EDITING                                        *esearch-win-editing*
+                          *<plug>(esearch-I)* *<plug>(esearch-cr)* *<plug>(esearch-d)*
+                          *<plug>(esearch-d)* *<plug>(esearch-dd)* *<plug>(esearch-c)*
+                          *<plug>(esearch-cc)* *<plug>(esearch-C)* *<plug>(esearch-D)*
+                          *<plug>(esearch-c)* *<plug>(esearch-.)* *<plug>(esearch-@:)*
+
+Builtin keymaps are redefined within the search buffer to track changes and help
+modifying search results. Default definitions:
+>
+    let g:esearch.win_map = [
+          \ ['n',  'I',    '<plug>(esearch-I)'                ],
+          \ ['ic', '<cr>', '<plug>(esearch-cr)', {'nowait': 1}],
+          \ ['x',  'x',    '<plug>(esearch-d)'                ],
+          \ ['nx', 'd',    '<plug>(esearch-d)'                ],
+          \ ['n',  'dd',   '<plug>(esearch-dd)'               ],
+          \ ['nx', 'c',    '<plug>(esearch-c)'                ],
+          \ ['n',  'cc',   '<plug>(esearch-cc)'               ],
+          \ ['nx', 'C',    '<plug>(esearch-C)'                ],
+          \ ['nx', 'D',    '<plug>(esearch-D)'                ],
+          \ ['x',  's',    '<plug>(esearch-c)'                ],
+          \ ['n',  '.',    '<plug>(esearch-.)'                ],
+          \ ['n',  '@:',   '<plug>(esearch-@:)'               ],
+          \]
+<
+
+       Keymap                            What does ~
+ -------------------+-----------------------------------------------------------
+ <plug>(esearch-I)  | Starts insert mode at the beginning of the text after the
+                    | virtual line number
+ <plug>(esearch-cr) | In |Insert| mode: inserts signs before virtual line numbers
+                    | to append or prepend new lines when |:w| the window;
+                    | in |Command-line| mode: makes |esearch-editing-commands| safe.
+ Others ...         | Register deleted lines, set repeats and execute default
+                    | commands of the same name. See |dd|, |@:| or others for help.
+
+See also: |g:esearch.win_map| for keymaps customization syntax.
+
+                                                        *esearch-editing-commands*
+
+Recognized commands syntax, that will be handled on <plug>(esearch-cr) press
+in |Command-line| mode within the search buffer:
+>
+    <substitute> ::= s%[ubstitute] | sno%[magic] | sm%[agic]
+    <global>     ::= g%[lobal] | v%[global] | g%[lobal]!
+    <delete>     ::= d%[elete]
+
+    :<delete> ...
+    :<substitute> ...
+    :<global> ...
+    :<global>/pattern/<delete> ...
+    :<global>/pattern/<substitute> ...
+    :<global>/pattern/<global> ...
+    :<global>/pattern/...
+<
+If <delete> is submitted, corresponding lines are tracked as deleted.
+If <substitute> or <global> are submitted, the pattern will atuomatically be
+modified to prevent matching the header, filenames and virtual line numbers.
+If commands are separated with |<bar>| or passed into |:execute|, they won't be
+recongnized and executed as is.
+
+See also: |:delete|, |:substitute| and |:global| builtin commands syntax.
 
 ================================================================================
 APPEARANCE                                                    *esearch-appearance*
@@ -762,19 +826,21 @@ See also: |highlight-ctermfg|, |highlight-guifg|, |highlight-groups|.
 
                                                      *esearch-appearance-overview*
 
-              esearchHeader
-  <----------------------------------->
-             +--------+---------------------- esearchStatistics
-             v        v
-  Matches in 2 lines, 1 file. Finished.
-               <------>---------------------- esearchBasename
- +>   /path/to/file.txt 2 lines <------------ Annotation {2}
- |  +> 1 `matched text`
- |  |  `2` another |line with `matched text`
- |  |  ^         ^          ^^^^^^^^^^^^
- |  |  |         |          esearchMatch
- |  |  |         Cursor position {1}
- |  |  esearchCursorLineNr
+                       esearchHeader
+           <----------------------------------->
+                      .--------.---------------------- esearchStatistics
+                      v        v
+           Matches in `2` lines, `1` file. Finished.
+                    <------>---------------------- esearchBasename
+ .-------> /path/to/file.txt `2 lines` <------------ Annotation {2}
+ |  .-------> 1 `matched text`       <---------->-- esearchMatch
+ |  | .-----> `2` another line wit`|`h `matched text`
+ |  | | .-> `+` 2 Appended line   ^
+ |  | | |                       |
+ |  | | |                       |
+ |  | | |                       Cursor position {1}
+ |  | | esearchDiffAdd
+ |  | esearchCursorLineNr
  |  esearchLineNr
 esearchFilename
                                   {1} Vim cursor position that affects whether
@@ -807,6 +873,11 @@ esearchLineNr                                                   *hl-esearchLineN
 esearchCursorLineNr                                       *hl-esearchCursorLineNr*
         Virtual UI line number highlight when the cursor is on the line.
         Default: link to |hl-CursorLineNr|
+
+esearchDiffAdd                                                 *hl-esearchDiffAdd*
+        Virtual UI sign before virtual line number to indicate appended and
+        prepended lines.
+        Default: |hl-DiffAdd| without background.
 
 esearchMatch                                                     *hl-esearchMatch*
         Matched text highlight.
@@ -1034,7 +1105,7 @@ Within the prompt matching modes can be changed by double clicking:
 - <c-s><c-s> toggles case-sensitive mode
 - <c-t><c-t> toggle textobj matching mode.
 
-NOTE Double clicks are used to prevent any conflicts with the default mappings
+NOTE Double clicks are used to prevent any conflicts with the default keymaps
 (e.g. |c_CTRL-R| to insert the contents of a register).
 
 Press <c-o> to open the menu to configure search paths, filetypes and other
@@ -1141,8 +1212,8 @@ Buffer-local |b:esearch| variable contains configurations inherited from |g:esea
 and extra methods to interact with the search window.
 
       Method                                   What does~
- ----------------------+-----------------------------------------------------------------------
- `.open()`               | Open a line under the cursor. Used by `o`, `s`, `t`, <cr> and other mappings
+ ----------------------+----------------------------------------------------------------------
+ `.open()`               | Open a line under the cursor. Used by `o`, `s`, `t`, <cr> and other keymaps
  `.filename()`           | Return escaped entry filename under the cursor
  `.unescaped_filename()` | Return unescaped entry filename under the cursor
  `.filetype()`           | Return a filetype under the cursor
@@ -1160,7 +1231,7 @@ and extra methods to interact with the search window.
  `.is_entry()`           | Return |TRUE| if the cursor is above an entry
  `.is_current()`         | Return |TRUE| if the window related to |b:esearch| is current
  `.is_blank()`           | Return |TRUE| if the search request has outputted no results
- ----------------------+-----------------------------------------------------------------------
+ ----------------------+----------------------------------------------------------------------
 
 ________________________________________________________________________________~
 API EVENTS                                                    *esearch-api-events*
@@ -1305,7 +1376,7 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
 
                                                       *g:esearch.win_map-examples*
                                                             *esearch-sort-results*
-7. Use `g:esearch.win_map` to setup window local mappings.
+7. Use `g:esearch.win_map` to setup window local keymaps.
 >
     let g:esearch.win_map = [
      \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @"<cr>'                ],

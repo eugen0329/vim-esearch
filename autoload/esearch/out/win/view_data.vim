@@ -79,11 +79,9 @@ endfu
 fu! s:ctx_at(line) dict abort
   if self.is_blank() | return {} | endif
 
-  let ctx = esearch#out#win#repo#ctx#new(self, self.modifiable ? self.undotree.head.state : self)
-        \.by_line(a:line)
-  if ctx.id == 0
-    return self.contexts[1]
-  endif
+  let state = (self.modifiable ? self.undotree.head.state : self)
+  let ctx = self.contexts[state.wlnum2ctx_id[a:line]]
+  if ctx.id == 0 | return self.contexts[1] | endif
 
   return ctx
 endfu

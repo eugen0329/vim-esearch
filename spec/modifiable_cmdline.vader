@@ -5,9 +5,9 @@ Execute:
   call Fixture(g:esearch.cwd.'file.txt', ['Matches', 'in', 'file'])
 
 Execute (load -> dump):
-  let Glob = esearch#out#win#modifiable#cmdline#import().global.new
-  let Del = esearch#out#win#modifiable#cmdline#import().delete.new
-  let Sub = esearch#out#win#modifiable#cmdline#import().substitute.new
+  let Glob = esearch#out#win#modifiable#cmdline#import().Global.parse
+  let Del = esearch#out#win#modifiable#cmdline#import().Delete.parse
+  let Sub = esearch#out#win#modifiable#cmdline#import().Substitute.parse
   let @/ = 'dd' " default pattern
   let ranges =  [
   \ '', '.', '.+3', '$', '%', '7',
@@ -15,6 +15,7 @@ Execute (load -> dump):
   \ '/p/', '0;/p/', '/p/+3', '/p//p/',
   \ '?p?', '0;?p?', '?p?+3', '?p??p?',
   \ '/p/,/r/', '/p/,?r?', '?p?,/r/','?p?,?r?',
+  \ "'<,'>",
   \]
   let trailing_spaces = ['', ' ', '   ']
 Then:
@@ -152,3 +153,15 @@ Expect esearch_test:
   file.txt
      1 Matches
      2 in
+
+Execute(:[range]delete!/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('$-1,$d', ':')
+Then:
+  doau TextChanged
+  Assert UndotreeIsConsistent()
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 Matches
