@@ -20,6 +20,7 @@ fu! esearch#out#win#modifiable#uninit(esearch) abort
   aug END
 endfu
 
+let g:esearch#out#win#modifiable#delete = []
 fu! s:text_changed() abort
   if has_key(b:esearch.undotree.nodes, changenr())
     return b:esearch.undotree.checkout(changenr())
@@ -27,14 +28,21 @@ fu! s:text_changed() abort
 
   let state = b:esearch.undotree.head.state
   let delta = len(state.wlnum2lnum) - (line('$') + 1)
-  if delta == 0 | return | endif
+  if delta == 0 | return b:esearch.undotree.commit(state) | endif
 
-  if delta < 0
-    let state = deepcopy(state)
+  let state = deepcopy(state)
+  if !empty(g:esearch#out#win#modifiable#delete)
+    for wlnum in reverse(sort(g:esearch#out#win#modifiable#delete, 'N'))
+      call remove(state.wlnum2lnum, wlnum)
+      call remove(state.wlnum2ctx_id, wlnum)
+    endfor
+    let g:esearch#out#win#modifiable#delete = []
+  elseif delta < 0
+    call s:Log.warn('esearch: unknown change')
     let state.wlnum2lnum += repeat([state.wlnum2lnum[-1]], -delta)
     let state.wlnum2ctx_id += repeat([state.wlnum2ctx_id[-1]], -delta)
-  elseif delta > 0
-    let state = deepcopy(state)
+  else " delta > 0
+    call s:Log.warn('esearch: unknown change')
     call remove(state.wlnum2lnum, -delta, -1)
     call remove(state.wlnum2ctx_id, -delta, -1)
   endif

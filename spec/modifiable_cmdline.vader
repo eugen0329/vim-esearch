@@ -1,0 +1,61 @@
+Include: helper.vader
+
+Execute (load -> dump):
+  let Glob = esearch#out#win#modifiable#cmdline#import().global.new
+  let Del = esearch#out#win#modifiable#cmdline#import().delete.new
+  let Sub = esearch#out#win#modifiable#cmdline#import().substitute.new
+  let @/ = 'pp'
+  let ranges =  [
+  \ '', '.', '.+3', '$', '%', '7',
+  \ '1,7', '.+3,7',
+  \ '/p/', '0;/p/', '/p/+3', '/p//p/',
+  \ '?p?', '0;?p?', '?p?+3', '?p??p?',
+  \ '/p/,/r/', '/p/,?r?', '?p?,/r/','?p?,?r?',
+  \]
+  let trailing_spaces = ['', ' ', '   ']
+Then:
+  for r in ranges
+    AssertEqual Glob(r.'g/').str(),   r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l'
+    AssertEqual Glob(r.':g/').str(),  r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l'
+    AssertEqual Glob(r.'g/qq').str(), r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l'
+
+    AssertEqual Glob(r.'g@').str(),   r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l'
+    AssertEqual Glob(r.':g@').str(),  r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l'
+    AssertEqual Glob(r.'g@qq').str(), r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l'
+
+    for s in trailing_spaces
+      for i in range(len('substitute'))
+        AssertEqual Sub(r.'substitute'[:i].'///'.s).str(), r.'substitute'[:i].'/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l//'.s
+      endfor
+      AssertEqual Sub(r.'s/qq//'.s).str(),        r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l//'.s
+      AssertEqual Sub(r.'s//st/'.s).str(),        r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l/st/'.s
+      AssertEqual Sub(r.'s/qq/st/'.s).str(),      r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l/st/'.s
+      AssertEqual Sub(r.'s//st/gc'.s).str(),      r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l/st/gc'.s
+      AssertEqual Sub(r.'s/qq/st/gc'.s).str(),    r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l/st/gc'.s
+      AssertEqual Sub(r.'s//st/gc 10'.s).str(),   r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l/st/gc 10'.s
+      AssertEqual Sub(r.'s/qq/st/gc 10'.s).str(), r.'s/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l/st/gc 10'.s
+
+      for i in range(len('delete'))
+        AssertEqual Del(r.'delete'[:i].s).str(), r.'delete'[:i].s
+      endfor
+      AssertEqual Del(r.':d'.s).str(),   r.'d'.s
+      AssertEqual Del(r.'d r'.s).str(),  r.'d r'.s
+      AssertEqual Del(r.':d r'.s).str(), r.'d r'.s
+      AssertEqual Del(r.'d "'.s).str(),  r.'d "'.s
+      AssertEqual Del(r.':d "'.s).str(), r.'d "'.s
+
+      for i in range(len('global'))
+        AssertEqual Glob(r.'global'[:i].'//'.s).str(), r.'global'[:i].'/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l/'.s
+      endfor
+      AssertEqual Glob(r.'g/qq/'.s).str(),         r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l/'.s
+      AssertEqual Glob(r.'g//delete'.s).str(),     r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l/delete'.s
+      AssertEqual Glob(r.'g/qq/delete'.s).str(),   r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l/delete'.s
+      AssertEqual Glob(r.'g/qq/delete r'.s).str(), r.'g/\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l/delete r'.s
+
+      AssertEqual Glob(r.'g@@'.s).str(),           r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l@'.s
+      AssertEqual Glob(r.'g@qq@'.s).str(),         r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l@'.s
+      AssertEqual Glob(r.'g@@delete'.s).str(),     r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\M\)\%>1l@delete'.s
+      AssertEqual Glob(r.'g@qq@delete'.s).str(),   r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l@delete'.s
+      AssertEqual Glob(r.'g@qq@delete r'.s).str(), r.'g@\%(\s[+^_]\=\s*\d\+\s.*\)\@<=\%(qq\M\)\%>1l@delete r'.s
+    endfor
+  endfor
