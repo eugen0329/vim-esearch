@@ -121,6 +121,7 @@ fu! esearch#config#init(esearch) abort
           \ ['nx', 'D',    '<plug>(esearch-D)'                     ],
           \ ['x',  's',    '<plug>(esearch-c)'                     ],
           \ ['n',  '.',    '<plug>(esearch-.)'                     ],
+          \ ['n',  '@:',   '<plug>(esearch-@:)'                    ],
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])
