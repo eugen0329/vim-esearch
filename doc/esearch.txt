@@ -142,7 +142,7 @@ In VISUAL mode press:
 Another simplified example: >
     nmap <m-f> <plug>(esearch)
     vmap <m-f> <plug>(operator-esearch-exec)
-    au FileType nerdtree map <buffer> <m-f> <Plug>(operator-esearch-prefill)
+    autocmd FileType nerdtree map <buffer> <m-f> <Plug>(operator-esearch-prefill)
 <
 In NORMAL mode press:
   - <m-f> (meta-f or alt-f) to start the input prompt.
@@ -1352,16 +1352,17 @@ Search in commits from an inputted branch.
 <
 Print the revision date and author's name under the cursor.
 >
-    fu! EchoRevDate() abort
-      let ctx = b:esearch.ctx_at(line('.'))
+    fu! EchoRevDate(esearch) abort
+      if !a:esearch.is_current() | return | endif
+      let ctx = a:esearch.ctx_at(line('.'))
       if !get(ctx, 'rev') | return | endif
       let hash = split(ctx.filename, ':')[0]
-      echon systemlist('git show -s --pretty="%ad %an (%ar)" ' . hash)[0]
+      echo systemlist('git show -s --pretty="%ad %an (%ar)" ' . hash)[0]
     endfu
 
     autocmd User esearch_win_config
       \  let b:echo_date = esearch#async#debounce(function('EchoRevDate'), 100)
-      \| autocmd CursorMoved <buffer> call b:echo_date.apply()
+      \| autocmd CursorMoved <buffer> call b:echo_date.apply(b:esearch)
 <
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*
@@ -1463,36 +1464,29 @@ Append buffers data to a location list for reviewing, then open it and
 display the first entry.
 >
     let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
-    au User esearch_write_post lopen | wincmd p | lfirst
+    autocmd User esearch_write_post lopen | wincmd p | lfirst
 <
 See also: |g:esearch.write_cb()|, |esearch_write_post|.
 
                                               *esearch-offscreen-filename-example*
-10. Show context filenames in 'statusline' that are above the viewport.
+10. Show hovered context filenames that are above the viewport in 'statusline'.
 >
-    function! s:offscreen_filename() abort
-      " prevent errors due to asynchronous execution
-      if !exists('b:esearch') || !b:esearch.is_current()
-        return
-      endif
+    function! ShowOffscreenFilename(esearch) abort
+      if !a:esearch.is_current() | return | endif
 
-      if exists('b:saved_statusline')
-        let  &statusline = b:saved_statusline
-        unlet b:saved_statusline
-      endif
+      if exists('b:statusline') | let &statusline = b:statusline | endif
+      unlet! b:statusline
 
-      let top_line = line('w0')
-      if b:esearch.filename() ==# b:esearch.filename(top_line)
-            \ && b:esearch.is_entry(top_line)
-        let b:saved_statusline = &statusline
-        set statusline=%#esearchFilename#%{b:esearch.filename()}
+      let top_filename = a:esearch.filename(line('w0'))
+      if b:esearch.filename() ==# top_filename && a:esearch.is_entry(line('w0'))
+        let b:statusline = &statusline
+        let &statusline = '%#esearchFilename#%{b:esearch.filename()}'
       endif
     endfunction
 
-    let s:show_offscreen_filename =
-        \ esearch#async#debounce(function('s:offscreen_filename'), 50)
     autocmd User esearch_win_config
-        \ autocmd CursorMoved <buffer> call s:show_offscreen_filename.apply()
+        \  let b:show = esearch#async#debounce(function('ShowOffscreenFilename'), 50)
+        \| autocmd CursorMoved <buffer> call b:show.apply(b:esearch)
 <
 ================================================================================
 TROUBLESHOOTING                                          *esearch-troubleshooting*
