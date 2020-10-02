@@ -16,9 +16,30 @@ Execute(setup):
       \ && messages[1] =~# '^\^I'.fnamemodify(a:path, ':.')
   endfu
 
+  let s:List = vital#esearch#import('Data.List')
   fu! UndotreeIsConsistent() abort
-    return (len(b:esearch.undotree.head.state) - 1 == line('$')
-        \ || b:esearch.undotree.head.state == [0])
+    let lines = getline(1, '$')
+    let g:state = [0]
+    let id = 0
+    if lines !=# ['']
+      if get(lines, 0, '') =~# '^Matches' | let g:state += [0] | endif
+      if get(lines, 1, 0) is# ''          | let g:state += [0] | endif
+
+      for line in lines[2:]
+        if line =~# g:esearch#out#win#filename_re
+          let id = filter(copy(b:esearch.contexts), 'fnameescape(v:val.filename) == line')[0].id
+        endif
+        call add(g:state, id)
+      endfor
+    endif
+
+    let g:state = map(g:state, '+v:val')
+    let head_state = map(copy(b:esearch.undotree.head.state), '+v:val')
+    return head_state ==# g:state && (len(head_state) - 1 == line('$') || head_state == [0])
+  endfu
+
+  fu! UndotreeIsInconsistentMsg() abort
+    return 'undotree: '.string(g:state).string(b:esearch.state)
   endfu
 
   " linear congruential generator

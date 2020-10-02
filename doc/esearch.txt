@@ -765,7 +765,6 @@ modifying search results. Default definitions:
           \ ['n',  '@:',   '<plug>(esearch-@:)'               ],
           \]
 <
-
        Keymap                            What does ~
  -------------------+-----------------------------------------------------------
  <plug>(esearch-I)  | Starts insert mode at the beginning of the text after the

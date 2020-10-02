@@ -121,7 +121,7 @@ Execute(:global/):
   silent exe esearch#out#win#modifiable#cmdline#replace('g/Matches\|file\|[123]/d', ':')
 Then:
   doau TextChanged
-  Assert UndotreeIsConsistent()
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
@@ -133,7 +133,7 @@ Execute(:vglobal/):
   silent exe esearch#out#win#modifiable#cmdline#replace('v/Matches\|in/d', ':')
 Then:
   doau TextChanged
-  Assert UndotreeIsConsistent()
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
@@ -146,7 +146,7 @@ Execute(:global!/):
   silent exe esearch#out#win#modifiable#cmdline#replace('g!/Matches\|in/d', ':')
 Then:
   doau TextChanged
-  Assert UndotreeIsConsistent()
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 
@@ -159,7 +159,7 @@ Execute(:[range]delete!/):
   silent exe esearch#out#win#modifiable#cmdline#replace('$-1,$d', ':')
 Then:
   doau TextChanged
-  Assert UndotreeIsConsistent()
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 Expect esearch_test:
   Matches in 3 lines, 1 file. Finished.
 

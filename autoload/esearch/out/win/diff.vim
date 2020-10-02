@@ -167,22 +167,20 @@ let s:Diff = {}
 fu! s:Diff.new(edits, begin, ctx, lnums_b, texts_b) abort
   if empty(a:edits) | return {'edits': []} | endif
   let edits = s:reverse_flatten(a:edits)
-  let [win_undos, state_undos] = s:undo_edits(a:ctx.lines, a:ctx, a:ctx.begin, a:lnums_b)
-  let [win_edits, state_edits, lines_b] = s:win_write_post_edits(edits, a:lnums_b, a:texts_b, a:begin)
+  let win_undos = s:win_undos(a:ctx.lines, a:ctx, a:ctx.begin, a:lnums_b)
+  let [win_edits, lines_b] = s:win_write_post_edits(edits, a:lnums_b, a:texts_b, a:begin)
   return {
         \ 'ctx': a:ctx,
         \ 'edits': edits,
         \ 'win_edits': win_edits,
-        \ 'state_edits': state_edits,
         \ 'win_undos': win_undos,
-        \ 'state_undos': state_undos,
         \ 'begin': a:begin,
         \ 'lines_b': lines_b,
         \}
 endfu
 
 fu! s:win_write_post_edits(edits, lnums_b, texts_b, begin) abort
-  if empty(a:lnums_b) | return [[], [], {}] | endif
+  if empty(a:lnums_b) | return [[], {}] | endif
 
   let [lnums_b, texts_b] = [a:lnums_b, a:texts_b]
   let offsets = s:lnum_offsets(reverse(copy(a:edits)), lnums_b)
@@ -201,23 +199,20 @@ fu! s:win_write_post_edits(edits, lnums_b, texts_b, begin) abort
   endwhile
 
   let win_edits =   [{'func': 'setline', 'args': [a:begin + 1, new_win_lines]}]
-  let state_edits = [{'func': 'setlnum', 'args': [a:begin + 1, new_lnums]}]
-  return [win_edits, state_edits, lines_b]
+  return [win_edits, lines_b]
 endfu
 
-fu! s:undo_edits(lines_a, ctx, begin, lnums_b) abort
-  if empty(a:lines_a) | return [[], []] | endif
+fu! s:win_undos(lines_a, ctx, begin, lnums_b) abort
+  if empty(a:lines_a) | return [] | endif
 
   let align = max([3, len(max(keys(a:lines_a)))])
   let lnum_fmt = ' %s %'.align.'d '
   let [lines_a, lnums_a, lnums_b] =  [a:lines_a, sort(keys(a:ctx.lines), 'N'), a:lnums_b]
-  let [lines, lnums] = [[], []]
-  let [offset, a, b] = [0, 0, 0]
+  let [lines, offset, a, b] = [[], 0, 0, 0]
 
   while a < len(lnums_a) && b < len(lnums_b)
     if lnums_a[a] ==# lnums_b[b]
-      call add(lnums, lnums_a[a] + offset)
-      call add(lines, printf(lnum_fmt, ' ', lnums[-1]).lines_a[lnums_a[a]])
+      call add(lines, printf(lnum_fmt, ' ', lnums_a[a] + offset).lines_a[lnums_a[a]])
       let b += 1
       while b < len(lnums_b) && lnums_a[a] ==# lnums_b[b]
         let [offset, b] = [offset + 1, b + 1]
@@ -225,8 +220,7 @@ fu! s:undo_edits(lines_a, ctx, begin, lnums_b) abort
       let a += 1
     elseif +lnums_a[a] < +lnums_b[b] " line A is missing in B, it was a deletion
       while a < len(lnums_a) && +lnums_a[a] < +lnums_b[b]
-        call add(lnums, lnums_a[a] + offset)
-        call add(lines, printf(lnum_fmt, '^', lnums[-1]).lines_a[lnums_a[a]])
+        call add(lines, printf(lnum_fmt, '^', lnums_a[a] + offset).lines_a[lnums_a[a]])
         let [offset, a] = [offset - 1, a + 1]
       endw
     else  " line B is missing above A (^), it was a prepending
@@ -236,25 +230,20 @@ fu! s:undo_edits(lines_a, ctx, begin, lnums_b) abort
       endw
 
       if b < len(lnums_b) &&  lnums_a[a] ==# lnums_b[b]
-        call add(lnums, lnums_a[a] + offset + 1)
-        call add(lines, printf(lnum_fmt, ' ', lnums[-1]).lines_a[lnums_a[a]])
+        call add(lines, printf(lnum_fmt, ' ', lnums_a[a] + offset + 1).lines_a[lnums_a[a]])
       else
-        call add(lnums, lnums_a[a] + offset + 1)
-        call add(lines, printf(lnum_fmt, '^', lnums[-1]).lines_a[lnums_a[a]])
+        call add(lines, printf(lnum_fmt, '^', lnums_a[a] + offset + 1).lines_a[lnums_a[a]])
       endif
       let a = a + 1
     endif
   endw
 
   while a < len(lnums_a) " last lines from B are missing
-    call add(lnums, lnums_a[a] + offset)
-    call add(lines, printf(lnum_fmt, '^', lnums[-1]).lines_a[lnums_a[a]])
+    call add(lines, printf(lnum_fmt, '^', lnums_a[a] + offset).lines_a[lnums_a[a]])
     let [offset, a] = [offset - 1, a + 1]
   endw
 
-  let win_undos   = [{'func': 'setline',  'args': [a:begin + 1, lines]}]
-  let state_undos = [{'func': 'setrange', 'args': [a:begin + 1, lnums]}]
-  return [win_undos, state_undos]
+  return [{'func': 'setline',  'args': [a:begin + 1, lines]}]
 endfu
 
 fu! s:lnum_offsets(edits, lnums_b) abort

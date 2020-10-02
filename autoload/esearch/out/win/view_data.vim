@@ -80,7 +80,7 @@ fu! s:ctx_at(wlnum) dict abort
   if self.is_blank() | return {} | endif
 
   let state = self.state
-  let ctx = self.contexts[state[a:wlnum]]
+  let ctx = self.contexts[get(state, a:wlnum, 1)]
   if ctx.id == 0 | return self.contexts[1] | endif
 
   return ctx

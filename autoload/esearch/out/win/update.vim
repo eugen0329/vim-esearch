@@ -6,12 +6,12 @@ let s:INF = 88888888
 " isn't stored for performance reasons.
 fu! esearch#out#win#update#init(es) abort
   cal extend(a:es, {
-        \ 'contexts':     [],
-        \ 'files_count':  0,
-        \ 'lines_delta':  0,
-        \ 'ctx_by_name':  {},
-        \ 'state': [],
-        \ 'render':       function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
+        \ 'contexts':    [],
+        \ 'files_count': 0,
+        \ 'lines_delta': 0,
+        \ 'ctx_by_name': {},
+        \ 'state':       [],
+        \ 'render':      function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
         \})
   aug esearch_win_updates " init blank to prevent errors on cleanup
   aug END

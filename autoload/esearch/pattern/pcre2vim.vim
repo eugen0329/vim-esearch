@@ -116,7 +116,7 @@ let s:pcre2vim_unescape_regular = {
       \ '\_': '_',
       \}
 let s:pcre2vim_expand_escaped = extend({
-      \ '\A': "\<plug>hat",
+      \ '\A': g:esearch#pattern#pcre2vim#hat,
       \ '\z': '$',
       \ '\Z': '$',
       \ '\G': '',

@@ -7,7 +7,7 @@ Before:
   call Fixture(g:file, ['l1', 'l2', 'l3'])
 
 After:
-  Assert UndotreeIsConsistent()
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 
 ##### delete all lines
 

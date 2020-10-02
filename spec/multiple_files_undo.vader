@@ -9,7 +9,7 @@ Before:
   let g:file3 = g:esearch.cwd.'file3.txt'
 
 After:
-  Assert UndotreeIsConsistent()
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 
 ######################
 

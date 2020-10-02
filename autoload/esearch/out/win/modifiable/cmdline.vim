@@ -185,9 +185,7 @@ fu! s:Substitute.make_safe() abort dict
   return self
 endfu
 
-let s:Any = extend(copy(s:Base), {
-      \ 'klass':     'Any',
-      \ 'signature': ['cmdline']})
+let s:Any = extend(copy(s:Base), {'klass': 'Any', 'signature': ['cmdline']})
 
 fu! s:Any.parse(cmdline) abort dict
   return extend(copy(self), {'cmdline': a:cmdline})

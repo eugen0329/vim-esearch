@@ -15,7 +15,6 @@ fu! s:Writer.new(diffs, esearch) abort dict
         \ 'search_buf': s:Buf.for(a:esearch.bufnr),
         \ 'win_edits': [],
         \ 'win_undos': [],
-        \ 'state_undos': [],
         \ 'conflicts': [],
         \})
 endfu
@@ -49,7 +48,6 @@ fu! s:Writer.write(bang) abort dict
 
       let self.win_edits   = diff.win_edits + self.win_edits
       let self.win_undos   = self.update_file(buf, diff) + self.win_undos
-      let self.state_undos = diff.state_undos + self.state_undos
       let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
       let self.esearch.contexts[diff.ctx.id].begin = diff.begin
 
