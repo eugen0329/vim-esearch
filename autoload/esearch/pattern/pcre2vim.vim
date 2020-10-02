@@ -1,10 +1,13 @@
 let s:Lexer  = vital#esearch#import('Text.Lexer')
 let s:Parser = vital#esearch#import('Text.Parser')
 
+let g:esearch#pattern#pcre2vim#bound = '\%(\<\|\>\)'
+let g:esearch#pattern#pcre2vim#hat = "\<plug>hat"
+
 " NOTE: is not intended to be a general purpose converter as some of atoms are
 " suppressed for using in #out#win
 
-fu! esearch#pattern#pcre2vim#convert(string, ...) abort
+fu! esearch#pattern#pcre2vim#convert(string) abort
   try
     let tokens = s:PCRE2Vim.new(a:string).convert()
   catch /^PCRE2Vim:/
@@ -95,6 +98,7 @@ let s:rules = [
 let s:pcre2vim_escape = {
       \ '|': '\|',
       \ '~': '\~',
+      \ '^': g:esearch#pattern#pcre2vim#hat,
       \}
 let s:pcre2vim_unescape_regular = {
       \ '\&': '&',
@@ -112,11 +116,11 @@ let s:pcre2vim_unescape_regular = {
       \ '\_': '_',
       \}
 let s:pcre2vim_expand_escaped = extend({
-      \ '\A': '^',
+      \ '\A': "\<plug>hat",
       \ '\z': '$',
       \ '\Z': '$',
       \ '\G': '',
-      \ '\b': '\%(\<\|\>\)',
+      \ '\b': g:esearch#pattern#pcre2vim#bound,
       \ '\B': '\%(\w\)\@<=\%(\w\)\@=',
       \ '\K': '',
       \}, s:pcre2vim_unescape_regular)

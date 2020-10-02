@@ -779,7 +779,6 @@ modifying search results. Default definitions:
 See also: |g:esearch.win_map| for keymaps customization syntax.
 
                                                         *esearch-editing-commands*
-
 Recognized commands syntax, that will be handled on <plug>(esearch-cr) press
 in |Command-line| mode within the search buffer:
 >
@@ -795,11 +794,12 @@ in |Command-line| mode within the search buffer:
     :<global>/pattern/<global> ...
     :<global>/pattern/...
 <
-If <delete> is submitted, corresponding lines are tracked as deleted.
-If <substitute> or <global> are submitted, the pattern will atuomatically be
-modified to prevent matching the header, filenames and virtual line numbers.
+If |:delete| is submitted, corresponding lines are tracked as deleted.
+If any form of <substitute> or <global> is submitted, the pattern will be
+modified atuomatically to prevent matching the header, filenames and virtual
+line numbers.
 If commands are separated with |<bar>| or passed into |:execute|, they won't be
-recongnized and executed as is.
+recongnized and will be executed as is.
 
 See also: |:delete|, |:substitute| and |:global| builtin commands syntax.
 
@@ -827,17 +827,17 @@ See also: |highlight-ctermfg|, |highlight-guifg|, |highlight-groups|.
                                                      *esearch-appearance-overview*
 
                        esearchHeader
-           <----------------------------------->
+           v-----------------------------------v
                       .--------.---------------------- esearchStatistics
                       v        v
            Matches in `2` lines, `1` file. Finished.
-                    <------>---------------------- esearchBasename
+                    v------v---------------------- esearchBasename
  .-------> /path/to/file.txt `2 lines` <------------ Annotation {2}
- |  .-------> 1 `matched text`       <---------->-- esearchMatch
+ |  .-------> 1 `matched text`
  |  | .-----> `2` another line wit`|`h `matched text`
- |  | | .-> `+` 2 Appended line   ^
- |  | | |                       |
- |  | | |                       |
+ |  | | .-> `+` 2 Appended line   ^  ^----.-----^
+ |  | | |                       |       |
+ |  | | |                       |  esearchMatch
  |  | | |                       Cursor position {1}
  |  | | esearchDiffAdd
  |  | esearchCursorLineNr
@@ -1349,6 +1349,19 @@ Search in commits from an inputted branch.
           \ 'paths':    '`git rev-list '.input('branch> ', '', 'custom,CompleteBranches').'`',
           \ 'remember': 0
           \})<cr>
+<
+Print the revision date and author's name under the cursor.
+>
+    fu! EchoRevDate() abort
+      let ctx = b:esearch.ctx_at(line('.'))
+      if !get(ctx, 'rev') | return | endif
+      let hash = split(ctx.filename, ':')[0]
+      echon systemlist('git show -s --pretty="%ad %an (%ar)" ' . hash)[0]
+    endfu
+
+    autocmd User esearch_win_config
+      \  let b:echo_date = esearch#async#debounce(function('EchoRevDate'), 100)
+      \| autocmd CursorMoved <buffer> call b:echo_date.apply()
 <
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*

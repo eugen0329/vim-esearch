@@ -108,6 +108,7 @@ endfu
 fu! s:init_live_updated(esearch) abort
   let b:esearch.live_exec = 0
   let abspath = esearch#util#abspath(a:esearch.cwd, a:esearch.name)
+
   try
     call esearch#buf#rename(abspath)
   catch /E95:/ " Buffer with this name already exists
@@ -115,6 +116,7 @@ fu! s:init_live_updated(esearch) abort
     exe bufnr 'bdelete'
     call esearch#buf#rename(abspath)
   endtry
+  call esearch#out#win#appearance#matches#init_live_updated(a:esearch)
   call esearch#util#doautocmd('WinEnter') " hit statuslines updates
   return a:esearch
 endfu

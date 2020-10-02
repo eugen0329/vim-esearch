@@ -1,3 +1,4 @@
+local ui       = require('esearch/neovim/appearance/ui')
 local debounce = require('esearch/util').debounce
 
 local M = {
@@ -23,30 +24,38 @@ function M.buf_attach_matches()
   end
 end
 
-local function advance(lnum, offset, col_from, col_to)
-  if col_from == col_to then -- if zero length match
-    return  {lnum, col_from + offset, col_to + offset + 1}, offset + 1
-  else
-    return {lnum, col_from + offset, col_to + offset}, offset + col_to
-  end
+local function advance(ranges, lnum, offset, col_from, col_to)
+  if col_from == col_to then return offset + 1 end
+
+  table.insert(ranges, {lnum, col_from + offset - 1, col_to + offset - 1})
+
+  return offset + col_to
 end
 
-local function matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
-  local pattern = vim.regex(pattern_string)
+local function matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, max_col)
+  pattern = vim.regex(pattern)
+  pattern_rest = vim.regex(pattern_rest)
   local ranges = {}
-  local columns = vim.fn.winsaveview().leftcol + vim.o.columns
-  local range
+  local col_from, col_to
 
   local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
   for lnum = lnum_from, lnum_to - 1 do
-    local offset = 0
-    local col_lim = math.min(lines[lnum - lnum_from + 1]:len(), columns)
-    while true do
-      local col_from, col_to = pattern:match_line(bufnr, lnum, offset, col_lim)
-      if not col_from then break end
+    local line = lines[lnum - lnum_from + 1]
+    local _, offset = line:find(ui.LINENR_RE)
 
-      range, offset = advance(lnum, offset, col_from, col_to)
-      table.insert(ranges, range)
+    if offset then
+      local lim = math.min(line:len(), max_col)
+
+      col_from, col_to = pattern:match_str(line:sub(offset, lim))
+      if col_from then
+        offset = advance(ranges, lnum, offset, col_from, col_to)
+      end
+
+      while true do
+        col_from, col_to = pattern_rest:match_str(line:sub(offset, lim))
+        if not col_from then break end
+        offset = advance(ranges, lnum, offset, col_from, col_to)
+      end
     end
   end
 
@@ -72,14 +81,16 @@ function M.deferred_highlight_viewport(bufnr)
   vim.schedule(function()
     if vim.api.nvim_get_current_buf() ~= bufnr then return end
     local lnum_from, lnum_to = viewport()
-    local pattern_string = vim.api.nvim_eval('b:esearch.pattern.hl_match')
+    local pattern = vim.api.nvim_eval('b:esearch.pattern.vim')
+    local pattern_rest = vim.api.nvim_eval('b:esearch.pattern.vim_rest')
     local changedtick = vim.api.nvim_buf_get_var(0, 'changedtick')
     local new_coordinates = {changedtick, lnum_from, lnum_to, vim.fn.winsaveview().leftcol, bufnr}
     if vim.deep_equal(old_coordinates, new_coordinates) then return end
     old_coordinates = new_coordinates
     if not vim.api.nvim_buf_is_loaded(bufnr) then return end
 
-    local ranges = matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
+    local max_col = vim.fn.winsaveview().leftcol + vim.o.columns
+    local ranges = matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, max_col)
     set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   end)
 end
@@ -94,8 +105,10 @@ M.deferred_highlight_viewport = debounce(
 function M.highlight_viewport()
   local lnum_from, lnum_to = viewport()
   local bufnr = vim.api.nvim_get_current_buf()
-  local pattern_string = vim.api.nvim_eval('b:esearch.pattern.hl_match')
-  local ranges = matches_ranges(bufnr, pattern_string, lnum_from, lnum_to)
+  local pattern = vim.api.nvim_eval('b:esearch.pattern.vim')
+  local pattern_rest = vim.api.nvim_eval('b:esearch.pattern.vim_rest')
+  local max_col = vim.fn.winsaveview().leftcol + vim.o.columns
+  local ranges = matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, max_col)
   set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
 end
 

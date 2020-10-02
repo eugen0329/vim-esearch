@@ -31,7 +31,11 @@ fu! esearch#out#win#appearance#matches#init(es) abort
 
   if a:es.win_matches_highlight_strategy ==# 'hlsearch'
     let @/ = a:es.pattern.hl_match . '\%>1l'
-    call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    if a:es.live_update
+      exe "norm \<Plug>(-esearch-enable-hlsearch)"
+    else
+      call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    endif
     let a:es.hl_strategy = 'hlsearch'
     retu
   endif
@@ -51,6 +55,12 @@ fu! esearch#out#win#appearance#matches#uninit(es) abort
     call a:es.hl_matches.cancel()
   elsei has_key(a:es, 'matches_hl_id')
     call esearch#util#safe_matchdelete(a:es.matches_hl_id)
+  endif
+endfu
+
+fu! esearch#out#win#appearance#matches#init_live_updated(es) abort
+  if a:es.win_matches_highlight_strategy ==# 'hlsearch'
+    call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
   endif
 endfu
 

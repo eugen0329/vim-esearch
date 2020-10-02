@@ -10,7 +10,8 @@ describe 'esearch#pattern' do
     context 'when filename contains special characters' do
       subject(:convert) do
         lambda do |input|
-          editor.echo(func('esearch#pattern#pcre2vim#convert', input))
+          converted = func('esearch#pattern#pcre2vim#convert', input)
+          editor.echo(func('substitute', converted, var('"\\<plug>hat"'), '^', ''))
         end
       end
 
