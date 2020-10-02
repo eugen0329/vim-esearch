@@ -47,7 +47,7 @@ function M.render(data, esearch, parser)
         ['filetype']      = false,
         ['loaded_syntax'] = false,
         ['lines']         = vim.dict(),
-        ['rev']           = rev,
+        ['rev']           = tostring(rev),
         }))
       ctx_by_name[filename] = contexts[#contexts - 1]
       state:add(contexts[#contexts - 1].id)

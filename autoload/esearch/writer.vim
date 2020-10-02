@@ -129,7 +129,7 @@ fu! s:Writer.log() abort dict
     return setbufvar(self.esearch.bufnr, '&modified', 0)
   end
 
-  let reasons = map(self.conflicts, 'printf("\n\t%s (%s)", v:val.filename, v:val.reason)')
+  let reasons = map(self.conflicts, 'printf("\n  %s (%s)", v:val.filename, v:val.reason)')
   let message = "Can't write changes to the following files:".join(reasons, '')
   call esearch#util#warn(message)
 endfu

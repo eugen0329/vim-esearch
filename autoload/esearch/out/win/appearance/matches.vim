@@ -8,6 +8,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
   let a:es.pattern.hl_match = esearch#out#win#matches#pattern_each(a:es)
 
   if a:es.win_matches_highlight_strategy ==# 'viewport'
+    let a:es.hl_strategy = 'viewport'
     if g:esearch#has#nvim_lua_regex
       aug esearch_win_hl_matches
         au! * <buffer>
@@ -25,24 +26,23 @@ fu! esearch#out#win#appearance#matches#init(es) abort
       aug END
       call luaeval('esearch.appearance.buf_attach_matches()')
     endif
-    let a:es.hl_strategy = 'viewport'
     retu
   endif
 
   if a:es.win_matches_highlight_strategy ==# 'hlsearch'
+    let a:es.hl_strategy = 'hlsearch'
     let @/ = a:es.pattern.hl_match . '\%>1l'
     if a:es.live_update
       exe "norm \<Plug>(-esearch-enable-hlsearch)"
     else
       call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
     endif
-    let a:es.hl_strategy = 'hlsearch'
     retu
   endif
 
   if a:es.win_matches_highlight_strategy ==# 'matchadd'
-    let a:es.matches_hl_id = matchadd('esearchMatch', a:es.pattern.hl_match . '\%>1l', -1)
     let a:es.hl_strategy = 'matchadd'
+    let a:es.matches_hl_id = matchadd('esearchMatch', a:es.pattern.hl_match . '\%>1l', -1)
     retu
   endif
 endfu
@@ -70,11 +70,15 @@ endfu
 
 if g:esearch#has#nvim_lua_regex
   fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
-    if a:es.hl_strategy ==# 'viewport' | call luaeval('esearch.appearance.highlight_viewport()') | en
+    if get(a:es, 'hl_strategy') is# 'viewport'
+      call luaeval('esearch.appearance.highlight_viewport()')
+    endif
   endf
 else
   fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
-    if a:es.hl_strategy ==# 'viewport' | cal s:hl(a:es, line('w0'), line('w$')) | en
+    if get(a:es, 'hl_strategy') is# 'viewport'
+      cal s:hl(a:es, line('w0'), line('w$'))
+    endif
   endf
 endif
 

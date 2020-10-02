@@ -52,3 +52,7 @@ fu! s:Grep.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors
   return a:request.status == 0 || a:request.status == 1
 endfu
+
+fu! s:Grep.pwd() abort dict
+  return '.'
+endfu

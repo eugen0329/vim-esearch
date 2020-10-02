@@ -9,8 +9,8 @@ if has('nvim') && g:esearch#has#lua
 
     let a:esearch.linenr_ns_id = luaeval('esearch.appearance.CURSOR_LINENR_NS')
     aug esearch_win_hl_cursor_linenr
-      au CompleteChanged,CursorMoved,CursorMovedI <buffer> call s:hl_cursor_linenr()
-      au BufLeave <buffer> call s:clear_cursor_line_number()
+      au CompleteChanged,CursorMoved,CursorMovedI <buffer> call luaeval('esearch.appearance.highlight_cursor_linenr()')
+      au BufLeave <buffer> call nvim_buf_clear_namespace(0, b:esearch.linenr_ns_id, 0, -1)
     aug END
   endfu
 
@@ -20,18 +20,9 @@ if has('nvim') && g:esearch#has#lua
     aug END
 
     if has_key(a:esearch, 'linenr_ns_id')
-      call s:clear_cursor_line_number()
+      call nvim_buf_clear_namespace(0, b:esearch.linenr_ns_id, 0, -1)
     endif
   endfu
-
-  fu! s:hl_cursor_linenr() abort
-    call luaeval('esearch.appearance.highlight_cursor_linenr()')
-  endfu
-
-  fu! s:clear_cursor_line_number() abort
-    call nvim_buf_clear_namespace(0, b:esearch.linenr_ns_id, 0, -1)
-  endfu
-
   finish
 endif
 
