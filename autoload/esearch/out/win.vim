@@ -259,18 +259,18 @@ fu! s:reload() abort dict
 endfu
 
 " Bind view to a line within a context.
-fu! s:winsaveview(es) abort
+fu! s:winsaveview(esearch) abort
   let view = winsaveview()
   let view.ctx_lnum = matchstr(getline('.'), g:esearch#out#win#capture_lnum_re)
-  let state = a:es.modifiable ? a:es.undotree.head.state : a:es
-  let id = get(state.wlnum2ctx_id, view.lnum)
-  if id | let view.filename = a:es.contexts[state.wlnum2ctx_id[view.lnum]].filename | endif
+  let state = a:esearch.state
+  let id = get(state, view.lnum)
+  if id | let view.filename = a:esearch.contexts[state[view.lnum]].filename | endif
   return view
 endfu
 
-fu! s:winrestview(es, view) abort
+fu! s:winrestview(esearch, view) abort
   if has_key(a:view, 'filename')
-    let ctx = get(a:es.ctx_by_name, remove(a:view, 'filename'), 0)
+    let ctx = get(a:esearch.ctx_by_name, remove(a:view, 'filename'), 0)
     if empty(ctx) | return winrestview(a:view) | endif
 
     let offset = index(sort(keys(ctx.lines), 'N'), remove(a:view, 'ctx_lnum'))

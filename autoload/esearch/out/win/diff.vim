@@ -39,7 +39,7 @@ fu! s:DiffsIterator.new(lines, esearch, stats) abort dict
 
   return extend(copy(self), {
         \ 'lines': ['padding'] + a:lines,
-        \ 'wlnum2ctx_id': a:esearch.undotree.head.state.wlnum2ctx_id,
+        \ 'state': a:esearch.state,
         \ 'contexts': a:esearch.contexts,
         \ 'stats': a:stats,
         \ 'deleted_ctxs_a': s:Dict.make_index(range(1, len(a:esearch.contexts) - 1)),
@@ -132,7 +132,7 @@ fu! s:DiffsIterator.next_modified() abort
       let [lnum_was, sign_was] = [lnum, sign]
     else
       let filename_b = line
-      let ctx = self.contexts[self.wlnum2ctx_id[self.wlnum]]
+      let ctx = self.contexts[self.state[self.wlnum]]
       silent! unlet self.deleted_ctxs_a[ctx.id]
 
       if !empty(self.lines[self.wlnum - 1]) || filename_b !=# fnameescape(ctx.filename)

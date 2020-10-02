@@ -6,13 +6,12 @@ let s:INF = 88888888
 " isn't stored for performance reasons.
 fu! esearch#out#win#update#init(es) abort
   cal extend(a:es, {
-        \ 'contexts':         [],
-        \ 'files_count':      0,
-        \ 'lines_delta':      0,
-        \ 'wlnum2lnum': [],
-        \ 'ctx_by_name':      {},
-        \ 'wlnum2ctx_id':      [],
-        \ 'render':           function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
+        \ 'contexts':     [],
+        \ 'files_count':  0,
+        \ 'lines_delta':  0,
+        \ 'ctx_by_name':  {},
+        \ 'state': [],
+        \ 'render':       function('esearch#out#win#render#'.a:es.win_render_strategy.'#do'),
         \})
   aug esearch_win_updates " init blank to prevent errors on cleanup
   aug END
@@ -52,8 +51,7 @@ fu! s:init_header_ctx(es) abort
   cal esearch#out#win#update#add_context(a:es.contexts, '', 1, 0) " add blank header context
   let header_ctx = a:es.contexts[0]
   let header_ctx.end = 2
-  let a:es.wlnum2ctx_id += [header_ctx.id, header_ctx.id]
-  let a:es.wlnum2lnum += [0, 0]
+  let a:es.state += [header_ctx.id, header_ctx.id]
   setl modifiable
   keepjumps silent %delete_
   cal esearch#util#setline(bufnr('%'), 1, b:esearch.header_text())

@@ -6,47 +6,47 @@ fu! esearch#out#win#repo#ctx#new(esearch, state) abort
         \ }
 endfu
 
-fu! s:by_line(line) abort dict
-  let line = a:line
-  if len(self.state.wlnum2ctx_id) <= line
+fu! s:by_line(wlnum) abort dict
+  let wlnum = a:wlnum
+  if len(self.state) <= wlnum
     return 0
   endif
-  let ctx = self.esearch.contexts[self.state.wlnum2ctx_id[line]]
+  let ctx = self.esearch.contexts[self.state[wlnum]]
 
   " read-through cache synchronization
-  let ctx._begin = s:line_begin(self.state.wlnum2ctx_id, ctx, line)
-  let ctx._end   = s:line_end(self.state.wlnum2ctx_id, ctx, line)
+  let ctx._begin = s:line_begin(self.state, ctx, wlnum)
+  let ctx._end   = s:line_end(self.state, ctx, wlnum)
 
   return ctx
 endfu
 
-fu! s:line_begin(wlnum2ctx_id, ctx, line) abort
-  let line = a:line
-  let wlnum2ctx_id = a:wlnum2ctx_id
+fu! s:line_begin(state, ctx, wlnum) abort
+  let wlnum = a:wlnum
+  let state = a:state
 
-  while line > 0
-    if wlnum2ctx_id[line - 1] !=# a:ctx.id
-      return line
+  while wlnum > 0
+    if state[wlnum - 1] !=# a:ctx.id
+      return wlnum
     endif
 
-    let line -= 1
+    let wlnum -= 1
   endwhile
 
   return 1
 endfu
 
-fu! s:line_end(wlnum2ctx_id, ctx, line) abort
-  let line = a:line
-  let wlnum2ctx_id = a:wlnum2ctx_id
+fu! s:line_end(state, ctx, wlnum) abort
+  let wlnum = a:wlnum
+  let state = a:state
 
-  while line < len(wlnum2ctx_id) - 1
-    if wlnum2ctx_id[line + 1] !=# a:ctx.id
-      return line
+  while wlnum < len(state) - 1
+    if state[wlnum + 1] !=# a:ctx.id
+      return wlnum
     endif
 
-    let line += 1
+    let wlnum += 1
   endwhile
 
-  return len(wlnum2ctx_id) - 1
-  throw "Can't find ctx begin: " . string([a:ctx, a:line])
+  return len(state) - 1
+  throw "Can't find ctx begin: " . string([a:ctx, a:wlnum])
 endfu

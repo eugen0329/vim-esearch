@@ -14,7 +14,6 @@ fu! s:Writer.new(diffs, esearch) abort dict
         \ 'esearch': a:esearch,
         \ 'search_buf': s:Buf.for(a:esearch.bufnr),
         \ 'win_edits': [],
-        \ 'state_edits': [],
         \ 'win_undos': [],
         \ 'state_undos': [],
         \ 'conflicts': [],
@@ -49,7 +48,6 @@ fu! s:Writer.write(bang) abort dict
       endif
 
       let self.win_edits   = diff.win_edits + self.win_edits
-      let self.state_edits = diff.state_edits + self.state_edits
       let self.win_undos   = self.update_file(buf, diff) + self.win_undos
       let self.state_undos = diff.state_undos + self.state_undos
       let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
@@ -73,19 +71,19 @@ fu! s:Writer.create_undo_entry() abort dict
   let original_register = @s
   try
     call self.update_win(self.win_edits)
-    let latest_state = self.update_state(self.esearch.undotree.head.state, self.state_edits)
+    let latest_state = self.esearch.state
     silent! %yank s
 
     exe 'undo' self.esearch.undotree.written.changenr
     call self.update_win(self.win_undos)
-    let undone_state = self.update_state(self.esearch.undotree.written.state, self.state_undos)
+    let undone_state = self.esearch.undotree.written.state
     call self.esearch.undotree.squash(undone_state)
     call esearch#util#squash_undo()
     keepjumps %delete _
     keepjumps %put s
     keepjumps 1delete _
 
-    call self.esearch.undotree.commit(latest_state)
+    let b:esearch.state = b:esearch.undotree.commit(latest_state)
     call self.esearch.undotree.on_write()
   finally
     let @s = original_register
@@ -112,16 +110,6 @@ fu! s:Writer.update_win(win_edits) abort
   for edit in a:win_edits
     call call(self.search_buf[edit.func], edit.args)
   endfor
-endfu
-
-fu! s:Writer.update_state(state, state_edits) abort
-  let state = a:state
-  for edit in a:state_edits
-    let begin = edit.args[0]
-    let end = begin + len(edit.args[1]) - 1
-    let state.wlnum2lnum[begin : end] = edit.args[1]
-  endfor
-  return state
 endfu
 
 fu! s:Writer.handle_existing_swap(path) abort dict

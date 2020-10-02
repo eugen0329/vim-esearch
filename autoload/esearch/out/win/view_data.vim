@@ -76,11 +76,11 @@ fu! s:filename(...) abort dict
   return fnameescape(esearch#out#win#view_data#filename(self, self.ctx_at(get(a:, 1, line('.')))))
 endfu
 
-fu! s:ctx_at(line) dict abort
+fu! s:ctx_at(wlnum) dict abort
   if self.is_blank() | return {} | endif
 
-  let state = self.modifiable ? self.undotree.head.state : self
-  let ctx = self.contexts[state.wlnum2ctx_id[a:line]]
+  let state = self.state
+  let ctx = self.contexts[state[a:wlnum]]
   if ctx.id == 0 | return self.contexts[1] | endif
 
   return ctx
