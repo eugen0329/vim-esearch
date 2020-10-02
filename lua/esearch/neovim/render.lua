@@ -5,8 +5,7 @@ local M = {}
 
 function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to, lines_delta, from_line)
   local contexts = {last_context}
-  local wlnum2lnum = {}
-  local wlnum2ctx_id = {}
+  local state = {}
   local ctx_by_name = {}
   local win_contexts_syntax_clear_on_files_count =
     vim.api.nvim_eval('g:esearch.win_contexts_syntax_clear_on_files_count')
@@ -36,8 +35,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
 
       -- add SEPARATOR
       lines[#lines + 1] = ''
-      wlnum2ctx_id[#wlnum2ctx_id + 1]  = contexts[#contexts].id
-      wlnum2lnum[#wlnum2lnum + 1] = 0
+      state[#state + 1]  = contexts[#contexts].id
       line = line + 1
 
       -- add FILENAME
@@ -53,8 +51,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
         ['rev']           = entry.rev,
       }
       ctx_by_name[filename] = contexts[#contexts]
-      wlnum2ctx_id[#wlnum2ctx_id + 1] = contexts[#contexts].id
-      wlnum2lnum[#wlnum2lnum + 1] = 0
+      state[#state + 1] = contexts[#contexts].id
       files_count = files_count + 1
       line = line + 1
     end
@@ -70,13 +67,12 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
 
     -- add LINE
     lines[#lines + 1] = string.format(' %3d %s', entry.lnum, text)
-    wlnum2ctx_id[#wlnum2ctx_id + 1] = contexts[#contexts].id
-    wlnum2lnum[#wlnum2lnum + 1] = entry.lnum
+    state[#state + 1] = contexts[#contexts].id
     contexts[#contexts]['lines'][entry.lnum] = text
     line = line + 1
   end
 
-  return lines, files_count, contexts, wlnum2ctx_id, wlnum2lnum, ctx_by_name,
+  return lines, files_count, contexts, state, ctx_by_name,
          lines_delta, slow_hl_enabled, deferred_calls
 end
 
@@ -95,14 +91,13 @@ end
 
 function M.render(bufnr, data, last_context, files_count, slow_hl_enabled, parser)
   local parsed, lines_delta, errors = parse.lines(data, parser)
-  local lines, contexts, wlnum2ctx_id, wlnum2lnum, ctx_by_name, deferred_calls
+  local lines, contexts, state, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
 
   lines,
   files_count,
   contexts,
-  wlnum2ctx_id,
-  wlnum2lnum,
+  state,
   ctx_by_name,
   lines_delta,
   slow_hl_enabled,
@@ -115,8 +110,7 @@ function M.render(bufnr, data, last_context, files_count, slow_hl_enabled, parse
     files_count,
     lines_delta,
     contexts,
-    wlnum2ctx_id,
-    wlnum2lnum,
+    state,
     ctx_by_name,
     slow_hl_enabled,
     errors

@@ -1,15 +1,3 @@
-" Two strategies of highlighting a search match:
-"   - for view port only (only available for neovim)
-"   - globally with matchadd
-" The first strategy has some rendering delays caused by debouncing, but it's
-" faster beacause regexps are not used.
-" The second strategy causes freezes when long lines are rendered due to the
-" lookbehind to prevent matching esearchLineNr virtual ui.
-"
-" Another option is to obtain the locations using adapter colorized output, but
-" it cause uncontrolled freeze on backend callbacks due to redundant text with
-" ANSI escape sequences.
-
 " idea from incsearch.vim
 nnoremap <silent><Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
 
@@ -28,7 +16,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     else
       let a:es.last_hl_range = [0,0]
       let a:es.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
-      let a:es.lines_with_hl_matches = {}
+      let a:es.highlighted_lines = {}
       let Callback = function('s:hl_viewport_cb', [a:es])
       let a:es.hl_matches = esearch#async#debounce(Callback, a:es.win_matches_highlight_debounce_wait)
       aug esearch_win_hl_matches
@@ -43,7 +31,11 @@ fu! esearch#out#win#appearance#matches#init(es) abort
 
   if a:es.win_matches_highlight_strategy ==# 'hlsearch'
     let @/ = a:es.pattern.hl_match . '\%>1l'
-    call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    if a:es.live_update
+      exe "norm \<Plug>(-esearch-enable-hlsearch)"
+    else
+      call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    endif
     let a:es.hl_strategy = 'hlsearch'
     retu
   endif
@@ -63,6 +55,12 @@ fu! esearch#out#win#appearance#matches#uninit(es) abort
     call a:es.hl_matches.cancel()
   elsei has_key(a:es, 'matches_hl_id')
     call esearch#util#safe_matchdelete(a:es.matches_hl_id)
+  endif
+endfu
+
+fu! esearch#out#win#appearance#matches#init_live_updated(es) abort
+  if a:es.win_matches_highlight_strategy ==# 'hlsearch'
+    call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
   endif
 endfu
 
@@ -92,28 +90,36 @@ fu! s:hl_viewport_cb(es) abort
   cal s:hl(a:es, from, to)
 endf
 
-fu! s:hl(es, l1, l2) abort
-  let p = a:es.pattern.vim
-  let state = a:es.modifiable ? a:es.undotree.head.state : a:es
-  let lnrs = state.wlnum2lnum
-  let ids = state.wlnum2ctx_id
-  if len(ids) < a:l2 | retu | en
-  let done = a:es.lines_with_hl_matches
-  let a:es.last_hl_range = [a:l1,a:l2]
+fu! s:hl(esearch, from, to) abort
+  let pattern = a:esearch.pattern.vim
+  let state = a:esearch.state
+  let state = state
+  let done = a:esearch.highlighted_lines
+  let a:esearch.last_hl_range = [a:from, a:to]
 
-  let l = a:l1
-  for txt in nvim_buf_get_lines(0,l-1,a:l2,0)
-    let lnr = lnrs[l]
-    let i = ids[l]
+  let wlnum = a:from
+  for text in nvim_buf_get_lines(0, wlnum - 1, a:to, 0)
+    let offset = match(text, g:esearch#out#win#column_re)
+    if offset ==# -1
+      let wlnum += 1
+      continue
+    endif
 
-    if lnr ==# 0 | let l += 1 | con
-    elsei !has_key(done,i) | let done[i] = {} |
-    elsei has_key(done[i],lnr) | let l += 1 | con | en
+    let linenr = text[:offset]
+    let id = state[wlnum]
+    if !has_key(done, id)
+      let done[id] = {}
+    elseif has_key(done[id], linenr)
+      let wlnum += 1
+      continue
+    endif
 
-    let l1 = match(txt,p,max([strlen(lnr),3]) + 2)
-    if l1 < 0 | let l += 1 | con | en
-    cal nvim_buf_add_highlight(0,a:es.matches_ns,'esearchMatch',l-1,l1,matchend(txt,p,l1))
-    let done[i][lnr] = 1
-    let l += 1
-  endfo
+    let col_from = match(text, pattern, offset + 2)
+    if col_from < 0 | let wlnum += 1 | continue | endif
+    let col_to = matchend(text, pattern, col_from)
+
+    call nvim_buf_add_highlight(0, a:esearch.matches_ns, 'esearchMatch', wlnum - 1, col_from, col_to)
+    let done[id][linenr] = 1
+    let wlnum += 1
+  endfor
 endf

@@ -311,3 +311,7 @@ fu! esearch#util#clipboard_reg() abort
 
   return '"'
 endfu
+
+fu! esearch#util#capture_range(target) abort range
+  call add(a:target, [a:firstline, a:lastline])
+endfu

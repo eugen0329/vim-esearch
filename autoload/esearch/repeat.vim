@@ -4,12 +4,13 @@
 fu! esearch#repeat#run(count) abort
   try
     let result = repeat#run(a:count)
-    if type(result) ==# type('') | exe result | endif
+    if type(result) ==# type('') | return result | endif
+    return ''
   catch /E117:/
     if !exists('s:changedtick') || s:changedtick != b:changedtick
-      exe 'norm! '.(a:count ? a:count : '').'.'
+      return 'norm! '.(a:count ? a:count : '').'.'
     else
-      exe 'norm '.(a:count ? a:count : (s:count ? s:count : '')) 
+      return 'norm '.(a:count ? a:count : (s:count ? s:count : '')) 
             \.'"'.get(s:reg, s:seq, esearch#util#clipboard_reg()).s:seq
     endif
   endtry

@@ -6,8 +6,7 @@ local M = {}
 function M.render(data, esearch, parser)
   local parsed, lines_delta, errors = parse.lines(data, parser)
   local contexts     = esearch.contexts
-  local wlnum2lnum   = esearch.wlnum2lnum
-  local wlnum2ctx_id = esearch.wlnum2ctx_id
+  local state = esearch.state
   local files_count  = esearch.files_count
   local ctx_by_name  = esearch.ctx_by_name
   local win_contexts_syntax_clear_on_files_count =
@@ -35,8 +34,7 @@ function M.render(data, esearch, parser)
 
       -- add SEPARATOR
       b:insert('')
-      wlnum2ctx_id:add(tostring(contexts[#contexts - 1].id))
-      wlnum2lnum:add(false)
+      state:add(tostring(contexts[#contexts - 1].id))
       line = line + 1
 
       -- add FILENAME
@@ -52,8 +50,7 @@ function M.render(data, esearch, parser)
         ['rev']           = rev,
         }))
       ctx_by_name[filename] = contexts[#contexts - 1]
-      wlnum2ctx_id:add(contexts[#contexts - 1].id)
-      wlnum2lnum:add(false)
+      state:add(contexts[#contexts - 1].id)
       files_count = files_count + 1
       line = line + 1
     end
@@ -69,8 +66,7 @@ function M.render(data, esearch, parser)
 
     -- add LINE
     b:insert(string.format(' %3d %s', entry.lnum, text))
-    wlnum2ctx_id:add(contexts[#contexts - 1].id)
-    wlnum2lnum:add(entry.lnum)
+    state:add(contexts[#contexts - 1].id)
     contexts[#contexts - 1].lines[entry.lnum] = text
     line = line + 1
   end

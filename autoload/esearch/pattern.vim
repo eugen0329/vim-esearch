@@ -19,16 +19,24 @@ fu! s:PatternSet.splice(esearch) abort dict
 
   if self.patterns.len() > 1
     let self.str = self.arg
-    let vim = join(map(filter(copy(self.patterns.list), 'v:val.klass ==# "Regex"'), 'v:val.vim'), '\M\|')
-    if !empty(vim) | let self.vim = vim | endif
+    let vim = join(map(filter(copy(self.patterns.list), 'v:val.klass ==# "Regex"'), 'v:val.vim'), '\m\|')
+    if !empty(vim) | let [self.vim, self.vim_rest] = s:hat_and_rest(vim) | endif
     return
   endif
 
   let top = self.patterns.top()
   let self.str = top.str
-  if has_key(top, 'literal') | let self.literal = top.literal | endif
-  if has_key(top, 'pcre')    | let self.pcre = top.pcre       | endif
-  if has_key(top, 'vim')     | let self.vim = top.vim         | endif
+  if has_key(top, 'literal') | let self.literal = top.literal                          | endif
+  if has_key(top, 'pcre')    | let self.pcre = top.pcre                                | endif
+  if has_key(top, 'vim')     | let [self.vim, self.vim_rest] = s:hat_and_rest(top.vim) | endif
+endfu
+
+" vim_rest is safe to match using byte offsets. Is a better alternative to \%>{N}c,
+" that requires parsing vim regex multiple times
+let s:bound_re = esearch#pattern#literal2vim#convert(g:esearch#pattern#pcre2vim#bound)
+let s:hat_re   = esearch#pattern#literal2vim#convert(g:esearch#pattern#pcre2vim#hat)
+fu! s:hat_and_rest(vim) abort
+  return [substitute(a:vim, s:hat_re, '^', 'g'), substitute(a:vim, s:bound_re, '\%(^\)\@<!\&', 'g')]
 endfu
 
 fu! s:PatternSet.new(kinds, str) abort dict

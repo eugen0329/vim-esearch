@@ -76,14 +76,12 @@ fu! s:filename(...) abort dict
   return fnameescape(esearch#out#win#view_data#filename(self, self.ctx_at(get(a:, 1, line('.')))))
 endfu
 
-fu! s:ctx_at(line) dict abort
+fu! s:ctx_at(wlnum) dict abort
   if self.is_blank() | return {} | endif
 
-  let ctx = esearch#out#win#repo#ctx#new(self, self.modifiable ? self.undotree.head.state : self)
-        \.by_line(a:line)
-  if ctx.id == 0
-    return self.contexts[1]
-  endif
+  let state = self.state
+  let ctx = self.contexts[state[a:wlnum]]
+  if ctx.id == 0 | return self.contexts[1] | endif
 
   return ctx
 endfu
@@ -93,7 +91,7 @@ fu! s:is_entry(...) abort dict
 endfu
 
 fu! s:is_filename(...) abort dict
-  return search(g:esearch#out#win#filename_re.'\%'.line('.').'l\%>1l', 'cnbW') == line('.')
+  return search(g:esearch#out#win#filename_re.'\%'.line('.').'l\%>2l', 'cnbW') == line('.')
 endfu
 
 " Is used to prevent problems with asynchronous code

@@ -2,9 +2,6 @@ let s:List    = vital#esearch#import('Data.List')
 let s:Log = esearch#log#import()
 let s:textobjects_whitelist = 'w()[]{}<>|''`"'
 
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-
 fu! esearch#compat#visual_multi#init() abort
   if exists('g:esearch_visual_multi_loaded') || !exists('g:esearch')
     return
@@ -31,7 +28,7 @@ endfu
 
 fu! s:visual_multi_after_cmd() abort
   if !exists('b:esearch') | return | endif
-  call b:esearch.undotree.commit()
+  let b:esearch.state = b:esearch.undotree.commit(b:esearch.state)
 endfu
 
 fu! s:visual_multi_start() abort
@@ -133,7 +130,7 @@ fu! s:safely_apply_operator(orig, offset_from_linenr, count, whitelist0, whiteli
   endif
 
   let [motion, motion_count] = s:sanitized_motion(a:whitelist0, a:whitelist1, a:whitelist2)
-  if motion is s:null
+  if empty(motion)
     return
   endif
 
@@ -166,13 +163,13 @@ fu! s:sanitized_motion(whitelist0, whitelist1, whitelist2) abort
   elseif index(split('ia', '\zs'), char) >= 0
     let textobj = esearch#util#getchar()
     if index(split(s:textobjects_whitelist, '\zs'), textobj) < 0
-      call s:unsupported(s:null, 'Textobject ' . textobj . ' is not supported')
-      return [s:null, s:null]
+      call s:unsupported('', 'Textobject ' . textobj . ' is not supported')
+      return ['', '']
     endif
     let motion .= textobj
   else
-    call s:unsupported(s:null, 'Motion ' . motion . ' is not supported')
-    return [s:null, s:null]
+    call s:unsupported('', 'Motion ' . motion . ' is not supported')
+    return ['', '']
   endif
 
   return [motion, motion_count]
@@ -185,7 +182,7 @@ fu! s:remove_cursors_overlapping_ui(offset_from_linenr) abort
     return
   endif
 
-  let state = b:esearch.undotree.head.state
+  let state = b:esearch.state
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let removable_indexes = []
 
@@ -195,7 +192,7 @@ fu! s:remove_cursors_overlapping_ui(offset_from_linenr) abort
     if cursor.l == ctx._begin || (cursor.l == ctx._end && cursor.l != line('$'))
       call add(removable_indexes, i)
     else
-      let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[cursor.l])
+      let linenr = matchstr(getline(cursor.l), g:esearch#out#win#column_re)
       if cursor._a <= strlen(linenr) + a:offset_from_linenr
         call add(removable_indexes, i)
       endif
@@ -221,7 +218,7 @@ fu! s:remove_cursors_overlapping_ui(offset_from_linenr) abort
 endfu
 
 fu! s:regions_overlapping_ui(offset_from_linenr) abort
-  let state = b:esearch.undotree.head.state
+  let state = b:esearch.state
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, state)
   let regions = []
 
@@ -229,7 +226,7 @@ fu! s:regions_overlapping_ui(offset_from_linenr) abort
     if region.l == contexts.by_line(region.l)._begin
       call add(regions, region)
     else
-      let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[region.l])
+      let linenr = matchstr(getline(region.l), g:esearch#out#win#column_re)
       if region.a <= strlen(linenr) + a:offset_from_linenr
         call add(regions, region)
       endif
@@ -251,13 +248,13 @@ fu! s:clear_regions_overlapping_ui(orig, offset_from_linenr) abort
 endfu
 
 fu! s:CtrlW(orig) abort
-  let state = b:esearch.undotree.head.state
+  let state = b:esearch.state
   for cursor in b:VM_Selection.Insert.cursors
-    let line = cursor.L
+    let wlnum = cursor.L
     let col = cursor._a
-    let text = getline(line)
-    let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[line])
-    if col <= strlen(linenr) + 1 || text[strlen(linenr): col - 2] =~# '^\s\+$'
+    let line = getline(wlnum)
+    let linenr = matchstr(line, g:esearch#out#win#column_re)
+    if col <= strlen(linenr) + 1 || line[strlen(linenr): col - 2] =~# '^\s\+$'
       return ''
     endif
   endfor
@@ -273,7 +270,7 @@ fu! s:i_delete_char(orig, offset_from_linenr) abort
   let s:F = s:V.Funcs
   let s:R = { -> s:V.Regions }
   let s:X = { -> g:Vm.extend_mode }
-  let s:contexts = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.undotree.head.state)
+  let s:contexts = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.state)
   let snr = matchstr(expand('<sfile>'), '<SNR>\d\+_')
   return substitute(eval(a:orig), 'vm#icmds#x', snr . 'vm_icmds_x', '')
 endfu
@@ -281,7 +278,7 @@ endfu
 " Reiplemented based on original vm#icmds#x() function
 fu! s:vm_icmds_x(cmd) abort
   """""" modified block start
-  let state = b:esearch.undotree.head.state
+  let state = b:esearch.state
   """""" modified block end
 
   let size = s:F.size()
@@ -292,7 +289,7 @@ fu! s:vm_icmds_x(cmd) abort
   for r in s:R()
 
     """""" modified block start
-    let linenr = printf(g:esearch#out#win#linenr_fmt, state.wlnum2lnum[r.l])
+    let linenr = matchstr(getline(r.l), g:esearch#out#win#column_re)
     if r.a <= strlen(linenr) + s:offset_from_linenr || r.l == s:contexts.by_line(r.l)._begin
       continue
     endif

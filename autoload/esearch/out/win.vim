@@ -23,9 +23,12 @@ let g:esearch#out#win#capture_sign_re          = '^\s\+\zs^\ze'
 let g:esearch#out#win#capture_lnum_re          = '^\s\+[+^_]\=\s*\zs\d\+\ze.*'
 let g:esearch#out#win#capture_entry_re         = '^\s\+\([+^_]\)\=\s*\(\d\+\)\s\(.*\)'
 let g:esearch#out#win#capture_sign_and_lnum_re = '^\s\+\([+^_]\)\=\s*\(\d\+\)'
-let g:esearch#out#win#ignore_ui_re             = '\%(\s[+^_]\=\s*\d\+\s.*\)\@<='
-let g:esearch#out#win#ignore_ui_hat_re         = '\%(\s[+^_]\=\s*\d\+\s\)\@<='
+let g:esearch#out#win#ignore_ui_re             = '\%(^\s[+^_]\=\s*\d\+\s.*\)\@<='
+let g:esearch#out#win#no_ignore_ui_re          = '\%(^\s[+^_]\=\s*\d\+\s.*\)\@!'
+let g:esearch#out#win#nomagic_ignore_ui_re     = '\%(^\s\[+^_]\=\s\*\d\+\s\.\*\)\@<='
+let g:esearch#out#win#ignore_ui_hat_re         = '\%(^\s[+^_]\=\s*\d\+\s\)\@<='
 let g:esearch#out#win#filename_re = '^[^ ]'
+let g:esearch#out#win#separator_re = '^$'
 let g:esearch#out#win#linenr_fmt  = ' %3d '
 let g:esearch#out#win#entry_fmt   = ' %3d %s'
 
@@ -105,6 +108,7 @@ endfu
 fu! s:init_live_updated(esearch) abort
   let b:esearch.live_exec = 0
   let abspath = esearch#util#abspath(a:esearch.cwd, a:esearch.name)
+
   try
     call esearch#buf#rename(abspath)
   catch /E95:/ " Buffer with this name already exists
@@ -112,6 +116,7 @@ fu! s:init_live_updated(esearch) abort
     exe bufnr 'bdelete'
     call esearch#buf#rename(abspath)
   endtry
+  call esearch#out#win#appearance#matches#init_live_updated(a:esearch)
   call esearch#util#doautocmd('WinEnter') " hit statuslines updates
   return a:esearch
 endfu
@@ -213,21 +218,21 @@ fu! s:init_mappings() abort
   vnoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(1, v:count1)<cr>
   onoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
 
-  cnoremap       <silent><buffer> <Plug>(esearch-cr) <C-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
-  inoremap <expr><silent><buffer> <Plug>(esearch-cr) esearch#out#win#modifiable#cr()
-
+  cnoremap       <silent><buffer><plug>(esearch-cr) <c-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
+  inoremap <expr><silent><buffer><Plug>(esearch-cr) esearch#out#win#modifiable#cr()
   nnoremap <expr><silent><buffer><plug>(esearch-I)  esearch#out#win#modifiable#I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-dd) esearch#operator#expr('esearch#out#win#modifiable#d').'g@'
   noremap  <expr><silent><buffer><plug>(esearch-d.) esearch#operator#expr('esearch#out#win#modifiable#d_dot')
-  nnoremap <expr><silent><buffer><plug>(esearch-D)  (col('.')==col('$')?'$':'').esearch#operator#expr('esearch#out#win#modifiable#d').'$'
+  nnoremap <expr><silent><buffer><plug>(esearch-D)  col('$')==1 ? '' : (col('.')==col('$')?'$':'').esearch#operator#expr('esearch#out#win#modifiable#d').'$'
   xnoremap <expr><silent><buffer><plug>(esearch-D)  'V'.esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-c)  esearch#out#win#modifiable#seq().esearch#operator#expr('esearch#out#win#modifiable#c')
   noremap  <expr><silent><buffer><plug>(esearch-cc) esearch#out#win#modifiable#seq("g@").esearch#operator#expr('esearch#out#win#modifiable#c').'g@'
   noremap  <expr><silent><buffer><plug>(esearch-c.) esearch#operator#expr('esearch#out#win#modifiable#c_dot')
-  nnoremap <expr><silent><buffer><plug>(esearch-C)  (col('.')==col('$')?'$':'').esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
+  nnoremap <expr><silent><buffer><plug>(esearch-C)  col('$')==1 ? 'i' : (col('.')==col('$')?'$':'').esearch#out#win#modifiable#seq('$').esearch#operator#expr('esearch#out#win#modifiable#c').'$'
   xnoremap <expr><silent><buffer><plug>(esearch-C)  'V'.esearch#operator#expr('esearch#out#win#modifiable#c')
-  nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>call esearch#repeat#run(v:count)<cr>
+  nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>exe esearch#repeat#run(v:count)<cr>
+  nnoremap       <silent><buffer><plug>(esearch-@:) :<c-u>exe esearch#out#win#modifiable#cmdline#repeat(v:count1)<cr>
 
   call esearch#out#win#init_user_mappings()
 endfu
@@ -256,18 +261,18 @@ fu! s:reload() abort dict
 endfu
 
 " Bind view to a line within a context.
-fu! s:winsaveview(es) abort
+fu! s:winsaveview(esearch) abort
   let view = winsaveview()
   let view.ctx_lnum = matchstr(getline('.'), g:esearch#out#win#capture_lnum_re)
-  let state = a:es.modifiable ? a:es.undotree.head.state : a:es
-  let id = get(state.wlnum2ctx_id, view.lnum)
-  if id | let view.filename = a:es.contexts[state.wlnum2ctx_id[view.lnum]].filename | endif
+  let state = a:esearch.state
+  let id = get(state, view.lnum)
+  if id | let view.filename = a:esearch.contexts[state[view.lnum]].filename | endif
   return view
 endfu
 
-fu! s:winrestview(es, view) abort
+fu! s:winrestview(esearch, view) abort
   if has_key(a:view, 'filename')
-    let ctx = get(a:es.ctx_by_name, remove(a:view, 'filename'), 0)
+    let ctx = get(a:esearch.ctx_by_name, remove(a:view, 'filename'), 0)
     if empty(ctx) | return winrestview(a:view) | endif
 
     let offset = index(sort(keys(ctx.lines), 'N'), remove(a:view, 'ctx_lnum'))
