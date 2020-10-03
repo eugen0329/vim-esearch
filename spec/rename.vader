@@ -9,6 +9,7 @@ Before:
   exe 'bwipe' Fixture(g:file_a, g:content)
   Save g:esearch_overwrite
 After:
+  messages clear
   Restore g:esearch_overwrite
   silent! call delete(g:file_a)
   silent! call delete(g:file_b)
@@ -113,22 +114,22 @@ Then:
   Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
   AssertEqual readfile(g:file_b), ['contentb']
 
-Execute (Rename with overwriting a file and say (Y)es):
-  let g:file_b = g:esearch.cwd.'elif/nested/dir.txt'
-  exe 'bwipe' Fixture(g:file_b, 'contentb')
-  call esearch#init()
-  exe "norm /file.txt\<CR>ccelif/nested/dir.txt"
-Then:
-  let g:esearch_overwrite = 1
-  write
-  Assert !filereadable(g:file_a)
-  AssertEqual readfile(g:file_b), g:content
-  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
-  undo | write
-  Assert !filereadable(g:file_b) " TODO can be fixed in the future
-  AssertEqual readfile(g:file_a), g:content
-  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
-  
+" Execute (Rename with overwriting a file and say (Y)es):
+"   let g:file_b = g:esearch.cwd.'elif/nested/dir.txt'
+"   exe 'bwipe' Fixture(g:file_b, 'contentb')
+"   call esearch#init()
+"   exe "norm /file.txt\<CR>ccelif/nested/dir.txt"
+" Then:
+"   let g:esearch_overwrite = 1
+"   write
+"   Assert !filereadable(g:file_a)
+"   AssertEqual readfile(g:file_b), g:content
+"   Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+"   Log execute('fu {458}')
+"   undo | write
+"   Assert !filereadable(g:file_b) " TODO can be fixed in the future
+"   AssertEqual readfile(g:file_a), g:content
+"   Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
 
 Execute (Rename with overwriting a dir using :write!):
   let g:file_b = g:esearch.cwd.'elif/nested/dir'
@@ -164,3 +165,16 @@ Then:
   AssertEqual readfile(g:file_a), g:content
   Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
   Assert split(execute('messages'), "\n")[-1] =~# "can't overwite the directory"
+
+Execute (Rename deleted after the search is done):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir'
+  call mkdir(g:file_b, 'p')
+  call esearch#init()
+  call delete(g:file_a)
+  exe "norm /file.txt\<CR>ccelif/nested/dir"
+Then:
+  let g:esearch_overwrite = 1
+  write
+  Assert !filereadable(g:file_a) && !filereadable(g:file_b)
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  Assert split(execute('messages'), "\n")[-1] =~# "is not readable"

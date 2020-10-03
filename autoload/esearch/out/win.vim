@@ -31,6 +31,7 @@ let g:esearch#out#win#filename_re = '^[^ ]'
 let g:esearch#out#win#separator_re = '^$'
 let g:esearch#out#win#linenr_fmt  = ' %3d '
 let g:esearch#out#win#entry_fmt   = ' %3d %s'
+let g:esearch#out#win#entry_with_sign_fmt   = ' %s %3d %s'
 
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 

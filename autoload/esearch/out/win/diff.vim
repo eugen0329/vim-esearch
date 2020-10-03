@@ -79,7 +79,7 @@ fu! s:DiffsIterator.next_deleted() abort dict
 endfu
 
 fu! s:DiffsIterator.next_modified() abort dict
-  let [filename_b, lnum_was, sign_was] = ['', -1, ''] " backtrack one line back
+  let [filename_b, lnum_was, sign_was] = ['', -1, ''] " look one line back
   let [edits, deleted_lines_a, begin, lnums_b, texts_b] = [{}, {}, -1, [], []]
 
   while self.wlnum < len(self.lines)

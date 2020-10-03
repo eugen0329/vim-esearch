@@ -1,3 +1,4 @@
+let s:Prelude  = vital#esearch#import('Prelude')
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:List = vital#esearch#import('Data.List')
 let s:Buf = esearch#buf#import()
@@ -11,17 +12,20 @@ let s:Writer = {}
 
 fu! s:Writer.new(diffs, esearch) abort dict
   return extend(deepcopy(self), {
-        \ 'diffs': a:diffs,
-        \ 'esearch': a:esearch,
-        \ 'search_buf': s:Buf.for(a:esearch.bufnr),
-        \ 'win_edits': [],
-        \ 'win_undos': [],
-        \ 'renames':   [],
-        \ 'conflicts': [],
+        \ 'diffs':       a:diffs,
+        \ 'esearch':     a:esearch,
+        \ 'search_buf':  s:Buf.for(a:esearch.bufnr),
+        \ 'win_edits':   [],
+        \ 'win_undos':   [],
+        \ 'state_undos': [],
+        \ 'renames':     [],
+        \ 'conflicts':   [],
         \})
 endfu
 
 fu! s:Writer.write(bang) abort dict
+  let contexts = self.esearch.contexts
+  let linecount = self.esearch.linecount
   let l:WriteCb = self.esearch.write_cb
   let [current_window, current_buffer, view] = [esearch#win#stay(), esearch#buf#stay(), winsaveview()]
 
@@ -75,6 +79,9 @@ fu! s:Writer.write(bang) abort dict
 endfu
 
 fu! s:Writer.rename(bang) abort
+  let contexts = self.esearch.contexts
+  let linecount = self.esearch.linecount
+
   for [buf, ctx_a, relative_filename_b] in self.renames
     let filename_a = simplify(esearch#util#abspath(self.esearch.cwd, ctx_a.filename))
     let filename_b = simplify(esearch#util#abspath(self.esearch.cwd, relative_filename_b))
@@ -87,11 +94,18 @@ fu! s:Writer.rename(bang) abort
       continue
     endif
 
-    if !a:bang && esearch#util#file_exists(filename_b)
-      if !has_key(g:, 'esearch_overwrite')
-            \ && confirm(filename_b . ' exists. Overwrite?', "&Yes\n&Cancel") == 2
-            \ || !g:esearch_overwrite
-        continue
+    if esearch#util#file_exists(filename_b)
+      if !a:bang
+        if has_key(g:, 'esearch_overwrite')
+          if !g:esearch_overwrite | continue | endif
+        else
+          if confirm(filename_b . ' exists. Overwrite?', "&Yes\n&Cancel") == 2 | continue | endif
+        endif
+      endif
+
+      if filereadable(filename_b)
+        let lines_b = readfile(filename_b)
+        let lines_a = readfile(filename_a)
       endif
     endif
 
@@ -107,8 +121,39 @@ fu! s:Writer.rename(bang) abort
       call hidden.restore()
     endif
 
+    if exists('lines_b')
+      let fmt = g:esearch#out#win#entry_with_sign_fmt
+      let i = 0
+      while i < len(lines_b)
+        let lines_b[i] = printf(fmt, '', i + 1, lines_b[i])
+        let i += 1
+      endw
+      let lines_b = ['', fnameescape(relative_filename_b)] + lines_b
+
+      call esearch#out#win#update#add_context(self.esearch.contexts, relative_filename_b, linecount + 2, 0)
+      let linecount += len(lines_b)
+      let self.esearch.contexts[-1].lines = esearch#util#list2dict(lines_a)
+      let self.esearch.contexts[-1].end = linecount
+      let self.win_undos += [{'func': 'appendline',  'args': ['$', lines_b]}]
+
+      let ids = [self.esearch.contexts[-2].id] + repeat([self.esearch.contexts[-1].id], len(lines_b) - 1)
+      let self.state_undos += [{'func': 'extend',  'args': [ids]}]
+
+      unlet lines_b
+    endif
+
     let ctx_a.filename = relative_filename_b
   endfor
+  let self.esearch.linecount = linecount
+endfu
+
+fu! s:Writer.update_state(state, edits) abort
+  let state = a:state
+
+  for edit in a:edits
+    call call(edit.func, [state] + edit.args)
+  endfor
+  return state
 endfu
 
 fu! s:Writer.create_undo_entry() abort dict
@@ -121,7 +166,7 @@ fu! s:Writer.create_undo_entry() abort dict
 
     exe 'undo' self.esearch.undotree.written.changenr
     call self.update_win(self.win_undos)
-    let undone_state = self.esearch.undotree.written.state
+    let undone_state = self.update_state(self.esearch.undotree.written.state, self.state_undos)
     call self.esearch.undotree.squash(undone_state)
     call esearch#util#squash_undo()
     keepjumps %delete _
