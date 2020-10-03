@@ -25,6 +25,27 @@ let g:esearch#preview#win     = s:null
 let g:esearch#preview#buffer  = s:null
 let g:esearch#preview#last    = {}
 
+fu! esearch#preview#shell(command, ...) abort
+  let opts = get(a:, 1, {})
+  let backend = get(opts, 'backend', g:esearch.backend)
+  let request = esearch#backend#{backend}#init(getcwd(), '', a:command)
+  call extend(opts, {'emphasis': []}, 'keep')
+  call extend(opts, {'method': 'shell'}, 'keep')
+  let request.cb.schedule_finish = function('<SID>on_finish', [request, opts, bufnr('')])
+  call esearch#backend#{backend}#exec(request)
+  if !request.async | call request.cb.schedule_finish() | endif
+endfu
+
+fu! s:on_finish(request, opts, bufnr) abort
+  if esearch#preview#is_open() || bufnr('') !=# a:bufnr | return | endif " prevent E814
+  noswap let bufnr = bufadd('[esearch-preview-shell]')
+  call bufload(bufnr)
+  call setbufvar(bufnr, '&buftype', 'nofile')
+  call setbufline(bufnr, 1, a:request.data)
+  call esearch#preview#open('[esearch-preview-shell]', 1, a:opts)
+  call esearch#util#doautocmd('WinEnter') " hit statuslines updates
+endfu
+
 fu! esearch#preview#open(filename, line, ...) abort
   let opts = get(a:, 1, {})
 
@@ -39,20 +60,22 @@ fu! esearch#preview#open(filename, line, ...) abort
   let close_on  = uniq(copy(close_on))
 
   let location = {'filename': a:filename, 'line': a:line}
+  let buf_vars = {}
   let win_vars = {'&foldenable': s:false}
   let win_vars['&winhighlight'] = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat,Conceal:esearchConcealFloat'
   call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
-  let enter = get(opts, 'enter')
+  call extend(buf_vars, get(opts, 'buf_let!', {})) " TOOO coverage
   let emphasis = get(opts, 'emphasis', g:esearch#emphasis#default)
 
   let g:esearch#preview#last = s:Preview
-        \.new(location, shape, emphasis, win_vars, opts, close_on, enter)
+        \.new(location, shape, emphasis, win_vars, buf_vars, opts, close_on)
 
-  if enter
-    return g:esearch#preview#last.open_and_enter()
-  else
-    return g:esearch#preview#last.open()
-  endif
+  return g:esearch#preview#last[get(opts, 'method', 'open')]()
+endfu
+
+fu! esearch#preview#is_current() abort
+  return g:esearch#preview#win isnot# s:null
+        \ && g:esearch#preview#win.id == win_getid()
 endfu
 
 fu! esearch#preview#is_open() abort
@@ -96,16 +119,42 @@ endfu
 
 let s:Preview = {}
 
-fu! s:Preview.new(location, shape, emphasis, win_vars, opts, close_on, enter) abort dict
+fu! s:Preview.new(location, shape, emphasis, win_vars, buf_vars, opts, close_on) abort dict
   let instance = copy(self)
   let instance.location = a:location
   let instance.shape    = a:shape
   let instance.win_vars = a:win_vars
+  let instance.buf_vars = a:buf_vars
   let instance.opts     = a:opts
   let instance.close_on = a:close_on
-  let instance.enter    = a:enter
   let instance.emphasis = a:emphasis
   return instance
+endfu
+
+fu! s:Preview.shell() abort dict
+  let current_win = esearch#win#stay()
+  let self.buffer = s:RegularBuffer.fetch_or_create(
+        \ self.location.filename, g:esearch#preview#buffers)
+
+  try
+    let g:esearch#preview#win = s:FloatingWindow
+          \.new(self.buffer, self.location, self.shape, self.close_on)
+          \.open()
+    let self.win = g:esearch#preview#win
+    call self.win.let(self.win_vars)
+    call self.win.buffer.let(self.buf_vars)
+    call self.win.place_emphasis(self.emphasis)
+    call self.win.reshape()
+    call self.win.init_leaved_autoclose_events()
+  catch
+    call esearch#preview#close()
+    call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
+    return s:false
+  finally
+    noau keepj call current_win.restore()
+  endtry
+
+  return s:true
 endfu
 
 fu! s:Preview.open() abort dict
@@ -126,6 +175,7 @@ fu! s:Preview.open() abort dict
     " inheriting some options by buffers (for example, &winhl local to window
     " becoms local to buffer).
     call self.win.let(self.win_vars)
+    call self.win.buffer.let(self.buf_vars)
     call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
     call self.win.init_leaved_autoclose_events()
@@ -142,17 +192,28 @@ endfu
 
 fu! s:Preview.open_and_enter() abort dict
   let current_win = esearch#win#stay()
-  let reuse_existing = s:false
+  let reuse_existing = 0
   let self.buffer = s:RegularBuffer.new(self.location.filename, reuse_existing)
 
   try
-    call esearch#preview#close()
-    let g:esearch#preview#win = s:FloatingWindow
-          \.new(self.buffer, self.location, self.shape, self.close_on)
-          \.open()
+    if esearch#preview#is_open()
+          \ && g:esearch#preview#win.location.filename ==# self.location.filename
+          \ && empty(g:esearch#preview#win.buffer.swapname)
+      call esearch#preview#reset()
+      silent! au! esearch_preview_autoclose
+      let g:esearch#preview#win.shape = self.shape
+      let g:esearch#preview#win.close_on = self.close_on
+      let was_opened = 1
+    else
+      call esearch#preview#close()
+      let g:esearch#preview#win = s:FloatingWindow
+            \.new(self.buffer, self.location, self.shape, self.close_on)
+            \.open()
+      let was_opened = 0
+    endif
     let self.win = g:esearch#preview#win
     call self.win.enter()
-    if !self.buffer.edit_allowing_swap_prompt()
+    if !was_opened && !self.buffer.edit_allowing_swap_prompt()
       call esearch#preview#close()
       return s:false
     endif
@@ -181,7 +242,7 @@ fu! s:RegularBuffer.new(filename, ...) abort dict
   let instance = copy(self)
   let instance.filename = a:filename
 
-  let reuse_existing = get(a:000, 0, s:true)
+  let reuse_existing = get(a:, 1, 1)
   if reuse_existing && bufexists(a:filename)
     let instance.id = esearch#buf#find(a:filename)
     let instance.bufwinid = bufwinid(instance.id)
@@ -306,6 +367,11 @@ fu! s:RegularBuffer.edit() abort dict
   return s:true
 endfu
 
+fu! s:RegularBuffer.let(variables) abort dict
+  let self.variables = a:variables
+  call esearch#buf#let(self.id, a:variables)
+endfu
+
 fu! s:RegularBuffer.is_valid() abort dict
   return self.id >= 0 && nvim_buf_is_valid(self.id)
 endfu
@@ -363,7 +429,11 @@ endfu
 
 fu! s:FloatingWindow.close() abort dict
   call self.unplace_emphasis()
-  call nvim_win_close(self.id, 1)
+  try
+    call nvim_win_close(self.id, 1)
+  catch 
+    PP
+  endtry
 endfu
 
 " Shape specified on create is only to prevent blinks.
@@ -521,14 +591,13 @@ fu! s:Shape.new(measures) abort dict
   let instance.top = instance.tabline_height
   let instance.bottom = instance.winheight + instance.tabline_height + instance.statusline_height
   let instance.editor_top = instance.tabline_height
-  let instance.editor_bottom = &lines - instance.tabline_height - instance.statusline_height - 1
+  let instance.editor_bottom = &lines - instance.statusline_height - 2
 
-  let default_height = min([19, &lines / 2])
   if instance.alignment ==# 'cursor'
-    call extend(instance, {'width': 120, 'height': default_height})
+    call extend(instance, {'width': 120, 'height': esearch#preview#default_height()})
     let instance.relative = 0
   elseif s:List.has(['top', 'bottom'], instance.alignment)
-    call extend(instance, {'width': 1.0, 'height': default_height})
+    call extend(instance, {'width': 1.0, 'height': esearch#preview#default_height()})
     let instance.relative = 1
   elseif s:List.has(['left', 'right'], instance.alignment)
     call extend(instance, {'width': 0.5, 'height': 1.0})
@@ -551,6 +620,10 @@ fu! s:Shape.new(measures) abort dict
   call instance.realign()
 
   return instance
+endfu
+
+fu! esearch#preview#default_height() abort
+  return min([19, &lines / 2])
 endfu
 
 fu! s:absolute_value(value, interval) abort
@@ -604,23 +677,23 @@ fu! s:Shape.align_to_bottom() abort dict
 endfu
 
 fu! s:Shape.align_to_cursor() abort dict
-  if &lines - self.height - 1 < self.winline
-    " if there's no room - show above
-    let self.row = max([self.winline - self.height, self.top])
+  let winline = self.winline + self.editor_top
+  if &lines - self.height - 1 < winline " if there's no room - show above
+    let self.row = max([winline - self.height, self.top])
   else
-    let self.row = self.winline
+    let self.row = winline
   endif
   let self.col = max([5, self.wincol - 1]) + self.relative_win_position[1]
 
   let self.anchor = 'NW'
 endfu
 
-fu! s:Shape.clip_height(height_limit) abort dict
+fu! s:Shape.clip_height(lines_count) abort dict
   " Left and right aligned previews are stretched
   if s:List.has(['left', 'right'], self.alignment) | return | endif
 
   let self.height = min([
-        \ a:height_limit,
+        \ a:lines_count,
         \ self.height,
         \ self.editor_bottom - self.editor_top])
 

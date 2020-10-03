@@ -534,11 +534,9 @@ g:esearch.win_map                                              *g:esearch.win_ma
         Default: see |esearch-win-map-defaults|
         Example:~
 >
-        let g:esearch.win_map = [
-        \ ['n', 'e', '<plug>(esearch-win-open)']
-        \]
+        let g:esearch.win_map = [['n', 'e', '<plug>(esearch-win-open)']]
 <
-        NOTE  To return to the search window |CTRL-O| can be used (builtin vim
+        NOTE  To return to the search window |CTRL-O| can be used (the builtin vim
         command to jump to older cursor positions).
 
 <plug>(esearch-win-tabopen)                          *<plug>(esearch-win-tabopen)*
@@ -568,7 +566,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <plug>(esearch-win-preview)                          *<plug>(esearch-win-preview)*
 <plug>(esearch-win-preview:enter)              *<plug>(esearch-win-preview:enter)*
         Show the line under the cursor in the file using preview window. If
-        `:enter` is used - put the cursor into the opened preview window.
+        `:enter` is used - put the cursor into the opened preview window. Prefix
+        it with |[count]| to multiple the window size.
         Default: see |esearch-win-map-defaults|
 
         NOTE Floating preview is only supported in neovim >=0.4.0. For vanilla
@@ -578,7 +577,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-jump:filename:up)        *<plug>(esearch-win-jump:filename:up)*
 <plug>(esearch-win-jump:filename:down)    *<plug>(esearch-win-jump:filename:down)*
-        Move cursor to a filename up or down.
+        Move cursor to a filename up or down. Prefix it with |[count]| to jump
+        through multiple filenames.
         Default: `{` and `}`
         Example:~
 >
@@ -601,6 +601,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <plug>(esearch-win-jump:dirname:up)          *<plug>(esearch-win-jump:dirname:up)*
 <plug>(esearch-win-jump:dirname:down)      *<plug>(esearch-win-jump:dirname:down)*
         Move cursor to the filename from a different directory up or down.
+        Prefix it with |[count]| to jump through multiple dirnames.
         Default: `(` and `)`
         Example:~
 >
@@ -624,7 +625,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-jump:entry:up)              *<plug>(esearch-win-jump:entry:up)*
 <plug>(esearch-win-jump:entry:down)          *<plug>(esearch-win-jump:entry:down)*
-        Move cursor to an outputted text line up or down.
+        Move cursor to an outputted text line up or down. Prefix it with |[count]|
+        to jump through multiple entries.
         Example:~
 >
         let g:esearch.win_map = [
@@ -1194,6 +1196,20 @@ esearch#buf#goto_or_open({name}, {opener}])           *esearch#buf#goto_or_open(
 
         See also: |g:esearch.win_new()-examples| and |g:esearch.win_new()|.
 
+esearch#preview#shell({command}, [{opts}])               *esearch#preview#shell()*
+        Execute {command} using `g:esearch.backend` and output the result into a
+        newly opened preview window.
+
+        Parameters:~
+            {name}    Shell command to be executed
+            {opts}    Same as for |b:esearch.preview_open()| with additional
+                      `'backend'` option support. Set `'backend'` to `'system'` to
+                      execute the command synchronously.
+        Return:~
+            Same as from |bufloaded()|.
+
+        See also: |esearch-git-show-preview-example|.
+
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                                  *esearch-api-local-functions*
 
@@ -1349,20 +1365,28 @@ Search in commits from an inputted branch.
           \ 'remember': 0
           \})<cr>
 <
-Print the revision date and author's name under the cursor.
+                                                *esearch-git-show-preview-example*
+Open the preview window with git-show command output if the context under the
+cursor is a git revision. Set 'filetype' buffer option to enable highlights
+and disable line 'number' column.
 >
-    fu! EchoRevDate(esearch) abort
-      if !a:esearch.is_current() | return | endif
-      let ctx = a:esearch.ctx_at(line('.'))
-      if !get(ctx, 'rev') | return | endif
-      let hash = split(ctx.filename, ':')[0]
-      echo systemlist('git show -s --pretty="%ad %an (%ar)" ' . hash)[0]
-    endfu
+    let g:GitShow = {ctx -> ctx().rev &&
+      \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
+      \   'buf_let!': {'&filetype': 'git', '&number': 0},
+      \   'width': 47,
+      \   'height': 3,
+      \ })
+      \}
 
     autocmd User esearch_win_config
-      \  let b:echo_date = esearch#async#debounce(function('EchoRevDate'), 100)
-      \| autocmd CursorMoved <buffer> call b:echo_date.apply(b:esearch)
+          \  let b:git_show = esearch#async#debounce(g:GitShow, 300)
+          \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
+
+    let g:esearch.win_map = [['n', 'P', '100<plug>(esearch-win-preview:enter)']]
 <
+Use `p` to zoom the preview or capital `P` to enter it for scrolling etc. [count] is
+set to 100 to maximize the width and height when entering it.
+
                                                  *esearch.preview_open()-examples*
                                                              *esearch-autopreview*
 6. Show the preview automatically and update it after 100ms timeout. Change

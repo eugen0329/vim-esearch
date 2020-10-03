@@ -44,6 +44,7 @@ local function matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, 
     local _, offset = line:find(ui.LINENR_RE)
 
     if offset then
+      offset = offset + 1
       local lim = math.min(line:len(), max_col)
 
       col_from, col_to = pattern:match_str(line:sub(offset, lim))

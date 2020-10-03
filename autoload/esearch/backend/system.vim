@@ -9,7 +9,8 @@ fu! esearch#backend#system#init(cwd, adapter, cmd) abort
         \ 'async': 0,
         \ 'cursor': 0,
         \ 'status': 0,
-        \ 'finished': 0
+        \ 'finished': 0,
+        \ 'cb': {},
         \}
 
   return request

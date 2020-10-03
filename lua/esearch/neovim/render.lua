@@ -48,7 +48,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
         ['filetype']      = 0,
         ['loaded_syntax'] = 0,
         ['lines']         = {},
-        ['rev']           = entry.rev,
+        ['rev']           = entry.rev and 1 or 0,
       }
       ctx_by_name[filename] = contexts[#contexts]
       state[#state + 1] = contexts[#contexts].id

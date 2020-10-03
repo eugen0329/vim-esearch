@@ -191,8 +191,8 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse)      :<c-u>cal b:esearch.open('vnew', {'reuse': 1})<cr>
   nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse:stay) :<c-u>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<cr>
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.preview_zoom()<cr>
-    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.preview_enter()<cr>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.preview_zoom(v:count1)<cr>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
   else
     nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.split_preview_open('vnew')<cr>
     nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.split_preview_open('vnew', {'stay': 0})<cr>

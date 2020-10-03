@@ -36,6 +36,12 @@ fu! esearch#buf#tabwin(bufnr) abort
   return [0, 0]
 endf
 
+fu! esearch#buf#let(bufnr, vars) abort
+  for [name, val] in items(a:vars)
+    call setbufvar(a:bufnr, name, val)
+  endfor
+endfu
+
 fu! esearch#buf#goto_or_open(buffer, opener, ...) abort
   let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
   let bufnr = esearch#buf#find(a:buffer)
