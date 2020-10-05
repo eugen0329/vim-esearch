@@ -1156,27 +1156,35 @@ API.
 API GLOBAL FUNCTIONS                                *esearch-api-global-functions*
 
 esearch#init([{opts}])                                            *esearch#init()*
-        Is invoked when |<plug>(esearch)| map is triggered.
+        Is invoked when |<plug>(esearch)| keymap is pressed.
 
         Parameters:~
-            {opts}    Dict with the same key-values as for |g:esearch| dict to
-                      overrule it (optional). Some options may be preprocessed
-                      for better UX.
-                      Example: `'paths'` is split if it's a |Stirng|, `'win_map'` |List|
-                      is appended to `g:esearch.win_map`.
+            {opts}    Dict with the same key-values as for |g:esearch| to overrule
+                      it (optional).
+                      NOTE Some options are preprocessed for better UX.
         Return:~
             0
-        Example:~
->
-        nnoremap <leader>fs :call esearch#init({
-            \ 'paths': $GOPATH . ' node_modules/',
-            \ 'remember': ['regex', 'case']
-            \})<cr>
-<
-        Will search in vendor lib directories. Remember only `'regex'` and `'case'`
-        configurations if they are changed during a request.
 
-        See also: |g:esearch.remember|, |g:esearch.paths|.
+Options preprocessing details:
+
+   Option                          Preprocessing~
+ ----------+--------------------------------------------------------------------
+ `.paths`    | If it's a |String| , it's split using shell syntax rules.
+ `.win_map`  | Is appended to |g:esearch.win_map| keymaps list if given.
+ `.remember` | Is set to |FALSE| by default. |TRUE| is expanded as |g:esearch.remember|
+ `.pattern`  | If |Dict| (in the internal format), it's adapter to work
+           | with |g:esearch.adapter|.
+ `.prefill`  | If a |String| is returned from a prefiller and it contains special
+           | characters (see |esearch-cursor-initial-position-example|), it resets
+           | |g:esearch.select_prefilled| to |FALSE|.  
+           | with |g:esearch.adapter|.
+ `.case`,    | If |Boolean|s are given, they're converted to |String| according to the
+ `.textobj`, | adapter. If any option isn't supported by |g:esearch.adapter|, it's
+ `.regex`    | set to adapter's default.
+ ----------+--------------------------------------------------------------------
+ 
+ 
+ 
 
 esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce()*
         Can be used to create events independently from |CursorHold|. At the
@@ -1321,10 +1329,7 @@ they are changed during a request.
 <
 3. Search in front-end files using explicitly set paths.
 >
-    nnoremap <leader>fe :call esearch#init({
-        \ 'paths': '**/*.{js,css,html}',
-        \ 'remember': 0
-        \})<cr>
+    nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 <
 NOTE To use all globbing features make ensure that |'shell'| option contains
 required arguments. E.g. for bash globbing add to your vimrc:
@@ -1338,14 +1343,11 @@ Or the same query if one of [ag], [rg] or [ack] is available:
 <
 See also: |g:esearch.paths| for globbing details.
 
+                                         *esearch-cursor-initial-position-example*
 4. Use a callable prefiller and |<>| brackets notation to set the initial input
 prompt text to `def |(self`, where `|` is the cursor position.
 >
-    let g:search_py_methods = {
-        \ 'prefill':          [{-> "def (self\<s-left>"}],
-        \ 'filetypes':       'python',
-        \ 'select_prefilled': 0
-        \}
+    let g:search_py_methods = {'prefill': [{-> "def (self\<s-left>"}]}
     nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 <
 NOTE You can use any other bracketed keys to define the initial cursor position,
@@ -1376,7 +1378,6 @@ zoom the preview or capital `P` to enter it for scrolling etc.
           \ 'adapter':  'git',
           \ 'win_map':  [['n', 'P', '100<plug>(esearch-win-preview:enter)']],
           \ 'paths':    esearch#xargs#git_log(),
-          \ 'remember': 0
           \})<cr>
 <
 NOTE [count] is set to 100 to maximize the width and height when entering it.
@@ -1384,18 +1385,14 @@ NOTE [count] is set to 100 to maximize the width and height when entering it.
                                                          *esearch-in-git-modified*
 Use backticks in |g:esearch.paths| to search in modified files only.
 >
-    nnoremap <leader>fm :call esearch#init({
-        \ 'paths': '`git ls-files --modified`',
-        \ 'remember': 0
-        \})<cr>
+    nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files -m`'})<cr>
 <
-Search in commits made since 2 working weeks or another project development
-cycle interval.
+Search in commits made since 2 working weeks (or another project development
+cycle interval).
 >
     nnoremap <leader>fu :call esearch#init({
         \ 'adapter':  'git',
         \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
-        \ 'remember': 0
         \})<cr>
 <
 Do a similar thing, but using commits range passed to |esearch#xargs#git_log()|.
@@ -1404,7 +1401,6 @@ It will search in commits not merged into staging from development.
     nnoremap <leader>fu :call esearch#init({
           \ 'adapter':  'git',
           \ 'paths':    esearch#xargs#git_log('staging..development'),
-          \ 'remember': 0
           \})<cr>
 <
 Grep in a specific branch inputted by the user.
@@ -1416,7 +1412,6 @@ Grep in a specific branch inputted by the user.
     nnoremap <leader>fb :call esearch#init({
           \ 'adapter':  'git',
           \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
-          \ 'remember': 0
           \})<cr>
 <
 
@@ -1452,19 +1447,19 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
 7. Use `g:esearch.win_map` to setup window local keymaps.
 >
     let g:esearch.win_map = [
-     \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @"<cr>'                ],
-     \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                          ],
-     \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'  ],
-     \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'  ],
-     \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), out_to_quickfix))<cr>'],
-     \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'         ],
-     \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'         ],
+     \ ['n', 'yf',  ':call setreg(esearch#util#clipboard_reg(), b:esearch.filename())<cr>'],
+     \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                         ],
+     \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>' ],
+     \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>' ],
+     \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), to_quickfix))<cr>'   ],
+     \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'        ],
+     \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'        ],
      \]
 
-     let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
-     let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
-     let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
-     let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
+     let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}}}
+     let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}}}
+     let g:to_quickfix = {'out': 'qflist'}
+     let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system'}}
 <
 
       Keymap       What will do~
@@ -1473,7 +1468,7 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
        t    | Use a custom command to open the file in a tab.
        +    | Render [count] more context lines after a line with matches.
        -    | Render [count] less context lines after a line with matches.
-       gq   | Populate QuickFix list using results of the current pattern search.
+       gq   | Populate |Quickfix| list using results of the current pattern search.
        gsp  | Sort the results by path.
        gsd  | Sort the results by modification date.
      -------+-------------------------------------------------------------------

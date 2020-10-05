@@ -2,6 +2,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#prefill#try(esearch) abort
+  let select = a:esearch.select_prefilled
   for Prefiller in a:esearch.prefill
     if type(Prefiller) == s:t_func
       let pattern = Prefiller(a:esearch)
@@ -16,14 +17,15 @@ fu! esearch#prefill#try(esearch) abort
 
     if !empty(pattern)
       if type(pattern) == s:t_string
-        return esearch#pattern#new(a:esearch._adapter, pattern)
+        let select = strtrans(pattern) ==# pattern
+        return [esearch#pattern#new(a:esearch._adapter, pattern), select]
       else
-        return pattern
+        return [pattern, select]
       endif
     endif
   endfor
 
-  return esearch#pattern#new(a:esearch._adapter, '')
+  return [esearch#pattern#new(a:esearch._adapter, ''), select]
 endfu
 
 fu! esearch#prefill#region(esearch) abort

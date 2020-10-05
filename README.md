@@ -201,22 +201,21 @@ let g:esearch = {}
 
 " Each definition contains nvim_set_keymap() args: [{modes}, {lhs}, {rhs}].
 let g:esearch.win_map = [
- \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @" | echo "Yanked " . @"<cr>' ],
- \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                                 ],
- \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'         ],
- \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'         ],
- \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), out_to_quickfix))<cr>'       ],
- \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'                ],
- \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'                ],
+ \ ['n', 'yf',  ':call setreg(esearch#util#clipboard_reg(), b:esearch.filename())<cr>'],
+ \ ['n', 't',   ':call b:esearch.open("NewTabdrop")<cr>'                              ],
+ \ ['n', '+',   ':call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'      ],
+ \ ['n', '-',   ':call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'      ],
+ \ ['n', 'gq',  ':call esearch#init(extend(copy(b:esearch), {"out": "qflist"}))<cr>'  ],
+ \ ['n', 'gsp', ':call esearch#init(extend(b:esearch, sort_by_path))<cr>'             ],
+ \ ['n', 'gsd', ':call esearch#init(extend(b:esearch, sort_by_date))<cr>'             ],
  \]
 
 " Helpers to use in keymaps.
-let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
-let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
-let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
+let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}}}
+let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}}}
 " {'backend': 'system'} means that this request will be executed synchronously using " system() call, that
 " is more convenient for the purpose of expanding the context to add or hide lines around.
-let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
+let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system'}}
 ```
 
 Use `esearch#init({options}})` function to start a search. Specify `{options}`
@@ -225,12 +224,11 @@ behavior per request. Examples:
 
 ```vim
 " Search for debugger entries across the project without starting the prompt.
-" Remember is set to 0 to prevent saving configs history for later searches.
-nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1, 'remember': 0})<cr>
+nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1})<cr>
 
 " Search in vendor lib directories. Remember only 'regex' and 'case' modes if
 " they are changed during a request.
-nnoremap <leader>fl :call esearch#init({'paths': $GOPATH.' node_modules/', 'remember': ['regex', 'case']})<cr>
+nnoremap <leader>fl :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
 
 " Search in front-end files using explicitly set paths. NOTE `set shell=bash\ -O\ globstar`
 " is recommended (for OSX run `$ brew install bash` first). `-O\ extglob` is also supported.
@@ -239,12 +237,8 @@ nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 
 " Use a callable prefiller to search python functions. Initial cursor position will be before
-" the opening bracket due to \<s-left> added.
-nnoremap <leader>fp :call esearch#init({
-      \ 'prefill':          [{-> "def (self\<lt>s-left>"}],
-      \ 'filetypes':       'python',
-      \ 'select_prefilled': 0
-      \})<cr>
+" the opening bracket due to \<s-left>.
+nnoremap <leader>fp :call esearch#init({'prefill': [{-> "def (self\<lt>s-left>"}]})<cr>
 ```
 
 Paths string can contain commands in backticks to obtain search paths from the git database or other utils.
@@ -252,7 +246,7 @@ Paths string can contain commands in backticks to obtain search paths from the g
 ```vim
 " Search in modified files only using backticks in paths string
 " Remember is set to 0 to prevent saving configs history for later searches.
-nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`', 'remember': 0})<cr>
+nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`'})<cr>
 ```
 
 Grepping in git revisions.
@@ -262,14 +256,12 @@ Grepping in git revisions.
 nnoremap <c-f><c-g> :call esearch#init({
       \ 'adapter':  'git',
       \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
-      \ 'remember': 0
       \})<cr>
 
 " Search in commits made since yesterday using an inputted branch.
 nnoremap <c-f><c-b> :call esearch#init({
       \ 'adapter':  'git',
       \ 'paths':    esearch#xargs#git_log('--branches='.input('branch> ', '', 'customlist,fugitive#CompleteObject'))
-      \ 'remember': 0
       \})<cr>
 
 

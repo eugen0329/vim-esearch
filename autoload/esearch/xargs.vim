@@ -4,7 +4,7 @@ fu! esearch#xargs#git_log(...) abort
 endfu
 
 fu! s:git_log(user_options, adapter, esearch) abort
-  return [join([
+  let pipe = join([
         \ a:adapter.bin,
         \ 'log --oneline --format="%H"',
         \ a:adapter.textobj[a:esearch.textobj].option,
@@ -13,5 +13,6 @@ fu! s:git_log(user_options, adapter, esearch) abort
         \ a:user_options,
         \ join(map(copy(a:esearch.pattern._arg), '"-G". v:val[1]')),
         \ '| xargs'
-        \], ' '), '']
+        \], ' ')
+  return [pipe, '']
 endfu

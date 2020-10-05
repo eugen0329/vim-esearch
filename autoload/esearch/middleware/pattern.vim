@@ -4,7 +4,7 @@ fu! esearch#middleware#pattern#apply(esearch) abort
   let esearch = extend(a:esearch, {'cmdline': ''}, 'keep')
 
   if empty(get(esearch, 'pattern'))
-    let esearch.pattern = esearch#prefill#try(esearch)
+    let [esearch.pattern, esearch.select_prefilled] = esearch#prefill#try(esearch)
     call esearch.pattern.adapt(esearch._adapter)
     let esearch = esearch#cmdline#read(esearch)
     if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif

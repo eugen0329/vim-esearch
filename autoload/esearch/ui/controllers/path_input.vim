@@ -3,7 +3,11 @@ let s:PathInputController = esearch#ui#component()
 
 fu! s:PathInputController.render() abort dict
   let s:self = self
-  let user_input_in_shell_format = esearch#shell#join(self.props.paths)
+  if type(self.props.paths) == type({})
+    let user_input_in_shell_format = ''
+  else
+    let user_input_in_shell_format = esearch#shell#join(self.props.paths)
+  endif
 
   redraw!
   while 1
