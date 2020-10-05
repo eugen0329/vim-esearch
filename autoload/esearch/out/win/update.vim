@@ -16,7 +16,7 @@ fu! esearch#out#win#update#init(es) abort
   aug esearch_win_updates " init blank to prevent errors on cleanup
   aug END
   setl undolevels=-1 noswapfile nonumber norelativenumber nospell nowrap synmaxcol=400
-  setl nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide foldmethod=marker
+  setl nolist nomodeline foldcolumn=0 buftype=nofile bufhidden=hide foldmethod=manual foldminlines=0 foldtext=esearch#out#win#fold#text()
   cal s:init_header_ctx(a:es)
 
   if a:es.request.async

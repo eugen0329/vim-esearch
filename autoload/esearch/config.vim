@@ -84,6 +84,7 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#prewarm#apply'),
           \ function('esearch#middleware#pattern#apply'),
           \ function('esearch#middleware#exec#apply'),
+          \ function('esearch#middleware#map#apply'),
           \ function('esearch#middleware#remember#apply'),
           \ function('esearch#middleware#name#apply'),
           \ function('esearch#middleware#warnings#apply'),
@@ -102,6 +103,7 @@ fu! esearch#config#init(esearch) abort
           \ ['n',  '<cr>', '<plug>(esearch-win-open)',             ],
           \ ['n',  'p',    '<plug>(esearch-win-preview)',          ],
           \ ['n',  'P',    '<plug>(esearch-win-preview:enter)',    ],
+          \ ['n',  '<esc>','<plug>(esearch-win-preview:close)',    ],
           \ [' ',  'J',    '<plug>(esearch-win-jump:entry:down)'   ],
           \ [' ',  'K',    '<plug>(esearch-win-jump:entry:up)'     ],
           \ [' ',  '}',    '<plug>(esearch-win-jump:filename:down)'],
@@ -122,6 +124,9 @@ fu! esearch#config#init(esearch) abort
           \ ['x',  's',    '<plug>(esearch-c)'                     ],
           \ ['n',  '.',    '<plug>(esearch-.)'                     ],
           \ ['n',  '@:',   '<plug>(esearch-@:)'                    ],
+          \ ['n', 'za',    '<plug>(esearch-za)'                    ],
+          \ ['n', 'zc',    '<plug>(esearch-zc)'                    ],
+          \ ['n', 'zM',    '<plug>(esearch-zM)'                    ],
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])

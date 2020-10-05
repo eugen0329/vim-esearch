@@ -191,8 +191,9 @@ fu! s:init_mappings() abort
   nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse)      :<c-u>cal b:esearch.open('vnew', {'reuse': 1})<cr>
   nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse:stay) :<c-u>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<cr>
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.preview_zoom(v:count1)<cr>
-    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview)             :<c-u>cal b:esearch.preview_zoom(v:count1)<cr>
+    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)       :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
+    nnoremap <expr><silent><buffer> <plug>(esearch-win-preview:close) b:esearch.preview_close() ? '' : "\<esc>"
   else
     nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.split_preview_open('vnew')<cr>
     nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.split_preview_open('vnew', {'stay': 0})<cr>
@@ -233,6 +234,10 @@ fu! s:init_mappings() abort
   xnoremap <expr><silent><buffer><plug>(esearch-C)  'V'.esearch#operator#expr('esearch#out#win#modifiable#c')
   nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>exe esearch#repeat#run(v:count)<cr>
   nnoremap       <silent><buffer><plug>(esearch-@:) :<c-u>exe esearch#out#win#modifiable#cmdline#repeat(v:count1)<cr>
+
+  nnoremap <expr><silent><buffer><plug>(esearch-za) foldclosed(line('.')) == -1 ? esearch#out#win#fold#close() : (foldlevel(line('.')) > 0 ? 'zD' : 'zO')
+  nnoremap <expr><silent><buffer><plug>(esearch-zc) esearch#out#win#fold#close()
+  nnoremap       <silent><buffer><plug>(esearch-zM) :call esearch#out#win#fold#close_all()<cr>
 
   call esearch#out#win#init_user_mappings()
 endfu
