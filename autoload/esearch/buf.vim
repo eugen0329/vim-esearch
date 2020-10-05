@@ -36,9 +36,17 @@ fu! esearch#buf#tabwin(bufnr) abort
   return [0, 0]
 endf
 
-fu! esearch#buf#let(bufnr, vars) abort
-  for [name, val] in items(a:vars)
-    call setbufvar(a:bufnr, name, val)
+fu! esearch#buf#get(bufnr, name) abort
+  return getbufvar(a:bufnr, a:name[(a:name =~# '^b:' ? 2 : 0):])
+endfu
+
+fu! esearch#buf#let(bufnr, name, val) abort
+  call setbufvar(a:bufnr, a:name[(a:name =~# '^b:' ? 2 : 0):], a:val)
+endfu
+
+fu! esearch#buf#bulk_let(bufnr, variables) abort
+  for [name, val] in items(a:variables)
+    call setbufvar(a:bufnr, name[(name =~# '^b:' ? 2 : 0):], val)
   endfor
 endfu
 

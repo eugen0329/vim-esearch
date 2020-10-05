@@ -18,13 +18,13 @@ fu! s:open(opener, ...) abort dict
   let filename = self.filename()
   if empty(filename) | return | endif
 
-  let opts            = get(a:, 1, {})
-  let stay            = get(opts, 'stay', 0)    " stay in the current window
-  let reuse           = get(opts, 'reuse', 0)   " open only a single window
-  let window_vars     = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
-  let cmdarg          = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
-  let mods            = get(opts, 'mods', '')   " EX: botright
-  let open_opts       = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
+  let opts      = get(a:, 1, {})
+  let stay      = get(opts, 'stay', 0)    " stay in the current window
+  let reuse     = get(opts, 'reuse', 0)   " open only a single window
+  let vars      = get(opts, 'let!', {})   " assign vars/opts/regs within an opened win
+  let cmdarg    = get(opts, 'cmdarg', '') " EX: '++enc=utf8 ++ff=dos'
+  let mods      = get(opts, 'mods', '')   " EX: botright
+  let open_opts = {'range': 'current', 'cmdarg': cmdarg, 'mods': mods}
   " assign vars/opts/regs per function execution
   if stay
     let restorable_vars = get(opts, 'let', {'&ei': 'WinLeave,BufLeave,BufWinLeave,TabLeave'})
@@ -44,7 +44,7 @@ fu! s:open(opener, ...) abort dict
     call Open(self, a:opener, filename, open_opts)
     let bufnr = bufnr('%')
     keepjumps call winrestview(view)
-    call esearch#let#generic(window_vars)
+    call esearch#let#bulk(vars)
   catch /E325:/ " swapexists exception, will be handled by the user
   catch /Vim:Interrupt/ " Throwed on cancelling swap, can be safely suppressed
   catch

@@ -1,7 +1,7 @@
 let s:results_line_re = '^\%>1l\s\+\d\+.*'
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-let s:null_ctx = {'begin': 0, 'end': 0, 'rev': 0, 'filename': 0, 'lines': {}}
+let g:esearch#out#win#view_data#null_ctx = {'begin': 0, 'end': 0, 'rev': 0, 'filename': 0, 'lines': {}}
 
 " Methods to mine information from a rendered window
 
@@ -77,12 +77,9 @@ fu! s:filename(...) abort dict
 endfu
 
 fu! s:ctx(...) dict abort
-  if self.is_blank() || !self.is_current() | return s:null_ctx | endif
-
-  let state = self.state
-  let ctx = self.contexts[get(state, get(a:, 1, line('.')), 1)]
+  if self.is_blank() || !self.is_current() | return g:esearch#out#win#view_data#null_ctx | endif
+  let ctx = self.contexts[get(self.state, get(a:, 1, line('.')), 1)]
   if ctx.id == 0 | return self.contexts[1] | endif
-
   return ctx
 endfu
 

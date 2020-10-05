@@ -268,9 +268,22 @@ nnoremap <c-f><c-g> :call esearch#init({
 " Search in commits made since yesterday using an inputted branch.
 nnoremap <c-f><c-b> :call esearch#init({
       \ 'adapter':  'git',
-      \ 'paths':    '`git rev-list --since=yesterday '.input('branch> ', '', 'customlist,fugitive#CompleteObject').'`',
+      \ 'paths':    esearch#xargs#git_log('--branches='.input('branch> ', '', 'customlist,fugitive#CompleteObject'))
       \ 'remember': 0
       \})<cr>
+
+
+let g:GitShow = {ctx -> ctx().rev &&
+  \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
+  \   'col': screenpos(0, line('.'), 0).col + len(ctx().filename),
+  \   'row': screenpos(0, ctx().begin, 0).row - 1,
+  \   'let': {'&filetype': 'git', '&number': v:false},
+  \   'width': 47, 'height': 3,
+  \ })
+  \}
+autocmd User esearch_win_config 
+      \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
+      \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 ```
 
 In place of the built-in git blobs viewer, it's also possible to use custom functions from other plugins to have advanced features.

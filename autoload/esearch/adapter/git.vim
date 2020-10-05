@@ -7,7 +7,7 @@ if exists('g:esearch#adapter#git#bin')
   " TODO warn deprecated
   let s:Git.bin = g:esearch#adapter#git#bin
 else
-  let s:Git.bin = 'git --no-pager grep'
+  let s:Git.bin = 'git --no-pager'
 endif
 if exists('g:esearch#adapter#git#options')
   " TODO warn deprecated
@@ -51,11 +51,14 @@ call extend(s:Git, {
 
 fu! s:Git.command(esearch) abort dict
   let regex = self.regex[a:esearch.regex].option
-  let case = self.textobj[a:esearch.textobj].option
-  let textobj = self.case[a:esearch.case].option
+  let textobj = self.textobj[a:esearch.textobj].option
+  let case = self.case[a:esearch.case].option
 
+  let pipe = ''
   if empty(a:esearch.paths)
     let paths = self.pwd()
+  elseif type(a:esearch.paths) ==# type({})
+    let [pipe, paths] = a:esearch.paths.command(self, a:esearch)
   else
     let paths = esearch#shell#join_pathspec(a:esearch.paths)
   endif
@@ -66,7 +69,9 @@ fu! s:Git.command(esearch) abort dict
   if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
 
   return join([
+        \ pipe,
         \ self.bin,
+        \ 'grep',
         \ regex,
         \ case,
         \ textobj,

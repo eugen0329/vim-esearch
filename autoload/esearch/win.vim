@@ -1,4 +1,5 @@
 let s:window_id  = esearch#util#counter()
+let s:UNDEFINED = esearch#polyfill#undefined()
 
 " Utility functions to work with windows. Includes:
 " - normalized windows api
@@ -8,25 +9,12 @@ fu! esearch#win#guard() abort
   return s:Guard
 endfu
 
-let s:Guard = {'_resources': {}}
+let s:Guard = {}
 
 fu! s:Guard.new(handle) abort dict
   let instance = copy(self)
   let instance.handle = a:handle
-  return instance
-endfu
-
-"""""""""""""""""""""""""""""""""""""""
-
-fu! esearch#win#setter() abort
-  return s:Setter
-endfu
-
-let s:Setter = {'_resources': {}}
-
-fu! s:Setter.new(handle) abort dict
-  let instance = copy(self)
-  let instance.handle = a:handle
+  let instance._resources = {}
   return instance
 endfu
 
@@ -84,7 +72,7 @@ fu! esearch#win#let_restorable(handle, variables) abort
   return esearch#let#restorable(
         \ a:variables,
         \ s:Guard.new(a:handle),
-        \ s:Setter.new(a:handle).apply)
+        \ function('esearch#win#bulk_let', [a:handle]))
 endfu
 
 """""""""""""""""""""""""""""""""""""""
@@ -117,18 +105,34 @@ if g:esearch#has#nvim_winid
     return a:handle
   endfu
 
-  fu! s:Setter.apply(variables) abort dict
+  fu! esearch#win#let(handle, name, value) abort
+    if a:name =~# '^w:'
+      call nvim_win_set_var(a:handle, a:name[2:], a:value)
+    else
+      call nvim_win_set_option(a:handle, a:name[1:], a:value)
+    endif
+  endfu
+
+  fu! esearch#win#bulk_let(handle, variables) abort
     for [name, value] in items(a:variables)
-      if name =~# '^w:'
-        call nvim_win_set_var(self.handle, name[2:], value)
-      elseif name =~# '^&l:'
-        throw printf('Redundant &l: specified in "%s": please, use "&%s" format', name, name[3:])
-      elseif name =~# '^&'
-        call nvim_win_set_option(self.handle, name[1:], value)
-      else
-        throw printf('Unknown value "%s" was specified', name)
-      endif
+      call esearch#win#let(a:handle, name, value)
     endfor
+  endfu
+
+  fu! esearch#win#get(handle, name) abort
+    try
+      if a:name =~# '^w:'
+        return nvim_win_get_var(a:handle, a:name[2:])
+      else
+        return nvim_win_get_option(a:handle, a:name[1:])
+      endif
+    catch /E5555:/
+      return s:UNDEFINED
+    endtry
+  endfu
+
+  fu! esearch#win#find(id) abort
+    return [a:id]
   endfu
 
   " implements Vital api
@@ -136,24 +140,15 @@ if g:esearch#has#nvim_winid
     for name in a:targets
       if name =~# '^w:'
         let value = nvim_win_get_var(self.handle, name[2:])
-      elseif name =~# '^&l:'
-        throw printf('Redundant &l: specified in "%s": please, use "&%s" format', name, name[3:])
-      elseif name =~# '^&'
-        let value = nvim_win_get_option(self.handle, name[1:])
       else
-        throw printf('Unknown value "%s" was specified', name)
+        " echomsg self.handle
+        let value = nvim_win_get_option(self.handle, name[1:])
       endif
 
       let self._resources[name] = value
     endfor
 
     return self
-  endfu
-
-  fu! s:Guard.restore() abort dict
-    if esearch#win#exists(self.handle)
-      call s:Setter.new(self.handle).apply(self._resources)
-    endif
   endfu
 else
   let s:ViewTracer = vital#esearch#import('Vim.ViewTracer')
@@ -163,15 +158,9 @@ else
   endfu
 
   fu! esearch#win#trace(...) abort
-    " Neovim works by matching window vars, so using counter prevents from
-    " matching different windows with the same variables defined.
     let [tabnr, winnr] = a:0 ? a:000 : [tabpagenr(), winnr()]
-    call settabwinvar(tabnr, winnr, 'elearch', s:window_id.next())
+    call settabwinvar(tabnr, winnr, 'esearch', s:window_id.next())
     return s:ViewTracer.trace_window(tabnr, winnr)
-
-    let [tabnr, bufnr]
-    let w:esearch = s:window_id.next()
-    return call('trace_window', a:000, s:ViewTracer)
   endfu
 
   fu! esearch#win#goto(handle) abort
@@ -188,44 +177,39 @@ else
     return buflist[winnr - 1]
   endfu
 
-  fu! s:Setter.apply(variables) abort dict
-    let [tabnr, winnr] = s:ViewTracer.find(self.handle)
+  fu! esearch#win#let(tabnr, winnr, name, value) abort
+    call settabwinvar(a:tabnr, a:winnr, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
+  endfu
+
+  fu! esearch#win#bulk_let(handle, variables) abort
+    let [tabnr, winnr] = s:ViewTracer.find(a:handle)
     for [name, value] in items(a:variables)
-      if name =~# '^w:'
-        call settabwinvar(tabnr, winnr, name[2:], value)
-      elseif name =~# '^&l:'
-        throw printf('Redundant &l: specified in "%s": please, use "&%s" format', name, name[3:])
-      elseif name =~# '^&'
-        call settabwinvar(tabnr, winnr, name, value)
-      else
-        throw printf('Unknown value "%s" was specified', name)
-      endif
+      call esearch#win#let(tabnr, winnr, name, value)
     endfor
+  endfu
+
+  fu! esearch#win#get(tabnr, winnr, name) abort
+    return gettabwinvar(a:tabnr, a:winnr, a:name[(a:name =~# '^w:' ? 2 : 0):])
+  endfu
+
+  fu! esearch#win#find(handle) abort
+    return s:ViewTracer.find(a:handle)
   endfu
 
   " implements Vital api
   fu! s:Guard.store(targets) abort dict
     let [tabnr, winnr] = s:ViewTracer.find(self.handle)
-    for name in a:targets
-      if name =~# '^w:'
-        let value = gettabwinvar(tabnr, winnr, name[2:])
-      elseif name =~# '^&l:'
-        throw printf('Redundant &l: specified in "%s": please, use "&%s" format', name, name[3:])
-      elseif name =~# '^&'
-        let value = gettabwinvar(tabnr, winnr, name)
-      else
-        throw printf('Unknown value "%s" was specified', name)
-      endif
 
-      let self._resources[name] = value
+    for name in a:targets
+      let self._resources[name] = esearch#win#get(tabnr, winnr, name)
     endfor
 
     return self
   endfu
-
-  fu! s:Guard.restore() abort dict
-    if esearch#win#exists(self.handle)
-      call s:Setter.new(self.handle).apply(self._resources)
-    endif
-  endfu
 endif
+
+fu! s:Guard.restore() abort dict
+  if esearch#win#exists(self.handle)
+    call esearch#win#bulk_let(self.handle, self._resources)
+  endif
+endfu

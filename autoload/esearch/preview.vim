@@ -5,21 +5,26 @@ let s:List    = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-let g:esearch#preview#close_on = [
-      \ 'QuitPre',
-      \ 'BufEnter',
-      \ 'BufWinEnter',
-      \ 'TabLeave',
-      \]
+let s:relative = 'win'
+let s:default_vars = {
+      \ '&foldenable': s:false,
+      \ '&winhighlight': join([
+      \   'Normal:esearchNormalFloat',
+      \   'SignColumn:esearchSignColumnFloat', 
+      \   'LineNr:esearchLineNrFloat', 
+      \   'CursorLineNr:esearchCursorLineNrFloat', 
+      \   'CursorLine:esearchCursorLineFloat', 
+      \   'Conceal:esearchConcealFloat',
+      \ ], ',')
+      \ }
+let g:esearch#preview#close_on = ['QuitPre', 'BufEnter', 'BufWinEnter', 'TabLeave']
 let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 " The constant is used to ignore events used by :edit and :view commands to
 " reduce the execution of unwanted autocommands like updating lightline,
 " powerline etc.
 " From docs: BufDelte - ...also used just before a buffer in the buffer list is
 " renamed.
-let g:esearch#preview#silent_open_eventignore =
-      \ 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
-
+let g:esearch#preview#silent_open_eventignore = 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
 let g:esearch#preview#buffers = {}
 let g:esearch#preview#win     = s:null
 let g:esearch#preview#buffer  = s:null
@@ -28,21 +33,36 @@ let g:esearch#preview#last    = {}
 fu! esearch#preview#shell(command, ...) abort
   let opts = get(a:, 1, {})
   let backend = get(opts, 'backend', g:esearch.backend)
-  let request = esearch#backend#{backend}#init(getcwd(), '', a:command)
   call extend(opts, {'emphasis': []}, 'keep')
+  call extend(opts, {'close_on': []}, 'keep')
   call extend(opts, {'method': 'shell'}, 'keep')
+  call extend(opts, {'align': 'custom'}, 'keep')
+  call extend(opts, {'line': 1}, 'keep')
+  call extend(opts, {'cwd': getcwd()}, 'keep')
+  call extend(opts, {'command': a:command})
+  let expire = get(opts, 'expire', 2000)
+  if expire && esearch#preview#is_open()
+        \ && get(g:esearch#preview#win, 'cache_key', []) ==# [opts, opts.align]
+        \ && reltimefloat(reltime(g:esearch#preview#win.upd_at)) * 1000 < expire
+    return
+  endif
+  let request = esearch#backend#{backend}#init(opts.cwd, '', a:command)
   let request.cb.schedule_finish = function('<SID>on_finish', [request, opts, bufnr('')])
   call esearch#backend#{backend}#exec(request)
   if !request.async | call request.cb.schedule_finish() | endif
 endfu
 
 fu! s:on_finish(request, opts, bufnr) abort
-  if esearch#preview#is_open() || bufnr('') !=# a:bufnr | return | endif " prevent E814
-  noswap let bufnr = bufadd('[esearch-preview-shell]')
-  call bufload(bufnr)
+  if esearch#preview#is_open() && !has_key(g:esearch#preview#last.opts, 'command') || bufnr('') !=# a:bufnr
+    " Close only shell previews to prevent E814
+    return
+  endif
+  call esearch#preview#close()
+  noau noswap let bufnr = bufadd('[esearch-preview-shell]')
+  noau call bufload(bufnr)
   call setbufvar(bufnr, '&buftype', 'nofile')
   call setbufline(bufnr, 1, a:request.data)
-  call esearch#preview#open('[esearch-preview-shell]', 1, a:opts)
+  call esearch#preview#open('[esearch-preview-shell]', a:opts.line, a:opts)
   call esearch#util#doautocmd('WinEnter') " hit statuslines updates
 endfu
 
@@ -52,7 +72,9 @@ fu! esearch#preview#open(filename, line, ...) abort
   let shape = s:Shape.new({
         \ 'width':     get(opts, 'width',  s:null),
         \ 'height':    get(opts, 'height', s:null),
-        \ 'alignment': get(opts, 'align',  'cursor'),
+        \ 'row':       get(opts, 'row',    -1),
+        \ 'col':    get(opts, 'col',    -1),
+        \ 'align': get(opts, 'align',  'cursor'),
         \ })
 
   let close_on  = copy(g:esearch#preview#close_on)
@@ -60,15 +82,11 @@ fu! esearch#preview#open(filename, line, ...) abort
   let close_on  = uniq(copy(close_on))
 
   let location = {'filename': a:filename, 'line': a:line}
-  let buf_vars = {}
-  let win_vars = {'&foldenable': s:false}
-  let win_vars['&winhighlight'] = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat,Conceal:esearchConcealFloat'
-  call extend(win_vars, get(opts, 'let!', {})) " TOOO coverage
-  call extend(buf_vars, get(opts, 'buf_let!', {})) " TOOO coverage
+  let vars = extend(copy(s:default_vars), get(opts, 'let', {})) " TOOO coverage
   let emphasis = get(opts, 'emphasis', g:esearch#emphasis#default)
 
   let g:esearch#preview#last = s:Preview
-        \.new(location, shape, emphasis, win_vars, buf_vars, opts, close_on)
+        \.new(location, shape, emphasis, vars, opts, close_on)
 
   return g:esearch#preview#last[get(opts, 'method', 'open')]()
 endfu
@@ -85,13 +103,9 @@ fu! esearch#preview#is_open() abort
 endfu
 
 fu! esearch#preview#reset() abort
-  " Sometimes emphasis remains when using tabclose command. We need to try
-  " cleaning it up no matter the window opened or not.
   if has_key(g:esearch#preview#last, 'win')
     call g:esearch#preview#last.win.unplace_emphasis()
   endif
-  " If #close() is used on every listed event, it can cause a bug where previewed
-  " buffer loose it's content on existing swaps, so this method is defined to handle this
   if esearch#preview#is_open()
     let guard = g:esearch#preview#win.guard
     if !empty(guard) | call guard.restore() | endif
@@ -104,7 +118,9 @@ fu! esearch#preview#close(...) abort
     call g:esearch#preview#win.close()
     let g:esearch#preview#buffer = g:esearch#preview#win.buffer
     let g:esearch#preview#win = s:null
+    return 1
   endif
+  return 0
 endfu
 
 fu! esearch#preview#wipeout(...) abort
@@ -119,12 +135,11 @@ endfu
 
 let s:Preview = {}
 
-fu! s:Preview.new(location, shape, emphasis, win_vars, buf_vars, opts, close_on) abort dict
+fu! s:Preview.new(location, shape, emphasis, vars, opts, close_on) abort dict
   let instance = copy(self)
   let instance.location = a:location
   let instance.shape    = a:shape
-  let instance.win_vars = a:win_vars
-  let instance.buf_vars = a:buf_vars
+  let instance.vars = a:vars
   let instance.opts     = a:opts
   let instance.close_on = a:close_on
   let instance.emphasis = a:emphasis
@@ -141,11 +156,12 @@ fu! s:Preview.shell() abort dict
           \.new(self.buffer, self.location, self.shape, self.close_on)
           \.open()
     let self.win = g:esearch#preview#win
-    call self.win.let(self.win_vars)
-    call self.win.buffer.let(self.buf_vars)
+    let self.win.upd_at = reltime()
+    let self.win.cache_key = [self.opts, self.shape.align]
+    call self.win.let(self.vars)
     call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
-    call self.win.init_leaved_autoclose_events()
+    call self.win.init_autoclose_events()
   catch
     call esearch#preview#close()
     call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
@@ -157,15 +173,28 @@ fu! s:Preview.shell() abort dict
   return s:true
 endfu
 
+let g:a = esearch#util#counter()
 fu! s:Preview.open() abort dict
   let current_win = esearch#win#stay()
   let self.buffer = s:RegularBuffer.fetch_or_create(
         \ self.location.filename, g:esearch#preview#buffers)
 
   try
+    " if esearch#preview#is_open()
+    "   call esearch#preview#reset()
+    "   silent! au! esearch_preview_autoclose
+    "   let g:esearch#preview#win.shape = self.shape
+    "   let g:esearch#preview#win.close_on = self.close_on
+    " else
+    "   call esearch#preview#close()
+    "   let g:esearch#preview#win = s:FloatingWindow
+    "         \.new(self.buffer, self.location, self.shape, self.close_on)
+    "         \.open()
+    " endif
     let g:esearch#preview#win = s:create_or_update_floating_window(
           \ self.buffer, self.location, self.shape, self.close_on)
     let self.win = g:esearch#preview#win
+
     call self.win.enter()
     if !self.buffer.edit()
       call self.buffer.view()
@@ -174,17 +203,17 @@ fu! s:Preview.open() abort dict
     " it's better to let variables after editing the buffer to prevent
     " inheriting some options by buffers (for example, &winhl local to window
     " becoms local to buffer).
-    call self.win.let(self.win_vars)
-    call self.win.buffer.let(self.buf_vars)
+    call self.win.let(self.vars)
     call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
-    call self.win.init_leaved_autoclose_events()
+    call self.win.init_autoclose_events()
   catch
     call esearch#preview#close()
     call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
     return s:false
   finally
     noau keepj call current_win.restore()
+    " call esearch#util#doautocmd('WinEnter') " hit statuslines updates
   endtry
 
   return s:true
@@ -221,7 +250,7 @@ fu! s:Preview.open_and_enter() abort dict
     " it's better to let variables after editing the buffer to prevent
     " inheriting some options by buffers (for example, &winhl local to window
     " becoms local to buffer).
-    call self.win.let(self.win_vars)
+    call self.win.let(self.vars)
     call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
     call self.win.init_entered_autoclose_events()
@@ -367,11 +396,6 @@ fu! s:RegularBuffer.edit() abort dict
   return s:true
 endfu
 
-fu! s:RegularBuffer.let(variables) abort dict
-  let self.variables = a:variables
-  call esearch#buf#let(self.id, a:variables)
-endfu
-
 fu! s:RegularBuffer.is_valid() abort dict
   return self.id >= 0 && nvim_buf_is_valid(self.id)
 endfu
@@ -405,7 +429,7 @@ endfu
 
 fu! s:FloatingWindow.let(variables) abort dict
   let self.variables = a:variables
-  let self.guard = esearch#win#let_restorable(self.id, a:variables)
+  let self.guard = esearch#let#bufwin_restorable(self.buffer.id, self.id, a:variables)
 endfu
 
 fu! s:FloatingWindow.open() abort dict
@@ -418,7 +442,7 @@ fu! s:FloatingWindow.open() abort dict
           \ 'anchor':    self.shape.anchor,
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
-          \ 'relative':  'win',
+          \ 'relative':  s:relative,
           \})
   finally
     call original_options.restore()
@@ -429,11 +453,7 @@ endfu
 
 fu! s:FloatingWindow.close() abort dict
   call self.unplace_emphasis()
-  try
-    call nvim_win_close(self.id, 1)
-  catch 
-    PP
-  endtry
+  call nvim_win_close(self.id, 1)
 endfu
 
 " Shape specified on create is only to prevent blinks.
@@ -462,7 +482,7 @@ fu! s:FloatingWindow.reshape() abort dict
           \ 'width':     self.shape.width,
           \ 'height':    self.shape.height,
           \ 'anchor':    self.shape.anchor,
-          \ 'relative':  'win',
+          \ 'relative':  s:relative,
           \ 'row':       self.shape.row,
           \ 'col':       self.shape.col,
           \ })
@@ -490,23 +510,23 @@ endfu
 fu! s:FloatingWindow.init_entered_autoclose_events() abort dict
   aug esearch_preview_autoclose
     " Before leaving a window
-    au WinLeave * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | call esearch#preview#close()
+    au WinLeave * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buffer.id, nvim_get_current_win()).restore() | call esearch#preview#close()
     " After entering another window
     au WinEnter * ++once au! esearch_preview_autoclose
     " From :h local-options
     " When splitting a window, the local options are copied to the new window. Thus
     " right after the split the contents of the two windows look the same.
-    au WinNew * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore() | au! esearch_preview_autoclose
+    au WinNew * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buffer.id, nvim_get_current_win()).restore() | au! esearch_preview_autoclose
 
     " NOTE dc09e176. Prevents options inheritance when trying to delete the
     " buffer. Grep note id to locate the test case.
     au BufDelete * ++once call esearch#preview#close()
 
-    au CmdwinEnter * call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
+    au CmdwinEnter * call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buffer.id, nvim_get_current_win()).restore()
   aug END
 endfu
 
-fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
+fu! s:FloatingWindow.init_autoclose_events() abort dict
   let autocommands = join(self.close_on, ',')
 
   aug esearch_preview_autoclose
@@ -515,11 +535,11 @@ fu! s:FloatingWindow.init_leaved_autoclose_events() abort dict
     exe 'au ' . g:esearch#preview#reset_on . ' * ++once call esearch#preview#reset()'
     au User esearch_open_pre ++once call esearch#preview#close()
     " Prevent options inheritance
-    au TabNewEntered * ++once call g:esearch#preview#last.win.guard.new(nvim_get_current_win()).restore()
+    au TabNewEntered * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buffer.id, nvim_get_current_win()).restore()
 
     " We cannot close the preview when entering cmdwin, so the only option is to
     " reinitialize the events.
-    au CmdwinLeave * ++once call g:esearch#preview#win.init_leaved_autoclose_events()
+    au CmdwinLeave * ++once call g:esearch#preview#win.init_autoclose_events()
   aug END
 endfu
 
@@ -537,13 +557,8 @@ fu! s:FloatingWindow.update(buffer, location, shape, close_on) abort dict
   let self.location = a:location
   let self.shape    = a:shape
   let self.close_on = a:close_on
-
-  " NOTE ae2cf10d. Prevent local variables inheritance while updating the
-  " preview window
   call self.guard.restore()
   call nvim_win_set_buf(self.id, a:buffer.id)
-  let self.guard = esearch#win#let_restorable(self.id, self.variables)
-
   " Emphasis must be removed as it doesn't correspond to a:location anymore
   call self.unplace_emphasis()
 
@@ -573,7 +588,7 @@ fu! s:Shape.new(measures) abort dict
   let instance = copy(self)
   let instance.winline = winline()
   let instance.wincol  = wincol()
-  let instance.alignment = a:measures.alignment
+  let instance.align = a:measures.align
   let instance.relative_win_position = nvim_win_get_position(0)
 
   if &showtabline ==# 2 || &showtabline == 1 && tabpagenr('$') > 1
@@ -588,22 +603,20 @@ fu! s:Shape.new(measures) abort dict
   endif
   let instance.winheight = winheight(0)
   let instance.winwidth = winwidth(0)
-  let instance.top = instance.tabline_height
-  let instance.bottom = instance.winheight + instance.tabline_height + instance.statusline_height
+  let instance.top = instance.relative_win_position[0]
+  let instance.bottom = instance.winheight + instance.relative_win_position[0]
   let instance.editor_top = instance.tabline_height
   let instance.editor_bottom = &lines - instance.statusline_height - 2
 
-  if instance.alignment ==# 'cursor'
+  if instance.align ==# 'cursor'
     call extend(instance, {'width': 120, 'height': esearch#preview#default_height()})
     let instance.relative = 0
-  elseif s:List.has(['top', 'bottom'], instance.alignment)
+  elseif s:List.has(['top', 'bottom'], instance.align)
     call extend(instance, {'width': 1.0, 'height': esearch#preview#default_height()})
     let instance.relative = 1
-  elseif s:List.has(['left', 'right'], instance.alignment)
+  elseif s:List.has(['left', 'right'], instance.align)
     call extend(instance, {'width': 0.5, 'height': 1.0})
     let instance.relative = 1
-  else
-    throw 'Unknown preview align'
   endif
 
   let width = a:measures.width
@@ -617,6 +630,20 @@ fu! s:Shape.new(measures) abort dict
 
   let instance.height = s:absolute_value(instance.height, instance.winheight)
   let instance.width = s:absolute_value(instance.width, instance.winwidth)
+
+  if instance.align ==# 'custom'
+    if get(a:measures, 'row', -1) >= 0 && get(a:measures, 'col', -1) >= 0
+      let instance.row = a:measures.row
+      let instance.col = a:measures.col
+      let instance.anchor = 'NW'
+      let instance.custom = 1
+    else
+      let instance.align = 'cursor'
+      let instance.custom = 0
+    endif
+  else
+    let instance.custom = 0
+  endif
   call instance.realign()
 
   return instance
@@ -637,18 +664,16 @@ fu! s:absolute_value(value, interval) abort
 endfu
 
 fu! s:Shape.realign() abort dict
-  if self.alignment ==# 'cursor'
+  if self.align ==# 'cursor'
     call self.align_to_cursor()
-  elseif self.alignment ==# 'top'
+  elseif self.align ==# 'top'
     return self.align_to_top()
-  elseif self.alignment ==# 'bottom'
+  elseif self.align ==# 'bottom'
     return self.align_to_bottom()
-  elseif self.alignment ==# 'left'
+  elseif self.align ==# 'left'
     return self.align_to_left()
-  elseif self.alignment ==# 'right'
+  elseif self.align ==# 'right'
     return self.align_to_right()
-  else
-    throw 'Unknown preview align'
   endif
 endfu
 
@@ -678,24 +703,23 @@ endfu
 
 fu! s:Shape.align_to_cursor() abort dict
   let winline = self.winline + self.editor_top
-  if &lines - self.height - 1 < winline " if there's no room - show above
-    let self.row = max([winline - self.height, self.top])
+  if winline  + self.relative_win_position[0] + self.height > self.editor_bottom
+    let self.row = winline - self.height - 1 + self.relative_win_position[0] " if there's no room - show above
   else
-    let self.row = winline
+    let self.row = winline + self.relative_win_position[0]
   endif
-  let self.col = max([5, self.wincol - 1]) + self.relative_win_position[1]
+  let self.col = self.wincol - 1 + self.relative_win_position[1]
 
   let self.anchor = 'NW'
 endfu
 
 fu! s:Shape.clip_height(lines_count) abort dict
   " Left and right aligned previews are stretched
-  if s:List.has(['left', 'right'], self.alignment) | return | endif
+  if s:List.has(['left', 'right'], self.align) | return | endif
 
   let self.height = min([
         \ a:lines_count,
         \ self.height,
         \ self.editor_bottom - self.editor_top])
-
-  call self.realign()
+  if !self.custom | call self.realign() | endif
 endfu

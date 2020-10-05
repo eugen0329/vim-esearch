@@ -565,6 +565,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-preview)                          *<plug>(esearch-win-preview)*
 <plug>(esearch-win-preview:enter)              *<plug>(esearch-win-preview:enter)*
+<plug>(esearch-win-preview:close)              *<plug>(esearch-win-preview:close)*
         Show the line under the cursor in the file using preview window. If
         `:enter` is used - put the cursor into the opened preview window. Prefix
         it with |[count]| to multiple the window size.
@@ -1204,7 +1205,9 @@ esearch#preview#shell({command}, [{opts}])               *esearch#preview#shell(
             {name}    Shell command to be executed
             {opts}    Same as for |b:esearch.preview_open()| with additional
                       `'backend'` option support. Set `'backend'` to `'system'` to
-                      execute the command synchronously.
+                      execute the command synchronously. By default has
+                      `{'close_on': [], 'line': 1, 'emphasis': []}` options
+                      set.
         Return:~
             Same as from |bufloaded()|.
 
@@ -1372,9 +1375,10 @@ and disable line 'number' column.
 >
     let g:GitShow = {ctx -> ctx().rev &&
       \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
-      \   'buf_let!': {'&filetype': 'git', '&number': 0},
-      \   'width': 47,
-      \   'height': 3,
+      \   'let': {'&filetype': 'git', '&number': v:false},
+      \   'row': screenpos(0, ctx().begin, 0).row - 1,
+      \   'col': screenpos(0, line('.'), 0).col + len(ctx().filename),
+      \   'width': 47, 'height': 3,
       \ })
       \}
 

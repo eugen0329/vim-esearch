@@ -61,6 +61,6 @@ fu! esearch#out#win#fold#text() abort
     return getline(v:foldstart) . ' ' . lines_count . (lines_count == 1 ? ' line' : ' lines')
   else
     let files_count = ctx2.id - ctx1.id + 1
-    return getline(v:foldstart) . ' ' .  files_count . ' files'
+    return getline(v:foldstart) . ', ... ' .  files_count . ' files'
   endif
 endfu

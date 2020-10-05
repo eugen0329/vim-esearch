@@ -1,0 +1,30 @@
+Include: helper.vader
+
+Execute(Guard):
+  let b:buf_var     = 'b:original'
+  let w:win_var     = 'w:original'
+  let &g:makeprg    = 'original'
+  let &g:statusline = 'original'
+  let expected = {
+    \  '&makeprg':     'local to buffer',
+    \  '&equalprg':    'global',
+    \  '&statusline':  'local to window',
+    \  'b:buf_var':    'b:buf_var',
+    \  'w:win_var':    'w:win_var',
+    \}
+    let g:bufnr = bufnr()
+    let g:winid = win_getid()
+Then:
+  tabnew
+  for _ in range(3)
+    let g:guard = esearch#let#bufwin_restorable(g:bufnr, g:winid, expected)
+    let actual = {
+      \  '&makeprg':     getbufvar(g:bufnr, '&makeprg'),
+      \  '&equalprg':    getbufvar(g:bufnr, '&equalprg'),
+      \  '&statusline':  gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, '&statusline'),
+      \  'b:buf_var':    getbufvar(g:bufnr, 'buf_var'),
+      \  'w:win_var':    gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, 'win_var'),
+      \}
+    AssertEqual expected, actual
+    call g:guard.restore()
+  endfor

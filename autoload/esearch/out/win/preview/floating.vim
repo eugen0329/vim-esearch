@@ -8,10 +8,9 @@ fu! esearch#out#win#preview#floating#init(esearch) abort
         \ })
 endfu
 
-fu! s:preview_enter(...) abort dict
+fu! s:preview_enter(count1, ...) abort dict
   if !self.is_current() || self.is_blank() | return | endif
 
-  let count1 = get(a:, 1, 1)
   let opts = copy(get(a:, 2, {}))
   let ctx_filename = self.unescaped_filename()
   let view = {}
@@ -21,9 +20,9 @@ fu! s:preview_enter(...) abort dict
     " Reuse the opened preview options
     let align = get(opts, 'align', '')
     let opts = extend(opts, g:esearch#preview#last.opts)
-    if empty(align) || win.shape.alignment ==# 'cursor'
+    if empty(align) || win.shape.align ==# 'cursor'
       let opts.width = max([120, win.shape.width])
-      let opts.height = max([count1, 2]) * (win.shape.height ? win.shape.height : esearch#preview#default_height())
+      let opts.height = a:count1 * (win.shape.height ? win.shape.height : esearch#preview#default_height())
     else
       let opts.width = 0
       let opts.height = 0
@@ -34,7 +33,7 @@ fu! s:preview_enter(...) abort dict
   else
     let filename = ctx_filename
     let view = self.ctx_view()
-    if count1 > 1 | let opts.height = count1 * esearch#preview#default_height() | endif
+    if a:count1 > 1 | let opts.height = a:count1 * esearch#preview#default_height() | endif
   endif
   let opts.method = 'open_and_enter'
 
@@ -65,7 +64,7 @@ fu! s:preview_zoom(count1) abort dict
     let height = esearch#util#clip(height, 0, &lines - confirmation_prompt_height)
 
     if g:esearch#preview#last.win.shape.height !=# height
-      if g:esearch#preview#last.win.shape.alignment ==# 'cursor' && g:esearch#preview#last.win.shape.width < 120
+      if g:esearch#preview#last.win.shape.width < 120 && index(['cursor', 'custom'], g:esearch#preview#last.win.shape.align) >= 0
         let g:esearch#preview#last.win.shape.width = 120
       endif
 

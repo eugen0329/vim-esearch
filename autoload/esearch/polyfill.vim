@@ -33,3 +33,7 @@ fu! esearch#polyfill#definitions() abort
         \ s:t_string,
         \]
 endfu
+
+fu! esearch#polyfill#undefined() abort
+  return function('esearch#polyfill#undefined')
+endfu
