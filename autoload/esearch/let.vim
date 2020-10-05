@@ -2,9 +2,9 @@ let s:Dict      = vital#esearch#import('Data.Dict')
 let s:Guard     = vital#esearch#import('Vim.Guard')
 let s:UNDEFINED = esearch#polyfill#undefined()
 
-let s:setternr = {'g': 0, 'b': 0, 'w': 1}
-let s:opt2setterid = map(split(g:esearch#options#scopes), 'split(v:val, ":")')
-let s:opt2setterid = s:Dict.from_list(map(s:opt2setterid, '["&".v:val[1], s:setternr[v:val[0]]]'))
+let s:scope2id = {'g': 0, 'b': 0, 'w': 1}
+let s:opt2id = map(split(g:esearch#options#scopes), 'split(v:val, ":")')
+let s:opt2id = s:Dict.from_list(map(s:opt2id, '["&".v:val[1], s:scope2id[v:val[0]]]'))
 
 fu! esearch#let#bufwin_restorable(bufnr, winid, variables) abort
   return s:BufWinGuard.new(a:bufnr, a:winid).store(a:variables)
@@ -26,14 +26,14 @@ fu! s:BufWinGuard.store(variables) abort
   let self._resources = [[], []]
 
   for [name, Val] in items(a:variables)
-    if has_key(s:opt2setterid, name)
-      let nr = s:opt2setterid[name]
-      call add(self._resources[nr], [name, self.getters[nr](name)])
-      call self.setters[nr](name, Val)
+    if has_key(s:opt2id, name)
+      let id = s:opt2id[name]
+      call add(self._resources[id], [name, self.getters[id](name)])
+      call self.setters[id](name, Val)
     else
-      let nr = s:setternr[name[0]]
-      call add(self._resources[nr], [name, self.getters[nr](name)])
-      call self.setters[nr](name, Val)
+      let id = s:scope2id[name[0]]
+      call add(self._resources[id], [name, self.getters[id](name)])
+      call self.setters[id](name, Val)
     endif
   endfor
 

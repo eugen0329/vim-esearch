@@ -79,7 +79,7 @@ endfu
 fu! s:ctx(...) dict abort
   if self.is_blank() || !self.is_current() | return g:esearch#out#win#view_data#null_ctx | endif
   let ctx = self.contexts[get(self.state, get(a:, 1, line('.')), 1)]
-  if ctx.id == 0 | return self.contexts[1] | endif
+  if ctx.id is# 0 | return self.contexts[1] | endif
   return ctx
 endfu
 
@@ -96,8 +96,8 @@ fu! s:is_current() abort dict
   return get(b:, 'esearch', {'id': -1}).id == self.id
 endfu
 
+" if only a header ctx
 fu! s:is_blank() abort dict
-  " if only a header ctx
   if len(self.contexts) < 2 | return 1 | endif
 endfu
 

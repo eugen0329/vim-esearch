@@ -200,7 +200,7 @@ g:esearch.default_mappings                            *g:esearch.default_mapping
 g:esearch.regex                                                  *g:esearch.regex*
         Regex matching mode. You can specify explicitly what regex engine to use
         depending on what search util is set in |g:esearch.adapter| or use boolean
-        values to choose automatically.  E.g. if |g:esearch.adapter| is set or
+        values to choose automatically. E.g. if |g:esearch.adapter| is set or
         automatically resolved to `'grep'` you can set `'extended'` mode to use
         extended regex engine, `'pcre'` to use perl compatible regex etc.
         Type: |Boolean| or |String|
@@ -476,6 +476,9 @@ keymaps definitions to |g:esearch.win_map| list:
 <plug>(esearch-win-jump:dirname:up)    |  (   | Jump up to the filename from another directory
 <plug>(textobj-esearch-match-i)        |  im  | Seek forward and operate the next match
 <plug>(textobj-esearch-match-a)        |  am  | Same as above, but also capture surrounding spaces
+<plug>(esearch-za)                     |  za  | Toggle the fold. See also: |za|.
+<plug>(esearch-zc)                     |  zc  | Close the fold under the cursor. See also: |zc|.
+<plug>(esearch-zM)                     |  zM  | Close all folds. See also: |zM|.
  --------------------------------------+------+----------------------------------------------------------
 
 g:esearch.win_map                                              *g:esearch.win_map*
@@ -664,6 +667,15 @@ g:esearch.win_map                                              *g:esearch.win_ma
         |Visual| and |Operator-pending| modes.
 
         See also: |operator|, |text-objects|.
+
+<plug>(esearch-za)                                            *<plug>(esearch-za)*
+<plug>(esearch-zc)                                            *<plug>(esearch-zc)*
+<plug>(esearch-zM)                                            *<plug>(esearch-zM)*
+        Fast folds handling using |fold-manual| method with ranges defined
+        automatically. Folds entire file contexts for regular files and group
+        multiple files under a single fold if they are git blobs.
+
+        See also: |za|, |zc|, |zM|, |esearch-git-show-preview-example|.
 
 ================================================================================
 SEARCH WINDOW CONFIGURATIONS                                  *esearch-win-config*
@@ -1148,7 +1160,10 @@ esearch#init([{opts}])                                            *esearch#init(
 
         Parameters:~
             {opts}    Dict with the same key-values as for |g:esearch| dict to
-                      overrule it (optional)
+                      overrule it (optional). Some options may be preprocessed
+                      for better UX.
+                      Example: `'paths'` is split if it's a |Stirng|, `'win_map'` |List|
+                      is appended to `g:esearch.win_map`.
         Return:~
             0
         Example:~
@@ -1339,41 +1354,12 @@ but they must be preceded by `\` to be expanded within `""` quotes.
 See also: |key-notation|, |lambda|.
 
                                                             *esearch-git-examples*
-5. Use backticks in |g:esearch.paths| to search using git information.
-
-Search in modified files only.
->
-    nnoremap <leader>fm :call esearch#init({
-        \ 'paths': '`git ls-files --modified`',
-        \ 'remember': 0
-        \})<cr>
-<
-Search in commits made since the beginning of a sprint (if 2 weeks long).
->
-    nnoremap <c-f><c-g> :call esearch#init({
-        \ 'adapter':  'git',
-        \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
-        \ 'remember': 0
-        \})<cr>
-<
-Search in commits from an inputted branch.
->
-    function! CompleteBranches(...)
-      return system('git branch --format="%(refname:short)"')
-    endfunction
-
-    nnoremap <c-f><c-b> :call esearch#init({
-          \ 'adapter':  'git',
-          \ 'paths':    '`git rev-list '.input('branch> ', '', 'custom,CompleteBranches').'`',
-          \ 'remember': 0
-          \})<cr>
-<
                                                 *esearch-git-show-preview-example*
-Open the preview window with git-show command output if the context under the
-cursor is a git revision. Set 'filetype' buffer option to enable highlights
-and disable line 'number' column.
+5. Search in git log using special |esearch#xargs#git_log()| arg. Open the
+preview window with git-show command output to the right of a filename. Use `p` to
+zoom the preview or capital `P` to enter it for scrolling etc. 
 >
-    let g:GitShow = {ctx -> ctx().rev &&
+    let g:GitShowPreview = {ctx -> ctx().rev &&
       \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
       \   'let': {'&filetype': 'git', '&number': v:false},
       \   'row': screenpos(0, ctx().begin, 0).row - 1,
@@ -1383,16 +1369,62 @@ and disable line 'number' column.
       \}
 
     autocmd User esearch_win_config
-          \  let b:git_show = esearch#async#debounce(g:GitShow, 300)
+          \  let b:git_show = esearch#async#debounce(g:GitShowPreview, 300)
           \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
-    let g:esearch.win_map = [['n', 'P', '100<plug>(esearch-win-preview:enter)']]
+    nnoremap <leader>fh :call esearch#init({
+          \ 'adapter':  'git',
+          \ 'win_map':  [['n', 'P', '100<plug>(esearch-win-preview:enter)']],
+          \ 'paths':    esearch#xargs#git_log(),
+          \ 'remember': 0
+          \})<cr>
 <
-Use `p` to zoom the preview or capital `P` to enter it for scrolling etc. [count] is
-set to 100 to maximize the width and height when entering it.
+NOTE [count] is set to 100 to maximize the width and height when entering it.
 
-                                                 *esearch.preview_open()-examples*
+                                                         *esearch-in-git-modified*
+Use backticks in |g:esearch.paths| to search in modified files only.
+>
+    nnoremap <leader>fm :call esearch#init({
+        \ 'paths': '`git ls-files --modified`',
+        \ 'remember': 0
+        \})<cr>
+<
+Search in commits made since 2 working weeks or another project development
+cycle interval.
+>
+    nnoremap <leader>fu :call esearch#init({
+        \ 'adapter':  'git',
+        \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
+        \ 'remember': 0
+        \})<cr>
+<
+Do a similar thing, but using commits range passed to |esearch#xargs#git_log()|.
+It will search in commits not merged into staging from development.
+>
+    nnoremap <leader>fu :call esearch#init({
+          \ 'adapter':  'git',
+          \ 'paths':    esearch#xargs#git_log('staging..development'),
+          \ 'remember': 0
+          \})<cr>
+<
+Grep in a specific branch inputted by the user.
+>
+    function! CompleteBranches(...)
+      return system('git branch --format="%(refname:short)"')
+    endfunction
+
+    nnoremap <leader>fb :call esearch#init({
+          \ 'adapter':  'git',
+          \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
+          \ 'remember': 0
+          \})<cr>
+<
+
+NOTE Unlike rev-list command in backticks, |esearch#xargs#git_log()| will filter 
+commits where files were actually modified.
+
                                                              *esearch-autopreview*
+                                                 *esearch.preview_open()-examples*
 6. Show the preview automatically and update it after 100ms timeout. Change
 'vsplit' to 'split' to open the preview horizontally.
 >
@@ -1450,7 +1482,7 @@ NOTE that "gsp" and "gsd" keymaps are [rg]-specific. Alternatively, you can use
 `--sort-files` option for [ack] or `--workers=1` option for [ag].
 
                                                     *g:esearch.win_new()-examples*
-                                                        *esearch-exec-in-floatwin*
+                                                 *esearch-exec-in-floating-window*
 8. Use a popup-like floating window to render search results.
 >
     let g:esearch = {}
@@ -1504,16 +1536,16 @@ See also: |g:esearch.write_cb()|, |esearch_write_post|.
       if exists('b:statusline') | let &statusline = b:statusline | endif
       unlet! b:statusline
 
-      let top_filename = a:esearch.filename(line('w0'))
-      if b:esearch.filename() ==# top_filename && a:esearch.is_entry(line('w0'))
+      let topline = line('w0')
+      if topline > 2 && b:esearch.ctx().id == a:esearch.ctx(topline - 1).id
         let b:statusline = &statusline
         let &statusline = '%#esearchFilename#%{b:esearch.filename()}'
       endif
     endfunction
 
     autocmd User esearch_win_config
-        \  let b:show = esearch#async#debounce(function('ShowOffscreenFilename'), 50)
-        \| autocmd CursorMoved <buffer> call b:show.apply(b:esearch)
+      \  let b:show = esearch#async#debounce(function('ShowOffscreenFilename'), 50)
+      \| autocmd CursorMoved <buffer> call b:show.apply(b:esearch)
 <
 ================================================================================
 TROUBLESHOOTING                                          *esearch-troubleshooting*

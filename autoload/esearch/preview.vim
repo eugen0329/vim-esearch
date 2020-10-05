@@ -53,7 +53,9 @@ fu! esearch#preview#shell(command, ...) abort
 endfu
 
 fu! s:on_finish(request, opts, bufnr) abort
-  if esearch#preview#is_open() && !has_key(g:esearch#preview#last.opts, 'command') || bufnr('') !=# a:bufnr
+  if esearch#preview#is_open()
+        \ && get(g:esearch#preview#last.opts, 'method') isnot# 'shell'
+        \ || bufnr('') !=# a:bufnr
     " Close only shell previews to prevent E814
     return
   endif
@@ -63,7 +65,6 @@ fu! s:on_finish(request, opts, bufnr) abort
   call setbufvar(bufnr, '&buftype', 'nofile')
   call setbufline(bufnr, 1, a:request.data)
   call esearch#preview#open('[esearch-preview-shell]', a:opts.line, a:opts)
-  call esearch#util#doautocmd('WinEnter') " hit statuslines updates
 endfu
 
 fu! esearch#preview#open(filename, line, ...) abort
@@ -131,8 +132,6 @@ fu! esearch#preview#wipeout(...) abort
   endif
 endfu
 
-"""""""""""""""""""""""""""""""""""""""
-
 let s:Preview = {}
 
 fu! s:Preview.new(location, shape, emphasis, vars, opts, close_on) abort dict
@@ -180,17 +179,6 @@ fu! s:Preview.open() abort dict
         \ self.location.filename, g:esearch#preview#buffers)
 
   try
-    " if esearch#preview#is_open()
-    "   call esearch#preview#reset()
-    "   silent! au! esearch_preview_autoclose
-    "   let g:esearch#preview#win.shape = self.shape
-    "   let g:esearch#preview#win.close_on = self.close_on
-    " else
-    "   call esearch#preview#close()
-    "   let g:esearch#preview#win = s:FloatingWindow
-    "         \.new(self.buffer, self.location, self.shape, self.close_on)
-    "         \.open()
-    " endif
     let g:esearch#preview#win = s:create_or_update_floating_window(
           \ self.buffer, self.location, self.shape, self.close_on)
     let self.win = g:esearch#preview#win
@@ -262,8 +250,6 @@ fu! s:Preview.open_and_enter() abort dict
 
   return s:true
 endfu
-
-"""""""""""""""""""""""""""""""""""""""
 
 let s:RegularBuffer = {'kind': 'regular', 'swapname': ''}
 
@@ -579,8 +565,6 @@ endfu
 fu! s:FloatingWindow.enter() abort dict
   noau keepj call esearch#win#goto(self.id)
 endfu
-
-"""""""""""""""""""""""""""""""""""""""
 
 let s:Shape = {}
 

@@ -1,6 +1,7 @@
 Include: helper.vader
 
 Execute(Guard):
+  if !has('nvim') | finish | endif " TODO migrate to win ids
   let b:buf_var     = 'b:original'
   let w:win_var     = 'w:original'
   let &g:makeprg    = 'original'
