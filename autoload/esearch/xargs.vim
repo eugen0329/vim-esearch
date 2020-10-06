@@ -29,7 +29,7 @@ fu! s:git_log(options, adapter, esearch) abort
         \ s:prepend_filenames_with_revisions,
         \ '| xargs -L1 -I@',
         \], ' ')
-return [pipe, fnameescape('@')]
+return [pipe, shellescape('@')]
 endfu
 
 fu! s:git_stash(options, adapter, esearch) abort
@@ -41,5 +41,5 @@ fu! s:git_stash(options, adapter, esearch) abort
         \ s:prepend_filenames_with_revisions,
         \ '| xargs -L1 -I@',
         \], ' ')
-  return [pipe, fnameescape('@')]
+  return [pipe, shellescape('@')]
 endfu

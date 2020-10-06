@@ -329,6 +329,7 @@ g:esearch.write_cb({buf}, {bang})                           *g:esearch.write_cb(
         `.bwipeout([{bang}]`) | Invokes |:bwipeout| for the buffer with optional ! applied
         --------------------+---------------------------------------------------------
 
+                                                               *esearch-backticks*
 g:esearch.paths                                                  *g:esearch.paths*
         Paths listed using shell syntax to search in.
         Type: ||String|
@@ -1171,12 +1172,13 @@ esearch#init([{opts}])                                            *esearch#init(
 
           Option                          Preprocessing~
         ----------+-------------------------------------------------------------
-        `.paths`    | If it's a |String| , it's split using shell syntax rules
-        `.win_map`  | Is appended to |g:esearch.win_map| keymaps list if given
+        `.paths`    | If it's a |String| , it's split using shell syntax rules.
+                  | If it's one of |esearch-xargs|, adapter is set to the one
+                  | that supports it. E.g. |esearch#xargs#git_log()| switches
+                  | |g:esearch.adapter| to `'git'`.
+        `.win_map`  | Is appended to |g:esearch.win_map| keymaps list
         `.remember` | Is set to |FALSE| by default. If |TRUE| is provided, it's
                   | expanded as |g:esearch.remember|
-        `.pattern`  | If a |Dict| (in the internal format), it's adapter to work
-                  | with |g:esearch.adapter|
         `.prefill`  | If a |String| is returned from a prefiller and it contains
                   | special chars (see |esearch-cursor-initial-position-example|),
                   | it resets |g:esearch.select_prefilled| to |FALSE|.
@@ -1198,12 +1200,13 @@ esearch#exec([{opts}])                                            *esearch#exec(
            |:map-<expr>| compliant |String|
         Example:~
 >
-        noremap <expr><leader>fs esearch#exec({'paths': esearch#xargs#git_stash()})
+        nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
+        xnoremap <expr><leader>fs esearch#prefill({'paths': esearch#xargs#git_stash()})
 <
-        It defines <leader>fm keymap to prefill the prompt using the selected
+        It defines <leader>fs keymap to prefill the prompt using the selected
         text in |Visual| mode or using a text-object.
-        NOTE |noremap| must be used to define it in |Normal|, |Visual| and
-        |Operator-pending| modes.
+        NOTE It's recommended to define it in addition to a |Normal| mode keymap,
+        like it's done above.
 
 esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce()*
         Can be used to create events independently from |CursorHold|. At the
@@ -1254,6 +1257,27 @@ esearch#preview#shell({command}, [{opts}])               *esearch#preview#shell(
             Same as from |bufloaded()|.
 
         See also: |esearch-git-show-preview-example|.
+
+                                                                   *esearch-xargs*
+esearch#xargs#git_log([{shell-opts}])                    *esearch#xargs#git_log()*
+esearch#xargs#git_stash([{shell-opts}])                *esearch#xargs#git_stash()*
+        Special |Dict|s to pass in |g:esearch.paths|. Can be used for filtering
+        revisions for further grepping in them.
+
+        Parameters:~
+            {shell-opts}  |String| with extra command options.
+        Return:~
+            |Dict| to be handled internally.
+        Example:~
+>
+        nnoremap <leader>fl :call esearch#init({'paths': esearch#xargs#git_log()})<cr>
+<
+        It defines <leader>fl keymap to search in git history.
+        NOTE It filters files in commits where diff lines match the pattern.
+        Other non-modified but matched lines within these files will be
+        outputted as well.
+        NOTE Explicit switching |g:esearch.adapter| to `'git'` isn't required (all
+        the required information will be contained in the returned |Dict|).
 
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                                  *esearch-api-local-functions*
