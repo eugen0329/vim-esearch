@@ -11,5 +11,5 @@ endif
 nnoremap <silent><plug>(esearch) :<c-u>call esearch#init({'remember': 1})<cr>
 xmap             <plug>(esearch) <plug>(operator-esearch-prefill)
 
-noremap <expr><silent><plug>(operator-esearch-prefill) esearch#operator#expr('esearch#prefill', {'remember': 1})
-noremap <expr><silent><plug>(operator-esearch-exec)    esearch#operator#expr('esearch#exec', {'remember': 1})
+noremap <expr><silent><plug>(operator-esearch-prefill) esearch#prefill({'remember': 1})
+noremap <expr><silent><plug>(operator-esearch-exec)    esearch#exec({'remember': 1})

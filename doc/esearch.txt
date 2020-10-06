@@ -316,7 +316,7 @@ g:esearch.write_cb({buf}, {bang})                           *g:esearch.write_cb(
 
         See also: |g:esearch.write_cb()-examples|.
 
-            {buf} props         Allowed g:esearch.regex values ~
+            {buf} props                   What they are used for ~
         --------------------+---------------------------------------------------------
         `.existed`            | Shows whether |bufexists()| returned |TRUE| before loading
         `.bufnr`              | Buffer number
@@ -1114,29 +1114,28 @@ COMMANDLINE INPUT PROMPT                                  *esearch-cmdline-promp
 Input prompt is opened when |<plug>(esearch)| or |<plug>(operator-esearch-prefill)|
 are pressed.
 
-Within the prompt matching modes can be changed by double clicking:
-- <c-r><c-r> toggles regex mode.
-- <c-s><c-s> toggles case-sensitive mode
-- <c-t><c-t> toggle textobj matching mode.
+ Keymap             What does ~
+ ------------+------------------------------------------------------------------
+ <c-r><c-r>  | Cycle through |g:esearch.regex| modes (`'lietral'`, `'pcre'`, ...)
+ <c-s><c-s>  | Cycle through |g:esearch.case| modes (`'smart'`, `'ignore'`, ...)
+ <c-t><c-t>  | Cycle through |g:esearch.textobj| modes (`'word'`, `'line'`, ...)
+ <c-o>       | Open |esearch-cmdline-menu|
+ <c-p>       | Start editing a new pattern or cycle throught their kinds
+ <bs>, <c-w> | Pop the last pattern and endit the previous if in the beginning
+             | of the empty input
+ ------------+------------------------------------------------------------------
 
+NOTE Multiple patterns feature is only available for [rg], [gogrep], [semgrep]
+and [git-grep].
 NOTE Double clicks are used to prevent any conflicts with the default keymaps
 (e.g. |c_CTRL-R| to insert the contents of a register).
 
-Press <c-o> to open the menu to configure search paths, filetypes and other
-options.
-For [gogrep], [semgrep] and [git-grep] <c-p> key can be used to add multiple
-patterns for searching. Press <c-p> multiple times to cycle through pattern
-kinds. Use <bs> with empty input to drop the last pattern and start editing the
-previous.
 
 ________________________________________________________________________________~
 COMMANDLINE MENU                                            *esearch-cmdline-menu*
 
 Menu is a commandline-based way to configure the values, stored in |g:esearch|
-on the fly. It's separated into 4 columns: keys, that are used to activate
-corresponding menu items, icons to hint what item is active or not, a
-column with a short comments and greyed-out text that shows options to be
-used in the command.
+on the fly.
 
 When within the search prompt, type <c-o> to open the menu.
 Use `j` and `k` to navigate the menu items, `gg` or `G` to navigate the first or the
@@ -1162,29 +1161,49 @@ esearch#init([{opts}])                                            *esearch#init(
             {opts}    Dict with the same key-values as for |g:esearch| to overrule
                       it (optional).
                       NOTE Some options are preprocessed for better UX.
+        Example:~
+>
+        noremap <leader>fm :call esearch#init({'paths': '!(./node_modules)'})<cr>
+<
+        Example above excludes `node_modules` directory from searches. See also:
+        |g:esearch.paths-glob| for details and |esearch-exclude-directories|
+        to get rid of unwanted directories search globally.
+
+          Option                          Preprocessing~
+        ----------+-------------------------------------------------------------
+        `.paths`    | If it's a |String| , it's split using shell syntax rules
+        `.win_map`  | Is appended to |g:esearch.win_map| keymaps list if given
+        `.remember` | Is set to |FALSE| by default. If |TRUE| is provided, it's
+                  | expanded as |g:esearch.remember|
+        `.pattern`  | If a |Dict| (in the internal format), it's adapter to work
+                  | with |g:esearch.adapter|
+        `.prefill`  | If a |String| is returned from a prefiller and it contains
+                  | special chars (see |esearch-cursor-initial-position-example|),
+                  | it resets |g:esearch.select_prefilled| to |FALSE|.
+        `.case`,    | If |Boolean|s are given, they're converted to |String| according
+        `.textobj`, | to the |g:esearch.adapter|. If any option isn't supported by
+        `.regex`    | |g:esearch.adapter|, it's set to adapter's default
+        ----------+-------------------------------------------------------------
+
+esearch#prefill([{opts}])                                      *esearch#prefill()*
+esearch#exec([{opts}])                                            *esearch#exec()*
+        Is invoked when |<plug>(operator-esearch-prefill)| and
+        |<plug>(operator-esearch-exec)| keymaps are pressed. Allow to prefill
+        the input prompt with a selected text or execute a new search instantly
+        using the text as a pattern.
+
+        Parameters:~
+            {opts}    Same as for |esearch#init()|
         Return:~
-            0
-
-Options preprocessing details:
-
-   Option                          Preprocessing~
- ----------+--------------------------------------------------------------------
- `.paths`    | If it's a |String| , it's split using shell syntax rules.
- `.win_map`  | Is appended to |g:esearch.win_map| keymaps list if given.
- `.remember` | Is set to |FALSE| by default. |TRUE| is expanded as |g:esearch.remember|
- `.pattern`  | If |Dict| (in the internal format), it's adapter to work
-           | with |g:esearch.adapter|.
- `.prefill`  | If a |String| is returned from a prefiller and it contains special
-           | characters (see |esearch-cursor-initial-position-example|), it resets
-           | |g:esearch.select_prefilled| to |FALSE|.  
-           | with |g:esearch.adapter|.
- `.case`,    | If |Boolean|s are given, they're converted to |String| according to the
- `.textobj`, | adapter. If any option isn't supported by |g:esearch.adapter|, it's
- `.regex`    | set to adapter's default.
- ----------+--------------------------------------------------------------------
- 
- 
- 
+           |:map-<expr>| compliant |String|
+        Example:~
+>
+        noremap <leader>fm :call esearch#exec({'paths': '`git ls-files -m`'})<cr>
+<
+        It defines <leader>fm keymap to prefill the prompt using the selected
+        text in |Visual| mode or using a text-object.
+        NOTE |noremap| must be used to define it in |Normal|, |Visual| and
+        |Operator-pending| modes.
 
 esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce()*
         Can be used to create events independently from |CursorHold|. At the
@@ -1327,6 +1346,7 @@ they are changed during a request.
         \ 'remember': ['regex', 'case']
         \})<cr>
 <
+                                                            *g:esearch.paths-glob*
 3. Search in front-end files using explicitly set paths.
 >
     nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
@@ -1359,7 +1379,7 @@ See also: |key-notation|, |lambda|.
                                                 *esearch-git-show-preview-example*
 5. Search in git log using special |esearch#xargs#git_log()| arg. Open the
 preview window with git-show command output to the right of a filename. Use `p` to
-zoom the preview or capital `P` to enter it for scrolling etc. 
+zoom the preview or capital `P` to enter it for scrolling etc.
 >
     let g:GitShowPreview = {ctx -> ctx().rev &&
       \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
@@ -1415,7 +1435,7 @@ Grep in a specific branch inputted by the user.
           \})<cr>
 <
 
-NOTE Unlike rev-list command in backticks, |esearch#xargs#git_log()| will filter 
+NOTE Unlike rev-list command in backticks, |esearch#xargs#git_log()| will filter
 commits where files were actually modified.
 
                                                              *esearch-autopreview*
@@ -1548,7 +1568,7 @@ TROUBLESHOOTING                                          *esearch-troubleshootin
 1. Show the preview window automatically on a cursor movement.
 
 See |esearch-autopreview|.
-
+                                                     *esearch-exclude-directories*
 2. Avoid searching in `log/`, `node_modules/`, `dist/` and similar folders.
 
 The preferred approach is to use `.agignore` for ag, `.rgignore` or similar

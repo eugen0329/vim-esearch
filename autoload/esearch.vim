@@ -2,7 +2,7 @@ fu! esearch#init(...) abort
   call esearch#util#doautocmd('User eseach_init_pre')
   call esearch#config#eager()
 
-  let esearch = extend(copy(get(a:, 1, {})), copy(g:esearch), 'keep')
+  let esearch = extend(extend(copy(g:esearch), {'remember': 0}), copy(get(a:, 1, )))
   try
     for Middleware in esearch.middleware
       let esearch = Middleware(esearch)
@@ -14,11 +14,19 @@ fu! esearch#init(...) abort
   return esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! esearch#prefill(wise) abort
-  call esearch#init(extend(copy(get(esearch#operator#args(), 0, {})), {'prefill': ['region'], 'region': a:wise}))
+fu! esearch#prefill(...) abort
+  return esearch#operator#expr('esearch#prefill_op', get(a:, 1, {}))
 endfu
 
 fu! esearch#exec(wise) abort
+  return esearch#operator#expr('esearch#exec_op', get(a:, 1, {}))
+endfu
+
+fu! esearch#prefill_op(wise) abort
+  call esearch#init(extend(copy(get(esearch#operator#args(), 0, {})), {'prefill': ['region'], 'region': a:wise}))
+endfu
+
+fu! esearch#exec_op(wise) abort
   call esearch#init(extend(copy(get(esearch#operator#args(), 0, {})), {'pattern': esearch#operator#text(a:wise)}))
 endfu
 

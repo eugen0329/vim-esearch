@@ -31,6 +31,7 @@ endfu
 fu! esearch#out#win#fold#close_all() abort
   let contexts = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.state)
 
+  norm! zE
   let wlnum = contexts.by_line(1)._end + 1
   while wlnum < line('$')
     let first = contexts.by_line(wlnum)

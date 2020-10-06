@@ -2,7 +2,7 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
-let g:esearch#out#win#legacy_mappings = {
+let g:esearch#out#win#legacy_keymaps = {
       \ 'open':               '<Plug>(esearch-win-open)',
       \ 'tab':                '<Plug>(esearch-win-tabopen)',
       \ 'tab-silent':         '<Plug>(esearch-win-tabopen:stay)',
@@ -58,9 +58,9 @@ fu! esearch#out#win#init(esearch) abort
   call esearch#out#win#update#init(b:esearch)
   call esearch#out#win#textobj#init(b:esearch)
 
-  " Some plugins set mappings on filetype, so they should be set after.
+  " Some plugins set keymaps on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
-  if was_clean | call s:init_mappings() | endif
+  if was_clean | call s:init_keymaps() | endif
 
   setfiletype esearch
 
@@ -174,10 +174,10 @@ fu! esearch#out#win#map(lhs, rhs) abort
   let g:esearch = extend(g:esearch, {'win_map': []}, 'keep')
   let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
   call esearch#util#deprecate('esearch#out#win#map, see :help g:esearch.win_map')
-  let g:esearch.win_map += [['n', a:lhs, get(g:esearch#out#win#legacy_mappings, a:rhs, a:rhs)]]
+  let g:esearch.win_map += [['n', a:lhs, get(g:esearch#out#win#legacy_keymaps, a:rhs, a:rhs)]]
 endfu
 
-fu! s:init_mappings() abort
+fu! s:init_keymaps() abort
   nnoremap <silent><buffer> <plug>(esearch-win-reload)            :<c-u>cal b:esearch.reload()<cr>
   nnoremap <silent><buffer> <plug>(esearch-win-open)              :<c-u>cal b:esearch.open('edit')<cr>
   nnoremap <silent><buffer> <plug>(esearch-win-tabopen)           :<c-u>cal b:esearch.open('tabnew')<cr>
@@ -235,21 +235,21 @@ fu! s:init_mappings() abort
   nnoremap       <silent><buffer><plug>(esearch-.)  :<c-u>exe esearch#repeat#run(v:count)<cr>
   nnoremap       <silent><buffer><plug>(esearch-@:) :<c-u>exe esearch#out#win#modifiable#cmdline#repeat(v:count1)<cr>
 
-  nnoremap <expr><silent><buffer><plug>(esearch-za) foldclosed(line('.')) == -1 ? esearch#out#win#fold#close() : (foldlevel(line('.')) > 0 ? 'zD' : 'zO')
-  nnoremap <expr><silent><buffer><plug>(esearch-zc) esearch#out#win#fold#close()
+  nnoremap <expr><silent><buffer><plug>(esearch-za) foldclosed(line('.')) == -1 ? (foldlevel(line('.')) > 0 ? 'zD' : '').esearch#out#win#fold#close() : (foldlevel(line('.')) > 0 ? 'zO' : '')
+  nnoremap <expr><silent><buffer><plug>(esearch-zc) (foldlevel(line('.')) > 0 ? 'zD' : '').esearch#out#win#fold#close()
   nnoremap       <silent><buffer><plug>(esearch-zM) :call esearch#out#win#fold#close_all()<cr>
 
-  call esearch#out#win#init_user_mappings()
+  call esearch#out#win#init_user_keymaps()
 endfu
 
-fu! esearch#out#win#init_user_mappings() abort
+fu! esearch#out#win#init_user_keymaps() abort
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
     call esearch#keymap#set(args[0], args[1], args[2], opts)
   endfor
 endfu
 
-fu! esearch#out#win#uninit_user_mappings() abort
+fu! esearch#out#win#uninit_user_keymaps() abort
   for args in b:esearch.win_map
     let opts = extend({'buffer': 1, 'silent': 1}, get(args, 3, {}))
     silent! call esearch#keymap#del(args[0], args[1], opts)
