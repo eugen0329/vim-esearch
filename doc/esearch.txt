@@ -1198,7 +1198,7 @@ esearch#exec([{opts}])                                            *esearch#exec(
            |:map-<expr>| compliant |String|
         Example:~
 >
-        noremap <leader>fm :call esearch#exec({'paths': '`git ls-files -m`'})<cr>
+        noremap <expr><leader>fs esearch#exec({'paths': esearch#xargs#git_stash()})
 <
         It defines <leader>fm keymap to prefill the prompt using the selected
         text in |Visual| mode or using a text-object.
