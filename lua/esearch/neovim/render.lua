@@ -1,4 +1,4 @@
-local parse = require'esearch/neovim/parse'
+local parse = require'esearch/neovim/parse'.parse
 local util  = require'esearch/util'
 
 local M = {}
@@ -81,16 +81,16 @@ function M.submit_updates(bufnr, lines, contexts, deferred_calls, from_line)
 
   vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, lines)
   if vim.api.nvim_eval('g:esearch.win_ui_nvim_syntax') == 1 then
-    esearch.appearance.highlight_header(bufnr)
-    esearch.appearance.highlight_ui(bufnr, from_line, -1)
+    esearch.highlight_header(bufnr)
+    esearch.highlight_ui(bufnr, from_line, -1)
   end
   if vim.api.nvim_eval('g:esearch.win_context_len_annotations') == 1 then
-    esearch.appearance.annotate(contexts)
+    esearch.annotate(contexts)
   end
 end
 
 function M.render(bufnr, data, last_context, files_count, slow_hl_enabled, parser)
-  local parsed, lines_delta, errors = parse.lines(data, parser)
+  local parsed, lines_delta, errors = parse(data, parser)
   local lines, contexts, state, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
 

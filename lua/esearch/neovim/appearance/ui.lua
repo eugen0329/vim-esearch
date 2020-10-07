@@ -23,9 +23,9 @@ function M.highlight_ui(bufnr, from, to)
 
   -- for some reason when clearing a namespace {from} acts like it's 1-indexed,
   -- so rehighlighting the previous line is needed.
-  from = from - 1
-  if from  < 0 then from = 0 end
+  from = math.max(from - 1, 0)
   local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
+  -- print(from, vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1])
 
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then
@@ -48,8 +48,6 @@ function M.highlight_ui(bufnr, from, to)
 end
 
 local function on_lines(_event_name, bufnr, _changedtick, from, _old_to, to, _old_byte_size)
-  -- prevent header blinks
-  if from == 0 then M.highlight_ui(bufnr, 0, 1) end
   -- schedule to prevent wrong highlight on undo
   vim.schedule(function() M.highlight_ui(bufnr, from, to) end)
 end

@@ -122,7 +122,7 @@ fu! esearch#out#win#modifiable#align(id, align) abort
   endtry
 
   if g:esearch.win_ui_nvim_syntax
-    call luaeval('esearch.appearance.highlight_ui(_A[1], _A[2], _A[3])', [bufnr(''), begin-1, end-1])
+    call luaeval('esearch.highlight_ui(_A[1], _A[2], _A[3])', [bufnr(''), begin-1, end-1])
   endif
 endfu
 

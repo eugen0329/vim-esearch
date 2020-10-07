@@ -152,10 +152,10 @@ fu! esearch#out#win#update#update(bufnr, ...) abort
       let [from, to] = [r.cursor, r.cursor + es.batch_size - 1]
       let r.cursor += es.batch_size
     en
-
     cal es.render(a:bufnr, r.data, from, to, es)
   en
   cal esearch#util#setline(a:bufnr, 1, es.header_text())
+  if es.win_ui_nvim_syntax | call luaeval('esearch.highlight_header(nil, true)') | endif
   cal setbufvar(a:bufnr, '&modifiable', 0)
 
   let es.upd_at = reltime()
@@ -194,5 +194,5 @@ fu! esearch#out#win#update#finish(bufnr) abort
 
   cal setbufvar(a:bufnr, '&modified', 0)
   cal esearch#out#win#modifiable#init()
-  if es.win_ui_nvim_syntax | cal luaeval('esearch.appearance.buf_attach_ui()') | en
+  if es.win_ui_nvim_syntax | cal luaeval('esearch.buf_attach_ui()') | en
 endfu

@@ -2,7 +2,7 @@
 let g:esearch#has#nvim = has('nvim')
 let g:esearch#has#vms = has('vms')
 let g:esearch#has#windows = has('win32')
-let g:esearch#has#posix_shell = !has('win32')
+let g:esearch#has#posix_shell = !has('win32') || has('win32unix')
 let g:esearch#has#timers = has('timers')
 let g:esearch#has#debounce = has('timers')
 let g:esearch#has#reg_recording = exists('*reg_recording')
