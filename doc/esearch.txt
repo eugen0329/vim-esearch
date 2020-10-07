@@ -1406,21 +1406,19 @@ See also: |key-notation|, |lambda|.
 preview window with git-show command output to the right of a filename. Use `p` to
 zoom the preview or capital `P` to enter it for scrolling etc.
 >
-    let g:GitShowPreview = {ctx -> ctx().rev &&
+    let g:GitShow = {ctx -> ctx().rev &&
       \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
-      \   'let': {'&filetype': 'git', '&number': v:false},
-      \   'row': screenpos(0, ctx().begin, 0).row - 1,
-      \   'col': screenpos(0, line('.'), 0).col + len(ctx().filename),
+      \   'let': {'&filetype': 'git', '&number': (has('nvim') ? v:false : 0)},
+      \   'row': screenpos(0, ctx().begin, 0).row,
+      \   'col': screenpos(0, line('.'), 0).col + col([ctx().begin, '$']),
       \   'width': 47, 'height': 3,
       \ })
       \}
-
-    autocmd User esearch_win_config
-          \  let b:git_show = esearch#async#debounce(g:GitShowPreview, 300)
+    autocmd User esearch_win_config 
+          \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
           \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
     nnoremap <leader>fh :call esearch#init({
-          \ 'adapter':  'git',
           \ 'win_map':  [['n', 'P', '100<plug>(esearch-win-preview:enter)']],
           \ 'paths':    esearch#xargs#git_log(),
           \})<cr>

@@ -154,54 +154,57 @@ else
   let s:ViewTracer = vital#esearch#import('Vim.ViewTracer')
 
   fu! esearch#win#exists(handle) abort
+    return winbufnr(a:handle) != -1
     return s:ViewTracer.exists(a:handle)
   endfu
 
   fu! esearch#win#trace(...) abort
     let [tabnr, winnr] = a:0 ? a:000 : [tabpagenr(), winnr()]
+    return win_getid(winnr, tabnr)
     call settabwinvar(tabnr, winnr, 'esearch', s:window_id.next())
     return s:ViewTracer.trace_window(tabnr, winnr)
   endfu
 
   fu! esearch#win#goto(handle) abort
+    return win_gotoid(a:handle)
     call s:ViewTracer.jump(a:handle)
   endfu
 
   fu! esearch#win#id(handle) abort
+    return a:handle
     return call('win_getid', reverse(s:ViewTracer.find(a:handle)))
   endfu
 
   fu! esearch#win#bufnr(handle) abort
+    return winbufnr(a:handle)
     let [tabnr, winnr] = s:ViewTracer.find(a:handle)
     let buflist = tabpagebuflist(tabnr)
     return buflist[winnr - 1]
   endfu
 
-  fu! esearch#win#let(tabnr, winnr, name, value) abort
-    call settabwinvar(a:tabnr, a:winnr, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
+  fu! esearch#win#let(winid, name, value) abort
+    call setwinvar(a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
   endfu
 
   fu! esearch#win#bulk_let(handle, variables) abort
-    let [tabnr, winnr] = s:ViewTracer.find(a:handle)
     for [name, value] in items(a:variables)
-      call esearch#win#let(tabnr, winnr, name, value)
+      call esearch#win#let(a:handle, name, value)
     endfor
   endfu
 
-  fu! esearch#win#get(tabnr, winnr, name) abort
-    return gettabwinvar(a:tabnr, a:winnr, a:name[(a:name =~# '^w:' ? 2 : 0):])
+  fu! esearch#win#get(winnr, name) abort
+    return getwinvar(a:winnr, a:name[(a:name =~# '^w:' ? 2 : 0):])
   endfu
 
   fu! esearch#win#find(handle) abort
+    return [a:handle]
     return s:ViewTracer.find(a:handle)
   endfu
 
   " implements Vital api
   fu! s:Guard.store(targets) abort dict
-    let [tabnr, winnr] = s:ViewTracer.find(self.handle)
-
     for name in a:targets
-      let self._resources[name] = esearch#win#get(tabnr, winnr, name)
+      let self._resources[name] = esearch#win#get(self.handle, name)
     endfor
 
     return self

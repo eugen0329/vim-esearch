@@ -1,11 +1,5 @@
 fu! esearch#out#win#preview#floating#init(esearch) abort
-  call extend(a:esearch, {
-        \ 'preview_open':    function('<SID>preview_open'),
-        \ 'preview_enter':   function('<SID>preview_enter'),
-        \ 'preview_zoom':    function('<SID>preview_zoom'),
-        \ 'preview_close':   function('esearch#preview#close'),
-        \ 'is_preview_open': function('esearch#preview#is_open'),
-        \ })
+  call extend(a:esearch, s:methods)
 endfu
 
 fu! s:preview_enter(count1, ...) abort dict
@@ -75,3 +69,12 @@ fu! s:preview_zoom(count1) abort dict
     return self.preview_open({'height': a:count1 * esearch#preview#default_height()})
   endif
 endfu
+
+let s:methods = {
+        \ 'preview_open':    function('<SID>preview_open'),
+        \ 'preview_zoom':    function('<SID>preview_zoom'),
+        \ 'preview_close':   function('esearch#preview#close'),
+        \ 'is_preview_open': function('esearch#preview#is_open'),
+        \ }
+if g:esearch#has#nvim | let s:methods.preview_enter = function('<SID>preview_enter') | endif
+

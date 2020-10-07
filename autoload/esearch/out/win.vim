@@ -192,28 +192,28 @@ fu! s:init_keymaps() abort
   nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse:stay) :<c-u>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<cr>
   if g:esearch#has#preview
     nnoremap <silent><buffer> <plug>(esearch-win-preview)             :<c-u>cal b:esearch.preview_zoom(v:count1)<cr>
-    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)       :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
     nnoremap <expr><silent><buffer> <plug>(esearch-win-preview:close) b:esearch.preview_close() ? '' : "\<esc>"
+    if g:esearch#has#nvim_preview
+      nnoremap <silent><buffer> <plug>(esearch-win-preview:enter) :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
+    else
+      nnoremap <silent><buffer> <plug>(esearch-win-preview:enter) :<c-u>cal b:esearch.open('tabnew', {'reuse': 1})<cr>
+    endif
   else
     nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.split_preview_open('vnew')<cr>
     nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.split_preview_open('vnew', {'stay': 0})<cr>
   endif
-
   noremap  <silent><buffer> <plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-v:count1)<cr>
   noremap  <silent><buffer> <plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(v:count1)<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-v:count1, 'v')<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(v:count1, 'v')<cr>
-
   noremap  <silent><buffer> <plug>(esearch-win-jump:dirname:up)   :<c-u>cal b:esearch.jump2dirname(-v:count1)<cr>
   noremap  <silent><buffer> <plug>(esearch-win-jump:dirname:down) :<c-u>cal b:esearch.jump2dirname(v:count1)<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:dirname:up)   :<c-u>cal b:esearch.jump2dirname(-v:count1, 'v')<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:dirname:down) :<c-u>cal b:esearch.jump2dirname(v:count1, 'v')<cr>
-
   noremap  <silent><buffer> <plug>(esearch-win-jump:entry:up)   :<c-u>cal b:esearch.jump2entry(-v:count1)<cr>
   noremap  <silent><buffer> <plug>(esearch-win-jump:entry:down) :<c-u>cal b:esearch.jump2entry(v:count1)<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:up)   :<c-u>cal b:esearch.jump2entry(-v:count1, 'v')<cr>
   vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:down) :<c-u>cal b:esearch.jump2entry(v:count1, 'v')<cr>
-
   vnoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(1, v:count1)<cr>
   onoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(0, v:count1)<cr>
   vnoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(1, v:count1)<cr>

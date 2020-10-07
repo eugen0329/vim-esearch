@@ -1,0 +1,33 @@
+let s:Log = esearch#log#import()
+let s:Buf = esearch#preview#buf#import()
+let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
+     \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
+
+fu! esearch#preview#vim#opener#import() abort
+  return copy(s:VimPreview)
+endfu
+
+let s:VimPreview = esearch#preview#base_opener#import()
+let s:VimPreview.popup = esearch#preview#vim#popup#import()
+
+fu! s:VimPreview.open() abort dict
+  let self.buffer = s:Buf.new(self.location.filename)
+
+  try
+    call esearch#preview#close()
+    let g:esearch#preview#win = self.popup
+          \.new(self.buffer, self.location, self.shape, self.close_on)
+          \.open()
+    let self.win = g:esearch#preview#win
+    call self.win.let(self.vars)
+    call self.win.place_emphasis(self.emphasis)
+    call self.win.reshape()
+    call self.win.init_autoclose_events()
+  catch
+    call esearch#preview#close()
+    call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
+    return s:false
+  endtry
+
+  return s:true
+endfu

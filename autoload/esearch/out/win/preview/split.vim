@@ -46,7 +46,7 @@ fu! s:place_emphasis(emphasis, bufnr, line_in_file) abort
   aug END
   let b:esearch_emphasis = []
   for e in a:emphasis
-    call add(b:esearch_emphasis, e.new(win_handle, a:line_in_file).place())
+    call add(b:esearch_emphasis, e.new(win_handle, a:bufnr, a:line_in_file).place())
   endfor
 endfu
 
