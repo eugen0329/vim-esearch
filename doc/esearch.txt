@@ -1270,9 +1270,10 @@ esearch#xargs#git_stash([{shell-opts}])                *esearch#xargs#git_stash(
             |Dict| to be handled internally.
         Example:~
 >
-        nnoremap <leader>fl :call esearch#init({'paths': esearch#xargs#git_log()})<cr>
+        nnoremap <leader>fl
+          \ :call esearch#init({'paths': esearch#xargs#git_log('--reverse')})<cr>
 <
-        It defines <leader>fl keymap to search in git history.
+        It defines <leader>fl keymap to search in git history in reverse order.
         NOTE It filters files in commits where diff lines match the pattern.
         Other non-modified but matched lines within these files will be
         outputted as well.

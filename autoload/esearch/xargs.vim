@@ -16,7 +16,17 @@ fu! esearch#xargs#git_stash(...) abort
         \}
 endfu
 
-let s:prepend_filenames_with_revisions = "| awk '/^$/{r=0} r{print r\":\"$0} !r{r=$0}'"
+let s:hold_revision = '1{h;d;}; /^$/{n;h;d;};'
+let s:prefix_filenames_with_revision = '/./{G;s/\(.*\)\n\(.*\)/\2:\1/g;};'
+let s:q = "'\\''" " single quote to pass into sed
+let s:shell_quote = 's/'.s:q.'/'.s:q.'\\'.s:q.s:q.'/g; s/.*/'.s:q.'&'.s:q.'/g;'
+let s:prepend_filenames_with_revisions =
+      \  "|sed -n '"
+      \. s:hold_revision.' '
+      \. s:prefix_filenames_with_revision.' '
+      \. s:shell_quote
+      \. " p;'"
+let s:xargs_batched = '| xargs -n127' " bigger n means higher latence, but lower overhead
 
 fu! s:git_log(options, adapter, esearch) abort
   let pipe = join([
@@ -27,9 +37,9 @@ fu! s:git_log(options, adapter, esearch) abort
         \ a:options,
         \ join(map(copy(a:esearch.pattern._arg), '"-S". v:val[1]')),
         \ s:prepend_filenames_with_revisions,
-        \ '| xargs -L1 -I@',
+        \ s:xargs_batched,
         \], ' ')
-return [pipe, shellescape('@')]
+  return [pipe, '']
 endfu
 
 fu! s:git_stash(options, adapter, esearch) abort
@@ -39,7 +49,7 @@ fu! s:git_stash(options, adapter, esearch) abort
         \ 'stash list --oneline --pretty=format:%gd --name-only --diff-filter=drc',
         \ a:options,
         \ s:prepend_filenames_with_revisions,
-        \ '| xargs -L1 -I@',
+        \ s:xargs_batched,
         \], ' ')
-  return [pipe, shellescape('@')]
+  return [pipe, '']
 endfu
