@@ -1,6 +1,21 @@
 let s:window_id  = esearch#util#counter()
 let s:UNDEFINED = esearch#polyfill#undefined()
 
+fu! esearch#win#bulk_let(handle, variables) abort
+  for [name, Val] in items(a:variables)
+    if Val is s:UNDEFINED | continue | endif
+    call esearch#win#let(a:handle, name, Val)
+  endfor
+endfu
+
+fu! esearch#win#get(winid, name) abort
+  return gettabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], s:UNDEFINED)
+endfu
+
+fu! esearch#win#stay() abort
+  return s:CurrentWindowGuard.new()
+endfu
+
 fu! esearch#win#guard() abort
   return s:Guard
 endfu
@@ -14,8 +29,29 @@ fu! s:Guard.new(handle) abort dict
   return instance
 endfu
 
-fu! esearch#win#stay() abort
-  return s:CurrentWindowGuard.new()
+fu! s:Guard.store(targets) abort dict
+  for name in a:targets
+    let self._resources[name] = esearch#win#get(self.winid, name)
+  endfor
+
+  return self
+endfu
+
+fu! s:Guard.restore() abort dict
+  if esearch#win#exists(self.winid)
+    call esearch#win#bulk_let(self.winid, self._resources)
+  endif
+endfu
+
+fu! esearch#win#let_restorable(handle, variables) abort
+  return esearch#let#restorable(
+        \ a:variables,
+        \ s:Guard.new(a:handle),
+        \ function('esearch#win#bulk_let', [a:handle]))
+endfu
+
+fu! esearch#win#let(winid, name, value) abort
+  call settabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
 endfu
 
 let s:CurrentWindowGuard = {}
@@ -68,40 +104,4 @@ endfu
 
 fu! esearch#win#goto(handle) abort
   return win_gotoid(a:handle)
-endfu
-
-" implements Vital api
-fu! s:Guard.store(targets) abort dict
-  for name in a:targets
-    let self._resources[name] = esearch#win#get(self.winid, name)
-  endfor
-
-  return self
-endfu
-
-fu! s:Guard.restore() abort dict
-  if esearch#win#exists(self.winid)
-    call esearch#win#bulk_let(self.winid, self._resources)
-  endif
-endfu
-
-fu! esearch#win#let_restorable(handle, variables) abort
-  return esearch#let#restorable(
-        \ a:variables,
-        \ s:Guard.new(a:handle),
-        \ function('esearch#win#bulk_let', [a:handle]))
-endfu
-
-fu! esearch#win#let(winid, name, value) abort
-  call settabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
-endfu
-
-fu! esearch#win#bulk_let(handle, variables) abort
-  for [name, value] in items(a:variables)
-    call esearch#win#let(a:handle, name, value)
-  endfor
-endfu
-
-fu! esearch#win#get(winid, name) abort
-  return getwinvar(a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], s:UNDEFINED)
 endfu
