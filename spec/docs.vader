@@ -250,22 +250,22 @@ Execute:
       \})<cr>
 Then:
   exe "norm \<c-f>\<c-g>__pattern__\<CR>"
-  Assert b:esearch.paths[0].str =~# '^`git rev-list'
-  Assert empty(b:esearch.request.errors)
+  Assert b:esearch.paths[0].str =~# '^`git rev-list', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
 
 Execute:
   nnoremap <leader>fu :call esearch#init({'paths': esearch#xargs#git_log('development..HEAD')})<cr>
 Then:
   exe "norm ,fu__pattern__\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-log'
-  Assert empty(b:esearch.request.errors)
+  Assert b:esearch.paths.tag =~# 'git-log', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
 
 Execute:
   nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
 Then:
   exe "norm ,fs__pattern__\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-stash'
-  Assert empty(b:esearch.request.errors)
+  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
 
 Execute:
   function! CompleteBranches(...)
@@ -279,5 +279,5 @@ Execute:
         \})<cr>
 Then:
   exe "norm \<c-f>\<c-b>HEAD\<CR>__pattern__\<CR>"
-  Assert b:esearch.paths[0].str =~# 'HEAD'
-  Assert empty(b:esearch.request.errors)
+  Assert b:esearch.paths[0].str =~# 'HEAD', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
