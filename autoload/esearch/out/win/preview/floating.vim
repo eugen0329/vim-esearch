@@ -51,7 +51,7 @@ fu! s:preview_open(...) abort dict
         \ [self.unescaped_filename(), self.line_in_file()] + a:000)
 endfu
 
-fu! s:preview_zoom(count1) abort dict
+fu! s:preview_zoom(count1, ...) abort dict
   if self.is_preview_open()
     let height = max([a:count1, 2]) * g:esearch#preview#last.win.shape.height
     let confirmation_prompt_height = 2 " prevent overlapping the text
@@ -66,7 +66,8 @@ fu! s:preview_zoom(count1) abort dict
       call g:esearch#preview#last.win.reshape()
     endif
   else
-    return self.preview_open({'height': a:count1 * esearch#preview#default_height()})
+    let opts = extend({'height': a:count1 * esearch#preview#default_height()}, get(a:, 1, {}))
+    return self.preview_open(opts)
   endif
 endfu
 

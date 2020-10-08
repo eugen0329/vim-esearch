@@ -74,11 +74,8 @@ Execute(float autopreview):
   aug test
     au!
     autocmd User esearch_win_config
-    \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
-    \| autocmd CursorMoved <buffer> call b:autopreview.apply({
-        \    'close_on': [],
-        \    'align': 'right'
-        \  })
+      \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
+      \| autocmd CursorMoved <buffer> call b:autopreview.apply({'align': 'right'})
   aug END
 Then:
   if !has('nvim') | finish | endif
@@ -91,15 +88,15 @@ Execute(float win_new):
   if  !has('nvim') | finish | endif
   aug test
     au!
-    " Try to jump into an opened floating window or open a new one.
+    " Try to jump into the opened floating window or open a new one.
     let g:esearch.win_new = {esearch->
         \ esearch#buf#goto_or_open(esearch.name, {bufname->
         \   nvim_open_win(bufadd(bufname), v:true, {
         \     'relative': 'editor',
-        \     'row': float2nr(&lines * 0.2) / 2,
-        \     'col': float2nr((&columns * 0.2) / 2),
-        \     'width': float2nr(&columns * 0.8),
-        \     'height': float2nr(&lines * 0.8)
+        \     'row': &lines / 10,
+        \     'col': &columns / 10,
+        \     'width': &columns * 8 / 10,
+        \     'height': &lines * 8 / 10
         \   })
         \ })
         \}
@@ -240,10 +237,7 @@ Then:
   AssertEqual b:esearch.pattern.str, 'def __pattern__(self'
 
 Execute:
-  nnoremap <leader>fm :call esearch#init({
-      \ 'paths': '`git ls-files --modified`',
-      \ 'remember': 0
-      \})<cr>
+  nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`'})<cr>
 Then:
   exe "norm ,fm__pattern__\<CR>"
   AssertEqual b:esearch.paths[0].str, '`git ls-files --modified`'
@@ -257,6 +251,20 @@ Execute:
 Then:
   exe "norm \<c-f>\<c-g>__pattern__\<CR>"
   Assert b:esearch.paths[0].str =~# '^`git rev-list'
+  Assert empty(b:esearch.request.errors)
+
+Execute:
+  nnoremap <leader>fu :call esearch#init({'paths': esearch#xargs#git_log('development..HEAD')})<cr>
+Then:
+  exe "norm ,fu__pattern__\<CR>"
+  Assert b:esearch.paths.tag =~# 'git-log'
+  Assert empty(b:esearch.request.errors)
+
+Execute:
+  nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
+Then:
+  exe "norm ,fs__pattern__\<CR>"
+  Assert b:esearch.paths.tag =~# 'git-stash'
   Assert empty(b:esearch.request.errors)
 
 Execute:

@@ -54,4 +54,3 @@ fu! s:PopupBase.unplace_emphasis() abort dict
     let self.emphasis = []
   endif
 endfu
-

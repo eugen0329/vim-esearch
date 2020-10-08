@@ -23,6 +23,7 @@ else
   let s:Preview = esearch#preview#vim#opener#import()
   let s:default_vars = {'&foldenable': 0, '&number': 1, '&wrap': 0}
 endif
+let g:esearch#preview#close_on_move = ['CursorMoved', 'CursorMovedI', 'InsertEnter']
 let g:esearch#preview#close_on = ['QuitPre', 'BufEnter', 'BufWinEnter', 'TabLeave']
 let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 " The constant is used to ignore events used by :edit and :view commands to
@@ -84,8 +85,7 @@ fu! esearch#preview#open(filename, line, ...) abort
         \ 'align':  get(opts, 'align',  'cursor'),
         \ })
 
-  let close_on  = copy(g:esearch#preview#close_on)
-  let close_on += get(opts, 'close_on',  ['CursorMoved', 'CursorMovedI', 'InsertEnter'])
+  let close_on  = g:esearch#preview#close_on + get(opts, 'close_on',  [])
   let close_on  = uniq(copy(close_on))
 
   let location = {'filename': a:filename, 'line': a:line}

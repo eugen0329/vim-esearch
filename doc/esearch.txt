@@ -1442,7 +1442,6 @@ Do a similar thing, but using commits range passed to |esearch#xargs#git_log()|.
 It will search in commits not merged into staging from development.
 >
     nnoremap <leader>fu :call esearch#init({
-          \ 'adapter':  'git',
           \ 'paths':    esearch#xargs#git_log('staging..development'),
           \})<cr>
 <
@@ -1470,21 +1469,13 @@ commits where files were actually modified.
       \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
       \| autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
 <
-Or the same behavior using floating previews (neovim only). Change align to
-`'top'`, `'right'`, `'bottom'`, `'left'` or `'cursor'` to adjust the window position.
+Or the same behavior using floating previews. Change align to `'top'`, `'right'`,
+`'bottom'`, `'left'` or `'cursor'` to adjust the window position.
 >
     autocmd User esearch_win_config
       \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
-      \| autocmd CursorMoved <buffer> call b:autopreview.apply({
-      \    'close_on': [],
-      \    'align': 'right'
-      \  })
+      \| autocmd CursorMoved <buffer> call b:autopreview.apply({'align': 'right'})
 <
-NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
-as the preview updates are handled using `b:autopreview.apply()` call.
-NOTE This kind of preview is recommended as it's designed to safely handle swap
-dialogs that will appear if |b:esearch.split_preview_open| is used.
-
                                                       *g:esearch.win_map-examples*
                                                             *esearch-sort-results*
 7. Use `g:esearch.win_map` to setup window local keymaps.
@@ -1525,15 +1516,15 @@ NOTE that "gsp" and "gsd" keymaps are [rg]-specific. Alternatively, you can use
 >
     let g:esearch = {}
 
-    " Try to jump into an opened floating window or open a new one.
+    " Try to jump into the opened floating window or open a new one.
     let g:esearch.win_new = {esearch->
         \ esearch#buf#goto_or_open(esearch.name, {bufname->
         \   nvim_open_win(bufadd(bufname), v:true, {
         \     'relative': 'editor',
-        \     'row': float2nr(&lines * 0.2) / 2,
-        \     'col': float2nr((&columns * 0.2) / 2),
-        \     'width': float2nr(&columns * 0.8),
-        \     'height': float2nr(&lines * 0.8)
+        \     'row': &lines / 10,
+        \     'col': &columns / 10,
+        \     'width': &columns * 8 / 10,
+        \     'height': &lines * 8 / 10
         \   })
         \ })
         \}
@@ -1548,17 +1539,18 @@ See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
                                                    *g:esearch.write_cb()-examples*
 9. Use write callback to adjust the behavior of writing the window.
 
-Sublime Text-like opening buffers without saving.
+Save applied changes if :write! with '!' was used. Open the buffers otherwise.
 >
-    let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
+    let g:esearch.write_cb =
+        \ {buf, bang -> bang ? buf.write(bang) : buf.open('$tabnew')}
 <
-Write silently and wipeout buffers if they wasn't exist.
+Write silently and wipeout buffers if they didn't exist.
 >
     let g:esearch.write_cb =
         \ {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
 <
-Append buffers data to a location list for reviewing, then open it and
-display the first entry.
+Append buffers data to a location list for reviewing, then open it and edit the
+first entry.
 >
     let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
     autocmd User esearch_write_post lopen | wincmd p | lfirst
