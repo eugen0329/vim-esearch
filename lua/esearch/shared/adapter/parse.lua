@@ -1,4 +1,4 @@
-local util = require('esearch/util')
+local util = require('esearch/shared/util')
 local code = util.code
 local decode = util.decode
 local filereadable = util.filereadable

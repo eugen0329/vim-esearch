@@ -200,7 +200,7 @@ fu! s:lua_init() abort
 
   if g:esearch#has#nvim_lua
     lua << EOF
-    esearch = require'esearch/neovim'
+    esearch = require'esearch/nvim'
 EOF
   elseif g:esearch#has#vim_lua
     lua << EOF

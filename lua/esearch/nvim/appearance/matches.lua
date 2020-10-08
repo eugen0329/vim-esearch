@@ -1,5 +1,5 @@
-local ui       = require('esearch/neovim/appearance/ui')
-local debounce = require('esearch/util').debounce
+local ui       = require('esearch/nvim/appearance/ui')
+local debounce = require('esearch/shared/util').debounce
 
 local M = {
   MATCHES_NS       = vim.api.nvim_create_namespace('esearch_matches'),

@@ -1,5 +1,5 @@
 local parse = require'esearch/vim/parse'.parse
-local util  = require'esearch/util'
+local util  = require'esearch/shared/util'
 
 local M = {}
 
