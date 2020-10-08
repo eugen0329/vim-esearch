@@ -7,7 +7,7 @@ fu! esearch#preview#nvim#opener#import() abort
   return copy(s:NvimOpener)
 endfu
 
-let s:NvimOpener = esearch#preview#base_opener#import()
+let s:NvimOpener = esearch#preview#opener_base#import()
 let s:NvimOpener.popup = esearch#preview#nvim#popup#import()
 
 fu! s:NvimOpener.open() abort dict

@@ -7,7 +7,7 @@ fu! esearch#preview#nvim#popup#import() abort
   return s:NvimPopup
 endfu
 
-let s:NvimPopup = esearch#preview#base_popup#import()
+let s:NvimPopup = esearch#preview#popup_base#import()
 
 fu! s:NvimPopup.view() abort dict
   let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})

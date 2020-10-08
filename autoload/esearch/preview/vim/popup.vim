@@ -7,7 +7,7 @@ fu! esearch#preview#vim#popup#import() abort
   return s:VimPopup
 endfu
 
-let s:VimPopup = esearch#preview#base_popup#import()
+let s:VimPopup = esearch#preview#popup_base#import()
 
 fu! s:VimPopup.reshape() abort dict
   if !self.buf.is_valid()

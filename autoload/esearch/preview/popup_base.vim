@@ -1,4 +1,4 @@
-fu! esearch#preview#base_popup#import() abort
+fu! esearch#preview#popup_base#import() abort
   return copy(s:PopupBase)
 endfu
 

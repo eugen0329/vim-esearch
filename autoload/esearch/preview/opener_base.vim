@@ -3,13 +3,13 @@ let s:Log = esearch#log#import()
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-fu! esearch#preview#base_opener#import() abort
-  return copy(s:BaseOpener)
+fu! esearch#preview#opener_base#import() abort
+  return copy(s:OpenerBase)
 endfu
 
-let s:BaseOpener = {}
+let s:OpenerBase = {}
 
-fu! s:BaseOpener.new(location, shape, emphasis, vars, opts, close_on) abort dict
+fu! s:OpenerBase.new(location, shape, emphasis, vars, opts, close_on) abort dict
   let new = copy(self)
   let new.location = a:location
   let new.shape    = a:shape
@@ -20,7 +20,7 @@ fu! s:BaseOpener.new(location, shape, emphasis, vars, opts, close_on) abort dict
   return new
 endfu
 
-fu! s:BaseOpener.shell() abort dict
+fu! s:OpenerBase.shell() abort dict
   let current_win = esearch#win#stay()
   let self.buf = s:Buf.fetch_or_create(
         \ self.location.filename, g:esearch#preview#buffers)
