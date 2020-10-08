@@ -254,13 +254,6 @@ Then:
   AssertEqual b:esearch.request.errors, []
 
 Execute:
-  nnoremap <leader>fu :call esearch#init({'paths': esearch#xargs#git_log('development..HEAD')})<cr>
-Then:
-  exe "norm ,fu__pattern__\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-log', b:esearch.paths
-  AssertEqual b:esearch.request.errors, []
-
-Execute:
   nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
 Then:
   exe "norm ,fs__pattern__\<CR>"
