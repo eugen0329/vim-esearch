@@ -1,5 +1,6 @@
 let s:results_line_re = '^\%>1l\s\+\d\+.*'
 let s:Filepath = vital#esearch#import('System.Filepath')
+let g:esearch#out#win#view_data#null_ctx = {'begin': 0, 'end': 0, 'rev': 0, 'filename': 0, 'lines': {}}
 
 " Methods to mine information from a rendered window
 
@@ -10,7 +11,7 @@ fu! esearch#out#win#view_data#init(esearch) abort
         \ 'filetype':           function('<SID>filetype'),
         \ 'line_in_file':       function('<SID>line_in_file'),
         \ 'ctx_view':           function('<SID>ctx_view'),
-        \ 'ctx_at':             function('<SID>ctx_at'),
+        \ 'ctx':                function('<SID>ctx'),
         \ 'is_filename':        function('<SID>is_filename'),
         \ 'is_entry':           function('<SID>is_entry'),
         \ 'is_current':         function('<SID>is_current'),
@@ -19,7 +20,7 @@ fu! esearch#out#win#view_data#init(esearch) abort
 endfu
 
 fu! esearch#out#win#view_data#filename(es, ctx) abort
-  if empty(a:ctx) | return '' | endif
+  if empty(a:ctx.filename) | return '' | endif
 
   if get(a:ctx, 'rev') ==# 1
     return s:git_url(a:es, a:ctx.filename)
@@ -43,7 +44,7 @@ endfu
 fu! s:filetype(...) abort dict
   if !self.is_current() | return | endif
 
-  let ctx = self.ctx_at(line('.'))
+  let ctx = self.ctx(line('.'))
   if empty(ctx) | return '' | endif
 
   if empty(ctx.filetype)
@@ -67,22 +68,17 @@ fu! s:git_url(es, filename) abort
 endfu
 
 fu! s:unescaped_filename(...) abort dict
-  if !self.is_current() | return | endif
-  return esearch#out#win#view_data#filename(self, self.ctx_at(get(a:, 1, line('.'))))
+  return esearch#out#win#view_data#filename(self, self.ctx(get(a:, 1, line('.'))))
 endfu
 
 fu! s:filename(...) abort dict
-  if !self.is_current() | return | endif
-  return fnameescape(esearch#out#win#view_data#filename(self, self.ctx_at(get(a:, 1, line('.')))))
+  return fnameescape(esearch#out#win#view_data#filename(self, self.ctx(get(a:, 1, line('.')))))
 endfu
 
-fu! s:ctx_at(wlnum) dict abort
-  if self.is_blank() | return {} | endif
-
-  let state = self.state
-  let ctx = self.contexts[get(state, a:wlnum, 1)]
-  if ctx.id == 0 | return self.contexts[1] | endif
-
+fu! s:ctx(...) dict abort
+  if self.is_blank() || !self.is_current() | return g:esearch#out#win#view_data#null_ctx | endif
+  let ctx = self.contexts[get(self.state, get(a:, 1, line('.')), 1)]
+  if ctx.id is# 0 | return self.contexts[1] | endif
   return ctx
 endfu
 
@@ -99,8 +95,8 @@ fu! s:is_current() abort dict
   return get(b:, 'esearch', {'id': -1}).id == self.id
 endfu
 
+" if only a header ctx
 fu! s:is_blank() abort dict
-  " if only a header ctx
   if len(self.contexts) < 2 | return 1 | endif
 endfu
 

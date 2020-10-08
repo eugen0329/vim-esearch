@@ -18,9 +18,9 @@ let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
+  let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
+  let original_options = self.set_options()
   try
-    let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
-    let original_options = self.set_options()
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   catch /Vim:Interrupt/

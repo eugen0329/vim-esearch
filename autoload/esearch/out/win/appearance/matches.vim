@@ -12,11 +12,11 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     if g:esearch#has#nvim_lua_regex
       aug esearch_win_hl_matches
         au! * <buffer>
-        au CursorMoved <buffer> call luaeval('esearch.appearance.deferred_highlight_viewport(_A)', +expand('<abuf>'))
+        au CursorMoved <buffer> call luaeval('esearch.deferred_highlight_viewport(_A)', +expand('<abuf>'))
       aug END
     else
       let a:es.last_hl_range = [0,0]
-      let a:es.matches_ns = luaeval('esearch.appearance.MATCHES_NS')
+      let a:es.matches_ns = luaeval('esearch.MATCHES_NS')
       let a:es.highlighted_lines = {}
       let Callback = function('s:hl_viewport_cb', [a:es])
       let a:es.hl_matches = esearch#async#debounce(Callback, a:es.win_matches_highlight_debounce_wait)
@@ -24,7 +24,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
         au! * <buffer>
         au CursorMoved <buffer> call b:esearch.hl_matches.apply()
       aug END
-      call luaeval('esearch.appearance.buf_attach_matches()')
+      call luaeval('esearch.buf_attach_matches()')
     endif
     retu
   endif
@@ -71,7 +71,7 @@ endfu
 if g:esearch#has#nvim_lua_regex
   fu! esearch#out#win#appearance#matches#hl_viewport(es) abort
     if get(a:es, 'hl_strategy') is# 'viewport'
-      call luaeval('esearch.appearance.highlight_viewport()')
+      call luaeval('esearch.highlight_viewport()')
     endif
   endf
 else

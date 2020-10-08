@@ -3,13 +3,13 @@ fu! esearch#out#win#repo#ctx#new(esearch, state) abort
         \ 'esearch': a:esearch,
         \ 'state':   a:state,
         \ 'by_line': function('<SID>by_line'),
-        \ }
+        \}
 endfu
 
 fu! s:by_line(wlnum) abort dict
   let wlnum = a:wlnum
   if len(self.state) <= wlnum
-    return 0
+    return g:esearch#out#win#view_data#null_ctx
   endif
   let ctx = self.esearch.contexts[self.state[wlnum]]
 

@@ -6,6 +6,8 @@ let s:sign_id    = 502012117
 " of previewing like linter signs etc.
 let s:priority   = 1000
 
+let g:esearch#emphasis#default = []
+
 fu! esearch#emphasis#sign() abort
   return s:SignEmphasis
 endfu
@@ -16,11 +18,11 @@ endfu
 
 let s:Base = {}
 
-fu! s:Base.new(win_handle, lnum) abort dict
-  let instance            = copy(self)
-  let instance.win_handle = a:win_handle
-  let instance.lnum       = +a:lnum
-  let instance.bufnr      = esearch#win#bufnr(a:win_handle)
+fu! s:Base.new(winid, bufnr, lnum) abort dict
+  let instance       = copy(self)
+  let instance.winid = a:winid
+  let instance.lnum  = +a:lnum
+  let instance.bufnr = a:bufnr
 
   return instance
 endfu
@@ -33,7 +35,7 @@ fu! s:SignEmphasis.place() abort dict
   endif
 
   let self.signcolumn = esearch#win#let_restorable(
-        \ self.win_handle, {'&signcolumn': 'auto'})
+        \ self.winid, {'&signcolumn': 'auto'})
 
   noau call sign_place(s:sign_id,
         \ s:sign_group,
@@ -68,7 +70,6 @@ if g:esearch#has#nvim_add_highlight
   let g:esearch#emphasis#default += [esearch#emphasis#highlighted_line()]
 elseif g:esearch#has#matchadd_win
   fu! s:HighlightLineEmphasis.place() abort dict
-    let self.winid = esearch#win#id(self.win_handle)
     let self.id = matchaddpos('esearchMatch', [self.lnum], 1, -1, {'window': self.winid})
 
     return self

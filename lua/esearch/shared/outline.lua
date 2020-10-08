@@ -1,4 +1,4 @@
-local util = require('esearch/util')
+local util = require('esearch/shared/util')
 local list, dict, buf_get_lines = util.list, util.dict, util.buf_get_lines
 
 local M = {}

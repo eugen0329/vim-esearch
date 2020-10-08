@@ -6,7 +6,7 @@ local function entry_constructor(tbl)
   return tbl
 end
 
-function M.lines(data, parser)
+function M.parse(data, parser)
   return PARSERS[parser](data, entry_constructor)
 end
 

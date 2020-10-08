@@ -3,13 +3,13 @@ if exists('g:loaded_esearch')
 endif
 let g:loaded_esearch = '0.3.0'
 
-if !hasmapto('<Plug>(esearch)') && !hasmapto('<Plug>(operator-esearch-prefill)') && get(get(g:, 'esearch', {}), 'default_mappings', 1)
-  nmap <leader>ff <Plug>(esearch)
-  map  <leader>f  <Plug>(operator-esearch-prefill)
+if !hasmapto('<plug>(esearch)') && !hasmapto('<plug>(operator-esearch-prefill)') && get(get(g:, 'esearch', {}), 'default_mappings', 1)
+  nmap <leader>ff <plug>(esearch)
+  map  <leader>f  <plug>(operator-esearch-prefill)
 endif
 
-nnoremap <silent><Plug>(esearch) :<C-u>call esearch#init()<CR>
-xmap             <Plug>(esearch) <Plug>(operator-esearch-prefill)
+nnoremap <silent><plug>(esearch) :<c-u>call esearch#init({'remember': 1})<cr>
+xmap             <plug>(esearch) <plug>(operator-esearch-prefill)
 
-noremap <expr><silent><Plug>(operator-esearch-prefill) esearch#operator#expr('esearch#opfunc_prefill')
-noremap <expr><silent><Plug>(operator-esearch-exec)    esearch#operator#expr('esearch#opfunc_exec')
+noremap <expr><silent><plug>(operator-esearch-prefill) esearch#prefill({'remember': 1})
+noremap <expr><silent><plug>(operator-esearch-exec)    esearch#exec({'remember': 1})

@@ -1,4 +1,4 @@
-local ui = require('esearch/neovim/appearance/ui')
+local ui = require('esearch/nvim/appearance/ui')
 
 local M = {
   CURSOR_LINENR_NS = vim.api.nvim_create_namespace('esearch_cursor_linenr'),

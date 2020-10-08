@@ -35,10 +35,10 @@ fu! s:text_changed() abort
       endfor
       let g:esearch#out#win#modifiable#delete = []
     elseif delta < 0
-      call s:Log.warn('esearch: unknown change. See :help esearch-win-editing for details')
+      call s:Log.warn('esearch: unknown change at line '.getpos("'.")[1].'. See :help esearch-win-editing for details')
       let state += repeat([state[-1]], -delta)
     else
-      call s:Log.warn('esearch: unknown change. See :help esearch-win-editing for details')
+      call s:Log.warn('esearch: unknown change at line '.getpos("'.")[1].'. See :help esearch-win-editing for details')
       call remove(state, -delta, -1)
     endif
   endif
@@ -122,7 +122,7 @@ fu! esearch#out#win#modifiable#align(id, align) abort
   endtry
 
   if g:esearch.win_ui_nvim_syntax
-    call luaeval('esearch.appearance.highlight_ui(_A[1], _A[2], _A[3])', [bufnr(''), begin-1, end-1])
+    call luaeval('esearch.highlight_ui(_A[1], _A[2], _A[3])', [bufnr(''), begin-1, end-1])
   endif
 endfu
 

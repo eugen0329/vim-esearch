@@ -6,7 +6,6 @@ Data.OrderedSet
 Text.Parser
 Text.Lexer
 Data.Dict
-Vim.ViewTracer
 Vim.Message
 Data.String
 System.Filepath

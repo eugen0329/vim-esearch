@@ -200,7 +200,7 @@ g:esearch.default_mappings                            *g:esearch.default_mapping
 g:esearch.regex                                                  *g:esearch.regex*
         Regex matching mode. You can specify explicitly what regex engine to use
         depending on what search util is set in |g:esearch.adapter| or use boolean
-        values to choose automatically.  E.g. if |g:esearch.adapter| is set or
+        values to choose automatically. E.g. if |g:esearch.adapter| is set or
         automatically resolved to `'grep'` you can set `'extended'` mode to use
         extended regex engine, `'pcre'` to use perl compatible regex etc.
         Type: |Boolean| or |String|
@@ -316,7 +316,7 @@ g:esearch.write_cb({buf}, {bang})                           *g:esearch.write_cb(
 
         See also: |g:esearch.write_cb()-examples|.
 
-            {buf} props         Allowed g:esearch.regex values ~
+            {buf} props                   What they are used for ~
         --------------------+---------------------------------------------------------
         `.existed`            | Shows whether |bufexists()| returned |TRUE| before loading
         `.bufnr`              | Buffer number
@@ -329,6 +329,7 @@ g:esearch.write_cb({buf}, {bang})                           *g:esearch.write_cb(
         `.bwipeout([{bang}]`) | Invokes |:bwipeout| for the buffer with optional ! applied
         --------------------+---------------------------------------------------------
 
+                                                               *esearch-backticks*
 g:esearch.paths                                                  *g:esearch.paths*
         Paths listed using shell syntax to search in.
         Type: ||String|
@@ -476,6 +477,9 @@ keymaps definitions to |g:esearch.win_map| list:
 <plug>(esearch-win-jump:dirname:up)    |  (   | Jump up to the filename from another directory
 <plug>(textobj-esearch-match-i)        |  im  | Seek forward and operate the next match
 <plug>(textobj-esearch-match-a)        |  am  | Same as above, but also capture surrounding spaces
+<plug>(esearch-za)                     |  za  | Toggle the fold. See also: |za|.
+<plug>(esearch-zc)                     |  zc  | Close the fold under the cursor. See also: |zc|.
+<plug>(esearch-zM)                     |  zM  | Close all folds. See also: |zM|.
  --------------------------------------+------+----------------------------------------------------------
 
 g:esearch.win_map                                              *g:esearch.win_map*
@@ -534,11 +538,9 @@ g:esearch.win_map                                              *g:esearch.win_ma
         Default: see |esearch-win-map-defaults|
         Example:~
 >
-        let g:esearch.win_map = [
-        \ ['n', 'e', '<plug>(esearch-win-open)']
-        \]
+        let g:esearch.win_map = [['n', 'e', '<plug>(esearch-win-open)']]
 <
-        NOTE  To return to the search window |CTRL-O| can be used (builtin vim
+        NOTE  To return to the search window |CTRL-O| can be used (the builtin vim
         command to jump to older cursor positions).
 
 <plug>(esearch-win-tabopen)                          *<plug>(esearch-win-tabopen)*
@@ -567,8 +569,10 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-preview)                          *<plug>(esearch-win-preview)*
 <plug>(esearch-win-preview:enter)              *<plug>(esearch-win-preview:enter)*
+<plug>(esearch-win-preview:close)              *<plug>(esearch-win-preview:close)*
         Show the line under the cursor in the file using preview window. If
-        `:enter` is used - put the cursor into the opened preview window.
+        `:enter` is used - put the cursor into the opened preview window. Prefix
+        it with |[count]| to multiple the window size.
         Default: see |esearch-win-map-defaults|
 
         NOTE Floating preview is only supported in neovim >=0.4.0. For vanilla
@@ -578,7 +582,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-jump:filename:up)        *<plug>(esearch-win-jump:filename:up)*
 <plug>(esearch-win-jump:filename:down)    *<plug>(esearch-win-jump:filename:down)*
-        Move cursor to a filename up or down.
+        Move cursor to a filename up or down. Prefix it with |[count]| to jump
+        through multiple filenames.
         Default: `{` and `}`
         Example:~
 >
@@ -601,6 +606,7 @@ g:esearch.win_map                                              *g:esearch.win_ma
 <plug>(esearch-win-jump:dirname:up)          *<plug>(esearch-win-jump:dirname:up)*
 <plug>(esearch-win-jump:dirname:down)      *<plug>(esearch-win-jump:dirname:down)*
         Move cursor to the filename from a different directory up or down.
+        Prefix it with |[count]| to jump through multiple dirnames.
         Default: `(` and `)`
         Example:~
 >
@@ -624,7 +630,8 @@ g:esearch.win_map                                              *g:esearch.win_ma
 
 <plug>(esearch-win-jump:entry:up)              *<plug>(esearch-win-jump:entry:up)*
 <plug>(esearch-win-jump:entry:down)          *<plug>(esearch-win-jump:entry:down)*
-        Move cursor to an outputted text line up or down.
+        Move cursor to an outputted text line up or down. Prefix it with |[count]|
+        to jump through multiple entries.
         Example:~
 >
         let g:esearch.win_map = [
@@ -661,6 +668,15 @@ g:esearch.win_map                                              *g:esearch.win_ma
         |Visual| and |Operator-pending| modes.
 
         See also: |operator|, |text-objects|.
+
+<plug>(esearch-za)                                            *<plug>(esearch-za)*
+<plug>(esearch-zc)                                            *<plug>(esearch-zc)*
+<plug>(esearch-zM)                                            *<plug>(esearch-zM)*
+        Fast folds handling using |fold-manual| method with ranges defined
+        automatically. Folds entire file contexts for regular files and group
+        multiple files under a single fold if they are git blobs.
+
+        See also: |za|, |zc|, |zM|, |esearch-git-show-preview-example|.
 
 ================================================================================
 SEARCH WINDOW CONFIGURATIONS                                  *esearch-win-config*
@@ -1099,29 +1115,28 @@ COMMANDLINE INPUT PROMPT                                  *esearch-cmdline-promp
 Input prompt is opened when |<plug>(esearch)| or |<plug>(operator-esearch-prefill)|
 are pressed.
 
-Within the prompt matching modes can be changed by double clicking:
-- <c-r><c-r> toggles regex mode.
-- <c-s><c-s> toggles case-sensitive mode
-- <c-t><c-t> toggle textobj matching mode.
+ Keymap             What does ~
+ ------------+------------------------------------------------------------------
+ <c-r><c-r>  | Cycle through |g:esearch.regex| modes (`'lietral'`, `'pcre'`, ...)
+ <c-s><c-s>  | Cycle through |g:esearch.case| modes (`'smart'`, `'ignore'`, ...)
+ <c-t><c-t>  | Cycle through |g:esearch.textobj| modes (`'word'`, `'line'`, ...)
+ <c-o>       | Open |esearch-cmdline-menu|
+ <c-p>       | Start editing a new pattern or cycle throught their kinds
+ <bs>, <c-w> | Pop the last pattern and endit the previous if in the beginning
+             | of the empty input
+ ------------+------------------------------------------------------------------
 
+NOTE Multiple patterns feature is only available for [rg], [gogrep], [semgrep]
+and [git-grep].
 NOTE Double clicks are used to prevent any conflicts with the default keymaps
 (e.g. |c_CTRL-R| to insert the contents of a register).
 
-Press <c-o> to open the menu to configure search paths, filetypes and other
-options.
-For [gogrep], [semgrep] and [git-grep] <c-p> key can be used to add multiple
-patterns for searching. Press <c-p> multiple times to cycle through pattern
-kinds. Use <bs> with empty input to drop the last pattern and start editing the
-previous.
 
 ________________________________________________________________________________~
 COMMANDLINE MENU                                            *esearch-cmdline-menu*
 
 Menu is a commandline-based way to configure the values, stored in |g:esearch|
-on the fly. It's separated into 4 columns: keys, that are used to activate
-corresponding menu items, icons to hint what item is active or not, a
-column with a short comments and greyed-out text that shows options to be
-used in the command.
+on the fly.
 
 When within the search prompt, type <c-o> to open the menu.
 Use `j` and `k` to navigate the menu items, `gg` or `G` to navigate the first or the
@@ -1141,24 +1156,57 @@ API.
 API GLOBAL FUNCTIONS                                *esearch-api-global-functions*
 
 esearch#init([{opts}])                                            *esearch#init()*
-        Is invoked when |<plug>(esearch)| map is triggered.
+        Is invoked when |<plug>(esearch)| keymap is pressed.
 
         Parameters:~
-            {opts}    Dict with the same key-values as for |g:esearch| dict to
-                      overrule it (optional)
-        Return:~
-            0
+            {opts}    Dict with the same key-values as for |g:esearch| to overrule
+                      it (optional).
+                      NOTE Some options are preprocessed for better UX.
         Example:~
 >
-        nnoremap <leader>fs :call esearch#init({
-            \ 'paths': $GOPATH . ' node_modules/',
-            \ 'remember': ['regex', 'case']
-            \})<cr>
+        noremap <leader>fm :call esearch#init({'paths': '!(./node_modules)'})<cr>
 <
-        Will search in vendor lib directories. Remember only `'regex'` and `'case'`
-        configurations if they are changed during a request.
+        Example above excludes `node_modules` directory from searches. See also:
+        |g:esearch.paths-glob| for details and |esearch-exclude-directories|
+        to get rid of unwanted directories search globally.
 
-        See also: |g:esearch.remember|, |g:esearch.paths|.
+          Option                          Preprocessing~
+        ----------+-------------------------------------------------------------
+        `.paths`    | If it's a |String| , it's split using shell syntax rules.
+                  | If it's one of |esearch-xargs|, adapter is set to the one
+                  | that supports it. E.g. |esearch#xargs#git_log()| switches
+                  | |g:esearch.adapter| to `'git'`.
+        `.win_map`  | Is appended to |g:esearch.win_map| keymaps list
+        `.remember` | Is set to |FALSE| by default. If |TRUE| is provided, it's
+                  | expanded as |g:esearch.remember|
+        `.prefill`  | If a |String| is returned from a prefiller and it contains
+                  | special chars (see |esearch-cursor-initial-position-example|),
+                  | it resets |g:esearch.select_prefilled| to |FALSE|.
+        `.case`,    | If |Boolean|s are given, they're converted to |String| according
+        `.textobj`, | to the |g:esearch.adapter|. If any option isn't supported by
+        `.regex`    | |g:esearch.adapter|, it's set to adapter's default
+        ----------+-------------------------------------------------------------
+
+esearch#prefill([{opts}])                                      *esearch#prefill()*
+esearch#exec([{opts}])                                            *esearch#exec()*
+        Is invoked when |<plug>(operator-esearch-prefill)| and
+        |<plug>(operator-esearch-exec)| keymaps are pressed. Allow to prefill
+        the input prompt with a selected text or execute a new search instantly
+        using the text as a pattern.
+
+        Parameters:~
+            {opts}    Same as for |esearch#init()|
+        Return:~
+           |:map-<expr>| compliant |String|
+        Example:~
+>
+        nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
+        xnoremap <expr><leader>fs esearch#prefill({'paths': esearch#xargs#git_stash()})
+<
+        It defines <leader>fs keymap to prefill the prompt using the selected
+        text in |Visual| mode or using a text-object.
+        NOTE It's recommended to define it in addition to a |Normal| mode keymap,
+        like it's done above.
 
 esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce()*
         Can be used to create events independently from |CursorHold|. At the
@@ -1193,6 +1241,44 @@ esearch#buf#goto_or_open({name}, {opener}])           *esearch#buf#goto_or_open(
             Same as from |bufloaded()|.
 
         See also: |g:esearch.win_new()-examples| and |g:esearch.win_new()|.
+
+esearch#preview#shell({command}, [{opts}])               *esearch#preview#shell()*
+        Execute {command} using `g:esearch.backend` and output the result into a
+        newly opened preview window.
+
+        Parameters:~
+            {name}    Shell command to be executed
+            {opts}    Same as for |b:esearch.preview_open()| with additional
+                      `'backend'` option support. Set `'backend'` to `'system'` to
+                      execute the command synchronously. By default has
+                      `{'close_on': [], 'line': 1, 'emphasis': []}` options
+                      set.
+        Return:~
+            Same as from |bufloaded()|.
+
+        See also: |esearch-git-show-preview-example|.
+
+                                                                   *esearch-xargs*
+esearch#xargs#git_log([{shell-opts}])                    *esearch#xargs#git_log()*
+esearch#xargs#git_stash([{shell-opts}])                *esearch#xargs#git_stash()*
+        Special |Dict|s to pass in |g:esearch.paths|. Can be used for filtering
+        revisions for further grepping in them.
+
+        Parameters:~
+            {shell-opts}  |String| with extra command options.
+        Return:~
+            |Dict| to be handled internally.
+        Example:~
+>
+        nnoremap <leader>fl
+          \ :call esearch#init({'paths': esearch#xargs#git_log('--reverse')})<cr>
+<
+        It defines <leader>fl keymap to search in git history in reverse order.
+        NOTE It filters files in commits where diff lines match the pattern.
+        Other non-modified but matched lines within these files will be
+        outputted as well.
+        NOTE Explicit switching |g:esearch.adapter| to `'git'` isn't required (all
+        the required information will be contained in the returned |Dict|).
 
 ________________________________________________________________________________~
 API LOCAL FUNCTIONS                                  *esearch-api-local-functions*
@@ -1285,12 +1371,10 @@ they are changed during a request.
         \ 'remember': ['regex', 'case']
         \})<cr>
 <
+                                                            *g:esearch.paths-glob*
 3. Search in front-end files using explicitly set paths.
 >
-    nnoremap <leader>fe :call esearch#init({
-        \ 'paths': '**/*.{js,css,html}',
-        \ 'remember': 0
-        \})<cr>
+    nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 <
 NOTE To use all globbing features make ensure that |'shell'| option contains
 required arguments. E.g. for bash globbing add to your vimrc:
@@ -1304,14 +1388,11 @@ Or the same query if one of [ag], [rg] or [ack] is available:
 <
 See also: |g:esearch.paths| for globbing details.
 
+                                         *esearch-cursor-initial-position-example*
 4. Use a callable prefiller and |<>| brackets notation to set the initial input
 prompt text to `def |(self`, where `|` is the cursor position.
 >
-    let g:search_py_methods = {
-        \ 'prefill':          [{-> "def (self\<s-left>"}],
-        \ 'filetypes':       'python',
-        \ 'select_prefilled': 0
-        \}
+    let g:search_py_methods = {'prefill': [{-> "def (self\<s-left>"}]}
     nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 <
 NOTE You can use any other bracketed keys to define the initial cursor position,
@@ -1320,51 +1401,67 @@ but they must be preceded by `\` to be expanded within `""` quotes.
 See also: |key-notation|, |lambda|.
 
                                                             *esearch-git-examples*
-5. Use backticks in |g:esearch.paths| to search using git information.
+                                                *esearch-git-show-preview-example*
+5. Search in git log using special |esearch#xargs#git_log()| arg. Open the
+preview window with git-show command output to the right of a filename. Use `p` to
+zoom the preview or capital `P` to enter it for scrolling etc.
+>
+    let g:GitShow = {ctx -> ctx().rev &&
+      \ esearch#preview#shell('git show ' . split(ctx().filename, ':')[0], {
+      \   'let': {'&filetype': 'git', '&number': (has('nvim') ? v:false : 0)},
+      \   'row': screenpos(0, ctx().begin, 0).row,
+      \   'col': screenpos(0, line('.'), 0).col + col([ctx().begin, '$']),
+      \   'width': 47, 'height': 3,
+      \ })
+      \}
+    autocmd User esearch_win_config 
+          \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
+          \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
-Search in modified files only.
->
-    nnoremap <leader>fm :call esearch#init({
-        \ 'paths': '`git ls-files --modified`',
-        \ 'remember': 0
-        \})<cr>
+    nnoremap <leader>fh :call esearch#init({
+          \ 'win_map':  [['n', 'P', '100<plug>(esearch-win-preview:enter)']],
+          \ 'paths':    esearch#xargs#git_log(),
+          \})<cr>
 <
-Search in commits made since the beginning of a sprint (if 2 weeks long).
+NOTE [count] is set to 100 to maximize the width and height when entering it.
+
+                                                         *esearch-in-git-modified*
+Use backticks in |g:esearch.paths| to search in modified files only.
 >
-    nnoremap <c-f><c-g> :call esearch#init({
+    nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files -m`'})<cr>
+<
+Search in commits made since 2 working weeks (or another project development
+cycle interval).
+>
+    nnoremap <leader>fu :call esearch#init({
         \ 'adapter':  'git',
         \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
-        \ 'remember': 0
         \})<cr>
 <
-Search in commits from an inputted branch.
+Do a similar thing, but using commits range passed to |esearch#xargs#git_log()|.
+It will search in commits not merged into staging from development.
+>
+    nnoremap <leader>fu :call esearch#init({
+          \ 'paths':    esearch#xargs#git_log('staging..development'),
+          \})<cr>
+<
+Grep in a specific branch inputted by the user.
 >
     function! CompleteBranches(...)
       return system('git branch --format="%(refname:short)"')
     endfunction
 
-    nnoremap <c-f><c-b> :call esearch#init({
+    nnoremap <leader>fb :call esearch#init({
           \ 'adapter':  'git',
-          \ 'paths':    '`git rev-list '.input('branch> ', '', 'custom,CompleteBranches').'`',
-          \ 'remember': 0
+          \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
           \})<cr>
 <
-Print the revision date and author's name under the cursor.
->
-    fu! EchoRevDate(esearch) abort
-      if !a:esearch.is_current() | return | endif
-      let ctx = a:esearch.ctx_at(line('.'))
-      if !get(ctx, 'rev') | return | endif
-      let hash = split(ctx.filename, ':')[0]
-      echo systemlist('git show -s --pretty="%ad %an (%ar)" ' . hash)[0]
-    endfu
 
-    autocmd User esearch_win_config
-      \  let b:echo_date = esearch#async#debounce(function('EchoRevDate'), 100)
-      \| autocmd CursorMoved <buffer> call b:echo_date.apply(b:esearch)
-<
-                                                 *esearch.preview_open()-examples*
+NOTE Unlike rev-list command in backticks, |esearch#xargs#git_log()| will filter
+commits where files were actually modified.
+
                                                              *esearch-autopreview*
+                                                 *esearch.preview_open()-examples*
 6. Show the preview automatically and update it after 100ms timeout. Change
 'vsplit' to 'split' to open the preview horizontally.
 >
@@ -1372,39 +1469,31 @@ Print the revision date and author's name under the cursor.
       \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
       \| autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
 <
-Or the same behavior using floating previews (neovim only). Change align to
-`'top'`, `'right'`, `'bottom'`, `'left'` or `'cursor'` to adjust the window position.
+Or the same behavior using floating previews. Change align to `'top'`, `'right'`,
+`'bottom'`, `'left'` or `'cursor'` to adjust the window position.
 >
     autocmd User esearch_win_config
       \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
-      \| autocmd CursorMoved <buffer> call b:autopreview.apply({
-      \    'close_on': [],
-      \    'align': 'right'
-      \  })
+      \| autocmd CursorMoved <buffer> call b:autopreview.apply({'align': 'right'})
 <
-NOTE `'close_on'` is set to `[]` to override default `['CursorMoved']` |autocommand|,
-as the preview updates are handled using `b:autopreview.apply()` call.
-NOTE This kind of preview is recommended as it's designed to safely handle swap
-dialogs that will appear if |b:esearch.split_preview_open| is used.
-
                                                       *g:esearch.win_map-examples*
                                                             *esearch-sort-results*
 7. Use `g:esearch.win_map` to setup window local keymaps.
 >
     let g:esearch.win_map = [
-     \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @"<cr>'                ],
-     \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                          ],
-     \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'  ],
-     \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'  ],
-     \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), out_to_quickfix))<cr>'],
-     \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'         ],
-     \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'         ],
+     \ ['n', 'yf',  ':call setreg(esearch#util#clipboard_reg(), b:esearch.filename())<cr>'],
+     \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                         ],
+     \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>' ],
+     \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>' ],
+     \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), to_quickfix))<cr>'   ],
+     \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'        ],
+     \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'        ],
      \]
 
-     let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
-     let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
-     let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
-     let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
+     let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}}}
+     let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}}}
+     let g:to_quickfix = {'out': 'qflist'}
+     let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system'}}
 <
 
       Keymap       What will do~
@@ -1413,7 +1502,7 @@ dialogs that will appear if |b:esearch.split_preview_open| is used.
        t    | Use a custom command to open the file in a tab.
        +    | Render [count] more context lines after a line with matches.
        -    | Render [count] less context lines after a line with matches.
-       gq   | Populate QuickFix list using results of the current pattern search.
+       gq   | Populate |Quickfix| list using results of the current pattern search.
        gsp  | Sort the results by path.
        gsd  | Sort the results by modification date.
      -------+-------------------------------------------------------------------
@@ -1422,20 +1511,20 @@ NOTE that "gsp" and "gsd" keymaps are [rg]-specific. Alternatively, you can use
 `--sort-files` option for [ack] or `--workers=1` option for [ag].
 
                                                     *g:esearch.win_new()-examples*
-                                                        *esearch-exec-in-floatwin*
+                                                 *esearch-exec-in-floating-window*
 8. Use a popup-like floating window to render search results.
 >
     let g:esearch = {}
 
-    " Try to jump into an opened floating window or open a new one.
+    " Try to jump into the opened floating window or open a new one.
     let g:esearch.win_new = {esearch->
         \ esearch#buf#goto_or_open(esearch.name, {bufname->
         \   nvim_open_win(bufadd(bufname), v:true, {
         \     'relative': 'editor',
-        \     'row': float2nr(&lines * 0.2) / 2,
-        \     'col': float2nr((&columns * 0.2) / 2),
-        \     'width': float2nr(&columns * 0.8),
-        \     'height': float2nr(&lines * 0.8)
+        \     'row': &lines / 10,
+        \     'col': &columns / 10,
+        \     'width': &columns * 8 / 10,
+        \     'height': &lines * 8 / 10
         \   })
         \ })
         \}
@@ -1450,17 +1539,18 @@ See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
                                                    *g:esearch.write_cb()-examples*
 9. Use write callback to adjust the behavior of writing the window.
 
-Sublime Text-like opening buffers without saving.
+Save applied changes if :write! with '!' was used. Open the buffers otherwise.
 >
-    let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
+    let g:esearch.write_cb =
+        \ {buf, bang -> bang ? buf.write(bang) : buf.open('$tabnew')}
 <
-Write silently and wipeout buffers if they wasn't exist.
+Write silently and wipeout buffers if they didn't exist.
 >
     let g:esearch.write_cb =
         \ {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
 <
-Append buffers data to a location list for reviewing, then open it and
-display the first entry.
+Append buffers data to a location list for reviewing, then open it and edit the
+first entry.
 >
     let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
     autocmd User esearch_write_post lopen | wincmd p | lfirst
@@ -1476,16 +1566,16 @@ See also: |g:esearch.write_cb()|, |esearch_write_post|.
       if exists('b:statusline') | let &statusline = b:statusline | endif
       unlet! b:statusline
 
-      let top_filename = a:esearch.filename(line('w0'))
-      if b:esearch.filename() ==# top_filename && a:esearch.is_entry(line('w0'))
+      let topline = line('w0')
+      if topline > 2 && b:esearch.ctx().id == a:esearch.ctx(topline - 1).id
         let b:statusline = &statusline
         let &statusline = '%#esearchFilename#%{b:esearch.filename()}'
       endif
     endfunction
 
     autocmd User esearch_win_config
-        \  let b:show = esearch#async#debounce(function('ShowOffscreenFilename'), 50)
-        \| autocmd CursorMoved <buffer> call b:show.apply(b:esearch)
+      \  let b:show = esearch#async#debounce(function('ShowOffscreenFilename'), 50)
+      \| autocmd CursorMoved <buffer> call b:show.apply(b:esearch)
 <
 ================================================================================
 TROUBLESHOOTING                                          *esearch-troubleshooting*
@@ -1493,7 +1583,7 @@ TROUBLESHOOTING                                          *esearch-troubleshootin
 1. Show the preview window automatically on a cursor movement.
 
 See |esearch-autopreview|.
-
+                                                     *esearch-exclude-directories*
 2. Avoid searching in `log/`, `node_modules/`, `dist/` and similar folders.
 
 The preferred approach is to use `.agignore` for ag, `.rgignore` or similar

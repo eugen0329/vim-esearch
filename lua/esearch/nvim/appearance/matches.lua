@@ -1,5 +1,5 @@
-local ui       = require('esearch/neovim/appearance/ui')
-local debounce = require('esearch/util').debounce
+local ui       = require('esearch/nvim/appearance/ui')
+local debounce = require('esearch/shared/util').debounce
 
 local M = {
   MATCHES_NS       = vim.api.nvim_create_namespace('esearch_matches'),
@@ -44,6 +44,7 @@ local function matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, 
     local _, offset = line:find(ui.LINENR_RE)
 
     if offset then
+      offset = offset + 1
       local lim = math.min(line:len(), max_col)
 
       col_from, col_to = pattern:match_str(line:sub(offset, lim))

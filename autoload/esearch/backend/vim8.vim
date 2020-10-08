@@ -60,7 +60,11 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
-  let request.data += filter(split(a:data, "\n", 1), "'' !=# v:val")
+  if a:data[len(a:data)-1] ==# "\n"
+    let request.data += split(a:data, "\n", 1)[:-2]
+  else
+    let request.data += split(a:data, "\n", 1)
+  endif
   if !empty(request.cb.update) && request.tick % request.ticks == 1 && !request.aborted
     call request.cb.update()
   endif

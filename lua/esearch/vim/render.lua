@@ -1,10 +1,10 @@
-local parse = require'esearch/vim/parse'
-local util  = require'esearch/util'
+local parse = require'esearch/vim/parse'.parse
+local util  = require'esearch/shared/util'
 
 local M = {}
 
 function M.render(data, esearch, parser)
-  local parsed, lines_delta, errors = parse.lines(data, parser)
+  local parsed, lines_delta, errors = parse(data, parser)
   local contexts     = esearch.contexts
   local state = esearch.state
   local files_count  = esearch.files_count

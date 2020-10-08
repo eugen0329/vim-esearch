@@ -1,9 +1,9 @@
-local matches       = require('esearch/neovim/appearance/matches')
-local annotations   = require('esearch/neovim/appearance/annotations')
-local ui            = require('esearch/neovim/appearance/ui')
-local cursor_linenr = require('esearch/neovim/appearance/cursor_linenr')
+local matches       = require('esearch/nvim/appearance/matches')
+local annotations   = require('esearch/nvim/appearance/annotations')
+local ui            = require('esearch/nvim/appearance/ui')
+local cursor_linenr = require('esearch/nvim/appearance/cursor_linenr')
 
-local M = {
+return {
   ANNOTATIONS_NS              = annotations.ANNOTATIONS_NS,
   ATTACHED_ANNOTATIONS        = annotations.ATTACHED_ANNOTATIONS,
   set_context_len_annotation  = annotations.set_context_len_annotation,
@@ -25,6 +25,9 @@ local M = {
 
   CURSOR_LINENR_NS            = cursor_linenr.CURSOR_LINENR_NS,
   highlight_cursor_linenr     = cursor_linenr.highlight_cursor_linenr,
-}
 
-return M
+  render                      = require'esearch/nvim/render'.render,
+  parse                       = require'esearch/nvim/parse'.parse,
+  util                        = require'esearch/shared/util',
+  extract_headings            = require'esearch/shared/outline'.extract_headings,
+}
