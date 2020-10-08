@@ -13,11 +13,9 @@ endfu
 let s:BufWinGuard = {}
 
 fu! s:BufWinGuard.new(bufnr, winid) abort dict
-  let win = esearch#win#find(a:winid)
-
   return extend(copy(self), {
-        \ 'getters': [function('esearch#buf#get', [a:bufnr]), function('esearch#win#get', win)],
-        \ 'setters': [function('esearch#buf#let', [a:bufnr]), function('esearch#win#let', win)],
+        \ 'getters': [function('esearch#buf#get', [a:bufnr]), function('esearch#win#get', [a:winid])],
+        \ 'setters': [function('esearch#buf#let', [a:bufnr]), function('esearch#win#let', [a:winid])],
         \ '_res': [],
         \ 'bufnr': a:bufnr, 'winid': a:winid})
 endfu
@@ -42,6 +40,7 @@ endfu
 
 fu! s:BufWinGuard.restore() abort dict
   for [name, Val] in self._resources[0]
+    if Val is s:UNDEFINED | continue | endif
     call self.setters[0](name, Val)
   endfor
   if esearch#win#exists(self.winid)

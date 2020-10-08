@@ -73,8 +73,7 @@ endfu
 let s:methods = {
         \ 'preview_open':    function('<SID>preview_open'),
         \ 'preview_zoom':    function('<SID>preview_zoom'),
+        \ 'preview_enter':   function('<SID>preview_enter'),
         \ 'preview_close':   function('esearch#preview#close'),
         \ 'is_preview_open': function('esearch#preview#is_open'),
         \ }
-if g:esearch#has#nvim | let s:methods.preview_enter = function('<SID>preview_enter') | endif
-

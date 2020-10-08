@@ -36,17 +36,15 @@ endfu
 
 fu! s:place_emphasis(emphasis, bufnr, line_in_file) abort
   call s:unplace_emphasis()
-  let win_loc = win_id2tabwin(bufwinid(a:bufnr))
-  if win_loc == [0,0] | return | endif
-
-  let win_handle = call('esearch#win#trace', win_loc)
+  let winid = bufwinid(a:bufnr)
+  if winid == -1 | return | endif
   aug esearch_split_preview
     au! * <buffer>
     au BufLeave,BufWinLeave,WinLeave <buffer> call s:unplace_emphasis()
   aug END
   let b:esearch_emphasis = []
   for e in a:emphasis
-    call add(b:esearch_emphasis, e.new(win_handle, a:bufnr, a:line_in_file).place())
+    call add(b:esearch_emphasis, e.new(winid, a:bufnr, a:line_in_file).place())
   endfor
 endfu
 

@@ -1,27 +1,24 @@
-let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
-     \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-
 fu! esearch#preview#base_popup#import() abort
   return copy(s:PopupBase)
 endfu
 
-let s:PopupBase = {'guard': s:null, 'id': s:null, 'emphasis': s:null, 'variables': s:null}
+let s:PopupBase = {'guard': 0, 'id': 0, 'emphasis': 0, 'variables': 0}
 
-fu! s:PopupBase.new(buffer, location, shape, close_on) abort dict
-  let instance = copy(self)
+fu! s:PopupBase.new(buf, location, shape, close_on) abort dict
+  let new = copy(self)
 
-  let instance.buffer   = a:buffer
-  let instance.location = a:location
-  let instance.shape    = a:shape
-  let instance.close_on = a:close_on
-  let instance.emphasis = []
+  let new.buf      = a:buf
+  let new.location = a:location
+  let new.shape    = a:shape
+  let new.close_on = a:close_on
+  let new.emphasis = []
 
-  return instance
+  return new
 endfu
 
 fu! s:PopupBase.let(variables) abort dict
   let self.variables = a:variables
-  let self.guard = esearch#let#bufwin_restorable(self.buffer.id, self.id, a:variables)
+  let self.guard = esearch#let#bufwin_restorable(self.buf.id, self.id, a:variables)
 endfu
 
 fu! s:PopupBase.init_autoclose_events() abort dict
@@ -34,7 +31,7 @@ fu! s:PopupBase.init_autoclose_events() abort dict
     au User esearch_open_pre ++once call esearch#preview#close()
     if exists('##TabNewEntered')
       " Prevent options inheritance
-      au TabNewEntered * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buffer.id, win_getid()).restore()
+      au TabNewEntered * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buf.id, win_getid()).restore()
     endif
 
     " We cannot close the preview when entering cmdwin, so the only option is to
@@ -47,14 +44,14 @@ fu! s:PopupBase.place_emphasis(emphasis) abort dict
   let self.emphasis = []
 
   for e in a:emphasis
-    call add(self.emphasis, e.new(self.id, self.buffer.id, self.location.line).place())
+    call add(self.emphasis, e.new(self.id, self.buf.id, self.location.line).place())
   endfor
 endfu
 
 fu! s:PopupBase.unplace_emphasis() abort dict
   if !empty(self.emphasis)
     call map(self.emphasis, 'v:val.unplace()')
-    let self.emphasis = s:null
+    let self.emphasis = []
   endif
 endfu
 

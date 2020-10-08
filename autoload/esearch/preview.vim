@@ -5,10 +5,11 @@ let s:Buf = esearch#preview#buf#import()
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-if has('nvim')
+if g:esearch#has#nvim
   let s:Preview = esearch#preview#nvim#opener#import()
   let s:default_vars = {
-        \ '&foldenable': s:false,
+        \ '&foldenable': 0,
+        \ '&wrap': 0,
         \ '&winhighlight': join([
         \   'Normal:esearchNormalFloat',
         \   'SignColumn:esearchSignColumnFloat',
@@ -20,7 +21,7 @@ if has('nvim')
         \ }
 else
   let s:Preview = esearch#preview#vim#opener#import()
-  let s:default_vars = {'&foldenable': 0, '&number': 1}
+  let s:default_vars = {'&foldenable': 0, '&number': 1, '&wrap': 0}
 endif
 let g:esearch#preview#close_on = ['QuitPre', 'BufEnter', 'BufWinEnter', 'TabLeave']
 let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
@@ -31,8 +32,8 @@ let g:esearch#preview#reset_on = 'BufWinLeave,BufLeave'
 " renamed.
 let g:esearch#preview#silent_open_eventignore = 'BufLeave,BufWinLeave,BufEnter,BufWinEnter,WinEnter,BufDelete'
 let g:esearch#preview#buffers = {}
-let g:esearch#preview#win     = s:null
-let g:esearch#preview#buffer  = s:null
+let g:esearch#preview#win     = {}
+let g:esearch#preview#buffer  = {}
 let g:esearch#preview#last    = {}
 
 fu! esearch#preview#shell(command, ...) abort
@@ -98,13 +99,13 @@ fu! esearch#preview#open(filename, line, ...) abort
 endfu
 
 fu! esearch#preview#is_current() abort
-  return g:esearch#preview#win isnot# s:null
+  return !empty(g:esearch#preview#win)
         \ && g:esearch#preview#win.id == win_getid()
 endfu
 
 fu! esearch#preview#is_open() abort
   " window id becomes invalid on bwipeout
-  return g:esearch#preview#win isnot# s:null
+  return !empty(g:esearch#preview#win)
         \ && esearch#win#exists(g:esearch#preview#win.id)
 endfu
 
@@ -122,8 +123,8 @@ fu! esearch#preview#close(...) abort
   if esearch#preview#is_open() && !s:is_cmdwin()
     call esearch#preview#reset()
     call g:esearch#preview#win.close()
-    let g:esearch#preview#buffer = g:esearch#preview#win.buffer
-    let g:esearch#preview#win = s:null
+    let g:esearch#preview#buffer = g:esearch#preview#win.buf
+    let g:esearch#preview#win = 0
     return 1
   endif
   return 0
@@ -132,7 +133,7 @@ endfu
 fu! esearch#preview#wipeout(...) abort
   call esearch#preview#close()
   let buffer = g:esearch#preview#buffer
-  if buffer isnot# s:null && get(buffer, 'viewed') && bufexists(buffer.id) && getbufvar(buffer.id, '&readonly')
+  if !empty(buffer) && get(buffer, 'viewed') && bufexists(buffer.id) && getbufvar(buffer.id, '&readonly')
     exe buffer.id 'bwipeout'
   endif
 endfu

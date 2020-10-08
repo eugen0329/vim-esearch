@@ -25,7 +25,6 @@ function M.highlight_ui(bufnr, from, to)
   -- so rehighlighting the previous line is needed.
   from = math.max(from - 1, 0)
   local lines = vim.api.nvim_buf_get_lines(bufnr, from, to, false)
-  -- print(from, vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1])
 
   for i, text in ipairs(lines) do
     if i == 1 and from < 1 then

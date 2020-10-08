@@ -4,19 +4,19 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
 fu! esearch#preview#vim#opener#import() abort
-  return copy(s:VimPreview)
+  return copy(s:VimOpener)
 endfu
 
-let s:VimPreview = esearch#preview#base_opener#import()
-let s:VimPreview.popup = esearch#preview#vim#popup#import()
+let s:VimOpener = esearch#preview#base_opener#import()
+let s:VimOpener.popup = esearch#preview#vim#popup#import()
 
-fu! s:VimPreview.open() abort dict
-  let self.buffer = s:Buf.new(self.location.filename)
+fu! s:VimOpener.open() abort dict
+  let self.buf = s:Buf.new(self.location.filename)
 
   try
     call esearch#preview#close()
     let g:esearch#preview#win = self.popup
-          \.new(self.buffer, self.location, self.shape, self.close_on)
+          \.new(self.buf, self.location, self.shape, self.close_on)
           \.open()
     let self.win = g:esearch#preview#win
     call self.win.let(self.vars)
@@ -28,6 +28,19 @@ fu! s:VimPreview.open() abort dict
     call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
     return s:false
   endtry
+
+  return s:true
+endfu
+
+fu! s:VimOpener.open_and_enter() abort dict
+  let current_win = esearch#win#stay()
+  let self.buf = s:Buf.new(self.location.filename)
+
+  if esearch#preview#is_open()
+    let g:esearch#preview#win.guard = {}
+  endif
+  call esearch#preview#close()
+  call b:esearch.reusable_buffers_manager.open(self.location.filename)
 
   return s:true
 endfu

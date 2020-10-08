@@ -5,32 +5,32 @@ endfu
 let s:PreviewBuffer = {'kind': 'regular', 'swapname': ''}
 
 fu! s:PreviewBuffer.new(filename, ...) abort dict
-  let instance = copy(self)
-  let instance.filename = a:filename
+  let new = copy(self)
+  let new.filename = a:filename
 
   let reuse_existing = get(a:, 1, 1)
   if reuse_existing && bufexists(a:filename)
-    let instance.id = esearch#buf#find(a:filename)
+    let new.id = esearch#buf#find(a:filename)
   else
-    let instance.id = bufadd(a:filename)
+    let new.id = bufadd(a:filename)
   endif
 
-  return instance
+  return new
 endfu
 
 fu! s:PreviewBuffer.fetch_or_create(filename, cache) abort dict
   if has_key(a:cache, a:filename)
-    let instance = a:cache[a:filename]
-    if instance.is_valid()
-      return instance
+    let cached = a:cache[a:filename]
+    if cached.is_valid()
+      return cached
     endif
     call remove(a:cache, a:filename)
   endif
 
-  let instance = self.new(a:filename)
-  let a:cache[a:filename] = instance
+  let new = self.new(a:filename)
+  let a:cache[a:filename] = new
 
-  return instance
+  return new
 endfu
 
 fu! s:PreviewBuffer.edit_allowing_swap_prompt() abort dict

@@ -10,24 +10,24 @@ endfu
 let s:BaseOpener = {}
 
 fu! s:BaseOpener.new(location, shape, emphasis, vars, opts, close_on) abort dict
-  let instance = copy(self)
-  let instance.location = a:location
-  let instance.shape    = a:shape
-  let instance.vars = a:vars
-  let instance.opts     = a:opts
-  let instance.close_on = a:close_on
-  let instance.emphasis = a:emphasis
-  return instance
+  let new = copy(self)
+  let new.location = a:location
+  let new.shape    = a:shape
+  let new.vars = a:vars
+  let new.opts     = a:opts
+  let new.close_on = a:close_on
+  let new.emphasis = a:emphasis
+  return new
 endfu
 
 fu! s:BaseOpener.shell() abort dict
   let current_win = esearch#win#stay()
-  let self.buffer = s:Buf.fetch_or_create(
+  let self.buf = s:Buf.fetch_or_create(
         \ self.location.filename, g:esearch#preview#buffers)
 
   try
     let g:esearch#preview#win = self.popup
-          \.new(self.buffer, self.location, self.shape, self.close_on)
+          \.new(self.buf, self.location, self.shape, self.close_on)
           \.open()
     let self.win = g:esearch#preview#win
     let self.win.upd_at = reltime()

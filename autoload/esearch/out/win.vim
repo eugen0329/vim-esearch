@@ -178,46 +178,42 @@ fu! esearch#out#win#map(lhs, rhs) abort
 endfu
 
 fu! s:init_keymaps() abort
-  nnoremap <silent><buffer> <plug>(esearch-win-reload)            :<c-u>cal b:esearch.reload()<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-open)              :<c-u>cal b:esearch.open('edit')<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-tabopen)           :<c-u>cal b:esearch.open('tabnew')<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-tabopen:stay)      :<c-u>cal b:esearch.open('tabnew', {'stay': 1})<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-split)             :<c-u>cal b:esearch.open('new')<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-split:stay)        :<c-u>cal b:esearch.open('new', {'stay': 1})<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-split:reuse)       :<c-u>cal b:esearch.open('new', {'reuse': 1})<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-split:reuse:stay)  :<c-u>cal b:esearch.open('new', {'stay': 1, 'reuse': 1})<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-vsplit)            :<c-u>cal b:esearch.open('vnew')<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-vsplit:stay)       :<c-u>cal b:esearch.open('vnew', {'stay': 1})<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse)      :<c-u>cal b:esearch.open('vnew', {'reuse': 1})<cr>
-  nnoremap <silent><buffer> <plug>(esearch-win-vsplit:reuse:stay) :<c-u>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-reload)            :<c-u>cal b:esearch.reload()<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-open)              :<c-u>cal b:esearch.open('edit')<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-tabopen)           :<c-u>cal b:esearch.open('tabnew')<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-tabopen:stay)      :<c-u>cal b:esearch.open('tabnew', {'stay': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-split)             :<c-u>cal b:esearch.open('new')<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-split:stay)        :<c-u>cal b:esearch.open('new', {'stay': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-split:reuse)       :<c-u>cal b:esearch.open('new', {'reuse': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-split:reuse:stay)  :<c-u>cal b:esearch.open('new', {'stay': 1, 'reuse': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-vsplit)            :<c-u>cal b:esearch.open('vnew')<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-vsplit:stay)       :<c-u>cal b:esearch.open('vnew', {'stay': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-vsplit:reuse)      :<c-u>cal b:esearch.open('vnew', {'reuse': 1})<cr>
+  nnoremap <silent><buffer><plug>(esearch-win-vsplit:reuse:stay) :<c-u>cal b:esearch.open('vnew', {'stay': 1, 'reuse': 1})<cr>
   if g:esearch#has#preview
-    nnoremap <silent><buffer> <plug>(esearch-win-preview)             :<c-u>cal b:esearch.preview_zoom(v:count1)<cr>
-    nnoremap <expr><silent><buffer> <plug>(esearch-win-preview:close) b:esearch.preview_close() ? '' : "\<esc>"
-    if g:esearch#has#nvim_preview
-      nnoremap <silent><buffer> <plug>(esearch-win-preview:enter) :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
-    else
-      nnoremap <silent><buffer> <plug>(esearch-win-preview:enter) :<c-u>cal b:esearch.open('tabnew', {'reuse': 1})<cr>
-    endif
+    nnoremap <silent><buffer><plug>(esearch-win-preview)             :<c-u>cal b:esearch.preview_zoom(v:count1)<cr>
+    nnoremap <silent><buffer><plug>(esearch-win-preview:enter)       :<c-u>cal b:esearch.preview_enter(v:count1)<cr>
+    nnoremap <expr><silent><buffer><plug>(esearch-win-preview:close) b:esearch.preview_close() ? '' : "\<esc>"
   else
-    nnoremap <silent><buffer> <plug>(esearch-win-preview)         :<c-u>cal b:esearch.split_preview_open('vnew')<cr>
-    nnoremap <silent><buffer> <plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.split_preview_open('vnew', {'stay': 0})<cr>
+    nnoremap <silent><buffer><plug>(esearch-win-preview)         :<c-u>cal b:esearch.split_preview_open('vnew')<cr>
+    nnoremap <silent><buffer><plug>(esearch-win-preview:enter)   :<c-u>cal b:esearch.split_preview_open('vnew', {'stay': 0})<cr>
   endif
-  noremap  <silent><buffer> <plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-v:count1)<cr>
-  noremap  <silent><buffer> <plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(v:count1)<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-v:count1, 'v')<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(v:count1, 'v')<cr>
-  noremap  <silent><buffer> <plug>(esearch-win-jump:dirname:up)   :<c-u>cal b:esearch.jump2dirname(-v:count1)<cr>
-  noremap  <silent><buffer> <plug>(esearch-win-jump:dirname:down) :<c-u>cal b:esearch.jump2dirname(v:count1)<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:dirname:up)   :<c-u>cal b:esearch.jump2dirname(-v:count1, 'v')<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:dirname:down) :<c-u>cal b:esearch.jump2dirname(v:count1, 'v')<cr>
-  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:up)   :<c-u>cal b:esearch.jump2entry(-v:count1)<cr>
-  noremap  <silent><buffer> <plug>(esearch-win-jump:entry:down) :<c-u>cal b:esearch.jump2entry(v:count1)<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:up)   :<c-u>cal b:esearch.jump2entry(-v:count1, 'v')<cr>
-  vnoremap <silent><buffer> <plug>(esearch-win-jump:entry:down) :<c-u>cal b:esearch.jump2entry(v:count1, 'v')<cr>
-  vnoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(1, v:count1)<cr>
-  onoremap <silent><buffer> <plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(0, v:count1)<cr>
-  vnoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(1, v:count1)<cr>
-  onoremap <silent><buffer> <plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
+  noremap  <silent><buffer><plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-v:count1)<cr>
+  noremap  <silent><buffer><plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(v:count1)<cr>
+  vnoremap <silent><buffer><plug>(esearch-win-jump:filename:up)   :<c-u>cal b:esearch.jump2filename(-v:count1, 'v')<cr>
+  vnoremap <silent><buffer><plug>(esearch-win-jump:filename:down) :<c-u>cal b:esearch.jump2filename(v:count1, 'v')<cr>
+  noremap  <silent><buffer><plug>(esearch-win-jump:dirname:up)    :<c-u>cal b:esearch.jump2dirname(-v:count1)<cr>
+  noremap  <silent><buffer><plug>(esearch-win-jump:dirname:down)  :<c-u>cal b:esearch.jump2dirname(v:count1)<cr>
+  vnoremap <silent><buffer><plug>(esearch-win-jump:dirname:up)    :<c-u>cal b:esearch.jump2dirname(-v:count1, 'v')<cr>
+  vnoremap <silent><buffer><plug>(esearch-win-jump:dirname:down)  :<c-u>cal b:esearch.jump2dirname(v:count1, 'v')<cr>
+  noremap  <silent><buffer><plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-v:count1)<cr>
+  noremap  <silent><buffer><plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(v:count1)<cr>
+  vnoremap <silent><buffer><plug>(esearch-win-jump:entry:up)      :<c-u>cal b:esearch.jump2entry(-v:count1, 'v')<cr>
+  vnoremap <silent><buffer><plug>(esearch-win-jump:entry:down)    :<c-u>cal b:esearch.jump2entry(v:count1, 'v')<cr>
+  vnoremap <silent><buffer><plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(1, v:count1)<cr>
+  onoremap <silent><buffer><plug>(textobj-esearch-match-i) :<c-u>cal esearch#out#win#textobj#match_i(0, v:count1)<cr>
+  vnoremap <silent><buffer><plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(1, v:count1)<cr>
+  onoremap <silent><buffer><plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
 
   cnoremap       <silent><buffer><plug>(esearch-cr) <c-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
   inoremap <expr><silent><buffer><Plug>(esearch-cr) esearch#out#win#modifiable#cr()

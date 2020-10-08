@@ -12,21 +12,21 @@ let s:NvimOpener.popup = esearch#preview#nvim#popup#import()
 
 fu! s:NvimOpener.open() abort dict
   let current_win = esearch#win#stay()
-  let self.buffer = s:Buf.fetch_or_create(
+  let self.buf = s:Buf.fetch_or_create(
         \ self.location.filename, g:esearch#preview#buffers)
 
   try
     let g:esearch#preview#win = s:NvimOpener.open_or_update(
-          \ self.buffer, self.location, self.shape, self.close_on)
+          \ self.buf, self.location, self.shape, self.close_on)
     let self.win = g:esearch#preview#win
 
     call self.win.enter()
     if !self.win.edit()
       call self.win.view()
     endif
-    " it's better to let variables after editing the buffer to prevent
+    " it's better to let variables after editing the buf to prevent
     " inheriting some options by buffers (for example, &winhl local to window
-    " becoms local to buffer).
+    " becoms local to buf).
     call self.win.let(self.vars)
     call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()
@@ -43,14 +43,14 @@ fu! s:NvimOpener.open() abort dict
 endfu
 
 " Maintain the window as a singleton.
-fu! s:NvimOpener.open_or_update(buffer, location, shape, close_on) abort dict
+fu! s:NvimOpener.open_or_update(buf, location, shape, close_on) abort dict
   if esearch#preview#is_open()
     return g:esearch#preview#win
-          \.update(a:buffer, a:location, a:shape, a:close_on)
+          \.update(a:buf, a:location, a:shape, a:close_on)
   else
     call esearch#preview#close()
     return self.popup
-          \.new(a:buffer, a:location, a:shape, a:close_on)
+          \.new(a:buf, a:location, a:shape, a:close_on)
           \.open()
   endif
 endfu
@@ -58,12 +58,12 @@ endfu
 fu! s:NvimOpener.open_and_enter() abort dict
   let current_win = esearch#win#stay()
   let reuse_existing = 0
-  let self.buffer = s:Buf.new(self.location.filename, reuse_existing)
+  let self.buf = s:Buf.new(self.location.filename, reuse_existing)
 
   try
     if esearch#preview#is_open()
           \ && g:esearch#preview#win.location.filename ==# self.location.filename
-          \ && empty(g:esearch#preview#win.buffer.swapname)
+          \ && empty(g:esearch#preview#win.buf.swapname)
       call esearch#preview#reset()
       silent! au! esearch_preview_autoclose
       let g:esearch#preview#win.shape = self.shape
@@ -72,20 +72,20 @@ fu! s:NvimOpener.open_and_enter() abort dict
     else
       call esearch#preview#close()
       let g:esearch#preview#win = self.popup
-            \.new(self.buffer, self.location, self.shape, self.close_on)
+            \.new(self.buf, self.location, self.shape, self.close_on)
             \.open()
       let was_opened = 0
     endif
     let self.win = g:esearch#preview#win
     call self.win.enter()
-    if !was_opened && !self.buffer.edit_allowing_swap_prompt()
+    if !was_opened && !self.buf.edit_allowing_swap_prompt()
       call esearch#preview#close()
       return s:false
     endif
 
-    " it's better to let variables after editing the buffer to prevent
+    " it's better to let variables after editing the buf to prevent
     " inheriting some options by buffers (for example, &winhl local to window
-    " becoms local to buffer).
+    " becoms local to buf).
     call self.win.let(self.vars)
     call self.win.place_emphasis(self.emphasis)
     call self.win.reshape()

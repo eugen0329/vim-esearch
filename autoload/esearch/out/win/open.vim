@@ -80,8 +80,7 @@ fu! s:open_reusable(esearch, opener, filename, opts) abort
     unsilent call a:esearch.reusable_buffers_manager.open(a:filename, a:opts)
   endif
 
-  let a:esearch.reusable_windows[opener_id] =
-        \ esearch#win#trace()
+  let a:esearch.reusable_windows[opener_id] = esearch#win#trace()
 endfu
 
 fu! s:to_callable(opener) abort

@@ -1,6 +1,5 @@
 let s:results_line_re = '^\%>1l\s\+\d\+.*'
 let s:Filepath = vital#esearch#import('System.Filepath')
-
 let g:esearch#out#win#view_data#null_ctx = {'begin': 0, 'end': 0, 'rev': 0, 'filename': 0, 'lines': {}}
 
 " Methods to mine information from a rendered window

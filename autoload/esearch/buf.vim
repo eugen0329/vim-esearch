@@ -1,6 +1,7 @@
 let s:Buffer = vital#esearch#import('Vim.Buffer')
 let s:Log = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
+let s:UNDEFINED = esearch#polyfill#undefined()
 
 if g:esearch#has#bufadd
   fu! esearch#buf#find(filename) abort
@@ -37,7 +38,7 @@ fu! esearch#buf#tabwin(bufnr) abort
 endf
 
 fu! esearch#buf#get(bufnr, name) abort
-  return getbufvar(a:bufnr, a:name[(a:name =~# '^b:' ? 2 : 0):])
+  return getbufvar(a:bufnr, a:name[(a:name =~# '^b:' ? 2 : 0):], s:UNDEFINED)
 endfu
 
 fu! esearch#buf#let(bufnr, name, val) abort

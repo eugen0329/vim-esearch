@@ -6,26 +6,29 @@ Execute(Guard):
   let w:win_var     = 'w:original'
   let &g:makeprg    = 'original'
   let &g:statusline = 'original'
-  let expected = {
-    \  '&makeprg':     'local to buffer',
-    \  '&equalprg':    'global',
-    \  '&statusline':  'local to window',
-    \  'b:buf_var':    'b:buf_var',
-    \  'w:win_var':    'w:win_var',
+  let &l:foldenable = 1
+  let g:expected = {
+    \  '&makeprg':    'local to buffer',
+    \  '&equalprg':   'global',
+    \  '&statusline': 'local to window',
+    \  'b:buf_var':   'b:buf_var',
+    \  'w:win_var':   'w:win_var',
+    \  '&foldenable': 0
     \}
-    let g:bufnr = bufnr()
-    let g:winid = win_getid()
-Then:
-  tabnew
+  let g:bufnr = bufnr()
+  let g:winid = win_getid()
+  0tabnew
+  $tabnew
   for _ in range(3)
-    let g:guard = esearch#let#bufwin_restorable(g:bufnr, g:winid, expected)
+    let g:guard = esearch#let#bufwin_restorable(g:bufnr, g:winid, g:expected)
     let actual = {
       \  '&makeprg':     getbufvar(g:bufnr, '&makeprg'),
       \  '&equalprg':    getbufvar(g:bufnr, '&equalprg'),
       \  '&statusline':  gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, '&statusline'),
+      \  '&foldenable':  gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, '&foldenable'),
       \  'b:buf_var':    getbufvar(g:bufnr, 'buf_var'),
       \  'w:win_var':    gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, 'win_var'),
       \}
-    AssertEqual expected, actual
+    AssertEqual g:expected, actual
     call g:guard.restore()
   endfor
