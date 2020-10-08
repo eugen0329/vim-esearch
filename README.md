@@ -148,7 +148,7 @@ autocmd User esearch_win_config
   \| autocmd CursorMoved <buffer> call b:autopreview.apply({'align': 'right'})
 ```
 
-![git-grep demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/git-log-preview.png)
+![git-grep demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/git-grep-demo.png)
 
 Define `<leader>fh` keymap for searching in git history and define a popup with `git-show` output.
 ```vim
