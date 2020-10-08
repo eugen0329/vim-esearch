@@ -103,7 +103,7 @@ fu! s:hl(esearch, from, to) abort
 
   let wlnum = a:from
   for text in nvim_buf_get_lines(0, wlnum - 1, a:to, 0)
-    let offset = match(text, g:esearch#out#win#column_re)
+    let offset = matchend(text, g:esearch#out#win#column_re)
     if offset ==# -1
       let wlnum += 1
       continue
@@ -118,7 +118,7 @@ fu! s:hl(esearch, from, to) abort
       continue
     endif
 
-    let col_from = match(text, pattern, offset + 2)
+    let col_from = match(text, pattern, offset)
     if col_from < 0 | let wlnum += 1 | continue | endif
     let col_to = matchend(text, pattern, col_from)
 

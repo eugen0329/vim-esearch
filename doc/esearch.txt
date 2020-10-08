@@ -759,9 +759,9 @@ See also: |g:esearch.win_map| for keymaps customization.
 ________________________________________________________________________________~
 SEARCH WINDOW EDITING                                        *esearch-win-editing*
                           *<plug>(esearch-I)* *<plug>(esearch-cr)* *<plug>(esearch-d)*
-                          *<plug>(esearch-d)* *<plug>(esearch-dd)* *<plug>(esearch-c)*
+                          *<plug>(esearch-dd)* *<plug>(esearch-c)* *<plug>(esearch-.)*
                           *<plug>(esearch-cc)* *<plug>(esearch-C)* *<plug>(esearch-D)*
-                          *<plug>(esearch-c)* *<plug>(esearch-.)* *<plug>(esearch-@:)*
+                                                                  *<plug>(esearch-@:)*
 
 Builtin keymaps are redefined within the search buffer to track changes and help
 modifying search results. Default definitions:
@@ -877,7 +877,7 @@ esearchFilename                                               *hl-esearchFilenam
         Filename above each context highlight.
         Default: link to |hl-Directory|
 
-esearchBasename                                               *hl-esearchFilename*
+esearchBasename                                               *hl-esearchBasename*
         Basename of the current filename. Neovim only.
         Default: |esearchFilename| with |bald| attribute set
 
@@ -1130,7 +1130,6 @@ NOTE Multiple patterns feature is only available for [rg], [gogrep], [semgrep]
 and [git-grep].
 NOTE Double clicks are used to prevent any conflicts with the default keymaps
 (e.g. |c_CTRL-R| to insert the contents of a register).
-
 
 ________________________________________________________________________________~
 COMMANDLINE MENU                                            *esearch-cmdline-menu*
@@ -1414,7 +1413,7 @@ zoom the preview or capital `P` to enter it for scrolling etc.
       \   'width': 47, 'height': 3,
       \ })
       \}
-    autocmd User esearch_win_config 
+    autocmd User esearch_win_config
           \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
           \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
