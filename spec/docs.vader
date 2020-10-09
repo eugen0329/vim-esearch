@@ -20,36 +20,37 @@ Execute(.win_map):
   call g:esearch.win_new({})
   bwipe!
   let g:esearch.win_map = [
-   \ ['n', 'yf',  ':<c-u>let @" = b:esearch.filename() | let @+ = @"<cr>'                ],
-   \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                          ],
-   \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>'  ],
-   \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>'  ],
-   \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), out_to_quickfix))<cr>'],
-   \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'         ],
-   \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'         ],
+   \ ['n', 'yf',  ':call setreg(esearch#util#clipboard_reg(), b:esearch.filename())<cr>'],
+   \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                         ],
+   \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>' ],
+   \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>' ],
+   \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), to_quickfix))<cr>'   ],
+   \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'        ],
+   \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'        ],
    \]
-   let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}, 'remember': 0}}
-   let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}, 'remember': 0}}
-   let g:out_to_quickfix = {'out': 'qflist', 'remember': 0}
-   let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system', 'remember': 0}}
+
+   let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}}}
+   let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}}}
+   let g:to_quickfix = {'out': 'qflist'}
+   let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system'}}
 Then:
-   call esearch#init({'pattern': '.'})
-   norm yf
-   AssertEqual @+, g:file
-   norm t
-   Assert split(execute('messages'), "\n")[-1] =~# 'Not an editor command: NewTabdrop'
-   norm 4+
-   AssertEqual b:esearch.after, 4
-   norm 2-
-   AssertEqual b:esearch.after, 2
-   norm gq
-   AssertEqual &ft, 'qf'
-   AssertEqual line('$'), len(readfile(g:file))
-   cclose
-   norm gsp
-   Assert b:esearch.request.command =~# '--sort path', 'expected to sort by path'
-   norm gsd
-   Assert b:esearch.request.command =~# '--sort modified', 'expected to sort by date'
+  call esearch#init({'pattern': '.'})
+  norm yf
+  AssertEqual getreg(esearch#util#clipboard_reg()), g:file, 'expected to yank the filename'
+  norm t
+  Assert split(execute('messages'), "\n")[-1] =~# 'Not an editor command: NewTabdrop'
+  norm 4+
+  AssertEqual b:esearch.after, 4
+  norm 2-
+  AssertEqual b:esearch.after, 2
+  norm gq
+  AssertEqual &ft, 'qf'
+  AssertEqual line('$'), len(readfile(g:file))
+  cclose
+  norm gsp
+  Assert b:esearch.request.command =~# '--sort path', 'expected to sort by path'
+  norm gsd
+  Assert b:esearch.request.command =~# '--sort modified', 'expected to sort by date'
 
 Execute(split autopreview):
   call g:esearch.win_new({})
@@ -202,35 +203,37 @@ Then:
   AssertEqual b:esearch.pattern.str, '\b(ipdb|debugger)\b'
 
 Execute:
-  nnoremap <leader>fs :call esearch#init({
-      \ 'paths':    $GOPATH . ' node_modules/',
-      \ 'remember': ['regex', 'case']
-      \})<cr>
+  noremap  <expr><leader>fs esearch#prefill({'paths': $GOPATH.' node_modules/'})
+  nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
 Then:
   exe "norm ,fs__pattern__\<CR>"
   Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fs\<CR>"
+  Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
 
-Execute:
-  nnoremap <leader>fe :call esearch#init({
-      \ 'paths': '**/*.{js,css,html}',
-      \ 'remember': 0
-      \})<cr>
+Execute (globs):
+  noremap  <expr><leader>fe esearch#prefill({'paths': '**/*.{js,css,html}'})
+  nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 Then:
   exe "norm ,fe__pattern__\<CR>"
   AssertEqual b:esearch.paths[0].str, '**/*.{js,css,html}'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fe\<CR>"
+  AssertEqual b:esearch.paths[0].str, '**/*.{js,css,html}'
 
-Execute:
+Execute (filetypes):
+  noremap  <expr><leader>fe esearch#prefill({'filetypes': 'js css html'})
   nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 Then:
   exe "norm ,fe__pattern__\<CR>"
   AssertEqual b:esearch.filetypes, 'js css html'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fe\<CR>"
+  AssertEqual b:esearch.filetypes, 'js css html'
 
 Execute:
-  let g:search_py_methods = {
-      \ 'prefill':          [{-> "def (self\<s-left>"}],
-      \ 'filetypes':       'python',
-      \ 'select_prefilled': 0
-      \}
+  let g:search_py_methods = {'prefill': [{-> "def (self\<s-left>"}]}
   nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
 Then:
   exe "norm ,fp__pattern__\<CR>"
@@ -242,21 +245,29 @@ Then:
   exe "norm ,fm__pattern__\<CR>"
   AssertEqual b:esearch.paths[0].str, '`git ls-files --modified`'
 
-Execute:
-  nnoremap <c-f><c-g> :call esearch#init({
-      \ 'adapter':  'git',
-      \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
-      \ 'remember': 0
-      \})<cr>
+Execute (unmerged using rev-list):
+  let g:since_2_weeks =
+    \ '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`'
+  noremap  <expr><leader>fu esearch#prefill({'adapter': 'git', 'paths': g:since_2_weeks})
+  nnoremap <leader>fu :call esearch#init({'adapter': 'git', 'paths': g:since_2_weeks})<cr>
 Then:
-  exe "norm \<c-f>\<c-g>__pattern__\<CR>"
+  exe "norm ,fu__pattern__\<CR>"
+  Assert b:esearch.paths[0].str =~# '^`git rev-list', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fu\<CR>"
   Assert b:esearch.paths[0].str =~# '^`git rev-list', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
 
 Execute:
   nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
+  xnoremap <expr><leader>fs esearch#prefill({'paths': esearch#xargs#git_stash()})
 Then:
   exe "norm ,fs__pattern__\<CR>"
+  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fs\<CR>"
   Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
 
@@ -265,12 +276,11 @@ Execute:
     return system('git branch --format="%(refname:short)"')
   endfunction
 
-  nnoremap <c-f><c-b> :call esearch#init({
+  nnoremap <leader>fb :call esearch#init({
         \ 'adapter':  'git',
-        \ 'paths':    '`git rev-list '.input('branch> ', '', 'custom,CompleteBranches').'`',
-        \ 'remember': 0
+        \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
         \})<cr>
 Then:
-  exe "norm \<c-f>\<c-b>HEAD\<CR>__pattern__\<CR>"
+  exe "norm ,fbHEAD\<CR>__pattern__\<CR>"
   Assert b:esearch.paths[0].str =~# 'HEAD', b:esearch.paths
   AssertEqual b:esearch.request.errors, []

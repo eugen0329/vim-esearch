@@ -1,10 +1,11 @@
 let [s:args, s:count, s:reg] = [[], 0, '']
 
 fu! esearch#operator#expr(operatorfunc, ...) abort
+  let s:args = copy(a:000)
   if mode(1)[:1] ==# 'no'
     return 'g@'
   elseif mode() ==# 'n'
-    let [s:args, s:count, s:reg, &operatorfunc] = [copy(a:000), v:count, v:register, a:operatorfunc]
+    let [s:count, s:reg, &operatorfunc] = [v:count, v:register, a:operatorfunc]
     return ":\<c-u>\<cr>".(s:count ? s:count : '').(empty(s:reg) ? '' : '"'.s:reg).'g@'
   else
     let [s:count, s:reg] = [v:count, v:register]

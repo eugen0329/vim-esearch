@@ -150,7 +150,7 @@ autocmd User esearch_win_config
 
 ![git-grep demo](https://raw.githubusercontent.com/eugen0329/vim-esearch/assets/git-grep-demo.png)
 
-Define `<leader>fh` keymap for searching in git history and define a popup with `git-show` output.
+Define `<leader>fh` keymap for searching in git history and define a popup with `git-show` output. Use `P` to maximize and enter the popup for viewing the patch.
 ```vim
 " Show the popup with git-show information on CursorMoved is a git revision context is hovered.
 let g:GitShow = {ctx -> ctx().rev &&
@@ -165,12 +165,8 @@ let g:GitShow = {ctx -> ctx().rev &&
 autocmd User esearch_win_config
       \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
       \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
-" Define 'P' window-local keymap for 'n'ormal mode to enter and maximize
-" the popup by 100 for viewing the patch.
-nnoremap <leader>fh :call esearch#init({
-      \ 'win_map': [['n', 'P', '100<plug>(esearch-win-preview:enter)']],
-      \ 'paths':   esearch#xargs#git_log('--patch --stat'),
-      \})<cr>
+
+nnoremap <leader>fh :call esearch#init({'paths': esearch#xargs#git_log('--patch')})<cr>
 ```
 Other git usage examples.
 ```vim

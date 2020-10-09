@@ -1359,20 +1359,19 @@ API USAGE EXAMPLES                                          *esearch-api-example
     nnoremap <leader>fd :call esearch#init({
         \ 'pattern': '\b(ipdb\|debugger)\b',
         \ 'regex':    1,
-        \ 'remember': 0
         \})<cr>
 <
 2. Search in vendor lib directories. Remember only `'regex'` and `'case'` modes if
 they are changed during a request.
 >
-    nnoremap <leader>fs :call esearch#init({
-        \ 'paths':    $GOPATH . ' node_modules/',
-        \ 'remember': ['regex', 'case']
-        \})<cr>
+
+    noremap  <expr><leader>fs esearch#prefill({'paths': $GOPATH.' node_modules/'})
+    nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
 <
                                                             *g:esearch.paths-glob*
 3. Search in front-end files using explicitly set paths.
 >
+    noremap  <expr><leader>fe esearch#prefill({'paths': '**/*.{js,css,html}'})
     nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 <
 NOTE To use all globbing features make ensure that |'shell'| option contains
@@ -1383,6 +1382,7 @@ If you use OSX, install the latest bash version first using:
 
 Or the same query if one of [ag], [rg] or [ack] is available:
 >
+    noremap  <expr><leader>fe esearch#prefill({'filetypes': 'js css html'})
     nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 <
 See also: |g:esearch.paths| for globbing details.
@@ -1417,32 +1417,28 @@ zoom the preview or capital `P` to enter it for scrolling etc.
           \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
           \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
-    nnoremap <leader>fh :call esearch#init({
-          \ 'win_map':  [['n', 'P', '100<plug>(esearch-win-preview:enter)']],
-          \ 'paths':    esearch#xargs#git_log(),
-          \})<cr>
+    nnoremap <leader>fh :call esearch#init({'paths': esearch#xargs#git_log()})<cr>
 <
-NOTE [count] is set to 100 to maximize the width and height when entering it.
-
                                                          *esearch-in-git-modified*
 Use backticks in |g:esearch.paths| to search in modified files only.
 >
+    noremap  <expr><leader>fm esearch#prefill({'paths': '`git ls-files -m`'})
     nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files -m`'})<cr>
 <
 Search in commits made since 2 working weeks (or another project development
 cycle interval).
 >
-    nnoremap <leader>fu :call esearch#init({
-        \ 'adapter':  'git',
-        \ 'paths':    '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`',
-        \})<cr>
+    let g:since_2_weeks =
+      \ '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`'
+
+    noremap  <expr><leader>fu esearch#prefill({'adapter': 'git', 'paths': g:since_2_weeks})
+    nnoremap <leader>fu :call esearch#init({'adapter': 'git', 'paths': g:since_2_weeks})<cr>
 <
 Do a similar thing, but using commits range passed to |esearch#xargs#git_log()|.
-It will search in commits not merged into staging from development.
+It will search in commits not merged into dev branch.
 >
-    nnoremap <leader>fu :call esearch#init({
-          \ 'paths':    esearch#xargs#git_log('staging..development'),
-          \})<cr>
+    noremap  <expr><leader>fu esearch#prefill({'paths': esearch#xargs#git_log('dev..HEAD')})
+    nnoremap <leader>fu :call esearch#init({'paths': esearch#xargs#git_log('dev..HEAD')})<cr>
 <
 Grep in a specific branch inputted by the user.
 >

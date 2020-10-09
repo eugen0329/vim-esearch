@@ -11,8 +11,8 @@ fu! esearch#compat#visual_multi#init() abort
   let g:VM_plugins_compatibilty = extend(get(g:, 'VM_plugins_compatibilty', {}), {
             \ 'esearch': {
             \   'test': function('<SID>test'),
-            \   'enable': 'call esearch#out#win#init_user_mappings()',
-            \   'disable': 'call esearch#out#win#uninit_user_mappings()',
+            \   'enable': 'call esearch#out#win#init_user_keymaps()',
+            \   'disable': 'call esearch#out#win#uninit_user_keymaps()',
             \ },
             \})
   aug esearch_visual_multi

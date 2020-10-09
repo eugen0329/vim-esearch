@@ -102,7 +102,7 @@ fu! esearch#config#init(esearch) abort
           \ ['n',  'S',    '<plug>(esearch-win-vsplit:reuse:stay)',],
           \ ['n',  '<cr>', '<plug>(esearch-win-open)',             ],
           \ ['n',  'p',    '<plug>(esearch-win-preview)',          ],
-          \ ['n',  'P',    '<plug>(esearch-win-preview:enter)',    ],
+          \ ['n',  'P',    '100<plug>(esearch-win-preview:enter)', ],
           \ ['n',  '<esc>','<plug>(esearch-win-preview:close)',    ],
           \ [' ',  'J',    '<plug>(esearch-win-jump:entry:down)'   ],
           \ [' ',  'K',    '<plug>(esearch-win-jump:entry:up)'     ],
