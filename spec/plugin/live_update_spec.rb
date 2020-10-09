@@ -29,15 +29,13 @@ describe 'esearch#backend', :backend do
     let(:files) { [file("_\n__#{search_string}1_")] }
     let(:test_directory) { directory(files).persist! }
 
-    before do
-      esearch.configuration.submit!
-      esearch.cd! test_directory
-    end
+    before { esearch.cd! test_directory }
     append_after { esearch.cleanup! }
 
     include_context 'report editor state on error'
 
     describe 'default .win_new' do
+      before { esearch.configuration.submit! }
       context 'when the same patterns are searched' do
         it 'reuses buffers' do
           2.times do
@@ -167,6 +165,30 @@ describe 'esearch#backend', :backend do
           end.to change { editor.echo var('b:esearch.id') }
         end
       end
+
     end
+
+    describe 'custom .win_new' do
+      context 'when reentering the same window' do
+        before { esearch.configure!(win_new: var('{_-> execute("edit [find]")')) }
+
+        it 'cancels the search and deletes new buffer' do
+          esearch.search!(search_string)
+          expect(esearch)
+            .to have_search_finished
+            .and have_not_reported_errors
+
+          editor.send_keys 'x'
+          expect do
+            esearch.input!(search_string)
+            editor.send_keys :enter
+          end.to not_change { editor.echo var('b:esearch.id') }
+            .and not_to_change { editor.echo func('bufnr') }
+            .and not_to_change { editor.echo var('&modified') }
+            .from(1)
+        end
+      end
+    end
+
   end
 end

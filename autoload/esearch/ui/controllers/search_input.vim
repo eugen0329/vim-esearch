@@ -115,6 +115,7 @@ fu! s:SearchInputController.render_initial_selection() abort dict
       call esearch#ui#soft_clear()
       let [self.cmdline, finish, retype] = s:SelectionController.new().render()
       if finish
+        if self.props.live_update | call self.final_live_update() | endif
         call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': self.cmdline})
         call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
         return 0

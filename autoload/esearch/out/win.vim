@@ -113,7 +113,12 @@ fu! s:init_live_updated(esearch) abort
     call esearch#buf#rename(abspath)
   catch /E95:/ " Buffer with this name already exists
     let bufnr = esearch#buf#find(abspath)
-    exe bufnr 'bdelete'
+    try
+      exe bufnr 'bdelete'
+    catch /\(E89\|E516\):/  " When the buf is modified and (&confirm == 0 or cancelled)
+      exe b:esearch.bufnr 'bdelete'
+      return
+    endtry
     call esearch#buf#rename(abspath)
   endtry
   call esearch#out#win#appearance#matches#init_live_updated(a:esearch)

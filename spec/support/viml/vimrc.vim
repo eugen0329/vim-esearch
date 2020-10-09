@@ -25,7 +25,7 @@ set runtimepath-=~/.vim/after
 set showtabline=2
 
 fu! Statusline() abort
-  return string(['pos', [line('.'), col('.')], b:changedtick, changenr()])
+  return string([bufname(), 'pos', [line('.'), col('.')], b:changedtick, changenr()])
 endfu
 set statusline=%{Statusline()}
 set laststatus=2
