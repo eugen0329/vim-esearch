@@ -3,12 +3,18 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 
 fu! esearch#prefill#try(esearch) abort
   let select = a:esearch.select_prefilled
+  if has_key(a:esearch, 'region')
+    let RegionGetter = function('esearch#operator#text', [a:esearch.region])
+  else
+    let RegionGetter = function('<SID>get_empty_string')
+  endif
+
   for Prefiller in a:esearch.prefill
     if type(Prefiller) == s:t_func
-      let pattern = Prefiller(a:esearch)
+      let pattern = Prefiller(RegionGetter, a:esearch)
     else
       try
-        let pattern = esearch#prefill#{Prefiller}(a:esearch)
+        let pattern = esearch#prefill#{Prefiller}(RegionGetter, a:esearch)
       catch /^Vim(function):E127/
         " TODO write options validation middleware
         continue
@@ -28,18 +34,17 @@ fu! esearch#prefill#try(esearch) abort
   return [esearch#pattern#new(a:esearch._adapter, ''), select]
 endfu
 
-fu! esearch#prefill#region(esearch) abort
+fu! esearch#prefill#region(get, esearch) abort
   if !empty(get(a:esearch, 'region'))
-    let text = esearch#operator#text(a:esearch.region)
-    return esearch#pattern#new(a:esearch._adapter, text)
+    return esearch#pattern#new(a:esearch._adapter, a:get())
   endif
 endfu
 
-fu! esearch#prefill#visual(esearch) abort
+fu! esearch#prefill#visual(_, esearch) abort
   " DEPRECATED
 endfu
 
-fu! esearch#prefill#hlsearch(esearch) abort
+fu! esearch#prefill#hlsearch(_, esearch) abort
   if !get(v:, 'hlsearch') | return | endif
 
   let str = getreg('/')
@@ -54,23 +59,27 @@ fu! esearch#prefill#hlsearch(esearch) abort
   return esearch#pattern#new(a:esearch._adapter, text)
 endfu
 
-fu! esearch#prefill#last(_esearch) abort
+fu! esearch#prefill#last(_, _esearch) abort
   return deepcopy(get(g:esearch, 'last_pattern'))
 endfu
 
-fu! esearch#prefill#current(_esearch) abort
+fu! esearch#prefill#current(_, _esearch) abort
   if exists('b:esearch')
     return deepcopy(get(b:esearch, 'pattern'))
   endif
 endfu
 
-fu! esearch#prefill#cword(esearch) abort
+fu! esearch#prefill#cword(_, esearch) abort
   let cword = expand('<cword>')
   if !empty(cword)
     return esearch#pattern#new(a:esearch._adapter, cword)
   endif
 endfu
 
-fu! esearch#prefill#clipboard(esearch) abort
+fu! esearch#prefill#clipboard(_, esearch) abort
   return esearch#pattern#new(a:esearch._adapter, getreg(esearch#util#clipboard_reg()))
+endfu
+
+fu! s:get_empty_string() abort
+  return ''
 endfu

@@ -222,16 +222,13 @@ let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
 autocmd User esearch_write_post lopen | wincmd p | lfirst
 ```
 
-Use `esearch#init({options}})` function to start a search. Specify `{options}`
+Use `esearch#init({options}})` and `esearch#prefill({options}})` functions to start a new search. Specify `{options}`
 dictionary using the same keys as in the global config to customize the
 behavior per request. Examples:
 
 ```vim
 " Search for debugger entries instantly (without starting the prompt).
 nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1})<cr>
-
-" Search in vendor lib directories.
-nnoremap <leader>fl :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
 
 " Search in front-end files using explicitly set paths.
 " NOTE It requires `set shell=bash\ -O\ globstar\ -O\ extglob` and GNU bash available
@@ -240,9 +237,15 @@ nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 " or if one of ag, rg or ack is available
 nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
 
-" Use a callable prefiller to search python methods. Initial cursor position will be before
-" the opening bracket due to \<s-left>.
-nnoremap <leader>fp :call esearch#init({'prefill': [{-> "def (self\<lt>s-left>"}]})<cr>
+" Use a callable prefiller to search python functions.
+" Rough equivalent of 'def ${VISUAL}$0(' expansion in snippets.
+vnoremap <expr><leader>fp esearch#prefill({'prefill': [{VISUAL-> "def ".VISUAL()."(\<left>"}]})
+nnoremap <leader>fp :call esearch#init({'prefill': [{VISUAL-> "def ".VISUAL()."(\<left>"}]})<cr>
+
+" esearch#prefill() can be used as an operator. Use '<leader>fl' in visual mode or with
+" a text-object like '<leader>fli(' to search for the selected text in lib directories.
+noremap  <expr><leader>fl  esearch#prefill({'paths': $GOPATH.' node_modules/'})
+nnoremap <leader>fll :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
 ```
 
 Add window-local keymaps using `g:esearch.win_map` list.

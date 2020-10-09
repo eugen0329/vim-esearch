@@ -1361,23 +1361,16 @@ API USAGE EXAMPLES                                          *esearch-api-example
         \ 'regex':    1,
         \})<cr>
 <
-2. Search in vendor lib directories. Remember only `'regex'` and `'case'` modes if
-they are changed during a request.
->
-
-    noremap  <expr><leader>fs esearch#prefill({'paths': $GOPATH.' node_modules/'})
-    nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
-<
                                                             *g:esearch.paths-glob*
-3. Search in front-end files using explicitly set paths.
+2. Search in front-end files using explicitly set paths.
 >
-    noremap  <expr><leader>fe esearch#prefill({'paths': '**/*.{js,css,html}'})
+    vnoremap <expr><leader>fe esearch#prefill({'paths': '**/*.{js,css,html}'})
     nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
 <
 NOTE To use all globbing features make ensure that |'shell'| option contains
 required arguments. E.g. for bash globbing add to your vimrc:
 `set shell=bash\ -O\ globstar -O\ extglob`
-If you use OSX, install the latest bash version first using:
+If you use OSX, install GNU bash first using:
 `:!brew install bash`
 
 Or the same query if one of [ag], [rg] or [ack] is available:
@@ -1387,12 +1380,19 @@ Or the same query if one of [ag], [rg] or [ack] is available:
 <
 See also: |g:esearch.paths| for globbing details.
 
+3. Search in vendor lib directories. Use `<leader>fl` in visual mode or with
+a text-object like `<leader>fli(` to search for the selected text.
+>
+    noremap  <expr><leader>fv esearch#prefill({'paths': $GOPATH.' node_modules/'})
+    nnoremap <leader>fvv :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
+<
                                          *esearch-cursor-initial-position-example*
 4. Use a callable prefiller and |<>| brackets notation to set the initial input
-prompt text to `def |(self`, where `|` is the cursor position.
+prompt text to `def |(self`, where `|` is the cursor position. Rough equivalent  of
+`def ${VISUAL}$0(` snippets expansion.
 >
-    let g:search_py_methods = {'prefill': [{-> "def (self\<s-left>"}]}
-    nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
+    vnoremap <expr><leader>fp esearch#prefill({'prefill': [{VISUAL-> "def ".VISUAL()."(<left>"}]})
+    nnoremap <leader>fp :call esearch#init({'prefill': [{VISUAL-> "def ".VISUAL()."(<left>"}]})<cr>
 <
 NOTE You can use any other bracketed keys to define the initial cursor position,
 but they must be preceded by `\` to be expanded within `""` quotes.
@@ -1422,7 +1422,7 @@ zoom the preview or capital `P` to enter it for scrolling etc.
                                                          *esearch-in-git-modified*
 Use backticks in |g:esearch.paths| to search in modified files only.
 >
-    noremap  <expr><leader>fm esearch#prefill({'paths': '`git ls-files -m`'})
+    vnoremap <expr><leader>fm esearch#prefill({'paths': '`git ls-files -m`'})
     nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files -m`'})<cr>
 <
 Search in commits made since 2 working weeks (or another project development
@@ -1440,6 +1440,11 @@ It will search in commits not merged into dev branch.
     noremap  <expr><leader>fu esearch#prefill({'paths': esearch#xargs#git_log('dev..HEAD')})
     nnoremap <leader>fu :call esearch#init({'paths': esearch#xargs#git_log('dev..HEAD')})<cr>
 <
+NOTE Unlike rev-list command in backticks, |esearch#xargs#git_log()| will build a
+command to filter by matching diffs. E.g. for revisions A, B, C and file.txt
+changed in commit B, rev-list will output three files from each revision, while
+git-log wrapper only B:file.txt.
+
 Grep in a specific branch inputted by the user.
 >
     function! CompleteBranches(...)
@@ -1451,9 +1456,6 @@ Grep in a specific branch inputted by the user.
           \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
           \})<cr>
 <
-
-NOTE Unlike rev-list command in backticks, |esearch#xargs#git_log()| will filter
-commits where files were actually modified.
 
                                                              *esearch-autopreview*
                                                  *esearch.preview_open()-examples*

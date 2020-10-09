@@ -203,13 +203,13 @@ Then:
   AssertEqual b:esearch.pattern.str, '\b(ipdb|debugger)\b'
 
 Execute:
-  noremap  <expr><leader>fs esearch#prefill({'paths': $GOPATH.' node_modules/'})
-  nnoremap <leader>fs :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
+  noremap  <expr><leader>fv esearch#prefill({'paths': $GOPATH.' node_modules/'})
+  nnoremap <leader>fvv :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
 Then:
-  exe "norm ,fs__pattern__\<CR>"
+  exe "norm ,fv__pattern__\<CR>"
   Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
   bwipe
-  exe "norm i__pattern__\<ESC>viw,fs\<CR>"
+  exe "norm i__pattern__\<ESC>viw,fv\<CR>"
   Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
 
 Execute (globs):
@@ -240,10 +240,15 @@ Then:
   AssertEqual b:esearch.pattern.str, 'def __pattern__(self'
 
 Execute:
-  nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`'})<cr>
+  vnoremap <expr><leader>fm esearch#prefill({'paths': '`git ls-files -m`'})
+  nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files -m`'})<cr>
 Then:
   exe "norm ,fm__pattern__\<CR>"
-  AssertEqual b:esearch.paths[0].str, '`git ls-files --modified`'
+  AssertEqual b:esearch.paths[0].str, '`git ls-files -m`'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fm\<CR>"
+  AssertEqual b:esearch.paths[0].str, '`git ls-files -m`'
+  AssertEqual b:esearch.request.errors, []
 
 Execute (unmerged using rev-list):
   let g:since_2_weeks =
