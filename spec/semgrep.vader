@@ -1,0 +1,40 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/semantic/'
+  let g:esearch.backend = 'system'
+After:
+  Restore g:esearch
+
+Execute(#win):
+  let g:file = Fixture(g:esearch.cwd.'file.py', [
+  \ 'class Foo():',
+  \ '  pass'
+  \])
+  call esearch#init({
+  \ 'adapter': 'semgrep',
+  \ 'pattern': 'class $X(...):...',
+  \ 'filetypes': 'py',
+  \})
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.py
+     1 class Foo():
+     2   pass
+
+Execute(#qflist):
+  let g:file = Fixture(g:esearch.cwd.'file.py', [
+  \ 'class Foo():',
+  \ '  pass'
+  \])
+  call esearch#init({
+  \ 'adapter': 'semgrep',
+  \ 'filetypes': 'py',
+  \ 'pattern': 'class $X(...):...',
+  \ 'out': 'qflist',
+  \})
+Expect qf:
+  file.py|1| class Foo():
+  file.py|2| pass

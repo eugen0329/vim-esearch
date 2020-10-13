@@ -978,8 +978,7 @@ g:esearch.live_update_debounce_wait          *g:esearch.live_update_debounce_wai
         Default: 150
 
 g:esearch.live_update_min_len                      *g:esearch.live_update_min_len*
-        Minumum search pattern length to start live update.
-        during live updates.
+        Minimum (inclusive) search pattern length to start live update.
         Type: |Number|
         Allowed values: > 0
         Default: 3
@@ -1044,7 +1043,7 @@ g:esearch.win_matches_highlight_strategy
 
                                      *g:esearch.win_contexts_syntax_sync_minlines*
 g:esearch.win_contexts_syntax_sync_minlines
-        See :help |:syn-sync-minlines| for details.
+        See |:syn-sync-minlines| for details.
         Type: |Number|
         Allowed values: > 0
         Default: 500
@@ -1215,8 +1214,8 @@ esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce(
             {func}    Funcref to call on timeout
             {wait}    Wait timeout in milliseconds
         Return:~
-            Dict with `.apply()` and `.cancel()` method to invoke the
-            debounced function or to cancel it's invocation before {wait}
+            Dict with `.apply()` and `.cancel()` methods to invoke the debounced
+            {func} or to cancel it's invocation before {wait}
             timeout is exceeded.
         Example:~
         >
@@ -1225,7 +1224,7 @@ esearch#async#debounce({func}, {wait}, [{opts}])        *esearch#async#debounce(
               \| autocmd CursorMoved <buffer> call b:preview.apply()
 <
         It decorates |b:esearch.preview_open()| to show the preview at the cursor
-        position when the cursor is above a line for >500 milliseconds.
+        position when the cursor is hold for >500 milliseconds.
 
         See also: |esearch_win_config| event, |b:esearch.preview_open()| method.
 
@@ -1276,7 +1275,7 @@ esearch#xargs#git_stash([{shell-opts}])                *esearch#xargs#git_stash(
         NOTE It filters files in commits where diff lines match the pattern.
         Other non-modified but matched lines within these files will be
         outputted as well.
-        NOTE Explicit switching |g:esearch.adapter| to `'git'` isn't required (all
+        NOTE Explicit switching |g:esearch.adapter| to `'git'` isn't necessary (all
         the required information will be contained in the returned |Dict|).
 
 ________________________________________________________________________________~
@@ -1380,8 +1379,8 @@ Or the same query if one of [ag], [rg] or [ack] is available:
 <
 See also: |g:esearch.paths| for globbing details.
 
-3. Search in vendor lib directories. Use `<leader>fl` in visual mode or with
-a text-object like `<leader>fli(` to search for the selected text.
+3. Search in vendor lib directories. Use `<leader>fv` in visual mode or with
+a text-object like `<leader>fvi(` to search for the selected text.
 >
     noremap  <expr><leader>fv esearch#prefill({'paths': $GOPATH.' node_modules/'})
     nnoremap <leader>fvv :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
@@ -1391,8 +1390,8 @@ a text-object like `<leader>fli(` to search for the selected text.
 prompt text to `def |(self`, where `|` is the cursor position. Rough equivalent  of
 `def ${VISUAL}$0(` snippets expansion.
 >
-    vnoremap <expr><leader>fp esearch#prefill({'prefill': [{VISUAL-> "def ".VISUAL()."(<left>"}]})
-    nnoremap <leader>fp :call esearch#init({'prefill': [{VISUAL-> "def ".VISUAL()."(<left>"}]})<cr>
+    vnoremap <expr><leader>fp esearch#prefill({'prefill': [{VISUAL-> "def ".VISUAL()."(\<left>"}]})
+    nnoremap <leader>fp :call esearch#init({'prefill': [{VISUAL-> "def ".VISUAL()."(\<left>"}]})<cr>
 <
 NOTE You can use any other bracketed keys to define the initial cursor position,
 but they must be preceded by `\` to be expanded within `""` quotes.
@@ -1536,12 +1535,13 @@ See also: |api-floatwin|, |g:esearch.win_map|, |esearch-api-events|, |lambda|.
                                                    *g:esearch.write_cb()-examples*
 9. Use write callback to adjust the behavior of writing the window.
 
-Save applied changes if :write! with '!' was used. Open the buffers otherwise.
+Save applied changes if :write! with '!' was used. Only open the modified buffers
+otherwise.
 >
     let g:esearch.write_cb =
         \ {buf, bang -> bang ? buf.write(bang) : buf.open('$tabnew')}
 <
-Write silently and wipeout buffers if they didn't exist.
+Write in the background and wipeout buffers if they didn't exist.
 >
     let g:esearch.write_cb =
         \ {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
@@ -1586,7 +1586,8 @@ See |esearch-autopreview|.
 The preferred approach is to use `.agignore` for ag, `.rgignore` or similar
 ignore files. To skip `node_modules` try `echo node_modules >> ~/.ignore`.
 
-3. Neovim position-based highlights are removed after undo or inline changes.
+3. Neovim of version < 0.5.0 position-based highlights are removed after undo or
+inline changes.
 
 Currently it's a limitation of position-based highlights to prevent slowdowns
 on buffer updates. Set |g:esearch.win_matches_highlight_strategy| to `'hlsearch'`
@@ -1601,7 +1602,7 @@ Run in your shell to prevent outputting unicode chars like `\312`.
 <
 5. Some regex features like lookaround are not supported.
 
-Use ag, ack or rg (after version 0.11) to access the PCRE syntax. Git and grep
+Use ag, ack or rg (after version 0.11) to access PCRE syntax. Git and grep
 are also support them, but sometimes require to be installed with the
 corresponding flag.
 

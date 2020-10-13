@@ -6,7 +6,11 @@ fu! esearch#middleware#pattern#apply(esearch) abort
   if empty(get(esearch, 'pattern'))
     let [esearch.pattern, esearch.select_prefilled] = esearch#prefill#try(esearch)
     call esearch.pattern.adapt(esearch._adapter)
-    let esearch = esearch#cmdline#read(esearch)
+    if get(esearch, 'exec')
+      let esearch.live_update = 0
+    else
+      let esearch = esearch#cmdline#read(esearch)
+    endif
     if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif
   else
     if type(esearch.pattern) ==# type('')

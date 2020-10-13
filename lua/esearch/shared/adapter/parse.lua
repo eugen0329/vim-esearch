@@ -142,7 +142,7 @@ end
 function M.parse_semgrep(lines, entry)
   local filename, lnum
   local entries = {}
-  local errors = list()
+  local errors = list({})
 
   for i = start, stop(lines)  do
     local line = lines[i]
@@ -181,7 +181,7 @@ function M.parse_semgrep(lines, entry)
   return entries, lines_delta, errors
 end
 
-function M.parse(parserfn, lines, entry)
+function M.parse(parser_function, lines, entry)
   local lines_delta = 0
   local filename, lnum, text, rev
   local cache = {}
@@ -193,7 +193,7 @@ function M.parse(parserfn, lines, entry)
     if line:len() == 0 or line == '--' then
       lines_delta = lines_delta + 1
     else
-      filename, lnum, text, rev = parserfn(line, cache)
+      filename, lnum, text, rev = parser_function(line, cache)
       if filename then
         entries[#entries + 1] = entry({
           filename = filename,

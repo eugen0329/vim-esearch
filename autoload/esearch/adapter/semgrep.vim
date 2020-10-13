@@ -6,7 +6,7 @@ let s:Semgrep = esearch#adapter#base#import()
 
 let s:Semgrep.bin = 'semgrep'
 let s:Semgrep.options = ''
-let s:Semgrep.mandatory_options = '--json'
+let s:Semgrep.mandatory_options = '--json --quiet'
 
 call extend(s:Semgrep, {
       \ 'regex':   {},

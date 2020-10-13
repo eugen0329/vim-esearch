@@ -68,7 +68,7 @@ fu! s:NvimPopup.edit() abort dict
   " if the buf is already created, vim switches to it leaving an empty
   " buf we have to cleanup
   let current_buffer_id = bufnr('%')
-  if current_buffer_id != self.buf.id && bufexists(self.buf.id)
+  if current_buffer_id != self.buf.id && empty(bufname(self.buf.id))
     exe self.buf.id . 'bwipeout'
   endif
   let self.buf.id = current_buffer_id

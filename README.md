@@ -295,7 +295,7 @@ Run `git config --global core.precomposeunicode true && git config --global core
 
 3. Some regex features like lookaround are not supported.
 
-Use ag, ack or rg (of version >= 0.11) to access the PCRE syntax. Git and grep
+Use ag, ack or rg (of version >= 0.11) to access PCRE syntax. Git and grep
 are also support them, but sometimes require to be installed with the
 corresponding flag.
 
