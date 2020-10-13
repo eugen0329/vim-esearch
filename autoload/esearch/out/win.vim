@@ -257,13 +257,13 @@ fu! esearch#out#win#uninit_user_keymaps() abort
   endfor
 endfu
 
-fu! s:reload() abort dict
+fu! s:reload(...) abort dict
   if &modified && confirm('The window is modified. Reload?', "&Yes\n&Cancel") == 0
     return
   endif
   call esearch#backend#{self.backend}#abort(self.bufnr)
   let self.live_update = 0
-  return esearch#init(self)
+  return esearch#init(extend(self, get(a:, 1, {})))
 endfu
 
 " Bind view to a line within a context.

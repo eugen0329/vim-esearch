@@ -1,0 +1,14 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/api/'
+After:
+  Restore g:esearch
+
+Execute(.reload with params):
+  call Fixture(g:esearch.cwd.'file.txt', ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  AssertEqual b:esearch.before, 0
+  call b:esearch.reload({'before': 42})
+  AssertEqual b:esearch.before, 42
