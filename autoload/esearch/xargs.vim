@@ -26,7 +26,7 @@ let s:prepend_filenames_with_revisions =
       \. s:prefix_filenames_with_revision.' '
       \. s:shell_quote
       \. " p;'"
-let s:xargs_batched = '| xargs -n127' " bigger n means higher latency, but lower overhead
+let s:xargs_batched = '| xargs -n1' " bigger n means higher latency, but lower overhead
 
 fu! s:git_log(options, adapter, esearch) abort
   let pipe = join([

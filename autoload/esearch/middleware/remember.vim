@@ -2,10 +2,10 @@ let s:is_predicate = vital#esearch#import('Vim.Type').is_predicate
 
 fu! esearch#middleware#remember#apply(esearch) abort
   if !empty(a:esearch.remember)
-    if s:is_predicate(a:esearch.remember)
-      let remember = g:esearch.remember
-    else
+    if type(a:esearch.remember) is# type([])
       let remember = a:esearch.remember
+    else
+      let remember = g:esearch.remember
     endif
     for c in remember
       let g:esearch[c] = a:esearch[c]

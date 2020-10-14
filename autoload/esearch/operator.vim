@@ -22,7 +22,7 @@ fu! esearch#operator#vars() abort
 endfu
 
 fu! esearch#operator#cmd(wise, seq, reg) abort
-  let seq = (empty(a:reg) ? '' : '"'.a:reg) . a:seq
+  let seq = (empty(a:reg) ? '' : '"' . a:reg) . a:seq
   if esearch#util#is_visual(a:wise)
     return 'normal! gv' . seq
   elseif a:wise ==# 'line'

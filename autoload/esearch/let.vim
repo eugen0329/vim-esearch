@@ -16,7 +16,6 @@ fu! s:BufWinGuard.new(bufnr, winid) abort dict
   return extend(copy(self), {
         \ 'getters': [function('esearch#buf#get', [a:bufnr]), function('esearch#win#get', [a:winid])],
         \ 'setters': [function('esearch#buf#let', [a:bufnr]), function('esearch#win#let', [a:winid])],
-        \ '_res': [],
         \ 'bufnr': a:bufnr, 'winid': a:winid})
 endfu
 
@@ -91,7 +90,7 @@ fu! esearch#let#restorable(variables, ...) abort
     call Setter(a:variables)
   catch
     call guard.restore()
-    throw v:exception
+    throw 'Let:' . v:exception
   endtry
 
   return guard
