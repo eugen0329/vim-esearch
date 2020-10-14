@@ -17,6 +17,8 @@ Execute(#win):
   \ 'pattern': 'class $X(...):...',
   \ 'filetypes': 'py',
   \})
+  Log b:esearch.request.command
+  Log getcwd()
 Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.
 
@@ -35,6 +37,9 @@ Execute(#qflist):
   \ 'pattern': 'class $X(...):...',
   \ 'out': 'qflist',
   \})
+  Log system('which semgrep')
+  Log g:esearch_qf.request.command
+  Log getcwd()
 Expect qf:
   file.py|1| class Foo():
   file.py|2| pass
