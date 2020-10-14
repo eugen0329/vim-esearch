@@ -3,7 +3,7 @@ local code = util.code
 local decode = util.decode
 local filereadable = util.filereadable
 local json_decode = util.json_decode
-local start, stop = util.start, util.stop
+local ifirst, ilast = util.ifirst, util.ilast
 local NIL = util.NIL
 local list, append = util.list, util.append
 
@@ -144,18 +144,18 @@ function M.parse_semgrep(lines, entry)
   local entries = {}
   local errors = list({})
 
-  for i = start, stop(lines)  do
+  for i = ifirst, ilast(lines)  do
     local line = lines[i]
     local json = json_decode(line)
 
     if errors and json.errors ~= {} then
-      for j = start, stop(json.errors)  do
+      for j = ifirst, ilast(json.errors)  do
         append(errors, json.errors[j].long_msg)
       end
     end
 
     if json.results and json.results ~= {} then
-      for j = start, stop(json.results)  do
+      for j = ifirst, ilast(json.results)  do
         local result = json.results[j]
         filename = result.path
 
@@ -187,7 +187,7 @@ function M.parse(parser_function, lines, entry)
   local cache = {}
 
   local entries = {}
-  for i = start, stop(lines)  do
+  for i = ifirst, ilast(lines)  do
     local line = lines[i]
 
     if line:len() == 0 or line == '--' then

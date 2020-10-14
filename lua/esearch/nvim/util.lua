@@ -1,8 +1,8 @@
 local M = {}
 
-M.start = 1
+M.ifirst = 1
 
-function M.stop(tbl)
+function M.ilast(tbl)
   return #tbl
 end
 

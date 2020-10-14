@@ -90,6 +90,13 @@
       with_items:
         - https://github.com/mg979/vim-visual-multi.git
         - https://github.com/tpope/vim-fugitive.git
+        - https://github.com/preservim/nerdtree.git
+        - https://github.com/justinmk/vim-dirvish.git
+        - https://github.com/ipod825/vim-netranger.git
+        - https://github.com/lambdalisue/fern.vim.git
+        - https://github.com/Shougo/defx.nvim.git
+        - https://github.com/roxma/nvim-yarp.git
+        - https://github.com/roxma/vim-hug-neovim-rpc.git
 
     - name: Setup testing dependencies
       block:

@@ -2,7 +2,7 @@ Include: helper.vader
 
 Before:
   Save g:esearch
-  let g:esearch.cwd = 'spec/fixtures/semantic/'
+  let g:esearch.cwd = 'spec/fixtures/gogrep/'
   let g:esearch.backend = 'system'
 After:
   Restore g:esearch

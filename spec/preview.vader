@@ -2,7 +2,7 @@ Include: helper.vader
 
 Before:
   Save g:esearch
-  let g:esearch.cwd = 'spec/fixtures/docs'.g:test_number.next().'/'
+  let g:esearch.cwd = 'spec/fixtures/preview'.g:test_number.next().'/'
   let g:esearch.backend = 'system'
   let g:file = Fixture(g:esearch.cwd.'file.txt', ['l1', 'l2'])
   let g:winhighlight = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat,Conceal:esearchConcealFloat'
@@ -26,7 +26,7 @@ Execute(reset highlights on edit):
       Assert empty(g:esearch#preview#win)
       Assert index(nvim_list_wins(), preview_winid) == -1
       AssertEqual &winhighlight, ''
-      exe 'bwipe' g:file
+      silent! exe 'bwipe' g:file
     endfor
   endfor
 
@@ -44,7 +44,7 @@ Execute(reset highlights on edit opened earlier):
       Assert empty(g:esearch#preview#win)
       Assert index(nvim_list_wins(), preview_winid) == -1
       AssertEqual &winhighlight, ''
-      exe 'bwipe' g:file
+      silent! exe 'bwipe' g:file
     endfor
   endfor
 
@@ -62,7 +62,7 @@ Execute(reset highlights on edit when staying in the window):
       Assert index(nvim_list_wins(), preview_winid) == -1
       Assert win_findbuf(bufnr(g:file))[0] > 0
       AssertEqual esearch#win#get(win_findbuf(bufnr(g:file))[0], '&winhighlight'), ''
-      exe 'bwipe' g:file
+      silent! exe 'bwipe' g:file
     endfor
   endfor
 
@@ -81,14 +81,14 @@ Execute(reset highlights on edit opened earlier when staying in the window):
       Assert index(nvim_list_wins(), preview_winid) == -1
       Assert win_findbuf(bufnr(g:file))[0] > 0
       AssertEqual esearch#win#get(win_findbuf(bufnr(g:file))[0], '&winhighlight'), ''
-      exe 'bwipe' g:file
+      silent! exe 'bwipe' g:file
     endfor
   endfor
 
 Execute(enter and leave the preview):
   if !has('nvim') | finish | endif
-  for leave_key in ["\<C-W>k", ":tabnew\<CR>", ":bwipe\<CR>", ":edit ".g:file."\<CR>:q\<CR>"]
-    for enter_preview_key in ['P', 'pP']
+  for enter_preview_key in ['P', 'pP']
+    for leave_key in ["\<C-W>k", ":tabnew\<CR>", ":bwipe\<CR>", ":edit ".g:file."\<CR>:q\<CR>"]
       call esearch#init({'pattern': '.'})
       exe 'norm' enter_preview_key
       let preview_winid = g:esearch#preview#win.id
@@ -100,7 +100,7 @@ Execute(enter and leave the preview):
       Assert index(nvim_list_wins(), preview_winid) == -1
       exe "norm \<CR>"
       AssertEqual &winhighlight, ''
-      exe 'bwipe' g:file
+      silent! exe 'bwipe' g:file
     endfor
   endfor
 

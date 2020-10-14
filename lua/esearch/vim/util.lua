@@ -1,8 +1,16 @@
 local M = {}
 
-M.start = 0
-function M.stop(tbl)
-  return #tbl - 1
+
+if vim.funcref('has')('patch-8.2.1066') then
+  M.ifirst = 1
+  function M.ilast(tbl)
+    return #tbl
+  end
+else
+  M.ifirst = 0
+  function M.ilast(tbl)
+    return #tbl - 1
+  end
 end
 M.NIL = vim.list()
 

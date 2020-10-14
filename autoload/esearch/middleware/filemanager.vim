@@ -2,6 +2,7 @@ let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#middleware#filemanager#filetype2filer = {
       \ 'defx':      'defx',
+      \ 'fern':      'fern',
       \ 'nerdtree':  'nerdtree',
       \ 'dirvish':   'dirvish',
       \ 'netranger': 'netranger',
@@ -10,7 +11,6 @@ let g:esearch#middleware#filemanager#filetype2filer = {
 fu! esearch#middleware#filemanager#apply(esearch) abort
   if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype)
         \ || !a:esearch.filemanager_integration
-        \ || !empty(get(a:esearch, 'paths'))
     return a:esearch
   endif
 
@@ -27,6 +27,7 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
     else
       let a:esearch.paths = s:paths_in_range(filer, a:esearch.region)
       call remove(a:esearch, 'region')
+      silent! unlet a:esearch['exec']
     endif
   finally
     call cwd.restore()

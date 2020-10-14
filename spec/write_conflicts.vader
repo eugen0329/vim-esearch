@@ -1,7 +1,7 @@
 Include: helper.vader
 
 Before:
-  let g:esearch.cwd = 'spec/fixtures/write'.g:test_number.next().'/'
+  let g:esearch.cwd = 'spec/fixtures/write_conflicts'.g:test_number.next().'/'
   let g:esearch.pattern = '.'
   let g:file = g:esearch.cwd.'file.txt'
   let g:untouched_file = g:esearch.cwd.'untouched.txt'
