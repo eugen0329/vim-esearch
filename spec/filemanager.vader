@@ -1,13 +1,14 @@
 Include: helper.vader
 
 Execute(setup):
+  au FileType defx nnoremap <nowait><buffer><expr><cr> defx#do_action('open_or_close_tree')
+  au FileType fern nmap <nowait><buffer><cr> :exe 'FernReveal' fern#helper#new().sync.get_cursor_node().name '-wait'<CR>
   let g:NETRPreviewDefaultOn = 0
+  runtime! plugin/netranger.vim
   call NetrangerInit()
   au! NETRANGER_LAZY_INIT
   au! NETRANGER BufEnter
   au! NERDTreeHijackNetrw
-  au FileType defx nnoremap <nowait><buffer><expr><cr> defx#do_action('open_or_close_tree')
-  au FileType fern nmap <nowait><buffer><cr> :exe 'FernReveal' fern#helper#new().sync.get_cursor_node().name '-wait'<CR>
 
 Before:
   Save g:esearch
