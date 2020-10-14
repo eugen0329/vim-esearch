@@ -18,7 +18,7 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
   let cwd = esearch#win#lcd(a:esearch.cwd)
   try
     if empty(get(a:esearch, 'region'))
-      let paths = esearch#shell#argv([filer.nearest_directory_path()])
+      let paths = esearch#shell#argv(filer.nearest_dir_or_selected_nodes())
       if paths ==# esearch#shell#argv([a:esearch.cwd])
          let a:esearch.paths = esearch#shell#argv([])
       else

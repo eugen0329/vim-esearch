@@ -3,7 +3,7 @@ Execute(setup):
     if !isdirectory(fnamemodify(a:path, ':h'))
       call mkdir(fnamemodify(a:path, ':h'), 'p')
     endif
-    exe 'noswap edit' fnameescape(a:path)
+    exe 'noswap edit!' fnameescape(a:path)
     %delete
     call setline(1, a:lines)
     write!

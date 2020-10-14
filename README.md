@@ -31,7 +31,7 @@ Neovim/Vim plugin for **e**asy async **search** and replace across multiple file
 - 2 preview modes using both neovim floating windows and plain splits.
 - Third party plugins integration:
   - vim-visual-multi (multiple cursors plugin) is guarded against editing filenames and line numbers.
-  - NerdTree, Dirvish, NetRanger, Defx file browsers can be used to specify search paths.
+  - NerdTree, Dirvish, NetRanger, Fern, Defx file browsers can be used to specify search paths.
 
 ### Install
 

@@ -4,7 +4,7 @@ fu! esearch#compat#filemanager#netranger#import() abort
   return s:NETRanger
 endfu
 
-let s:NETRanger = copy(esearch#compat#filemanager#base#import())
+let s:NETRanger = esearch#compat#filemanager#base#import()
 
 fu! s:NETRanger.path_under_cursor() abort
   return netranger#api#cur_node_path()

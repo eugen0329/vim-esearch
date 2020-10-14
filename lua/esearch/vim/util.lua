@@ -1,7 +1,7 @@
 local M = {}
 
 
-if vim.funcref('has')('patch-8.2.1066') then
+if vim.funcref('has')('patch-8.2.1066') == 1 then
   M.ifirst = 1
   function M.ilast(tbl)
     return #tbl

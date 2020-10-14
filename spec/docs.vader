@@ -289,3 +289,4 @@ Then:
   exe "norm ,fbHEAD\<CR>__pattern__\<CR>"
   Assert b:esearch.paths[0].str =~# 'HEAD', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
+  bwipe
