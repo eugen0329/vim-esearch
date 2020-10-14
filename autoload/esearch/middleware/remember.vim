@@ -1,5 +1,3 @@
-let s:is_predicate = vital#esearch#import('Vim.Type').is_predicate
-
 fu! esearch#middleware#remember#apply(esearch) abort
   if !empty(a:esearch.remember)
     if type(a:esearch.remember) is# type([])

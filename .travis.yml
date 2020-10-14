@@ -20,9 +20,6 @@ install:
     gem install bundler
     sudo apt-get update
     sudo apt-get -y install ansible ruby-dev
-    curl -sL -o gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-    chmod +x gimme
-    ./gimme stable
     make setup-host setup-serializer DOCKER_RUN=
 before_script:
   - |
