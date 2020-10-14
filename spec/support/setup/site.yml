@@ -18,7 +18,6 @@
             - ragel
             - unzip
             - neovim
-            - "{{ go_package_name }}"
             - '{{ vim_package_name }}'
             - '{{ tar_package_name }}'
             - '{{ pip_package_name }}'
