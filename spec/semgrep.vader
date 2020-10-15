@@ -8,7 +8,7 @@ After:
   Restore g:esearch
 
 Execute(#win):
-  if !empty($SKIP_SEMGREP) | finish | endif " TODO
+  if !empty($TRAVIS_BUILD_ID) | finish | endif " TODO
   let g:file = Fixture(g:esearch.cwd.'file.py', [
   \ 'class Foo():',
   \ "\tpass"
@@ -28,7 +28,7 @@ Execute(#win):
 
 
 Execute(#qflist):
-  if !empty($SKIP_SEMGREP) | finish | endif " TODO
+  if !empty($TRAVIS_BUILD_ID) | finish | endif " TODO
   let g:file = Fixture(g:esearch.cwd.'file.py', [
   \ 'class Foo():',
   \ "\tpass"
