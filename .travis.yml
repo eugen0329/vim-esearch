@@ -18,6 +18,8 @@ install:
   - |
     yes | gem update --system --force
     gem install bundler
+
+    sudo add-apt-repository -y ppa:jonathonf/vim
     sudo apt-get update
     sudo apt-get -y install ansible ruby-dev
     eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=stable bash)"

@@ -10,11 +10,11 @@ After:
 Execute(#win):
   let g:file = Fixture(g:esearch.cwd.'file.py', [
   \ 'class Foo():',
-  \ '  pass'
+  \ "\tpass"
   \])
   call esearch#init({
   \ 'adapter': 'semgrep',
-  \ 'pattern': 'class $X(...):...',
+  \ 'pattern': 'class $X():...',
   \ 'filetypes': 'py',
   \})
   Log b:esearch.request.command
@@ -24,22 +24,22 @@ Expect esearch_test:
 
   file.py
      1 class Foo():
-     2   pass
+     2 	pass
 
 Execute(#qflist):
   let g:file = Fixture(g:esearch.cwd.'file.py', [
   \ 'class Foo():',
-  \ '  pass'
+  \ "\tpass"
   \])
   call esearch#init({
   \ 'adapter': 'semgrep',
   \ 'filetypes': 'py',
-  \ 'pattern': 'class $X(...):...',
+  \ 'pattern': 'class $X():...',
   \ 'out': 'qflist',
   \})
   Log system('which semgrep')
   Log system('semgrep --version')
-  Log system('cd spec/fixtures/semgrep/ ; semgrep --json --quiet  -e  "class $X(...):..." --lang=py --')
+  Log system('cd spec/fixtures/semgrep/ ; semgrep --json --quiet  -e  "class $X():..." --lang=py --')
   Log system('cd spec/fixtures/semgrep/ ; ls -lah')
   Log system('cd spec/fixtures/semgrep/ ; cat file.py')
 
