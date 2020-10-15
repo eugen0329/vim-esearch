@@ -258,13 +258,6 @@ fu! esearch#util#warn(message) abort
   endif
 endfu
 
-" If live_update feature is enabled:
-"    live_exec - exec a new search
-"   !live_exec - skip exec and connect to an already executed search
-fu! esearch#util#is_skip_exec(esearch) abort
-  return a:esearch.live_update && !a:esearch.live_exec
-endfu
-
 fu! esearch#util#find_up(path, markers) abort
   " Partially based on vital's prelude path2project-root internals
   let dir = s:Prelude.path2directory(a:path)

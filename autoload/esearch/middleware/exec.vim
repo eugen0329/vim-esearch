@@ -1,5 +1,5 @@
 fu! esearch#middleware#exec#apply(esearch) abort
-  if esearch#util#is_skip_exec(a:esearch) | return a:esearch | endif
+  if a:esearch.live_update && !a:esearch.force_exec | return a:esearch | endif
 
   let command = a:esearch._adapter.command(a:esearch)
   let a:esearch.request = esearch#backend#{a:esearch.backend}#init(

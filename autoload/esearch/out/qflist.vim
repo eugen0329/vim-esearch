@@ -1,5 +1,5 @@
 fu! esearch#out#qflist#init(es) abort
-  if esearch#util#is_skip_exec(a:es) | return s:init_live_updated(a:es) | endif
+  if a:es.live_update && !a:es.force_exec | return s:init_live_updated(a:es) | endif
 
   if has_key(g:, 'esearch_qf')
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))

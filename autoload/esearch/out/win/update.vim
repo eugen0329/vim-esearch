@@ -25,7 +25,7 @@ fu! esearch#out#win#update#init(es) abort
 endfu
 
 fu! s:init_async_updates(es) abort
-  cal extend(a:es, {'upd_at': reltime(), 'upd_timer':  -1, 'early_upd_max': a:es.live_exec ? &lines : a:es.batch_size})
+  cal extend(a:es, {'upd_at': reltime(), 'upd_timer':  -1, 'early_upd_max': a:es.force_exec ? &lines : a:es.batch_size})
 
   aug esearch_win_updates
     au! * <buffer>
@@ -73,13 +73,13 @@ endfu
 
 " NOTE is_consumed waits early_finish_wait ms while early_update_cb is
 " working.
-" Tries to update infinitely many entries unless it's live_exec, where only the
-" viewport rendering makes sense.
+" Tries to update infinitely many entries unless it's force_exec, where only the
+" viewport rendering is enough.
 fu! esearch#out#win#update#can_finish_early(es) abort
   if !a:es.request.async | retu 1 | en
 
   let original_early_update_limit = a:es.early_upd_max
-  if !a:es.live_exec | let a:es.early_upd_max = s:INF | en
+  if !a:es.force_exec | let a:es.early_upd_max = s:INF | en
   try
     retu a:es.request.is_consumed(a:es.early_finish_wait)
           \ && (len(a:es.request.data) - a:es.request.cursor) <= a:es.final_batch_size
