@@ -18,12 +18,14 @@ Execute(#win):
   \ 'pattern': 'class $X(): ...',
   \ 'filetypes': 'py',
   \})
-Expect esearch_test:
-  Matches in 2 lines, 1 file. Finished.
+  AssertEqual join(getline(1, '$'), "\n"), join([
+    \ 'Matches in 2 lines, 1 file. Finished.',
+    \ '',
+    \ 'file.py',
+    \ '   1 class Foo():',
+    \ '   2 	pass',
+    \], "\n")
 
-  file.py
-     1 class Foo():
-     2 	pass
 
 Execute(#qflist):
   if !empty($SKIP_SEMGREP) | finish | endif " TODO
@@ -37,6 +39,7 @@ Execute(#qflist):
   \ 'pattern': 'class $X(): ...',
   \ 'out': 'qflist',
   \})
-Expect qf:
-  file.py|1| class Foo():
-  file.py|2| pass
+  AssertEqual join(getline(1, '$'), "\n"), join([
+    \ 'file.py|1| class Foo():',
+    \ 'file.py|2| pass',
+    \], "\n")
