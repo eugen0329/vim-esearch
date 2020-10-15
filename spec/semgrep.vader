@@ -18,6 +18,8 @@ Execute(#win):
   \ 'filetypes': 'py',
   \})
   Log b:esearch.request.command
+  Log b:esearch.request.data
+  Log b:esearch.request.cwd
   Log getcwd()
 Expect esearch_test:
   Matches in 2 lines, 1 file. Finished.

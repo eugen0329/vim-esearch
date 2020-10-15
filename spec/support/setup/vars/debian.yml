@@ -1,7 +1,6 @@
 vim_package_name: vim-gtk3
 tar_package_name: tar
 pip_package_name: python3-pip
-go_package_name: golang
 ack_package_name: ack-grep
 ag_package_name: silversearcher-ag
 pt_download_url: https://github.com/monochromegane/the_platinum_searcher/releases/download/v2.2.0/pt_linux_amd64.tar.gz
