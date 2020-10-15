@@ -40,6 +40,8 @@ Execute(#qflist):
   Log system('which semgrep')
   Log system('semgrep --version')
   Log system('cd spec/fixtures/semgrep/ ; semgrep --json --quiet  -e  "class $X(...):..." --lang=py --')
+  Log system('cd spec/fixtures/semgrep/ ; ls -lah')
+  Log system('cd spec/fixtures/semgrep/ ; cat file.py')
 
   Log g:esearch_qf.request.command
   Log getcwd()
