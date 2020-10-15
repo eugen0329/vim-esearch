@@ -5,7 +5,6 @@ Execute(setup):
   au FileType fern nmap <nowait><buffer><cr> :exe 'FernReveal' fern#helper#new().sync.get_cursor_node().name '-wait'<CR>
   let g:NETRPreviewDefaultOn = 0
   source ~/.cache/esearch-dev/plugins/vim-netranger/plugin/netranger.vim
-  Log readfile($HOME.'/.cache/esearch-dev/plugins/vim-netranger/plugin/netranger.vim')
   call NetrangerInit()
   au! NETRANGER_LAZY_INIT
   au! NETRANGER BufEnter
@@ -33,8 +32,6 @@ Execute:
     Log "\tdir hover"
     exe open_filer g:esearch.cwd
     let bufnr = bufnr()
-    Log execute('messages')
-    Log getline(1 , '$')
     exe "norm /dir1\<CR>\<plug>(esearch).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
         \ 'Matches in 2 lines, 1 file. Finished.',
@@ -97,11 +94,8 @@ Execute(search in marked):
   for open_filer in has('nvim') ? ['Fern -wait'] : []
     Log open_filer
 
-    Log ['cwd', g:esearch.cwd]
     exe open_filer g:esearch.cwd
     let bufnr = bufnr()
-    Log execute('messages')
-    Log getline(1 , '$')
     exe "norm /file2\<CR>-/file3\<CR>-\<plug>(esearch).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
       \ 'Matches in 4 lines, 2 files. Finished.',
