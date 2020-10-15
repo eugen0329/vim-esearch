@@ -27,9 +27,9 @@
           become: '{{ package_become }}'
           args:
             creates: /usr/local/bin/luacheck
-        - name: Vim lint
+        - name: PIP packages
           pip:
-            name: ['vim-vint']
+            name: ['vim-vint', 'neovim']
             state: present
 
     - name: Setup greppers
@@ -42,6 +42,7 @@
           with_items:
             - '{{ ag_package_name }}'
             - '{{ ack_package_name }}'
+
         - name: From PIP
           pip:
             name: ['semgrep']
