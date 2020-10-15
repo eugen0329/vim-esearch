@@ -14,7 +14,7 @@ Execute(#win):
   \])
   call esearch#init({
   \ 'adapter': 'semgrep',
-  \ 'pattern': 'class $X():...',
+  \ 'pattern': 'class $X(): ...',
   \ 'filetypes': 'py',
   \})
   Log b:esearch.request.command
@@ -34,7 +34,7 @@ Execute(#qflist):
   call esearch#init({
   \ 'adapter': 'semgrep',
   \ 'filetypes': 'py',
-  \ 'pattern': 'class $X():...',
+  \ 'pattern': 'class $X(): ...',
   \ 'out': 'qflist',
   \})
   Log system('which semgrep')
