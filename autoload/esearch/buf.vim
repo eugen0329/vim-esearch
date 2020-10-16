@@ -134,18 +134,25 @@ endfu
 let s:Handle = {}
 
 fu! s:Handle.for(bufnr) abort dict
-  call bufload(a:bufnr)
-  call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
   return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
 endfu
 
-fu! s:Handle.new(filename) abort dict
-  let existed = bufexists(a:filename)
-  let bufnr = bufadd(a:filename)
-  call bufload(bufnr)
-  call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
-  return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
-endfu
+if g:esearch#has#bufadd
+  fu! s:Handle.new(filename) abort dict
+    let existed = bufexists(a:filename)
+    let bufnr = bufadd(a:filename)
+    call bufload(bufnr)
+    call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
+    return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
+  endfu
+else
+  fu! s:Handle.new(filename) abort dict
+    let existed = bufexists(a:filename)
+    exe (existed ? 'buffer!' : 'edit!') fnameescape(a:filename)
+    let bufnr = bufnr('%')
+    return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
+  endfu
+endif
 
 if exists('*nvim_buf_line_count')
   fu! s:Handle.oneliner() abort dict

@@ -31,7 +31,7 @@ fu! s:Writer.write(bang) abort dict
     au!
     au SwapExists * let v:swapchoice = 'q'
   aug END
-  let options = esearch#let#restorable({'&bufhidden': 'hide'}) " required only for .goto()
+  let options = esearch#let#restorable({'&bufhidden': 'hide', '&buflisted': 1})
   try
     for [id, diff] in sort(items(self.diffs.by_id), s:by_key)
       let path = esearch#out#win#view_data#filename(self.esearch, diff.ctx)
@@ -59,8 +59,8 @@ fu! s:Writer.write(bang) abort dict
     call current_window.restore()
     call current_buffer.restore()
     call self.create_undo_entry()
-    call winrestview(view)
     call options.restore()
+    call winrestview(view)
   endtry
   call self.log()
   " Deferring is required to execute the autocommand with avoiding BufWriteCmd side effects
