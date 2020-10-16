@@ -46,25 +46,21 @@ Then:
 
 Execute (#oneliner returns true if the buffer contains n lines):
   let g:buf = g:Handle.new(Fixture(g:file, repeat(['line'], Rand(5, 10))))
-  $tabnew
 Then:
   Assert !g:buf.oneliner()
 
 Execute (#oneliner returns true if the buffer contains 1 line):
   let g:buf = g:Handle.new(Fixture(g:file, ['line']))
-  $tabnew
 Then:
   Assert g:buf.oneliner()
 
 Execute (#oneliner returns true if the buffer contains no lines):
   let g:buf = g:Handle.new(Fixture(g:file, []))
-  $tabnew
 Then:
   Assert g:buf.oneliner()
 
 Execute (#getline returns 1-indexed line context):
   let g:buf = g:Handle.new(bufname(''))
-  $tabnew
 Then:
   AssertEqual g:buf.getline(1), 'l0'
   AssertEqual g:buf.getline(2), 'l1'
@@ -72,21 +68,18 @@ Then:
 
 Execute(#setline sets a single line):
   let g:buf = g:Handle.new(bufname(''))
-  $tabnew
   call g:buf.setline(1, 'changed')
 Then:
   AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['changed', 'l1', 'l2',]
 
 Execute (#appendlines appends lines after the last line):
   let g:buf = g:Handle.new(bufname(''))
-  $tabnew
   call g:buf.appendline(3, ['appended3', 'appended4'])
 Then:
   AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['l0', 'l1', 'l2', 'appended3', 'appended4']
 
 Execute (#appendlines appends lines before the first line):
   let g:buf = g:Handle.new(bufname(''))
-  $tabnew
   call g:buf.appendline(0, ['appended0', 'appended1'])
 Then:
   AssertEqual getbufline(g:buf.bufnr, 1, '$'), ['appended0', 'appended1', 'l0', 'l1', 'l2']

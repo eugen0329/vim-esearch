@@ -120,7 +120,7 @@ endfu
 fu! s:bufdo(bufnr, cmd, bang) abort
   let cur_buffer = esearch#buf#stay()
   try
-    exe a:bufnr 'bufdo' a:cmd.(a:bang ? '!' : '') |
+    exe (bufnr('%') == a:bufnr ? '' : a:bufnr.'bufdo ') . a:cmd . (a:bang ? '!' : '')
     return 1
   catch   | call esearch#util#warn(v:exception) | return 0
   finally | call cur_buffer.restore()
@@ -133,100 +133,75 @@ endfu
 
 let s:Handle = {}
 
-if g:esearch#has#bufadd && g:esearch#has#bufline_functions
-  fu! s:Handle.for(bufnr) abort dict
-    call bufload(a:bufnr)
-    call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
-    return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
+fu! s:Handle.for(bufnr) abort dict
+  call bufload(a:bufnr)
+  call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
+  return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
+endfu
+
+fu! s:Handle.new(filename) abort dict
+  let existed = bufexists(a:filename)
+  let bufnr = bufadd(a:filename)
+  call bufload(bufnr)
+  call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
+  return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
+endfu
+
+if exists('*nvim_buf_line_count')
+  fu! s:Handle.oneliner() abort dict
+    return nvim_buf_line_count(self.bufnr) == 1
   endfu
-
-  fu! s:Handle.new(filename) abort dict
-    let existed = bufexists(a:filename)
-    let bufnr = bufadd(a:filename)
-    call bufload(bufnr)
-    call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
-    return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
-  endfu
-
-  if exists('*nvim_buf_line_count')
-    fu! s:Handle.oneliner() abort dict
-      return nvim_buf_line_count(self.bufnr) == 1
-    endfu
-  elseif g:esearch#has#getbufinfo_linecount
-    fu! s:Handle.oneliner() abort dict
-      return getbufinfo(self.bufnr)[0].linecount == 1
-    endfu
-  else
-    fu! s:Handle.oneliner() abort dict
-      return getbufline(self.bufnr, 2) == []
-    endfu
-  endif
-
-  fu! s:Handle.getline(lnum) abort dict
-    return get(getbufline(self.bufnr, a:lnum), 0)
-  endfu
-
-  fu! s:Handle.setline(lnum, replacement) abort dict
-    call setbufline(self.bufnr, a:lnum, a:replacement)
-  endfu
-
-  fu! s:Handle.appendline(lnum, texts) abort
-    call appendbufline(self.bufnr, a:lnum, a:texts)
-  endfu
-
-  fu! s:Handle.deleteline(lnum) abort dict
-    return deletebufline(self.bufnr, a:lnum)
-  endfu
-
-  fu! s:Handle.write(bang) dict abort
-    return s:bufdo(self.bufnr, 'write', a:bang)
-  endfu
-
-  fu! s:Handle.open(opener, ...) dict abort
-    let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
-    return s:Buffer.open(self.bufnr, options)
-  endfu
-
-  fu! s:Handle.bdelete(...) dict abort
-    return s:bufdo(self.bufnr, 'bdelete', get(a:, 1))
-  endfu
-
-  fu! s:Handle.bwipeout(...) dict abort
-    return s:bufdo(self.bufnr, 'bwipeout', get(a:, 1))
+elseif g:esearch#has#getbufinfo_linecount
+  fu! s:Handle.oneliner() abort dict
+    return getbufinfo(self.bufnr)[0].linecount == 1
   endfu
 else
-  fu! s:Handle.new(filename) abort dict
-    let existed = bufexists(a:filename)
-    call esearch#buf#open(a:filename, 'edit', {'mods': 'keepalt keepjumps'})
-    setlocal buflisted
-    return extend(copy(self), {'bufnr': bufnr('%'), 'filename': a:filename, 'existed': existed})
-  endfu
-
-  fu! s:Handle.getline(lnum) abort dict
-    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
-    return getline(a:lnum)
-  endfu
-
- fu! s:Handle.setline(lnum, replacement) abort dict
-    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
-    return setline(a:lnum, a:replacement)
-  endfu
-
-  fu! s:Handle.deleteline(lnum) abort dict
-    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
-    exe a:lnum 'delete'
-  endfu
-
-  fu! s:Handle.write(bang) dict abort
-    if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
-    exe 'write' (a:bang ? '!' : '')
-  endfu
-
-  fu! s:Handle.open(opener, ...) dict abort
-    let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
-    return s:Buffer.open(self.filename, options)
+  fu! s:Handle.oneliner() abort dict
+    return getbufline(self.bufnr, 2) == []
   endfu
 endif
+
+fu! s:Handle.goto() abort dict
+  exe 'buffer!' self.bufnr 
+endfu
+
+fu! s:Handle.getline(lnum) abort dict
+  return get(getbufline(self.bufnr, a:lnum), 0)
+endfu
+
+" (set|append|delete)bufline are supported only in latest versions, that aren't
+" available in Debian repo, so old APIs are used.
+fu! s:Handle.setline(lnum, replacement) abort dict
+  if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+  call setline(a:lnum, a:replacement)
+endfu
+
+fu! s:Handle.appendline(lnum, texts) abort
+  if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+  call append(a:lnum, a:texts)
+endfu
+
+fu! s:Handle.deleteline(lnum) abort dict
+  if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
+  exe a:lnum 'delete _'
+endfu
+
+fu! s:Handle.write(bang) dict abort
+  return s:bufdo(self.bufnr, 'write', a:bang)
+endfu
+
+fu! s:Handle.open(opener, ...) dict abort
+  let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
+  return s:Buffer.open(self.bufnr, options)
+endfu
+
+fu! s:Handle.bdelete(...) dict abort
+  return s:bufdo(self.bufnr, 'bdelete', get(a:, 1))
+endfu
+
+fu! s:Handle.bwipeout(...) dict abort
+  return s:bufdo(self.bufnr, 'bwipeout', get(a:, 1))
+endfu
 
 fu! esearch#buf#stay() abort
   return s:CurrentBufferGuard.new()

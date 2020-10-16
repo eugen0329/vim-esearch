@@ -31,6 +31,7 @@ fu! s:Writer.write(bang) abort dict
     au!
     au SwapExists * let v:swapchoice = 'q'
   aug END
+  let options = esearch#let#restorable({'&bufhidden': 'hide'}) " required only for .goto()
   try
     for [id, diff] in sort(items(self.diffs.by_id), s:by_key)
       let path = esearch#out#win#view_data#filename(self.esearch, diff.ctx)
@@ -59,6 +60,7 @@ fu! s:Writer.write(bang) abort dict
     call current_buffer.restore()
     call self.create_undo_entry()
     call winrestview(view)
+    call options.restore()
   endtry
   call self.log()
   " Deferring is required to execute the autocommand with avoiding BufWriteCmd side effects
@@ -67,6 +69,7 @@ endfu
 
 fu! s:Writer.create_undo_entry() abort dict
   let original_register = @s
+  call self.search_buf.goto()
   try
     call self.update_win(self.win_edits)
     let latest_state = self.esearch.state
@@ -89,6 +92,8 @@ fu! s:Writer.create_undo_entry() abort dict
 endfu
 
 fu! s:Writer.update_file(buf, diff) abort
+  call a:buf.goto()
+
   let edits = a:diff.edits
   for edit in edits[:-2]
     call call(a:buf[edit.func], edit.args)
@@ -98,7 +103,6 @@ fu! s:Writer.update_file(buf, diff) abort
     let a:diff.win_undos[0].args[1][-1] =
           \ substitute(a:diff.win_undos[0].args[1][-1], g:esearch#out#win#capture_sign_re, '_', '')
   endif
-
   call call(a:buf[edits[-1].func], edits[-1].args)
 
   return a:diff.win_undos
