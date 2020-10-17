@@ -134,6 +134,7 @@ endfu
 let s:Handle = {}
 
 fu! s:Handle.for(bufnr) abort dict
+  call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
   return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
 endfu
 
@@ -149,8 +150,8 @@ else
   fu! s:Handle.new(filename) abort dict
     let existed = bufexists(a:filename)
     exe (existed ? 'buffer!' : 'edit!') fnameescape(a:filename)
-    let bufnr = bufnr('%')
-    return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
+    call setbufvar(bufnr('%'), '&buflisted', 1) " required for bufdo
+    return extend(copy(self), {'bufnr': bufnr('%'), 'filename': a:filename, 'existed': existed})
   endfu
 endif
 
