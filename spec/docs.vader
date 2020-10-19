@@ -211,6 +211,7 @@ Then:
   bwipe
   exe "norm i__pattern__\<ESC>viw,fv\<CR>"
   Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
+  bwipe
 
 Execute (globs):
   noremap  <expr><leader>fe esearch#prefill({'paths': '**/*.{js,css,html}'})
@@ -221,6 +222,7 @@ Then:
   bwipe
   exe "norm i__pattern__\<ESC>viw,fe\<CR>"
   AssertEqual b:esearch.paths[0].str, '**/*.{js,css,html}'
+  bwipe
 
 Execute (filetypes):
   noremap  <expr><leader>fe esearch#prefill({'filetypes': 'js css html'})
@@ -231,6 +233,7 @@ Then:
   bwipe
   exe "norm i__pattern__\<ESC>viw,fe\<CR>"
   AssertEqual b:esearch.filetypes, 'js css html'
+  bwipe
 
 Execute:
   let g:search_py_methods = {'prefill': [{-> "def (self\<s-left>"}]}
@@ -238,6 +241,7 @@ Execute:
 Then:
   exe "norm ,fp__pattern__\<CR>"
   AssertEqual b:esearch.pattern.str, 'def __pattern__(self'
+  bwipe
 
 Execute:
   vnoremap <expr><leader>fm esearch#prefill({'paths': '`git ls-files -m`'})
@@ -249,6 +253,7 @@ Then:
   exe "norm i__pattern__\<ESC>viw,fm\<CR>"
   AssertEqual b:esearch.paths[0].str, '`git ls-files -m`'
   AssertEqual b:esearch.request.errors, []
+  bwipe
 
 Execute (unmerged using rev-list):
   let g:since_2_weeks =
@@ -263,6 +268,7 @@ Then:
   exe "norm i__pattern__\<ESC>viw,fu\<CR>"
   Assert b:esearch.paths[0].str =~# '^`git rev-list', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
+  bwipe
 
 Execute:
   nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
@@ -275,6 +281,7 @@ Then:
   exe "norm i__pattern__\<ESC>viw,fs\<CR>"
   Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
+  bwipe
 
 Execute:
   function! CompleteBranches(...)
@@ -282,8 +289,8 @@ Execute:
   endfunction
 
   nnoremap <leader>fb :call esearch#init({
-        \ 'adapter':  'git',
-        \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
+        \ 'adapter': 'git',
+        \ 'paths':   input('branch> ', '', 'custom,CompleteBranches'),
         \})<cr>
 Then:
   exe "norm ,fbHEAD\<CR>__pattern__\<CR>"
