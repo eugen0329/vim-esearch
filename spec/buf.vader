@@ -1,7 +1,7 @@
 Include: helper.vader
 
 Before:
-  let g:Handle = esearch#buf#handle()
+  let g:Handle = esearch#buf#import()
   call setline(1, ['l0', 'l1', 'l2'])
   let g:file = 'spec/fixtures/file.txt'
   let g:cwd = 'spec/fixtures/buf/'

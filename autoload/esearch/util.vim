@@ -283,9 +283,9 @@ endfu
 
 if g:esearch#has#timers
 fu! esearch#util#try_defer(funcref, ...) abort
-  call timer_start(0, function('s:defr_cb', [a:funcref, a:000]))
+  call timer_start(0, function('s:defer_cb', [a:funcref, a:000]))
 endfu
-fu! s:defr_cb(func, argv, _) abort
+fu! s:defer_cb(func, argv, _) abort
   return call(a:func, a:argv)
 endfu
 else

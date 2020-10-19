@@ -38,7 +38,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'aborted': 0,
         \ 'cursor': 0,
         \ 'cb': {
-        \   'schedule_finish': 0,
+        \   'finish': 0,
         \   'update': 0
         \ }
         \}
@@ -101,8 +101,8 @@ fu! s:closed(job_id, channel) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
 
-  if !empty(job.request.cb.schedule_finish)
-    call job.request.cb.schedule_finish()
+  if !empty(job.request.cb.finish)
+    call job.request.cb.finish()
   endif
 endfu
 

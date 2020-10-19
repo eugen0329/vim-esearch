@@ -42,19 +42,16 @@
           with_items:
             - '{{ ag_package_name }}'
             - '{{ ack_package_name }}'
-
         - name: From PIP
           pip:
             name: ['semgrep']
             state: present
-
         - name: From go-get
           command: "go get {{ item }}"
           environment:
             GO111MODULE: "on"
           with_items:
             - mvdan.cc/gogrep
-
         - name: Install prebuilt
           block:
             - name: Download

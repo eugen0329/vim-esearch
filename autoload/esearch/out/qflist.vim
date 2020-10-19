@@ -21,7 +21,7 @@ fu! esearch#out#qflist#setup_autocmds(es) abort
   aug ESearchQFListAutocmds
     au! * <buffer>
     let a:es.request.cb.update = function('esearch#out#qflist#update')
-    let a:es.request.cb.schedule_finish = function('esearch#out#qflist#schedule_finish')
+    let a:es.request.cb.finish = function('esearch#out#qflist#schedule_finish')
 
     " Keep only User cmds(reponsible for results updating) and qf initialization
     au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "

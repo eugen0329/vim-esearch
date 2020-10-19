@@ -33,7 +33,7 @@ fu! esearch#backend#nvim#init(cwd, adapter, command) abort
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'cb': {
-        \   'schedule_finish': 0,
+        \   'finish': 0,
         \   'update': 0
         \ }
         \}
@@ -100,8 +100,8 @@ fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
-  if !job.request.aborted && !empty(job.request.cb.schedule_finish)
-    call job.request.cb.schedule_finish()
+  if !job.request.aborted && !empty(job.request.cb.finish)
+    call job.request.cb.finish()
   endif
 endfu
 

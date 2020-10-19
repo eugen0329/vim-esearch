@@ -127,19 +127,19 @@ fu! s:bufdo(bufnr, cmd, bang) abort
   endtry
 endfu
 
-fu! esearch#buf#handle() abort
-  return s:Handle
+fu! esearch#buf#import() abort
+  return copy(s:Buf)
 endfu
 
-let s:Handle = {}
+let s:Buf = {}
 
-fu! s:Handle.for(bufnr) abort dict
+fu! s:Buf.for(bufnr) abort dict
   call setbufvar(a:bufnr, '&buflisted', 1) " required for bufdo
   return extend(copy(self), {'bufnr': a:bufnr, 'filename': bufname(a:bufnr), 'existed': 1})
 endfu
 
 if g:esearch#has#bufadd
-  fu! s:Handle.new(filename) abort dict
+  fu! s:Buf.new(filename) abort dict
     let existed = bufexists(a:filename)
     let bufnr = bufadd(a:filename)
     call bufload(bufnr)
@@ -147,7 +147,7 @@ if g:esearch#has#bufadd
     return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
   endfu
 else
-  fu! s:Handle.new(filename) abort dict
+  fu! s:Buf.new(filename) abort dict
     let existed = bufexists(a:filename)
     exe (existed ? 'buffer!' : 'edit!') fnameescape(a:filename)
     call setbufvar(bufnr('%'), '&buflisted', 1) " required for bufdo
@@ -156,58 +156,58 @@ else
 endif
 
 if exists('*nvim_buf_line_count')
-  fu! s:Handle.oneliner() abort dict
+  fu! s:Buf.oneliner() abort dict
     return nvim_buf_line_count(self.bufnr) == 1
   endfu
 elseif g:esearch#has#getbufinfo_linecount
-  fu! s:Handle.oneliner() abort dict
+  fu! s:Buf.oneliner() abort dict
     return getbufinfo(self.bufnr)[0].linecount == 1
   endfu
 else
-  fu! s:Handle.oneliner() abort dict
+  fu! s:Buf.oneliner() abort dict
     return getbufline(self.bufnr, 2) == []
   endfu
 endif
 
-fu! s:Handle.goto() abort dict
+fu! s:Buf.goto() abort dict
   exe 'buffer!' self.bufnr 
 endfu
 
-fu! s:Handle.getline(lnum) abort dict
+fu! s:Buf.getline(lnum) abort dict
   return get(getbufline(self.bufnr, a:lnum), 0)
 endfu
 
 " (set|append|delete)bufline are supported only in latest versions, that aren't
 " available in Debian repo, so old APIs are used.
-fu! s:Handle.setline(lnum, replacement) abort dict
+fu! s:Buf.setline(lnum, replacement) abort dict
   if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
   call setline(a:lnum, a:replacement)
 endfu
 
-fu! s:Handle.appendline(lnum, texts) abort
+fu! s:Buf.appendline(lnum, texts) abort
   if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
   call append(a:lnum, a:texts)
 endfu
 
-fu! s:Handle.deleteline(lnum) abort dict
+fu! s:Buf.deleteline(lnum) abort dict
   if bufnr('%') !=# self.bufnr | throw 'Wrong bufnr' | endif
   exe a:lnum 'delete _'
 endfu
 
-fu! s:Handle.write(bang) dict abort
+fu! s:Buf.write(bang) dict abort
   return s:bufdo(self.bufnr, 'write', a:bang)
 endfu
 
-fu! s:Handle.open(opener, ...) dict abort
+fu! s:Buf.open(opener, ...) dict abort
   let options = extend(copy(get(a:, 1, {})), {'opener': a:opener})
   return s:Buffer.open(self.bufnr, options)
 endfu
 
-fu! s:Handle.bdelete(...) dict abort
+fu! s:Buf.bdelete(...) dict abort
   return s:bufdo(self.bufnr, 'bdelete', get(a:, 1))
 endfu
 
-fu! s:Handle.bwipeout(...) dict abort
+fu! s:Buf.bwipeout(...) dict abort
   return s:bufdo(self.bufnr, 'bwipeout', get(a:, 1))
 endfu
 

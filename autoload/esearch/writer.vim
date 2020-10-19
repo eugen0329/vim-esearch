@@ -1,5 +1,5 @@
 let s:List = vital#esearch#import('Data.List')
-let s:Buf = esearch#buf#handle()
+let s:Buf = esearch#buf#import()
 let s:by_key = function('esearch#util#by_key')
 
 fu! esearch#writer#do(diffs, esearch, bang) abort
@@ -31,7 +31,7 @@ fu! s:Writer.write(bang) abort dict
     au!
     au SwapExists * let v:swapchoice = 'q'
   aug END
-  let options = esearch#let#restorable({'&bufhidden': 'hide', '&buflisted': 1})
+  let current_options = esearch#let#restorable({'&bufhidden': 'hide', '&buflisted': 1})
   try
     for [id, diff] in sort(items(self.diffs.by_id), s:by_key)
       let path = esearch#out#win#view_data#filename(self.esearch, diff.ctx)
@@ -59,7 +59,7 @@ fu! s:Writer.write(bang) abort dict
     call current_window.restore()
     call current_buffer.restore()
     call self.create_undo_entry()
-    call options.restore()
+    call current_options.restore()
     call winrestview(view)
   endtry
   call self.log()
