@@ -258,13 +258,6 @@ fu! esearch#util#warn(message) abort
   endif
 endfu
 
-" If live_update feature is enabled:
-"    live_exec - exec a new search
-"   !live_exec - skip exec and connect to an already executed search
-fu! esearch#util#is_skip_exec(esearch) abort
-  return a:esearch.live_update && !a:esearch.live_exec
-endfu
-
 fu! esearch#util#find_up(path, markers) abort
   " Partially based on vital's prelude path2project-root internals
   let dir = s:Prelude.path2directory(a:path)
@@ -290,9 +283,9 @@ endfu
 
 if g:esearch#has#timers
 fu! esearch#util#try_defer(funcref, ...) abort
-  call timer_start(0, function('s:defr_cb', [a:funcref, a:000]))
+  call timer_start(0, function('s:defer_cb', [a:funcref, a:000]))
 endfu
-fu! s:defr_cb(func, argv, _) abort
+fu! s:defer_cb(func, argv, _) abort
   return call(a:func, a:argv)
 endfu
 else

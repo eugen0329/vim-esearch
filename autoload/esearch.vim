@@ -27,7 +27,7 @@ fu! esearch#prefill_op(wise) abort
 endfu
 
 fu! esearch#exec_op(wise) abort
-  call esearch#init(extend({'prefill': ['region'], 'region': a:wise, 'exec': 1}, get(esearch#operator#args(), 0, {})))
+  call esearch#init(extend({'prefill': ['region'], 'region': a:wise, 'force_exec': 1}, get(esearch#operator#args(), 0, {})))
 endfu
 
 " DEPRECATED

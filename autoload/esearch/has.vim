@@ -9,7 +9,6 @@ let g:esearch#has#reg_recording = exists('*reg_recording')
 let g:esearch#has#throttle = has('timers')
 let g:esearch#has#bufadd = exists('*bufadd')
 let g:esearch#has#json_decode = exists('*json_decode')
-let g:esearch#has#bufline_functions = exists('*setbufline') && exists('*deletebufline')
 let g:esearch#has#meta_key = has('nvim') || has('gui_running')
 let g:esearch#has#gui_colors = has('gui_running') || has('termguicolors') && &termguicolors || has('nvim') && $NVIM_TUI_ENABLE_TRUE_COLOR " from papercolors
 let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')

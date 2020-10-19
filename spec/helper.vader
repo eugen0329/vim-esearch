@@ -16,7 +16,6 @@ Execute(setup):
       \ && messages[1] =~# '^  '.fnamemodify(a:path, ':.')
   endfu
 
-  let s:List = vital#esearch#import('Data.List')
   fu! UndotreeIsConsistent() abort
     let lines = getline(1, '$')
     let g:state = [0]

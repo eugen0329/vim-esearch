@@ -1,10 +1,10 @@
 fu! esearch#preview#buf#import() abort
-  return s:PreviewBuffer
+  return s:Buf
 endfu
 
-let s:PreviewBuffer = {'kind': 'regular', 'swapname': ''}
+let s:Buf = {'kind': 'regular', 'swapname': ''}
 
-fu! s:PreviewBuffer.new(filename, ...) abort dict
+fu! s:Buf.new(filename, ...) abort dict
   let new = copy(self)
   let new.filename = a:filename
 
@@ -18,7 +18,7 @@ fu! s:PreviewBuffer.new(filename, ...) abort dict
   return new
 endfu
 
-fu! s:PreviewBuffer.fetch_or_create(filename, cache) abort dict
+fu! s:Buf.fetch_or_create(filename, cache) abort dict
   if has_key(a:cache, a:filename)
     let cached = a:cache[a:filename]
     if cached.is_valid()
@@ -33,7 +33,7 @@ fu! s:PreviewBuffer.fetch_or_create(filename, cache) abort dict
   return new
 endfu
 
-fu! s:PreviewBuffer.edit_allowing_swap_prompt() abort dict
+fu! s:Buf.edit_allowing_swap_prompt() abort dict
   if exists('#esearch_preview_autoclose')
     au! esearch_preview_autoclose
   endif
@@ -59,6 +59,6 @@ fu! s:PreviewBuffer.edit_allowing_swap_prompt() abort dict
   return 1
 endfu
 
-fu! s:PreviewBuffer.is_valid() abort dict
+fu! s:Buf.is_valid() abort dict
   return self.id >= 0 && bufexists(self.id)
 endfu

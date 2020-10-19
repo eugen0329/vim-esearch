@@ -1,4 +1,4 @@
-let s:Log    = esearch#log#import()
+let s:Log        = esearch#log#import()
 let s:PathPrompt = esearch#ui#component()
 
 fu! s:PathPrompt.render() abort dict

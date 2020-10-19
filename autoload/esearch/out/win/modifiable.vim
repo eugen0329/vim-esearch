@@ -1,4 +1,5 @@
 let s:Log = esearch#log#import()
+let s:Undotree = esearch#undotree#import()
 
 fu! esearch#out#win#modifiable#init() abort
   let b:esearch.modifiable = 1
@@ -8,7 +9,7 @@ fu! esearch#out#win#modifiable#init() abort
     au BufWriteCmd <buffer> call s:write_cmd()
     au TextChanged,TextChangedI,TextChangedP <buffer> call s:text_changed()
   aug END
-  let b:esearch.undotree = esearch#undotree#new(b:esearch.state)
+  let b:esearch.undotree = s:Undotree.new(b:esearch.state)
   call esearch#compat#visual_multi#init()
 endfu
 
@@ -164,6 +165,7 @@ fu! esearch#out#win#modifiable#seq(...) abort
     return ''
   endif
 
+  unlet! s:seq
   let [s:original_reg, @"] = [@", '']
   return (empty(s:reg_recording()) ? '' : 'q').'q"'
 endfu

@@ -27,7 +27,7 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
     else
       let a:esearch.paths = s:paths_in_range(filer, a:esearch.region)
       call remove(a:esearch, 'region')
-      silent! unlet a:esearch['exec']
+      let a:esearch.force_exec = 0
     endif
   finally
     call cwd.restore()

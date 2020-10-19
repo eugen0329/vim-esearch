@@ -1451,8 +1451,8 @@ Grep in a specific branch inputted by the user.
     endfunction
 
     nnoremap <leader>fb :call esearch#init({
-          \ 'adapter':  'git',
-          \ 'paths':    input('branch> ', '', 'custom,CompleteBranches'),
+          \ 'adapter': 'git',
+          \ 'paths':   input('branch> ', '', 'custom,CompleteBranches'),
           \})<cr>
 <
 

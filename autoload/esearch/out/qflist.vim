@@ -1,5 +1,5 @@
 fu! esearch#out#qflist#init(es) abort
-  if esearch#util#is_skip_exec(a:es) | return s:init_live_updated(a:es) | endif
+  if a:es.live_update && !a:es.force_exec | return s:init_live_updated(a:es) | endif
 
   if has_key(g:, 'esearch_qf')
     call esearch#backend#{g:esearch_qf.backend}#abort(bufnr('%'))
@@ -21,7 +21,7 @@ fu! esearch#out#qflist#setup_autocmds(es) abort
   aug ESearchQFListAutocmds
     au! * <buffer>
     let a:es.request.cb.update = function('esearch#out#qflist#update')
-    let a:es.request.cb.schedule_finish = function('esearch#out#qflist#schedule_finish')
+    let a:es.request.cb.finish = function('esearch#out#qflist#schedule_finish')
 
     " Keep only User cmds(reponsible for results updating) and qf initialization
     au BufUnload <buffer> exe "au! ESearchQFListAutocmds * <abuf> "

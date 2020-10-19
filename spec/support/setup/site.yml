@@ -27,9 +27,9 @@
           become: '{{ package_become }}'
           args:
             creates: /usr/local/bin/luacheck
-        - name: Vim lint
+        - name: PIP packages
           pip:
-            name: ['vim-vint']
+            name: ['vim-vint', 'neovim']
             state: present
 
     - name: Setup greppers
@@ -46,7 +46,12 @@
           pip:
             name: ['semgrep']
             state: present
-
+        - name: From go-get
+          command: "go get {{ item }}"
+          environment:
+            GO111MODULE: "on"
+          with_items:
+            - mvdan.cc/gogrep
         - name: Install prebuilt
           block:
             - name: Download

@@ -6,7 +6,7 @@ fu! esearch#middleware#pattern#apply(esearch) abort
   if empty(get(esearch, 'pattern'))
     let [esearch.pattern, esearch.select_prefilled] = esearch#prefill#try(esearch)
     call esearch.pattern.adapt(esearch._adapter)
-    if get(esearch, 'exec')
+    if esearch.force_exec
       let esearch.live_update = 0
     else
       let esearch = esearch#cmdline#read(esearch)
@@ -17,8 +17,8 @@ fu! esearch#middleware#pattern#apply(esearch) abort
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
     endif
     call esearch.pattern.adapt(esearch._adapter)
-    " avoid live_update if the pattern is present unless is it's a part of live_exec flow
-    let esearch.live_update = esearch.live_exec
+    " avoid live_update if the pattern is present unless is it's a part of force_exec flow
+    let esearch.live_update = esearch.force_exec
   endif
 
   call esearch.pattern.splice(esearch)

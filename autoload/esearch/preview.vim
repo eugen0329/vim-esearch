@@ -54,9 +54,9 @@ fu! esearch#preview#shell(command, ...) abort
     return
   endif
   let request = esearch#backend#{backend}#init(opts.cwd, '', a:command)
-  let request.cb.schedule_finish = function('<SID>on_finish', [request, opts, bufnr('')])
+  let request.cb.finish = function('<SID>on_finish', [request, opts, bufnr('')])
   call esearch#backend#{backend}#exec(request)
-  if !request.async | call request.cb.schedule_finish() | endif
+  if !request.async | call request.cb.finish() | endif
 endfu
 
 fu! s:on_finish(request, opts, bufnr) abort

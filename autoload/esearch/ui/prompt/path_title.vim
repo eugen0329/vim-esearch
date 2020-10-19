@@ -1,5 +1,5 @@
 let s:Filepath   = vital#esearch#import('System.Filepath')
-let s:Log    = esearch#log#import()
+let s:Log        = esearch#log#import()
 let s:PathPrompt = esearch#ui#prompt#path#import()
 
 let s:PathTitlePrompt = esearch#ui#component()

@@ -35,7 +35,7 @@ let g:esearch#out#win#entry_fmt   = ' %3d %s'
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
 fu! esearch#out#win#init(esearch) abort
-  if esearch#util#is_skip_exec(a:esearch) | return s:init_live_updated(a:esearch) | endif
+  if a:esearch.live_update && !a:esearch.force_exec | return s:init_live_updated(a:esearch) | endif
 
   if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
   let was_clean = s:cleanup(a:esearch)
@@ -106,7 +106,7 @@ fu! esearch#out#win#init(esearch) abort
 endfu
 
 fu! s:init_live_updated(esearch) abort
-  let b:esearch.live_exec = 0
+  let b:esearch.force_exec = 0
   let abspath = esearch#util#abspath(a:esearch.cwd, a:esearch.name)
 
   try
@@ -136,7 +136,7 @@ fu! s:cleanup(esearch) abort
     call esearch#out#win#appearance#ctx_syntax#uninit(b:esearch)
     call esearch#out#win#appearance#cursor_linenr#uninit(b:esearch)
     call esearch#out#win#appearance#annotations#uninit(b:esearch)
-    if !a:esearch.live_exec | let b:esearch.view = s:winsaveview(b:esearch) | endif
+    if !a:esearch.force_exec | let b:esearch.view = s:winsaveview(b:esearch) | endif
   endif
   aug esearch_win_config
     au! * <buffer>
@@ -162,7 +162,7 @@ endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
   if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
-    call esearch#util#warn('esearch: some highlights were disabled to prevent slowdowns (reason: ' . a:reason . ')')
+    call esearch#util#warn('esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')')
   endif
 
   call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)

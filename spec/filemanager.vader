@@ -1,13 +1,14 @@
 Include: helper.vader
 
 Execute(setup):
+  au FileType defx nnoremap <nowait><buffer><expr><cr> defx#do_action('open_or_close_tree')
+  au FileType fern nmap <nowait><buffer><cr> :exe 'FernReveal' fern#helper#new().sync.get_cursor_node().name '-wait'<CR>
   let g:NETRPreviewDefaultOn = 0
+  source ~/.cache/esearch-dev/plugins/vim-netranger/plugin/netranger.vim
   call NetrangerInit()
   au! NETRANGER_LAZY_INIT
   au! NETRANGER BufEnter
   au! NERDTreeHijackNetrw
-  au FileType defx nnoremap <nowait><buffer><expr><cr> defx#do_action('open_or_close_tree')
-  au FileType fern nmap <nowait><buffer><cr> :exe 'FernReveal' fern#helper#new().sync.get_cursor_node().name '-wait'<CR>
 
 Before:
   Save g:esearch
@@ -95,8 +96,6 @@ Execute(search in marked):
 
     exe open_filer g:esearch.cwd
     let bufnr = bufnr()
-    Log execute('messages')
-    Log getline(1 , '$')
     exe "norm /file2\<CR>-/file3\<CR>-\<plug>(esearch).\<CR>"
     AssertEqual join(getline(1, '$'), "\n"), join([
       \ 'Matches in 4 lines, 2 files. Finished.',

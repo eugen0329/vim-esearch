@@ -73,7 +73,7 @@ fu! s:SearchInputController.final_live_update() dict abort
   " if changes were made and live_update_debounce_wait wasn't exceeded
   let cmdline = self.cmdline
   if s:self.executed_cmdline ==# cmdline || empty(cmdline) | return | endif
-  call s:live_exec(cmdline)
+  call s:force_exec(cmdline)
 endfu
 
 fu! s:live_update(...) abort
@@ -82,14 +82,14 @@ fu! s:live_update(...) abort
     return
   endif
   let s:self.executed_cmdline = cmdline
-  let esearch = s:live_exec(cmdline)
+  let esearch = s:force_exec(cmdline)
   call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
 endfu
 
-fu! s:live_exec(cmdline) abort
+fu! s:force_exec(cmdline) abort
   let state = copy(s:self.__context__().store.state)
   call state.pattern.replace(a:cmdline)
-  return esearch#init(extend(state, {'remember': [], 'live_exec': 1, 'name': '[esearch]' }))
+  return esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
 endfu
 
 fu! s:redraw(_) abort
