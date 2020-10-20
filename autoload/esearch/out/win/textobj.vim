@@ -1,27 +1,26 @@
 fu! esearch#out#win#textobj#init(esearch) abort
-  if !has_key(a:esearch.pattern, 'seek_match')
-    let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch)
-  endif
+  let a:esearch.pattern.seek_match = esearch#out#win#matches#pattern_each(a:esearch) . '\%>1l'
 endfu
 
-fu! esearch#out#win#textobj#match_a(count) abort
-  call s:select_match(a:count, 1)
+fu! esearch#out#win#textobj#match_a(is_visual, count1) abort
+  call s:select_match(a:is_visual, a:count1, 1)
 endfu
 
-fu! esearch#out#win#textobj#match_i(count) abort
-  call s:select_match(a:count, 0)
+fu! esearch#out#win#textobj#match_i(is_visual, count1) abort
+  call s:select_match(a:is_visual, a:count1, 0)
 endfu
 
-fu! s:select_match(count, is_around) abort
+fu! s:select_match(is_visual, count1, is_around) abort
   let i = 0
+  let s:view = winsaveview()
 
-  let [i, begin, end] = s:seek_under_cursor(i, a:count)
-  if i < a:count
-    let [i, begin, end] = s:seek_forward(i, a:count)
+  let [i, begin, end] = s:seek_under_cursor(i, a:count1)
+  if i < a:count1
+    let [i, begin, end] = s:seek_forward(i, a:count1)
   endif
 
   if begin == [0,0] || end == [0,0]
-    return
+    return s:cancel(a:is_visual)
   endif
 
   if a:is_around
@@ -31,10 +30,27 @@ fu! s:select_match(count, is_around) abort
   endif
 endfu
 
+" inspired by junegunn code and CountJump implementation
+fu! s:cancel(is_visual) abort
+  if a:is_visual
+    exec 'norm! gv'
+  elseif index(['c', 'd'], esearch#out#win#modifiable#operator()) >= 0
+    let undo_seq = "\<esc>:undo|redraw"
+          \."|echo 'esearch: no more matches found ahead'"
+          \."|call esearch#out#win#textobj#winrestview()\<CR>"
+    call feedkeys(undo_seq, 'n')
+  endif
+endfu
+
 fu! s:select_region(begin, end) abort
   call cursor(a:begin)
   norm! v
   call cursor(a:end)
+endfu
+
+fu! esearch#out#win#textobj#winrestview() abort
+  call winrestview(s:view)
+  unlet s:view
 endfu
 
 " Behaves like {operator}iw textobj, where trailing whitespaces if available or
@@ -53,10 +69,10 @@ fu! s:select_region_with_trailing_or_leading_spaces(begin, end) abort
   endif
 endfu
 
-fu! s:seek_forward(i, count) abort
+fu! s:seek_forward(i, count1) abort
   let [line, col] = getpos('.')[1:2]
   let i = a:i
-  while i < a:count && search(b:esearch.pattern.seek_match, 'W')
+  while i < a:count1 && search(b:esearch.pattern.seek_match, 'W')
     let i += 1
   endwhile
   let begin = getpos('.')[1:2]
@@ -67,7 +83,7 @@ fu! s:seek_forward(i, count) abort
   return [i, begin, end]
 endfu
 
-fu! s:seek_under_cursor(i, count) abort
+fu! s:seek_under_cursor(i, count1) abort
   let [line, col] = getpos('.')[1:2]
   let curr_line_re = '\%'.line.'l'
   let inline_match_re = curr_line_re . b:esearch.pattern.seek_match

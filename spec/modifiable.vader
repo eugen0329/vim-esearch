@@ -1,0 +1,425 @@
+Include: helper.vader
+
+Execute:
+  let g:esearch.cwd = 'spec/fixtures/modifiable/'
+  let g:esearch.pattern = '\w+'
+  call Fixture(g:esearch.cwd.'file.txt', ['word1 word2', 'word3 word4'])
+
+Before:
+  call esearch#init()
+  norm! gg
+  let @r = ''
+
+After:
+  undo
+
+###########
+Execute (delete match 1 "inner" textobj):
+  norm dim
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1  word2
+     2 word3 word4
+
+###########
+Execute (delete match 3 "inner" textobj):
+  norm 3dim
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word1 word2
+     2  word4
+
+###########
+Execute (delete into @r register):
+  norm "rdim
+
+Then:
+  AssertEqual getreg('r'), 'word1'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1  word2
+     2 word3 word4
+
+###########
+Execute (delete with preserving @" register):
+  let @" = 'original'
+  norm dim
+
+Then:
+  AssertEqual getreg('"'), 'original'
+  norm! q
+  AssertEqual getreg('"'), 'original'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1  word2
+     2 word3 word4
+
+###########
+Execute (delete multiple lines with j motion):
+  norm! 3G
+  norm dj
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+     2 word3 word4
+
+###########
+Execute (delete multiple lines with dd motion):
+  norm! 3G
+  norm 2dd
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+     2 word3 word4
+
+#######
+Execute (delete inline using side motion):
+  norm! 4G7|
+  norm dh
+  norm! 5G9|
+  norm 3dh
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 ord1 word2
+     2 d3 word4
+
+#######
+Execute (delete inline using f and t motions):
+  norm! 4G7|
+  norm dfd
+  norm! 5G7|
+  norm 2dtd
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 w1 word2
+     2 wd4
+
+###########
+Execute (delete current line with dd):
+  norm! 4G
+  norm dd
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     2 word3 word4
+
+###########
+Execute (delete current line using linewise-visual):
+  norm! 4G
+  norm Vd
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     2 word3 word4
+
+###########
+Execute (change match 1 "inner" textobj):
+  norm cim
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1  word2
+     2 word3 word4
+
+###########
+Execute (change match 3 "inner" textobj):
+  norm 3cim
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word1 word2
+     2  word4
+
+###########
+Execute (change into @r register):
+  norm "rcim
+
+Then:
+  AssertEqual getreg('r'), 'word1'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1  word2
+     2 word3 word4
+
+###########
+Execute (change with preserving @" register):
+  let @" = 'original'
+  norm cim
+
+Then:
+  AssertEqual getreg('"'), 'original'
+  norm! q
+  AssertEqual getreg('"'), 'original'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1  word2
+     2 word3 word4
+
+###########
+Execute (change multiple lines with j motion):
+  norm! 3G
+  norm cj
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+
+     2 word3 word4
+
+###########
+Execute (change multiple lines with c motion):
+  norm! 3G
+  norm 2cc
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+
+     2 word3 word4
+###########
+Execute (change current line cc):
+  norm! 4G
+  norm cc
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+
+     2 word3 word4
+###########
+Execute (change current line using linewise-visual):
+  norm! 4G
+  norm Vczzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+  zzz
+     2 word3 word4
+
+###########
+Execute (change multiple lines using linewise-visual):
+  norm! 3G
+  norm Vjczzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  zzz
+     2 word3 word4
+
+#######
+Execute (change inline using side motion):
+  norm! 4G7|
+  norm chz
+  norm! 5G9|
+  norm 3chz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 zord1 word2
+     2 zd3 word4
+
+#######
+Execute (change inline using f and t motions):
+  norm! 4G7|
+  norm cfdz
+  norm! 5G7|
+  norm 2ctdz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wz1 word2
+     2 wzd4
+
+###########
+Execute (change with C):
+  exe "norm! /word1\<CR>"
+  norm f1Czzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+     2 word3 word4
+
+###########
+Execute (change with 2C):
+  exe "norm! /word1\<CR>"
+  norm f12Czzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+
+###########
+Execute (change with C into @r register):
+  exe "norm! /word1\<CR>"
+  norm f1"rCzzz
+
+Then:
+  AssertEqual getreg('r'), '1 word2'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+     2 word3 word4
+
+###########
+Execute (change with C avoiding recording):
+  let @" = 'original'
+  exe "norm! /word1\<CR>"
+  norm f1Czzz
+
+Then:
+  AssertEqual reg_recording(), ''
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 wordzzz
+     2 word3 word4
+
+###########
+Execute (change current line with C using linewise-visual):
+  exe "norm! /word1\<CR>"
+  norm VCzzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+  zzz
+     2 word3 word4
+
+###########
+Execute (change multiple lines with C using linewise-visual):
+  norm! 3G
+  norm VjCzzz
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  zzz
+     2 word3 word4
+
+###########
+Execute (delete with D):
+  exe "norm! /word1\<CR>"
+  norm f1D
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+     2 word3 word4
+
+###########
+Execute (delete with 2C):
+  exe "norm! /word1\<CR>"
+  norm f12D
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+
+###########
+Execute (delete with D into @r register):
+  exe "norm! /word1\<CR>"
+  norm f1"rD
+
+Then:
+  AssertEqual getreg('r'), '1 word2'
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+     2 word3 word4
+
+###########
+Execute (delete with D avoiding recording):
+  let @" = 'original'
+  exe "norm! /word1\<CR>"
+  norm f1D
+
+Then:
+  AssertEqual reg_recording(), ''
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     1 word
+     2 word3 word4
+
+###########
+Execute (delete current line with D using linewise-visual):
+  exe "norm! /word1\<CR>"
+  norm VD
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+  file.txt
+     2 word3 word4
+
+###########
+Execute (delete multiple lines with D using linewise-visual):
+  norm! 3G
+  norm VjD
+
+Expect esearch_test:
+  Matches in 2 lines, 1 file. Finished.
+
+     2 word3 word4

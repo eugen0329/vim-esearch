@@ -1,0 +1,141 @@
+Include: helper.vader
+
+Before:
+  let g:esearch.cwd = 'spec/fixtures/jumps/'
+  let g:esearch.pattern = '.'
+  for i in range(1, 3)
+    call Fixture(g:esearch.cwd.'/dir'.i.'/file'.i.'.txt', ['line'.i])
+  endfor
+  call esearch#init()
+  Save &virtualedit
+
+After:
+  Restore &virtualedit
+
+Execute (with "(" jump to filename 1 from the header):
+  exe 'norm gg('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/') + 1
+
+Execute (with "(" jump to filename 1 from filename 1):
+  exe 'norm 3G('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/') + 1
+
+Execute (with "(" jump to filename 1 from file 1 entry 1):
+  exe 'norm 4G('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/') + 1
+
+Execute (with "(" jump to filename 2 from file 3 entry 1):
+  exe 'norm G('
+Then:
+  AssertEqual getline('.'), 'dir2/file2.txt'
+  AssertEqual col('.'), len('dir2/') + 1
+
+Execute (with ")" jump to filename 2 from filename 3):
+  exe 'norm G('
+Then:
+  AssertEqual getline('.'), 'dir2/file2.txt'
+  AssertEqual col('.'), len('dir2/') + 1
+
+Execute (with ")" jump to filename 2 from the header):
+  exe 'norm gg)'
+Then:
+  AssertEqual getline('.'), 'dir2/file2.txt'
+  AssertEqual col('.'), len('dir2/') + 1
+
+Execute (with ")" jump to filename 2 from filename 1):
+  exe 'norm 3G)'
+Then:
+  AssertEqual getline('.'), 'dir2/file2.txt'
+  AssertEqual col('.'), len('dir2/') + 1
+
+Execute (with ")" jump to filename 1 from file 1 entry 1):
+  exe 'norm 4G)'
+Then:
+  AssertEqual getline('.'), 'dir2/file2.txt'
+  AssertEqual col('.'), len('dir2/') + 1
+
+Execute (with "(" jump to filename 3 from file 3 entry 1):
+  exe 'norm G)'
+Then:
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/') + 1
+
+Execute (with ")" jump to filename 3 from filename 3):
+  exe 'norm Gk)'
+Then:
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/') + 1
+
+Execute (with ")" stay visual mode):
+  exe 'norm gg0v))'
+Then:
+  AssertEqual mode(), 'v'
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/') + 1
+  AssertEqual getpos("'<")[1:2], [1, 1]
+
+Execute (with "(" stay visual mode):
+  exe 'norm G$v(('
+Then:
+  AssertEqual mode(), 'v'
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/') + 1
+  AssertEqual getpos("'>")[1:2], [line('$'), len(getline('$'))]
+
+Execute (with ")" in operator mode):
+  exe 'norm 3G0d)'
+Then:
+  AssertEqual getcurpos()[1:2], [3, 1]
+
+Expect esearch_test:
+  Matches in 3 lines, 3 files. Finished.
+
+  file2.txt
+     1 line2
+
+  dir3/file3.txt
+     1 line3
+
+Execute (with ")" in operator mode):
+  let &virtualedit = 'onemore'
+  exe 'norm G$ld('
+Then:
+  AssertEqual getcurpos()[1:2], [line('$'), len(getline('$')) + 1]
+
+Expect esearch_test:
+  Matches in 3 lines, 3 files. Finished.
+
+  dir1/file1.txt
+     1 line1
+
+  dir2/
+
+Execute (with "2(" jump to filename 1 from the header):
+  exe 'norm gg2('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/') + 1
+
+Execute (with "2(" jump to filename 1 from file 3 entry 1):
+  exe 'norm G2('
+Then:
+  AssertEqual getline('.'), 'dir1/file1.txt'
+  AssertEqual col('.'), len('dir1/') + 1
+
+Execute (with "2)" jump to filename 3 from the header):
+  exe 'norm gg2)'
+Then:
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/') + 1
+
+Execute (with "2)" jump to filename 3 from entry 1):
+  exe 'norm G2)'
+Then:
+  AssertEqual getline('.'), 'dir3/file3.txt'
+  AssertEqual col('.'), len('dir3/') + 1

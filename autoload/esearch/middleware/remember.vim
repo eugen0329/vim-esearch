@@ -1,7 +1,12 @@
 fu! esearch#middleware#remember#apply(esearch) abort
   if !empty(a:esearch.remember)
-    for config in a:esearch.remember
-      let g:esearch[config] = a:esearch[config]
+    if type(a:esearch.remember) is# type([])
+      let remember = a:esearch.remember
+    else
+      let remember = g:esearch.remember
+    endif
+    for c in remember
+      let g:esearch[c] = a:esearch[c]
     endfor
   endif
 

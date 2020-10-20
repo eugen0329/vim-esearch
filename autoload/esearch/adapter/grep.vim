@@ -15,7 +15,7 @@ if exists('g:esearch#adapter#grep#options')
   let s:Grep.options = g:esearch#adapter#grep#options
 else
   " -I: don't match binary files
-  let s:Grep.options = '-I '
+  let s:Grep.options = '-I'
 endif
 
 " Short options are used as they are supported more often than long ones
@@ -26,37 +26,33 @@ endif
 " -x: Line regexp
 let s:Grep.mandatory_options = '-H -R -n'
 call extend(s:Grep, {
-      \   'bool2regex': ['literal', 'basic'],
-      \   'regex': {
-      \     'literal':  {'icon': '',  'option': '-F'},
-      \     'basic':    {'icon': 'G', 'option': '-G'},
-      \     'extended': {'icon': 'E', 'option': '-E'},
-      \     'pcre':     {'icon': 'P', 'option': '-P'},
-      \   },
-      \   'bool2textobj': ['none', 'word'],
-      \   'textobj': {
-      \     'none':     {'icon': '',  'option': ''},
-      \     'word':     {'icon': 'w', 'option': '-w'},
-      \     'line':     {'icon': 'l', 'option': '-x'},
-      \   },
-      \   'bool2case': ['ignore', 'sensitive'],
-      \   'case': {
-      \     'ignore':    {'icon':  '', 'option': '-i'},
-      \     'sensitive': {'icon': 's', 'option': ''},
-      \   }
-      \ })
+      \ 'bool2regex': ['literal', 'basic'],
+      \ 'regex': {
+      \   'literal':  {'icon': '',  'option': '-F'},
+      \   'basic':    {'icon': 'G', 'option': '-G'},
+      \   'extended': {'icon': 'E', 'option': '-E'},
+      \   'pcre':     {'icon': 'P', 'option': '-P'},
+      \ },
+      \ 'bool2textobj': ['none', 'word'],
+      \ 'textobj': {
+      \   'none':     {'icon': '',  'option': ''},
+      \   'word':     {'icon': 'w', 'option': '-w'},
+      \   'line':     {'icon': 'l', 'option': '-x'},
+      \ },
+      \ 'bool2case': ['ignore', 'sensitive'],
+      \ 'case': {
+      \   'ignore':    {'icon':  '', 'option': '-i'},
+      \   'sensitive': {'icon': 's', 'option': ''},
+      \ }
+      \})
 
 let s:Grep.filetypes = ''
-
-fu! s:Grep.filetypes2args(filetypes) abort dict
-  return ''
-endfu
-
-fu! s:Grep.pwd() abort dict
-  return '.'
-endfu
 
 fu! s:Grep.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors
   return a:request.status == 0 || a:request.status == 1
+endfu
+
+fu! s:Grep.pwd() abort dict
+  return '.'
 endfu

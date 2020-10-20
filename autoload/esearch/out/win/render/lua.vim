@@ -23,21 +23,19 @@ if g:esearch#has#nvim_lua
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let [a:esearch.files_count, contexts, ctx_ids_map, line_numbers_map, ctx_by_name, separators_count, a:esearch.slow_hl_enabled] =
-            \ luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5])',
-            \ [a:data[a:from : a:to],
-            \ a:esearch.contexts[-1],
-            \ a:esearch.files_count,
-            \ a:esearch.slow_hl_enabled])
+      let [a:esearch.files_count, lines_delta, contexts, state,
+         \ ctx_by_name, a:esearch.slow_hl_enabled, errors] =
+         \   luaeval('esearch.render(_A[1], _A[2], _A[3], _A[4], _A[5], _A[6])', [
+         \     a:bufnr, a:data[a:from : a:to], a:esearch.contexts[-1],
+         \     a:esearch.files_count, a:esearch.slow_hl_enabled, a:esearch._adapter.parser])
     finally
       call cwd.restore()
     endtry
-
-    let a:esearch.separators_count += separators_count
+    let a:esearch.lines_delta += lines_delta
     let a:esearch.contexts[-1] = contexts[0]
     call extend(a:esearch.contexts, contexts[1:])
-    call extend(a:esearch.ctx_ids_map, ctx_ids_map)
-    call extend(a:esearch.line_numbers_map, line_numbers_map)
+    call extend(a:esearch.state, state)
+    if !empty(errors) | call esearch#stderr#append(a:esearch, errors) | endif
     if type(ctx_by_name) ==# type({})
       call extend(a:esearch.ctx_by_name, ctx_by_name)
     endif
@@ -46,8 +44,10 @@ else
   fu! esearch#out#win#render#lua#do(bufnr, data, from, to, esearch) abort
     let cwd = esearch#win#lcd(a:esearch.cwd)
     try
-      let a:esearch.files_count = luaeval('esearch.render(_A.d, _A.e)',
-            \ {'d': a:data[a:from : a:to], 'e': a:esearch})
+      let [a:esearch.files_count, a:esearch.lines_delta, errors] =
+            \ luaeval('vim.list({esearch.render(_A.d, _A.e, _A.p)})', 
+            \   {'d': a:data[a:from : a:to], 'e': a:esearch, 'p': a:esearch._adapter.parser})
+      if !empty(errors) | call esearch#stderr#append(a:esearch, errors) | endif
     finally
       call cwd.restore()
     endtry

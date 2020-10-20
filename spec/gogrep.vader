@@ -1,0 +1,36 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/gogrep/'
+  let g:esearch.backend = 'system'
+After:
+  Restore g:esearch
+
+Execute(#win):
+  let g:file = Fixture(g:esearch.cwd.'file.go', [
+  \ 'package test',
+  \ 'func Foo() int {',
+  \ '  return 1',
+  \ '}',
+  \])
+  call esearch#init({
+  \ 'adapter': 'gogrep',
+  \ 'pattern': 'return $x',
+  \})
+  AssertEqual getline(4), '   3  return 1'
+
+Execute(#qflist):
+  let g:file = Fixture(g:esearch.cwd.'file.go', [
+  \ 'package test',
+  \ 'func Foo() int {',
+  \ '  return 1',
+  \ '}',
+  \])
+  call esearch#init({
+  \ 'out': 'qflist',
+  \ 'adapter': 'gogrep',
+  \ 'pattern': 'return $x',
+  \})
+  AssertEqual len(getqflist()), 1
+  AssertEqual getqflist()[0].text, ' return 1'

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pathname'
 require 'active_support/core_ext/numeric/time'
 
 # rubocop:disable Layout/ClassLength
@@ -22,34 +23,52 @@ class API::ESearch::Window
     editor.delete_current_buffer!(ignore_unsaved_changes: false) if inside_search_window?
   end
 
+  def has_live_update_search_started?(timeout: search_event_timeout)
+    became_truthy_within?(timeout) do
+      break true if editor.with_ignore_cache { inside_live_update_window? }
+    end
+  end
+
+  def has_no_live_update_search_started?(timeout: search_event_timeout)
+    !has_live_update_search_started?(timeout: timeout)
+  end
+
   def has_search_started?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      editor.trigger_cursor_moved_event!
-      break true if inside_search_window?
+      break true if editor.with_ignore_cache { inside_search_window? }
     end
   end
 
   def has_search_finished?(timeout: search_event_timeout)
     became_truthy_within?(timeout) do
-      editor.trigger_cursor_moved_event!
-      break true if parser.header_finished? || has_reported_errors_in_messages?
+      break true if editor.with_ignore_cache { parser.header_finished? || has_reported_errors_in_messages? }
+    end
+  end
+
+  def has_output_message?(_message, timeout: search_event_timeout)
+    became_truthy_within?(timeout) do
+      editor.messages.any? { |message| message.include?(message) }
+    end
+  end
+
+  def has_valid_buffer_basename?(basename, timeout: search_event_timeout)
+    became_truthy_within?(timeout) do
+      expected = "Search #{esearch.configuration.ql}#{basename}#{esearch.configuration.qr}"
+      break true if editor.with_ignore_cache { editor.current_buffer_basename == expected }
     end
   end
 
   def has_filename_highlight?(relative_path)
-    return true if Debug.neovim?
-
     # Both a valid. The only difference is that vim escapes > and + only when
     # they are leading
     filename_variations = [editor.escape_regexp(editor.escape_filename(relative_path)),
-                           editor.escape_regexp(editor.escape_filename('./' + relative_path)),]
+                           editor.escape_regexp(editor.escape_filename('./' + relative_path)),
+                           '^\\x\\{40}:' + editor.escape_regexp(relative_path),]
     editor.syntax_aliases_at([filename_variations.join('\|')]) ==
       [%w[esearchFilename Directory]]
   end
 
   def has_search_highlight?(relative_path, line, column)
-    return true if Debug.neovim?
-
     entry = find_entry(relative_path, line)
     raise MissingEntryError if entry.empty?
 
@@ -112,14 +131,6 @@ class API::ESearch::Window
     entry.line_in_window
   end
 
-  def has_outputted_result_with_right_position_inside_file?(relative_path, line_in_file, _column)
-    # TODO: will be resolved on open whe pcre parser is ready
-    # location_in_file(relative_path, line_in_file) == [line_in_file, column]
-    location_in_file(relative_path, line_in_file)[0] == line_in_file
-  rescue MissingEntryError
-    false
-  end
-
   def location_in_file(relative_path, line_in_file)
     entry = find_entry(relative_path, line_in_file)
     raise MissingEntryError if entry.empty?
@@ -129,7 +140,7 @@ class API::ESearch::Window
 
   def find_entry(relative_path, line_in_file)
     found = parser.entries.find do |entry|
-      entry_path = Pathname(entry.relative_path).cleanpath
+      entry_path = Pathname(entry.relative_path).cleanpath.sub(/^\h{7,40}:/, '')
 
       # Both a valid. The only difference is that vim escapes > and + only when
       # they are leading
@@ -146,8 +157,12 @@ class API::ESearch::Window
     parser.entries
   end
 
+  def inside_live_update_window?
+    editor.current_buffer_name.match?(/\[esearch\]/)
+  end
+
   def inside_search_window?
-    editor.current_buffer_name.match?(/Search/)
+    editor.current_buffer_basename.match?(/^Search/)
   end
 
   private

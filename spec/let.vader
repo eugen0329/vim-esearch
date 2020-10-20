@@ -1,0 +1,47 @@
+Include: helper.vader
+
+Execute(Guard):
+  if !has('nvim') | finish | endif " TODO migrate to win ids
+  let b:buf_var     = 'b:original'
+  let w:win_var     = 'w:original'
+  let &g:makeprg    = 'original'
+  let &g:statusline = 'original'
+  let &l:foldenable = 1
+  let g:owerwritten = {
+    \  '&makeprg':    'overwritten_buffer_option',
+    \  '&equalprg':   'overwritten_global_option',
+    \  '&statusline': 'overwritten_win_option',
+    \  'b:buf_var':   'ovewritten_buf_var',
+    \  'w:win_var':   'ovewritten_win_var',
+    \  '&foldenable': 0,
+    \  '&winhighlight': 'Normal:esearchNormalFloat',
+    \  'b:undefined': 'buf_undefined',
+    \  'w:undefined': 'win_undefined',
+    \}
+  let g:bufnr = bufnr()
+  let g:winid = win_getid()
+  for _ in range(3)
+    0tabnew
+    $tabnew
+    let g:guard = esearch#let#bufwin_restorable(g:bufnr, g:winid, g:owerwritten)
+    let actual = {
+      \  '&makeprg':      getbufvar(g:bufnr, '&makeprg'),
+      \  '&equalprg':     getbufvar(g:bufnr, '&equalprg'),
+      \  '&statusline':   gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, '&statusline'),
+      \  '&foldenable':   gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, '&foldenable'),
+      \  '&winhighlight': gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, '&winhighlight'),
+      \  'b:buf_var':     getbufvar(g:bufnr, 'buf_var'),
+      \  'w:win_var':     gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, 'win_var'),
+      \  'b:undefined':   getbufvar(g:bufnr, 'undefined'),
+      \  'w:undefined':   gettabwinvar(win_id2tabwin(g:winid)[0], g:winid, 'undefined'),
+      \}
+    AssertEqual g:owerwritten, actual
+    call g:guard.restore()
+    call win_gotoid(g:winid)
+    AssertEqual b:buf_var,     'b:original'
+    AssertEqual w:win_var,     'w:original'
+    AssertEqual &g:makeprg,    'original'
+    AssertEqual &g:statusline, 'original'
+    " Deltetion of previously undefined variables isn't supported by vim
+    AssertEqual &l:foldenable, 1
+  endfor

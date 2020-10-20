@@ -2,7 +2,7 @@ fu! esearch#init(...) abort
   call esearch#util#doautocmd('User eseach_init_pre')
   call esearch#config#eager()
 
-  let esearch = extend(copy(get(a:, 1, {})), copy(g:esearch), 'keep')
+  let esearch = extend(extend(copy(g:esearch), {'remember': 0}), copy(get(a:, 1, {})))
   try
     for Middleware in esearch.middleware
       let esearch = Middleware(esearch)
@@ -11,30 +11,38 @@ fu! esearch#init(...) abort
     return
   endtry
 
-  call esearch#out#{esearch.out}#init(esearch)
+  return esearch#out#{esearch.out}#init(esearch)
 endfu
 
-fu! esearch#opfunc_prefill(type) abort
-  return esearch#init({'prefill': ['region'], 'region': esearch#util#type2region(a:type)})
+fu! esearch#prefill(...) abort
+  return esearch#operator#expr('esearch#prefill_op', get(a:, 1, {}))
 endfu
 
-fu! esearch#opfunc_exec(type) abort
-  return esearch#init({'pattern': esearch#util#region_text(esearch#util#type2region(a:type))})
+fu! esearch#exec(...) abort
+  return esearch#operator#expr('esearch#exec_op', get(a:, 1, {}))
+endfu
+
+fu! esearch#prefill_op(wise) abort
+  call esearch#init(extend({'prefill': ['region'], 'region': a:wise}, get(esearch#operator#args(), 0, {})))
+endfu
+
+fu! esearch#exec_op(wise) abort
+  call esearch#init(extend({'prefill': ['region'], 'region': a:wise, 'force_exec': 1}, get(esearch#operator#args(), 0, {})))
 endfu
 
 " DEPRECATED
 fu! esearch#map(lhs, rhs) abort
   let g:esearch = get(g:, 'esearch', {})
-  let g:esearch = extend(g:esearch, {'pending_deprecations': []}, 'keep')
+  let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
 
   if a:rhs ==# 'esearch'
+    call esearch#util#deprecate('esearch#map, use map {keys} <Plug>(esearch)')
     call esearch#keymap#set('n', a:lhs, '<Plug>(esearch)', {'silent': 1})
-    let g:esearch.pending_deprecations += ['esearch#map, use map {keys} <Plug>(esearch)']
   elseif a:rhs ==# 'esearch-word-under-cursor'
-    let g:esearch.pending_deprecations += ["esearch#map with 'esearch-word-under-cursor', use map {keys} <Plug>(operator-esearch-prefill)iw"]
+    call esearch#util#deprecate("esearch#map with 'esearch-word-under-cursor', use map {keys} <Plug>(operator-esearch-prefill)iw")
     call esearch#keymap#set('n', a:lhs, '<Plug>(esearch-operator)iw', {'silent': 1})
   else
-    let g:esearch.pending_deprecations += ['esearch#map, see :help esearch-mappings']
+    call esearch#util#deprecate('esearch#map, see :help esearch-mappings')
   endif
 endfu
 

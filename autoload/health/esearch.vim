@@ -25,7 +25,7 @@ fu! health#esearch#check() abort
   else
     call health#report_info("Floating preview feature isn't available. Neovim of version >=0.4.0 is required.")
   endif
-  if g:esearch#has#virtual_text
+  if g:esearch#has#annotations
     call health#report_ok('Virtual text annotations are available.')
   else
     call health#report_info("Virtual text annotations aren't available. Neovim of version >=0.4.3 is required.")

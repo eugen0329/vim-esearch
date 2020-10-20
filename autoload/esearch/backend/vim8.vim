@@ -38,7 +38,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ 'aborted': 0,
         \ 'cursor': 0,
         \ 'cb': {
-        \   'schedule_finish': 0,
+        \   'finish': 0,
         \   'update': 0
         \ }
         \}
@@ -60,7 +60,11 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
-  let request.data += filter(split(a:data, "\n", 1), "'' !=# v:val")
+  if a:data[len(a:data)-1] ==# "\n"
+    let request.data += split(a:data, "\n", 1)[:-2]
+  else
+    let request.data += split(a:data, "\n", 1)
+  endif
   if !empty(request.cb.update) && request.tick % request.ticks == 1 && !request.aborted
     call request.cb.update()
   endif
@@ -97,8 +101,8 @@ fu! s:closed(job_id, channel) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
 
-  if !empty(job.request.cb.schedule_finish)
-    call job.request.cb.schedule_finish()
+  if !empty(job.request.cb.finish)
+    call job.request.cb.finish()
   endif
 endfu
 

@@ -3,50 +3,50 @@ fu! esearch#out#win#repo#ctx#new(esearch, state) abort
         \ 'esearch': a:esearch,
         \ 'state':   a:state,
         \ 'by_line': function('<SID>by_line'),
-        \ }
+        \}
 endfu
 
-fu! s:by_line(line) abort dict
-  let line = a:line
-  if len(self.state.ctx_ids_map) <= line
-    return 0
+fu! s:by_line(wlnum) abort dict
+  let wlnum = a:wlnum
+  if len(self.state) <= wlnum
+    return g:esearch#out#win#view_data#null_ctx
   endif
-  let ctx = self.esearch.contexts[self.state.ctx_ids_map[line]]
+  let ctx = self.esearch.contexts[self.state[wlnum]]
 
   " read-through cache synchronization
-  let ctx.begin = s:line_begin(self.state.ctx_ids_map, ctx, line)
-  let ctx.end   = s:line_end(self.state.ctx_ids_map, ctx, line)
+  let ctx._begin = s:line_begin(self.state, ctx, wlnum)
+  let ctx._end   = s:line_end(self.state, ctx, wlnum)
 
   return ctx
 endfu
 
-fu! s:line_begin(ctx_ids_map, ctx, line) abort
-  let line = a:line
-  let ctx_ids_map = a:ctx_ids_map
+fu! s:line_begin(state, ctx, wlnum) abort
+  let wlnum = a:wlnum
+  let state = a:state
 
-  while line > 0
-    if ctx_ids_map[line - 1] !=# a:ctx.id
-      return line
+  while wlnum > 0
+    if state[wlnum - 1] !=# a:ctx.id
+      return wlnum
     endif
 
-    let line -= 1
+    let wlnum -= 1
   endwhile
 
   return 1
 endfu
 
-fu! s:line_end(ctx_ids_map, ctx, line) abort
-  let line = a:line
-  let ctx_ids_map = a:ctx_ids_map
+fu! s:line_end(state, ctx, wlnum) abort
+  let wlnum = a:wlnum
+  let state = a:state
 
-  while line < len(ctx_ids_map) - 1
-    if ctx_ids_map[line + 1] !=# a:ctx.id
-      return line
+  while wlnum < len(state) - 1
+    if state[wlnum + 1] !=# a:ctx.id
+      return wlnum
     endif
 
-    let line += 1
+    let wlnum += 1
   endwhile
 
-  return len(ctx_ids_map) - 1
-  throw "Can't find ctx begin: " . string([a:ctx, a:line])
+  return len(state) - 1
+  throw "Can't find ctx begin: " . string([a:ctx, a:wlnum])
 endfu

@@ -27,7 +27,7 @@ describe 'esearch#ftdetect' do
     it { expect(ftdetect.call('main.tsx')).to       eq('typescriptreact') }
 
     # swift
-    it { expect(ftdetect.call('main.swift')).to     eq('swift')           }
+    xit { expect(ftdetect.call('main.swift')).to eq('swift') }
 
     # haskell
     it { expect(ftdetect.call('main.hs')).to        eq('haskell')         }
@@ -105,7 +105,7 @@ describe 'esearch#ftdetect' do
 
   describe '#slow' do
     subject(:ftdetect) do
-      ->(filename) { editor.echo func('esearch#ftdetect#complete', filename) }
+      ->(filename) { editor.echo func('esearch#ftdetect#slow', filename) }
     end
 
     include_examples 'detects ft with fast strategy'

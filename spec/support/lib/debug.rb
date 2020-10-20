@@ -7,15 +7,19 @@ require 'English' # reference global vars by human readable names
 module Debug
   extend VimlValue::SerializationHelpers
   extend self # instead of module_function to maintain private methods
+  UNWANTED_CONFIGS = %w[
+    adapters _adapter reusable_buffers_manager opened_buffers_manager
+    middleware win_map undotree remember hl_ctx_syntax last_pattern
+    win_contexts_syntax_debounce_wait before win_cursor_linenr_highlight
+    win_update_throttle_wait win_contexts_syntax_clear_on_files_count
+    win_context_len_annotations win_viewport_off_screen_margin win_contexts_syntax
+    loaded_lazy root_markers win_matches_highlight_debounce_wait pending_warnings
+    final_batch_size context live_update_debounce_wait filetypes adapter after
+    last_id win_contexts_syntax_clear_on_line_len ctx_by_name
+  ].freeze
 
-  def global_configuration
-    reader.echo(var('g:esearch'))
-  rescue Editor::Read::Base::ReadError => e
-    e.message
-  end
-
-  def buffer_configuration
-    reader.echo(var('b:esearch'))
+  def configuration(name)
+    filter_config(reader.echo(var(name)))
   rescue Editor::Read::Base::ReadError => e
     e.message
   end
@@ -25,9 +29,10 @@ module Debug
   end
 
   def working_directories
-    paths = reader.echo([var('$PWD'), func('getcwd')]).map { |p| Pathname(p) }
-    result = ['$PWD', 'getcwd()'].zip(paths).to_h
-    result['cwd_content'] = Dir.entries(result['getcwd()']) - ['.', '..'] if File.directory?(result['getcwd()'])
+    result = reader
+             .echo({'$PWD': var('$PWD'), 'getcwd()': func('getcwd')})
+             .transform_values { |path| Pathname(path) }
+    result['cwd_content'] = cwd_content(result['getcwd()']) if File.directory?(result['getcwd()'])
     result
   end
 
@@ -51,26 +56,8 @@ module Debug
     `ps -A -o pid,command`.split("\n")
   end
 
-  def verbose_log
-    return readlines(server.verbose_log_file) if neovim?
-
-    nil
-  end
-
-  def nvim_log
-    return readlines(server.nvim_log_file) if neovim?
-
-    nil
-  end
-
   def messages
     reader.echo(func('execute', 'messages')).split("\n")
-  end
-
-  def update_time
-    reader.echo(var('&updatetime'))
-  rescue Editor::Read::Base::ReadError => e
-    e.message
   end
 
   def buffer_content
@@ -96,11 +83,22 @@ module Debug
     nil
   end
 
-  def neovim?
-    server.is_a?(VimrunnerNeovim::Server)
+  private
+
+  def cwd_content(cwd)
+    (Dir.entries(cwd) - ['.', '..'])
+      .map { |path| [path, cwd.join(path)] }
+      .map { |path, fullpath| fullpath.file? ? [path, fullpath.readlines] : [path, fullpath.ftype] }
+      .sort
   end
 
-  private
+  def filter_config(config)
+    filtered = config
+               .reject { |k, _v| UNWANTED_CONFIGS.include?(k) }
+               .reject { |_k, v| v.is_a?(VimlValue::Types::Funcref) }
+    filtered['request'].delete('jobstart_args') if filtered['request'].is_a? Hash
+    filtered
+  end
 
   # Eager reader with disabled caching is used for reliability
   def reader

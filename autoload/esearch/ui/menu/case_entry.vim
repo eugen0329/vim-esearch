@@ -7,7 +7,7 @@ fu! s:CaseEntry.render() abort dict
         \ self.props.case ==# 'sensitive' ? ['Constant', '[Cs]'] :  ['String', '[Sc]']
 
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' case match']]
-  let option = self.props.current_adapter.case[self.props.case].option
+  let option = self.props._adapter.case[self.props.case].option
   let option = join(filter([self.props.case, option], '!empty(v:val)'), ': ')
   let result += [['Comment', ' (' . option  . ')']]
 
@@ -22,7 +22,7 @@ fu! s:CaseEntry.keypress(event) abort dict
   endif
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['case', 'current_adapter'])
+let s:map_state_to_props = esearch#util#slice_factory(['case', '_adapter'])
 
 fu! esearch#ui#menu#case_entry#import() abort
   return esearch#ui#connect(s:CaseEntry, s:map_state_to_props)

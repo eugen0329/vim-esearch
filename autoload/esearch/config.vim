@@ -26,17 +26,18 @@ fu! esearch#config#init(esearch) abort
 
   let g:esearch = extend(g:esearch, {
         \ 'last_id':                               0,
+        \ 'last_pattern':                          0,
         \ 'out':                                   'win',
         \ 'regex':                                 'literal',
         \ 'textobj':                               'none',
         \ 'adapters':                              {},
-        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'filetypes', 'paths', 'after', 'context', 'adapters', 'current_adapter'],
+        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'filetypes', 'paths', 'after', 'context', 'last_pattern', 'adapters', '_adapter'],
         \ 'paths':                                 esearch#shell#argv([]),
         \ 'filetypes':                             '',
         \ 'after':                                 0,
         \ 'before':                                0,
         \ 'context':                               0,
-        \ 'early_finish_wait':                     80,
+        \ 'early_finish_wait':                     100,
         \ 'default_mappings':                      1,
         \ 'root_markers':                          ['.git', '.hg', '.svn', '.bzr', '_darcs'],
         \ 'errors':                                [],
@@ -53,11 +54,19 @@ fu! esearch#config#init(esearch) abort
         \ 'win_contexts_syntax_sync_minlines':     500,
         \ 'win_context_syntax_clear_on_line_len':  800,
         \ 'win_contexts_syntax_clear_on_line_len': 30000,
-        \ 'win_context_len_annotations':           g:esearch#has#virtual_text,
+        \ 'win_context_len_annotations':           g:esearch#has#annotations,
         \ 'win_cursor_linenr_highlight':           g:esearch#has#virtual_cursor_linenr_highlight,
         \ 'win_new':                               function('esearch#out#win#goto_or_open'),
+        \ 'write_cb':                              function('s:write_cb'),
+        \ 'git_dir':                               function('esearch#git#dir'),
+        \ 'git_url':                               function('esearch#git#url'),
+        \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend !=# 'system',
+        \ 'live_update_debounce_wait':             50,
+        \ 'live_update_min_len':                   3,
+        \ 'force_exec':                            0,
+        \ 'live_update_bufnr':                     -1,
         \ 'filemanager_integration':               1,
-        \ 'pending_deprecations':                  [],
+        \ 'pending_warnings':                      [],
         \}, 'keep')
   let g:esearch = extend(g:esearch, {
         \ 'win_ui_nvim_syntax':                       g:esearch.win_render_strategy ==# 'lua' && g:esearch#has#nvim_lua_syntax,
@@ -75,31 +84,49 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#prewarm#apply'),
           \ function('esearch#middleware#pattern#apply'),
           \ function('esearch#middleware#exec#apply'),
+          \ function('esearch#middleware#map#apply'),
           \ function('esearch#middleware#remember#apply'),
-          \ function('esearch#middleware#title#apply'),
+          \ function('esearch#middleware#name#apply'),
           \ function('esearch#middleware#warnings#apply'),
           \]
   endif
 
   if g:esearch.default_mappings
     let g:esearch.win_map = extend([
-          \ ['n',  'R',    '<Plug>(esearch-win-reload)',           ],
-          \ ['n',  't',    '<Plug>(esearch-win-tabopen)',          ],
-          \ ['n',  'T',    '<Plug>(esearch-win-tabopen:stay)',     ],
-          \ ['n',  'o',    '<Plug>(esearch-win-split)',            ],
-          \ ['n',  'O',    '<Plug>(esearch-win-split:reuse:stay)', ],
-          \ ['n',  's',    '<Plug>(esearch-win-vsplit)',           ],
-          \ ['n',  'S',    '<Plug>(esearch-win-vsplit:reuse:stay)',],
-          \ ['n',  '<CR>', '<Plug>(esearch-win-open)',             ],
-          \ ['n',  'p',    '<Plug>(esearch-win-preview)',          ],
-          \ ['n',  'P',    '<Plug>(esearch-win-preview:enter)',    ],
-          \ [' ',  'J',    '<Plug>(esearch-win-jump:entry:down)'   ],
-          \ [' ',  'K',    '<Plug>(esearch-win-jump:entry:up)'     ],
-          \ [' ',  '}',    '<Plug>(esearch-win-jump:filename:down)'],
-          \ [' ',  '{',    '<Plug>(esearch-win-jump:filename:up)'  ],
-          \ ['ov', 'im',   '<Plug>(textobj-esearch-match-i)',      ],
-          \ ['ov', 'am',   '<Plug>(textobj-esearch-match-a)',      ],
-          \ ['c',  '<CR>', '<Plug>(esearch-win-CR)', {'nowait': 1} ],
+          \ ['n',  'R',    '<plug>(esearch-win-reload)',           ],
+          \ ['n',  't',    '<plug>(esearch-win-tabopen)',          ],
+          \ ['n',  'T',    '<plug>(esearch-win-tabopen:stay)',     ],
+          \ ['n',  'o',    '<plug>(esearch-win-split)',            ],
+          \ ['n',  'O',    '<plug>(esearch-win-split:reuse:stay)', ],
+          \ ['n',  's',    '<plug>(esearch-win-vsplit)',           ],
+          \ ['n',  'S',    '<plug>(esearch-win-vsplit:reuse:stay)',],
+          \ ['n',  '<cr>', '<plug>(esearch-win-open)',             ],
+          \ ['n',  'p',    '<plug>(esearch-win-preview)',          ],
+          \ ['n',  'P',    '100<plug>(esearch-win-preview:enter)', ],
+          \ ['n',  '<esc>','<plug>(esearch-win-preview:close)',    ],
+          \ [' ',  'J',    '<plug>(esearch-win-jump:entry:down)'   ],
+          \ [' ',  'K',    '<plug>(esearch-win-jump:entry:up)'     ],
+          \ [' ',  '}',    '<plug>(esearch-win-jump:filename:down)'],
+          \ [' ',  '{',    '<plug>(esearch-win-jump:filename:up)'  ],
+          \ [' ',  ')',    '<plug>(esearch-win-jump:dirname:down)' ],
+          \ [' ',  '(',    '<plug>(esearch-win-jump:dirname:up)'   ],
+          \ ['ov', 'im',   '<plug>(textobj-esearch-match-i)',      ],
+          \ ['ov', 'am',   '<plug>(textobj-esearch-match-a)',      ],
+          \ ['ic', '<cr>', '<plug>(esearch-cr)', {'nowait': 1}     ],
+          \ ['n',  'I',    '<plug>(esearch-I)'                     ],
+          \ ['x',  'x',    '<plug>(esearch-d)'                     ],
+          \ ['nx', 'd',    '<plug>(esearch-d)'                     ],
+          \ ['n',  'dd',   '<plug>(esearch-dd)'                    ],
+          \ ['nx', 'c',    '<plug>(esearch-c)'                     ],
+          \ ['n',  'cc',   '<plug>(esearch-cc)'                    ],
+          \ ['nx', 'C',    '<plug>(esearch-C)'                     ],
+          \ ['nx', 'D',    '<plug>(esearch-D)'                     ],
+          \ ['x',  's',    '<plug>(esearch-c)'                     ],
+          \ ['n',  '.',    '<plug>(esearch-.)'                     ],
+          \ ['n',  '@:',   '<plug>(esearch-@:)'                    ],
+          \ ['n', 'za',    '<plug>(esearch-za)'                    ],
+          \ ['n', 'zc',    '<plug>(esearch-zc)'                    ],
+          \ ['n', 'zM',    '<plug>(esearch-zM)'                    ],
           \], get(g:esearch, 'win_map', []))
   else
     let g:esearch.win_map = get(g:esearch, 'win_map', [])
@@ -163,13 +190,17 @@ fu! esearch#config#default_adapter() abort
   endif
 endfu
 
+fu! s:write_cb(buf, bang) abort
+  return a:buf.write(a:bang)
+endfu
+
 let s:root = expand( '<sfile>:p:h:h:h')
 fu! s:lua_init() abort
   if !g:esearch#has#lua | return | endif
 
   if g:esearch#has#nvim_lua
     lua << EOF
-    esearch = require'esearch/neovim'
+    esearch = require'esearch/nvim'
 EOF
   elseif g:esearch#has#vim_lua
     lua << EOF

@@ -6,10 +6,7 @@ let s:Mapping = vital#esearch#import('Mapping')
 
 " nvim_set_keymap
 fu! esearch#keymap#set(mode, lhs, rhs, opts) abort
-  let maparg = extend({
-        \ 'lhs': a:lhs,
-        \ 'rhs': a:rhs,
-        \}, a:opts)
+  let maparg = extend({'lhs': a:lhs, 'rhs': a:rhs}, a:opts)
 
   for mode in split(a:mode, '\zs')
     let maparg.mode = mode
@@ -18,7 +15,9 @@ fu! esearch#keymap#set(mode, lhs, rhs, opts) abort
 endfu
 
 fu! esearch#keymap#del(mode, lhs, opts) abort
-  return s:Mapping.get_unmap_command(a:mode, a:opts, a:lhs)
+  for mode in split(a:mode, '\zs')
+    exe s:Mapping.get_unmap_command(mode, a:opts, a:lhs)
+  endfor
 endfu
 
 fu! esearch#keymap#restorable(maps) abort
@@ -43,7 +42,7 @@ endfu
 
 fu! s:Guard.restore() abort dict
   for map in self.maps
-    call esearch#keymap#del(map[0], map[1], get(map, 3, {}))
+    silent! call esearch#keymap#del(map[0], map[1], get(map, 3, {}))
   endfor
 
   for maparg in self.original_mapargs
@@ -83,23 +82,22 @@ endfu
 fu! esearch#keymap#escape_kind(char) abort
   call s:generate_escape_tables()
 
-  let printable = strtrans(a:char)
-
-   if (!empty(s:meta_prefix_re) && printable =~# s:meta_prefix_re) || s:is_keys_combination(s:metas, printable)
-     return 'meta'
-   elseif s:is_keys_combination(s:shifts, printable)
-     return 'shift'
-   elseif a:char =~# '^[[:cntrl:]]' || s:is_keys_combination(s:controls, printable)
-     return 'control'
-   elseif s:is_keys_combination(s:fs, printable)
-      return 'f'
-   endif
+  let char = strtrans(a:char)
+  if (!empty(s:meta_prefix_re) && char =~# s:meta_prefix_re) || s:is_keys_combination(s:meta_keys, char)
+    return 'meta'
+  elseif s:is_keys_combination(s:shift_keys, char)
+    return 'shift'
+  elseif a:char =~# '^[[:cntrl:]]' || s:is_keys_combination(s:control_keys, char)
+    return 'control'
+  elseif s:is_keys_combination(s:function_keys, char)
+    return 'f'
+  endif
 
   return ''
 endfu
 
-fu! s:is_keys_combination(group, c) abort
-  return index(a:group, a:c[:-2]) >= 0 || index(a:group, a:c) >= 0
+fu! s:is_keys_combination(group, char) abort
+  return index(a:group, a:char[:-2]) >= 0 || index(a:group, a:char) >= 0
 endfu
 
 fu! s:generate_escape_tables() abort
@@ -108,14 +106,14 @@ fu! s:generate_escape_tables() abort
   let super_prefix = strtrans("\<D-a>")[:-2]
   let meta_prefix = strtrans("\<M-a>")[:-2]
   let ameta_prefix = strtrans("\<A-a>")[:-2]
-  let s:metas = filter([meta_prefix, ameta_prefix, super_prefix], '!empty(v:val)')
-  if empty(s:metas)
+  let s:meta_keys = filter([meta_prefix, ameta_prefix, super_prefix], '!empty(v:val)')
+  if empty(s:meta_keys)
     let s:meta_prefix_re = ''
   else
-    let s:meta_prefix_re = '^\%(' . join(s:metas, '\|') . '\)'
+    let s:meta_prefix_re = '^\%(' . join(s:meta_keys, '\|') . '\)'
   endif
-  let s:shifts = []
-  let s:controls = []
+  let s:shift_keys = []
+  let s:control_keys = []
 
    let keycode_names = [
          \ 'Nul', 'BS', 'Tab', 'NL', 'FF', 'CR', 'Return', 'Enter', 'Esc',
@@ -126,29 +124,29 @@ fu! s:generate_escape_tables() abort
          \ 'kMultiply', 'kDivide', 'kPoint', 'kComma', 'kEqual', 'kEnter']
 
    for c in keycode_names
-     call add(s:metas, strtrans(eval('"\<M-'.c.'>"')))
-     call add(s:metas, strtrans(eval('"\<A-'.c.'>"')))
-     call add(s:metas, strtrans(eval('"\<D-'.c.'>"')))
-     call add(s:shifts, strtrans(eval('"\<S-'.c.'>"')))
-     call add(s:controls, strtrans(eval('"\<C-'.c.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<M-'.c.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<A-'.c.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<D-'.c.'>"')))
+     call add(s:shift_keys, strtrans(eval('"\<S-'.c.'>"')))
+     call add(s:control_keys, strtrans(eval('"\<C-'.c.'>"')))
    endfor
 
    for i in range(0,9)
-     call add(s:metas, strtrans(eval('"\<M-k'.i.'>"')))
-     call add(s:metas, strtrans(eval('"\<A-k'.i.'>"')))
-     call add(s:metas, strtrans(eval('"\<D-k'.i.'>"')))
-     call add(s:shifts, strtrans(eval('"\<S-k'.i.'>"')))
-     call add(s:controls, strtrans(eval('"\<C-k'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<M-k'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<A-k'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<D-k'.i.'>"')))
+     call add(s:shift_keys, strtrans(eval('"\<S-k'.i.'>"')))
+     call add(s:control_keys, strtrans(eval('"\<C-k'.i.'>"')))
    endfor
 
-   let s:fs = []
+   let s:function_keys = []
    for i in range(1,12)
-     call add(s:fs, strtrans(eval('"\<F'.i.'>"')))
-     call add(s:metas, strtrans(eval('"\<M-F'.i.'>"')))
-     call add(s:metas, strtrans(eval('"\<A-F'.i.'>"')))
-     call add(s:metas, strtrans(eval('"\<D-F'.i.'>"')))
-     call add(s:shifts, strtrans(eval('"\<S-F'.i.'>"')))
-     call add(s:controls, strtrans(eval('"\<C-F'.i.'>"')))
+     call add(s:function_keys, strtrans(eval('"\<F'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<M-F'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<A-F'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<D-F'.i.'>"')))
+     call add(s:shift_keys, strtrans(eval('"\<S-F'.i.'>"')))
+     call add(s:control_keys, strtrans(eval('"\<C-F'.i.'>"')))
    endfor
 
    let s:loaded_escape_tables = 1

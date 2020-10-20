@@ -1,0 +1,118 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/preview'.g:test_number.next().'/'
+  let g:esearch.backend = 'system'
+  let g:file = Fixture(g:esearch.cwd.'file.txt', ['l1', 'l2'])
+  let g:winhighlight = 'Normal:esearchNormalFloat,SignColumn:esearchSignColumnFloat,LineNr:esearchLineNrFloat,CursorLineNr:esearchCursorLineNrFloat,CursorLine:esearchCursorLineFloat,Conceal:esearchConcealFloat'
+After:
+  if exists('#test')
+    au! test *
+  endif
+  call timer_stopall()
+  Restore g:esearch
+
+Execute(reset highlights on edit):
+  if !has('nvim') | finish | endif
+  for open_key in ["\<CR>", 's', 'o', 't']
+    for open_preview_key in ['p', 'p']
+      call esearch#init({'pattern': '.'})
+      exe 'norm' open_preview_key
+      let preview_winid = g:esearch#preview#win.id
+      Assert index(nvim_list_wins(), preview_winid) >= 0
+      AssertEqual esearch#win#get(preview_winid, '&winhighlight'), g:winhighlight
+      exe 'norm' open_key
+      Assert empty(g:esearch#preview#win)
+      Assert index(nvim_list_wins(), preview_winid) == -1
+      AssertEqual &winhighlight, ''
+      silent! exe 'bwipe' g:file
+    endfor
+  endfor
+
+Execute(reset highlights on edit opened earlier):
+  if !has('nvim') | finish | endif
+  for open_key in ["\<CR>", 's', 'o', 't']
+    for open_preview_key in ['p', 'p']
+      call esearch#init({'pattern': '.'})
+      exe 'norm S'
+      exe 'norm' open_preview_key
+      let preview_winid = g:esearch#preview#win.id
+      Assert index(nvim_list_wins(), preview_winid) >= 0
+      AssertEqual esearch#win#get(preview_winid, '&winhighlight'), g:winhighlight
+      exe 'norm' open_key
+      Assert empty(g:esearch#preview#win)
+      Assert index(nvim_list_wins(), preview_winid) == -1
+      AssertEqual &winhighlight, ''
+      silent! exe 'bwipe' g:file
+    endfor
+  endfor
+
+Execute(reset highlights on edit when staying in the window):
+  if !has('nvim') | finish | endif
+  for open_key in ['S', 'O', 'T']
+    for open_preview_key in ['p', 'pp']
+      call esearch#init({'pattern': '.'})
+      exe 'norm' open_preview_key
+      let preview_winid = g:esearch#preview#win.id
+      Assert index(nvim_list_wins(), preview_winid) >= 0
+      AssertEqual esearch#win#get(preview_winid, '&winhighlight'), g:winhighlight
+      exe 'norm' open_key
+      Assert empty(g:esearch#preview#win)
+      Assert index(nvim_list_wins(), preview_winid) == -1
+      Assert win_findbuf(bufnr(g:file))[0] > 0
+      AssertEqual esearch#win#get(win_findbuf(bufnr(g:file))[0], '&winhighlight'), ''
+      silent! exe 'bwipe' g:file
+    endfor
+  endfor
+
+Execute(reset highlights on edit opened earlier when staying in the window):
+  if !has('nvim') | finish | endif
+  for open_key in ['S', 'O', 'T']
+    for open_preview_key in ['p', 'pp']
+      call esearch#init({'pattern': '.'})
+      exe 'norm S'
+      exe 'norm' open_preview_key
+      let preview_winid = g:esearch#preview#win.id
+      Assert index(nvim_list_wins(), preview_winid) >= 0
+      AssertEqual esearch#win#get(preview_winid, '&winhighlight'), g:winhighlight
+      exe 'norm' open_key
+      Assert empty(g:esearch#preview#win)
+      Assert index(nvim_list_wins(), preview_winid) == -1
+      Assert win_findbuf(bufnr(g:file))[0] > 0
+      AssertEqual esearch#win#get(win_findbuf(bufnr(g:file))[0], '&winhighlight'), ''
+      silent! exe 'bwipe' g:file
+    endfor
+  endfor
+
+Execute(enter and leave the preview):
+  if !has('nvim') | finish | endif
+  for enter_preview_key in ['P', 'pP']
+    for leave_key in ["\<C-W>k", ":tabnew\<CR>", ":bwipe\<CR>", ":edit ".g:file."\<CR>:q\<CR>"]
+      call esearch#init({'pattern': '.'})
+      exe 'norm' enter_preview_key
+      let preview_winid = g:esearch#preview#win.id
+      Assert index(nvim_list_wins(), preview_winid) >= 0
+      AssertEqual preview_winid, win_getid()
+      AssertEqual esearch#win#get(preview_winid, '&winhighlight'), g:winhighlight
+      exe 'norm' leave_key
+      Assert empty(g:esearch#preview#win)
+      Assert index(nvim_list_wins(), preview_winid) == -1
+      exe "norm \<CR>"
+      AssertEqual &winhighlight, ''
+      silent! exe 'bwipe' g:file
+    endfor
+  endfor
+
+Execute(update opened window):
+  for close_on in [[], ['CursorMoved']]
+    if !has('nvim') | finish | endif
+    call esearch#init({'pattern': '.'})
+    call b:esearch.preview_open({'close_on': close_on})
+    call b:esearch.preview_open({'close_on': close_on})
+    let preview_winid = g:esearch#preview#win.id
+    exe "norm \<CR>"
+    Assert empty(g:esearch#preview#win)
+    Assert index(nvim_list_wins(), preview_winid) == -1
+    AssertEqual &winhighlight, ''
+  endfor

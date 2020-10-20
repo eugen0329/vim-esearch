@@ -25,42 +25,7 @@ describe Debug do
       end
     end
 
-    context 'when vim server' do
-      it_behaves_like 'it reads and outputs plugin log'
-    end
-
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      it_behaves_like 'it reads and outputs plugin log'
-    end
-  end
-
-  describe '.nvim_log' do
-    let(:server) { Configuration.vim.server }
-
-    context 'when vim server' do
-      # or should it be an exception?
-      it { expect(debug.nvim_log).to be_nil }
-    end
-
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      context 'when present' do
-        it do
-          expect(server).to receive(:nvim_log_file).and_return(log_file.path)
-          expect(debug.nvim_log).to eq(log_file.lines)
-        end
-      end
-
-      context 'when missing' do
-        it do
-          expect(server).to receive(:nvim_log_file).and_return('missing')
-          expect(debug.nvim_log).to be_nil
-        end
-      end
-    end
+    it_behaves_like 'it reads and outputs plugin log'
   end
 
   describe '.running_processes' do
@@ -72,60 +37,30 @@ describe Debug do
       end
     end
 
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      include_examples 'outputs running processes'
-    end
-
-    context 'when vim server' do
-      include_examples 'outputs running processes'
-    end
-  end
-
-  describe '.verbose_log_file' do
-    let(:server) { Configuration.vim.server }
-
-    context 'when vim server' do
-      # or should it be an exception?
-      it { expect(debug.verbose_log).to be_nil }
-    end
-
-    context 'when neovim server', :neovim do
-      around(Configuration.vimrunner_switch_to_neovim_callback_scope) { |e| use_nvim(&e) }
-
-      context 'when present' do
-        it do
-          expect(server).to receive(:verbose_log_file).and_return(log_file.path)
-          expect(debug.verbose_log).to eq(log_file.lines)
-        end
-      end
-
-      context 'when missing' do
-        it do
-          expect(server).to receive(:verbose_log_file).and_return('missing')
-          expect(debug.verbose_log).to be_nil
-        end
-      end
-    end
-  end
-
-  describe '.update_time' do
-    it { expect(debug.update_time).to be > 0 }
+    include_examples 'outputs running processes'
   end
 
   describe '.working_directories' do
+    let(:cwd_content) do
+      test_directory
+        .files
+        .map { |f| [f.path.basename.to_s, f.readlines] }
+        .push(['.git', 'directory'])
+        .sort
+    end
     let(:expected) do
       {
         '$PWD'        => Configuration.root,
         'getcwd()'    => test_directory.path,
-        'cwd_content' => test_directory.files.map { |f| f.path.basename.to_s },
+        'cwd_content' => cwd_content,
       }
     end
 
     before { esearch.cd! test_directory }
 
-    it { expect(debug.working_directories).to match(expected) }
+    it do
+      expect(debug.working_directories).to match(expected)
+    end
   end
 
   describe '.screenshot!' do
@@ -181,7 +116,7 @@ describe Debug do
   end
 
   describe '.runtimepaths' do
-    it { expect(debug.runtimepaths).to include Configuration.root.to_s }
+    xit { expect(debug.runtimepaths).to include Configuration.root.to_s }
   end
 
   describe '.sourced_scripts' do
@@ -202,29 +137,11 @@ describe Debug do
     it { expect(debug.buffer_content).to eq(test_file.lines) }
   end
 
-  describe '.buffer_configuration' do
+  describe '.configuration' do
     context 'when defined' do
-      before { editor.command!('let b:esearch = {"option": ["..."]}') }
+      before { editor.command!('let g:esearch = {"global": "configuration"}') }
 
-      it { expect(debug.buffer_configuration).to eq('option' => ['...']) }
-    end
-
-    context 'when undefined' do
-      before(:context) { editor.command!('unlet! b:esearch') }
-
-      it do
-        expect(debug.buffer_configuration)
-          .to  be_a(String)
-          .and include('Undefined')
-      end
-    end
-  end
-
-  describe '.global_configuration' do
-    context 'when defined' do
-      before { editor.command!('let g:esearch = "global_configuration"') }
-
-      it { expect(debug.global_configuration).to eq('global_configuration') }
+      it { expect(debug.configuration('g:esearch')).to eq('global' => 'configuration') }
     end
 
     context 'when undefined' do

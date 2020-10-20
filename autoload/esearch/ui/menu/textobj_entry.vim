@@ -6,7 +6,7 @@ fu! s:TextobjEntry.render() abort dict
   let icon = self.props.textobj ==# 'none' ? ['Comment', '[""]'] :
         \ self.props.textobj ==# 'word' ? ['Keyword', '[\b]'] : ['String', '[^$]']
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' textobj match']]
-  let option = self.props.current_adapter.textobj[self.props.textobj].option
+  let option = self.props._adapter.textobj[self.props.textobj].option
   let option = join(filter([self.props.textobj, option], '!empty(v:val)'), ': ')
   let result += [['Comment', ' (' . option  . ')']]
 
@@ -21,7 +21,7 @@ fu! s:TextobjEntry.keypress(event) abort dict
   endif
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['textobj', 'current_adapter'])
+let s:map_state_to_props = esearch#util#slice_factory(['textobj', '_adapter'])
 
 fu! esearch#ui#menu#textobj_entry#import() abort
   return esearch#ui#connect(s:TextobjEntry, s:map_state_to_props)

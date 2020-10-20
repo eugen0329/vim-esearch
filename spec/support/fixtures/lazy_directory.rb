@@ -3,6 +3,7 @@
 require 'fileutils'
 require 'pathname'
 require 'digest'
+require 'shellwords'
 require 'active_support/core_ext/class/attribute'
 
 class Fixtures::LazyDirectory
@@ -18,26 +19,17 @@ class Fixtures::LazyDirectory
   def persist!
     directory_path = path
 
-    # TODO
-    # if persisted?
-    #   files.each { |f| f.working_directory = directory_path }
-    #   return self
-    # end
-
     FileUtils.mkdir_p(directory_path)
+    system("git init #{path} >/dev/null 2>&1") unless File.directory?(dot_git)
+
     files.each do |f|
       f.working_directory = directory_path
       f.persist!
+      system("git -C #{Shellwords.escape(path)} add #{Shellwords.escape(f.path)} >/dev/null 2>&1")
+      system("git -C #{Shellwords.escape(path)} commit -m #{Shellwords.escape(f.path)} >/dev/null 2>&1")
     end
 
-    ensure_git_index_up_to_date
-
     self
-  end
-
-  def ensure_git_index_up_to_date
-    system("git init #{fixtures_directory} ") unless File.directory?(dot_git)
-    system("git -C #{fixtures_directory} add #{fixtures_directory}")
   end
 
   def rm_rf
@@ -63,7 +55,7 @@ class Fixtures::LazyDirectory
   private
 
   def dot_git
-    @dot_git ||= fixtures_directory.join('.git')
+    @dot_git ||= path.join('.git')
   end
 
   def digest_name

@@ -1,0 +1,45 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/semgrep/'
+  let g:esearch.backend = 'system'
+After:
+  Restore g:esearch
+
+Execute(#win):
+  if !empty($TRAVIS_BUILD_ID) | finish | endif " TODO
+  let g:file = Fixture(g:esearch.cwd.'file.py', [
+  \ 'class Foo():',
+  \ "\tpass"
+  \])
+  call esearch#init({
+  \ 'adapter': 'semgrep',
+  \ 'pattern': 'class $X(): ...',
+  \ 'filetypes': 'py',
+  \})
+  AssertEqual join(getline(1, '$'), "\n"), join([
+    \ 'Matches in 2 lines, 1 file. Finished.',
+    \ '',
+    \ 'file.py',
+    \ '   1 class Foo():',
+    \ '   2 	pass',
+    \], "\n")
+
+
+Execute(#qflist):
+  if !empty($TRAVIS_BUILD_ID) | finish | endif " TODO
+  let g:file = Fixture(g:esearch.cwd.'file.py', [
+  \ 'class Foo():',
+  \ "\tpass"
+  \])
+  call esearch#init({
+  \ 'adapter': 'semgrep',
+  \ 'filetypes': 'py',
+  \ 'pattern': 'class $X(): ...',
+  \ 'out': 'qflist',
+  \})
+  AssertEqual join(getline(1, '$'), "\n"), join([
+    \ 'file.py|1| class Foo():',
+    \ 'file.py|2| pass',
+    \], "\n")

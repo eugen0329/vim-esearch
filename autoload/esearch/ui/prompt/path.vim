@@ -1,9 +1,12 @@
-let s:Log    = esearch#log#import()
+let s:Log        = esearch#log#import()
 let s:PathPrompt = esearch#ui#component()
 
 fu! s:PathPrompt.render() abort dict
   if !g:esearch#has#posix_shell
     return [[self.props.normal_highlight, esearch#shell#join(self.props.paths)]]
+  endif
+  if type(self.props.paths) ==# type({})
+    return [['Special', self.props.paths.tag]]
   endif
 
   let cwd = self.props.cwd

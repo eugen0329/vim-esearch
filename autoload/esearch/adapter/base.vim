@@ -5,7 +5,14 @@ endfu
 let s:Base = {
       \ 'bin': 'NotImplemented',
       \ 'options': 'NotImplemented',
-      \ 'mandatory_options': 'NotImplemented'}
+      \ 'mandatory_options': 'NotImplemented',
+      \ 'parser': 'generic',
+      \ 'pattern_kinds': [{'icon': '', 'opt': '', 'regex': 1}],
+      \ 'multi_pattern': 0,
+      \ 'after':    {'hint': 'lines after' , 'opt': '-A'},
+      \ 'before':   {'hint': 'lines before', 'opt': '-B'},
+      \ 'context':  {'hint': 'lines around', 'opt': '-C'},
+      \}
 
 fu! s:Base.command(esearch) abort dict
   let regex = self.regex[a:esearch.regex].option
@@ -33,16 +40,16 @@ fu! s:Base.command(esearch) abort dict
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
         \ '--',
-        \ shellescape(a:esearch.pattern.arg),
+        \ a:esearch.pattern.arg,
         \ paths,
         \], ' ')
 endfu
 
 fu! s:Base.filetypes2args(filetypes) abort dict
-  return substitute(a:filetypes, '\<', '--', 'g')
+  return ''
 endfu
 
-" Some adapters require pwd to set explicitly (like grep) using '.'. For
+" Some adapters require pwd to be set explicitly (like grep) using '.'. For
 " others it cause unwanted './' prefix. Exact path doesn't need to be
 " specified as it's set using :lcd command and outherwise would cause a full
 " path to be rendered.
@@ -56,5 +63,5 @@ fu! s:Base.outputs_separators(esearch) abort
 endfu
 
 fu! s:Base.is_success(request) abort
-  throw 'NotImplemented'
+  return a:request.status == 0
 endfu

@@ -13,7 +13,7 @@ class API::ESearch::Facade
     stubbed: API::ESearch::StubbedOutput,
   }.with_indifferent_access
 
-  delegate :search!, to: :core
+  delegate :search!, :input!, to: :core
   delegate :configure, :configure!, to: :configuration
   delegate :cd!, :edit!, :cleanup!, to: :editor
   delegate :grep_and_kill_process_by!,
@@ -21,12 +21,15 @@ class API::ESearch::Facade
     to: :platform
 
   delegate :has_search_started?,
+    :has_live_update_search_started?,
+    :has_no_live_update_search_started?,
     :has_search_finished?,
+    :has_output_message?,
+    :has_valid_buffer_basename?,
     :has_reported_a_single_result?,
     :has_search_highlight?,
     :has_filename_highlight?,
     :has_outputted_result_from_file_in_line?,
-    :has_outputted_result_with_right_position_inside_file?,
     :has_not_reported_errors?,
     :has_search_freezed?,
     :close_search!,

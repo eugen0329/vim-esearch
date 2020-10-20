@@ -1,4 +1,6 @@
+let s:Prelude  = vital#esearch#import('Prelude')
 let s:List     = vital#esearch#import('Data.List')
+let s:Log      = esearch#log#import()
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#util#even_count_of_escapes_re =  '\%(\\\)\@<!\%(\\\\\)*'
@@ -33,45 +35,6 @@ fu! esearch#util#clip(value, from, to) abort
     return a:from
   else
     return a:value
-  endif
-endfu
-
-fu! esearch#util#region_text(region) abort
-  let options = esearch#let#restorable({'@@': '', '&selection': 'inclusive'})
-
-  try
-    if esearch#util#is_visual(a:region.type)
-      silent exe 'normal! gvy'
-    elseif a:region.type ==# 'line'
-      silent exe "normal! '[V']y"
-    else
-      silent exe 'normal! `[v`]y'
-    endif
-
-    return @@
-  finally
-    call options.restore()
-  endtry
-endfu
-
-fu! esearch#util#type2region(type) abort
-  if esearch#util#is_visual(a:type)
-    return {'type': a:type, 'begin': "'<", 'end': "'>"}
-  elseif a:type ==# 'line'
-    return {'type': a:type, 'begin': "'[", 'end': "']"}
-  else
-    return {'type': a:type, 'begin': '`[', 'end': '`]'}
-  endif
-endfu
-
-fu! esearch#util#operator_expr(operatorfunc) abort
-  if mode(1)[:1] ==# 'no'
-    return 'g@'
-  elseif mode() ==# 'n'
-    let &operatorfunc = a:operatorfunc
-    return 'g@'
-  else
-    return ":\<C-u>call ".a:operatorfunc."(visualmode())\<CR>"
   endif
 endfu
 
@@ -157,6 +120,12 @@ fu! esearch#util#safe_undojoin() abort
   endtry
 endfu
 
+fu! esearch#util#squash_undo() abort
+  let undolevels = esearch#let#restorable({'&l:undolevels': -1})
+  keepjumps call setline('.', getline('.'))
+  call undolevels.restore()
+endfu
+
 fu! esearch#util#safe_matchdelete(id) abort
   if a:id < 1 | return | endif " E802
 
@@ -167,10 +136,7 @@ fu! esearch#util#safe_matchdelete(id) abort
 endfu
 
 fu! esearch#util#abspath(cwd, path) abort
-  if s:Filepath.is_absolute(a:path)
-    return a:path
-  endif
-
+  if s:Filepath.is_absolute(a:path) | return a:path | endif
   return s:Filepath.join(a:cwd, a:path)
 endfu
 
@@ -188,22 +154,6 @@ fu! esearch#util#slice_factory(keys) abort
      \ . '   return esearch#util#slice(a:dict,'.string(a:keys).")\n"
      \ . ' endfu'
   return private_scope.slice
-endfu
-
-fu! esearch#util#pluralize(word, count) abort
-  let word = a:word
-
-  if a:count == 1 || empty(word)
-    return word
-  endif
-
-  " tim pope
-  let word = substitute(word, '\v\C[aeio]@<!y$',     'ie',  '')
-  let word = substitute(word, '\v\C%(nd|rt)@<=ex$',  'ice', '')
-  let word = substitute(word, '\v\C%([sxz]|[cs]h)$', '&e',  '')
-  let word = substitute(word, '\v\Cf@<!f$',          've',  '')
-  let word .= 's'
-  return word
 endfu
 
 if g:esearch#has#nomodeline
@@ -240,4 +190,121 @@ endfu
 fu! s:Count.next() abort dict
   let self._value += 1
   return self._value - 1
+endfu
+
+fu! esearch#util#cycle(list) abort
+  return s:Cycle.new(a:list)
+endfu
+
+let s:Cycle = {}
+
+fu! s:Cycle.new(list) abort dict
+  return extend(copy(self), {'list': a:list, 'i': 0})
+endfu
+
+fu! s:Cycle.peek() abort dict
+  return self.list[self.i]
+endfu
+
+fu! s:Cycle.next() abort dict
+  let next = self.list[self.i]
+  let self.i = (self.i + 1) % len(self.list)
+  return next
+endfu
+
+fu! esearch#util#stack(list) abort
+  return s:Stack.new(a:list)
+endfu
+
+let s:Stack = {}
+
+fu! s:Stack.new(list) abort dict
+  return extend(copy(self), {'list': a:list})
+endfu
+
+fu! s:Stack.top() abort dict
+  return self.list[-1]
+endfu
+
+fu! s:Stack.len() abort dict
+  return len(self.list)
+endfu
+
+" .top() = val; in cpp
+fu! s:Stack.replace(new_top) abort dict
+  let self.list[-1] = a:new_top
+  return self.list[-1]
+endfu
+
+fu! s:Stack.push(val) abort dict
+  return add(self.list, a:val)
+endfu
+
+fu! s:Stack.pop() abort dict
+  let [self.list, popped] = [self.list[:-2], self.list[-1]]
+  return popped
+endfu
+
+fu! esearch#util#deprecate(message) abort
+  let g:esearch.pending_warnings += ['DEPRECATION: ' . a:message]
+endfu
+
+fu! esearch#util#warn(message) abort
+  if mode() ==# 'c'
+    let g:esearch.pending_warnings += [a:message]
+  else
+    redraw
+    call s:Log.info(a:message)
+  endif
+endfu
+
+fu! esearch#util#find_up(path, markers) abort
+  " Partially based on vital's prelude path2project-root internals
+  let dir = s:Prelude.path2directory(a:path)
+  let depth = 0
+  while depth < 50
+    for marker in a:markers
+      let file = globpath(dir, marker, 1)
+      if file !=# '' | return file | endif
+    endfor
+
+    let dir_upwards = fnamemodify(dir, ':h')
+    " NOTE compare is case insensitive
+    if dir_upwards == dir | return '' | endif
+    let dir = dir_upwards
+    let depth += 1
+  endwhile
+  return ''
+endfu
+
+fu! esearch#util#by_key(pair1, pair2) abort
+  return a:pair1[0] == a:pair2[0] ? 0 : +a:pair1[0] > +a:pair2[0] ? 1 : -1
+endfu
+
+if g:esearch#has#timers
+fu! esearch#util#try_defer(funcref, ...) abort
+  call timer_start(0, function('s:defer_cb', [a:funcref, a:000]))
+endfu
+fu! s:defer_cb(func, argv, _) abort
+  return call(a:func, a:argv)
+endfu
+else
+  fu! esearch#util#try_defer(funcref, ...) abort
+    call call(a:funcref, a:000)
+  endfu
+endif
+
+fu! esearch#util#clipboard_reg() abort
+  let clipboards = split(&clipboard, ',')
+  if index(clipboards, 'unnamedplus') >= 0
+    return '+'
+  elseif index(clipboards, 'unnamed') >= 0
+    return '*'
+  endif
+
+  return '"'
+endfu
+
+fu! esearch#util#capture_range(target) abort range
+  call add(a:target, [a:firstline, a:lastline])
 endfu

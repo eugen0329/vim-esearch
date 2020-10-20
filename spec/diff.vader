@@ -1,0 +1,79 @@
+Include: helper.vader
+
+Before:
+  let g:esearch.cwd = 'spec/fixtures/diff/'
+  let g:file1 = g:esearch.cwd.'file1 with spaces.txt'
+  let g:file2 = g:esearch.cwd.'file2.txt'
+
+Execute (broken header):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  norm! ggdw
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (deleted 2nd line):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  norm! 2Gdd
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (modified 2nd line):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  norm! 2Gichanged
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (extra line after the 2nd line):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  exe "norm! 2Gi\<CR>"
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (deleted filename):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  exe "norm! /file1\<CR>dd"
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (modified filename):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  exe "norm! /file1\<CR>achanged"
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (modified wlnum):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  silent %s/^\s\+\d\+//
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (deleted separator):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call Fixture(g:file2, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  silent 3,$g/^$/delete
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (modified separator):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call Fixture(g:file2, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  silent 3,$g/^$/norm! ichanged
+Then:
+  AssertThrows call esearch#out#win#diff#do()
+
+Execute (extra lines after separators):
+  call Fixture(g:file1, ['l1', 'l2'])
+  call Fixture(g:file2, ['l1', 'l2'])
+  call esearch#init({'pattern': '.'})
+  exe "3,$g/^$/norm! i\<CR>changed"
+Then:
+  AssertThrows call esearch#out#win#diff#do()

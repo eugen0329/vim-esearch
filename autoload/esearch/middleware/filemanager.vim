@@ -2,13 +2,15 @@ let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#middleware#filemanager#filetype2filer = {
       \ 'defx':      'defx',
+      \ 'fern':      'fern',
       \ 'nerdtree':  'nerdtree',
       \ 'dirvish':   'dirvish',
       \ 'netranger': 'netranger',
       \ }
 
 fu! esearch#middleware#filemanager#apply(esearch) abort
-  if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype) || !a:esearch.filemanager_integration
+  if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype)
+        \ || !a:esearch.filemanager_integration
     return a:esearch
   endif
 
@@ -16,7 +18,7 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
   let cwd = esearch#win#lcd(a:esearch.cwd)
   try
     if empty(get(a:esearch, 'region'))
-      let paths = esearch#shell#argv([filer.nearest_directory_path()])
+      let paths = esearch#shell#argv(filer.nearest_dir_or_selected_nodes())
       if paths ==# esearch#shell#argv([a:esearch.cwd])
          let a:esearch.paths = esearch#shell#argv([])
       else
@@ -25,17 +27,18 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
     else
       let a:esearch.paths = s:paths_in_range(filer, a:esearch.region)
       call remove(a:esearch, 'region')
+      let a:esearch.force_exec = 0
     endif
   finally
     call cwd.restore()
   endtry
-  let a:esearch.remember = filter(copy(a:esearch.remember), 'v:val !=# "paths"')
 
   return a:esearch
 endfu
 
 fu! s:paths_in_range(filer, region) abort
-  let paths = a:filer.paths_in_range(line(a:region.begin), line(a:region.end))
+  let [begin, end] = esearch#operator#range(a:region)
+  let paths = a:filer.paths_in_range(line(begin), line(end))
   return esearch#shell#argv(paths)
 endfu
 

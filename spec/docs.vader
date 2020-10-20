@@ -1,0 +1,299 @@
+Include: helper.vader
+
+# Smoke of examples from docs
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/docs/'
+  let g:esearch.backend = 'system'
+  let g:file = Fixture(g:esearch.cwd.'file.txt', ['l1', 'l2'])
+  call esearch#stderr#incremental('workaround to avoid vader bug', ['with autoload fail'])
+  let @+ = ''
+After:
+  if exists('#test')
+    au! test *
+  endif
+  call timer_stopall()
+  Restore g:esearch
+
+Execute(.win_map):
+  call g:esearch.win_new({})
+  bwipe!
+  let g:esearch.win_map = [
+   \ ['n', 'yf',  ':call setreg(esearch#util#clipboard_reg(), b:esearch.filename())<cr>'],
+   \ ['n', 't',   ':<c-u>call b:esearch.open("NewTabdrop")<cr>'                         ],
+   \ ['n', '+',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(+v:count1)))<cr>' ],
+   \ ['n', '-',   ':<c-u>call esearch#init(extend(b:esearch, AddAfter(-v:count1)))<cr>' ],
+   \ ['n', 'gq',  ':<c-u>call esearch#init(extend(copy(b:esearch), to_quickfix))<cr>'   ],
+   \ ['n', 'gsp', ':<c-u>call esearch#init(extend(b:esearch, sort_by_path))<cr>'        ],
+   \ ['n', 'gsd', ':<c-u>call esearch#init(extend(b:esearch, sort_by_date))<cr>'        ],
+   \]
+
+   let g:sort_by_path = {'adapters': {'rg': {'options': '--sort path'}}}
+   let g:sort_by_date = {'adapters': {'rg': {'options': '--sort modified'}}}
+   let g:to_quickfix = {'out': 'qflist'}
+   let g:AddAfter = {n -> {'after': b:esearch.after + n, 'backend': 'system'}}
+Then:
+  call esearch#init({'pattern': '.'})
+  norm yf
+  AssertEqual getreg(esearch#util#clipboard_reg()), g:file, 'expected to yank the filename'
+  norm t
+  Assert split(execute('messages'), "\n")[-1] =~# 'Not an editor command: NewTabdrop'
+  norm 4+
+  AssertEqual b:esearch.after, 4
+  norm 2-
+  AssertEqual b:esearch.after, 2
+  norm gq
+  AssertEqual &ft, 'qf'
+  AssertEqual line('$'), len(readfile(g:file))
+  cclose
+  norm gsp
+  Assert b:esearch.request.command =~# '--sort path', 'expected to sort by path'
+  norm gsd
+  Assert b:esearch.request.command =~# '--sort modified', 'expected to sort by date'
+
+Execute(split autopreview):
+  call g:esearch.win_new({})
+  bwipe!
+  aug test
+    au!
+    autocmd User esearch_win_config
+    \  let b:autopreview = esearch#async#debounce(b:esearch.split_preview_open, 100)
+    \| autocmd CursorMoved <buffer> call b:autopreview.apply('vsplit')
+  aug END
+Then:
+  call esearch#init({'pattern': '.'})
+  doau CursorMoved
+  sleep 500m
+  AssertEqual winnr('$'), 2
+  exe b:esearch.last_split_preview.bufnr 'bwipe'
+
+Execute(float autopreview):
+  if !has('nvim') | finish | endif
+  call g:esearch.win_new({})
+  bwipe!
+  aug test
+    au!
+    autocmd User esearch_win_config
+      \  let b:autopreview = esearch#async#debounce(b:esearch.preview_open, 100)
+      \| autocmd CursorMoved <buffer> call b:autopreview.apply({'align': 'right'})
+  aug END
+Then:
+  if !has('nvim') | finish | endif
+  call esearch#init({'pattern': '.'})
+  doau CursorMoved
+  sleep 500m
+  AssertEqual nvim_win_get_config(g:esearch#preview#win.id).relative, 'win'
+
+Execute(float win_new):
+  if  !has('nvim') | finish | endif
+  aug test
+    au!
+    " Try to jump into the opened floating window or open a new one.
+    let g:esearch.win_new = {esearch->
+        \ esearch#buf#goto_or_open(esearch.name, {bufname->
+        \   nvim_open_win(bufadd(bufname), v:true, {
+        \     'relative': 'editor',
+        \     'row': &lines / 10,
+        \     'col': &columns / 10,
+        \     'width': &columns * 8 / 10,
+        \     'height': &lines * 8 / 10
+        \   })
+        \ })
+        \}
+    " Close the floating window when opening an entry
+    autocmd User esearch_win_config autocmd BufLeave <buffer> quit
+  aug END
+Then:
+  if !has('nvim') | finish | endif
+  call esearch#init({'pattern': '.'})
+  AssertEqual nvim_win_get_config(0).relative, 'editor'
+  exe "norm \<cr>"
+  Assert stridx(bufname(''), g:file) >= 0
+
+Execute(global mappings):
+  nmap <c-f><c-f> <plug>(esearch)
+  map  <c-f>      <plug>(operator-esearch-prefill)
+  map  <c-m-f>    <plug>(operator-esearch-exec)
+Then:
+  exe "norm \<c-f>\<c-f>l\\d\<CR>"
+  AssertEqual b:esearch.pattern.str, 'l\d'
+  exe "norm /l2\<CR>\<c-f>iw\<CR>"
+  AssertEqual b:esearch.pattern.str, 'l2'
+  exe "norm /Matches\<CR>\<c-m-f>iw"
+  AssertEqual b:esearch.pattern.str, 'Matches'
+
+Execute(global mappings 2):
+  nmap <m-f> <plug>(esearch)
+  vmap <m-f> <plug>(operator-esearch-exec)
+Then:
+  exe "norm \<m-f>l\\d\<CR>"
+  AssertEqual b:esearch.pattern.str, 'l\d'
+  exe "norm /l2\<CR>viw\<m-f>"
+  AssertEqual b:esearch.pattern.str, 'l2'
+
+Execute:
+  let g:esearch.prefill = ['hlsearch', 'cword', {-> 'custom text' }]
+Then:
+  nohlsearch
+  $tabnew
+  exe "norm \<plug>(esearch)\<CR>"
+  AssertEqual b:esearch.pattern.str, 'custom text'
+
+Execute:
+  let g:esearch.write_cb =
+      \ {buf, bang -> buf.write(bang) && buf.open('$tabnew')}
+Then:
+  call esearch#init({'pattern': '.'})
+  %s/l2/changed
+  let g:tabs_was = tabpagenr('$')
+  write
+  AssertEqual g:tabs_was + 1, tabpagenr('$')
+  AssertEqual readfile(g:file), ['l1', 'changed']
+
+Execute(write_cb with tabopen and without write):
+  let g:esearch.write_cb = {buf, bang -> buf.open('$tabnew')}
+Then:
+  call esearch#init({'pattern': '.'})
+  %s/l2/changed
+  let g:tabs_was = tabpagenr('$')
+  write
+  AssertEqual g:tabs_was + 1, tabpagenr('$')
+  AssertEqual readfile(g:file), ['l1', 'l2']
+
+Execute(write_cb with wipeout non-existed):
+  let g:esearch.write_cb =
+      \ {buf, bang -> buf.write(bang) && (!buf.existed && buf.bwipeout())}
+Then:
+  call esearch#init({'pattern': '.'})
+  %s/l2/changed
+  let g:buffers_was = split(execute('ls'), "\n")
+  write
+  sleep 100m
+  AssertEqual readfile(g:file), ['l1', 'changed']
+  AssertEqual len(g:buffers_was), len(split(execute('ls'), "\n"))
+
+Execute(write_cb with filling loclist):
+  aug test
+    au!
+    let g:esearch.write_cb = {buf, bang -> setloclist(winnr(), [buf], 'a')}
+    au User esearch_write_post lopen | wincmd p | lfirst
+  aug END
+Then:
+  call esearch#init({'pattern': '.'})
+  exe "norm /l2\<CR>ciwchanged"
+  write
+  AssertEqual readfile(g:file), ['l1', 'l2']
+
+Execute:
+  let g:esearch.git_dir = {cwd -> FugitiveExtractGitDir(cwd)}
+  let g:esearch.git_url = {path, dir -> FugitiveFind(path, dir)}
+Then:
+  Assert g:esearch.git_dir('.') =~# '\.git$'
+  Assert g:esearch.git_url(g:vader_file, g:esearch.git_dir('.')) =~# 'spec/docs\.vader$'
+
+Execute:
+  nnoremap <leader>fd :call esearch#init({
+      \ 'pattern': '\b(ipdb\|debugger)\b',
+      \ 'regex':    1,
+      \ 'remember': 0
+      \})<cr>
+Then:
+  exe "norm ,fd"
+  AssertEqual b:esearch.pattern.str, '\b(ipdb|debugger)\b'
+
+Execute:
+  noremap  <expr><leader>fv esearch#prefill({'paths': $GOPATH.' node_modules/'})
+  nnoremap <leader>fvv :call esearch#init({'paths': $GOPATH.' node_modules/'})<cr>
+Then:
+  exe "norm ,fv__pattern__\<CR>"
+  Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fv\<CR>"
+  Assert join(map(b:esearch.paths, 'v:val.str')) =~# 'node_modules'
+  bwipe
+
+Execute (globs):
+  noremap  <expr><leader>fe esearch#prefill({'paths': '**/*.{js,css,html}'})
+  nnoremap <leader>fe :call esearch#init({'paths': '**/*.{js,css,html}'})<cr>
+Then:
+  exe "norm ,fe__pattern__\<CR>"
+  AssertEqual b:esearch.paths[0].str, '**/*.{js,css,html}'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fe\<CR>"
+  AssertEqual b:esearch.paths[0].str, '**/*.{js,css,html}'
+  bwipe
+
+Execute (filetypes):
+  noremap  <expr><leader>fe esearch#prefill({'filetypes': 'js css html'})
+  nnoremap <leader>fe :call esearch#init({'filetypes': 'js css html'})<cr>
+Then:
+  exe "norm ,fe__pattern__\<CR>"
+  AssertEqual b:esearch.filetypes, 'js css html'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fe\<CR>"
+  AssertEqual b:esearch.filetypes, 'js css html'
+  bwipe
+
+Execute:
+  let g:search_py_methods = {'prefill': [{-> "def (self\<s-left>"}]}
+  nnoremap <leader>fp :call esearch#init(g:search_py_methods)<cr>
+Then:
+  exe "norm ,fp__pattern__\<CR>"
+  AssertEqual b:esearch.pattern.str, 'def __pattern__(self'
+  bwipe
+
+Execute:
+  vnoremap <expr><leader>fm esearch#prefill({'paths': '`git ls-files -m`'})
+  nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files -m`'})<cr>
+Then:
+  exe "norm ,fm__pattern__\<CR>"
+  AssertEqual b:esearch.paths[0].str, '`git ls-files -m`'
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fm\<CR>"
+  AssertEqual b:esearch.paths[0].str, '`git ls-files -m`'
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+
+Execute (unmerged using rev-list):
+  let g:since_2_weeks =
+    \ '`git rev-list --since='.(strftime('%W')%2*7 + strftime('%w') - 1).'.days --all`'
+  noremap  <expr><leader>fu esearch#prefill({'adapter': 'git', 'paths': g:since_2_weeks})
+  nnoremap <leader>fu :call esearch#init({'adapter': 'git', 'paths': g:since_2_weeks})<cr>
+Then:
+  exe "norm ,fu__pattern__\<CR>"
+  Assert b:esearch.paths[0].str =~# '^`git rev-list', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fu\<CR>"
+  Assert b:esearch.paths[0].str =~# '^`git rev-list', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+
+Execute:
+  nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
+  xnoremap <expr><leader>fs esearch#prefill({'paths': esearch#xargs#git_stash()})
+Then:
+  exe "norm ,fs__pattern__\<CR>"
+  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+  exe "norm i__pattern__\<ESC>viw,fs\<CR>"
+  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe
+
+Execute:
+  function! CompleteBranches(...)
+    return system('git branch --format="%(refname:short)"')
+  endfunction
+
+  nnoremap <leader>fb :call esearch#init({
+        \ 'adapter': 'git',
+        \ 'paths':   input('branch> ', '', 'custom,CompleteBranches'),
+        \})<cr>
+Then:
+  exe "norm ,fbHEAD\<CR>__pattern__\<CR>"
+  Assert b:esearch.paths[0].str =~# 'HEAD', b:esearch.paths
+  AssertEqual b:esearch.request.errors, []
+  bwipe

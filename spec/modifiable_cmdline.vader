@@ -1,0 +1,167 @@
+Include: helper.vader
+Execute:
+  let g:esearch.cwd = 'spec/fixtures/modifiable_cmdline/'
+  let g:esearch.pattern = '.'
+  call Fixture(g:esearch.cwd.'file.txt', ['Matches', 'in', 'file'])
+
+Execute (load -> dump):
+  let Glob = esearch#out#win#modifiable#cmdline#import().Global.parse
+  let Del = esearch#out#win#modifiable#cmdline#import().Delete.parse
+  let Sub = esearch#out#win#modifiable#cmdline#import().Substitute.parse
+  let @/ = 'dd' " default pattern
+  let ranges =  [
+  \ '', '.', '.+3', '$', '%', '7',
+  \ '1,7', '.+3,7',
+  \ '/p/', '0;/p/', '/p/+3', '/p//p/',
+  \ '?p?', '0;?p?', '?p?+3', '?p??p?',
+  \ '/p/,/r/', '/p/,?r?', '?p?,/r/','?p?,?r?',
+  \ "'<,'>",
+  \]
+  let trailing_spaces = ['', ' ', '   ']
+Then:
+  for r in ranges
+    AssertEqual Glob(r.'g/').str(),   r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l'
+    AssertEqual Glob(r.':g/').str(),  r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l'
+    AssertEqual Glob(r.'g/pp').str(), r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l'
+
+    AssertEqual Glob(r.'g@').str(),   r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l'
+    AssertEqual Glob(r.':g@').str(),  r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l'
+    AssertEqual Glob(r.'g@pp').str(), r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l'
+
+    AssertEqual Sub(r.'s/').str(),    r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l'
+    AssertEqual Sub(r.':s/').str(),   r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l'
+    AssertEqual Sub(r.'s//rr').str(), r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l/rr'
+
+    for s in trailing_spaces
+      for i in range(len('substitute'))
+        AssertEqual Sub(r.'substitute'[:i].'///'.s).str(), r.'substitute'[:i].'/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l//'.s
+      endfor
+      for i in range(2, len('snomagic'))
+        AssertEqual Sub(r.'snomagic'[:i].'///'.s).str(), r.'snomagic'[:i].'/\%(^\s\[+^_]\=\s\*\d\+\s\.\*\)\@<=\%(dd\m\)\%>1l//'.s
+      endfor
+      for i in range(1, len('smagic'))
+        AssertEqual Sub(r.'smagic'[:i].'///'.s).str(), r.'smagic'[:i].'/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l//'.s
+      endfor
+
+      AssertEqual Sub(r.'s/pp//'.s).str(),        r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l//'.s
+      AssertEqual Sub(r.'s//rr/'.s).str(),        r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l/rr/'.s
+      AssertEqual Sub(r.'s/pp/rr/'.s).str(),      r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l/rr/'.s
+      AssertEqual Sub(r.'s//rr/gc'.s).str(),      r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l/rr/gc'.s
+      AssertEqual Sub(r.'s/pp/rr/gc'.s).str(),    r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l/rr/gc'.s
+      AssertEqual Sub(r.'s//rr/gc 10'.s).str(),   r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l/rr/gc 10'.s
+      AssertEqual Sub(r.'s/pp/rr/gc 10'.s).str(), r.'s/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l/rr/gc 10'.s
+
+      for i in range(len('delete'))
+        AssertEqual Del(r.'delete'[:i].s).str(), r.'delete'[:i].s
+      endfor
+      AssertEqual Del(r.':d'.s).str(),   r.'d'.s
+      AssertEqual Del(r.'d r'.s).str(),  r.'d r'.s
+      AssertEqual Del(r.':d r'.s).str(), r.'d r'.s
+      AssertEqual Del(r.'d "'.s).str(),  r.'d "'.s
+      AssertEqual Del(r.':d "'.s).str(), r.'d "'.s
+
+      for i in range(len('global'))
+        AssertEqual Glob(r.'global'[:i].'//'.s).str(), r.'global'[:i].'/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l/'.s
+      endfor
+      for i in range(len('vglobal'))
+        AssertEqual Glob(r.'vglobal'[:i].'//'.s).str(), r.'vglobal'[:i].'/\%(^\s[+^_]\=\s*\d\+\s.*\)\@!\%(dd\m\|^$\|^[^ ]\|\%1l\)/'.s
+      endfor
+      for i in range(len('global'))
+        AssertEqual Glob(r.'global'[:i].'!//'.s).str(), r.'global'[:i].'!/\%(^\s[+^_]\=\s*\d\+\s.*\)\@!\%(dd\m\|^$\|^[^ ]\|\%1l\)/'.s
+      endfor
+      AssertEqual Glob(r.'g/pp/'.s).str(),          r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l/'.s
+      AssertEqual Glob(r.'g//delete'.s).str(),     r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l/delete'.s
+      AssertEqual Glob(r.'g/pp/delete'.s).str(),   r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l/delete'.s
+      AssertEqual Glob(r.'g/pp/delete r'.s).str(), r.'g/\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l/delete r'.s
+
+      AssertEqual Glob(r.'g@@'.s).str(),           r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l@'.s
+      AssertEqual Glob(r.'g@pp@'.s).str(),         r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l@'.s
+      AssertEqual Glob(r.'g@@delete'.s).str(),     r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(dd\m\)\%>1l@delete'.s
+      AssertEqual Glob(r.'g@pp@delete'.s).str(),   r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l@delete'.s
+      AssertEqual Glob(r.'g@pp@delete r'.s).str(), r.'g@\%(^\s[+^_]\=\s*\d\+\s.*\)\@<=\%(pp\m\)\%>1l@delete r'.s
+    endfor
+  endfor
+
+Execute(:substitute/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('%s/Matches\|in\|file\|[123]/changed/g', ':')
+Then:
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 changed
+     2 changed
+     3 changed
+
+Execute(:snomagic/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('%sno/Matches\|in\|file\|[123]/changed/g', ':')
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 changed
+     2 changed
+     3 changed
+
+Execute(:smagic/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('%sm/Matches\|in\|file\|[123]/changed/g', ':')
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 changed
+     2 changed
+     3 changed
+
+Execute(:global/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('g/Matches\|file\|[123]/d', ':')
+Then:
+  doau TextChanged
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     2 in
+
+Execute(:vglobal/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('v/Matches\|in/d', ':')
+Then:
+  doau TextChanged
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 Matches
+     2 in
+
+Execute(:global!/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('g!/Matches\|in/d', ':')
+Then:
+  doau TextChanged
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 Matches
+     2 in
+
+Execute(:[range]delete!/):
+  call esearch#init()
+  silent exe esearch#out#win#modifiable#cmdline#replace('$-1,$d', ':')
+Then:
+  doau TextChanged
+  Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
+Expect esearch_test:
+  Matches in 3 lines, 1 file. Finished.
+
+  file.txt
+     1 Matches

@@ -12,6 +12,7 @@ class Editor
 
   KEEP_VERTICAL_POSITION = KEEP_HORIZONTAL_POSITION = 0
   CLIPBOARD_REGISTER = '"'
+  CURRENT_BUFFER = '%'
 
   class_attribute :cache_enabled, default: true
   class_attribute :throttle_interval, default: Configuration.editor_throttle_interval
@@ -61,7 +62,7 @@ class Editor
     echo func('getline', number)
   end
 
-  def lines(range = nil, prefetch_count: 30)
+  def lines(range = nil, buffer: CURRENT_BUFFER, prefetch_count: 30)
     raise ArgumentError unless prefetch_count.positive?
     return enum_for(:lines, range, prefetch_count: prefetch_count) { lines_count } unless block_given?
 
@@ -72,7 +73,7 @@ class Editor
       break if evaluated?(current_lines_count) && current_lines_count < prefetch_from
 
       prefetch_to = [to || Float::INFINITY, prefetch_from + prefetch_count - 1].min
-      lines_array(prefetch_from..prefetch_to)
+      lines_array(prefetch_from..prefetch_to, buffer: buffer)
         .each { |line_content| yield(line_content) }
     end
   end
@@ -89,11 +90,10 @@ class Editor
     echo func('line', '.')
   end
 
-  def lines_array(range = nil)
+  def lines_array(range = nil, buffer: CURRENT_BUFFER)
     from, to = lines_range(range)
     to = func('line', '$') if to.nil?
-
-    echo func('getline', from, to)
+    echo func('getbufline', buffer, from, to)
   end
 
   def lines_count
@@ -104,7 +104,7 @@ class Editor
     press! ":cd #{where}<Enter>"
   end
 
-  def bufname(arg)
+  def bufname(arg = '')
     echo func('bufname', arg)
   end
 
@@ -118,6 +118,10 @@ class Editor
 
   def current_buffer_name
     expand('%:p')
+  end
+
+  def current_buffer_basename
+    expand('%:t')
   end
 
   def current_line_number
@@ -134,6 +138,7 @@ class Editor
     # [-] is escaped when it's the only char in a name (to prevent confusion
     # with `cd -` argument)
     text
+      .to_s
       .gsub(/([\t\n *%$'"<{\[\\])/, '\\\\\1')
       .sub(/^([+>])/, '\\\\\1')
       .sub(/^-$/, '\\-')
@@ -173,7 +178,7 @@ class Editor
   end
 
   def edit!(filename)
-    command!("edit! #{filename}")
+    command!("edit! #{escape_filename(filename)}")
   end
 
   def pwd
@@ -220,19 +225,6 @@ class Editor
       .map { |path| Pathname(path).cleanpath.expand_path.to_s }
   end
 
-  def enter_buffer!(name)
-    location = with_ignore_cache do
-      echo func('esearch#buf#tabwin', func('esearch#buf#find', name))
-    end
-
-    raise MissingBufferError if location == [0, 0]
-
-    command! <<~VIML
-      tabn #{location[0]}
-      #{location[1]} winc w
-    VIML
-  end
-
   def bufnr
     echo func('bufnr')
   end
@@ -269,11 +261,11 @@ class Editor
   end
 
   def split!(path)
-    command! "split #{editor.escape_filename(path)}"
+    command! "split #{escape_filename(path)}"
   end
 
   def tabedit!(path)
-    command! "tabedit #{editor.escape_filename(path)}"
+    command! "tabedit #{escape_filename(path)}"
   end
 
   def bwipeout(buffer_number)
@@ -324,10 +316,6 @@ class Editor
 
   def cwd
     echo func('getcwd')
-  end
-
-  def trigger_cursor_moved_event!
-    press!('<Esc>lh')
   end
 
   def command(string_to_execute)
@@ -441,6 +429,8 @@ class Editor
     down:      '\\<Down>',
     end:       '\\<End>',
     paste:     "\\<C-r>\\<C-o>#{CLIPBOARD_REGISTER}",
+    control_c: '\\<C-c>',
+    control_w: '\\<C-w>',
   }.freeze
 
   def keyboard_keys_to_string(*keyboard_keys)

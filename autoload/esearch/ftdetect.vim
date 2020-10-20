@@ -39,7 +39,7 @@ if !exists('g:esearch_ftdetect_re2filetype')
         \ }
 endif
 
-fu! esearch#ftdetect#complete(filename) abort
+fu! esearch#ftdetect#slow(filename) abort
   let filetype = esearch#ftdetect#fast(a:filename)
   if filetype isnot# s:null | return filetype | endif
 
@@ -97,7 +97,11 @@ fu! esearch#ftdetect#async_prewarm_cache() abort
 endfu
 
 fu! s:blocking_make_cache() abort
-  let lines = split(s:Log.capture('autocmd filetypedetect'), "\n")
+  try
+    let lines = split(s:Log.capture('autocmd filetypedetect'), "\n")
+  catch /E216:/ " E216: No such group or event
+    return 0
+  endtry
 
   let definitions = []
   for line in lines
@@ -131,7 +135,7 @@ fu! s:blocking_make_cache() abort
     let definitions = []
   endfor
 
-  return s:true
+  return 1
 endfu
 
 fu! s:make_cache() abort
@@ -149,7 +153,7 @@ fu! s:make_cache() abort
     call s:blocking_make_cache()
   endif
 
-  return s:true
+  return 1
 endfu
 
 fu! s:failed_with(reason, error) abort

@@ -6,7 +6,7 @@ describe 'esearch#cmdline input', :commandline do
   include Helpers::Commandline
 
   shared_examples 'commandline input testing examples' do
-    before { esearch.configure(out: 'stubbed', backend: 'system', prefill: ['last'], root_markers: []) }
+    before { esearch.configure(out: 'stubbed', backend: 'system', prefill: ['last'], root_markers: [], live_update: 0) }
     after do
       esearch.cleanup!
       esearch.output.reset_calls_history!
@@ -338,13 +338,5 @@ describe 'esearch#cmdline input', :commandline do
     end
   end
 
-  context 'neovim', :neovim do
-    around(:context) { |e| use_nvim(&e) }
-
-    include_examples 'commandline input testing examples'
-  end
-
-  context 'vim', :vim do
-    include_examples 'commandline input testing examples'
-  end
+  include_examples 'commandline input testing examples'
 end

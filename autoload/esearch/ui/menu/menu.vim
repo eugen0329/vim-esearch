@@ -28,31 +28,25 @@ let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys + s:filet
       \ + map(range(0, 9), 'string(v:val)')
 
 fu! s:Menu.new(props) abort dict
-  let instance = extend(copy(self), {'props': a:props})
+  let new = extend(copy(self), {'props': a:props})
+  let adapter = a:props._adapter
 
   let i = esearch#util#counter()
-  let instance.items = [
-        \   s:CaseEntry.new({'i':     i.next(), 'keys':  s:case_keys}),
-        \   s:RegexEntry.new({'i':    i.next(), 'keys': s:regex_keys}),
-        \   s:TextobjEntry.new({'i':  i.next(), 'keys':  s:textobj_keys}),
-        \ ]
-  if !empty(a:props.current_adapter.filetypes)
-    let instance.items += [
-          \   s:FiletypeEntry.new({'i': i.next(), 'keys': s:filetype_keys}),
-          \ ]
-  endif
-  let instance.items += [
-        \   s:PathEntry.new({'i':     i.next(), 'keys': s:path_keys}),
-        \   s:BeforeEntry.new({'i':   i.next()}),
-        \   s:AfterEntry.new({'i':    i.next()}),
-        \   s:ContextEntry.new({'i':  i.next()}),
-        \ ]
+  let new.items = []
+  if !empty(adapter.case)      | let new.items += [s:CaseEntry.new({'i':     i.next(), 'keys': s:case_keys})]     | endif
+  if !empty(adapter.regex)     | let new.items += [s:RegexEntry.new({'i':    i.next(), 'keys': s:regex_keys})]    | endif
+  if !empty(adapter.textobj)   | let new.items += [s:TextobjEntry.new({'i':  i.next(), 'keys': s:textobj_keys})]  | endif
+  if !empty(adapter.filetypes) | let new.items += [s:FiletypeEntry.new({'i': i.next(), 'keys': s:filetype_keys})] | endif
+  let new.items += [s:PathEntry.new({'i': i.next(), 'keys': s:path_keys})]
+  if !empty(adapter.before)   | let new.items += [s:BeforeEntry.new({'i':  i.next()})] | endif
+  if !empty(adapter.after)    | let new.items += [s:AfterEntry.new({'i':   i.next()})] | endif
+  if !empty(adapter.context)  | let new.items += [s:ContextEntry.new({'i': i.next()})] | endif
 
-  let instance.prompt = s:SearchPrompt.new()
-  let text_height = esearch#ui#height(instance.prompt.render() + [['', a:props.cmdline]])
-  let instance.height = len(instance.items) + text_height
+  let new.prompt = s:SearchPrompt.new()
+  let text_height = esearch#ui#height(new.prompt.render() + [['', a:props.cmdline]])
+  let new.height = len(new.items) + text_height
 
-  return instance
+  return new
 endfu
 
 fu! s:Menu.render() abort dict
@@ -93,7 +87,7 @@ fu! s:Menu.keypress(event) abort dict
   return stop_propagation
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'after', 'before', 'context', 'current_adapter'])
+let s:map_state_to_props = esearch#util#slice_factory(['cmdline', 'after', 'before', 'context', '_adapter'])
 
 fu! esearch#ui#menu#menu#import() abort
   return esearch#ui#connect(s:Menu, s:map_state_to_props)

@@ -288,13 +288,5 @@ describe 'esearch#cmdline menu', :commandline do
     end
   end
 
-  # context 'neovim', :neovim do
-  #   around(:context) { |e| use_nvim(&e) }
-
-  #   include_examples 'commandline menu testing examples'
-  # end
-
-  context 'vim' do
-    include_examples 'commandline menu testing examples'
-  end
+  include_examples 'commandline menu testing examples'
 end

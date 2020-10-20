@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# shellcheck source=spec/support/docker/__fail_if_wrong_pwd.sh
-. "$(dirname "$0")/__fail_if_wrong_pwd.sh"
-
-DOCKER_RUN_ARGS_OVERRIDES="$DOCKER_RUN_ARGS_OVERRIDES -u 0:0" \
-  exec "$(dirname "$0")/run" "$@"

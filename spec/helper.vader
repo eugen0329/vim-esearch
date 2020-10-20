@@ -1,0 +1,70 @@
+Execute(setup):
+  fu! Fixture(path, lines) abort
+    if !isdirectory(fnamemodify(a:path, ':h'))
+      call mkdir(fnamemodify(a:path, ':h'), 'p')
+    endif
+    exe 'noswap edit!' fnameescape(a:path)
+    %delete
+    call setline(1, a:lines)
+    write!
+    return a:path
+  endfu
+
+  fu! CantWrite(path) abort
+    let messages = split(execute('messages'), "\n")[-2:-1]
+    return messages[0] ==# 'Can''t write changes to the following files:'
+      \ && messages[1] =~# '^  '.fnamemodify(a:path, ':.')
+  endfu
+
+  fu! UndotreeIsConsistent() abort
+    let lines = getline(1, '$')
+    let g:state = [0]
+    let id = 0
+    if lines !=# ['']
+      if get(lines, 0, '') =~# '^Matches' | let g:state += [0] | endif
+      if get(lines, 1, 0) is# ''          | let g:state += [0] | endif
+
+      for line in lines[2:]
+        if line =~# g:esearch#out#win#filename_re
+          let id = filter(copy(b:esearch.contexts), 'fnameescape(v:val.filename) == line')[0].id
+        endif
+        call add(g:state, id)
+      endfor
+    endif
+
+    let g:state = map(g:state, '+v:val')
+    let head_state = map(copy(b:esearch.undotree.head.state), '+v:val')
+    return head_state ==# g:state && (len(head_state) - 1 == line('$') || head_state == [0])
+  endfu
+
+  fu! UndotreeIsInconsistentMsg() abort
+    return 'undotree: '.string(g:state).string(b:esearch.state)
+  endfu
+
+  " linear congruential generator
+  fu! Rand(from, to) abort 
+    let s:next = (4096 * get(s:, 'next', 1) + 150889) % 714025
+    return a:from + s:next % (a:to - a:from)
+  endfu
+
+  fu! Maparg(name, mode) abort
+    let dict = maparg(a:name, a:mode, 0, 1)
+    silent! call remove(dict, 'lnum')
+    silent! call remove(dict, 'sid')
+    return dict
+  endfu
+
+  let g:test_number = esearch#util#counter()
+  let g:esearch_yes = 1
+  let g:esearch = {
+  \ 'backend': 'system',
+  \ 'regex': 1,
+  \ 'adapter': 'rg',
+  \ 'win_new': {_-> esearch#buf#goto_or_open('[esearch-vader]', 'noswap tabnew')},
+  \ 'adapters': {'rg': {'options': '--sort path'}},
+  \ 'live_update': 0,
+  \ 'root_markers': [],
+  \}
+
+  let g:mapleader = ","
+  set nomore splitright splitbelow shortmess=lnTtoOfF

@@ -1,81 +1,78 @@
-local parse = require'esearch/vim/parse'
-local util  = require'esearch/util'
+local parse = require'esearch/vim/parse'.parse
+local util  = require'esearch/shared/util'
+local ifirst, ilast = util.ifirst, util.ilast
 
 local M = {}
 
-function M.render(data, esearch)
-  local parsed, _separators_count = parse.lines(data)
-  local contexts                 = esearch['contexts']
-  local line_numbers_map         = esearch['line_numbers_map']
-  local ctx_ids_map              = esearch['ctx_ids_map']
-  local files_count              = esearch['files_count']
-  local ctx_by_name              = esearch['ctx_by_name']
-  local esearch_win_contexts_syntax_clear_on_files_count =
+function M.render(data, esearch, parser)
+  local entries, lines_delta, errors = parse(data, parser)
+  local contexts     = esearch.contexts
+  local state = esearch.state
+  local files_count  = esearch.files_count
+  local ctx_by_name  = esearch.ctx_by_name
+  local win_contexts_syntax_clear_on_files_count =
     vim.eval('g:esearch.win_contexts_syntax_clear_on_files_count')
-  local esearch_win_context_syntax_max_line_len =
+  local win_context_syntax_max_line_len =
     vim.eval('g:esearch.win_context_syntax_clear_on_line_len')
-  local esearch_win_contexts_syntax_clear_on_line_len =
+  local win_contexts_syntax_clear_on_line_len =
     vim.eval('g:esearch.win_contexts_syntax_clear_on_line_len')
 
   local b = vim.buffer()
   local line = vim.eval('line("$") + 1')
-  local i = 0
-  local limit = #parsed
 
-  while(i < limit) do
-    local filename = parsed[i]['filename']
-    local text = parsed[i]['text']
+  for i = ifirst, ilast(entries) do
+    local entry = entries[i]
+    local filename, text, rev = entry.filename, entry.text, entry.rev
 
-    if filename ~= contexts[#contexts - 1]['filename'] then
-      contexts[#contexts - 1]['end'] = line
+    -- IF new filename encountered
+    if filename ~= contexts[ilast(contexts)].filename then
+      contexts[ilast(contexts)]['end'] = line
 
-      if util.is_true(esearch['slow_hl_enabled']) and
-          #contexts > esearch_win_contexts_syntax_clear_on_files_count then
-        esearch['slow_hl_enabled'] = false
+      if util.is_true(esearch.slow_hl_enabled) and #contexts > win_contexts_syntax_clear_on_files_count then
+        esearch.slow_hl_enabled = false
         vim.eval('esearch#out#win#stop_highlights("too many lines")')
       end
 
+      -- add SEPARATOR
       b:insert('')
-      ctx_ids_map:add(tostring(contexts[#contexts - 1]['id']))
-      line_numbers_map:add(false)
+      state:add(tostring(contexts[ilast(contexts)].id))
       line = line + 1
 
+      -- add FILENAME
       b:insert(util.fnameescape(filename))
       contexts:add(vim.dict({
-        ['id']            = tostring(tonumber(contexts[#contexts - 1]['id']) + 1),
+        ['id']            = tostring(tonumber(contexts[ilast(contexts)].id) + 1),
         ['begin']         = tostring(line),
         ['end']           = false,
         ['filename']      = filename,
         ['filetype']      = false,
         ['loaded_syntax'] = false,
         ['lines']         = vim.dict(),
+        ['rev']           = tostring(rev),
         }))
-      ctx_by_name[filename] = contexts[#contexts - 1]
-      ctx_ids_map:add(contexts[#contexts - 1]['id'])
-      line_numbers_map:add(false)
+      ctx_by_name[filename] = contexts[ilast(contexts)]
+      state:add(contexts[ilast(contexts)].id)
       files_count = files_count + 1
       line = line + 1
-      contexts[#contexts - 1]['filename'] = filename
     end
 
-    if text:len() > esearch_win_context_syntax_max_line_len then
-      if text:len() > esearch_win_contexts_syntax_clear_on_line_len and util.is_true(esearch['slow_hl_enabled']) then
-        esearch['slow_hl_enabled'] = false
+    if text:len() > win_context_syntax_max_line_len then
+      if text:len() > win_contexts_syntax_clear_on_line_len and util.is_true(esearch.slow_hl_enabled) then
+        esearch.slow_hl_enabled = false
         vim.eval('esearch#out#win#stop_highlights("too long line encountered")')
       else
-        contexts[#contexts - 1]['loaded_syntax'] = true
+        contexts[ilast(contexts)]['loaded_syntax'] = true
       end
     end
 
-    b:insert(string.format(' %3d %s', parsed[i]['lnum'], text))
-    ctx_ids_map:add(contexts[#contexts - 1]['id'])
-    line_numbers_map:add(parsed[i]['lnum'])
-    contexts[#contexts - 1]['lines'][parsed[i]['lnum']] = text
+    -- add LINE
+    b:insert(string.format(' %3d %s', entry.lnum, text))
+    state:add(contexts[ilast(contexts)].id)
+    contexts[ilast(contexts)].lines[entry.lnum] = text
     line = line + 1
-    i = i + 1
   end
 
-  return tostring(files_count)
+  return tostring(files_count), tostring(lines_delta), errors
 end
 
 return M

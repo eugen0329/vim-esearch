@@ -18,35 +18,31 @@ endif
 let s:Pt.mandatory_options = '--nogroup --nocolor'
 " https://github.com/google/re2/wiki/Syntax
 call extend(s:Pt, {
-      \   'bool2regex': ['literal', 're2'],
-      \   'regex': {
-      \     'literal':   {'icon': '',  'option': ''},
-      \     're2':       {'icon': 'r', 'option': '-e'},
-      \   },
-      \   'bool2textobj': ['none', 'word'],
-      \   'textobj': {
-      \     'none':     {'icon': '',  'option': ''},
-      \     'word':     {'icon': 'w', 'option': '--word-regexp'},
-      \   },
-      \   'bool2case': ['ignore', 'sensitive'],
-      \   'case': {
-      \     'ignore':    {'icon':  '', 'option': '--ignore-case'},
-      \     'sensitive': {'icon': 's', 'option': ''},
-      \     'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \   }
-      \ })
+      \ 'bool2regex': ['literal', 're2'],
+      \ 'regex': {
+      \   'literal':   {'icon': '',  'option': ''},
+      \   're2':       {'icon': 'r', 'option': '-e'},
+      \ },
+      \ 'bool2textobj': ['none', 'word'],
+      \ 'textobj': {
+      \   'none':     {'icon': '',  'option': ''},
+      \   'word':     {'icon': 'w', 'option': '--word-regexp'},
+      \ },
+      \ 'bool2case': ['ignore', 'sensitive'],
+      \ 'case': {
+      \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
+      \   'sensitive': {'icon': 's', 'option': ''},
+      \   'smart':     {'icon': 'S', 'option': '--smart-case'},
+      \ }
+      \})
 
 let s:Pt.filetypes = ''
 
-fu! s:Pt.filetypes2args(filetypes) abort dict
-  return ''
-endfu
+fu! s:Pt.pwd() abort dict	
+  return '.'	
+endfu	
 
-fu! s:Pt.pwd() abort dict
-  return '.'
-endfu
-
-fu! s:Pt.is_success(request) abort
-  " https://github.com/monochromegane/the_platinum_searcher/issues/150
-  return a:request.status == 0
+fu! s:Pt.is_success(request) abort	
+  " https://github.com/monochromegane/the_platinum_searcher/issues/150	
+  return a:request.status == 0	
 endfu
