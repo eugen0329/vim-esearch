@@ -172,7 +172,7 @@ Other git usage examples.
 ```vim
 " Search in modified files only
 nnoremap <leader>fm :call esearch#init({'paths': '`git ls-files --modified`'})<cr>
-" Search in unmerged commits using range
+" Search in unmerged commits using range specification
 nnoremap <leader>fu :call esearch#init({'paths': esearch#xargs#git_log('development..HEAD')})<cr>
 " Search in stashed entries
 nnoremap <leader>fs :call esearch#init({'paths': esearch#xargs#git_stash()})<cr>
