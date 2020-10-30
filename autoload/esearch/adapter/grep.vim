@@ -5,13 +5,13 @@ endfu
 let s:Grep = esearch#adapter#base#import()
 
 if exists('g:esearch#adapter#grep#bin')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#grep#options. Please, use g:esearch.adapters.grep.bin')
   let s:Grep.bin = g:esearch#adapter#grep#bin
 else
   let s:Grep.bin = 'grep'
 endif
 if exists('g:esearch#adapter#grep#options')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#grep#options. Please, use g:esearch.adapters.grep.options')
   let s:Grep.options = g:esearch#adapter#grep#options
 else
   " -I: don't match binary files
