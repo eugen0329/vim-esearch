@@ -4,12 +4,13 @@ endfu
 
 let s:Ack = esearch#adapter#base#import()
 if exists('g:esearch#adapter#ack#bin')
+  call esearch#util#deprecate('g:esearch#adapter#ack#options. Please, use g:esearch.adapters.ack.bin')
   let s:Ack.bin = g:esearch#adapter#ack#bin
 else
   let s:Ack.bin = 'ack'
 endif
 if exists('g:esearch#adapter#ack#options')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#ack#options. Please, use g:esearch.adapters.ack.options')
   let s:Ack.options = g:esearch#adapter#ack#options
 else
   let s:Ack.options = '--follow'

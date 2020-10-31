@@ -4,13 +4,13 @@ endfu
 
 let s:Pt = esearch#adapter#base#import()
 if exists('g:esearch#adapter#pt#bin')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#pt#options. Please, use g:esearch.adapters.pt.bin')
   let s:Pt.bin = g:esearch#adapter#pt#bin
 else
   let s:Pt.bin = 'pt'
 endif
 if exists('g:esearch#adapter#pt#options')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#pt#options. Please, use g:esearch.adapters.pt.options')
   let s:Pt.options = g:esearch#adapter#pt#options
 else
   let s:Pt.options = '--follow'

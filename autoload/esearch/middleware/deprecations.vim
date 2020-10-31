@@ -11,7 +11,7 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
 
   if exists('g:esearch#out#win#buflisted')
     call esearch#util#deprecate('g:esearch#out#win#buflisted, see :help esearch_win_config for details')
-    au User esearch#win_config let &buflisted = g:esearch#out#win#buflisted
+    au User esearch_win_config let &buflisted = g:esearch#out#win#buflisted
   endif
 
   if exists('g:esearch#out#win#open')

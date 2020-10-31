@@ -62,7 +62,7 @@ fu! esearch#ftdetect#fast(filename) abort
   endif
 
   let basename = s:Filepath.basename(a:filename)
-  let extension_re = '\.'.fnamemodify(basename, ':e') . '$'
+  let extension_re = '\.' . fnamemodify(basename, ':e') . '$'
 
   if has_key(g:esearch_ftdetect_re2filetype, extension_re)
     return g:esearch_ftdetect_re2filetype[extension_re]
@@ -103,36 +103,36 @@ fu! s:blocking_make_cache() abort
     return 0
   endtry
 
-  let definitions = []
+  let tokens = []
   for line in lines
-    if empty(definitions)
-      let definitions = split(line, '\s\+')
-      if len(definitions) < 2
+    if empty(tokens)
+      let tokens = split(line, '\s\+')
+      if len(tokens) < 2
         continue
       endif
-    elseif len(definitions) < 2
+    elseif len(tokens) < 2
       " Automcommand spans two lines (long wildcard is on the first, commands
       " are on the second). Grab the commands.
-      let definitions += split(line, '\s\+')
+      let tokens += split(line, '\s\+')
     endif
 
-    if index(s:setfiletype, definitions[1]) >= 0
+    if index(s:setfiletype, tokens[1]) >= 0
       " Plain setfiletype
-      let filetype = definitions[2]
-    elseif definitions[1] ==# 'call' && definitions[2] =~# '^s:\%(StarSetf\|setf\)('
+      let filetype = tokens[2]
+    elseif tokens[1] ==# 'call' && tokens[2] =~# '^s:\%(StarSetf\|setf\)('
       " Filetypes specifying using methods with additional check for
       " g:ft_ignore_pat inside. Can be safely grabbed as the required checks are
       " already provided.
-      let filetype = matchstr(definitions[2], 's:\%(StarSetf\|setf\)([''"]\zs\w\+\ze[''"])'  )
+      let filetype = matchstr(tokens[2], 's:\%(StarSetf\|setf\)([''"]\zs\w\+\ze[''"])'  )
     else
       " If-elses or method calls to run against files content. Skip
-      let definitions = []
+      let tokens = []
       continue
     endif
 
-    let g:esearch#ftdetect#pattern2ft[glob2regpat(definitions[0])] = filetype
+    let g:esearch#ftdetect#pattern2ft[glob2regpat(tokens[0])] = filetype
 
-    let definitions = []
+    let tokens = []
   endfor
 
   return 1

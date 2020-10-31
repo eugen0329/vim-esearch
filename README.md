@@ -166,7 +166,7 @@ autocmd User esearch_win_config
       \  let b:git_show = esearch#async#debounce(g:GitShow, 70)
       \| autocmd CursorMoved <buffer> call b:git_show.apply(b:esearch.ctx)
 
-nnoremap <leader>fh :call esearch#init({'paths': esearch#xargs#git_log('--patch')})<cr>
+nnoremap <leader>fh :call esearch#init({'paths': esearch#xargs#git_log()})<cr>
 ```
 Other git usage examples.
 ```vim
@@ -227,7 +227,7 @@ dictionary using the same keys as in the global config to customize the
 behavior per request. Examples:
 
 ```vim
-" Search for debugger entries instantly (without starting the prompt).
+" Search for debugger statements instantly (without starting the prompt).
 nnoremap <leader>fd :call esearch#init({'pattern': '\b(ipdb\|debugger)\b', 'regex': 1})<cr>
 
 " Search in front-end files using explicitly set paths.

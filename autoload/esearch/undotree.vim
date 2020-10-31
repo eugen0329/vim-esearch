@@ -13,9 +13,9 @@ fu! s:Undotree.new(state) abort dict
   let head = s:node(copy(a:state))
   let written = extend(copy(head), {'changenr': empty(undotree().entries) ? 0 : changenr()})
   return extend(copy(self), {
-        \ 'written':  written,
-        \ 'head':     initial,
-        \ 'nodes':    nodes,
+        \ 'written': written,
+        \ 'head':    initial,
+        \ 'nodes':   nodes,
         \})
 endfu
 

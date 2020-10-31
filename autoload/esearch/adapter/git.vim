@@ -4,13 +4,13 @@ endfu
 
 let s:Git = esearch#adapter#base#import()
 if exists('g:esearch#adapter#git#bin')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#git#options. Please, use g:esearch.adapters.git.bin')
   let s:Git.bin = g:esearch#adapter#git#bin
 else
   let s:Git.bin = 'git --no-pager'
 endif
 if exists('g:esearch#adapter#git#options')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#git#options. Please, use g:esearch.adapters.git.options')
   let s:Git.options = g:esearch#adapter#git#options
 else
   " -I: don't match binary files

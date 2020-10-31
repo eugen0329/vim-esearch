@@ -1,7 +1,7 @@
 let s:Dict   = vital#esearch#import('Data.Dict')
 let s:by_key = function('esearch#util#by_key')
 
-let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must be " {sign} {line_number} {text}".'
+let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must match /^ (sign)? (line_number) (text)/.'
 let s:broken_header_fmt        = 'Broken header at line %d.'
 let s:unexpected_filename_fmt  = 'Unexpected filename at line %d. Each filename must be preceded with a blank line separator.'
 let s:unexpected_prepend_fmt   = 'Unexpected "^" at line %d. Prepended lines must be placed before the base or appended lines.'

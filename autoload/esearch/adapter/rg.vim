@@ -4,13 +4,13 @@ endfu
 
 let s:Rg = esearch#adapter#base#import()
 if exists('g:esearch#adapter#rg#bin')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#rg#options. Please, use g:esearch.adapters.rg.bin')
   let s:Rg.bin = g:esearch#adapter#rg#bin
 else
   let s:Rg.bin = 'rg'
 endif
 if exists('g:esearch#adapter#rg#options')
-  " TODO warn deprecated
+  call esearch#util#deprecate('g:esearch#adapter#rg#options. Please, use g:esearch.adapters.rg.options')
   let s:Rg.options = g:esearch#adapter#rg#options
 else
   " --text: Search binary files as if they were text
