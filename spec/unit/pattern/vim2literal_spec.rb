@@ -28,6 +28,7 @@ describe 'esearch#pattern' do
 
       it { expect(convert.call('\\^')).to  eq('\\^') }
       it { expect(convert.call('\\$')).to  eq('\\$') }
+      it { expect(convert.call('\\/')).to  eq('/') }
 
       context 'when preceding slashes are escaped except one' do
         it { expect(convert.call('\\\\\\_^')).to eq('\\\\') }
@@ -36,6 +37,7 @@ describe 'esearch#pattern' do
         it { expect(convert.call('\\\\\\<')).to  eq('\\\\')  }
         it { expect(convert.call('\\\\\\%^')).to eq('\\\\') }
         it { expect(convert.call('\\\\\\%$')).to eq('\\\\') }
+        it { expect(convert.call('\\\\\\/')).to  eq('\\\\/') }
       end
     end
   end

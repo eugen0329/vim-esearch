@@ -14,6 +14,8 @@ fu! esearch#pattern#vim2literal#convert(string) abort
   let string = substitute(string, s:esc . '\\%[<>]\=\d\+[vlc]', '',    'g')
   " (no)magic, very (no)magic and case sensitiveness
   let string = substitute(string, s:esc . '\\[mMvVcC]',         '',    'g')
+  " unescape /
+  let string = substitute(string, s:esc . '\\/',                '/',   'g')
 
   return string
 endfu

@@ -50,7 +50,7 @@ endfu
 
 fu! esearch#out#win#textobj#winrestview() abort
   call winrestview(s:view)
-  unlet s:view
+  let s:view = {}
 endfu
 
 " Behaves like {operator}iw textobj, where trailing whitespaces if available or
