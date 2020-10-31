@@ -258,7 +258,7 @@ fu! esearch#out#win#uninit_user_keymaps() abort
 endfu
 
 fu! s:reload(...) abort dict
-  if &modified && confirm('The window is modified. Reload?', "&Yes\n&Cancel") == 0
+  if &modified && confirm('The window is modified. Reload?', "&Yes\n&Cancel") == 2
     return
   endif
   call esearch#backend#{self.backend}#abort(self.bufnr)
