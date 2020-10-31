@@ -36,7 +36,7 @@ module Configuration
   end
 
   def vimrc_path
-    @vimrc_path ||= viml_dir.join('vimrc.vim').to_s
+    @vimrc_path ||= viml_dir.join('vimrunner.vim').to_s
   end
 
   def viml_dir
