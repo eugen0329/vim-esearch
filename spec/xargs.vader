@@ -1,0 +1,37 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/xargs'.g:test_number.next().'/'
+  let g:esearch.backend = 'system'
+After:
+  Restore g:esearch
+
+" TODO can be modified to work with submodules as well. --recurse-submodules
+" won't work as it's impossible to specify rec:filename for submodules, so
+" 'git submodule foreach ...' must be used.
+Execute(#git_log with ignoring subprojects):
+  let g:file1 = Fixture(g:esearch.cwd.'file1.txt', ['zb', 'zc'])
+  let g:file2 = Fixture(g:esearch.cwd.'nested/file2.txt', ['zd', 'ze'])
+  call system('git init ' . g:esearch.cwd . 'nested')
+  call system('git -C ' . g:esearch.cwd . 'nested add -A')
+  call system('git -C ' . g:esearch.cwd . 'nested commit -m "subproject message"')
+  call system('git init ' . g:esearch.cwd)
+  call system('git -C ' . g:esearch.cwd . ' submodule add ./nested')
+  call system('git -C ' . g:esearch.cwd . ' add -A')
+  call system('git -C ' . g:esearch.cwd . ' commit -m "parent message"')
+  call esearch#init({'paths': esearch#xargs#git_log(), 'pattern': 'z'})
+
+  Assert join(getline(1, '$'), "\n") =~# join([
+  \ 'Matches in 2 lines, 1 file. Finished.',
+  \ '',
+  \ '\x\{40}:file1.txt',
+  \ '   1 zb',
+  \ '   2 zc',
+  \], "\n")
+
+  exe "norm \<CR>"
+  AssertEqual getline(1, '$'), [
+  \ 'zb',
+  \ 'zc',
+  \]
