@@ -21,7 +21,6 @@ Execute(#git_log with ignoring subprojects):
   call system('git -C ' . g:esearch.cwd . ' submodule add ./nested')
   call system('git -C ' . g:esearch.cwd . ' add -A')
   call system('git -C ' . g:esearch.cwd . ' commit -m "parent message"')
-  call delete(g:esearch.cwd . 'nested/.git')
   call esearch#init({'paths': esearch#xargs#git_log(), 'pattern': 'a'})
 
   Assert join(getline(1, '$'), "\n") =~# join([
