@@ -1275,6 +1275,7 @@ esearch#xargs#git_stash([{shell-opts}])                *esearch#xargs#git_stash(
         NOTE It filters files in commits where diff lines match the pattern.
         Other non-modified but matched lines within these files will be
         outputted as well.
+        NOTE Git submodules aren't recursed.
         NOTE Explicit switching |g:esearch.adapter| to `'git'` isn't necessary (all
         the required information will be contained in the returned |Dict|).
 

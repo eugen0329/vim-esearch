@@ -31,7 +31,7 @@ let s:xargs_batched = '| xargs -n127' " bigger n means higher latency, but lower
 fu! s:git_log(options, adapter, esearch) abort
   let pipe = join([
         \ a:adapter.bin,
-        \ 'log --oneline --pretty=format:%H --name-only --diff-filter=drc',
+        \ 'log --oneline --pretty=format:%H --name-only --diff-filter=drc --ignore-submodules=all',
         \ a:esearch.regex ==# 'literal' ? '' : '--pickaxe-regex',
         \ a:esearch.case ==# 'ignore' ?  '--regexp-ignore-case' : '',
         \ a:options,
