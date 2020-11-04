@@ -38,8 +38,8 @@ endfu
 
 fu! s:set_virtual_sign_highlight() abort
   let DiffAdd = s:gethl('DiffAdd')
-  unlet! DiffAdd['ctermbg']
-  unlet! DiffAdd['guibg']
+  silent! unlet DiffAdd['ctermbg']
+  silent! unlet DiffAdd['guibg']
   call s:sethl('esearchDiffAdd', DiffAdd, {'default': 1})
 endfu
 
