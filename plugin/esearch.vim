@@ -1,7 +1,7 @@
 if exists('g:loaded_esearch')
   finish
 endif
-let g:loaded_esearch = '0.3.4'
+let g:loaded_esearch = '0.3.5'
 
 if !hasmapto('<plug>(esearch)') && !hasmapto('<plug>(operator-esearch-prefill)') && get(get(g:, 'esearch', {}), 'default_mappings', 1)
   nmap <leader>ff <plug>(esearch)
