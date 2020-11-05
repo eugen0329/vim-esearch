@@ -78,7 +78,7 @@ fu! esearch#ftdetect#fast(filename) abort
     return g:esearch#ftdetect#pattern2ft[extension_re]
   endif
 
-  " is checked last as it's slower then other
+  " is checked last as it's slower then others
   let opened_buffer_filetype = getbufvar(a:filename, '&filetype')
   if !empty(opened_buffer_filetype)
     return opened_buffer_filetype

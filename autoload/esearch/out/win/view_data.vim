@@ -48,7 +48,7 @@ fu! s:filetype(...) abort dict
   if empty(ctx) | return '' | endif
 
   if empty(ctx.filetype)
-    let opts = get(a:000)
+    let opts = get(a:, 1, {})
 
     if get(opts, 'fast', 0)
       let ctx.filetype = esearch#ftdetect#slow(ctx.filename)

@@ -2,13 +2,33 @@ Include: helper.vader
 
 Before:
   Save g:esearch
-  let g:esearch.cwd = 'spec/fixtures/api/'
+  let g:esearch.cwd = 'spec/fixtures/api'.g:test_number.next().'/'
 After:
   Restore g:esearch
 
 Execute(.reload with params):
-  call Fixture(g:esearch.cwd.'file.txt', ['l1', 'l2'])
+  call Fixture(g:esearch.cwd.'file.txt', ['text'])
   call esearch#init({'pattern': '.'})
   AssertEqual b:esearch.before, 0
   call b:esearch.reload({'before': 42})
   AssertEqual b:esearch.before, 42
+
+Execute(.filetype with existing filetype):
+  call Fixture(g:esearch.cwd.'file.vim', ['text'])
+  call esearch#init({'pattern': '.'})
+  AssertEqual b:esearch.filetype(), 'vim'
+
+Execute(.filetype with missing filetype):
+  call Fixture(g:esearch.cwd.'file.custom', ['text'])
+  call esearch#init({'pattern': '.'})
+  AssertEqual b:esearch.filetype(), v:null
+
+Execute(.filetype with {'fast': 1}):
+  call Fixture(g:esearch.cwd.'file.vim', ['text'])
+  call esearch#init({'pattern': '.'})
+  AssertEqual b:esearch.filetype({'fast': 1}), 'vim'
+
+Execute(.filetype with {'fast': 0}):
+  call Fixture(g:esearch.cwd.'file.vim', ['text'])
+  call esearch#init({'pattern': '.'})
+  AssertEqual b:esearch.filetype({'fast': 0}), 'vim'
