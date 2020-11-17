@@ -103,8 +103,6 @@ module Helpers::Commandline
   matcher :have_commandline_cursor_location do |location_string|
     attr_reader :expected, :actual
 
-    diffable
-
     match do |editor|
       @expected = {
         commandline_cursor_location: editor.commandline_cursor_location,
@@ -127,10 +125,8 @@ module Helpers::Commandline
     match do |block|
       block.call
 
-      @actual =
-        [esearch.output.calls_history.last&.dig('pattern', 'pcre'),
-         esearch.output.calls_history.last&.dig('pattern', 'literal'),]
-      @expected = [string, string]
+      @actual = esearch.output.calls_history.last&.dig('pattern', 'str')
+      @expected = string
       values_match?(@expected, @actual)
     end
   end
