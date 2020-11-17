@@ -11,6 +11,8 @@ fu! esearch#config#eager() abort
     let g:esearch.loaded_lazy = 1
     call esearch#util#doautocmd('User eseach_config_eager_post')
   endif
+
+  return g:esearch
 endfu
 
 fu! esearch#config#init(esearch) abort
@@ -74,7 +76,7 @@ fu! esearch#config#init(esearch) abort
         \}, 'keep')
 
   if !has_key(g:esearch, 'middleware')
-    let g:esearch.middleware = [
+    let g:esearch.middleware = esearch#middleware_stack#new([
           \ function('esearch#middleware#deprecations#apply'),
           \ function('esearch#middleware#id#apply'),
           \ function('esearch#middleware#adapter#apply'),
@@ -82,13 +84,14 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#paths#apply'),
           \ function('esearch#middleware#filemanager#apply'),
           \ function('esearch#middleware#prewarm#apply'),
-          \ function('esearch#middleware#pattern#apply'),
+          \ function('esearch#middleware#input#apply'),
+          \ function('esearch#middleware#splice_pattern#apply'),
           \ function('esearch#middleware#exec#apply'),
           \ function('esearch#middleware#map#apply'),
           \ function('esearch#middleware#remember#apply'),
           \ function('esearch#middleware#name#apply'),
           \ function('esearch#middleware#warnings#apply'),
-          \]
+          \])
   endif
 
   if g:esearch.default_mappings

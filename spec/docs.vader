@@ -16,6 +16,15 @@ After:
   call timer_stopall()
   Restore g:esearch
 
+Execute(readme global mappings):
+  nmap <c-f><c-f> <Plug>(esearch)
+  map  <c-f>      <Plug>(operator-esearch-prefill)
+Then:
+  exe "norm \<c-f>\<c-f>aaa\<CR>"
+  AssertEqual b:esearch.pattern.str, 'aaa'
+  exe "norm ccbbb\<esc>\<c-f>iw\<cr>"
+  AssertEqual b:esearch.pattern.str, 'bbb'
+
 Execute(.win_map):
   call g:esearch.win_new({})
   bwipe!
@@ -275,11 +284,11 @@ Execute:
   xnoremap <expr><leader>fs esearch#prefill({'paths': esearch#xargs#git_stash()})
 Then:
   exe "norm ,fs__pattern__\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  Assert b:esearch.paths.repr() =~# 'git-stash', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
   bwipe
   exe "norm i__pattern__\<ESC>viw,fs\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  Assert b:esearch.paths.repr() =~# 'git-stash', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
   bwipe
 

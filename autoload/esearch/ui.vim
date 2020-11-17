@@ -117,7 +117,7 @@ endfu
 
 fu! esearch#ui#to_string(component) abort
   let result = ''
-  for [color, text] in a:component.render()
+  for [_color, text] in a:component.render()
     let result .= text
   endfor
 

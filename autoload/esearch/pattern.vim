@@ -7,14 +7,10 @@ let s:PatternSet = {}
 " Produce |Dict| that holds different views of the same pattern:
 " .arg     - in a syntax to pass as a search util argument
 " .vim     - in vim 'nomagic' syntax to hl or interact with matches within vim
-" .literal - in --fixed-strings sytax for prefilling the cmdline
-" .pcre    - in perl compatible syntax for prefilling the cmdline
 " .str     - in string representatino of a pattern for buffer names
 
 fu! s:PatternSet.splice(esearch) abort dict
   silent! unlet self['vim']
-  silent! unlet self['pcre']
-  silent! unlet self['literal']
   let self._arg = map(copy(self.patterns.list), '[v:val.opt, v:val.convert(a:esearch).arg]')
   let self.arg = join(map(copy(self._arg), 'join(v:val)'))
 
@@ -27,9 +23,7 @@ fu! s:PatternSet.splice(esearch) abort dict
 
   let top = self.patterns.top()
   let self.str = top.str
-  if has_key(top, 'literal') | let self.literal = top.literal                          | endif
-  if has_key(top, 'pcre')    | let self.pcre = top.pcre                                | endif
-  if has_key(top, 'vim')     | let [self.vim, self.vim_rest] = s:hat_and_rest(top.vim) | endif
+  if has_key(top, 'vim') | let [self.vim, self.vim_rest] = s:hat_and_rest(top.vim) | endif
 endfu
 
 " vim_rest is safe to match using byte offsets. Is a better alternative to \%>{N}c,
@@ -44,6 +38,7 @@ fu! s:PatternSet.new(kinds, str) abort dict
   let new = copy(self)
   let new.kinds = esearch#util#cycle(a:kinds)
   let new.patterns = esearch#util#stack([s:Pattern.from_kind(new.kinds.next(), a:str)])
+  let new.list = new.patterns.list
   return new
 endfu
 
@@ -94,8 +89,6 @@ fu! s:Regex.convert(esearch) abort dict
   " attrs are only used to prefill the cmdline in further searches, so no strong
   " need to implement extra converters
   let self.arg = shellescape(self.str)
-  let self.literal = self.str
-  let self.pcre = self.str
 
   if a:esearch.regex is# 'literal'
     let self.vim = esearch#pattern#literal2vim#convert(self.str)
@@ -126,8 +119,5 @@ let s:Plaintext = extend(copy(s:Pattern), {'klass': 'Plaintext'})
 
 fu! s:Plaintext.convert(_esearch) abort dict
   let self.arg = shellescape(self.str)
-  let self.literal = self.str
-  let self.pcre = self.str
-
   return self
 endfu

@@ -85,9 +85,9 @@ Default mappings cheatsheet:
 | `<c-o>`                                         | Open the **menu** _[prompt]_                                                                             |
 | `<cr>` / `o` / `s` / `t`                        | **Open** a search result entry in the current window/vertical split/horizontal split/new tab _[window]_ |
 | `O` / `S` / `T`                                 | Same as above, but stay in the window _[window]_                                                        |
-| `J` / `K`                                       | Jump to the next/previous **search entry** _[window]_                                                   |
-| `{` / `}`                                       | Jump to the next/previous **filename** _[window]_                                                       |
-| `(` / `)`                                       | Jump to the next/previous filename from another **directory** _[window]_                                                       |
+| `K` / `J`                                       | Jump to the previous/next **search entry** _[window]_                                                   |
+| `{` / `}`                                       | Jump to the previous/next **filename** _[window]_                                                       |
+| `(` / `)`                                       | Jump to the previous/next filename from another **directory** _[window]_                                                       |
 | `cim` / `dim` / `vim`                           | Jump to the **next match** and change/delete/select it _[window]_                                                            |
 | `cam` / `dam` / `vam`                           | Same as above, but capture trailing whitespaces as well _[window]_                                      |
 | `:write<cr>`                                    | **Write** changes into files _[window]_                                                                 |
@@ -102,7 +102,7 @@ key-values below if you want to alter the default behavior:
 " Use <c-f><c-f> to start the prompt, use <c-f>iw to pre-fill with the current word
 " or other text-objects. Try <Plug>(esearch-exec) to start a search instantly.
 nmap <c-f><c-f> <Plug>(esearch)
-map  <c-f>      <Plug>(esearch-prefill)
+map  <c-f>      <Plug>(operator-esearch-prefill)
 
 let g:esearch = {}
 

@@ -11,6 +11,7 @@ let g:esearch#middleware#filemanager#filetype2filer = {
 fu! esearch#middleware#filemanager#apply(esearch) abort
   if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype)
         \ || !a:esearch.filemanager_integration
+        \ || (a:esearch.live_update && a:esearch.force_exec)
     return a:esearch
   endif
 
@@ -20,14 +21,19 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
     if empty(get(a:esearch, 'region'))
       let paths = esearch#shell#argv(filer.nearest_dir_or_selected_nodes())
       if paths ==# esearch#shell#argv([a:esearch.cwd])
-         let a:esearch.paths = esearch#shell#argv([])
-      else
-        let a:esearch.paths = paths
+         let paths = esearch#shell#argv([])
       endif
     else
-      let a:esearch.paths = s:paths_in_range(filer, a:esearch.region)
+      let paths = s:paths_in_range(filer, a:esearch.region)
       call remove(a:esearch, 'region')
       let a:esearch.force_exec = 0
+    endif
+
+    " TODO implement a:esearch.paths to work like an object
+    if type(a:esearch.paths) == type({})
+      let a:esearch.paths.pathspec = paths
+    else
+      let a:esearch.paths = paths
     endif
   finally
     call cwd.restore()
