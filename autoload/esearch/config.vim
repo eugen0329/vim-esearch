@@ -11,6 +11,8 @@ fu! esearch#config#eager() abort
     let g:esearch.loaded_lazy = 1
     call esearch#util#doautocmd('User eseach_config_eager_post')
   endif
+
+  return g:esearch
 endfu
 
 fu! esearch#config#init(esearch) abort

@@ -12,6 +12,7 @@ fu! esearch#middleware#input#apply(esearch) abort
       let esearch = esearch#cmdline#read(esearch)
     endif
     if empty(esearch.pattern.peek().str) | call s:cancel(esearch) | endif
+    let a:esearch.last_pattern = deepcopy(a:esearch.pattern)
   else
     if type(esearch.pattern) ==# type('')
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
