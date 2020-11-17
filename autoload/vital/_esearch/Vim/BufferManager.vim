@@ -48,9 +48,9 @@ function! s:Manager.open(bufname, ...) abort
   let config = s:_make_config(self, a:000)
   let moved = self.move(config.range)
 
-  let Opener = moved ? 'edit' : config.opener
+  let l:Opener = moved ? 'edit' : config.opener
   while s:P.is_string(Opener) && Opener[0] ==# '='
-    let Opener = eval(Opener[1 :])
+    let l:Opener = eval(Opener[1 :])
   endwhile
 
   let loaded = s:B.open(a:bufname, {

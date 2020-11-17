@@ -27,7 +27,7 @@ endfu
 fu! s:posix_shell_candidates(cwd, arglead, cmdline) abort
   let [word, prefix_text] = s:parse_posix_argled(a:arglead)
   let [already_listed, _] = esearch#shell#split(a:cmdline)
-  let Escape = function('fnameescape')
+  let l:Escape = function('fnameescape')
   let already_listed = map(already_listed, 'Escape(s:minimize(v:val.str))')
   let candidates = []
   let separator = s:Filepath.separator()

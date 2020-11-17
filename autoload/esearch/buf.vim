@@ -46,7 +46,7 @@ fu! esearch#buf#let(bufnr, name, val) abort
 endfu
 
 fu! esearch#buf#bulk_let(bufnr, variables) abort
-  for [name, Val] in items(a:variables)
+  for [name, l:Val] in items(a:variables)
     if Val is s:UNDEFINED | continue | endif
     call setbufvar(a:bufnr, name[(name =~# '^b:' ? 2 : 0):], Val)
   endfor
