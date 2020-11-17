@@ -1,11 +1,5 @@
 " Legacy parsers
 
-if g:esearch#has#json_decode
-  let s:json_decode = function('json_decode')
-else
-  let s:json_decode = vital#esearch#import('Web.JSON').decode
-endif
-
 fu! esearch#adapter#parse#viml#import() abort
   return s:export
 endfu
@@ -20,7 +14,7 @@ fu! s:semgrep(data, from, to) abort dict
   let limit = a:to + 1
 
   while i < limit
-    let json = s:json_decode(a:data[i])
+    let json = json_decode(a:data[i])
 
     if has_key(json, 'errors') && !empty(json.errors)
       let errors = map(json.errors, 'v:val.long_msg')
