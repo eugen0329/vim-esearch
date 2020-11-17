@@ -3,6 +3,7 @@ Include: helper.vader
 Before:
   Save g:esearch
   call esearch#config#eager()
+  let g:esearch.prefill = []
 After:
   Restore g:esearch
 
