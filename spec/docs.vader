@@ -16,6 +16,15 @@ After:
   call timer_stopall()
   Restore g:esearch
 
+Execute(readme global mappings):
+  nmap <c-f><c-f> <Plug>(esearch)
+  map  <c-f>      <Plug>(operator-esearch-prefill)
+Then:
+  exe "norm \<c-f>\<c-f>aaa\<CR>"
+  AssertEqual b:esearch.pattern.str, 'aaa'
+  exe "norm ccbbb\<esc>\<c-f>iw\<cr>"
+  AssertEqual b:esearch.pattern.str, 'bbb'
+
 Execute(.win_map):
   call g:esearch.win_new({})
   bwipe!
