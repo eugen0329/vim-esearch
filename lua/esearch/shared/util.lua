@@ -1,9 +1,9 @@
 local M
 
 if vim.api then
-  M = require'esearch/nvim/util'
+  M = require('esearch/nvim/util')
 else
-  M = require'esearch/vim/util'
+  M = require('esearch/vim/util')
 end
 
 -- From https://www.lua.org/pil/20.4.html. Is used to perform unquoting

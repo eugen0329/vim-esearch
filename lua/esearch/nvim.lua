@@ -26,8 +26,8 @@ return {
   CURSOR_LINENR_NS            = cursor_linenr.CURSOR_LINENR_NS,
   highlight_cursor_linenr     = cursor_linenr.highlight_cursor_linenr,
 
-  render                      = require'esearch/nvim/render'.render,
-  parse                       = require'esearch/nvim/parse'.parse,
-  util                        = require'esearch/shared/util',
-  extract_headings            = require'esearch/shared/outline'.extract_headings,
+  render                      = require('esearch/nvim/render').render,
+  parse                       = require('esearch/nvim/parse').parse,
+  util                        = require('esearch/shared/util'),
+  extract_headings            = require('esearch/shared/outline').extract_headings,
 }
