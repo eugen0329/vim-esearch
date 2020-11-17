@@ -19,8 +19,8 @@ endfu
 
 fu! s:set_current_adapter(esearch) abort
   if type(a:esearch.paths) == type({})
-        \  && has_key(a:esearch.paths, 'adapters')
-        \  && index(a:esearch.paths.adapters, a:esearch.adapter) < 0
+        \ && has_key(a:esearch.paths, 'adapters')
+        \ && index(a:esearch.paths.adapters, a:esearch.adapter) < 0
     let a:esearch.adapter = a:esearch.paths.adapters[0]
   endif
 

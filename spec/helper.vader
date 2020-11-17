@@ -1,4 +1,4 @@
-Execute(setup):
+Execute(global setup):
   fu! Fixture(path, lines) abort
     if !isdirectory(fnamemodify(a:path, ':h'))
       call mkdir(fnamemodify(a:path, ':h'), 'p')

@@ -284,11 +284,11 @@ Execute:
   xnoremap <expr><leader>fs esearch#prefill({'paths': esearch#xargs#git_stash()})
 Then:
   exe "norm ,fs__pattern__\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  Assert b:esearch.paths.repr() =~# 'git-stash', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
   bwipe
   exe "norm i__pattern__\<ESC>viw,fs\<CR>"
-  Assert b:esearch.paths.tag =~# 'git-stash', b:esearch.paths
+  Assert b:esearch.paths.repr() =~# 'git-stash', b:esearch.paths
   AssertEqual b:esearch.request.errors, []
   bwipe
 
