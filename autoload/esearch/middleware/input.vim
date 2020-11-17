@@ -1,6 +1,6 @@
-let g:esearch#middleware#pattern#cache = esearch#cache#lru#new(128)
+let g:esearch#middleware#input#cache = esearch#cache#lru#new(128)
 
-fu! esearch#middleware#pattern#apply(esearch) abort
+fu! esearch#middleware#input#apply(esearch) abort
   let esearch = extend(a:esearch, {'cmdline': ''}, 'keep')
 
   if empty(get(esearch, 'pattern'))
@@ -21,9 +21,6 @@ fu! esearch#middleware#pattern#apply(esearch) abort
     let esearch.live_update = esearch.force_exec
   endif
 
-  call esearch.pattern.splice(esearch)
-  let esearch.last_pattern = esearch.pattern
-
   return esearch
 endfu
 
@@ -36,12 +33,13 @@ fu! s:cancel(esearch) abort
 endfu
 
 fu! s:cached_or_new(text, esearch) abort
-  if g:esearch#middleware#pattern#cache.has(a:text)
-    let pattern = g:esearch#middleware#pattern#cache.get(a:text)
+  if g:esearch#middleware#input#cache.has(a:text)
+    let pattern = g:esearch#middleware#input#cache.get(a:text)
   else
     let pattern = esearch#pattern#new(a:esearch._adapter, a:text)
-    call g:esearch#middleware#pattern#cache.set(a:text, pattern)
+    call g:esearch#middleware#input#cache.set(a:text, pattern)
   endif
 
   return pattern
 endfu
+
