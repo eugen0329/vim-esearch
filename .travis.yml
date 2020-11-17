@@ -55,7 +55,7 @@ jobs:
     - name: 'Acceptance tests of #backend#vim8 paths with #lua render'
       script: bundle exec parallel_split_test spec/plugin/backend/paths_spec.rb --tag vim8 --tag ~render:viml
       os: linux
-    - name: 'Acceptance tests adapter and modifiable features'
+    - name: 'Acceptance tests of adapters'
       script: bundle exec rspec --tag adapters
       os: linux
     - name: 'Acceptance tests of commandline'
