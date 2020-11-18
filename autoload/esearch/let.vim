@@ -22,7 +22,7 @@ endfu
 fu! s:BufWinGuard.store(variables) abort
   let self._resources = [[], []]
 
-  for [name, Val] in items(a:variables)
+  for [name, l:Val] in items(a:variables)
     if has_key(s:opt2id, name)
       let id = s:opt2id[name]
       call add(self._resources[id], [name, self.getters[id](name)])
@@ -38,12 +38,12 @@ fu! s:BufWinGuard.store(variables) abort
 endfu
 
 fu! s:BufWinGuard.restore() abort dict
-  for [name, Val] in self._resources[0]
+  for [name, l:Val] in self._resources[0]
     if Val is s:UNDEFINED | continue | endif
     call self.setters[0](name, Val)
   endfor
   if esearch#win#exists(self.winid)
-    for [name, Val] in self._resources[1]
+    for [name, l:Val] in self._resources[1]
       if Val is s:UNDEFINED | continue | endif
       call self.setters[1](name, Val)
     endfor
@@ -82,8 +82,8 @@ endfu
 " interface
 
 fu! esearch#let#restorable(variables, ...) abort
-  let Guard  = get(a:, 1, s:Guard)
-  let Setter = get(a:, 2, function('esearch#let#bulk'))
+  let l:Guard  = get(a:, 1, s:Guard)
+  let l:Setter = get(a:, 2, function('esearch#let#bulk'))
 
   let guard = Guard.store(keys(a:variables))
   try

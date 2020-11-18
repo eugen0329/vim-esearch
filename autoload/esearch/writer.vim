@@ -20,7 +20,7 @@ fu! s:Writer.new(diffs, esearch) abort dict
 endfu
 
 fu! s:Writer.write(bang) abort dict
-  let WriteCb = self.esearch.write_cb
+  let l:WriteCb = self.esearch.write_cb
   let [current_window, current_buffer, view] = [esearch#win#stay(), esearch#buf#stay(), winsaveview()]
 
   call esearch#util#doautocmd('User esearch_write_pre')

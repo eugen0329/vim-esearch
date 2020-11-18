@@ -40,7 +40,7 @@ fu! s:open(opener, ...) abort dict
 
   call esearch#util#doautocmd('User esearch_open_pre')
   try
-    let Open = reuse ? function('s:open_reusable') : function('s:open_new')
+    let l:Open = reuse ? function('s:open_reusable') : function('s:open_new')
     call Open(self, a:opener, filename, open_opts)
     let bufnr = bufnr('%')
     keepjumps call winrestview(view)

@@ -203,12 +203,12 @@ fu! s:lua_init() abort
 
   if g:esearch#has#nvim_lua
     lua << EOF
-    esearch = require'esearch/nvim'
+    esearch = require('esearch/nvim')
 EOF
   elseif g:esearch#has#vim_lua
     lua << EOF
     package.path = package.path .. ';' .. vim.eval("s:root") .. '/lua/?.lua'
-    esearch = require'esearch/vim'
+    esearch = require('esearch/vim')
 EOF
   endif
 endfu

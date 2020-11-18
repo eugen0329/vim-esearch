@@ -2,7 +2,7 @@ let s:window_id  = esearch#util#counter()
 let s:UNDEFINED = esearch#polyfill#undefined()
 
 fu! esearch#win#bulk_let(handle, variables) abort
-  for [name, Val] in items(a:variables)
+  for [name, l:Val] in items(a:variables)
     if Val is s:UNDEFINED | continue | endif
     call esearch#win#let(a:handle, name, Val)
   endfor

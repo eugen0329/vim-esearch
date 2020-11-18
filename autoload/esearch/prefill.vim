@@ -4,12 +4,12 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 fu! esearch#prefill#try(esearch) abort
   let select = a:esearch.select_prefilled
   if has_key(a:esearch, 'region')
-    let RegionGetter = function('esearch#operator#text', [a:esearch.region])
+    let l:RegionGetter = function('esearch#operator#text', [a:esearch.region])
   else
-    let RegionGetter = function('<SID>get_empty_string')
+    let l:RegionGetter = function('<SID>get_empty_string')
   endif
 
-  for Prefiller in a:esearch.prefill
+  for l:Prefiller in a:esearch.prefill
     if type(Prefiller) == s:t_func
       let pattern = Prefiller(RegionGetter, a:esearch)
     else
