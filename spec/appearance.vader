@@ -1,0 +1,16 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/appearance/'
+  let g:file1 = g:esearch.cwd.'file1.txt'
+After:
+  Restore g:esearch
+
+Execute(zero-length match highlight with viewport hl strategy):
+  if !has('nvim') | finish | endif
+  call Fixture(g:file1, ['l1', 'l2'])
+  let g:esearch.win_matches_highlight_strategy = 'viewport'
+  call esearch#init({'pattern': 'l|', 'regex': 1})
+  norm! G
+  AssertEqual line('.'), line('$'), 'expect no deadlocks'
