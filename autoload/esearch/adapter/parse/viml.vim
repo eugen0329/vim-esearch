@@ -81,16 +81,16 @@ fu! s:with_col(data, from, to) abort dict
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
-      \  'a':  "\<C-G>",
-      \  'b':  "\b",
-      \  't':  "\t",
-      \  'n':  "\n",
-      \  'v':  "\<C-k>",
-      \  'f':  "\f",
-      \  'r':  "\r",
-      \  '\':  '\',
-      \  '"':  '"',
-      \  '033':"\e",
+      \ 'a':  "\<C-G>",
+      \ 'b':  "\b",
+      \ 't':  "\t",
+      \ 'n':  "\n",
+      \ 'v':  "\<C-k>",
+      \ 'f':  "\f",
+      \ 'r':  "\r",
+      \ '\':  '\',
+      \ '"':  '"',
+      \ '033':"\e",
       \}
 
 " Parse lines in format (rev:)?filename[-:]line_number[-:]text
@@ -119,6 +119,7 @@ fu! s:generic(data, from, to) abort dict
     if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
     let e = s:parse_filename_with_revision_prefix(line)
     if !empty(e) | call add(entries, e) | let i += 1 | continue | endif
+    let i += 1 " TODO notify error
   endwhile
 
   return [entries, lines_delta, 0]

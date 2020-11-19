@@ -68,7 +68,7 @@ fu! esearch#out#win#init(esearch) abort
   " output
   if g:esearch#out#win#searches_with_stopped_highlights.has(b:esearch.request.command)
     let b:esearch.slow_hl_enabled = 0
-    if g:esearch.win_matches_highlight_strategy ==# 'viewport'
+    if g:esearch.win_matches_highlight_strategy is# 'viewport'
       call esearch#out#win#appearance#matches#init(b:esearch)
     endif
   else
@@ -161,13 +161,13 @@ fu! esearch#out#win#goto_or_open(esearch) abort dict
 endfu
 
 fu! esearch#out#win#stop_highlights(reason) abort
-  if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy !=# 'viewport'
+  if g:esearch.win_contexts_syntax || g:esearch.win_matches_highlight_strategy isnot# 'viewport'
     call esearch#util#warn('esearch: some highlights are disabled to prevent slowdowns (reason: ' . a:reason . ')')
   endif
 
   call esearch#out#win#appearance#cursor_linenr#soft_stop(b:esearch)
   call esearch#out#win#appearance#ctx_syntax#soft_stop(b:esearch)
-  if g:esearch.win_matches_highlight_strategy !=# 'viewport'
+  if g:esearch.win_matches_highlight_strategy isnot# 'viewport'
     call esearch#out#win#appearance#matches#soft_stop(b:esearch)
   endif
   silent! syn clear esearchDiffAdd

@@ -10,7 +10,7 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
   let request = {
         \ 'internal_job_id': id,
         \ 'job_id': -1,
-        \ 'old_cursor': '',
+        \ 'intermediate': '',
         \ 'jobstart_args': {
         \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
         \   'opts': {
@@ -25,22 +25,19 @@ fu! esearch#backend#vim8#init(cwd, adapter, command) abort
         \ },
         \ 'tick': 0,
         \ 'ticks': g:esearch#backend#vim8#ticks,
-        \ 'backend':  'vim8',
-        \ 'adapter':  a:adapter,
-        \ 'command':  a:command,
+        \ 'backend': 'vim8',
+        \ 'adapter': a:adapter,
+        \ 'command': a:command,
         \ 'is_consumed': function('<SID>is_consumed'),
-        \ 'cwd':      a:cwd,
-        \ 'data':     [],
-        \ 'errors':     [],
+        \ 'cwd': a:cwd,
+        \ 'data': [],
+        \ 'errors': [],
         \ 'finished': 0,
         \ 'status': 0,
         \ 'async': 1,
         \ 'aborted': 0,
         \ 'cursor': 0,
-        \ 'cb': {
-        \   'finish': 0,
-        \   'update': 0
-        \ }
+        \ 'cb': {'finish': 0, 'update': 0}
         \}
 
   return request
@@ -60,11 +57,10 @@ endfu
 " TODO encoding
 fu! s:stdout(job_id, job, data) abort
   let request = s:jobs[a:job_id].request
-  if a:data[len(a:data)-1] ==# "\n"
-    let request.data += split(a:data, "\n", 1)[:-2]
-  else
-    let request.data += split(a:data, "\n", 1)
-  endif
+
+  let data = split(request.intermediate . a:data, "\n", 1)
+  let request.intermediate = data[-1]
+  let request.data += data[:-2]
   if !empty(request.cb.update) && request.tick % request.ticks == 1 && !request.aborted
     call request.cb.update()
   endif

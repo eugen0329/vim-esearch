@@ -64,12 +64,12 @@ let g:esearch#out#win#appearance#ctx_syntax#map = {
       \}
 
 fu! esearch#out#win#appearance#ctx_syntax#init(es) abort
+  let a:es.context_syntax_regions = {}
   if !a:es.win_contexts_syntax | retu | en
 
   let l:Callback = function('s:hl_viewport_cb', [a:es])
   let a:es.loaded_ctx_syntaxes = 1
   let a:es.hl_ctx_syntax = esearch#async#debounce(Callback, a:es.win_contexts_syntax_debounce_wait)
-  let a:es.context_syntax_regions = {}
   let a:es.max_lines_found = 0
   syn sync minlines=100
   aug esearch_win_hl_ctx_syntax
