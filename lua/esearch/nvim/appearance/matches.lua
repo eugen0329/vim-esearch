@@ -24,19 +24,19 @@ function M.buf_attach_matches()
   end
 end
 
-local function advance(ranges, lnum, offset, col_from, col_to)
-  if col_from == col_to then return offset + 1 end
-
-  table.insert(ranges, {lnum, col_from + offset - 1, col_to + offset - 1})
-
-  return offset + col_to
+local function next_range(offset, lnum, col_from, col_to)
+  if col_from == col_to then -- expand zero-length match to 1 char
+    return {lnum, col_from + offset - 1, col_to + offset}, offset + 1
+  else
+    return {lnum, col_from + offset - 1, col_to + offset - 1}, offset + col_to
+  end
 end
 
 local function matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, max_col)
   pattern = vim.regex(pattern)
   pattern_rest = vim.regex(pattern_rest)
   local ranges = {}
-  local col_from, col_to
+  local range, col_from, col_to
 
   local lines = vim.api.nvim_buf_get_lines(bufnr, lnum_from, lnum_to, false)
   for lnum = lnum_from, lnum_to - 1 do
@@ -49,13 +49,15 @@ local function matches_ranges(bufnr, pattern, pattern_rest, lnum_from, lnum_to, 
 
       col_from, col_to = pattern:match_str(line:sub(offset, lim))
       if col_from then
-        offset = advance(ranges, lnum, offset, col_from, col_to)
+        range, offset = next_range(offset, lnum, col_from, col_to)
+        table.insert(ranges, range)
       end
 
-      while true do
+      while offset <= line:len() do
         col_from, col_to = pattern_rest:match_str(line:sub(offset, lim))
         if not col_from then break end
-        offset = advance(ranges, lnum, offset, col_from, col_to)
+        range, offset = next_range(offset, lnum, col_from, col_to)
+        table.insert(ranges, range)
       end
     end
   end
