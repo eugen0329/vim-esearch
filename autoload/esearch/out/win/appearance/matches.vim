@@ -7,7 +7,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
 
   let a:es.pattern.hl_match = esearch#out#win#matches#pattern_each(a:es)
 
-  if a:es.win_matches_highlight_strategy ==# 'viewport'
+  if a:es.win_matches_highlight_strategy is# 'viewport'
     let a:es.hl_strategy = 'viewport'
     if g:esearch#has#nvim_lua_regex
       aug esearch_win_hl_matches
@@ -29,7 +29,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     retu
   endif
 
-  if a:es.win_matches_highlight_strategy ==# 'hlsearch'
+  if a:es.win_matches_highlight_strategy is# 'hlsearch'
     let a:es.hl_strategy = 'hlsearch'
     let @/ = a:es.pattern.hl_match . '\%>1l'
     if a:es.live_update
@@ -40,7 +40,7 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     retu
   endif
 
-  if a:es.win_matches_highlight_strategy ==# 'matchadd'
+  if a:es.win_matches_highlight_strategy is# 'matchadd'
     let a:es.hl_strategy = 'matchadd'
     let a:es.matches_hl_id = matchadd('esearchMatch', a:es.pattern.hl_match . '\%>1l', -1)
     retu
@@ -59,7 +59,7 @@ fu! esearch#out#win#appearance#matches#uninit(es) abort
 endfu
 
 fu! esearch#out#win#appearance#matches#init_live_updated(es) abort
-  if a:es.win_matches_highlight_strategy ==# 'hlsearch'
+  if a:es.win_matches_highlight_strategy is# 'hlsearch'
     call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
   endif
 endfu
