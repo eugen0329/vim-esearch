@@ -42,7 +42,7 @@ fu! s:SearchInputController.set_options() dict abort
   if !empty(prompt)
     let self.statusline = esearch#ui#to_statusline(prompt)
     " Set both to prevent inheritance when only global &stl is configured by the user
-    let global_options['&statusline'] = ''
+    let global_options['&g:statusline'] = ''
     let local_options['&statusline'] = self.statusline
   endif
 
