@@ -47,7 +47,6 @@ fu! esearch#out#win#init(esearch) abort
 
   " Create new window only if it's not current
   if a:esearch.live_update_bufnr !=# bufnr('') && a:esearch.bufnr !=# bufnr('')
-    echomsg 1
     call a:esearch.win_new(a:esearch)
     if a:esearch.live_update | call esearch#util#doautocmd('User esearch_win_live_update_pre') | endif
   endif
