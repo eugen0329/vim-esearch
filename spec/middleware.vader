@@ -10,8 +10,8 @@ After:
 Execute(insert order):
   let [g:before_pattern, g:after_pattern, g:before_id, g:after_id] = [0, 0, 0, 0]
   call g:esearch.middleware.insert_before('id', {e-> execute('let g:before_id = 1') ? e : e})
-  call g:esearch.middleware.insert_after('id', {e-> execute('let g:after_id = 1') ? e : e})
-  call g:esearch.middleware.insert_before('input', {e-> execute('let g:before_pattern = 1') ? e : e})
-  call g:esearch.middleware.insert_after('input', {e-> execute('let g:after_pattern = 1') ? e : e})
+  call g:esearch.middleware.insert_after('id', {e-> execute('let g:after_id = 2') ? e : e})
+  call g:esearch.middleware.insert_before('input', {e-> execute('let g:before_pattern = 3') ? e : e})
+  call g:esearch.middleware.insert_after('input', {e-> execute('let g:after_pattern = 4') ? e : e})
   exe "norm \<plug>(esearch)\<CR>"
-  AssertEqual [g:before_id, g:after_id, g:before_pattern, g:after_pattern], [1, 1, 1, 0]
+  AssertEqual [g:before_id, g:after_id, g:before_pattern, g:after_pattern], [1, 2, 3, 0]
