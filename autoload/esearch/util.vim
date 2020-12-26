@@ -156,21 +156,9 @@ fu! esearch#util#slice_factory(keys) abort
   return private_scope.slice
 endfu
 
-if g:esearch#has#nomodeline
-  fu! esearch#util#doautocmd(expr) abort
-    exe 'silent doau <nomodeline> ' . a:expr
-  endfu
-else
-  fu! esearch#util#doautocmd(expr) abort
-    let original_modelines = &modelines
-    try
-      set modelines=0
-      exe 'silent doau ' . a:expr
-    finally
-      let &modelines = original_modelines
-    endtry
-  endfu
-endif
+fu! esearch#util#doautocmd(expr) abort
+  exe 'silent doau <nomodeline> ' . a:expr
+endfu
 
 fu! esearch#util#escape_for_statusline(str) abort
   let safe_slash = g:esearch#has#unicode ? g:esearch#unicode#slash : '{slash}'

@@ -80,7 +80,6 @@ endfu
 
 " Python-like context manager to temporary set variables with following vital's guards
 " interface
-
 fu! esearch#let#restorable(variables, ...) abort
   let l:Guard  = get(a:, 1, s:Guard)
   let l:Setter = get(a:, 2, function('esearch#let#bulk'))

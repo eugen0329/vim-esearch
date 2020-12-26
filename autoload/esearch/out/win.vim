@@ -34,11 +34,25 @@ let g:esearch#out#win#entry_fmt   = ' %3d %s'
 
 let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
 
-fu! esearch#out#win#init(esearch) abort
-  if a:esearch.live_update && !a:esearch.force_exec | return s:init_live_updated(a:esearch) | endif
+aug esearch_win_performance
+  au!
+  " Prevent freezes caused by long lines Highlights
+  au User esearch_win_live_update_pre  let b:original_synmaxcol = esearch#let#restorable({'&synmaxcol': &columns})
+  au User esearch_win_live_update_post call b:original_synmaxcol.restore() | unlet b:original_synmaxcol
+aug END
 
-  if get(a:esearch, 'bufnr') !=# bufnr('') | call a:esearch.win_new(a:esearch) | endif
-  let was_clean = s:cleanup(a:esearch)
+fu! esearch#out#win#init(esearch) abort
+  " If the final live update, do only minor initializations of the already prepared window
+  if a:esearch.live_update && !a:esearch.force_exec | return s:live_update_post(a:esearch) | endif
+
+  " Create new window only if it's not current
+  if a:esearch.live_update_bufnr !=# bufnr('') && a:esearch.bufnr !=# bufnr('')
+    echomsg 1
+    call a:esearch.win_new(a:esearch)
+    if a:esearch.live_update | call esearch#util#doautocmd('User esearch_win_live_update_pre') | endif
+  endif
+
+  let was_clean = s:cleanup_old_request(a:esearch)
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
   if !was_clean && has_key(b:esearch, 'view') | let view = remove(b:esearch, 'view') | endif
@@ -105,9 +119,12 @@ fu! esearch#out#win#init(esearch) abort
   return b:esearch
 endfu
 
-fu! s:init_live_updated(esearch) abort
-  let b:esearch.force_exec = 0
-  let abspath = esearch#util#abspath(a:esearch.cwd, a:esearch.name)
+" All the initialization is done
+fu! s:live_update_post(esearch) abort
+  silent! unlet a:esearch.bufnr
+  call extend(b:esearch, a:esearch, 'force')
+  call extend(b:esearch, {'force_exec': 0, 'live_update_bufnr': -1}, 'force')
+  let abspath = esearch#util#abspath(b:esearch.cwd, b:esearch.name)
 
   try
     call esearch#buf#rename(abspath)
@@ -121,12 +138,13 @@ fu! s:init_live_updated(esearch) abort
     endtry
     call esearch#buf#rename(abspath)
   endtry
-  call esearch#out#win#appearance#matches#init_live_updated(a:esearch)
+  call esearch#out#win#appearance#matches#init_live_updated(b:esearch)
   call esearch#util#doautocmd('WinEnter') " hit statuslines updates
-  return a:esearch
+  call esearch#util#doautocmd('User esearch_win_live_update_post')
+  return b:esearch
 endfu
 
-fu! s:cleanup(esearch) abort
+fu! s:cleanup_old_request(esearch) abort
   call esearch#util#doautocmd('User esearch_win_uninit_pre')
   if exists('b:esearch')
     call esearch#backend#{b:esearch.backend}#abort(b:esearch.bufnr)

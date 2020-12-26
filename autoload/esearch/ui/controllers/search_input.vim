@@ -35,7 +35,7 @@ fu! s:SearchInputController.render() abort dict
 endfu
 
 fu! s:SearchInputController.set_options() dict abort
-  let global_options = {'&synmaxcol': &columns} " prevent freezes on live_update
+  let global_options = {'&laststatus': 2} " show statusline no matter the windows count
   let local_options = {}
 
   let prompt = s:PathTitlePrompt.new().render()
