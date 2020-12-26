@@ -118,7 +118,6 @@ fu! esearch#out#win#init(esearch) abort
   return b:esearch
 endfu
 
-" All the initialization is done
 fu! s:live_update_post(esearch) abort
   silent! unlet a:esearch.bufnr
   call extend(b:esearch, a:esearch, 'force')
