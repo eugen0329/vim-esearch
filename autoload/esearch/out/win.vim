@@ -36,7 +36,7 @@ let g:esearch#out#win#searches_with_stopped_highlights = esearch#cache#expiring#
 
 aug esearch_win_performance
   au!
-  " Prevent freezes caused by long lines Highlights
+  " Prevent freezes caused by highlighting long lines
   au User esearch_win_live_update_pre  let b:original_synmaxcol = esearch#let#restorable({'&synmaxcol': &columns})
   au User esearch_win_live_update_post call b:original_synmaxcol.restore() | unlet b:original_synmaxcol
 aug END
@@ -45,7 +45,7 @@ fu! esearch#out#win#init(esearch) abort
   " If the final live update, do only minor initializations of the already prepared window
   if a:esearch.live_update && !a:esearch.force_exec | return s:live_update_post(a:esearch) | endif
 
-  " Create new window only if it's not current
+  " Open the window if not focused
   if a:esearch.live_update_bufnr !=# bufnr('') && a:esearch.bufnr !=# bufnr('')
     call a:esearch.win_new(a:esearch)
     if a:esearch.live_update | call esearch#util#doautocmd('User esearch_win_live_update_pre') | endif
