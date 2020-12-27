@@ -8,6 +8,10 @@ fu! esearch#win#bulk_let(handle, variables) abort
   endfor
 endfu
 
+fu! esearch#win#let(winid, name, value) abort
+  call settabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
+endfu
+
 fu! esearch#win#get(winid, name) abort
   return gettabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], s:UNDEFINED)
 endfu
@@ -48,10 +52,6 @@ fu! esearch#win#let_restorable(handle, variables) abort
         \ a:variables,
         \ s:Guard.new(a:handle),
         \ function('esearch#win#bulk_let', [a:handle]))
-endfu
-
-fu! esearch#win#let(winid, name, value) abort
-  call settabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
 endfu
 
 let s:CurrentWindowGuard = {}

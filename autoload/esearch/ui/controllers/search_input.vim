@@ -19,7 +19,7 @@ let s:SearchInputController = esearch#ui#component()
 fu! s:SearchInputController.render() abort dict
   let s:self = self
   let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
-  let original_options = self.set_options()
+  let [global_options, local_options] = self.set_options()
   try
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
@@ -28,24 +28,29 @@ fu! s:SearchInputController.render() abort dict
     call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
-    if !empty(original_options) | call original_options.restore() | endif
+    call local_options.restore()
+    call global_options.restore()
     call original_mappings.restore()
   endtry
 endfu
 
 fu! s:SearchInputController.set_options() dict abort
-  let options = {'&synmaxcol': &columns} " prevent freezes on live_update
+  let global_options = {'&laststatus': 2} " show statusline no matter the windows count
+  let local_options = {}
 
   let prompt = s:PathTitlePrompt.new().render()
   if !empty(prompt)
     let self.statusline = esearch#ui#to_statusline(prompt)
-    let options['&statusline'] = self.statusline
+    " Set both to prevent inheritance when only global &stl is configured by the user
+    let global_options['&g:statusline'] = ''
+    let local_options['&statusline'] = self.statusline
   endif
 
-  let restorable = esearch#let#restorable(options)
-  if has_key(options, '&statusline') | redrawstatus! | endif
+  let global_restorable = esearch#let#restorable(global_options)
+  let local_restorable = esearch#let#bufwin_restorable(bufnr(''), win_getid(), local_options)
+  if !empty(prompt) | redrawstatus! | endif
 
-  return restorable
+  return [global_restorable, local_restorable]
 endfu
 
 fu! s:SearchInputController.init_live_update() dict abort
@@ -54,11 +59,12 @@ fu! s:SearchInputController.init_live_update() dict abort
   aug esearch_live_update
     au!
     au CmdlineChanged * call s:live_update.apply()
-    au OptionSet * if has_key(s:self, 'statusline') | let &statusline = s:self.statusline | endif
+    " Overrule statusline plugins when live_update buffer is opened
+    au BufEnter * if has_key(s:self, 'statusline') | let &statusline = s:self.statusline | endif
   aug END
   let s:live_update = esearch#async#debounce(function('s:live_update'),
         \ self.props.live_update_debounce_wait)
-  
+
   call s:live_update.apply(self.props.pattern.peek().str)
 
   if self.props.win_update_throttle_wait > 0

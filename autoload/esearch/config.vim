@@ -67,6 +67,7 @@ fu! esearch#config#init(esearch) abort
         \ 'live_update_min_len':                   3,
         \ 'force_exec':                            0,
         \ 'live_update_bufnr':                     -1,
+        \ 'bufnr':                                 -1,
         \ 'filemanager_integration':               1,
         \ 'pending_warnings':                      [],
         \}, 'keep')
