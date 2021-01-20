@@ -82,7 +82,7 @@ fu! s:NvimPopup.edit() abort dict
 endfu
 
 fu! s:NvimPopup.enter() abort dict
-  noau keepj call esearch#win#goto(self.id)
+  noau keepj call win_gotoid(self.id)
 endfu
 
 fu! s:NvimPopup.open() abort

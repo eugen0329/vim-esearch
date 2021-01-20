@@ -8,6 +8,13 @@ fu! esearch#win#bulk_let(handle, variables) abort
   endfor
 endfu
 
+fu! esearch#win#let_restorable(handle, variables) abort
+  return esearch#let#restorable(
+        \ a:variables,
+        \ s:Guard.new(a:handle),
+        \ function('esearch#win#bulk_let', [a:handle]))
+endfu
+
 fu! esearch#win#let(winid, name, value) abort
   call settabwinvar(win_id2tabwin(a:winid)[0], a:winid, a:name[(a:name =~# '^w:' ? 2 : 0):], a:value)
 endfu
@@ -47,13 +54,6 @@ fu! s:Guard.restore() abort dict
   endif
 endfu
 
-fu! esearch#win#let_restorable(handle, variables) abort
-  return esearch#let#restorable(
-        \ a:variables,
-        \ s:Guard.new(a:handle),
-        \ function('esearch#win#bulk_let', [a:handle]))
-endfu
-
 let s:CurrentWindowGuard = {}
 
 " Python-like context manager to restore current window with following vital's guards
@@ -62,12 +62,12 @@ let s:CurrentWindowGuard = {}
 fu! s:CurrentWindowGuard.new() abort dict
   let instance = copy(self)
   let instance.view = winsaveview()
-  let instance.winid = esearch#win#trace()
+  let instance.winid = win_getid()
   return instance
 endfu
 
 fu! s:CurrentWindowGuard.restore() abort dict
-  call esearch#win#goto(self.winid)
+  call win_gotoid(self.winid)
   call winrestview(self.view)
 endfu
 
@@ -94,14 +94,6 @@ fu! s:DirectoryGuard.restore() abort dict
   endif
 endfu
 
-fu! esearch#win#trace() abort
-  return win_getid()
-endfu
-
 fu! esearch#win#exists(handle) abort
   return winbufnr(a:handle) != -1
-endfu
-
-fu! esearch#win#goto(handle) abort
-  return win_gotoid(a:handle)
 endfu
