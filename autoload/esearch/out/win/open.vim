@@ -68,7 +68,7 @@ fu! s:open_reusable(esearch, opener, filename, opts) abort
   let opened_window = get(a:esearch.reusable_windows, opener_id, s:null)
 
   if !empty(opened_window) && esearch#win#exists(opened_window)
-    call esearch#win#goto(opened_window)
+    call win_gotoid(opened_window)
     " Don't open if the file is already opened.
     " Prevents from asking about existing swap prompt multiple times
     if s:Filepath.abspath(bufname('%')) !=# a:filename
@@ -80,7 +80,7 @@ fu! s:open_reusable(esearch, opener, filename, opts) abort
     unsilent call a:esearch.reusable_buffers_manager.open(a:filename, a:opts)
   endif
 
-  let a:esearch.reusable_windows[opener_id] = esearch#win#trace()
+  let a:esearch.reusable_windows[opener_id] = win_getid()
 endfu
 
 fu! s:to_callable(opener) abort

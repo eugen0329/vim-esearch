@@ -45,7 +45,7 @@ module Helpers::Modifiable::Columnwise
     end
 
     def line_number_text
-      format(' %3d ', line_in_file) # rubocop:disable Style/FormatStringToken
+      format(' %3d ', line_in_file)
     end
 
     def locate_anchor(anchor)
@@ -69,7 +69,7 @@ module Helpers::Modifiable::Columnwise
     end
   end
 
-  AnchoredContext = Struct.new(:name, :name_anchors, :entries) do
+  AnchoredContext = Struct.new(:name, :name_anchors, :entries) do # rubocop:disable Lint/StructNewOverride
     def begin_line
       entries.first.line_in_window - 1
     end
@@ -177,9 +177,10 @@ module Helpers::Modifiable::Columnwise
   end
 
   def ctx_index(location)
-    if location[:ctx] == :header
+    case location[:ctx]
+    when :header
       0 # everything that belongs to header points to ctx 0
-    elsif location[:ctx].is_a? Integer
+    when Integer
       location[:ctx]
     else
       raise ArgumentError, location

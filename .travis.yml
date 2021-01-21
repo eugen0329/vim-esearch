@@ -65,5 +65,5 @@ jobs:
       script:
         - luacheck lua/
         - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
-        - bundle exec rubocop --display-cop-names
+        - bundle exec rubocop
       os: linux

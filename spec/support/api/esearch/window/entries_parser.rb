@@ -2,6 +2,7 @@
 
 class API::ESearch::Window::EntriesParser
   class MissingEntryError < RuntimeError; end
+
   class MissingBlankLineError < RuntimeError; end
 
   FILE_NAME_REGEXP = /\A[^ ]/.freeze
@@ -31,9 +32,9 @@ class API::ESearch::Window::EntriesParser
       next_lines_with_entries! do |line_content, line_in_window|
         yield API::ESearch::Window::Entry
           .new(editor,
-               relative_path,
-               line_content,
-               line_in_window)
+            relative_path,
+            line_content,
+            line_in_window)
       end
     end
   rescue StopIteration
@@ -47,9 +48,7 @@ class API::ESearch::Window::EntriesParser
   end
 
   def next_file_relative_path!
-    # relative_path = lines_enum.next[0] while relative_path !~ FILE_NAME_REGEXP
-    relative_path = lines_enum.next[0]
-    relative_path
+    lines_enum.next[0]
   end
 
   def next_lines_with_entries!

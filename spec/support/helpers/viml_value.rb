@@ -74,11 +74,14 @@ module Helpers::VimlValue
   end
 
   class BeParsedAs < BeProcessedAs; end
+
   class FailParsingWith < FailProcessingWith; end
 
   class BeTokenizedAs < BeProcessedAs; end
+
   class FailTokenizingWith < FailProcessingWith; end
 
   class BeLoadedAs < BeProcessedAs; end
+
   class FailLoadingWith < FailProcessingWith; end
 end

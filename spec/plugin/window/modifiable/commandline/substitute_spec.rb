@@ -94,10 +94,10 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
           let(:flags) { 'gc' }
 
           it 'substitutes matched text' do
-            expect {
+            expect do
               editor.send_command("%s/#{pattern}/changed/#{flags}")
-              editor.raw_send_keys 'y' * confirmations_count + ''
-            }.to change_entries_text(modified_entries)
+              editor.raw_send_keys 'y' * confirmations_count
+            end.to change_entries_text(modified_entries)
               .to(['changed'] * modified_entries.count)
               .and not_to_change_entries_text(entries - modified_entries)
           end
@@ -121,10 +121,10 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
               let(:confirmations_count) { matched_result_texts_count + matched_line_numbers_count }
 
               it 'substitutes matched text' do
-                expect {
+                expect do
                   editor.send_command("%s/#{pattern}/changed/#{flags}")
                   editor.send_keys 'a'
-                }.to change_entries_text([entry2])
+                end.to change_entries_text([entry2])
                   .to(['changed'])
                   .and not_to_change_entries_text([entry1])
               end
@@ -137,10 +137,10 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
 
           context "when only 'a' is pressed" do
             it 'substitutes all matches' do
-              expect {
+              expect do
                 editor.send_command("%s/#{pattern}/changed/#{flags}")
                 editor.send_keys 'a'
-              }.to change_entries_text(modified_entries)
+              end.to change_entries_text(modified_entries)
                 .to(['changed'] * modified_entries.count)
                 .and not_to_change_entries_text(entries - modified_entries)
             end
@@ -148,10 +148,10 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
 
           context "when 'a' is pressed after substituting with the 1st match 'y'" do
             it 'substitutes all matches' do
-              expect {
+              expect do
                 editor.send_command("%s/#{pattern}/changed/#{flags}")
                 editor.send_keys 'yya'
-              }.to change_entries_text(modified_entries)
+              end.to change_entries_text(modified_entries)
                 .to(['changed'] * modified_entries.count)
                 .and not_to_change_entries_text(entries - modified_entries)
             end
@@ -162,10 +162,10 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
 
             context 'when matches on different lines' do
               it 'substitutes all matches but 1st' do
-                expect {
+                expect do
                   editor.send_command("%s/#{pattern}/changed/#{flags}")
                   editor.raw_send_keys 'na'
-                }.to change_entries_text(modified_entries)
+                end.to change_entries_text(modified_entries)
                   .to(['changed'] * modified_entries.count)
                   .and not_to_change_entries_text(entries - modified_entries)
               end
@@ -180,10 +180,10 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
               end
 
               it 'substitutes all matches but 1st' do
-                expect {
+                expect do
                   editor.send_command("%s/#{pattern}/changed/#{flags}")
                   editor.send_keys 'na'
-                }.to change_entries_text(context1.entries)
+                end.to change_entries_text(context1.entries)
                   .to(['aachanged', 'changed bb'])
               end
             end
@@ -275,17 +275,17 @@ describe ':[range]s[ubstitute]/{pattern}/{string}/[flags] [count] within window'
 
     context 'when backwards range is given' do
       it 'substitutes with auto-swap region confirmation' do
-        expect {
+        expect do
           editor.send_command("$,1s/#{pattern}/changed/")
           editor.send_keys 'y'
-        }.to change_entries_text([entry]).to(['changed'])
+        end.to change_entries_text([entry]).to(['changed'])
       end
 
       it 'substitutes with auto-swap region cancellation' do
-        expect {
+        expect do
           editor.send_command("$,1s/#{pattern}/changed/")
           editor.send_keys 'n'
-        }.not_to change { editor.lines.to_a }
+        end.not_to change { editor.lines.to_a }
       end
     end
   end

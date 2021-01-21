@@ -12,16 +12,16 @@ describe 'esearch#cmdline menu', :commandline do
       esearch.output.reset_calls_history!
     end
 
-    # NOTE editor#send_keys after #open_menu_keys must be called separately due to
+    # NOTE: editor#send_keys after #open_menu_keys must be called separately due to
     # +clientserver implimentation particularities
 
     describe 'change options using hotkeys' do
       shared_examples 'it sets options using hotkey' do |hotkeys, options|
         it "sets #{options} using hotkey(s) #{hotkeys}" do
-          expect {
+          expect do
             editor.send_keys(*open_input_keys, *open_menu_keys)
             editor.send_keys_separately(*hotkeys, close_menu_key, 'search str', :enter)
-          }.to set_global_options(options)
+          end.to set_global_options(options)
             .and start_stubbed_search_with_options(options)
             .and finish_stubbed_search_for('search str')
         end
@@ -231,9 +231,9 @@ describe 'esearch#cmdline menu', :commandline do
               let(:test_string) { expected_location.tr('|', '') }
               it "preserves location in #{expected_location} at '|'" do
                 editor.send_keys(*open_input_keys,
-                                 test_string,
-                                 *locate_cursor_with_arrows(expected_location),
-                                 *open_menu_keys)
+                  test_string,
+                  *locate_cursor_with_arrows(expected_location),
+                  *open_menu_keys)
                 editor.send_keys(*dismiss_with)
 
                 expect(editor).to have_commandline_cursor_location(expected_location)

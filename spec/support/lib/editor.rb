@@ -3,7 +3,7 @@
 require 'active_support/core_ext/class/attribute'
 require 'active_support/notifications'
 
-# rubocop:disable Layout/ClassLength
+# rubocop:disable Metrics/ClassLength
 class Editor
   include API::Mixins::Throttling
   include API::Mixins::BecomeTruthyWithinTimeout
@@ -62,7 +62,7 @@ class Editor
     echo func('getline', number)
   end
 
-  def lines(range = nil, buffer: CURRENT_BUFFER, prefetch_count: 30)
+  def lines(range = nil, buffer: CURRENT_BUFFER, prefetch_count: 30, &block)
     raise ArgumentError unless prefetch_count.positive?
     return enum_for(:lines, range, prefetch_count: prefetch_count) { lines_count } unless block_given?
 
@@ -74,7 +74,7 @@ class Editor
 
       prefetch_to = [to || Float::INFINITY, prefetch_from + prefetch_count - 1].min
       lines_array(prefetch_from..prefetch_to, buffer: buffer)
-        .each { |line_content| yield(line_content) }
+        .each(&block)
     end
   end
 
@@ -297,7 +297,7 @@ class Editor
   end
 
   def locate_cursor!(line_number, column_number)
-    # NOTE that $ works for line_number by default but doesn't work for col
+    # NOTE: that $ works for line_number by default but doesn't work for col
     column_number = func('col', '$') if column_number == '$'
     command!("call #{VimlValue.dump(func('cursor', line_number, column_number))} | doau CursorMoved").to_i == 0
   end
@@ -455,13 +455,13 @@ class Editor
     [from, to]
   end
 
-  def instrument(operation, options = {})
+  def instrument(operation, options = {}, &block)
     options.merge!(operation: operation)
-    ActiveSupport::Notifications.instrument("editor.#{operation}", options) { yield }
+    ActiveSupport::Notifications.instrument("editor.#{operation}", options, &block)
   end
 
   def vim
     vim_client_getter.call
   end
 end
-# rubocop:enable Layout/ClassLength
+# rubocop:enable Metrics/ClassLength

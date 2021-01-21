@@ -3,7 +3,7 @@
 require 'pathname'
 require 'active_support/core_ext/numeric/time'
 
-# rubocop:disable Layout/ClassLength
+# rubocop:disable Metrics/ClassLength
 class API::ESearch::Window
   include API::Mixins::BecomeTruthyWithinTimeout
   include VimlValue::SerializationHelpers
@@ -62,8 +62,8 @@ class API::ESearch::Window
     # Both a valid. The only difference is that vim escapes > and + only when
     # they are leading
     filename_variations = [editor.escape_regexp(editor.escape_filename(relative_path)),
-                           editor.escape_regexp(editor.escape_filename('./' + relative_path)),
-                           '^\\x\\{40}:' + editor.escape_regexp(relative_path),]
+                           editor.escape_regexp(editor.escape_filename("./#{relative_path}")),
+                           "^\\x\\{40}:#{editor.escape_regexp(relative_path)}",]
     editor.syntax_aliases_at([filename_variations.join('\|')]) ==
       [%w[esearchFilename Directory]]
   end
@@ -144,7 +144,7 @@ class API::ESearch::Window
 
       # Both a valid. The only difference is that vim escapes > and + only when
       # they are leading
-      path_variations = [Pathname(editor.escape_filename('./' + relative_path)).cleanpath,
+      path_variations = [Pathname(editor.escape_filename("./#{relative_path}")).cleanpath,
                          Pathname(editor.escape_filename(relative_path)).cleanpath,]
 
       path_variations.include?(entry_path) && entry.line_in_file == line_in_file
@@ -171,4 +171,4 @@ class API::ESearch::Window
     @parser ||= Parser.new(editor)
   end
 end
-# rubocop:enable Layout/ClassLength
+# rubocop:enable Metrics/ClassLength
