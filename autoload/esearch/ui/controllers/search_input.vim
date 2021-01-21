@@ -3,15 +3,15 @@ let s:SearchPrompt        = esearch#ui#prompt#search#import()
 let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
 let s:INF = 88888888
 
-cnoremap <Plug>(esearch-cycle-regex)   <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<CR><CR>
-cnoremap <Plug>(esearch-cycle-case)    <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<CR><CR>
-cnoremap <Plug>(esearch-cycle-textobj) <C-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<CR><CR>
-cnoremap <Plug>(esearch-push-pattern)  <C-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<CR><CR>
-cnoremap <Plug>(esearch-open-menu)     <C-r>=<SID>interrupt('<SID>open_menu')<CR><CR>
+cnoremap <plug>(esearch-cycle-regex)   <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<cr><cr>
+cnoremap <plug>(esearch-cycle-case)    <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<cr><cr>
+cnoremap <plug>(esearch-cycle-textobj) <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<cr><cr>
+cnoremap <plug>(esearch-push-pattern)  <c-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<cr><cr>
+cnoremap <plug>(esearch-open-menu)     <c-r>=<SID>interrupt('<SID>open_menu')<cr><cr>
 
-cnoremap <expr> <Plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
-cnoremap <expr> <Plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
-cnoremap <expr> <Plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
+cnoremap <expr> <plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
+cnoremap <expr> <plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
+cnoremap <expr> <plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
 
 let s:self = {}
 let s:SearchInputController = esearch#ui#component()

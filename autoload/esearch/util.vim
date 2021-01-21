@@ -39,7 +39,7 @@ fu! esearch#util#clip(value, from, to) abort
 endfu
 
 fu! esearch#util#is_visual(mode) abort
-  return a:mode =~? "^[vs\<C-v>]$"
+  return a:mode =~? "^[vs\<c-v>]$"
 endfu
 
 fu! esearch#util#slice(dict, keys) abort

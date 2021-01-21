@@ -2,9 +2,9 @@ let s:List = vital#esearch#import('Data.List')
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
       \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
 
-let s:down_keys   = ["\<C-j>", 'j', "\<Down>"]
-let s:up_keys     = ["\<C-k>", 'k', "\<Up>"]
-let s:cancel_keys = ["\<Esc>", "\<C-c>", 'q']
+let s:down_keys   = ["\<c-j>", 'j', "\<Down>"]
+let s:up_keys     = ["\<c-k>", 'k', "\<Up>"]
+let s:cancel_keys = ["\<Esc>", "\<c-c>", 'q']
 
 let s:MenuController = esearch#ui#component()
 

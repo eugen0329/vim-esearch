@@ -33,8 +33,8 @@ set ruler
 set noshowmode
 
 
-map ,z :<C-u>call SynStack()<CR>
-cmap <C-v> <C-r>+
+map ,z :<c-u>call SynStack()<cr>
+cmap <c-v> <c-r>+
 
 if !exists(':PP')
   " don't fail on debugger entry in tests

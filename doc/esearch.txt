@@ -466,7 +466,7 @@ keymaps definitions to |g:esearch.win_map| list:
 <plug>(esearch-win-split:reuse:stay)   |  O   | Open in a reusable split and stay within the win
 <plug>(esearch-win-vsplit)             |  s   | Open a file under the cursor in a vertical split
 <plug>(esearch-win-vsplit:reuse:stay)  |  S   | Open in a reusable vertical split and stay within the win
-<plug>(esearch-win-open)               | <CR> | Open a file under the cursor in the window
+<plug>(esearch-win-open)               | <cr> | Open a file under the cursor in the window
 <plug>(esearch-win-preview)            |  p   | Open the preview window
 <plug>(esearch-win-preview:enter)      |  P   | Open the preview window and enter it
 <plug>(esearch-win-jump:entry:down)    |  J   | Jump down to the next outputted line

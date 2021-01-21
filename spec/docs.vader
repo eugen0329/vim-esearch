@@ -17,8 +17,8 @@ After:
   Restore g:esearch
 
 Execute(readme global mappings):
-  nmap <c-f><c-f> <Plug>(esearch)
-  map  <c-f>      <Plug>(operator-esearch-prefill)
+  nmap <c-f><c-f> <plug>(esearch)
+  map  <c-f>      <plug>(operator-esearch-prefill)
 Then:
   exe "norm \<c-f>\<c-f>aaa\<CR>"
   AssertEqual b:esearch.pattern.str, 'aaa'

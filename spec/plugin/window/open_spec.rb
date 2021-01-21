@@ -164,13 +164,13 @@ describe 'esearch#out#win#open' do
         context 'when CTRL-U mappings are defined' do
           before do
             editor.command! <<~VIML
-              cnoremap <c-u> <c-u><BS>
+              cnoremap <c-u> <c-u><bs>
               call esearch#out#win#map('e', { -> b:esearch.open('vsplit') })
             VIML
           end
           include_context 'start search matching any lines'
           before { ctx1.locate! }
-          after { editor.command! 'cunmap <C-u>' }
+          after { editor.command! 'cunmap <c-u>' }
 
           it 'handles recognizes lambdas with the same bodies as openers' do
             expect { editor.send_keys 'e' }
@@ -232,10 +232,10 @@ describe 'esearch#out#win#open' do
 
     # BUG #105
     context 'when CTRL-U mappings are defined' do
-      before { editor.command! 'cnoremap <c-u> <c-u><BS>' }
+      before { editor.command! 'cnoremap <c-u> <c-u><bs>' }
       include_context 'start search matching any lines'
       before { ctx1.locate! }
-      after { editor.command! 'cunmap <C-u>' }
+      after { editor.command! 'cunmap <c-u>' }
 
       it 'handles recognizes lambdas with the same bodies as openers' do
         expect { editor.send_keys 's' }

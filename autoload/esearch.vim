@@ -36,11 +36,11 @@ fu! esearch#map(lhs, rhs) abort
   let g:esearch = extend(g:esearch, {'pending_warnings': []}, 'keep')
 
   if a:rhs ==# 'esearch'
-    call esearch#util#deprecate('esearch#map, use map {keys} <Plug>(esearch)')
-    call esearch#keymap#set('n', a:lhs, '<Plug>(esearch)', {'silent': 1})
+    call esearch#util#deprecate('esearch#map, use map {keys} <plug>(esearch)')
+    call esearch#keymap#set('n', a:lhs, '<plug>(esearch)', {'silent': 1})
   elseif a:rhs ==# 'esearch-word-under-cursor'
-    call esearch#util#deprecate("esearch#map with 'esearch-word-under-cursor', use map {keys} <Plug>(operator-esearch-prefill)iw")
-    call esearch#keymap#set('n', a:lhs, '<Plug>(esearch-operator)iw', {'silent': 1})
+    call esearch#util#deprecate("esearch#map with 'esearch-word-under-cursor', use map {keys} <plug>(operator-esearch-prefill)iw")
+    call esearch#keymap#set('n', a:lhs, '<plug>(esearch-operator)iw', {'silent': 1})
   else
     call esearch#util#deprecate('esearch#map, see :help esearch-mappings')
   endif

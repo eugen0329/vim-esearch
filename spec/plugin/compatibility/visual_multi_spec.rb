@@ -25,7 +25,7 @@ describe 'vim-visual-multi compatibility', :window do
     shared_examples 'disable motion when all cursors overlaps virtual ui' do |motion|
       it 'disables motion when all cursors overlaps virtual ui' do
         editor.locate_cursor! ctx.begin_line, 1
-        editor.send_keys_separately '\\<C-Down>' * ctx.entries.count
+        editor.send_keys_separately '\\<c-down>' * ctx.entries.count
         expect { motion.call }.not_to change { editor.lines.to_a }
         expect(visual_multi.regions.count)
           .to eq(ctx.entries.count + 1)
@@ -35,9 +35,9 @@ describe 'vim-visual-multi compatibility', :window do
     shared_examples 'delete cursors overlapping virtual ui' do |motion|
       it 'deletes regions overlapping virtual ui' do
         editor.locate_cursor! ctx.begin_line, 1
-        editor.send_keys_separately '\\<C-Down>'
+        editor.send_keys_separately '\\<c-down>'
         locate_anchor({ctx: 0, entry: 1}, anchor)
-        editor.send_keys_separately '\\<C-Down>' * ((ctx.entries.count - 1) - 1)
+        editor.send_keys_separately '\\<c-down>' * ((ctx.entries.count - 1) - 1)
 
         expect { motion.call }
           .to change { visual_multi.regions.count }
@@ -58,7 +58,7 @@ describe 'vim-visual-multi compatibility', :window do
 
         it 'deletes cursors which change virtual ui' do
           locate_anchor({ctx: 0, entry: 0}, anchor)
-          editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1)
+          editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
 
           expect { editor.send_keys_separately 'i', '\\<Up>', 'zzz' }
             .to change { visual_multi.regions.count }
@@ -74,7 +74,7 @@ describe 'vim-visual-multi compatibility', :window do
 
         before do
           locate_anchor({ctx: 0, entry: 0}, anchor)
-          editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1)
+          editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
         end
 
         context 'when within result text' do
@@ -93,7 +93,7 @@ describe 'vim-visual-multi compatibility', :window do
           end
 
           it 'deletes text with CONTROL-w' do
-            expect { editor.send_keys_separately 'i', '\\<C-w>', '\\<C-w>' }
+            expect { editor.send_keys_separately 'i', '\\<c-w>', '\\<c-w>' }
               .to change { ctx.entries.map(&:result_text) }
               .and not_to_change { visual_multi.regions.count }
           end
@@ -116,7 +116,7 @@ describe 'vim-visual-multi compatibility', :window do
             end
 
             it "doesn't delete virtual ui with CONTROL-W" do
-              expect { editor.send_keys_separately 'i', '\\<C-w>', '\\<C-w>' }
+              expect { editor.send_keys_separately 'i', '\\<c-w>', '\\<c-w>' }
                 .to not_change { ctx.entries.map(&:result_text) }
                 .and not_to_change { visual_multi.regions.count }
             end
@@ -133,7 +133,7 @@ describe 'vim-visual-multi compatibility', :window do
             # given, CONTROL-W deletes them along with LineNr, thus if only
             # leading spaces before the result text - deletion doesn't happen
             it "doesn't delete leading spaces with CONTROL-W" do
-              expect { editor.send_keys_separately 'i', '  ', '\\<C-w>', '\\<C-w>' }
+              expect { editor.send_keys_separately 'i', '  ', '\\<c-w>', '\\<c-w>' }
                 .to change { ctx.entries.map(&:result_text) }
                 .to(all(start_with('  ')))
                 .and not_to_change { visual_multi.regions.count }
@@ -254,10 +254,10 @@ describe 'vim-visual-multi compatibility', :window do
 
     describe 'replace' do
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately '\\<Plug>(VM-Replace)', 'zzz' }
+        -> { editor.send_keys_separately '\\<plug>(VM-Replace)', 'zzz' }
     end
 
-    describe '<Plug>(VM-Transform-Regions) map' do
+    describe '<plug>(VM-Transform-Regions) map' do
       # Can be moved to supported with restrictions in future as it seems too useful
       it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately "#{API::VisualMulti::LEADER}e", 'zzz', :enter }
@@ -265,18 +265,18 @@ describe 'vim-visual-multi compatibility', :window do
 
     describe 'pasting' do
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-Transform-Regions)' }
+        -> { editor.send_keys_separately 'x', 'u', '\\<plug>(VM-Transform-Regions)' }
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-p-Paste-Regions)' }
+        -> { editor.send_keys_separately 'x', 'u', '\\<plug>(VM-p-Paste-Regions)' }
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-P-Paste-Regions)' }
+        -> { editor.send_keys_separately 'x', 'u', '\\<plug>(VM-P-Paste-Regions)' }
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-p-Paste-Vimreg)' }
+        -> { editor.send_keys_separately 'x', 'u', '\\<plug>(VM-p-Paste-Vimreg)' }
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately 'x', 'u', '\\<Plug>(VM-P-Paste-Vimreg)' }
-      # <C-v> is mapped to <Plug>(VM-I-paste)
+        -> { editor.send_keys_separately 'x', 'u', '\\<plug>(VM-P-Paste-Vimreg)' }
+      # <c-v> is mapped to <plug>(VM-I-paste)
       it_behaves_like 'it disallows INSERT mode motion',
-        -> { editor.send_keys_separately 'x', 'u', 'i', '\\<C-v>' }
+        -> { editor.send_keys_separately 'x', 'u', 'i', '\\<c-v>' }
     end
   end
 end

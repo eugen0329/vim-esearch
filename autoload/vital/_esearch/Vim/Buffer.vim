@@ -88,13 +88,13 @@ endfunction
 " NOTE:
 " * This function uses |gv| only when using |CTRL-V|
 "   because |gv| is the only way to get selected text
-"   when using <C-v>$ .
+"   when using <c-v>$ .
 "   Please see #192 for the details.
 " * If you don't care about |textlock|,
 "   you can use simple version of this function.
 "   https://github.com/vim-jp/vital.vim/commit/39aae80f3839fdbeebd838ff14d87327a6b889a9
 function! s:get_last_selected() abort
-  if visualmode() ==# "\<C-v>"
+  if visualmode() ==# "\<c-v>"
     let save = getreg('"', 1)
     let save_type = getregtype('"')
     try

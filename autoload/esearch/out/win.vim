@@ -237,7 +237,7 @@ fu! s:init_keymaps() abort
   onoremap <silent><buffer><plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
 
   cnoremap       <silent><buffer><plug>(esearch-cr) <c-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
-  inoremap <expr><silent><buffer><Plug>(esearch-cr) esearch#out#win#modifiable#cr()
+  inoremap <expr><silent><buffer><plug>(esearch-cr) esearch#out#win#modifiable#cr()
   nnoremap <expr><silent><buffer><plug>(esearch-I)  esearch#out#win#modifiable#I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-dd) esearch#operator#expr('esearch#out#win#modifiable#d').'g@'

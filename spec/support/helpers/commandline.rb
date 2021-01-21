@@ -11,7 +11,7 @@ module Helpers::Commandline
   end
 
   def open_menu_keys
-    ['\\<C-o>']
+    ['\\<c-o>']
   end
 
   def open_input_keys
