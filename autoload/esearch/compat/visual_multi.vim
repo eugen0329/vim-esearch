@@ -271,7 +271,7 @@ fu! s:i_delete_char(orig, offset_from_linenr) abort
   let s:R = { -> s:V.Regions }
   let s:X = { -> g:Vm.extend_mode }
   let s:contexts = esearch#out#win#repo#ctx#new(b:esearch, b:esearch.state)
-  let snr = matchstr(expand('<sfile>'), '<snr>\d\+_')
+  let snr = matchstr(expand('<sfile>'), '<SNR>\d\+_')
   return substitute(eval(a:orig), 'vm#icmds#x', snr . 'vm_icmds_x', '')
 endfu
 

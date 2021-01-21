@@ -101,7 +101,7 @@ class Editor
   end
 
   def cd!(where)
-    press! ":cd #{where}<Enter>"
+    press! ":cd #{where}<enter>"
   end
 
   def bufname(arg = '')
@@ -242,7 +242,7 @@ class Editor
       tabnew
       %bwipeout!
       messages clear
-      call feedkeys(\"\\<Esc>\\<Esc>\", \"n\")
+      call feedkeys(\"\\<esc>\\<esc>\", \"n\")
       let @#{CLIPBOARD_REGISTER} = ''
       set lines=22
     CLEANUP_COMMANDS
@@ -418,15 +418,15 @@ class Editor
 
   SYMBOL_TO_KEYBOARD_KEY = {
     enter:     '\\<Cr>',
-    left:      '\\<Left>',
-    right:     '\\<Right>',
+    left:      '\\<left>',
+    right:     '\\<right>',
     delete:    '\\<Del>',
     leader:    '\\\\',
-    backspace: '\\<Bs>',
-    space:     '\\<Space>',
-    escape:    '\\<Esc>',
-    up:        '\\<Up>',
-    down:      '\\<Down>',
+    backspace: '\\<bs>',
+    space:     '\\<space>',
+    escape:    '\\<esc>',
+    up:        '\\<up>',
+    down:      '\\<down>',
     end:       '\\<End>',
     paste:     "\\<c-r>\\<c-o>#{CLIPBOARD_REGISTER}",
     control_c: '\\<c-c>',

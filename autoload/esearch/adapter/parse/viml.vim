@@ -81,7 +81,7 @@ fu! s:with_col(data, from, to) abort dict
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
-      \ 'a':  "\<c-G>",
+      \ 'a':  "\<c-g>",
       \ 'b':  "\b",
       \ 't':  "\t",
       \ 'n':  "\n",

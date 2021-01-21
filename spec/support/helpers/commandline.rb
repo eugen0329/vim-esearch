@@ -54,7 +54,7 @@ module Helpers::Commandline
   end
 
   shared_context 'fix vim internal quirks with mapping timeout' do
-    # in vim8 when pressing keys like <Left> or <Right> a trailing char appears
+    # in vim8 when pressing keys like <left> or <right> a trailing char appears
     # for a short period and cause extra character to be searched
     before { editor.command('set timeoutlen=0') }
     after { editor.command('set timeoutlen=1000') }

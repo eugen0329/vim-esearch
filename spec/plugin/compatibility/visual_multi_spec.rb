@@ -60,7 +60,7 @@ describe 'vim-visual-multi compatibility', :window do
           locate_anchor({ctx: 0, entry: 0}, anchor)
           editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
 
-          expect { editor.send_keys_separately 'i', '\\<Up>', 'zzz' }
+          expect { editor.send_keys_separately 'i', '\\<up>', 'zzz' }
             .to change { visual_multi.regions.count }
             .by(-1)
             .and change { ctx.entries[..-2].map(&:line_content) }

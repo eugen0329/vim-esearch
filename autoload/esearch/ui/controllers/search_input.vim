@@ -162,7 +162,7 @@ endfu
 
 fu! s:SearchInputController.restore_cmdpos_chars() abort
   if self.props.cmdpos == s:INF | return "\<End>" | endif
-  return repeat("\<Left>", strchars(self.cmdline) + 1 - self.props.cmdpos)
+  return repeat("\<left>", strchars(self.cmdline) + 1 - self.props.cmdpos)
 endfu
 
 fu! s:try_pop_pattern(fallback) abort

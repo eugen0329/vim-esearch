@@ -44,12 +44,12 @@ class API::ESearch::Window::Entry
 
     unless block_given?
       editor.locate_line! line_in_window
-      editor.press_with_user_mappings! '\<Enter>'
+      editor.press_with_user_mappings! '\<enter>'
     end
 
     rollback_open do
       editor.locate_line! line_in_window
-      editor.press_with_user_mappings! '\<Enter>'
+      editor.press_with_user_mappings! '\<enter>'
 
       opened_correctly = editor.with_ignore_cache do
         became_truthy_within?(timeout) do

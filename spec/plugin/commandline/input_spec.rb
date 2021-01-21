@@ -115,7 +115,7 @@ describe 'esearch#cmdline input', :commandline do
         end
       end
 
-      describe 'start searching of prefilled (press <Enter> etc.)' do
+      describe 'start searching of prefilled (press <enter> etc.)' do
         context 'defined in esearch#cmdline#start_search_chars' do
           context 'defaults' do
             include_examples 'it starts search at location "|" after pressing',

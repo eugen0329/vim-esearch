@@ -14,7 +14,7 @@ fu! s:TextobjEntry.render() abort dict
 endfu
 
 fu! s:TextobjEntry.keypress(event) abort dict
-  if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
+  if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<enter>"
     call self.props.dispatch({'type': 'NEXT_TEXTOBJ'})
     let stop_propagation = 1
     return stop_propagation

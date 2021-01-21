@@ -21,10 +21,10 @@ let s:filetype_keys      = ['f', "\<c-f>"]
 let s:after_keys         = ['a', 'A']
 let s:before_keys        = ['b', 'B']
 let s:context_keys       = ['c', 'C']
-let s:unsigned_int_keys = ["\<c-a>", "\<c-x>", "\<Enter>", "\<Left>", "\<Right>", "\<c-h>"]
+let s:unsigned_int_keys = ["\<c-a>", "\<c-x>", "\<enter>", "\<left>", "\<right>", "\<c-h>"]
 
 let s:keys = s:case_keys + s:regex_keys + s:textobj_keys + s:path_keys + s:filetype_keys
-      \ + s:after_keys + s:before_keys + s:context_keys + ["\<Enter>", "\<Del>", "\<bs>", '+', '-'] + s:unsigned_int_keys
+      \ + s:after_keys + s:before_keys + s:context_keys + ["\<enter>", "\<del>", "\<bs>", '+', '-'] + s:unsigned_int_keys
       \ + map(range(0, 9), 'string(v:val)')
 
 fu! s:Menu.new(props) abort dict
@@ -71,7 +71,7 @@ fu! s:Menu.keypress(event) abort dict
     return stop_propagation
   endif
 
-  if key ==# "\<Enter>"
+  if key ==# "\<enter>"
     return self.items[self.props.cursor].keypress(a:event)
   end
 
