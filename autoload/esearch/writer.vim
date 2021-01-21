@@ -1,3 +1,4 @@
+let s:Filepath = vital#esearch#import('System.Filepath')
 let s:List = vital#esearch#import('Data.List')
 let s:Buf = esearch#buf#import()
 let s:by_key = function('esearch#util#by_key')
@@ -117,11 +118,11 @@ endfu
 fu! s:Writer.handle_existing_swap(path) abort dict
   call add(self.conflicts, {'filename': a:path, 'reason': 'swapfile exists'})
 
+  " Ensure the buffer is deleted after quitting the swap prompt
   if bufexists(a:path)
     let bufnr = esearch#buf#find(a:path)
-    let bufname = simplify(resolve(bufname(bufnr)))
-    " Delete ONLY buffer we've loaded to reload swapchoice prompt
-    if bufname ==# simplify(resolve(a:path))
+    let bufname = s:Filepath.abspath(simplify(resolve(bufname(bufnr))))
+    if bufname ==# s:Filepath.abspath(simplify(resolve(a:path)))
       exe bufnr . 'bdelete'
     endif
   endif
