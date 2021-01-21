@@ -61,7 +61,7 @@ module Configuration
   end
 
   def nvim_gui?
-    # NOTE use non-gui neovim on travis to not mess with opening xterm or iterm
+    # NOTE: use non-gui neovim on travis to not mess with opening xterm or iterm
     env_fetch('NVIM_GUI', '1') == '1' && gui?
   end
 

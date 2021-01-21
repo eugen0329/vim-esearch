@@ -22,10 +22,10 @@ describe 'esearch#cmdline input', :commandline do
           include_context 'run preparatory search to enable prefilling', prefilled_input
 
           it "starts search of #{expected_input.inspect} with cursor at \"|\"" do
-            expect {
+            expect do
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys[..-2])
-            }.not_to start_stubbed_search
+            end.not_to start_stubbed_search
 
             expect(editor)
               .to have_commandline_cursor_location(expected_input)
@@ -43,10 +43,10 @@ describe 'esearch#cmdline input', :commandline do
           include_context 'run preparatory search to enable prefilling', prefilled_input
 
           it "it changes commandline state to #{expected_input}" do
-            expect {
+            expect do
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
-            }.not_to start_stubbed_search
+            end.not_to start_stubbed_search
 
             expect(editor)
               .to  be_in_commandline
@@ -60,10 +60,10 @@ describe 'esearch#cmdline input', :commandline do
           include_context 'run preparatory search to enable prefilling', prefilled_input
 
           it "it doesn't start search" do
-            expect {
+            expect do
               editor.send_keys(*open_input_keys)
               editor.send_keys_separately(*keys)
-            }.not_to start_stubbed_search
+            end.not_to start_stubbed_search
           end
         end
       end

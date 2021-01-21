@@ -243,9 +243,9 @@ describe 'vim-visual-multi compatibility', :window do
       it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'I' }
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately API::VisualMulti::LEADER + 'o' }
+        -> { editor.send_keys_separately "#{API::VisualMulti::LEADER}o" }
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately API::VisualMulti::LEADER + 'O' }
+        -> { editor.send_keys_separately "#{API::VisualMulti::LEADER}O" }
       it_behaves_like 'it disallows non-INSERT motion',
         -> { editor.send_keys_separately 'gcl' }
       it_behaves_like 'it disallows non-INSERT motion',
@@ -260,7 +260,7 @@ describe 'vim-visual-multi compatibility', :window do
     describe '<Plug>(VM-Transform-Regions) map' do
       # Can be moved to supported with restrictions in future as it seems too useful
       it_behaves_like 'it disallows non-INSERT motion',
-        -> { editor.send_keys_separately API::VisualMulti::LEADER + 'e', 'zzz', :enter }
+        -> { editor.send_keys_separately "#{API::VisualMulti::LEADER}e", 'zzz', :enter }
     end
 
     describe 'pasting' do

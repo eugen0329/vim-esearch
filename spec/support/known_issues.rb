@@ -62,20 +62,20 @@ class KnownIssues
 
   def pending!(description_substring, exception_pattern, *meta_args, **meta_kwargs)
     pending_issues << Issue.new(description_substring,
-                                exception_pattern,
-                                normalized_meta(meta_args, meta_kwargs))
+      exception_pattern,
+      normalized_meta(meta_args, meta_kwargs))
   end
 
   def skip!(description_substring, *meta_args, **meta_kwargs)
     skip_issues << Issue.new(description_substring,
-                             nil,
-                             normalized_meta(meta_args, meta_kwargs))
+      nil,
+      normalized_meta(meta_args, meta_kwargs))
   end
 
   def random_failure!(description_substring, exception_pattern, *meta_args, **meta_kwargs)
     random_issues << Issue.new(description_substring,
-                               exception_pattern,
-                               normalized_meta(meta_args, meta_kwargs))
+      exception_pattern,
+      normalized_meta(meta_args, meta_kwargs))
   end
 
   private

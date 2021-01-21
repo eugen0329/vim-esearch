@@ -2,6 +2,7 @@
 
 module API::Mixins::RollbackState
   class RollbackCursorPositionError < RuntimeError; end
+
   class RollbackCurrentBufferError < RuntimeError; end
 
   def rollback_cursor_location(editor, &block)

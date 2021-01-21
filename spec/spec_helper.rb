@@ -20,7 +20,7 @@ require 'known_issues'
 require 'support/configuration'
 Configuration.tap do |c|
   c.root = Pathname(File.expand_path('..', __dir__))
-  c.log  = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT, level: c.log_level))
+  c.log  = ActiveSupport::TaggedLogging.new(Logger.new($stdout, level: c.log_level))
   c.search_event_timeout  = 8.seconds
   c.search_freeze_timeout = 10.second
   c.process_check_timeout = 10.second

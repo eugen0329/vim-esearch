@@ -148,6 +148,7 @@ module Helpers::Commandline
 
   matcher :set_global_options do |options, timeout: 1|
     attr_reader :actual
+
     supports_block_expectations
 
     match do |block|

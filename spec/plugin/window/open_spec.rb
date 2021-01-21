@@ -73,14 +73,14 @@ describe 'esearch#out#win#open' do
       end
 
       it "doesn't read a buffer opened in a window twice" do
-        expect {
+        expect do
           ctx1.entries[0].locate!
           editor.send_keys 'e'
-        }.to change { editor.echo(var('g:opens_count')) }
-        expect {
+        end.to change { editor.echo(var('g:opens_count')) }
+        expect do
           ctx1.entries[1].locate!
           editor.send_keys 'e'
-        }.not_to change { editor.echo(var('g:opens_count')) }
+        end.not_to change { editor.echo(var('g:opens_count')) }
       end
     end
 
@@ -251,12 +251,12 @@ describe 'esearch#out#win#open' do
       describe 'mixing different openers' do
         context 'when for multiple files' do
           it 'ensures only a single window opened per split kind' do
-            expect {
+            expect do
               ctx1.locate!
               editor.send_keys 'O'
               ctx2.locate!
               editor.send_keys 'S'
-            }.to change { tabpage_buffers_list.count }
+            end.to change { tabpage_buffers_list.count }
               .by(2)
               .and not_to_change { editor.current_buffer_name }
               .and not_to_change { tabpages_list.count }
