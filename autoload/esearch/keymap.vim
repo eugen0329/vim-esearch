@@ -74,7 +74,7 @@ endfu
 
 " from arpeggio.vim
 fu! s:split_to_keys(lhs) abort
-  " Assumption: Special keys such as <C-u> are escaped with < and >, i.e.,
+  " Assumption: Special keys such as <c-u> are escaped with < and >, i.e.,
   "             a:lhs doesn't directly contain any escape sequences.
   return split(a:lhs, '\(<[^<>]\+>\|.\)\zs')
 endfu
@@ -103,9 +103,9 @@ endfu
 fu! s:generate_escape_tables() abort
   if exists('s:loaded_escape_tables') | return | endif
 
-  let super_prefix = strtrans("\<D-a>")[:-2]
-  let meta_prefix = strtrans("\<M-a>")[:-2]
-  let ameta_prefix = strtrans("\<A-a>")[:-2]
+  let super_prefix = strtrans("\<d-a>")[:-2]
+  let meta_prefix = strtrans("\<m-a>")[:-2]
+  let ameta_prefix = strtrans("\<a-a>")[:-2]
   let s:meta_keys = filter([meta_prefix, ameta_prefix, super_prefix], '!empty(v:val)')
   if empty(s:meta_keys)
     let s:meta_prefix_re = ''
@@ -124,29 +124,29 @@ fu! s:generate_escape_tables() abort
          \ 'kMultiply', 'kDivide', 'kPoint', 'kComma', 'kEqual', 'kEnter']
 
    for c in keycode_names
-     call add(s:meta_keys, strtrans(eval('"\<M-'.c.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<A-'.c.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<D-'.c.'>"')))
-     call add(s:shift_keys, strtrans(eval('"\<S-'.c.'>"')))
-     call add(s:control_keys, strtrans(eval('"\<C-'.c.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<m-'.c.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<a-'.c.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<d-'.c.'>"')))
+     call add(s:shift_keys, strtrans(eval('"\<s-'.c.'>"')))
+     call add(s:control_keys, strtrans(eval('"\<c-'.c.'>"')))
    endfor
 
    for i in range(0,9)
-     call add(s:meta_keys, strtrans(eval('"\<M-k'.i.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<A-k'.i.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<D-k'.i.'>"')))
-     call add(s:shift_keys, strtrans(eval('"\<S-k'.i.'>"')))
-     call add(s:control_keys, strtrans(eval('"\<C-k'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<m-k'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<a-k'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<d-k'.i.'>"')))
+     call add(s:shift_keys, strtrans(eval('"\<s-k'.i.'>"')))
+     call add(s:control_keys, strtrans(eval('"\<c-k'.i.'>"')))
    endfor
 
    let s:function_keys = []
    for i in range(1,12)
      call add(s:function_keys, strtrans(eval('"\<F'.i.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<M-F'.i.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<A-F'.i.'>"')))
-     call add(s:meta_keys, strtrans(eval('"\<D-F'.i.'>"')))
-     call add(s:shift_keys, strtrans(eval('"\<S-F'.i.'>"')))
-     call add(s:control_keys, strtrans(eval('"\<C-F'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<m-F'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<a-F'.i.'>"')))
+     call add(s:meta_keys, strtrans(eval('"\<d-F'.i.'>"')))
+     call add(s:shift_keys, strtrans(eval('"\<s-F'.i.'>"')))
+     call add(s:control_keys, strtrans(eval('"\<c-F'.i.'>"')))
    endfor
 
    let s:loaded_escape_tables = 1

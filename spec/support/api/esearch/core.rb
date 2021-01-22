@@ -8,10 +8,10 @@ class API::ESearch::Core
   end
 
   def search!(search_string, **kwargs)
-    editor.press! ":call esearch#init(#{VimlValue.dump(kwargs)})<Enter>#{search_string}<Enter>"
+    editor.press! ":call esearch#init(#{VimlValue.dump(kwargs)})<enter>#{search_string}<enter>"
   end
 
   def input!(search_string, **kwargs)
-    editor.press! ":call esearch#init(#{VimlValue.dump(kwargs)})<Enter>#{search_string}"
+    editor.press! ":call esearch#init(#{VimlValue.dump(kwargs)})<enter>#{search_string}"
   end
 end

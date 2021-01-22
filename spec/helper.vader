@@ -1,5 +1,6 @@
 Execute(global setup):
   fu! Fixture(path, lines) abort
+    let cur_buffer = esearch#buf#stay()
     if !isdirectory(fnamemodify(a:path, ':h'))
       call mkdir(fnamemodify(a:path, ':h'), 'p')
     endif
@@ -7,6 +8,7 @@ Execute(global setup):
     %delete
     call setline(1, a:lines)
     write!
+    call cur_buffer.restore()
     return a:path
   endfu
 

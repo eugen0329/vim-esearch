@@ -6,7 +6,7 @@ Before:
   let g:file = g:esearch.cwd.'file.txt'
   call Fixture(g:file, ['l1', 'l2', 'l3'])
 After:
-  silent! au! esearch_win_config
+  au! User esearch_win_config
   Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
 
 ### Handle delete

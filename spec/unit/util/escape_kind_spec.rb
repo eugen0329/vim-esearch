@@ -14,16 +14,16 @@ describe 'esearch#util' do
     end
 
     shared_examples 'it recognizes with all escapes except Shift-*' do |char|
-      include_examples 'it recognizes', "\\<C-#{char}>", as: 'control'
-      include_examples 'it recognizes', "\\<M-#{char}>", as: 'meta'
-      include_examples 'it recognizes', "\\<A-#{char}>", as: 'meta'
-      include_examples 'it recognizes', "\\<D-#{char}>", as: 'meta', osx_only: true
+      include_examples 'it recognizes', "\\<c-#{char}>", as: 'control'
+      include_examples 'it recognizes', "\\<m-#{char}>", as: 'meta'
+      include_examples 'it recognizes', "\\<a-#{char}>", as: 'meta'
+      include_examples 'it recognizes', "\\<d-#{char}>", as: 'meta', osx_only: true
     end
 
     shared_examples 'it recognizes with all escapes' do |char|
       include_examples 'it recognizes with all escapes except Shift-*', char
 
-      include_examples 'it recognizes', "\\<S-#{char}>", as: 'shift'
+      include_examples 'it recognizes', "\\<s-#{char}>", as: 'shift'
     end
 
     shared_examples 'recognize as a regular char' do |char|

@@ -82,40 +82,40 @@ describe 'esearch#cmdline input', :commandline do
               expected_input:  '|'
 
             include_examples 'it changes commandline state to',
-              keys:            ['\\<C-w>'],
+              keys:            ['\\<c-w>'],
               prefilled_input: 'was',
               expected_input:  '|'
 
             include_examples 'it changes commandline state to',
-              keys:            ['\\<C-h>'],
+              keys:            ['\\<c-h>'],
               prefilled_input: 'was',
               expected_input:  '|'
 
             include_examples 'it changes commandline state to',
-              keys:            ['\\<C-u>'],
+              keys:            ['\\<c-u>'],
               prefilled_input: 'was',
               expected_input:  '|'
           end
 
           context 'defined by user' do
-            include_context 'add', value: '\\<C-n>', to: 'g:esearch#cmdline#clear_selection_chars'
+            include_context 'add', value: '\\<c-n>', to: 'g:esearch#cmdline#clear_selection_chars'
 
             include_examples 'it changes commandline state to',
-              keys:            ['\\<C-n>'],
+              keys:            ['\\<c-n>'],
               prefilled_input: 'was',
               expected_input:  '|'
           end
 
           context 'not defined' do
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-n>', 'after', :enter],
+              keys:            ['\\<c-n>', 'after', :enter],
               prefilled_input: 'was',
               expected_input:  'wasafter|'
           end
         end
       end
 
-      describe 'start searching of prefilled (press <Enter> etc.)' do
+      describe 'start searching of prefilled (press <enter> etc.)' do
         context 'defined in esearch#cmdline#start_search_chars' do
           context 'defaults' do
             include_examples 'it starts search at location "|" after pressing',
@@ -188,7 +188,7 @@ describe 'esearch#cmdline input', :commandline do
         context 'defined in g:esearch#cmdline#cancel_selection_chars' do
           context 'defaults' do
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-c>', :enter],
+              keys:            ['\\<c-c>', :enter],
               prefilled_input: 'was',
               expected_input:  'was|'
 
@@ -221,12 +221,12 @@ describe 'esearch#cmdline input', :commandline do
         context 'defined in g:cmdline_mappings' do
           context 'defaults' do
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-o>', :escape, :enter],
+              keys:            ['\\<c-o>', :escape, :enter],
               prefilled_input: 'was',
               expected_input:  'was|'
 
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-o>', :enter, :escape, :enter],
+              keys:            ['\\<c-o>', :enter, :escape, :enter],
               prefilled_input: 'was',
               expected_input:  'was|'
           end
@@ -234,23 +234,23 @@ describe 'esearch#cmdline input', :commandline do
 
         context 'defined by user' do
           context 'alt-*' do
-            include_context 'defined commandline hotkey', '<M-b>', '<S-Left>'
+            include_context 'defined commandline hotkey', '<m-b>', '<s-Left>'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<M-b>', :enter],
+              keys:            ['\\<m-b>', :enter],
               prefilled_input: 'was',
               expected_input:  '|was'
           end
 
           context 'control-*' do
-            include_context 'defined commandline hotkey', '<C-x>', '<S-Left>'
+            include_context 'defined commandline hotkey', '<c-x>', '<s-Left>'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-x>', :enter],
+              keys:            ['\\<c-x>', :enter],
               prefilled_input: 'was',
               expected_input:  '|was'
           end
 
           context 'F*' do
-            include_context 'defined commandline hotkey', '<F2>', '<S-Left>'
+            include_context 'defined commandline hotkey', '<F2>', '<s-Left>'
             include_examples 'it starts search at location "|" after pressing',
               keys:            ['\\<F2>', :enter],
               prefilled_input: 'was',
@@ -258,9 +258,9 @@ describe 'esearch#cmdline input', :commandline do
           end
 
           context 'multiple keys sequence' do
-            include_context 'defined commandline hotkey', '<C-x><C-x>', 'after'
+            include_context 'defined commandline hotkey', '<c-x><c-x>', 'after'
             include_examples 'it starts search at location "|" after pressing',
-              keys:            ['\\<C-x>\\<C-x>', :enter],
+              keys:            ['\\<c-x>\\<c-x>', :enter],
               prefilled_input: 'was',
               expected_input:  'wasafter|'
           end
@@ -268,12 +268,12 @@ describe 'esearch#cmdline input', :commandline do
 
         context 'not defined' do
           include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<S-Left>', :enter],
+            keys:            ['\\<s-Left>', :enter],
             prefilled_input: 'was',
             expected_input:  '|was'
 
           include_examples 'it starts search at location "|" after pressing',
-            keys:            ['\\<C-e>', :enter],
+            keys:            ['\\<c-e>', :enter],
             prefilled_input: 'was',
             expected_input:  'was|'
         end

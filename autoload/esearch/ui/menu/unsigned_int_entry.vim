@@ -26,13 +26,13 @@ fu! s:UnsignedIntEntry.keypress(event) abort dict
   elseif self.props['+'] ==# a:event.key
     call self.increment()
   elseif a:event.target.props.i == self.props.i
-    if s:List.has(["\<C-x>", '-', "\<Left>"], a:event.key)
+    if s:List.has(["\<c-x>", '-', "\<left>"], a:event.key)
       call self.decrement()
-    elseif s:List.has(["\<C-a>", '+', "\<Enter>", "\<Right>"], a:event.key)
+    elseif s:List.has(["\<c-a>", '+', "\<enter>", "\<right>"], a:event.key)
       call self.increment()
-    elseif s:List.has(["\<BS>", "\<C-h>"], a:event.key)
+    elseif s:List.has(["\<bs>", "\<c-h>"], a:event.key)
       call self.remove_rightmost_char()
-    elseif s:List.has(["\<Del>"], a:event.key)
+    elseif s:List.has(["\<del>"], a:event.key)
       call self.props.dispatch({'type': 'SET_VALUE', 'name': self.props.name, 'value': 0})
     elseif a:event.key =~# '^\d$'
       call self.append_char(a:event.key)

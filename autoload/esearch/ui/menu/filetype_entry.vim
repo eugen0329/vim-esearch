@@ -17,7 +17,7 @@ fu! s:FiletypeEntry.render() abort dict
 endfu
 
 fu! s:FiletypeEntry.keypress(event) abort dict
-  if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<Enter>"
+  if s:List.has(self.props.keys, a:event.key) || a:event.key ==# "\<enter>"
     call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'filetype_input'})
     let stop_propagation = 1
     return stop_propagation

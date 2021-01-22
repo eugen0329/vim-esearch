@@ -17,8 +17,9 @@ Then:
   AssertEqual g:buf.filename, g:file
   Assert g:buf.existed
 
-Execute (initialized with .for can written):
+Execute (initialized with .for can be written):
   let bufnr = bufnr(Fixture(g:file, ['line1', 'line2']))
+  exe 'buffer' bufnr
   call setbufvar(bufnr, '&buflisted', 0)
   let g:buf = g:Handle.for(bufnr)
 Then:
@@ -106,6 +107,7 @@ Then:
 
 Execute (.write without "!" when existing isn't changed):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   call g:buf.setline(1, 'changed')
   $tabnew
 Then:
@@ -115,6 +117,7 @@ Then:
 
 Execute (.write with "!" when existing isn't changed):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   call g:buf.setline(1, 'changed')
   $tabnew
 Then:
@@ -124,6 +127,7 @@ Then:
 
 Execute (.bdelete without "!" when not modified):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   $tabnew
   silent call g:buf.bdelete(0)
 Then:
@@ -133,6 +137,7 @@ Then:
 
 Execute (.bdelete without "!" when modified):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   call g:buf.setline(1, 'changed')
   $tabnew
   silent call g:buf.bdelete(0)
@@ -143,6 +148,7 @@ Then:
 
 Execute (.bdelete with "!" when modified):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   call g:buf.setline(1, 'changed')
   $tabnew
   silent call g:buf.bdelete(1)
@@ -162,6 +168,7 @@ Then:
 
 Execute (.bwipeout without "!" when modified):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   call g:buf.setline(1, 'changed')
   $tabnew
   silent call g:buf.bwipeout(0)
@@ -172,6 +179,7 @@ Then:
 
 Execute (.bdelete with "!" when modified):
   let g:buf = g:Handle.new(Fixture(g:file, ['line1', 'line2']))
+  call g:buf.goto()
   call g:buf.setline(1, 'changed')
   $tabnew
   silent call g:buf.bwipeout(1)

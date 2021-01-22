@@ -1,5 +1,5 @@
 " idea from incsearch.vim
-nnoremap <silent><Plug>(-esearch-enable-hlsearch) :<C-u>let &hlsearch = &hlsearch<CR>
+nnoremap <silent><plug>(-esearch-enable-hlsearch) :<c-u>let &hlsearch = &hlsearch<cr>
 
 fu! esearch#out#win#appearance#matches#init(es) abort
   let a:es.hl_strategy = ''
@@ -33,9 +33,9 @@ fu! esearch#out#win#appearance#matches#init(es) abort
     let a:es.hl_strategy = 'hlsearch'
     let @/ = a:es.pattern.hl_match . '\%>1l'
     if a:es.live_update
-      exe "norm \<Plug>(-esearch-enable-hlsearch)"
+      exe "norm \<plug>(-esearch-enable-hlsearch)"
     else
-      call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+      call feedkeys("\<plug>(-esearch-enable-hlsearch)")
     endif
     retu
   endif
@@ -60,7 +60,7 @@ endfu
 
 fu! esearch#out#win#appearance#matches#init_live_updated(es) abort
   if a:es.win_matches_highlight_strategy is# 'hlsearch'
-    call feedkeys("\<Plug>(-esearch-enable-hlsearch)")
+    call feedkeys("\<plug>(-esearch-enable-hlsearch)")
   endif
 endfu
 

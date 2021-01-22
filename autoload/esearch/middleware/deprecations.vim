@@ -31,7 +31,7 @@ fu! esearch#middleware#deprecations#apply(esearch) abort
   endif
 
   if index(g:esearch.prefill, 'visual') >= 0
-    call esearch#util#deprecate("'prefill': ['visual', ...], use <Plug>(esearch-prefill) operator mapping instead")
+    call esearch#util#deprecate("'prefill': ['visual', ...], use <plug>(esearch-prefill) operator mapping instead")
     call remove(g:esearch.prefill, index(g:esearch.prefill, 'visual'))
     call remove(a:esearch.prefill, index(g:esearch.prefill, 'visual'))
   endif

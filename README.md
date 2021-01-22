@@ -100,9 +100,9 @@ key-values below if you want to alter the default behavior:
 
 ```vim
 " Use <c-f><c-f> to start the prompt, use <c-f>iw to pre-fill with the current word
-" or other text-objects. Try <Plug>(esearch-exec) to start a search instantly.
-nmap <c-f><c-f> <Plug>(esearch)
-map  <c-f>      <Plug>(operator-esearch-prefill)
+" or other text-objects. Try <plug>(esearch-exec) to start a search instantly.
+nmap <c-f><c-f> <plug>(esearch)
+map  <c-f>      <plug>(operator-esearch-prefill)
 
 let g:esearch = {}
 

@@ -5,15 +5,35 @@ Before:
   let g:esearch.pattern = '.'
   let g:file = g:esearch.cwd.'file.txt'
   let g:untouched_file = g:esearch.cwd.'untouched.txt'
-  call Fixture(g:file, ['l1', 'l2', 'l3'])
+  exe 'bwipe!' Fixture(g:file, ['l1', 'l2', 'l3'])
   call Fixture(g:untouched_file, ['untouched_line1'])
+  let &directory = g:esearch.cwd
+  messages clear
 
 After:
+  au! SwapExists *
   Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
   AssertEqual readfile(g:untouched_file), ['untouched_line1']
   call bufload(g:untouched_file)
   AssertEqual getbufline(bufnr(g:untouched_file), 1, '$'), ['untouched_line1']
   Assert !getbufvar(g:untouched_file, '&modified'), 'expected to not be modified'
+
+Execute (Resolve existing swap file):
+  call delete(g:file.'.swp')
+  let [g:swap_file, g:swap_prompt_appeared] = [Fixture(g:file.'.swp', ['']), 0]
+  au SwapExists * let v:swapchoice = 'q' | let g:swap_prompt_appeared = 1
+
+  call esearch#init()
+  exe "norm /l2\<CR>dd:write\<CR>j"
+Then:
+  Assert exists('b:esearch')
+  Assert !g:swap_prompt_appeared
+  AssertEqual split(execute('messages'), '\n')[-2:],
+    \ ["Can't write changes to the following files:",
+    \  '  '.g:file.' (swapfile exists)']
+  " Verify that the file can't be opened without the prompt
+  exe "norm \<cr>"
+  Assert exists('b:esearch') && g:swap_prompt_appeared
 
 ### Handle delete
 

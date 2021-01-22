@@ -3,18 +3,18 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 let g:esearch#out#win#legacy_keymaps = {
-      \ 'open':               '<Plug>(esearch-win-open)',
-      \ 'tab':                '<Plug>(esearch-win-tabopen)',
-      \ 'tab-silent':         '<Plug>(esearch-win-tabopen:stay)',
-      \ 'split':              '<Plug>(esearch-win-split)',
-      \ 'split-once-silent':  '<Plug>(esearch-win-split:reuse:stay)',
-      \ 'vsplit':             '<Plug>(esearch-win-vsplit)',
-      \ 'vsplit-once-silent': '<Plug>(esearch-win-vsplit:reuse:stay)',
-      \ 'reload':             '<Plug>(esearch-win-reload)',
-      \ 'next':               '<Plug>(esearch-win-jump:entry:down)',
-      \ 'prev':               '<Plug>(esearch-win-jump:entry:up)',
-      \ 'next-file':          '<Plug>(esearch-win-jump:filename:down)',
-      \ 'prev-file':          '<Plug>(esearch-win-jump:filename:up)',
+      \ 'open':               '<plug>(esearch-win-open)',
+      \ 'tab':                '<plug>(esearch-win-tabopen)',
+      \ 'tab-silent':         '<plug>(esearch-win-tabopen:stay)',
+      \ 'split':              '<plug>(esearch-win-split)',
+      \ 'split-once-silent':  '<plug>(esearch-win-split:reuse:stay)',
+      \ 'vsplit':             '<plug>(esearch-win-vsplit)',
+      \ 'vsplit-once-silent': '<plug>(esearch-win-vsplit:reuse:stay)',
+      \ 'reload':             '<plug>(esearch-win-reload)',
+      \ 'next':               '<plug>(esearch-win-jump:entry:down)',
+      \ 'prev':               '<plug>(esearch-win-jump:entry:up)',
+      \ 'next-file':          '<plug>(esearch-win-jump:filename:down)',
+      \ 'prev-file':          '<plug>(esearch-win-jump:filename:up)',
       \}
 
 let g:esearch#out#win#column_re                = '^\s\+[+^_]\=\s*\d\+\s'
@@ -237,7 +237,7 @@ fu! s:init_keymaps() abort
   onoremap <silent><buffer><plug>(textobj-esearch-match-a) :<c-u>cal esearch#out#win#textobj#match_a(0, v:count1)<cr>
 
   cnoremap       <silent><buffer><plug>(esearch-cr) <c-\>eesearch#out#win#modifiable#cmdline#replace(getcmdline(), getcmdtype())<cr><cr>
-  inoremap <expr><silent><buffer><Plug>(esearch-cr) esearch#out#win#modifiable#cr()
+  inoremap <expr><silent><buffer><plug>(esearch-cr) esearch#out#win#modifiable#cr()
   nnoremap <expr><silent><buffer><plug>(esearch-I)  esearch#out#win#modifiable#I()
   noremap  <expr><silent><buffer><plug>(esearch-d)  esearch#operator#expr('esearch#out#win#modifiable#d')
   noremap  <expr><silent><buffer><plug>(esearch-dd) esearch#operator#expr('esearch#out#win#modifiable#d').'g@'

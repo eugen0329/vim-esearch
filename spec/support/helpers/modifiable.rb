@@ -88,7 +88,7 @@ module Helpers::Modifiable
         cd #{test_directory}
         call esearch#init({'pattern': '^'})
         call esearch#out#win#modifiable#init()
-        call feedkeys("\\<C-\\>\\<C-n>lh")
+        call feedkeys("\\<c-\\>\\<c-n>lh")
       SETUP
     end
 

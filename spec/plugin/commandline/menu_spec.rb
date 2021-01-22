@@ -40,20 +40,20 @@ describe 'esearch#cmdline menu', :commandline do
           #   cC     adjust context (1)
 
           context 'when using own keys' do
-            include_examples 'it sets options using hotkey', '\\<C-s>', 'case'  => 'sensitive'
+            include_examples 'it sets options using hotkey', '\\<c-s>', 'case'  => 'sensitive'
             include_examples 'it sets options using hotkey', 's',       'case'  => 'sensitive'
 
-            include_examples 'it sets options using hotkey', '\\<C-t>', 'textobj'  => 'word'
+            include_examples 'it sets options using hotkey', '\\<c-t>', 'textobj'  => 'word'
             include_examples 'it sets options using hotkey', 't',       'textobj'  => 'word'
 
-            include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'pcre'
+            include_examples 'it sets options using hotkey', '\\<c-r>', 'regex' => 'pcre'
             include_examples 'it sets options using hotkey', 'r',       'regex' => 'pcre'
           end
 
-          context 'when using <CR>' do
-            CR = '\\<CR>'
-            C_J = '\\<C-j>'
-            C_K = '\\<C-k>'
+          context 'when using <cr>' do
+            CR = '\\<cr>'
+            C_J = '\\<c-j>'
+            C_K = '\\<c-k>'
 
             include_examples 'it sets options using hotkey', [CR],             'case'    => 'sensitive'
             include_examples 'it sets options using hotkey', ['j'] * 1 + [CR], 'regex'   => 'pcre'
@@ -77,10 +77,10 @@ describe 'esearch#cmdline menu', :commandline do
           before { esearch.configure!(adapter: 'ag', textobj: 'word', regex: 'pcre') }
 
           context 'when using own keys' do
-            include_examples 'it sets options using hotkey', '\\<C-t>', 'textobj'  => 'none'
+            include_examples 'it sets options using hotkey', '\\<c-t>', 'textobj'  => 'none'
             include_examples 'it sets options using hotkey', 't',       'textobj'  => 'none'
 
-            include_examples 'it sets options using hotkey', '\\<C-r>', 'regex' => 'literal'
+            include_examples 'it sets options using hotkey', '\\<c-r>', 'regex' => 'literal'
             include_examples 'it sets options using hotkey', 'r',       'regex' => 'literal'
           end
         end
@@ -89,7 +89,7 @@ describe 'esearch#cmdline menu', :commandline do
           before { esearch.configure!(adapter: 'ag', case: 'sensitive') }
 
           context 'when using own keys' do
-            include_examples 'it sets options using hotkey', '\\<C-s>', 'case' => 'smart'
+            include_examples 'it sets options using hotkey', '\\<c-s>', 'case' => 'smart'
             include_examples 'it sets options using hotkey', 's',       'case' => 'smart'
           end
         end
@@ -115,8 +115,8 @@ describe 'esearch#cmdline menu', :commandline do
             include_examples 'it sets options using hotkey', 'k++'.chars, 'context' => 2
           end
 
-          context 'when usgin <C-a>' do
-            C_A = '\\<C-a>'
+          context 'when usgin <c-a>' do
+            C_A = '\\<c-a>'
             include_examples 'it sets options using hotkey', 'kk'.chars + [C_A] * 1, 'after' => 1
             include_examples 'it sets options using hotkey', 'kkk'.chars + [C_A] * 1, 'before' => 1
             include_examples 'it sets options using hotkey', 'k'.chars + [C_A] * 1, 'context' => 1
@@ -147,8 +147,8 @@ describe 'esearch#cmdline menu', :commandline do
             include_examples 'it sets options using hotkey', 'k--'.chars, 'context' => 0
           end
 
-          context 'when usgin <C-x>' do
-            C_X = '\\<C-x>'
+          context 'when usgin <c-x>' do
+            C_X = '\\<c-x>'
             include_examples 'it sets options using hotkey', 'kk'.chars + [C_X] * 1, 'after' => 1
             include_examples 'it sets options using hotkey', 'kkk'.chars + [C_X] * 1, 'before' => 1
             include_examples 'it sets options using hotkey', 'k'.chars + [C_X] * 1, 'context' => 1
@@ -170,8 +170,8 @@ describe 'esearch#cmdline menu', :commandline do
         end
 
         context 'when deleting numeric' do
-          BS = '\\<BS>'
-          DEL = '\\<DEL>'
+          BS = '\\<bs>'
+          DEL = '\\<del>'
 
           before { esearch.configure!(adapter: 'ag', after: 71, before: 82, context: 93) }
 

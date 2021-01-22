@@ -19,7 +19,7 @@ module API::Mixins::RollbackState
     10.times do
       break if old_buffer_name == editor.current_buffer_name
 
-      editor.press! '<C-o>'
+      editor.press! '<c-o>'
     end
 
     if old_buffer_name != editor.current_buffer_name

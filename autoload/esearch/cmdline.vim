@@ -2,14 +2,14 @@ let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
 let g:esearch#cmdline#mappings = [
-      \ ['c', '<c-o>',      '<Plug>(esearch-open-menu)'         ],
-      \ ['c', '<c-r><c-r>', '<Plug>(esearch-cycle-regex)'       ],
-      \ ['c', '<c-s><c-s>', '<Plug>(esearch-cycle-case)'        ],
-      \ ['c', '<c-t><c-t>', '<Plug>(esearch-cycle-textobj)'     ],
-      \ ['c', '<c-p>',      '<Plug>(esearch-push-pattern)'      ],
-      \ ['c', '<bs>',       '<Plug>(esearch-bs)',  {'nowait': 1}],
-      \ ['c', '<c-w>',      '<Plug>(esearch-c-w)', {'nowait': 1}],
-      \ ['c', '<c-h>',      '<Plug>(esearch-c-h)', {'nowait': 1}],
+      \ ['c', '<c-o>',      '<plug>(esearch-open-menu)'         ],
+      \ ['c', '<c-r><c-r>', '<plug>(esearch-cycle-regex)'       ],
+      \ ['c', '<c-s><c-s>', '<plug>(esearch-cycle-case)'        ],
+      \ ['c', '<c-t><c-t>', '<plug>(esearch-cycle-textobj)'     ],
+      \ ['c', '<c-p>',      '<plug>(esearch-push-pattern)'      ],
+      \ ['c', '<bs>',       '<plug>(esearch-bs)',  {'nowait': 1}],
+      \ ['c', '<c-w>',      '<plug>(esearch-c-w)', {'nowait': 1}],
+      \ ['c', '<c-h>',      '<plug>(esearch-c-h)', {'nowait': 1}],
       \]
 
 if !exists('g:esearch#cmdline#dir_icon')

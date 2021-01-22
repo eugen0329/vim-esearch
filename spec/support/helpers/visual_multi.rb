@@ -14,7 +14,7 @@ module Helpers::VisualMulti
   shared_examples 'it disallows EXTEND mode motion' do |motion|
     before do
       locate_anchor({ctx: 0, entry: 0}, anchor)
-      editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1), 'siw'
+      editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1), 'siw'
     end
 
     include_examples 'keep editor state unmodified', motion
@@ -23,7 +23,7 @@ module Helpers::VisualMulti
   shared_examples 'it disallows NORMAL mode motion' do |motion|
     before do
       locate_anchor({ctx: 0, entry: 0}, anchor)
-      editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1)
+      editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
     end
 
     include_examples 'keep editor state unmodified', motion
@@ -37,7 +37,7 @@ module Helpers::VisualMulti
   shared_examples 'it disallows INSERT mode motion' do |motion|
     before do
       locate_anchor({ctx: 0, entry: 0}, anchor)
-      editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1)
+      editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
     end
 
     include_examples 'keep editor state unmodified', motion, mode: :insert
@@ -46,7 +46,7 @@ module Helpers::VisualMulti
   shared_examples 'delete word and whitespaces after' do |motion|
     before do
       locate_anchor({ctx: 0, entry: 0}, anchor)
-      editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1)
+      editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
     end
 
     it 'deletes word and whitespaces after using multiple cursors' do
@@ -62,7 +62,7 @@ module Helpers::VisualMulti
   shared_examples 'delete word' do |motion|
     before do
       locate_anchor({ctx: 0, entry: 0}, anchor)
-      editor.send_keys_separately '\\<C-Down>' * (ctx.entries.count - 1)
+      editor.send_keys_separately '\\<c-down>' * (ctx.entries.count - 1)
     end
 
     it 'deletes word using multiple cursors' do

@@ -37,7 +37,7 @@ fu! s:cancel(is_visual) abort
   elseif index(['c', 'd'], esearch#out#win#modifiable#operator()) >= 0
     let undo_seq = "\<esc>:undo|redraw"
           \."|echo 'esearch: no more matches found ahead'"
-          \."|call esearch#out#win#textobj#winrestview()\<CR>"
+          \."|call esearch#out#win#textobj#winrestview()\<cr>"
     call feedkeys(undo_seq, 'n')
   endif
 endfu
