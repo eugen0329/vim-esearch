@@ -7,19 +7,25 @@ let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:ConfigurationsPrompt = esearch#ui#component()
 
 fu! s:ConfigurationsPrompt.render() abort dict
-  if g:esearch#has#posix_shell
-    let result = self.render_for_posix_shell()
+  let result = s:FiletypePrompt.new().render()
+
+  if type(self.props.paths) ==# type({})
+    let result += self.render_cwd() + s:PathPrompt.new({'paths': self.props.paths}).render()
   else
-    let result = self.render_for_windows_cmd()
+    if g:esearch#has#posix_shell
+      let result += self.render_paths_for_posix_shell()
+    else
+      let result += self.render_paths_for_windows_cmd()
+    endif
   endif
 
   return empty(result) ? [] : [[self.props.normal_hl, 'In ']] + result
 endfu
 
-fu! s:ConfigurationsPrompt.render_for_posix_shell() abort dict
-  let result = s:FiletypePrompt.new().render()
-
+fu! s:ConfigurationsPrompt.render_paths_for_posix_shell() abort dict
+  let result = []
   let [absolute_paths, relative_paths] = s:List.partition(function('s:is_abspath'), self.props.paths)
+
   if self.props.cwd ==# getcwd()
     let result += s:PathPrompt.new({'paths': relative_paths}).render()
   else
@@ -36,14 +42,17 @@ fu! s:ConfigurationsPrompt.render_for_posix_shell() abort dict
   return result + s:PathPrompt.new({'paths': absolute_paths}).render()
 endfu
 
-fu! s:ConfigurationsPrompt.render_for_windows_cmd() abort dict
-  let result = s:FiletypePrompt.new().render()
-  if self.props.cwd !=# getcwd()
-    let cwd_argv = esearch#shell#argv([self.props.cwd])
-    let result += s:PathPrompt.new({'paths': cwd_argv, 'cwd': getcwd()}).render()
-    let result += [[self.props.normal_hl, ' ']]
-  endif
-  return result + s:PathPrompt.new({'paths': self.props.paths}).render()
+fu! s:ConfigurationsPrompt.render_paths_for_windows_cmd() abort dict
+  return self.render_cwd() + s:PathPrompt.new({'paths': self.props.paths}).render()
+endfu
+
+
+fu! s:ConfigurationsPrompt.render_cwd() abort dict
+  if self.props.cwd ==# getcwd() | return [] | endif
+
+  let cwd_argv = esearch#shell#argv([self.props.cwd])
+  return  s:PathPrompt.new({'paths': cwd_argv, 'cwd': getcwd()}).render()
+        \ + [[self.props.normal_hl, ' ']]
 endfu
 
 fu! s:is_abspath(path) abort

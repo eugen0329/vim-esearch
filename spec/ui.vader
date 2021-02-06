@@ -29,6 +29,18 @@ Execute(ConfigurationsPrompt):
   call mkdir(dir, 'p')
   let g:esearch.filetypes = 'undefined-filetype sql'
 
+  let g:esearch.paths = esearch#xargs#git_log('--opt')
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['NONE', '<.undefined-filetype>'],
+    \ ['NONE', ' '],
+    \ ['Typedef', '<.sql>'],
+    \ ['NONE', ' '],
+    \ ['Directory', icon.g:esearch.cwd],
+    \ ['NONE', ' '],
+    \ ['Special', '<git-log --opt>']
+    \]
+
   let g:esearch#has#posix_shell = 1
   let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
   AssertEqual ConfigurationsPrompt.new().render(), [

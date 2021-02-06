@@ -2,7 +2,7 @@ let s:Dict  = vital#esearch#import('Data.Dict')
 let s:FiletypePrompt = esearch#ui#component()
 
 fu! s:FiletypePrompt.render() abort dict
-  if empty(self.props.filetypes)
+  if empty(self.props.filetypes) || empty(self.props._adapter.filetypes)
     return []
   endif
 

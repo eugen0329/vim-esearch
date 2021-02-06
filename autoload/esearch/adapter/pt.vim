@@ -36,8 +36,6 @@ call extend(s:Pt, {
       \ }
       \})
 
-let s:Pt.filetypes = ''
-
 fu! s:Pt.pwd() abort dict	
   return '.'	
 endfu	
