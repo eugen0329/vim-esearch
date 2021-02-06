@@ -8,14 +8,26 @@ let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:ConfigurationsPrompt = esearch#ui#component()
 
 fu! s:ConfigurationsPrompt.render() abort dict
-  let result = s:FiletypePrompt.new().render() 
+  if g:esearch#has#posix_shell
+    let result = self.render_for_posix_shell()
+  else
+    let result = self.render_for_windows_cmd()
+  endif
+
+  echomsg result
+
+  return empty(result) ? [] : [[self.props.normal_hl, 'In ']] + result
+endfu
+
+fu! s:ConfigurationsPrompt.render_for_posix_shell() abort dict
+  let result = s:FiletypePrompt.new().render()
 
   let [absolute_paths, relative_paths] = s:List.partition(function('s:is_abspath'), self.props.paths)
-
   if self.props.cwd ==# getcwd()
     let result += s:PathPrompt.new({'paths': relative_paths}).render()
   else
-    let result += [['Directory', g:esearch#cmdline#dir_icon . s:Filepath.relpath(self.props.cwd)]]
+    let cwd_argv = esearch#shell#argv([self.props.cwd])
+    let result += s:PathPrompt.new({'paths': cwd_argv, 'cwd': getcwd()}).render()
 
     let relative_paths = s:PathPrompt.new({'paths': relative_paths, 'separator': ', '}).render()
     if !empty(relative_paths)
@@ -24,9 +36,17 @@ fu! s:ConfigurationsPrompt.render() abort dict
   endif
 
   if !empty(result) | let result += [[self.props.normal_hl, ' ']] | endif
-  let result += s:PathPrompt.new({'paths': absolute_paths}).render()
+  return result + s:PathPrompt.new({'paths': absolute_paths}).render()
+endfu
 
-  return empty(result) ? [] : [[self.props.normal_hl, 'In ']] + result
+fu! s:ConfigurationsPrompt.render_for_windows_cmd() abort dict
+  let result = s:FiletypePrompt.new().render()
+  if self.props.cwd !=# getcwd()
+    let cwd_argv = esearch#shell#argv([self.props.cwd])
+    let result += s:PathPrompt.new({'paths': cwd_argv, 'cwd': getcwd()}).render()
+    let result += [[self.props.normal_hl, ' ']]
+  endif
+  return result + s:PathPrompt.new({'paths': self.props.paths}).render()
 endfu
 
 fu! s:is_abspath(path) abort
