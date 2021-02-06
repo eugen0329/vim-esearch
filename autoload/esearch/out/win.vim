@@ -119,6 +119,7 @@ fu! esearch#out#win#init(esearch) abort
 endfu
 
 fu! s:live_update_post(esearch) abort
+  if !exists('b:esearch') | return | endif
   silent! unlet a:esearch.bufnr
   call extend(b:esearch, a:esearch, 'force')
   call extend(b:esearch, {'force_exec': 0, 'live_update_bufnr': -1}, 'force')
