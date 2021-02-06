@@ -1,5 +1,4 @@
 let s:Dict  = vital#esearch#import('Data.Dict')
-let s:Log = esearch#log#import()
 let s:FiletypePrompt = esearch#ui#component()
 
 fu! s:FiletypePrompt.render() abort dict

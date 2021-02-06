@@ -1,7 +1,6 @@
 let s:Filepath = vital#esearch#import('System.Filepath')
 let s:List = vital#esearch#import('Data.List')
 let s:String = vital#esearch#import('Data.String')
-let s:Log = esearch#log#import()
 let s:FiletypePrompt = esearch#ui#prompt#filetype#import()
 let s:PathPrompt = esearch#ui#prompt#path#import()
 
@@ -13,8 +12,6 @@ fu! s:ConfigurationsPrompt.render() abort dict
   else
     let result = self.render_for_windows_cmd()
   endif
-
-  echomsg result
 
   return empty(result) ? [] : [[self.props.normal_hl, 'In ']] + result
 endfu
