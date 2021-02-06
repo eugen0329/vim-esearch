@@ -135,8 +135,12 @@ fu! esearch#util#safe_matchdelete(id) abort
   endtry
 endfu
 
+fu! esearch#util#is_abspath(path) abort
+  return s:Filepath.is_absolute(a:path) || a:path =~# '^\~\%(/\|$\)'
+endfu
+
 fu! esearch#util#abspath(cwd, path) abort
-  if s:Filepath.is_absolute(a:path) | return a:path | endif
+  if esearch#util#is_abspath(a:path) | return a:path | endif
   return s:Filepath.join(a:cwd, a:path)
 endfu
 

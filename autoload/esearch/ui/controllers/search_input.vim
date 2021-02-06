@@ -1,6 +1,6 @@
 let s:SelectionController = esearch#ui#controllers#selection#import()
-let s:SearchPrompt        = esearch#ui#prompt#search#import()
-let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
+let s:SearchPrompt = esearch#ui#prompt#search#import()
+let s:ConfigurationsPrompt = esearch#ui#prompt#configurations#import()
 let s:INF = 88888888
 
 cnoremap <plug>(esearch-cycle-regex)   <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<cr><cr>
@@ -38,7 +38,7 @@ fu! s:SearchInputController.set_options() dict abort
   let global_options = {'&laststatus': 2} " show statusline no matter the windows count
   let local_options = {}
 
-  let prompt = s:PathTitlePrompt.new().render()
+  let prompt = s:ConfigurationsPrompt.new().render()
   if !empty(prompt)
     let self.statusline = esearch#ui#to_statusline(prompt)
     " Set both to prevent inheritance when only global &stl is configured by the user
