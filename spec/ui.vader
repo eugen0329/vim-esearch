@@ -1,7 +1,7 @@
 Include: helper.vader
 
 Before:
-  Save g:esearch
+  Save g:esearch, g:esearch#has#posix_shell
   let g:esearch.cwd = 'spec/fixtures/ui'.g:test_number.next().'/'
   call extend(g:esearch, {'paths': '', 'adapter': 'rg'})
   call esearch#config#eager()
@@ -19,32 +19,46 @@ Before:
   let g:icon = g:esearch#cmdline#dir_icon
   let g:file = g:esearch.cwd.'file.txt'
   let g:dir = g:esearch.cwd.'dir'
+  call Provide(g:esearch)
 
 After:
-  Restore g:esearch
+  Restore g:esearch, g:esearch#has#posix_shell
 
 Execute(ConfigurationsPrompt):
   call Fixture(file, [''])
   call mkdir(dir, 'p')
-
-  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
   let g:esearch.filetypes = 'undefined-filetype sql'
-  call Provide(g:esearch)
-  AssertEqual ConfigurationsPrompt.new().render(),
-  \ [
-  \ ['NONE', 'In '],
-  \ ['NONE', '<.undefined-filetype>'],
-  \ ['NONE', ' '],
-  \ ['Typedef', '<.sql>'],
-  \ ['NONE', ' '],
-  \ ['Directory', icon.g:esearch.cwd],
-  \ ['NONE', '/{ '],
-  \ ['NONE', 'file.txt'],
-  \ ['NONE', ', '],
-  \ ['Directory', icon.'dir'],
-  \ ['NONE', ', '],
-  \ ['NONE', 'missing-dir'],
-  \ ['NONE', ' }'],
-  \ ['NONE', ' '],
-  \ ['Directory', icon.'/tmp']
-  \ ]
+
+  let g:esearch#has#posix_shell = 1
+  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['NONE', '<.undefined-filetype>'],
+    \ ['NONE', ' '],
+    \ ['Typedef', '<.sql>'],
+    \ ['NONE', ' '],
+    \ ['Directory', icon.g:esearch.cwd],
+    \ ['NONE', '/{ '],
+    \ ['NONE', 'file.txt'],
+    \ ['NONE', ', '],
+    \ ['Directory', icon.'dir'],
+    \ ['NONE', ', '],
+    \ ['NONE', 'missing-dir'],
+    \ ['NONE', ' }'],
+    \ ['NONE', ' '],
+    \ ['Directory', icon.'/tmp']
+    \]
+
+  let g:esearch#has#posix_shell = 0
+  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['NONE', '<.undefined-filetype>'],
+    \ ['NONE', ' '],
+    \ ['Typedef', '<.sql>'],
+    \ ['NONE', ' '],
+    \ ['NONE', '''spec/fixtures/ui0/'''],
+    \ ['NONE', ' '],
+    \ ['NONE', 'file.txt dir missing-dir /tmp']
+    \]
+
