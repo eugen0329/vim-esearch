@@ -99,7 +99,6 @@ fu! s:SearchInputController.force_exec(cmdline) abort dict
   return esearch
 endfu
 
-
 fu! s:SearchInputController.cancel() abort dict
   call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
   call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})

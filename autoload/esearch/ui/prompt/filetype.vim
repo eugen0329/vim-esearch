@@ -22,4 +22,3 @@ let s:map_state_to_props = esearch#util#slice_factory(['_adapter', 'filetypes'])
 fu! esearch#ui#prompt#filetype#import() abort
   return esearch#ui#connect(s:FiletypePrompt, s:map_state_to_props)
 endfu
-

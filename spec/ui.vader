@@ -61,4 +61,3 @@ Execute(ConfigurationsPrompt):
     \ ['NONE', ' '],
     \ ['NONE', 'file.txt dir missing-dir /tmp']
     \]
-

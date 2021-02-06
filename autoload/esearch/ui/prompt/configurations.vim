@@ -51,7 +51,7 @@ fu! s:is_abspath(path) abort
 endfu
 
 let s:ConfigurationsPrompt.default_props = {'normal_hl': 'NONE'}
-let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths', 'filetypes'])
+let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths'])
 
 fu! esearch#ui#prompt#configurations#import() abort
   return esearch#ui#connect(s:ConfigurationsPrompt, s:map_state_to_props)
