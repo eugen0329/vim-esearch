@@ -10,7 +10,7 @@ fu! s:ConfigurationsPrompt.render() abort dict
   let result = s:FiletypePrompt.new().render()
 
   if type(self.props.paths) ==# type({})
-    let cwd = self.render_cwd() 
+    let cwd = self.render_cwd()
     if !empty(cwd) | let result += cwd + [[self.props.normal_hl, s:Filepath.separator()]] | endif
     let result += s:PathPrompt.new({'paths': self.props.paths}).render()
   else
@@ -52,7 +52,6 @@ fu! s:ConfigurationsPrompt.render_paths_for_windows_cmd() abort dict
 
   return [[self.props.normal_hl, 'cwd: ']] + cwd + [[self.props.normal_hl, ', ']] + paths
 endfu
-
 
 fu! s:ConfigurationsPrompt.render_cwd() abort dict
   if self.props.cwd ==# getcwd() | return [] | endif
