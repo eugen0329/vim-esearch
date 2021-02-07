@@ -21,13 +21,13 @@ Before:
   let g:dir = g:esearch.cwd.'dir'
   call Provide(g:esearch)
   let g:esearch.filetypes = 'undefined-filetype sql'
+  call mkdir(dir, 'p')
 
 After:
   Restore g:esearch, g:esearch#has#posix_shell
 
 Execute(ConfigurationsPrompt with string paths):
   call Fixture(file, [''])
-  call mkdir(dir, 'p')
   let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
 
   let g:esearch#has#posix_shell = 1
