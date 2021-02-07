@@ -1,6 +1,6 @@
 let s:SelectionController = esearch#ui#controllers#selection#import()
-let s:SearchPrompt        = esearch#ui#prompt#search#import()
-let s:PathTitlePrompt     = esearch#ui#prompt#path_title#import()
+let s:SearchPrompt = esearch#ui#prompt#search#import()
+let s:ConfigurationsPrompt = esearch#ui#prompt#configurations#import()
 let s:INF = 88888888
 
 cnoremap <plug>(esearch-cycle-regex)   <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<cr><cr>
@@ -24,8 +24,7 @@ fu! s:SearchInputController.render() abort dict
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   catch /Vim:Interrupt/
-    call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
-    call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
+    call self.cancel()
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
     call local_options.restore()
@@ -38,7 +37,7 @@ fu! s:SearchInputController.set_options() dict abort
   let global_options = {'&laststatus': 2} " show statusline no matter the windows count
   let local_options = {}
 
-  let prompt = s:PathTitlePrompt.new().render()
+  let prompt = s:ConfigurationsPrompt.new().render()
   if !empty(prompt)
     let self.statusline = esearch#ui#to_statusline(prompt)
     " Set both to prevent inheritance when only global &stl is configured by the user
@@ -79,7 +78,7 @@ fu! s:SearchInputController.final_live_update() dict abort
   " if changes were made and live_update_debounce_wait wasn't exceeded
   let cmdline = self.cmdline
   if s:self.executed_cmdline ==# cmdline || empty(cmdline) | return | endif
-  call s:force_exec(cmdline)
+  call self.force_exec(cmdline)
 endfu
 
 fu! s:live_update(...) abort
@@ -88,14 +87,21 @@ fu! s:live_update(...) abort
     return
   endif
   let s:self.executed_cmdline = cmdline
-  let esearch = s:force_exec(cmdline)
+  let esearch = s:self.force_exec(cmdline)
   call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
 endfu
 
-fu! s:force_exec(cmdline) abort
+fu! s:SearchInputController.force_exec(cmdline) abort dict
   let state = copy(s:self.__context__().store.state)
   call state.pattern.replace(a:cmdline)
-  return esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
+  let esearch = esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
+  if empty(esearch) | call self.cancel() | endif
+  return esearch
+endfu
+
+fu! s:SearchInputController.cancel() abort dict
+  call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
+  call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
 endfu
 
 fu! s:redraw(_) abort

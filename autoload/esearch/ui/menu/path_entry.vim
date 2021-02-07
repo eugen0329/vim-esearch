@@ -11,7 +11,7 @@ fu! s:PathEntry.render() abort dict
     let result += [['Comment', ' (none)']]
   else
     let result += [['Comment', ' (']]
-    let result += s:PathPrompt.new({'normal_highlight': 'Comment'}).render()
+    let result += s:PathPrompt.new({'normal_hl': 'Comment'}).render()
     let result += [['Comment', ')']]
   endif
 

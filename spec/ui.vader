@@ -1,0 +1,85 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch, g:esearch#has#posix_shell
+  let g:esearch.cwd = 'spec/fixtures/ui'.g:test_number.next().'/'
+  call extend(g:esearch, {'paths': '', 'adapter': 'rg'})
+  call esearch#config#eager()
+  let Context = esearch#ui#context()
+  fu! Reducer(state, action) abort
+  endfu
+
+  fu! Provide(state) abort
+    call esearch#middleware#adapter#apply(a:state)
+    let store = esearch#ui#create_store(function('Reducer'), a:state)
+    let context = g:Context.new().provide({'store': store})
+  endfu
+  let g:ConfigurationsPrompt = esearch#ui#prompt#configurations#import()
+
+  let g:dir_icon = g:esearch#cmdline#dir_icon
+  let g:file = g:esearch.cwd.'file.txt'
+  let g:dir = g:esearch.cwd.'dir'
+  call Provide(g:esearch)
+  let g:esearch.filetypes = 'undefined-filetype sql'
+  call mkdir(dir, 'p')
+
+After:
+  Restore g:esearch, g:esearch#has#posix_shell
+
+Execute(ConfigurationsPrompt with string paths):
+  call Fixture(file, [''])
+  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
+
+  let g:esearch#has#posix_shell = 1
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['NONE', '<.undefined-filetype>'],
+    \ ['NONE', ' '],
+    \ ['Typedef', '<.sql>'],
+    \ ['NONE', ' '],
+    \ ['Directory', dir_icon.g:esearch.cwd],
+    \ ['NONE', '/{ '],
+    \ ['NONE', 'file.txt'],
+    \ ['NONE', ', '],
+    \ ['Directory', dir_icon.'dir'],
+    \ ['NONE', ', '],
+    \ ['NONE', 'missing-dir'],
+    \ ['NONE', ' }'],
+    \ ['NONE', ' '],
+    \ ['Directory', dir_icon.'/tmp']
+    \]
+
+  let g:esearch#has#posix_shell = 0
+  let g:esearch.paths = esearch#shell#split('file.txt dir missing-dir /tmp')[0]
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['NONE', '<.undefined-filetype>'],
+    \ ['NONE', ' '],
+    \ ['Typedef', '<.sql>'],
+    \ ['NONE', ' '],
+    \ ['NONE', 'cwd: '],
+    \ ['NONE', '''spec/fixtures/ui0/'''],
+    \ ['NONE', ', '],
+    \ ['NONE', 'file.txt dir missing-dir /tmp']
+    \]
+
+Execute(ConfigurationsPrompt with #xargs paths):
+  let g:esearch.paths = esearch#xargs#git_log('--opt')
+  let g:esearch.adapter = 'git'
+  call Provide(g:esearch)
+
+  let g:esearch#has#posix_shell = 1
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['Directory', dir_icon.g:esearch.cwd],
+    \ ['NONE', '/'],
+    \ ['Special', '<git-log --opt>']
+    \]
+
+  let g:esearch#has#posix_shell = 0
+  AssertEqual ConfigurationsPrompt.new().render(), [
+    \ ['NONE', 'In '],
+    \ ['NONE', shellescape(g:esearch.cwd)],
+    \ ['NONE', '/'],
+    \ ['Special', '<git-log --opt>']
+    \]

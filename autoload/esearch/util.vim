@@ -135,8 +135,13 @@ fu! esearch#util#safe_matchdelete(id) abort
   endtry
 endfu
 
+fu! esearch#util#is_abspath(path) abort
+  return s:Filepath.is_absolute(a:path) || a:path =~# '^\~\%(/\|$\)'
+endfu
+
+" Expanding to full path using :p is required to replace ~ character
 fu! esearch#util#abspath(cwd, path) abort
-  if s:Filepath.is_absolute(a:path) | return a:path | endif
+  if esearch#util#is_abspath(a:path) | return fnamemodify(a:path, ':p') | endif
   return s:Filepath.join(a:cwd, a:path)
 endfu
 

@@ -2,11 +2,12 @@ let s:Log        = esearch#log#import()
 let s:PathPrompt = esearch#ui#component()
 
 fu! s:PathPrompt.render() abort dict
-  if !g:esearch#has#posix_shell
-    return [[self.props.normal_highlight, esearch#shell#join(self.props.paths)]]
-  endif
-  if type(self.props.paths) ==# type({})
+  if empty(self.props.paths)
+    return []
+  elseif type(self.props.paths) ==# type({})
     return [['Special', self.props.paths.repr()]]
+  elseif !g:esearch#has#posix_shell
+    return [[self.props.normal_hl, esearch#shell#join(self.props.paths)]]
   endif
 
   let cwd = self.props.cwd
@@ -21,13 +22,13 @@ fu! s:PathPrompt.render() abort dict
     elseif isdirectory(esearch#util#abspath(cwd, path.str))
       let result += [['Directory', dir_icon . esearch#shell#escape(path)]]
     elseif empty(path.metachars)
-      let result += [[self.props.normal_highlight, esearch#shell#escape(path)]]
+      let result += [[self.props.normal_hl, esearch#shell#escape(path)]]
     else
       let result += self.highlight_metachars(path)
     endif
 
-    if i != end
-      let result += [[self.props.normal_highlight, ', ']]
+    if i != end && !empty(self.props.separator)
+      let result += [[self.props.normal_hl, self.props.separator]]
     endif
   endfor
 
@@ -40,15 +41,15 @@ fu! s:PathPrompt.highlight_metachars(path) abort dict
 
   for regular_index in range(0, len(parts)-3, 2)
     let i = regular_index + 1
-    let result += [[self.props.normal_highlight, parts[regular_index]]]
+    let result += [[self.props.normal_hl, parts[regular_index]]]
     let result += [['Identifier', parts[i]]]
   endfor
 
-  let result += [[self.props.normal_highlight, parts[-1]]]
+  let result += [[self.props.normal_hl, parts[-1]]]
   return result
 endfu
 
-let s:PathPrompt.default_props = {'normal_highlight': 'NONE'}
+let s:PathPrompt.default_props = {'normal_hl': 'NONE', 'separator': ' '}
 
 let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths'])
 

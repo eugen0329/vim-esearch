@@ -45,6 +45,8 @@ fu! s:Base.command(esearch) abort dict
         \], ' ')
 endfu
 
+let s:Base.filetypes = []
+
 fu! s:Base.filetypes2args(filetypes) abort dict
   return ''
 endfu

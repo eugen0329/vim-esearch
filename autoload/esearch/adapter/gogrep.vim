@@ -45,8 +45,6 @@ fu! s:Gogrep.command(esearch) abort dict
         \], ' ')
 endfu
 
-let s:Gogrep.filetypes = ''
-
 fu! s:Gogrep.pwd() abort dict
   return './...'
 endfu
