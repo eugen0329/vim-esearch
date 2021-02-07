@@ -10,7 +10,9 @@ fu! s:ConfigurationsPrompt.render() abort dict
   let result = s:FiletypePrompt.new().render()
 
   if type(self.props.paths) ==# type({})
-    let result += self.render_cwd() + s:PathPrompt.new({'paths': self.props.paths}).render()
+    let cwd = self.render_cwd() 
+    if !empty(cwd) | let result += cwd + [[self.props.normal_hl, s:Filepath.separator()]] | endif
+    let result += s:PathPrompt.new({'paths': self.props.paths}).render()
   else
     if g:esearch#has#posix_shell
       let result += self.render_paths_for_posix_shell()
@@ -43,16 +45,21 @@ fu! s:ConfigurationsPrompt.render_paths_for_posix_shell() abort dict
 endfu
 
 fu! s:ConfigurationsPrompt.render_paths_for_windows_cmd() abort dict
-  return self.render_cwd() + s:PathPrompt.new({'paths': self.props.paths}).render()
+  let cwd = self.render_cwd()
+  let paths = s:PathPrompt.new({'paths': self.props.paths}).render()
+  if empty(cwd) | return paths | endif
+  if empty(paths) | return cwd | endif
+
+  return [[self.props.normal_hl, 'cwd: ']] + cwd + [[self.props.normal_hl, ', ']] + paths
 endfu
 
 
 fu! s:ConfigurationsPrompt.render_cwd() abort dict
   if self.props.cwd ==# getcwd() | return [] | endif
 
-  let cwd_argv = esearch#shell#argv([self.props.cwd])
-  return  s:PathPrompt.new({'paths': cwd_argv, 'cwd': getcwd()}).render()
-        \ + [[self.props.normal_hl, ' ']]
+  return s:PathPrompt
+        \.new({'paths': esearch#shell#argv([self.props.cwd]), 'cwd': getcwd()})
+        \.render()
 endfu
 
 fu! s:is_abspath(path) abort
