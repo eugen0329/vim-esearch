@@ -25,7 +25,7 @@
         - name: go
           unarchive:
             src: 'https://golang.org/dl/go1.15.8.linux-amd64.tar.gz'
-            dest: /usr/local
+            dest: '{{ ansible_env.HOME }}/.cache/esearch-dev'
             remote_src: true
 
         - name: lua linter
@@ -53,7 +53,7 @@
             name: ['semgrep']
             state: present
         - name: From go-get
-          command: "/usr/local/go/bin/go get {{ item }}"
+          command: "{{ ansible_env.HOME }}/.cache/esearch-dev/go/bin/go get {{ item }}"
           environment:
             GO111MODULE: "on"
           with_items:
