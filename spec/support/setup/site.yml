@@ -4,6 +4,9 @@
   tasks:
     - include_vars: '{{ ansible_os_family | lower }}.yml'
 
+    - name: Create a directory for dependencies
+      file: '{{ ansible_env.HOME }}/.cache/esearch-dev'
+
     - name: Setup global dependencies
       block:
         - name: packages
@@ -111,11 +114,11 @@
 
     - name: setup testing dependencies
       block:
-        - name: Install libs
+        - name: libs
           bundler:
             state: present
             extra_args: '--without development'
-        - name: Setup vader testing framework
+        - name: vader testing framework
           git:
             repo: https://github.com/junegunn/vader.vim.git
             dest: ~/.cache/esearch-dev/plugins/vader.vim
