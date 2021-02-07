@@ -29,7 +29,7 @@
             - '{{ ps_package_name }}'
         - name: go
           unarchive:
-            src: 'https://golang.org/dl/go1.15.8.linux-amd64.tar.gz'
+            src: 'https://golang.org/dl/go1.11.linux-amd64.tar.gz'
             dest: '{{ ansible_env.HOME }}/.cache/esearch-dev'
             remote_src: true
 
