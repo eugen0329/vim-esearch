@@ -1,12 +1,17 @@
 - hosts: localhost
-  gather_facts: yes
+  gather_facts: true
   connection: local
   tasks:
     - include_vars: '{{ ansible_os_family | lower }}.yml'
 
     - name: Setup global dependencies
       block:
-        - name: Packages
+        - name: go
+          unarchive:
+            src: 'https://golang.org/dl/go1.15.8.linux-amd64.tar.gz'
+            dest: /usr/local
+            remote_src: true
+        - name: packages
           package:
             name: '{{ item }}'
             state: present
@@ -22,19 +27,20 @@
             - '{{ tar_package_name }}'
             - '{{ pip_package_name }}'
             - '{{ ps_package_name }}'
-        - name: Lua linter
+
+        - name: lua linter
           command: luarocks install luacheck
           become: '{{ package_become }}'
           args:
             creates: /usr/local/bin/luacheck
-        - name: PIP packages
+        - name: pip packages
           pip:
             name: ['vim-vint', 'neovim']
             state: present
 
     - name: Setup greppers
       block:
-        - name: From system package manager
+        - name: from system package manager
           package:
             name: '{{ item }}'
             state: present
@@ -47,33 +53,33 @@
             name: ['semgrep']
             state: present
         - name: From go-get
-          command: "go get {{ item }}"
+          command: "/usr/local/go/bin/go get {{ item }}"
           environment:
             GO111MODULE: "on"
           with_items:
             - mvdan.cc/gogrep
-        - name: Install prebuilt
+        - name: install prebuilt
           block:
-            - name: Download
+            - name: download
               unarchive:
                 src: '{{ item.download_url }}'
                 dest: /tmp
-                remote_src: yes
+                remote_src: true
               with_items: '{{ greppers }}'
-            - name: Find extracted binary
+            - name: find extracted binary
               find:
                 paths: /tmp
-                recurse: yes
+                recurse: true
                 patterns: '{{ item.bin }}'
               register: bins
               with_items: '{{ greppers }}'
-            - name: Copy into /usr/local/bin
+            - name: copy into /usr/local/bin
               copy:
                 src: '{{ item.path }}'
                 dest: '/usr/local/bin/{{ item.path | basename }}'
               become: '{{ package_become }}'
               with_items: '{{ bins.results | map(attribute="files") | map("first") | list }}'
-            - name: Make executable
+            - name: make executable
               file:
                 dest: '/usr/local/bin/{{ item.bin }}'
                 mode: a+x
@@ -83,12 +89,12 @@
             - greppers:
               - {bin: pt, download_url: '{{ pt_download_url }}'}
               - {bin: rg, download_url: '{{ rg_download_url }}'}
-        - name: Configure git-grep
+        - name: configure git-grep
           block:
             - git_config: {scope: global, name: core.precomposeunicode, value: 'true'}
             - git_config: {scope: global, name: core.quotePath, value: 'false'}
 
-    - name: Setup plugin dependencies
+    - name: setup plugin dependencies
       git:
         repo: "{{ item }}"
         dest: "~/.cache/esearch-dev/plugins/{{ item | urlsplit('path') | basename | splitext | first }}"
@@ -103,7 +109,7 @@
         - https://github.com/roxma/nvim-yarp.git
         - https://github.com/roxma/vim-hug-neovim-rpc.git
 
-    - name: Setup testing dependencies
+    - name: setup testing dependencies
       block:
         - name: Install libs
           bundler:
