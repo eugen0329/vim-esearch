@@ -1,10 +1,6 @@
 fu! esearch#middleware#exec#apply(esearch) abort
   if a:esearch.live_update && !a:esearch.force_exec | return a:esearch | endif
 
-  if !isdirectory(a:esearch.cwd)
-    call esearch#util#warn('esearch: directory '.a:esearch.cwd." doesn't exist")
-    throw 'Cancel'
-  endif
   let command = a:esearch._adapter.command(a:esearch)
   let a:esearch.request = esearch#backend#{a:esearch.backend}#init(
         \ a:esearch.cwd, a:esearch.adapter, command)
