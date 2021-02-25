@@ -83,6 +83,7 @@ fu! esearch#config#init(esearch) abort
           \ function('esearch#middleware#adapter#apply'),
           \ function('esearch#middleware#cwd#apply'),
           \ function('esearch#middleware#paths#apply'),
+          \ function('esearch#middleware#globs#apply'),
           \ function('esearch#middleware#filemanager#apply'),
           \ function('esearch#middleware#prewarm#apply'),
           \ function('esearch#middleware#input#apply'),

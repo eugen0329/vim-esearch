@@ -1,14 +1,16 @@
-fu! esearch#glob#new(adapter, str) abort
-  if !a:adapter.glob | return 0 | endif
-  return s:GlobSet.new(a:adapter.glob_kinds, a:str)
+fu! esearch#glob#new(adapter, ...) abort
+  return s:GlobSet.new(a:adapter.globs, a:adapter.str2glob, get(a:, 1, []))
 endfu
 
 let s:GlobSet = {}
 
-fu! s:GlobSet.new(kinds, str) abort dict
+fu! s:GlobSet.new(kinds, str2glob, globs) abort dict
   let new = copy(self)
   let new.kinds = esearch#util#cycle(a:kinds)
   let new.globs = esearch#util#stack([])
+  for [kind, str] in a:globs
+    call new.globs.push(s:Glob.from_kind(kind, str))
+  endfor
   let new.list = new.globs.list
   return new
 endfu

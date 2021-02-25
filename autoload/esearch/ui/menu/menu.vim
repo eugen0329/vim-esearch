@@ -40,7 +40,7 @@ fu! s:Menu.new(props) abort dict
   if !empty(adapter.textobj)   | let new.items += [s:TextobjEntry.new({'i':  i.next(), 'keys': s:textobj_keys})]  | endif
   if !empty(adapter.filetypes) | let new.items += [s:FiletypeEntry.new({'i': i.next(), 'keys': s:filetype_keys})] | endif
   let new.items += [s:PathEntry.new({'i': i.next(), 'keys': s:path_keys})]
-  if !empty(adapter.glob)     | let new.items += [s:GlobEntry.new({'i':  i.next(), 'keys': s:glob_keys})] | endif
+  if !empty(adapter.globs)    | let new.items += [s:GlobEntry.new({'i':  i.next(), 'keys': s:glob_keys})] | endif
   if !empty(adapter.before)   | let new.items += [s:BeforeEntry.new({'i':  i.next()})] | endif
   if !empty(adapter.after)    | let new.items += [s:AfterEntry.new({'i':   i.next()})] | endif
   if !empty(adapter.context)  | let new.items += [s:ContextEntry.new({'i': i.next()})] | endif

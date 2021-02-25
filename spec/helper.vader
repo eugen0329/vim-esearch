@@ -12,6 +12,12 @@ Execute(global setup):
     return a:path
   endfu
 
+  fu! AssertMatches(a, b)
+    return vader#assert#true(a:a =~# a:b, "expected to match:\n\t".a:a."\n\t".a:b.'')
+  endfu
+
+  command! -nargs=+ AssertMatches call AssertMatches(<args>)
+
   fu! CantWrite(path) abort
     let messages = split(execute('messages'), "\n")[-2:-1]
     return messages[0] ==# 'Can''t write changes to the following files:'

@@ -16,6 +16,7 @@ else
   let s:Ag.options = '--follow'
 endif
 let s:Ag.mandatory_options = '--nogroup --nocolor --noheading --nobreak'
+let s:glob = {'icon': '-G', 'opt': '-G '}
 call extend(s:Ag, {
       \ 'bool2regex': ['literal', 'pcre'],
       \ 'regex': {
@@ -33,10 +34,8 @@ call extend(s:Ag, {
       \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
       \ },
-      \ 'glob': 1,
-      \ 'glob_kinds': [
-      \   {'icon': '-G', 'opt': '-G '},
-      \ ],
+      \ 'globs': [s:glob],
+      \ 'str2glob': {'-G': s:glob, '--file-search-regex': s:glob},
       \})
 
 " ag --list-file-types
@@ -67,7 +66,7 @@ fu! s:Ag.command(esearch) abort dict
         \ self.options,
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
-        \ a:esearch.glob.arg(),
+        \ a:esearch.globs.arg(),
         \ '--',
         \ a:esearch.pattern.arg,
         \ paths,

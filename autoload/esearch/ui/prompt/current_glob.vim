@@ -1,7 +1,7 @@
 let s:CurrentGlob = esearch#ui#component()
 
 fu! s:CurrentGlob.render() abort dict
-  if !self.props._adapter.glob | return [] | endif
+  if !empty(self.props._adapter.globs) | return [] | endif
 
   let opt = self.props.globs.peek().icon
   let args = self.get_args()

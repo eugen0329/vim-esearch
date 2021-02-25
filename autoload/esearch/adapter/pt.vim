@@ -16,6 +16,7 @@ else
   let s:Pt.options = '--follow'
 endif
 let s:Pt.mandatory_options = '--nogroup --nocolor'
+let s:glob = {'icon': '-G', 'opt': '-G '}
 " https://github.com/google/re2/wiki/Syntax
 call extend(s:Pt, {
       \ 'bool2regex': ['literal', 're2'],
@@ -33,11 +34,9 @@ call extend(s:Pt, {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': ''},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \ }
-      \ 'glob': 1,
-      \ 'glob_kinds': [
-      \   {'icon': '-G', 'opt': '-G '},
-      \ ],
+      \ },
+      \ 'globs': [s:glob],
+      \ 'str2glob': {'-G': s:glob, '--file-search-regex': s:glob},
       \})
 
 fu! s:Pt.command(esearch) abort dict
@@ -65,7 +64,7 @@ fu! s:Pt.command(esearch) abort dict
         \ self.options,
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
-        \ a:esearch.glob.arg(),
+        \ a:esearch.globs.arg(),
         \ '--',
         \ a:esearch.pattern.arg,
         \ paths,
