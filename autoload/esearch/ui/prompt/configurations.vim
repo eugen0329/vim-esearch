@@ -23,7 +23,7 @@ fu! s:ConfigurationsPrompt.render() abort dict
   endif
 
   if !empty(result) | let result += [[self.props.normal_hl, ' ']] | endif
-  let result = s:GlobPrompt.new().render()
+  let result += s:GlobPrompt.new().render()
 
   return empty(result) ? [] : [[self.props.normal_hl, 'In ']] + result
 endfu

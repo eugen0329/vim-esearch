@@ -1,5 +1,5 @@
 fu! esearch#middleware#globs#apply(esearch) abort
-  if !has_key(a:esearch, 'globs')
+  if empty(get(a:esearch, 'globs'))
     let a:esearch.globs = esearch#glob#new(a:esearch._adapter, [])
     return a:esearch
   endif
@@ -8,6 +8,10 @@ fu! esearch#middleware#globs#apply(esearch) abort
     if type(a:esearch.globs) ==# type('')
       let a:esearch.globs = s:from_shell_string(a:esearch)
     endif
+  else
+    " TODO
+    let g:esearch.pending_warnings += ['esearch: globs are for non posix shells']
+    let a:esearch.globs = esearch#glob#new(a:esearch._adapter, [])
   endif
 
   return a:esearch
