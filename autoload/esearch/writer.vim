@@ -163,6 +163,7 @@ fu! s:set_linecount(esearch, linecount) abort
 endfu
 
 fu! s:rename_buffer(buf_a, filename_b) abort
+  " commands are inspired by defx.nvim
   let hidden = esearch#let#restorable({'&l:hidden': 1})
   silent call a:buf_a.bufdo('silent! saveas! ' . fnameescape(a:filename_b) . '| bdelete! # ')
   call hidden.restore()
