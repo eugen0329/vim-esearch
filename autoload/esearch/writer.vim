@@ -117,26 +117,27 @@ fu! s:Writer.rename(bang) abort
 
     if bufloaded(buf.bufnr)
       let hidden = esearch#let#restorable({'&l:hidden': 1})
-      silent call buf.bufdo('silent! saveas! '.fnameescape(filename_b) . '| bdelete! # ')
+      silent call buf.bufdo('silent! saveas! ' . fnameescape(filename_b) . '| bdelete! # ')
       call hidden.restore()
     endif
 
     if exists('lines_b')
       let fmt = g:esearch#out#win#entry_with_sign_fmt
       let i = 0
-      while i < len(lines_b)
-        let lines_b[i] = printf(fmt, '', i + 1, lines_b[i])
+      let win_lines_b = copy(lines_b)
+      while i < len(win_lines_b)
+        let win_lines_b[i] = printf(fmt, '', i + 1, win_lines_b[i])
         let i += 1
       endw
-      let lines_b = ['', fnameescape(relative_filename_b)] + lines_b
+      let win_lines_b = ['', fnameescape(relative_filename_b)] + win_lines_b
 
       call esearch#out#win#update#add_context(self.esearch.contexts, relative_filename_b, linecount + 2, 0)
-      let linecount += len(lines_b)
-      let self.esearch.contexts[-1].lines = esearch#util#list2dict(lines_a)
+      let linecount += len(win_lines_b)
+      let self.esearch.contexts[-1].lines = esearch#util#list2dict(lines_b)
       let self.esearch.contexts[-1].end = linecount
-      let self.win_undos += [{'func': 'appendline',  'args': ['$', lines_b]}]
+      let self.win_undos += [{'func': 'appendline',  'args': ['$', win_lines_b]}]
 
-      let ids = [self.esearch.contexts[-2].id] + repeat([self.esearch.contexts[-1].id], len(lines_b) - 1)
+      let ids = [self.esearch.contexts[-2].id] + repeat([self.esearch.contexts[-1].id], len(win_lines_b) - 1)
       let self.state_undos += [{'func': 'extend',  'args': [ids]}]
 
       unlet lines_b
