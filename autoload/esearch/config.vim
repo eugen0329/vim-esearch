@@ -33,7 +33,7 @@ fu! esearch#config#init(esearch) abort
         \ 'regex':                                 'literal',
         \ 'textobj':                               'none',
         \ 'adapters':                              {},
-        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'filetypes', 'paths', 'after', 'context', 'last_pattern', 'adapters', '_adapter'],
+        \ 'remember':                              ['case', 'textobj', 'regex', 'before', 'filetypes', 'globs', 'paths', 'after', 'context', 'last_pattern', 'adapters', '_adapter'],
         \ 'paths':                                 esearch#shell#argv([]),
         \ 'filetypes':                             '',
         \ 'after':                                 0,

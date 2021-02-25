@@ -1,6 +1,5 @@
 let s:String     = vital#esearch#import('Data.String')
 let s:List       = vital#esearch#import('Data.List')
-let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:FiletypeEntry  = esearch#ui#component()
 
 fu! s:FiletypeEntry.render() abort dict

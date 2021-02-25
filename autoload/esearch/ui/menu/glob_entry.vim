@@ -1,13 +1,12 @@
 let s:String     = vital#esearch#import('Data.String')
 let s:List       = vital#esearch#import('Data.List')
-let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:GlobEntry  = esearch#ui#component()
 
 fu! s:GlobEntry.render() abort dict
-  let icon = empty(self.props.globs) ? ['Comment', '[!/]'] : ['Special', '[!/]']
+  let icon = empty(self.props.globs.list) ? ['Comment', '[!/]'] : ['Special', '[!/]']
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' filter paths']]
 
-  if empty(self.props.globs)
+  if empty(self.props.globs.list)
     let result += [['Comment', ' (none)']]
   else
     let result += [['Comment', ' (']]

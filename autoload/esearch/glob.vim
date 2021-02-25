@@ -8,18 +8,19 @@ let s:GlobSet = {}
 fu! s:GlobSet.new(kinds, str) abort dict
   let new = copy(self)
   let new.kinds = esearch#util#cycle(a:kinds)
-  let new.globs = esearch#util#stack([s:Glob.from_kind(new.kinds.next(), a:str)])
+  let new.globs = esearch#util#stack([])
   let new.list = new.globs.list
   return new
 endfu
 
 " TODO
 fu! s:GlobSet.arg() abort
-  echomsg self.list
-  return join(map(self.list, 'shellescape(v:val.str)'), ' ')
+  let list = filter(copy(self.list), '!empty(v:val.str)')
+  return join(map(copy(list), 'v:val.opt . shellescape(v:val.str)'), ' ')
 endfu
 
 fu! s:GlobSet.replace(str) abort dict
+  if empty(self.list) | return self.push(a:str) |  endif
   return self.globs.replace(extend(copy(self.globs.top()), {'str': a:str}))
 endfu
 
@@ -33,11 +34,13 @@ fu! s:GlobSet.try_pop() abort dict
 endfu
 
 fu! s:GlobSet.next() abort dict
+  if empty(self.list) | return s:Glob.from_kind(self.kinds.next(), self.peek().str) |  endif
+
   return self.globs.replace(s:Glob.from_kind(self.kinds.next(), self.peek().str))
 endfu
 
 fu! s:GlobSet.peek() abort dict
-  return self.globs.top()
+  return empty(self.list) ? s:Glob.from_kind(self.kinds.peek(), '') : self.globs.top()
 endfu
 
 let s:Glob = {}

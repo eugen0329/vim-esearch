@@ -42,8 +42,8 @@ call extend(s:Rg, {
       \ },
       \ 'glob': 1,
       \ 'glob_kinds': [
-      \   {'icon': '--glob',  'opt': '-glob '},
-      \   {'icon': '--iglob', 'opt': '-iglob '},
+      \   {'icon': '--glob',  'opt': '--glob '},
+      \   {'icon': '--iglob', 'opt': '--iglob '},
       \ ],
       \})
 

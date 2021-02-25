@@ -21,10 +21,13 @@ fu! s:GlobInputController.render() abort dict
   let self.cmdline = self.props.globs.peek().str
   let self.pending_keypress = 0
 
+  let ellipsis = g:esearch#has#unicode ? g:esearch#unicode#ellipsis : '...'
+
   redraw!
   let original_mappings = esearch#keymap#restorable(s:keymaps)
   try
-    let glob = input(esearch#ui#to_string(s:CurrentGlob.new().render() + [['NONE', ' ']]),
+    let prompt = esearch#ui#to_string([['NONE', self.props.adapter.' '.ellipsis.' ']] + s:CurrentGlob.new().render() + [['NONE', ' ']])
+    let glob = input(prompt,
           \ self.props.globs.peek().str,
           \ 'customlist,esearch#ui#controllers#glob_input#complete')
   catch /Vim:Interrupt/
@@ -32,7 +35,11 @@ fu! s:GlobInputController.render() abort dict
   finally
     call original_mappings.restore()
   endtry
-  call self.props.dispatch({'type': 'SET_GLOB',    'glob': glob})
+  if empty(glob)
+    call self.props.dispatch({'type': 'TRY_POP_GLOB'})
+  else
+    call self.props.dispatch({'type': 'SET_GLOB', 'glob': glob})
+  endif
 
   if !empty(self.pending_keypress)
     return call(self.pending_keypress.handler, self.pending_keypress.args)
@@ -69,13 +76,8 @@ fu! s:dispatch(event_type) abort dict
   call s:self.props.dispatch({'type': a:event_type})
 endfu
 
-fu! s:map_state_to_props(state) abort dict
-  return {
-        \ 'globs': get(a:state, 'globs', esearch#shell#argv([])),
-        \ 'cwd':   a:state.cwd,
-        \}
-endfu
+let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'globs', 'adapter'])
 
 fu! esearch#ui#controllers#glob_input#import() abort
-  return esearch#ui#connect(s:GlobInputController, function('<SID>map_state_to_props'))
+  return esearch#ui#connect(s:GlobInputController, s:map_state_to_props)
 endfu
