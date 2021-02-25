@@ -30,10 +30,10 @@ fu! s:Writer.write(bang) abort dict
   let [current_window, current_buffer, view] = [esearch#win#stay(), esearch#buf#stay(), winsaveview()]
 
   call esearch#util#doautocmd('User esearch_write_pre')
- " Wipeout preview buffer if was viewed ignoring swap to prevent missing
- " swapexists messages later
+  " Wipeout preview buffer if was viewed ignoring swap to prevent missing
+  " swapexists messages later
   call esearch#preview#wipeout()
-  aug esearch_write
+  aug __esearch_write__
     au!
     au SwapExists * let v:swapchoice = 'q'
   aug END
@@ -64,9 +64,10 @@ fu! s:Writer.write(bang) abort dict
 
       if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
     endfor
+
     call self.rename(a:bang)
   finally
-    au! esearch_write
+    au! __esearch_write__
     call current_window.restore()
     call current_buffer.restore()
     call self.create_undo_entry()
@@ -81,18 +82,14 @@ endfu
 fu! s:Writer.rename(bang) abort
   let contexts = self.esearch.contexts
   let linecount = self.esearch.linecount
+  let edits = []
 
-  for [buf, ctx_a, relative_filename_b] in self.renames
+  for [buf_a, ctx_a, relative_filename_b] in self.renames
     let filename_a = simplify(esearch#util#abspath(self.esearch.cwd, ctx_a.filename))
     let filename_b = simplify(esearch#util#abspath(self.esearch.cwd, relative_filename_b))
     let filename_a = s:Prelude.substitute_path_separator(filename_a)
     let dir_b = s:Prelude.substitute_path_separator(fnamemodify(filename_b, ':h'))
     let filename_b = s:Prelude.substitute_path_separator(filename_b)
-
-    if isdirectory(filename_b)
-      call add(self.conflicts, [relative_filename_b, "can't overwite the directory"])
-      continue
-    endif
 
     if esearch#util#file_exists(filename_b)
       if !a:bang
@@ -103,49 +100,72 @@ fu! s:Writer.rename(bang) abort
         endif
       endif
 
+      if isdirectory(filename_b)
+        return add(self.conflicts, [relative_filename_b, "can't overwite the directory"])
+      endif
       if filereadable(filename_b)
-        let lines_b = readfile(filename_b)
-        let lines_a = readfile(filename_a)
+        " TODO edits applying orders when :undo is used
+        return add(self.conflicts, [relative_filename_b, "can't overwite the file"])
+        let overrided_lines_b = readfile(filename_b)
       endif
     endif
 
-    call mkdir(dir_b, 'p')
-    if rename(filename_a, filename_b) !=# 0
-      call add(self.conflicts, [relative_filename_b, 'rename() has failed'])
-      continue
+    let edits += [{'func': 'mkdir', 'args': [dir_b, 'p']}]
+    let edits += [{'func': 'rename', 'args': [filename_a, filename_b]}]
+    if bufloaded(buf_a.bufnr)
+      let edits += [{'func': 's:rename_buffer', 'args': [buf_a, filename_b]}]
     endif
 
-    if bufloaded(buf.bufnr)
-      let hidden = esearch#let#restorable({'&l:hidden': 1})
-      silent call buf.bufdo('silent! saveas! ' . fnameescape(filename_b) . '| bdelete! # ')
-      call hidden.restore()
-    endif
-
-    if exists('lines_b')
-      let fmt = g:esearch#out#win#entry_with_sign_fmt
-      let i = 0
-      let win_lines_b = copy(lines_b)
-      while i < len(win_lines_b)
-        let win_lines_b[i] = printf(fmt, '', i + 1, win_lines_b[i])
-        let i += 1
-      endw
-      let win_lines_b = ['', fnameescape(relative_filename_b)] + win_lines_b
-
-      call esearch#out#win#update#add_context(self.esearch.contexts, relative_filename_b, linecount + 2, 0)
+    if exists('overrided_lines_b')
+      let win_lines_b = s:win_lines_b(relative_filename_b, overrided_lines_b) 
+      let edits += [{'func': 's:add_context', 'args': [self.esearch, linecount, relative_filename_b, win_lines_b, overrided_lines_b]}]
+      let edits += [{'func': 's:add_undos', 'args': [self.esearch, self.win_undos, self.state_undos, win_lines_b]}]
       let linecount += len(win_lines_b)
-      let self.esearch.contexts[-1].lines = esearch#util#list2dict(lines_b)
-      let self.esearch.contexts[-1].end = linecount
-      let self.win_undos += [{'func': 'appendline',  'args': ['$', win_lines_b]}]
-
-      let ids = [self.esearch.contexts[-2].id] + repeat([self.esearch.contexts[-1].id], len(win_lines_b) - 1)
-      let self.state_undos += [{'func': 'extend',  'args': [ids]}]
-
-      unlet lines_b
+      unlet overrided_lines_b
     endif
 
     let ctx_a.filename = relative_filename_b
   endfor
-  let self.esearch.linecount = linecount
+  let edits += [{'func': 's:set_linecount', 'args': [self.esearch, linecount]}]
+
+
+  for edit in edits
+    call call(edit.func, edit.args)
+  endfor
+endfu
+
+fu! s:win_lines_b(relative_filename_b, overrided_lines_b) abort
+  let fmt = g:esearch#out#win#entry_with_sign_fmt
+  let i = 0
+  let win_lines_b = copy(a:overrided_lines_b)
+  while i < len(win_lines_b)
+    let win_lines_b[i] = printf(fmt, '', i + 1, win_lines_b[i])
+    let i += 1
+  endw
+  return ['', fnameescape(a:relative_filename_b)] + win_lines_b
+endfu
+
+fu! s:add_undos(esearch, win_undos, state_undos, win_lines_b) abort
+  let ids = [a:esearch.contexts[-2].id] + repeat([a:esearch.contexts[-1].id], len(a:win_lines_b) - 1)
+  call extend(a:win_undos, [{'func': 'appendline',  'args': ['$', a:win_lines_b]}])
+  call extend(a:state_undos, [{'func': 'extend',  'args': [ids]}])
+endfu
+
+fu! s:add_context(esearch, linecount, relative_filename_b, win_lines_b, overrided_lines_b) abort
+  let [begin, end] = [a:linecount + 2, a:linecount + len(a:win_lines_b)]
+  call esearch#out#win#update#add_context(a:esearch.contexts, a:relative_filename_b, begin, 0)
+  let a:esearch.contexts[-1].lines = esearch#util#list2dict(a:overrided_lines_b)
+  let a:esearch.contexts[-1].end = end
+endfu
+
+fu! s:set_linecount(esearch, linecount) abort
+  let a:esearch.linecount = a:linecount
+endfu
+
+fu! s:rename_buffer(buf_a, filename_b) abort
+  let hidden = esearch#let#restorable({'&l:hidden': 1})
+  silent call a:buf_a.bufdo('silent! saveas! ' . fnameescape(a:filename_b) . '| bdelete! # ')
+  call hidden.restore()
 endfu
 
 fu! s:Writer.update_state(state, edits) abort
