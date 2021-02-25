@@ -30,19 +30,19 @@ Execute(esearch#middleware#globs#apply from string for rg):
       \ 'globs': '--glob full -g short --iglob iglob  --unknown unknown'})
   " Log b:esearch.request.command
   AssertMatches b:esearch.request.command, "--glob 'full' --glob 'short' --iglob 'iglob'"
-  AssertEqual split(execute('messages'), '\n'), ['unknown glob --unknown is specified']
+  AssertEqual split(execute('messages'), '\n'), ['esearch: unknown glob --unknown is specified']
 
 Execute(esearch#middleware#globs#apply from string for ag):
   call esearch#init({
       \ 'adapter': 'ag',
       \ 'globs': '--file-search-regex full --unknown unknown'})
   AssertMatches b:esearch.request.command, "-G 'full'"
-  AssertEqual split(execute('messages'), '\n'), ['unknown glob --unknown is specified']
+  AssertEqual split(execute('messages'), '\n'), ['esearch: unknown glob --unknown is specified']
   messages clear
   call esearch#init({
       \ 'adapter': 'ag',
       \ 'globs': '-G short --unknown unknown'})
-  AssertEqual split(execute('messages'), '\n'), ['unknown glob --unknown is specified']
+  AssertEqual split(execute('messages'), '\n'), ['esearch: unknown glob --unknown is specified']
   AssertMatches b:esearch.request.command, "'short'"
   messages clear
 
@@ -51,11 +51,11 @@ Execute(esearch#middleware#globs#apply from string for pt):
       \ 'adapter': 'pt',
       \ 'globs': '--file-search-regex full --unknown unknown'})
   AssertMatches b:esearch.request.command, "-G 'full'"
-  AssertEqual split(execute('messages'), '\n'), ['unknown glob --unknown is specified']
+  AssertEqual split(execute('messages'), '\n'), ['esearch: unknown glob --unknown is specified']
   messages clear
   call esearch#init({
       \ 'adapter': 'pt',
       \ 'globs': '-G short --unknown unknown'})
-  AssertEqual split(execute('messages'), '\n'), ['unknown glob --unknown is specified']
+  AssertEqual split(execute('messages'), '\n'), ['esearch: unknown glob --unknown is specified']
   AssertMatches b:esearch.request.command, "'short'"
   messages clear
