@@ -1,17 +1,6 @@
 let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
-let g:esearch#cmdline#mappings = [
-      \ ['c', '<c-o>',      '<plug>(esearch-open-menu)'         ],
-      \ ['c', '<c-r><c-r>', '<plug>(esearch-cycle-regex)'       ],
-      \ ['c', '<c-s><c-s>', '<plug>(esearch-cycle-case)'        ],
-      \ ['c', '<c-t><c-t>', '<plug>(esearch-cycle-textobj)'     ],
-      \ ['c', '<c-p>',      '<plug>(esearch-push-pattern)'      ],
-      \ ['c', '<bs>',       '<plug>(esearch-bs)',  {'nowait': 1}],
-      \ ['c', '<c-w>',      '<plug>(esearch-c-w)', {'nowait': 1}],
-      \ ['c', '<c-h>',      '<plug>(esearch-c-h)', {'nowait': 1}],
-      \]
-
 if !exists('g:esearch#cmdline#dir_icon')
   if g:esearch#has#unicode
     let g:esearch#cmdline#dir_icon = g:esearch#unicode#dir_icon
@@ -111,6 +100,12 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'pattern': s:push_pattern(a:state)})
   elseif a:action.type ==# 'TRY_POP_PATTERN'
     return extend(copy(a:state), {'pattern': s:try_pop_pattern(a:state)})
+  elseif a:action.type ==# 'SET_GLOB'
+    return extend(copy(a:state), {'globs': s:set_glob(a:state, a:action.glob)})
+  elseif a:action.type ==# 'PUSH_GLOB'
+    return extend(copy(a:state), {'globs': s:push_glob(a:state)})
+  elseif a:action.type ==# 'TRY_POP_GLOB'
+    return extend(copy(a:state), {'globs': s:try_pop_globs(a:state)})
   elseif a:action.type ==# 'SET_CURSOR'
     return extend(copy(a:state), {'cursor': a:action.cursor})
   elseif a:action.type ==# 'SET_VALUE'
@@ -148,11 +143,34 @@ fu! s:push_pattern(state) abort
   let pattern = a:state.pattern
   if empty(pattern.peek().str)
     call pattern.next()
-    return pattern
   else
     call pattern.push()
-    return pattern
   endif
+
+  return pattern
+endfu
+
+fu! s:try_pop_globs(state) abort
+  let globs = a:state.globs
+  call globs.try_pop()
+  return globs
+endfu
+
+fu! s:set_glob(state, glob) abort
+  let globs = a:state.globs
+  call globs.replace(a:glob)
+  return globs
+endfu
+
+fu! s:push_glob(state) abort
+  let globs = a:state.globs
+  if empty(globs.peek().str)
+    call globs.next()
+  else
+    call globs.push('')
+  endif
+
+  return globs
 endfu
 
 fu! s:cycle_mode(state, mode_name) abort

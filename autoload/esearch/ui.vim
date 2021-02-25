@@ -116,8 +116,12 @@ fu! esearch#ui#hard_clear() abort
 endfu
 
 fu! esearch#ui#to_string(component) abort
+  let tokens = type(a:component) ==# s:t_list
+        \ ? a:component
+        \ : a:component.render()
   let result = ''
-  for [_color, text] in a:component.render()
+
+  for [_color, text] in tokens
     let result .= text
   endfor
 

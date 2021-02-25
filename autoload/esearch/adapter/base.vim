@@ -9,6 +9,8 @@ let s:Base = {
       \ 'parser': 'generic',
       \ 'pattern_kinds': [{'icon': '', 'opt': '', 'regex': 1}],
       \ 'multi_pattern': 0,
+      \ 'globs': [],
+      \ 'str2glob': {},
       \ 'after':    {'hint': 'lines after' , 'opt': '-A'},
       \ 'before':   {'hint': 'lines before', 'opt': '-B'},
       \ 'context':  {'hint': 'lines around', 'opt': '-C'},

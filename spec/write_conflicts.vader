@@ -28,7 +28,7 @@ Execute (Resolve existing swap file):
 Then:
   Assert exists('b:esearch')
   Assert !g:swap_prompt_appeared
-  AssertEqual split(execute('messages'), '\n')[-2:],
+  AssertEqual Messages()[-2:],
     \ ["Can't write changes to the following files:",
     \  '  '.g:file.' (swapfile exists)']
   " Verify that the file can't be opened without the prompt

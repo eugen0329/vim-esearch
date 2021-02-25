@@ -159,7 +159,7 @@ fu! s:NvimPopup.reshape() abort dict
 endfu
 
 fu! s:NvimPopup.init_entered_autoclose_events() abort dict
-  aug esearch_preview_autoclose
+  aug __esearch_preview_autoclose__
     " Before leaving a window
     au WinLeave * ++once call g:esearch#preview#last.win.guard.new(g:esearch#preview#last.buf.id, win_getid()).restore() | call esearch#preview#close()
     " After entering another window

@@ -18,6 +18,9 @@ else
 endif
 let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-filename'
 " https://docs.rs/regex/1.3.6/regex/#syntax
+
+let s:glob = {'icon': '--glob',  'opt': '--glob '}
+let s:iglob = {'icon': '--iglob', 'opt': '--iglob '}
 call extend(s:Rg, {
       \ 'bool2regex': ['literal', 'default'],
       \ 'regex': {
@@ -39,7 +42,9 @@ call extend(s:Rg, {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \ }
+      \ },
+      \ 'globs': [s:glob, s:iglob],
+      \ 'str2glob': {'-g': s:glob, '--glob': s:glob, '--iglob': s:iglob},
       \})
 
 " rg --type-list | cut -d: -f1 | tr '\n' ' '
@@ -70,6 +75,7 @@ fu! s:Rg.command(esearch) abort dict
         \ self.options,
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
+        \ a:esearch.globs.arg(),
         \ a:esearch.pattern.arg,
         \ '--',
         \ paths,
