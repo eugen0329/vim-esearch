@@ -34,13 +34,49 @@ call extend(s:Pt, {
       \   'sensitive': {'icon': 's', 'option': ''},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
       \ }
+      \ 'glob': 1,
+      \ 'glob_kinds': [
+      \   {'icon': '-G', 'opt': '-G '},
+      \ ],
       \})
 
-fu! s:Pt.pwd() abort dict	
-  return '.'	
-endfu	
+fu! s:Pt.command(esearch) abort dict
+  let regex = self.regex[a:esearch.regex].option
+  let case = self.textobj[a:esearch.textobj].option
+  let textobj = self.case[a:esearch.case].option
 
-fu! s:Pt.is_success(request) abort	
-  " https://github.com/monochromegane/the_platinum_searcher/issues/150	
-  return a:request.status == 0	
+  if empty(a:esearch.paths)
+    let paths = self.pwd()
+  else
+    let paths = esearch#shell#join(a:esearch.paths)
+  endif
+
+  let context = ''
+  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
+  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
+  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
+
+  return join([
+        \ self.bin,
+        \ regex,
+        \ case,
+        \ textobj,
+        \ self.mandatory_options,
+        \ self.options,
+        \ context,
+        \ self.filetypes2args(a:esearch.filetypes),
+        \ a:esearch.glob.arg(),
+        \ '--',
+        \ a:esearch.pattern.arg,
+        \ paths,
+        \], ' ')
+endfu
+
+fu! s:Pt.pwd() abort dict
+  return '.'
+endfu
+
+fu! s:Pt.is_success(request) abort
+  " https://github.com/monochromegane/the_platinum_searcher/issues/150
+  return a:request.status == 0
 endfu
