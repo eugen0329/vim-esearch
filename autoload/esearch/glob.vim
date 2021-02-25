@@ -29,7 +29,7 @@ fu! s:GlobSet.push(str) abort dict
 endfu
 
 fu! s:GlobSet.try_pop() abort dict
-  if self.globs.len() < 2 | return | endif
+  if self.globs.len() == 0 | return | endif
   return self.globs.pop()
 endfu
 
