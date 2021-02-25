@@ -117,7 +117,14 @@ fu! esearch#buf#rename_qf(name) abort
   let w:quickfix_title = a:name
 endfu
 
-fu! s:bufdo(bufnr, cmd, bang) abort
+
+fu! esearch#buf#handle() abort
+  return s:Handle
+endfu
+
+let s:Handle = {}
+
+fu! s:Handle.bufdo(cmd, ...) abort dict
   let cur_buffer = esearch#buf#stay()
   try
     exe (bufnr('%') == a:bufnr ? '' : a:bufnr.'bufdo ') . a:cmd . (a:bang ? '!' : '')
@@ -222,5 +229,5 @@ fu! s:CurrentBufferGuard.new() abort dict
 endfu
 
 fu! s:CurrentBufferGuard.restore() abort dict
-  if self.bufnr != bufnr('') | exe self.bufnr 'buffer!' | endif
+  if self.bufnr != bufnr('') | noau exe self.bufnr 'buffer!' | endif
 endfu

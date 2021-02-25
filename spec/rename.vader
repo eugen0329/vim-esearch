@@ -1,0 +1,166 @@
+Include: helper.vader
+
+Before:
+  let g:esearch.cwd = 'spec/fixtures/rename'.g:test_number.next().'/'
+  let g:esearch.pattern = 'l\d'
+  let g:content = ['l1', 'l2']
+  let g:file_a = g:esearch.cwd.'file.txt'
+  let g:file_b = g:esearch.cwd.'elif.txt'
+  exe 'bwipe' Fixture(g:file_a, g:content)
+  Save g:esearch_overwrite
+After:
+  Restore g:esearch_overwrite
+  silent! call delete(g:file_a)
+  silent! call delete(g:file_b)
+  silent! call delete(g:file_b, 'd')
+
+Execute (Rename non-opened):
+  call esearch#init()
+  exe "norm /file.txt\<CR>ciwelif"
+  write
+Then:
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  undo | write
+  AssertEqual readfile(g:file_a), g:content
+  Assert !filereadable(g:file_b)
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  undo | write
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+
+Execute (Rename opened with :split):
+  call esearch#init()
+  exe "norm S"
+  exe "norm /file.txt\<CR>ciwelif"
+  write
+Then:
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  AssertEqual getbufline(g:file_b, 1, '$'), g:content
+  undo | write
+  AssertEqual readfile(g:file_a), g:content
+  AssertEqual getbufline(g:file_a, 1, '$'), g:content
+  Assert !filereadable(g:file_b)
+  undo | write
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  AssertEqual getbufline(g:file_b, 1, '$'), g:content
+
+Execute (Rename opened and then closed):
+  call esearch#init()
+  exe "norm S"
+  exe "norm /file.txt\<CR>ciwelif"
+  write
+Then:
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  AssertEqual getbufline(g:file_b, 1, '$'), g:content
+  exe bufwinnr(g:file_b) 'close'
+  undo | write
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a)
+  Assert !filereadable(g:file_b)
+  undo | write
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_b)
+
+Execute (Rename into nonexisting directory):
+  call esearch#init()
+  let g:file_b = g:esearch.cwd.'elif/nested/dir.txt'
+  exe "norm /file.txt\<CR>ccelif/nested/dir.txt"
+  write
+Then:
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  undo | write
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  Assert !filereadable(g:file_b)
+  undo | write
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+
+Execute (Rename with overwriting a file using :write!):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir.txt'
+  exe 'bwipe' Fixture(g:file_b, 'contentb')
+  call esearch#init()
+  exe "norm /file.txt\<CR>ccelif/nested/dir.txt"
+Then:
+  write!
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  undo | write
+  Assert !filereadable(g:file_b) " TODO can be fixed in the future
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+
+Execute (Rename with overwriting a file and say (N)o):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir.txt'
+  exe 'bwipe' Fixture(g:file_b, 'contentb')
+  call esearch#init()
+  exe "norm /file.txt\<CR>ccelif/nested/dir.txt"
+Then:
+  let g:esearch_overwrite = 0
+  write
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  AssertEqual readfile(g:file_b), ['contentb']
+
+Execute (Rename with overwriting a file and say (Y)es):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir.txt'
+  exe 'bwipe' Fixture(g:file_b, 'contentb')
+  call esearch#init()
+  exe "norm /file.txt\<CR>ccelif/nested/dir.txt"
+Then:
+  let g:esearch_overwrite = 1
+  write
+  Assert !filereadable(g:file_a)
+  AssertEqual readfile(g:file_b), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  undo | write
+  Assert !filereadable(g:file_b) " TODO can be fixed in the future
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  
+
+Execute (Rename with overwriting a dir using :write!):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir'
+  call mkdir(g:file_b, 'p')
+  call esearch#init()
+  exe "norm /file.txt\<CR>ccelif/nested/dir"
+Then:
+  write!
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  Assert split(execute('messages'), "\n")[-1] =~# "can't overwite the directory"
+
+Execute (Rename with overwriting a dir and say (N)o):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir'
+  call mkdir(g:file_b, 'p')
+  call esearch#init()
+  exe "norm /file.txt\<CR>ccelif/nested/dir"
+Then:
+  let g:esearch_overwrite = 0
+  write
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  Assert split(execute('messages'), "\n")[-1] =~# "can't overwite the directory"
+
+Execute (Rename with overwriting a dir and say (Y)es):
+  let g:file_b = g:esearch.cwd.'elif/nested/dir'
+  call mkdir(g:file_b, 'p')
+  call esearch#init()
+  exe "norm /file.txt\<CR>ccelif/nested/dir"
+Then:
+  let g:esearch_overwrite = 1
+  write
+  AssertEqual readfile(g:file_a), g:content
+  Assert !bufloaded(g:file_a) && !bufloaded(g:file_b)
+  Assert split(execute('messages'), "\n")[-1] =~# "can't overwite the directory"

@@ -1,9 +1,14 @@
-let s:Dict   = vital#esearch#import('Data.Dict')
-let s:by_key = function('esearch#util#by_key')
+let s:Dict     = vital#esearch#import('Data.Dict')
+let s:by_key   = function('esearch#util#by_key')
+let s:Filepath = vital#esearch#import('System.Filepath')
+let s:String   = vital#esearch#import('Data.String')
+
+let s:path_separator = s:Filepath.separator()
 
 let s:broken_entry_fmt         = 'Unexpected entry format at line %d. Must match /^ (sign)? (line_number) (text)/.'
 let s:broken_header_fmt        = 'Broken header at line %d.'
 let s:unexpected_filename_fmt  = 'Unexpected filename at line %d. Each filename must be preceded with a blank line separator.'
+let s:unexpected_slash_fmt     = 'Unexpected trailing "'.s:path_separator.'" in the filename at line %d. Forgot to insert a basename?'
 let s:unexpected_prepend_fmt   = 'Unexpected "^" at line %d. Prepended lines must be placed before the base or appended lines.'
 let s:unexpected_append_fmt    = 'Unexpected "+" at line %d. Appended lines must be placed after the base line.'
 let s:duplicate_set_fmt        = 'Duplicate line number at line %d.'
@@ -14,13 +19,13 @@ let s:unexpected_separator_fmt = 'Unexpected blank line parator at line %d.'
 let s:unexpected_sign_fmt      = 'Unexpected sign at line %d.'
 
 fu! esearch#out#win#diff#do() abort
-  let stats = {'deleted':  0, 'modified': 0, 'added': 0, 'files': 0}
+  let stats = {'deleted':  0, 'modified': 0, 'added': 0, 'files': 0, 'renamed': 0}
   let diffs = {'by_id': {}, 'stats': stats}
   let iter = s:DiffsIterator.new(getline(1, '$'), b:esearch, stats)
   while iter.has_next()
     let diff = iter.next()
 
-    if !empty(diff.edits)
+    if !empty(diff)
       let diffs.by_id[diff.ctx.id] = diff
       let stats.files += 1
     endif
@@ -70,10 +75,10 @@ fu! s:DiffsIterator.next_deleted() abort dict
   let ctx = self.contexts[id]
   let [edits, deleted_lines_a] = [{}, copy(ctx.lines)]
   let [begin, lnums_b, texts_b] = [-1, [], []]
-  return s:Diff.new(self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b)
+  return s:Diff.new(self.stats, self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b)
 endfu
 
-fu! s:DiffsIterator.next_modified() abort
+fu! s:DiffsIterator.next_modified() abort dict
   let [filename_b, lnum_was, sign_was] = ['', -1, ''] " backtrack one line back
   let [edits, deleted_lines_a, begin, lnums_b, texts_b] = [{}, {}, -1, [], []]
 
@@ -83,7 +88,7 @@ fu! s:DiffsIterator.next_modified() abort
     if empty(line)
       if empty(filename_b) | throw s:err(s:unexpected_separator_fmt, self.wlnum) | endif
       let self.wlnum += 1
-      return s:Diff.new(self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b)
+      return s:Diff.new(self.stats, self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b, filename_b)
     endif
 
     if line[0] ==# ' '
@@ -135,8 +140,11 @@ fu! s:DiffsIterator.next_modified() abort
       let ctx = self.contexts[self.state[self.wlnum]]
       silent! unlet self.deleted_ctxs_a[ctx.id]
 
-      if !empty(self.lines[self.wlnum - 1]) || filename_b !=# fnameescape(ctx.filename)
+      if !empty(self.lines[self.wlnum - 1])
         throw s:err(s:unexpected_filename_fmt, self.wlnum)
+      endif
+      if s:String.ends_with(filename_b, s:path_separator)
+        throw s:err(s:unexpected_slash_fmt, self.wlnum)
       endif
 
       let lines_a = ctx.lines
@@ -147,7 +155,7 @@ fu! s:DiffsIterator.next_modified() abort
     let self.wlnum += 1
   endwhile
 
-  return s:Diff.new(self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b)
+  return s:Diff.new(self.stats, self.add_deletes(edits, deleted_lines_a), begin, ctx, lnums_b, texts_b, filename_b)
 endfu
 
 fu! s:DiffsIterator.add_deletes(edits, deleted_lines_a) abort dict
@@ -164,19 +172,32 @@ endfu
 
 let s:Diff = {}
 
-fu! s:Diff.new(edits, begin, ctx, lnums_b, texts_b) abort
-  if empty(a:edits) | return {'edits': []} | endif
-  let edits = s:reverse_flatten(a:edits)
-  let win_undos = s:win_undos(a:ctx.lines, a:ctx, a:ctx.begin, a:lnums_b)
-  let [win_edits, lines_b] = s:win_write_post_edits(edits, a:lnums_b, a:texts_b, a:begin)
-  return {
+fu! s:Diff.new(stats, edits, begin, ctx, lnums_b, texts_b, ...) abort dict
+  let diff = {}
+
+  if a:0 && simplify(fnameescape(a:ctx.filename)) !=# simplify(a:1)
+    let diff.filename = esearch#shell#fnameunescape(a:1)
+    let a:stats.renamed += 1
+  endif
+
+  if empty(a:edits)
+    if empty(diff) | return diff | endif
+
+    let [edits, win_undos, win_edits, lines_b] = [[], [], [], a:ctx.lines]
+  else
+    let edits = s:reverse_flatten(a:edits)
+    let win_undos = s:win_undos(a:ctx.lines, a:ctx, a:ctx.begin, a:lnums_b)
+    let [win_edits, lines_b] = s:win_write_post_edits(edits, a:lnums_b, a:texts_b, a:begin)
+  endif
+
+  return extend(diff, {
         \ 'ctx': a:ctx,
+        \ 'begin': a:begin,
         \ 'edits': edits,
         \ 'win_edits': win_edits,
         \ 'win_undos': win_undos,
-        \ 'begin': a:begin,
         \ 'lines_b': lines_b,
-        \}
+        \})
 endfu
 
 fu! s:win_write_post_edits(edits, lnums_b, texts_b, begin) abort

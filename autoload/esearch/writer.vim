@@ -16,6 +16,7 @@ fu! s:Writer.new(diffs, esearch) abort dict
         \ 'search_buf': s:Buf.for(a:esearch.bufnr),
         \ 'win_edits': [],
         \ 'win_undos': [],
+        \ 'renames':   [],
         \ 'conflicts': [],
         \})
 endfu
@@ -48,13 +49,18 @@ fu! s:Writer.write(bang) abort dict
         if !self.verify_not_modified(diff, buf) | continue | endif
       endif
 
-      let self.win_edits   = diff.win_edits + self.win_edits
-      let self.win_undos   = self.update_file(buf, diff) + self.win_undos
-      let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
-      let self.esearch.contexts[diff.ctx.id].begin = diff.begin
+      let self.win_edits = diff.win_edits + self.win_edits
+      let self.win_undos = self.update_file(buf, diff) + self.win_undos
+      let contexts[diff.ctx.id].lines = diff.lines_b
+      let contexts[diff.ctx.id].begin = diff.begin
+
+      if has_key(diff, 'filename')
+        call add(self.renames, [buf, contexts[diff.ctx.id], diff.filename])
+      endif
 
       if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
     endfor
+    call self.rename(a:bang)
   finally
     au! esearch_write
     call current_window.restore()
@@ -66,6 +72,43 @@ fu! s:Writer.write(bang) abort dict
   call self.log()
   " Deferring is required to execute the autocommand with avoiding BufWriteCmd side effects
   call esearch#util#try_defer(function('esearch#util#doautocmd'), 'User esearch_write_post')
+endfu
+
+fu! s:Writer.rename(bang) abort
+  for [buf, ctx_a, relative_filename_b] in self.renames
+    let filename_a = simplify(esearch#util#abspath(self.esearch.cwd, ctx_a.filename))
+    let filename_b = simplify(esearch#util#abspath(self.esearch.cwd, relative_filename_b))
+    let filename_a = s:Prelude.substitute_path_separator(filename_a)
+    let dir_b = s:Prelude.substitute_path_separator(fnamemodify(filename_b, ':h'))
+    let filename_b = s:Prelude.substitute_path_separator(filename_b)
+
+    if isdirectory(filename_b)
+      call add(self.conflicts, [relative_filename_b, "can't overwite the directory"])
+      continue
+    endif
+
+    if !a:bang && esearch#util#file_exists(filename_b)
+      if !has_key(g:, 'esearch_overwrite')
+            \ && confirm(filename_b . ' exists. Overwrite?', "&Yes\n&Cancel") == 2
+            \ || !g:esearch_overwrite
+        continue
+      endif
+    endif
+
+    call mkdir(dir_b, 'p')
+    if rename(filename_a, filename_b) !=# 0
+      call add(self.conflicts, [relative_filename_b, 'rename() has failed'])
+      continue
+    endif
+
+    if bufloaded(buf.bufnr)
+      let hidden = esearch#let#restorable({'&l:hidden': 1})
+      silent call buf.bufdo('silent! saveas! '.fnameescape(filename_b) . '| bdelete! # ')
+      call hidden.restore()
+    endif
+
+    let ctx_a.filename = relative_filename_b
+  endfor
 endfu
 
 fu! s:Writer.create_undo_entry() abort dict
@@ -96,6 +139,8 @@ fu! s:Writer.update_file(buf, diff) abort
   call a:buf.goto()
 
   let edits = a:diff.edits
+  if empty(edits) | return a:diff.win_undos | endif
+
   for edit in edits[:-2]
     call call(a:buf[edit.func], edit.args)
   endfor
@@ -116,7 +161,7 @@ fu! s:Writer.update_win(win_edits) abort
 endfu
 
 fu! s:Writer.handle_existing_swap(path) abort dict
-  call add(self.conflicts, {'filename': a:path, 'reason': 'swapfile exists'})
+  call add(self.conflicts, [a:path, 'swapfile exists'])
 
   " Ensure the buffer is deleted after quitting the swap prompt
   if bufexists(a:path)
@@ -134,17 +179,17 @@ fu! s:Writer.log() abort dict
     return setbufvar(self.esearch.bufnr, '&modified', 0)
   end
 
-  let reasons = map(self.conflicts, 'printf("\n  %s (%s)", v:val.filename, v:val.reason)')
-  let message = "Can't write changes to the following files:".join(reasons, '')
+  let reasons = map(self.conflicts, 'printf("\n  %s (%s)", v:val[0], v:val[1])')
+  let message = "Can't apply changes for following files:".join(reasons, '')
   call esearch#util#warn(message)
 endfu
 
 fu! s:Writer.verify_readable(diff, path) abort dict
   if filereadable(a:path) | return 1 | endif
   if get(a:diff.ctx, 'rev')
-    call add(self.conflicts, {'filename': a:path, 'reason': 'is a git blob'})
+    call add(self.conflicts, [a:path, 'is a git blob'])
   else
-    call add(self.conflicts, {'filename': a:path, 'reason': 'is not readable'})
+    call add(self.conflicts, [a:path, 'is not readable'])
   endif
   return 0
 endfu
@@ -156,10 +201,7 @@ fu! s:Writer.verify_not_modified(diff, buf) abort dict
       continue
     endif
 
-    call add(self.conflicts, {
-          \ 'filename': a:diff.ctx.filename,
-          \ 'reason':   'line '.edit.args[0].' has changed',
-          \})
+    call add(self.conflicts, [a:diff.ctx.filename, 'line '.edit.args[0].' has changed'])
     return 0
   endfor
 
