@@ -32,7 +32,11 @@ call extend(s:Ag, {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \ }
+      \ },
+      \ 'glob': 1,
+      \ 'glob_kinds': [
+      \   {'icon': '-G', 'opt': '-G '},
+      \ ],
       \})
 
 " ag --list-file-types

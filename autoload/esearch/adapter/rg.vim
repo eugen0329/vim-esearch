@@ -39,7 +39,12 @@ call extend(s:Rg, {
       \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
       \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
       \   'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \ }
+      \ },
+      \ 'glob': 1,
+      \ 'glob_kinds': [
+      \   {'icon': '--glob',  'opt': '-glob '},
+      \   {'icon': '--iglob', 'opt': '-iglob '},
+      \ ],
       \})
 
 " rg --type-list | cut -d: -f1 | tr '\n' ' '

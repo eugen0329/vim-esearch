@@ -6,19 +6,30 @@ let s:INF = 88888888
 cnoremap <plug>(esearch-cycle-regex)   <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_REGEX')<cr><cr>
 cnoremap <plug>(esearch-cycle-case)    <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_CASE')<cr><cr>
 cnoremap <plug>(esearch-cycle-textobj) <c-r>=<SID>interrupt('<SID>dispatch', 'NEXT_TEXTOBJ')<cr><cr>
-cnoremap <plug>(esearch-push-pattern)  <c-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<cr><cr>
 cnoremap <plug>(esearch-open-menu)     <c-r>=<SID>interrupt('<SID>open_menu')<cr><cr>
 
-cnoremap <expr> <plug>(esearch-bs)  <SID>try_pop_pattern("\<bs>")
-cnoremap <expr> <plug>(esearch-c-w) <SID>try_pop_pattern("\<c-w>")
-cnoremap <expr> <plug>(esearch-c-h) <SID>try_pop_pattern("\<c-h>")
+cnoremap <plug>(esearch-push-pattern) <c-r>=<SID>interrupt('<SID>dispatch', 'PUSH_PATTERN')<cr><cr>
+cnoremap <expr> <plug>(esearch-bs)    <SID>try_pop_pattern("\<bs>")
+cnoremap <expr> <plug>(esearch-c-w)   <SID>try_pop_pattern("\<c-w>")
+cnoremap <expr> <plug>(esearch-c-h)   <SID>try_pop_pattern("\<c-h>")
+
+let s:keymaps = [
+      \ ['c', '<c-o>',      '<plug>(esearch-open-menu)'         ],
+      \ ['c', '<c-r><c-r>', '<plug>(esearch-cycle-regex)'       ],
+      \ ['c', '<c-s><c-s>', '<plug>(esearch-cycle-case)'        ],
+      \ ['c', '<c-t><c-t>', '<plug>(esearch-cycle-textobj)'     ],
+      \ ['c', '<c-p>',      '<plug>(esearch-push-pattern)'      ],
+      \ ['c', '<bs>',       '<plug>(esearch-bs)',  {'nowait': 1}],
+      \ ['c', '<c-w>',      '<plug>(esearch-c-w)', {'nowait': 1}],
+      \ ['c', '<c-h>',      '<plug>(esearch-c-h)', {'nowait': 1}],
+      \]
 
 let s:self = {}
 let s:SearchInputController = esearch#ui#component()
 
 fu! s:SearchInputController.render() abort dict
   let s:self = self
-  let original_mappings = esearch#keymap#restorable(g:esearch#cmdline#mappings)
+  let original_mappings = esearch#keymap#restorable(s:keymaps)
   let [global_options, local_options] = self.set_options()
   try
     if self.props.live_update | call self.init_live_update() | endif
