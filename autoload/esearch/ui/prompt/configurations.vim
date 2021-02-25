@@ -41,7 +41,9 @@ fu! s:ConfigurationsPrompt.render_paths_for_posix_shell() abort dict
   endif
 
   if !empty(result) | let result += [[self.props.normal_hl, ' ']] | endif
-  return result + s:PathPrompt.new({'paths': absolute_paths}).render()
+  let result += s:PathPrompt.new({'paths': absolute_paths}).render()
+
+  return result
 endfu
 
 fu! s:ConfigurationsPrompt.render_paths_for_windows_cmd() abort dict

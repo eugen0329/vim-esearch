@@ -234,8 +234,7 @@ fu! s:Stack.push(val) abort dict
 endfu
 
 fu! s:Stack.pop() abort dict
-  let [self.list, popped] = [self.list[:-2], self.list[-1]]
-  return popped
+  return remove(self.list, -1)
 endfu
 
 fu! esearch#util#deprecate(message) abort

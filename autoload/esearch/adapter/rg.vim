@@ -75,6 +75,7 @@ fu! s:Rg.command(esearch) abort dict
         \ self.options,
         \ context,
         \ self.filetypes2args(a:esearch.filetypes),
+        \ a:esearch.globs.arg(),
         \ a:esearch.pattern.arg,
         \ '--',
         \ paths,

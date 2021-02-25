@@ -4,14 +4,16 @@ let s:PathPrompt = esearch#ui#prompt#path#import()
 let s:GlobEntry  = esearch#ui#component()
 
 fu! s:GlobEntry.render() abort dict
-  let icon = empty(self.props.paths) ? ['Comment', '[/*]'] : ['Special', '[/*]']
+  let icon = empty(self.props.globs) ? ['Comment', '[!/]'] : ['Special', '[!/]']
   let result = [['None', s:String.pad_right(self.props.keys[0], 7, ' ')], icon, ['NONE', ' filter paths']]
 
-  if empty(self.props.paths)
+  if empty(self.props.globs)
     let result += [['Comment', ' (none)']]
   else
     let result += [['Comment', ' (']]
-    let result += s:PathPrompt.new({'normal_hl': 'Comment'}).render()
+    for glob in self.props.globs.list 
+      let result += [['Comment', '--glob ' . glob.str]]
+    endfor
     let result += [['Comment', ')']]
   endif
 
@@ -27,7 +29,7 @@ fu! s:GlobEntry.keypress(event) abort dict
 endfu
 
 fu! s:map_state_to_props(state) abort dict
-  return {'paths': get(a:state, 'paths')}
+  return {'globs': get(a:state, 'globs')}
 endfu
 
 fu! esearch#ui#menu#glob_entry#import() abort

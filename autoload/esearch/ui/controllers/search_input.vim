@@ -183,7 +183,7 @@ fu! s:SearchInputController.restore_cmdpos_chars() abort
 endfu
 
 fu! s:try_pop_pattern(fallback) abort
-  if empty(getcmdline()) && len(s:self.props.pattern.patterns.list) > 1
+  if empty(getcmdline()) && len(s:self.props.pattern.list) > 1
     let s:self.pressed_mapped_key = {'handler': function('<SID>dispatch_try_pop_pattern'), 'args': a:000}
     call s:self.props.dispatch({'type': 'SET_CMDPOS', 'cmdpos': s:INF})
     return "\<cr>"

@@ -6,6 +6,7 @@ fu! esearch#middleware#input#apply(esearch) abort
   if empty(get(esearch, 'pattern'))
     let current_win = esearch#win#stay()
     let [esearch.pattern, esearch.select_prefilled] = esearch#prefill#try(esearch)
+    let esearch.globs = esearch#glob#new(esearch._adapter, '')
     call esearch.pattern.adapt(esearch._adapter)
     if esearch.force_exec
       let esearch.live_update = 0
