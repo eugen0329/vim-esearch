@@ -26,7 +26,7 @@ fu! s:GlobInputController.render() abort dict
   redraw!
   let original_mappings = esearch#keymap#restorable(s:keymaps)
   try
-    let prompt = esearch#ui#to_string([['NONE', self.props.adapter.' '.ellipsis.' ']] + s:CurrentGlob.new().render() + [['NONE', ' ']])
+    let prompt = esearch#ui#to_string([['NONE', self.props.adapter.' '.ellipsis.' ']] + s:CurrentGlob.new().render())
     let glob = input(prompt,
           \ self.props.globs.peek().str,
           \ 'customlist,esearch#ui#controllers#glob_input#complete')

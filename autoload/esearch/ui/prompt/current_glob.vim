@@ -5,7 +5,7 @@ fu! s:CurrentGlob.render() abort dict
 
   let opt = self.props.globs.peek().icon
   let args = self.get_args()
-  return [['NONE', args.(len(args) ? ' ' : '').opt]]
+  return [['NONE', args.(len(args) ? ' ' : '').opt." '"]]
 endfu
 
 fu! s:CurrentGlob.get_args() abort
