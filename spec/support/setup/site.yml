@@ -3,10 +3,11 @@
   connection: local
   tasks:
     - include_vars: '{{ ansible_os_family | lower }}.yml'
-
+    - set_fact:
+        deps_dir: '{{ ansible_env.HOME }}/.cache/esearch-dev'
     - name: Create a directory for dependencies
       file:
-        path: '{{ ansible_env.HOME }}/.cache/esearch-dev'
+        path: '{{ deps_dir }}'
         state: directory
 
     - name: Setup global dependencies
@@ -32,11 +33,11 @@
             - name: download binary
               unarchive:
                 src: 'https://golang.org/dl/go1.15.8.linux-amd64.tar.gz'
-                dest: /usr/local
+                dest: '{{ deps_dir }}'
                 remote_src: true
             - name: link
               file:
-                src: /usr/local/go/bin/go
+                src: '{{ deps_dir }}/go/bin/go'
                 dest: /usr/local/bin/go
                 state: link
             - name: path
