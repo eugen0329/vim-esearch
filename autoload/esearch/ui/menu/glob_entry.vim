@@ -11,9 +11,10 @@ fu! s:GlobEntry.render() abort dict
   else
     let result += [['Comment', ' (']]
     for glob in self.props.globs.list[:-2]
-      let result += [['Comment', '--glob ' . shellescape(glob.str) . ' ']]
+      let result += [['Comment', glob.opt . shellescape(glob.str) . ' ']]
     endfor
-    let result += [['Comment', '--glob ' . shellescape(self.props.globs.list[-1].str)]]
+    let last = self.props.globs.list[-1]
+    let result += [['Comment', last.opt . shellescape(last.str)]]
     let result += [['Comment', ')']]
   endif
 

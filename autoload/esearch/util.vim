@@ -300,3 +300,7 @@ endfu
 fu! esearch#util#capture_range(target) abort range
   call add(a:target, [a:firstline, a:lastline])
 endfu
+
+fu! esearch#util#noop(...) abort
+  return 0
+endfu

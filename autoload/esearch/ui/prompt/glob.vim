@@ -9,7 +9,7 @@ fu! s:GlobPrompt.render() abort dict
   let globs = self.props.globs.list
   let end = len(globs) - 1
   for i in range(0, end)
-    let result += [['Special', '<glob ']]
+    let result += [['Special', '<'.substitute(globs[i].opt, '^-*', '', '')]]
     let result += s:PathPrompt.new({'paths': esearch#shell#argv([globs[i].str]), 'escape': 0}).render()
     let result += [['Special', '>']]
     if i != end && !empty(self.props.separator)

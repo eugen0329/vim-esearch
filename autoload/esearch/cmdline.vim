@@ -90,12 +90,20 @@ endfu
 fu! s:reducer(state, action) abort
   if a:action.type ==# 'FORCE_EXEC'
     let state = copy(a:state)
-    if has_key(a:action, 'cmdline') | call state.pattern.replace(a:action.cmdline) | endif
+    if has_key(a:action, 'cmdline')
+      let state.pattern = deepcopy(state.pattern)
+      call state.pattern.replace(a:action.cmdline)
+    endif
+    if empty(state.pattern.peek().str) | return a:state | endif
 
+    if has_key(a:action, 'glob')
+      let state.globs = deepcopy(state.globs)
+      call state.globs.replace(copy(a:action.glob))
+    endif
     let esearch = esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
-    if empty(esearch) | return extend(state, {'cmdline': '', 'location': 'exit'}) | endif
+    if empty(esearch) | return a:state | endif
 
-    return extend(state, {'live_update_bufnr': esearch.bufnr})
+    return extend(copy(a:state), {'live_update_bufnr': esearch.bufnr})
   elseif a:action.type ==# 'NEXT_CASE'
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
   elseif a:action.type ==# 'NEXT_REGEX'
@@ -132,6 +140,19 @@ fu! s:reducer(state, action) abort
     return extend(copy(a:state), {'pattern': pattern})
   elseif a:action.type ==# 'SET_LOCATION'
     return extend(copy(a:state), {'location': a:action.location})
+  elseif a:action.type ==# 'PREVIEW_GLOB'
+    let state = copy(a:state)
+    let state.globs = deepcopy(a:state.globs)
+    call state.globs.replace(a:action.glob)
+    call state._adapter.glob(state)
+    call esearch#preview#shell(state._adapter.glob(state), {
+    \     'relative': 'editor',
+    \     'align':    'bottom',
+    \     'height':    0.3,
+    \     'let':      {'&number': 0, '&filetype': 'esearch_glob'},
+    \     'on_finish':  {bufnr, request, _ -> appendbufline(bufnr, 0, len(request.data).' matched files')}
+    \   })
+    return a:state
   else
     throw 'Unknown action ' . string(a:action)
   endif
@@ -169,6 +190,8 @@ fu! s:set_glob(state, glob) abort
 endfu
 
 fu! s:push_glob(state) abort
+  if !a:state._adapter.multi_glob | return a:state.globs | endif
+
   let globs = a:state.globs
   if empty(globs.peek().str)
     call globs.next()

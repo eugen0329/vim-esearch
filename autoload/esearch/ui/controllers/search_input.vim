@@ -107,8 +107,9 @@ fu! s:redraw(_) abort
 endfu
 
 fu! s:SearchInputController.uninit_live_update() dict abort
-  au! __esearch_live_update__ *
-  call timer_stop(self.redraw_timer)
+  silent! au! __esearch_live_update__ *
+  silent! call timer_stop(self.redraw_timer)
+  call s:live_update.cancel()
 endfu
 
 fu! s:SearchInputController.render_initial_selection() abort dict
