@@ -29,5 +29,5 @@ Execute(#qflist):
   \ '}',
   \])
   call esearch#init({'out': 'qflist', 'pattern': 'return $x'})
-  AssertEqual getqflist()[0].text, ' return 1', getqflist()
   AssertEqual len(getqflist()), 1
+  AssertEqual getqflist()[0].text, ' return 1', getqflist()

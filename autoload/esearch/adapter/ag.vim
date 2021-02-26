@@ -72,7 +72,7 @@ fu! s:Ag.command(esearch) abort dict
 endfu
 
 fu! s:Ag.glob(esearch) abort dict
-  return self._command(a:esearch, '', {'-G ': '-g '})
+  return self._command(a:esearch, '', {'--file-search-regex ': '-g '})
 endfu
 
 fu! s:Ag.is_success(request) abort

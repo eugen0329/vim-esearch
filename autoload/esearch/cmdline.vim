@@ -144,13 +144,13 @@ fu! s:reducer(state, action) abort
     let state = copy(a:state)
     let state.globs = deepcopy(a:state.globs)
     call state.globs.replace(a:action.glob)
-    call state._adapter.glob(state)
+    let g:asd =  state._adapter.glob(state)
     call esearch#preview#shell(state._adapter.glob(state), {
-    \ 'relative': 'editor',
-    \ 'align':    'bottom',
-    \ 'height':    0.3,
-    \ 'let':      {'&number': 0, '&filetype': 'esearch_glob'},
-    \ 'on_finish':  {bufnr, request, _ ->
+    \  'relative': 'editor',
+    \  'align':    'bottom',
+    \  'height':    0.3,
+    \  'let':      {'&number': 0, '&filetype': 'esearch_glob'},
+    \  'on_finish':  {bufnr, request, _ ->
     \  appendbufline(bufnr, 0, len(request.data).' matched file'.(len(request.data) == 1 ? '' : 's'))
     \ }
     \})

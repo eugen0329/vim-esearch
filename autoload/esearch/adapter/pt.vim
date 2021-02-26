@@ -72,7 +72,7 @@ fu! s:Pt.command(esearch) abort dict
 endfu
 
 fu! s:Pt.glob(esearch) abort dict
-  return self._command(a:esearch, '', {'-G ': '-g '})
+  return self._command(a:esearch, '', {'--file-search-regexp ': '-g '})
 endfu
 
 fu! s:Pt.pwd() abort dict
