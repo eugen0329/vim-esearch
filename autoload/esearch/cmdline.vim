@@ -90,9 +90,11 @@ endfu
 fu! s:reducer(state, action) abort
   if a:action.type ==# 'FORCE_EXEC'
     let state = copy(a:state)
-    call state.pattern.replace(get(a:action, 'cmdline', a:state.cmdline))
+    if has_key(a:action, 'cmdline') | call state.pattern.replace(a:action.cmdline) | endif
+
     let esearch = esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
     if empty(esearch) | return extend(state, {'cmdline': '', 'location': 'exit'}) | endif
+
     return extend(state, {'live_update_bufnr': esearch.bufnr})
   elseif a:action.type ==# 'NEXT_CASE'
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
