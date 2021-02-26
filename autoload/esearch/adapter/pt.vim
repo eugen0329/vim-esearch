@@ -39,7 +39,7 @@ call extend(s:Pt, {
       \ 'str2glob': {'-G': s:glob, '--file-search-regex': s:glob},
       \})
 
-fu! s:Pt.command(esearch) abort dict
+fu! s:Pt.command(esearch, ...) abort dict
   let regex = self.regex[a:esearch.regex].option
   let case = self.textobj[a:esearch.textobj].option
   let textobj = self.case[a:esearch.case].option

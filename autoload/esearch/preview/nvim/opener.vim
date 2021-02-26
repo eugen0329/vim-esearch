@@ -42,6 +42,32 @@ fu! s:NvimOpener.open() abort dict
   return s:true
 endfu
 
+fu! s:NvimOpener.shell() abort dict
+  let current_win = esearch#win#stay()
+  let self.buf = s:Buf.fetch_or_create(
+        \ self.location.filename, g:esearch#preview#buffers)
+
+  try
+    let g:esearch#preview#win = s:NvimOpener.open_or_update(
+          \ self.buf, self.location, self.shape, self.close_on)
+    let self.win = g:esearch#preview#win
+    let self.win.upd_at = reltime()
+    let self.win.cache_key = [self.opts, self.shape.align]
+    call self.win.let(self.vars)
+    call self.win.place_emphasis(self.emphasis)
+    call self.win.reshape()
+    call self.win.init_autoclose_events()
+  catch
+    call esearch#preview#close()
+    call s:Log.error(v:exception . (g:esearch#env is 0 ? '' : v:throwpoint))
+    return s:false
+  finally
+    noau keepj call current_win.restore()
+  endtry
+
+  return s:true
+endfu
+
 " Maintain the window as a singleton.
 fu! s:NvimOpener.open_or_update(buf, location, shape, close_on) abort dict
   if esearch#preview#is_open()

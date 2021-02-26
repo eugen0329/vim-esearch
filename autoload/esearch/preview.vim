@@ -66,10 +66,10 @@ fu! s:on_finish(request, opts, bufnr) abort
     " Close only shell previews to prevent E814
     return
   endif
-  call esearch#preview#close()
   noau noswap let bufnr = bufadd('[esearch-preview-shell]')
   noau call bufload(bufnr)
   call setbufvar(bufnr, '&buftype', 'nofile')
+  call deletebufline(bufnr, 1, '$')
   call setbufline(bufnr, 1, a:request.data)
   call esearch#preview#open('[esearch-preview-shell]', a:opts.line, a:opts)
 endfu

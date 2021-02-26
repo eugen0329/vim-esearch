@@ -1,6 +1,7 @@
 let s:Log = esearch#log#import()
 let s:PathInputController = esearch#ui#component()
 
+" TODO Live update
 fu! s:PathInputController.render() abort dict
   let s:self = self
   if type(self.props.paths) == type({})
@@ -28,7 +29,7 @@ fu! s:PathInputController.render() abort dict
   endwhile
 
   call self.props.dispatch({'type': 'SET_PATHS',    'paths': paths})
-  call self.props.dispatch({'type': 'FORCE_EXEC'})
+  call self.props.dispatch({'type': 'FORCE_EXEC'}) " exec before leaving the input
   call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 

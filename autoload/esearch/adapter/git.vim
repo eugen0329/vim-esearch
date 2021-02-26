@@ -49,7 +49,7 @@ call extend(s:Git, {
       \ ],
       \})
 
-fu! s:Git.command(esearch) abort dict
+fu! s:Git.command(esearch, ...) abort dict
   let regex = self.regex[a:esearch.regex].option
   let textobj = self.textobj[a:esearch.textobj].option
   let case = self.case[a:esearch.case].option

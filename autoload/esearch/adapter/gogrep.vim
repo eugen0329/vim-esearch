@@ -25,7 +25,7 @@ call extend(s:Gogrep, {
       \ 'context': {'hint': 'parent nodes', 'opt': '-p'},
       \})
 
-fu! s:Gogrep.command(esearch) abort dict
+fu! s:Gogrep.command(esearch, ...) abort dict
   if empty(a:esearch.paths)
     let paths = self.pwd()
   else

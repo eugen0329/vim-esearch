@@ -11,12 +11,13 @@ let s:Base = {
       \ 'multi_pattern': 0,
       \ 'globs': [],
       \ 'str2glob': {},
+      \ 'glob_option': '',
       \ 'after':    {'hint': 'lines after' , 'opt': '-A'},
       \ 'before':   {'hint': 'lines before', 'opt': '-B'},
       \ 'context':  {'hint': 'lines around', 'opt': '-C'},
       \}
 
-fu! s:Base.command(esearch) abort dict
+fu! s:Base.command(esearch, ...) abort dict
   let regex = self.regex[a:esearch.regex].option
   let case = self.textobj[a:esearch.textobj].option
   let textobj = self.case[a:esearch.case].option
