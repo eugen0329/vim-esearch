@@ -29,7 +29,7 @@
             - '{{ pip_package_name }}'
             - '{{ ps_package_name }}'
         - name: 
-          shell: eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=stable bash)"
+          shell: eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.14 bash)"
         - name: lua linter
           command: luarocks install luacheck
           become: '{{ package_become }}'
