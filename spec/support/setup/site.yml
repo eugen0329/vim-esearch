@@ -28,7 +28,7 @@
             - '{{ tar_package_name }}'
             - '{{ pip_package_name }}'
             - '{{ ps_package_name }}'
-        - name: 
+        - name: go
           shell: eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.14 bash)"
         - name: lua linter
           command: luarocks install luacheck
@@ -55,7 +55,7 @@
             name: ['semgrep']
             state: present
         - name: From go-get
-          shell: 'go get {{ item }}'
+          shell: '. ~/.gimme/envs/go1.14.env && go get {{ item }}'
           environment:
             GO111MODULE: 'on'
           with_items:
@@ -89,8 +89,8 @@
               with_items: '{{ greppers }}'
           vars:
             - greppers:
-              - {bin: pt, download_url: '{{ pt_download_url }}'}
-              - {bin: rg, download_url: '{{ rg_download_url }}'}
+                - {bin: pt, download_url: '{{ pt_download_url }}'}
+                - {bin: rg, download_url: '{{ rg_download_url }}'}
         - name: configure git-grep
           block:
             - git_config: {scope: global, name: core.precomposeunicode, value: 'true'}
