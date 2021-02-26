@@ -24,11 +24,15 @@ Execute(Handle missing cwd in esearch#middleware#cwd#apply):
   call esearch#init({'cwd': 'missing-cwd'})
   AssertEqual Messages(), ["esearch: directory missing-cwd doesn't exist"]
 
+Execute(esearch#middleware#paths#apply home expansion):
+  call esearch#init({'paths': '~/nonexisting-directory'})
+  AssertEqual esearch#shell#join(b:esearch.paths),
+    \ fnamemodify('~', ':p') . 'nonexisting-directory'
+
 Execute(esearch#middleware#globs#apply from string for rg):
   call esearch#init({
       \ 'adapter': 'rg',
       \ 'globs': '--glob full -g short --iglob iglob  --unknown unknown'})
-  " Log b:esearch.request.command
   AssertMatches b:esearch.request.command, "--glob 'full' --glob 'short' --iglob 'iglob'"
   AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
 
