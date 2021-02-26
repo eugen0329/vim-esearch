@@ -67,6 +67,7 @@ Execute(global setup):
   endfu
 
   command! -nargs=+ AssertMatches call AssertMatches(<args>)
+  command! -nargs=1 AssertExecutableAvailable Assert executable(<args>), 'expected '.<args>.' to be available'
 
   let g:test_number = esearch#util#counter()
   let g:esearch_yes = 1
@@ -82,3 +83,4 @@ Execute(global setup):
 
   let g:mapleader = ","
   set nomore splitright splitbelow shortmess=lnTtoOfF
+  call esearch#stderr#incremental('workaround to avoid vader bug with autoload fail', [''])

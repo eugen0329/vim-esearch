@@ -36,3 +36,4 @@ let g:esearch#has#nvim_lua_regex = g:esearch#has#nvim_lua && luaeval('not not vi
 let g:esearch#has#getbufinfo_linecount = has('patch-8.2.0019')
 let g:esearch#has#matchadd_win = has('patch-8.1.1084')
 let g:esearch#has#globs_preview = g:esearch#has#preview
+let g:esearch#has#complete_changed = exists('##CompleteChanged')

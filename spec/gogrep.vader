@@ -1,6 +1,7 @@
 Include: helper.vader
 
 Before:
+  AssertExecutableAvailable 'gogrep'
   Save g:esearch
   let g:esearch = {
       \ 'cwd': 'spec/fixtures/gogrep/',
