@@ -88,8 +88,12 @@ fu! s:initial_state(esearch) abort
 endfu
 
 fu! s:reducer(state, action) abort
-  if a:action.type ==# 'SET_LIVE_UPDATE_BUFNR'
-    return extend(copy(a:state), {'live_update_bufnr': a:action.bufnr})
+  if a:action.type ==# 'FORCE_EXEC'
+    let state = copy(a:state)
+    call state.pattern.replace(get(a:action, 'cmdline', a:state.cmdline))
+    let esearch = esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
+    if empty(esearch) | return extend(state, {'cmdline': '', 'location': 'exit'}) | endif
+    return extend(state, {'live_update_bufnr': esearch.bufnr})
   elseif a:action.type ==# 'NEXT_CASE'
     return extend(copy(a:state), {'case': s:cycle_mode(a:state, 'case')})
   elseif a:action.type ==# 'NEXT_REGEX'

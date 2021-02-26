@@ -14,6 +14,7 @@ fu! s:FiletypeInputController.render() abort dict
   endtry
 
   call self.props.dispatch({'type': 'SET_FILETYPES', 'filetypes': filetypes})
+  call self.props.dispatch({'type': 'FORCE_EXEC'})
   call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 

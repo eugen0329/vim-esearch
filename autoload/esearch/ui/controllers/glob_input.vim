@@ -39,6 +39,7 @@ fu! s:GlobInputController.render() abort dict
     call self.props.dispatch({'type': 'TRY_POP_GLOB'})
   else
     call self.props.dispatch({'type': 'SET_GLOB', 'glob': glob})
+    call self.props.dispatch({'type': 'FORCE_EXEC'})
   endif
 
   if !empty(self.pending_keypress)

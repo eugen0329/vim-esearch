@@ -35,7 +35,8 @@ fu! s:SearchInputController.render() abort dict
     if self.props.live_update | call self.init_live_update() | endif
     return self.render_initial_selection() && self.render_input()
   catch /Vim:Interrupt/
-    call self.cancel()
+    call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
+    call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
   finally
     if self.props.live_update | call self.uninit_live_update() | endif
     call local_options.restore()
@@ -89,7 +90,7 @@ fu! s:SearchInputController.final_live_update() dict abort
   " if changes were made and live_update_debounce_wait wasn't exceeded
   let cmdline = self.cmdline
   if s:self.executed_cmdline ==# cmdline || empty(cmdline) | return | endif
-  call self.force_exec(cmdline)
+  call s:self.props.dispatch({'type': 'FORCE_EXEC', 'cmdline': cmdline})
 endfu
 
 fu! s:live_update(...) abort
@@ -98,21 +99,7 @@ fu! s:live_update(...) abort
     return
   endif
   let s:self.executed_cmdline = cmdline
-  let esearch = s:self.force_exec(cmdline)
-  call s:self.props.dispatch({'type': 'SET_LIVE_UPDATE_BUFNR', 'bufnr': esearch.bufnr})
-endfu
-
-fu! s:SearchInputController.force_exec(cmdline) abort dict
-  let state = copy(s:self.__context__().store.state)
-  call state.pattern.replace(a:cmdline)
-  let esearch = esearch#init(extend(state, {'remember': [], 'force_exec': 1, 'name': '[esearch]' }))
-  if empty(esearch) | call self.cancel() | endif
-  return esearch
-endfu
-
-fu! s:SearchInputController.cancel() abort dict
-  call self.props.dispatch({'type': 'SET_CMDLINE', 'cmdline': ''})
-  call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'exit'})
+  call s:self.props.dispatch({'type': 'FORCE_EXEC', 'cmdline': cmdline})
 endfu
 
 fu! s:redraw(_) abort
