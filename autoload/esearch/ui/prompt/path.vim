@@ -10,6 +10,7 @@ fu! s:PathPrompt.render() abort dict
     return [[self.props.normal_hl, esearch#shell#join(self.props.paths)]]
   endif
 
+  let l:Escape = self.props.escape ? function('esearch#shell#escape') : {path -> path.str}
   let cwd = self.props.cwd
   let paths = self.props.paths
   let result = []
@@ -20,9 +21,9 @@ fu! s:PathPrompt.render() abort dict
     if path.raw
       let result += [['Special', path.str]]
     elseif isdirectory(esearch#util#abspath(cwd, path.str))
-      let result += [['Directory', dir_icon . esearch#shell#escape(path)]]
+      let result += [['Directory', dir_icon . l:Escape(path)]]
     elseif empty(path.metachars)
-      let result += [[self.props.normal_hl, esearch#shell#escape(path)]]
+      let result += [[self.props.normal_hl, l:Escape(path)]]
     else
       let result += self.highlight_metachars(path)
     endif
@@ -49,7 +50,7 @@ fu! s:PathPrompt.highlight_metachars(path) abort dict
   return result
 endfu
 
-let s:PathPrompt.default_props = {'normal_hl': 'NONE', 'separator': ' '}
+let s:PathPrompt.default_props = {'normal_hl': 'NONE', 'separator': ' ', 'escape': 1}
 
 let s:map_state_to_props = esearch#util#slice_factory(['cwd', 'paths'])
 
