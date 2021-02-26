@@ -11,27 +11,39 @@
 
     - name: Setup global dependencies
       block:
+        - name: non-CI go
+          block:
+            - name: download binary
+              unarchive:
+                src: 'https://golang.org/dl/go1.15.8.linux-amd64.tar.gz'
+                dest: /usr/local
+                remote_src: true
+            - name: link
+              file:
+                src: /usr/local/go/bin/go
+                dst: /usr/local/bin/go
+                state: link
+            - name: path
+              lineinfile:
+                path: '{{ ansible_env.HOME }}/.profile'
+                state: present
+                line: 'export PATH="$PATH:$HOME/go/bin"'
         - name: packages
           package:
             name: '{{ item }}'
             state: present
           become: '{{ package_become }}'
           with_items:
-            - luarocks
             - git
             - curl
             - ragel
             - unzip
             - neovim
+            - luarocks
             - '{{ vim_package_name }}'
             - '{{ tar_package_name }}'
             - '{{ pip_package_name }}'
             - '{{ ps_package_name }}'
-        # - name: go
-        #   unarchive:
-        #     src: 'https://golang.org/dl/go1.11.linux-amd64.tar.gz'
-        #     dest: '{{ ansible_env.HOME }}/.cache/esearch-dev'
-        #     remote_src: true
 
         - name: lua linter
           command: luarocks install luacheck
