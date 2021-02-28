@@ -16,9 +16,10 @@ fu! s:GlobSet.new(kinds, str2glob, globs) abort dict
 endfu
 
 " TODO
-fu! s:GlobSet.arg() abort
+fu! s:GlobSet.arg(...) abort
   let list = filter(copy(self.list), '!empty(v:val.str)')
-  return join(map(copy(list), 'v:val.opt . shellescape(v:val.str)'), ' ')
+  let dict = get(a:, 1, {})
+  return join(map(copy(list), 'get(dict, v:val.opt, v:val.opt) . shellescape(v:val.str)'), ' ')
 endfu
 
 fu! s:GlobSet.replace(str) abort dict

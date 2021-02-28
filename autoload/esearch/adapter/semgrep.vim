@@ -22,7 +22,7 @@ call extend(s:Semgrep, {
       \ ],
       \})
 
-fu! s:Semgrep.command(esearch, ...) abort dict
+fu! s:Semgrep.command(esearch) abort dict
 
   if empty(a:esearch.paths)
     let paths = self.pwd()
@@ -41,7 +41,7 @@ fu! s:Semgrep.command(esearch, ...) abort dict
         \], ' ')
 endfu
 
-let s:Semgrep.filetypes = split('go java js json python ruby c ocaml')
+let s:Semgrep.filetypes = split('go java js json py python rb ruby c ocaml')
 
 fu! s:Semgrep.filetypes2args(filetypes) abort dict
   return substitute(a:filetypes, '\<', '--lang=', 'g')

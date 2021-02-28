@@ -36,11 +36,11 @@ Execute(esearch#middleware#globs#apply from string for rg):
   AssertMatches b:esearch.request.command, "--glob 'full' --glob 'short' --iglob 'iglob'"
   AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
 
-Execute(esearch#middleware#globs#apply from string for ag):
+Execute(esearch#middleware#globs#apply from string for pt):
   call esearch#init({
       \ 'adapter': 'ag',
       \ 'globs': '--file-search-regex full --unknown unknown'})
-  AssertMatches b:esearch.request.command, "-G 'full'"
+  AssertMatches b:esearch.request.command, "--file-search-regex 'full'"
   AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
   messages clear
   call esearch#init({
@@ -50,16 +50,11 @@ Execute(esearch#middleware#globs#apply from string for ag):
   AssertMatches b:esearch.request.command, "'short'"
   messages clear
 
-Execute(esearch#middleware#globs#apply from string for pt):
+Execute(esearch#middleware#globs#apply from string for ag):
   call esearch#init({
       \ 'adapter': 'pt',
-      \ 'globs': '--file-search-regex full --unknown unknown'})
-  AssertMatches b:esearch.request.command, "-G 'full'"
+      \ 'globs': '--ignore full -G short --file-search-regexp synonym --unknown unknown'})
   AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
-  messages clear
-  call esearch#init({
-      \ 'adapter': 'pt',
-      \ 'globs': '-G short --unknown unknown'})
-  AssertEqual Messages(), ['esearch: unknown glob --unknown is specified']
-  AssertMatches b:esearch.request.command, "'short'"
+  AssertMatches b:esearch.request.command,
+    \ "--ignore 'full' --file-search-regexp 'short' --file-search-regexp 'synonym'"
   messages clear

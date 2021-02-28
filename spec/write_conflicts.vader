@@ -14,7 +14,7 @@ After:
   au! SwapExists *
   Assert UndotreeIsConsistent(), UndotreeIsInconsistentMsg()
   AssertEqual readfile(g:untouched_file), ['untouched_line1']
-  call bufload(g:untouched_file)
+  silent! call bufload(g:untouched_file)
   AssertEqual getbufline(bufnr(g:untouched_file), 1, '$'), ['untouched_line1']
   Assert !getbufvar(g:untouched_file, '&modified'), 'expected to not be modified'
 

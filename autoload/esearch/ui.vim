@@ -107,14 +107,6 @@ fu! esearch#ui#height(tokens) abort
   return float2nr(ceil(strdisplaywidth(text) * 1.0 / &columns))
 endfu
 
-fu! esearch#ui#hard_clear() abort
-  if has('nvim')
-    mode
-  else
-    redraw!
-  endif
-endfu
-
 fu! esearch#ui#to_string(component) abort
   let tokens = type(a:component) ==# s:t_list
         \ ? a:component

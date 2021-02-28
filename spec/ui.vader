@@ -30,7 +30,7 @@ After:
 Execute(ConfigurationsPrompt with string paths):
   call Fixture(file, [''])
   let g:esearch.paths = 'file.txt dir missing-dir /tmp'
-  let g:esearch.globs = '--iglob file.txt'
+  let g:esearch.globs = '--iglob file.txt --glob file2.txt'
   call esearch#middleware#globs#apply(g:esearch)
   call esearch#middleware#paths#apply(g:esearch)
 
@@ -52,7 +52,9 @@ Execute(ConfigurationsPrompt with string paths):
     \ ['NONE', ' '],
     \ ['Directory', dir_icon.'/tmp'],
     \ ['NONE', ' '],
-    \ ['Special', '<glob '], ['NONE', 'file.txt'], ['Special', '>']
+    \ ['Special', '<iglob '], ['NONE', 'file.txt'], ['Special', '>'],
+    \ ['NONE', ' '],
+    \ ['Special', '<glob '],  ['NONE', 'file2.txt'], ['Special', '>']
     \]
 
   let g:esearch#has#posix_shell = 0

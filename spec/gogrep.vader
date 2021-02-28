@@ -1,6 +1,7 @@
 Include: helper.vader
 
 Before:
+  AssertExecutableAvailable 'gogrep'
   Save g:esearch
   let g:esearch = {
       \ 'cwd': 'spec/fixtures/gogrep/',
@@ -28,5 +29,5 @@ Execute(#qflist):
   \ '}',
   \])
   call esearch#init({'out': 'qflist', 'pattern': 'return $x'})
-  AssertEqual getqflist()[0].text, ' return 1', getqflist()
   AssertEqual len(getqflist()), 1
+  AssertEqual getqflist()[0].text, ' return 1', getqflist()
