@@ -29,7 +29,6 @@ fu! s:PathInputController.render() abort dict
   endwhile
 
   call self.props.dispatch({'type': 'SET_PATHS',    'paths': paths})
-  call self.props.dispatch({'type': 'FORCE_EXEC'}) " exec before leaving the input
   call self.props.dispatch({'type': 'SET_LOCATION', 'location': 'menu'})
 endfu
 
