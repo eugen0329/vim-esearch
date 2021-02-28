@@ -72,6 +72,7 @@ fu! s:on_finish(bufnr, request, opts) abort
   call setbufvar(bufnr, '&buftype', 'nofile')
   call deletebufline(bufnr, 1, '$')
   call setbufline(bufnr, 1, a:request.data)
+  call appendbufline(bufnr, '$', a:request.errors)
   call a:opts.on_finish(bufnr, a:request, a:opts)
   call esearch#preview#open('[esearch-preview-shell]', a:opts.line, a:opts)
 endfu
