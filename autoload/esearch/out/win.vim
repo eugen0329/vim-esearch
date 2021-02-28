@@ -43,14 +43,17 @@ aug END
 
 fu! esearch#out#win#init(esearch) abort
   " If the final live update, do only minor initializations of the already prepared window
-  if a:esearch.live_update && !a:esearch.force_exec | return s:live_update_post(a:esearch) | endif
+  if a:esearch.live_update && !a:esearch.force_exec
+    call s:live_update_post(a:esearch)
+    call s:controls()
+    return b:esearch
+  endif
 
   " Open the window if not focused
   if a:esearch.live_update_bufnr !=# bufnr('') && a:esearch.bufnr !=# bufnr('')
     call a:esearch.win_new(a:esearch)
     if a:esearch.live_update | call esearch#util#doautocmd('User esearch_win_live_update_pre') | endif
   endif
-
   let was_clean = s:cleanup_old_request(a:esearch)
   call esearch#util#doautocmd('User esearch_win_init_pre')
 
@@ -61,21 +64,17 @@ fu! esearch#out#win#init(esearch) abort
         \ 'reload':          function('<SID>reload'),
         \ 'slow_hl_enabled': a:esearch.win_contexts_syntax || a:esearch.win_cursor_linenr_highlight,
         \})
-
-  call esearch#out#win#open#init(b:esearch)
-  call esearch#out#win#preview#floating#init(b:esearch)
-  call esearch#out#win#preview#split#init(b:esearch)
   call esearch#out#win#header#init(b:esearch)
-  call esearch#out#win#view_data#init(b:esearch)
-  call esearch#out#win#jumps#init(b:esearch)
   call esearch#out#win#update#init(b:esearch)
-  call esearch#out#win#textobj#init(b:esearch)
-
+  call esearch#out#win#view_data#init(b:esearch)
   " Some plugins set keymaps on filetype, so they should be set after.
   " Other things can be conveniently redefined using au FileType esearch
-  if was_clean | call s:init_keymaps() | endif
+  if was_clean
+    call s:init_keymaps()
+  endif
 
   setfiletype esearch
+
 
   " Prevent from blinking on reloads if the command is known to have a large
   " output
@@ -104,10 +103,12 @@ fu! esearch#out#win#init(esearch) abort
     call esearch#out#win#update#finish(bufnr('%'))
   endif
 
+  if !a:esearch.live_update
+    call s:controls()
+  endif
   " For some searches there will already be enough lines to restore the view
   " while can_finish_early is executed
   if exists('view') | call s:winrestview(b:esearch, view) | endif
-
   " If there are any results ready - try to add the highlights prematurely
   " without waiting for debouncing callback firing.
   call esearch#out#win#appearance#matches#hl_viewport(b:esearch)
@@ -115,7 +116,17 @@ fu! esearch#out#win#init(esearch) abort
     call esearch#out#win#appearance#ctx_syntax#hl_viewport(b:esearch)
   endif
 
+
+
   return b:esearch
+endfu
+
+fu! s:controls() abort
+  call esearch#out#win#open#init(b:esearch)
+  call esearch#out#win#preview#floating#init(b:esearch)
+  call esearch#out#win#preview#split#init(b:esearch)
+  call esearch#out#win#jumps#init(b:esearch)
+  call esearch#out#win#textobj#init(b:esearch)
 endfu
 
 fu! s:live_update_post(esearch) abort
@@ -140,7 +151,6 @@ fu! s:live_update_post(esearch) abort
   call esearch#out#win#appearance#matches#init_live_updated(b:esearch)
   call esearch#util#doautocmd('WinEnter') " hit statuslines updates
   call esearch#util#doautocmd('User esearch_win_live_update_post')
-  return b:esearch
 endfu
 
 fu! s:cleanup_old_request(esearch) abort

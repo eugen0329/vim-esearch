@@ -11,43 +11,39 @@ function! s:get(...) abort
   let name = a:0 ? a:1 : ''
   let records = split(s:_highlight(name), '\r\?\n')
   let highlights = map(records, 's:_parse_record(v:val)')
-  let highlights = filter(highlights, '!empty(v:val)')
   return a:0 ? highlights[0] : highlights
 endfunction
 
-function! s:set(highlight, ...) abort
+function! s:set(name, attrs, ...) abort
   let options = extend({
         \ 'force': 0,
         \ 'default': 0,
         \}, get(a:000, 0, {})
         \)
-  let name = a:highlight.name
   let force = options.force ? '!' : ''
   let default = options.default ? 'default' : ''
-  if get(a:highlight.attrs, 'clear')
-    execute 'highlight' 'clear' name
-  elseif !empty(get(a:highlight.attrs, 'link'))
-    execute 'highlight' . force default 'link' name a:highlight.attrs.link
+  if empty(a:attrs)
+    execute 'highlight' 'clear' a:name
+  elseif !empty(get(a:attrs, 'link'))
+    execute 'highlight' . force default 'link' a:name a:attrs.link
   else
-    let attrs = map(items(a:highlight.attrs), 'v:val[0] . ''='' . v:val[1]')
-    execute 'highlight' default name join(attrs)
+    let attrs = map(items(a:attrs), 'v:val[0] . ''='' . v:val[1]')
+    execute 'highlight' default a:name join(attrs)
   endif
 endfunction
 
 
 function! s:_parse_record(record) abort
-  let m = matchlist(a:record, '^\(\S\+\)\s\+xxx\s\(.*\)$')
+  let m = matchlist(a:record, '^\%(\S\+\)\s\+xxx\s\(.*\)$')
   if empty(m)
     return {}
   endif
-  let name = m[1]
-  let attrs = s:_parse_attrs(m[2])
-  return {'name': name, 'attrs': attrs}
+  return s:_parse_attrs(m[1])
 endfunction
 
 function! s:_parse_attrs(attrs) abort
   if a:attrs ==# 'cleared'
-    return { 'cleared': 1 }
+    return {}
   elseif a:attrs =~# '^links to'
     return { 'link': matchstr(a:attrs, 'links to \zs.*') }
   endif

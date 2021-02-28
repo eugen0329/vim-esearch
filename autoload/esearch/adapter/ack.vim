@@ -19,19 +19,19 @@ let s:Ack.mandatory_options = '--nogroup --nocolor --noheading --with-filename -
 call extend(s:Ack, {
       \ 'bool2regex': ['literal', 'pcre'],
       \ 'regex': {
-      \   'literal':   {'icon': '',  'option': '--literal'},
-      \   'pcre':      {'icon': 'r', 'option': ''},
+      \   'literal':   {'icon': '',  'opt': '--literal'},
+      \   'pcre':      {'icon': 'r', 'opt': ''},
       \ },
       \ 'bool2textobj': ['none', 'word'],
       \ 'textobj': {
-      \   'none':      {'icon': '',  'option': ''},
-      \   'word':      {'icon': 'w', 'option': '--word-regexp'},
+      \   'none':      {'icon': '',  'opt': ''},
+      \   'word':      {'icon': 'w', 'opt': '--word-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
       \ 'case': {
-      \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
-      \   'sensitive': {'icon': 's', 'option': '--no-smart-case'},
-      \   'smart':     {'icon': 'S', 'option': '--smart-case'},
+      \   'ignore':    {'icon':  '', 'opt': '--ignore-case'},
+      \   'sensitive': {'icon': 's', 'opt': '--no-smart-case'},
+      \   'smart':     {'icon': 'S', 'opt': '--smart-case'},
       \ }
       \})
 

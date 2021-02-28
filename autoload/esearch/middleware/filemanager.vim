@@ -11,7 +11,6 @@ let g:esearch#middleware#filemanager#filetype2filer = {
 fu! esearch#middleware#filemanager#apply(esearch) abort
   if !has_key(g:esearch#middleware#filemanager#filetype2filer, &filetype)
         \ || !a:esearch.filemanager_integration
-        \ || (a:esearch.live_update && a:esearch.force_exec)
     return a:esearch
   endif
 

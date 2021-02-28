@@ -1,5 +1,5 @@
-fu! esearch#pattern#new(adapter, str) abort
-  return s:PatternSet.new(a:adapter.pattern_kinds, a:str)
+fu! esearch#pattern#new(adapter, ...) abort
+  return s:PatternSet.new(a:adapter.pattern_kinds, get(a:, 1, []))
 endfu
 
 let s:PatternSet = {}
@@ -14,7 +14,7 @@ fu! s:PatternSet.splice(esearch) abort dict
   let self._arg = map(copy(self.list), '[v:val.opt, v:val.convert(a:esearch).arg]')
   let self.arg = join(map(copy(self._arg), 'join(v:val)'))
 
-  if self.patterns.len() > 1
+  if len(self.list) > 1
     let self.str = self.arg
     let vim = join(map(filter(copy(self.patterns.list), 'v:val.klass ==# "Regex"'), 'v:val.vim'), '\m\|')
     if !empty(vim) | let [self.vim, self.vim_rest] = s:hat_and_rest(vim) | endif
@@ -34,10 +34,14 @@ fu! s:hat_and_rest(vim) abort
   return [substitute(a:vim, s:hat_re, '^', 'g'), substitute(a:vim, s:bound_re, '\%(^\)\@<!\&', 'g')]
 endfu
 
-fu! s:PatternSet.new(kinds, str) abort dict
+fu! s:PatternSet.new(kinds, patterns) abort dict
   let new = copy(self)
   let new.kinds = esearch#util#cycle(a:kinds)
-  let new.patterns = esearch#util#stack([s:Pattern.from_kind(new.kinds.next(), a:str)])
+  let new.patterns = esearch#util#stack([])
+  for [kind, str] in a:patterns
+    call new.patterns.push(s:Pattern.from_kind(kind, str))
+  endfor
+
   let new.list = new.patterns.list
   return new
 endfu
@@ -54,21 +58,26 @@ fu! s:PatternSet.replace(str) abort dict
   return self.patterns.replace(extend(copy(self.patterns.top()), {'str': a:str}))
 endfu
 
-fu! s:PatternSet.push() abort dict
-  return self.patterns.push(s:Pattern.from_kind(self.kinds.next(), ''))
+fu! s:PatternSet.add(str) abort dict
+  return self.patterns.push(s:Pattern.from_kind(self.kinds.peek(), a:str))
+endfu
+
+fu! s:PatternSet.push(str) abort dict
+  return self.patterns.push(s:Pattern.from_kind(self.kinds.next(), a:str))
 endfu
 
 fu! s:PatternSet.try_pop() abort dict
-  if self.patterns.len() < 2 | return | endif
+  if len(self.list) < 1 | return s:Pattern.from_kind(self.kinds.peek(), '') | endif
   return self.patterns.pop()
 endfu
 
-fu! s:PatternSet.next() abort dict
-  return self.patterns.replace(s:Pattern.from_kind(self.kinds.next(), self.peek().str))
-endfu
+" TODO DROP
+" fu! s:PatternSet.next() abort dict
+"   return self.patterns.replace(s:Pattern.from_kind(self.kinds.next(), self.peek().str))
+" endfu
 
 fu! s:PatternSet.peek() abort dict
-  return self.patterns.top()
+  return empty(self.list) ? s:Pattern.from_kind(self.kinds.peek(), '') : self.patterns.top()
 endfu
 
 let s:Pattern = {}

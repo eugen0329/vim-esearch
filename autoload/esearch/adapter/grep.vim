@@ -28,23 +28,59 @@ let s:Grep.mandatory_options = '-H -R -n'
 call extend(s:Grep, {
       \ 'bool2regex': ['literal', 'basic'],
       \ 'regex': {
-      \   'literal':  {'icon': '',  'option': '-F'},
-      \   'basic':    {'icon': 'G', 'option': '-G'},
-      \   'extended': {'icon': 'E', 'option': '-E'},
-      \   'pcre':     {'icon': 'P', 'option': '-P'},
+      \   'literal':  {'icon': '',  'opt': '-F'},
+      \   'basic':    {'icon': 'G', 'opt': '-G'},
+      \   'extended': {'icon': 'E', 'opt': '-E'},
+      \   'pcre':     {'icon': 'P', 'opt': '-P'},
       \ },
       \ 'bool2textobj': ['none', 'word'],
       \ 'textobj': {
-      \   'none':     {'icon': '',  'option': ''},
-      \   'word':     {'icon': 'w', 'option': '-w'},
-      \   'line':     {'icon': 'l', 'option': '-x'},
+      \   'none':     {'icon': '',  'opt': ''},
+      \   'word':     {'icon': 'w', 'opt': '-w'},
+      \   'line':     {'icon': 'l', 'opt': '-x'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
       \ 'case': {
-      \   'ignore':    {'icon':  '', 'option': '-i'},
-      \   'sensitive': {'icon': 's', 'option': ''},
-      \ }
+      \   'ignore':    {'icon':  '', 'opt': '-i'},
+      \   'sensitive': {'icon': 's', 'opt': ''},
+      \ },
+      \ 'multi_pattern': 1,
+      \ 'pattern_kinds': [{'icon': '', 'opt': '-e ', 'regex': 1}],
       \})
+
+
+" TODO globs
+" fu! s:Rg._command(esearch, glob_or_pattern) abort dict
+fu! s:Grep.command(esearch) abort dict
+  let regex = self.regex[a:esearch.regex].opt
+  let case = self.textobj[a:esearch.textobj].opt
+  let textobj = self.case[a:esearch.case].opt
+
+  if empty(a:esearch.paths)
+    let paths = self.pwd()
+  else
+    let paths = esearch#shell#join(a:esearch.paths)
+  endif
+
+  let context = ''
+  if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
+  if a:esearch.before > 0  | let context .= ' -B ' . a:esearch.before  | endif
+  if a:esearch.context > 0 | let context .= ' -C ' . a:esearch.context | endif
+
+  return join([
+        \ self.bin,
+        \ regex,
+        \ case,
+        \ textobj,
+        \ self.mandatory_options,
+        \ self.options,
+        \ context,
+        \ a:esearch.pattern.arg,
+        \ '--',
+        \ paths,
+        \], ' ')
+endfu
+
 
 fu! s:Grep.is_success(request) abort
   " 0 if a line is match, 1 if no lines matched, > 1 are for errors

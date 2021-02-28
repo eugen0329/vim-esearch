@@ -6,6 +6,7 @@ let g:esearch#has#timers = has('timers')
 let g:esearch#has#debounce = has('timers')
 let g:esearch#has#reg_recording = exists('*reg_recording')
 let g:esearch#has#throttle = has('timers')
+let g:esearch#has#input_highlight = has('nvim-0.2.1')
 let g:esearch#has#bufadd = exists('*bufadd')
 let g:esearch#has#bufload = exists('*bufload')
 let g:esearch#has#meta_key = has('nvim') || has('gui_running')
@@ -18,7 +19,8 @@ let g:esearch#has#preview = (g:esearch#has#nvim_preview || g:esearch#has#vim8_pr
 let g:esearch#has#nvim_winid = exists('*nvim_set_current_win') && exists('*nvim_get_current_win')
 let g:esearch#has#vim8_types = exists('v:true') && exists('v:false') && exists('v:null')
 let g:esearch#has#nvim_jobs = has('nvim') && exists('*jobstart')
-let g:esearch#has#live_update = has('timers') && exists('##CmdlineChanged')
+" let g:esearch#has#live_update = has('timers') && exists('##CmdlineChanged')
+let g:esearch#has#live_update = 1
 " 7.4.1787 - fix of: channel close callback is invoked before other callbacks
 let g:esearch#has#vim8_calls_close_cb_last = has('patch-7.4.1787')
 let g:esearch#has#vim8_jobs = has('job') && g:esearch#has#vim8_calls_close_cb_last

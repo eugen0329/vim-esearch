@@ -2,6 +2,7 @@ let s:Dict     = vital#esearch#import('Data.Dict')
 let s:List     = vital#esearch#import('Data.List')
 let s:Filepath = vital#esearch#import('System.Filepath')
 
+let g:esearch#shell#kind = g:esearch#has#posix_shell ? 'posix' : 'windows'
 let s:metachars = '()[]{}?*+@!$^|'
 if g:esearch#has#windows " From src/vim.h
   let g:esearch#shell#esc_chars = join(uniq(split(s:metachars." \t\n*?[{`%#'\"|!<", '\zs')))
@@ -9,15 +10,14 @@ else
   let g:esearch#shell#esc_chars = join(uniq(split(s:metachars." \t\n*?[{`$\\%#'\"|!<>();&", '\zs')))
 endif
 let s:is_metachar = s:Dict.make_index(split(s:metachars, '\zs'))
-let g:esearch#shell#metachar_re = '['.escape(s:metachars, ']').']'
-let s:matachar_re = g:esearch#shell#metachar_re
+let s:metachar_re = '['.escape(s:metachars, ']').']'
 let s:eval_re = '`\%(\\`\|[^`]\)*`'
 let s:regular = '\%(\\.\|[^''" \t`\\'.escape(s:metachars, ']').']\)\+'
 let s:sq_re   = '''\%([^'']\+\|''''\)*'''
 let s:dq_re   = '"\%(\\"\|[^"]\)*"'
 let s:err_re  = '[''"`]\|\\$'
 " inspired by rb 3 shellwords implementation
-let s:word_re = '\('.join([s:matachar_re, s:eval_re, s:regular, s:sq_re, s:dq_re, s:err_re], '\|').'\)\(\s*\)'
+let s:word_re = '\('.join([s:metachar_re, s:eval_re, s:regular, s:sq_re, s:dq_re, s:err_re], '\|').'\)\(\s*\)'
 let s:split_dq_by_eval_re = '\('.s:eval_re.'\|[^`]*\)\zs'
 let s:unmatched_backtick_re = '^`\%(\\`\|[^`]\)*$'
 let s:errors = {
@@ -26,6 +26,10 @@ let s:errors = {
       \ "'": 'unmatched single quote',
       \ '`': 'unmatched backtick',
       \}
+
+let g:esearch#shell#is_metachar = s:is_metachar 
+let g:esearch#shell#metachars = s:metachars
+let g:esearch#shell#word_re = join([s:metachar_re, s:eval_re, s:regular, s:sq_re, s:dq_re, s:err_re], '\|')
 
 fu! esearch#shell#split(str) abort
   return g:esearch#has#posix_shell ? s:split_posix_shell(a:str) : [a:str, 0]

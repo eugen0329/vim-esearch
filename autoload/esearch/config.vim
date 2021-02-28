@@ -64,6 +64,8 @@ fu! esearch#config#init(esearch) abort
         \ 'git_url':                               function('esearch#git#url'),
         \ 'live_update':                           g:esearch#has#live_update && g:esearch.backend !=# 'system',
         \ 'live_update_debounce_wait':             50,
+        \ 'live_update_menu_debounce_wait':        80,
+        \ 'live_update_menu_redraw_wait':          400,
         \ 'live_update_min_len':                   3,
         \ 'force_exec':                            0,
         \ 'live_update_bufnr':                     -1,

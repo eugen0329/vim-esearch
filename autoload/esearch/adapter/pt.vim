@@ -22,19 +22,19 @@ let s:ignore = {'icon': '--ignore', 'opt': '--ignore '}
 call extend(s:Pt, {
       \ 'bool2regex': ['literal', 're2'],
       \ 'regex': {
-      \   'literal':   {'icon': '',  'option': ''},
-      \   're2':       {'icon': 'r', 'option': '-e'},
+      \   'literal':   {'icon': '',  'opt': ''},
+      \   're2':       {'icon': 'r', 'opt': '-e'},
       \ },
       \ 'bool2textobj': ['none', 'word'],
       \ 'textobj': {
-      \   'none':     {'icon': '',  'option': ''},
-      \   'word':     {'icon': 'w', 'option': '--word-regexp'},
+      \   'none':     {'icon': '',  'opt': ''},
+      \   'word':     {'icon': 'w', 'opt': '--word-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
       \ 'case': {
-      \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
-      \   'sensitive': {'icon': 's', 'option': ''},
-      \   'smart':     {'icon': 'S', 'option': '--smart-case'},
+      \   'ignore':    {'icon':  '', 'opt': '--ignore-case'},
+      \   'sensitive': {'icon': 's', 'opt': ''},
+      \   'smart':     {'icon': 'S', 'opt': '--smart-case'},
       \ },
       \ 'multi_glob': 1,
       \ 'glob_options': '--files-with-matches',
@@ -43,9 +43,9 @@ call extend(s:Pt, {
       \})
 
 fu! s:Pt._command(esearch, pattern_arg, converter) abort dict
-  let regex = self.regex[a:esearch.regex].option
-  let case = self.textobj[a:esearch.textobj].option
-  let textobj = self.case[a:esearch.case].option
+  let regex = self.regex[a:esearch.regex].opt
+  let case = self.textobj[a:esearch.textobj].opt
+  let textobj = self.case[a:esearch.case].opt
   let paths = self.pwd() ? empty(a:esearch.paths) : esearch#shell#join(a:esearch.paths)
   let context = ''
   if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
@@ -71,7 +71,7 @@ fu! s:Pt.command(esearch) abort dict
   return self._command(a:esearch, a:esearch.pattern.arg, {})
 endfu
 
-fu! s:Pt.glob(esearch) abort dict
+fu! s:Pt.glob_command(esearch) abort dict
   return self._command(a:esearch, '', {'--file-search-regexp ': '-g '})
 endfu
 

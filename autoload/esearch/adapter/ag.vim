@@ -21,19 +21,19 @@ let s:ignore = {'icon': '--ignore', 'opt': '--ignore '}
 call extend(s:Ag, {
       \ 'bool2regex': ['literal', 'pcre'],
       \ 'regex': {
-      \   'literal':   {'icon': '',  'option': '--fixed-strings'},
-      \   'pcre':      {'icon': 'r', 'option': ''},
+      \   'literal':   {'icon': '',  'opt': '--fixed-strings'},
+      \   'pcre':      {'icon': 'r', 'opt': ''},
       \ },
       \ 'bool2textobj': ['none', 'word'],
       \ 'textobj': {
-      \   'none':      {'icon': '',  'option': ''},
-      \   'word':      {'icon': 'w', 'option': '--word-regexp'},
+      \   'none':      {'icon': '',  'opt': ''},
+      \   'word':      {'icon': 'w', 'opt': '--word-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
       \ 'case': {
-      \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
-      \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
-      \   'smart':     {'icon': 'S', 'option': '--smart-case'},
+      \   'ignore':    {'icon':  '', 'opt': '--ignore-case'},
+      \   'sensitive': {'icon': 's', 'opt': '--case-sensitive'},
+      \   'smart':     {'icon': 'S', 'opt': '--smart-case'},
       \ },
       \ 'multi_glob': 1,
       \ 'glob_options': '--files-with-matches',
@@ -45,9 +45,9 @@ call extend(s:Ag, {
 let s:Ag.filetypes = split('actionscript ada asciidoc apl asm batch bitbake bro cc cfmx chpl clojure coffee coq cpp crystal csharp css cython delphi dlang dot dts ebuild elisp elixir elm erlang factor fortran fsharp gettext glsl go groovy haml handlebars haskell haxe hh html idris ini ipython isabelle j jade java jinja2 js json jsp julia kotlin less liquid lisp log lua m4 make mako markdown mason matlab mathematica md mercury naccess nim nix objc objcpp ocaml octave org parrot pdb perl php pike plist plone proto pug puppet python qml racket rake restructuredtext rs r rdoc ruby rust salt sass scala scheme shell smalltalk sml sql stata stylus swift tcl terraform tex thrift tla tt toml ts twig vala vb velocity verilog vhdl vim wix wsdl wadl xml yaml')
 
 fu! s:Ag._command(esearch, pattern_arg, converter) abort dict
-  let regex = self.regex[a:esearch.regex].option
-  let case = self.textobj[a:esearch.textobj].option
-  let textobj = self.case[a:esearch.case].option
+  let regex = self.regex[a:esearch.regex].opt
+  let case = self.textobj[a:esearch.textobj].opt
+  let textobj = self.case[a:esearch.case].opt
   let paths = self.pwd() ? empty(a:esearch.paths) : esearch#shell#join(a:esearch.paths)
   let context = ''
   if a:esearch.after > 0   | let context .= ' -A ' . a:esearch.after   | endif
@@ -71,7 +71,7 @@ fu! s:Ag.command(esearch) abort dict
   return self._command(a:esearch, a:esearch.pattern.arg, {})
 endfu
 
-fu! s:Ag.glob(esearch) abort dict
+fu! s:Ag.glob_command(esearch) abort dict
   return self._command(a:esearch, '', {'--file-search-regex ': '-g '})
 endfu
 

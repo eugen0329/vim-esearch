@@ -27,12 +27,12 @@ fu! s:Expiring.get(key) abort dict
 endfu
 
 fu! s:Expiring.set(key, value) abort dict
-  let self.data[a:key] = a:value
-  let self.ages[a:key] = localtime()
-
-  if len(self.data) >= self.size
+  if len(self.data) + 1 >= self.size
     call self.evict()
   endif
+
+  let self.data[a:key] = a:value
+  let self.ages[a:key] = localtime()
 endfu
 
 " Random strategy that keeps 25% of data. Should be enough for now to prevent

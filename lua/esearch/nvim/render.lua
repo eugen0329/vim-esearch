@@ -72,8 +72,7 @@ function M.prepare(last_context, files_count, slow_hl_enabled, parsed, from, to,
     line = line + 1
   end
 
-  return lines, files_count, contexts, state, ctx_by_name,
-         lines_delta, slow_hl_enabled, deferred_calls
+  return lines, files_count, contexts, state, ctx_by_name, lines_delta, slow_hl_enabled, deferred_calls
 end
 
 function M.submit_updates(bufnr, lines, contexts, deferred_calls, from_line)
@@ -94,27 +93,12 @@ function M.render(bufnr, data, last_context, files_count, slow_hl_enabled, parse
   local lines, contexts, state, ctx_by_name, deferred_calls
   local from_line = vim.api.nvim_buf_line_count(0)
 
-  lines,
-  files_count,
-  contexts,
-  state,
-  ctx_by_name,
-  lines_delta,
-  slow_hl_enabled,
-  deferred_calls = M.prepare(last_context, files_count, slow_hl_enabled, parsed,
-                             1, #parsed, lines_delta, from_line)
+  lines, files_count, contexts, state, ctx_by_name, lines_delta, slow_hl_enabled, deferred_calls =
+    M.prepare(last_context, files_count, slow_hl_enabled, parsed, 1, #parsed, lines_delta, from_line)
 
   M.submit_updates(bufnr, lines, contexts, deferred_calls, from_line)
 
-  return {
-    files_count,
-    lines_delta,
-    contexts,
-    state,
-    ctx_by_name,
-    slow_hl_enabled,
-    errors
-  }
+  return {files_count, lines_delta, contexts, state, ctx_by_name, slow_hl_enabled, errors}
 end
 
 return M

@@ -2,7 +2,7 @@ fu! esearch#init(...) abort
   call esearch#util#doautocmd('User eseach_init_pre')
   call esearch#config#eager()
 
-  let esearch = extend(extend(copy(g:esearch), {'remember': 0}), copy(get(a:, 1, {})))
+  let esearch = extend(extend(copy(g:esearch), {'remember': 0}), get(a:, 1, {}))
   try
     for l:Middleware in esearch.middleware.list
       let esearch = Middleware(esearch)
