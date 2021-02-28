@@ -21,7 +21,7 @@ install:
     sudo add-apt-repository -y ppa:jonathonf/vim
     sudo apt-get update
     sudo apt-get -y install ansible ruby-dev
-    make setup-host setup-serializer DOCKER_RUN=
+    DOCKER=0 make
 before_script:
   - |
     vim --version || true
