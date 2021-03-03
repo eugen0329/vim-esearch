@@ -304,3 +304,19 @@ endfu
 fu! esearch#util#noop(...) abort
   return 0
 endfu
+
+fu! esearch#util#file_exists(path) abort
+  let [dirname, basename] = [s:Filepath.dirname(a:path), s:Filepath.basename(a:path)]
+  return !empty(globpath(dirname, basename, 1))
+endfu
+
+fu! esearch#util#list2dict(list) abort
+  let [i, dict] = [0, {}]
+
+  while i < len(a:list)
+    let dict[i + 1] = a:list[i]
+    let i += 1
+  endwhile
+
+  return dict
+endfu

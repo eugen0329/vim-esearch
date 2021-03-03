@@ -117,16 +117,6 @@ fu! esearch#buf#rename_qf(name) abort
   let w:quickfix_title = a:name
 endfu
 
-fu! s:bufdo(bufnr, cmd, bang) abort
-  let cur_buffer = esearch#buf#stay()
-  try
-    exe (bufnr('%') == a:bufnr ? '' : a:bufnr.'bufdo ') . a:cmd . (a:bang ? '!' : '')
-    return 1
-  catch   | call esearch#util#warn(v:exception) | return 0
-  finally | call cur_buffer.restore()
-  endtry
-endfu
-
 fu! esearch#buf#import() abort
   return copy(s:Buf)
 endfu
@@ -155,6 +145,16 @@ else
   endfu
 endif
 
+fu! s:Buf.bufdo(cmd, ...) abort dict
+  let cur_buffer = esearch#buf#stay()
+  try
+    exe (bufnr('%') == self.bufnr ? '' : self.bufnr.'bufdo ') . a:cmd . (a:0 && a:1 ? '!' : '')
+    return 1
+  catch   | call esearch#util#warn(v:exception) | return 0
+  finally | call cur_buffer.restore()
+  endtry
+endfu
+
 if exists('*nvim_buf_line_count')
   fu! s:Buf.oneliner() abort dict
     return nvim_buf_line_count(self.bufnr) == 1
@@ -170,7 +170,7 @@ else
 endif
 
 fu! s:Buf.goto() abort dict
-  exe 'buffer!' self.bufnr 
+  exe 'buffer!' self.bufnr
 endfu
 
 fu! s:Buf.getline(lnum) abort dict
@@ -195,7 +195,7 @@ fu! s:Buf.deleteline(lnum) abort dict
 endfu
 
 fu! s:Buf.write(bang) dict abort
-  return s:bufdo(self.bufnr, 'write', a:bang)
+  return self.bufdo('write', a:bang)
 endfu
 
 fu! s:Buf.open(opener, ...) dict abort
@@ -204,11 +204,11 @@ fu! s:Buf.open(opener, ...) dict abort
 endfu
 
 fu! s:Buf.bdelete(...) dict abort
-  return s:bufdo(self.bufnr, 'bdelete', get(a:, 1))
+  return self.bufdo('bdelete', get(a:, 1))
 endfu
 
 fu! s:Buf.bwipeout(...) dict abort
-  return s:bufdo(self.bufnr, 'bwipeout', get(a:, 1))
+  return self.bufdo('bwipeout', get(a:, 1))
 endfu
 
 fu! esearch#buf#stay() abort
@@ -222,5 +222,5 @@ fu! s:CurrentBufferGuard.new() abort dict
 endfu
 
 fu! s:CurrentBufferGuard.restore() abort dict
-  if self.bufnr != bufnr('') | exe self.bufnr 'buffer!' | endif
+  if self.bufnr != bufnr('') | noau exe self.bufnr 'buffer!' | endif
 endfu

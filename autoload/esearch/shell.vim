@@ -229,7 +229,12 @@ elseif g:esearch#has#vms
 else
   let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
 endif
+let s:path_unesc_re = '\\\(' . join(map(split(s:path_esc_chars, '\zs'), 'escape(v:val, ''^$~.*[]\'')'), '\|') . '\)'
 
 fu! s:fnameescape(string) abort
   return escape(a:string, s:metachars . s:path_esc_chars)
+endfu
+
+fu! esearch#shell#fnameunescape(fname) abort
+  return substitute(a:fname, s:path_unesc_re, '\1', 'g')
 endfu

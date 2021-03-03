@@ -55,16 +55,23 @@ fu! s:write_cmd() abort
     return s:Log.error(substitute(v:exception, '^DiffError:', '', ''))
   endtry
 
-  if diff.stats.files == 0 | echo 'Nothing to save' | return | endi
+  if diff.stats.files == 0 | echo 'Nothing to save' | return | endif
 
-  let [kinds, total_changes] = [[], diff.stats.modified + diff.stats.deleted + diff.stats.added]
-  if diff.stats.added > 0    | let kinds += [diff.stats.added . ' added']       | endif
-  if diff.stats.modified > 0 | let kinds += [diff.stats.modified . ' modified'] | endif
-  if diff.stats.deleted > 0  | let kinds += [diff.stats.deleted . ' deleted']   | endif
+  let stats = diff.stats
+  let [kinds, total_changes] = [[], stats.modified + stats.deleted + stats.added]
+  if stats.added > 0    | let kinds += [stats.added . ' added']       | endif
+  if stats.modified > 0 | let kinds += [stats.modified . ' modified'] | endif
+  if stats.deleted > 0  | let kinds += [stats.deleted . ' deleted']   | endif
+  if stats.renamed > 0
+    let renamed = ', ' . stats.renamed . ' renamed ' . (stats.renamed == 1 ? 'file' : 'files')
+  else
+    let renamed = ''
+  endif
 
-  let message = printf('Write changes? (%s %s in %d %s)',
+  let message = printf('Write changes? (%s %s in %d %s%s)',
         \ join(kinds, ', '), total_changes == 1 ? 'line' : 'lines',
-        \ diff.stats.files, diff.stats.files == 1 ? 'file' : 'files')
+        \ stats.files, stats.files == 1 ? 'file' : 'files',
+        \ renamed)
   if !get(g:, 'esearch_yes') && confirm(message, "&Yes\n&Cancel") != 1 | return |endif
 
   call esearch#writer#do(diff, b:esearch, v:cmdbang)

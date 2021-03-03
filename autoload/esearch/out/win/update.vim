@@ -189,4 +189,5 @@ fu! esearch#out#win#update#finish(bufnr) abort
   cal setbufvar(a:bufnr, '&modified', 0)
   cal esearch#out#win#modifiable#init()
   if es.win_ui_nvim_syntax | cal luaeval('esearch.buf_attach_ui()') | en
+  let es.linecount = line('$')
 endfu
