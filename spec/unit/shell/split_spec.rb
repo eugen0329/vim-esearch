@@ -8,7 +8,7 @@ describe 'esearch#shell' do
   include Helpers::Shell
 
   describe '#split' do
-    describe 'special' do
+    xdescribe 'special' do
       shared_examples 'it detects wildcars location' do |c|
         it { expect(metachars_at("#{c}ab")).to     eq([[0]])    }
         it { expect(metachars_at("#{c}ab#{c}")).to eq([[0, 3]]) }
@@ -50,7 +50,8 @@ describe 'esearch#shell' do
     end
 
     describe 'multibyte' do
-      it { expect(split("'Σ'")).to  eq([['Σ', 0..3]]) }
+      it { expect(split("'Σ'")).to   eq([['Σ', 0..3]])              }
+      it { expect(split("Σ 'Σ'")).to eq([['Σ', 0..1], ['Σ', 2..5]]) }
     end
 
     describe 'double quote' do

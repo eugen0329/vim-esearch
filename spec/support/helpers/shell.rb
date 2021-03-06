@@ -14,7 +14,7 @@ module Helpers::Shell
     paths, error = editor.echo(func('esearch#shell#split', str))
     return :error if error != 0
 
-    paths.map { |word| word['metachars'] }
+    paths.map { |word| word['tokens'] }
   end
 
   def split_and_escape(str)
