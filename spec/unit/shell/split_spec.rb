@@ -127,10 +127,6 @@ describe 'esearch#shell' do
       it { expect(split('\\\\')).to    eq(['\\'])  }
       it { expect(split('\\`')).to     eq(['`'])   }
 
-      describe 'globbing' do
-        it { expect(split('\\*ab')).to eq(['*ab']) }
-      end
-
       describe 'unescaping anything' do
         it { expect(split('a\\b')).to eq(['ab']) }
         it { expect(split('ab\\')).to eq(:error) }
