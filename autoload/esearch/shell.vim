@@ -6,53 +6,56 @@ let s:metachars = '()[]{}?*+@!$^|'
 let s:is_metachar = s:Dict.make_index(split(s:metachars, '\zs'))
 let g:esearch#shell#metachar_re = '['.escape(s:metachars, ']').']'
 let s:matachar_re = g:esearch#shell#metachar_re
-let s:eval_re = '`[^`]\{-}`'
+let s:eval_re = '`\%(\\`\|[^`]\)*`'
 let s:regular = '\%(\\.\|[^''" `\\'.escape(s:metachars, ']').']\)\+'
-let s:sq_re = '''\%([^'']\+\|''''\)*'''
-let s:dq_re = '"\%([^"\\]\+\|\\.\)*"'
-let s:err_re = '[''"`]\|\\$'
+let s:sq_re   = '''\%([^'']\+\|''''\)*'''
+let s:dq_re   = '"\%(\\"\|[^"]\)*"'
+let s:err_re  = '[''"`]\|\\$'
 " inspired by rb 3 shellwords implementation
 let s:word_re = '\('.join([s:matachar_re, s:eval_re, s:regular, s:sq_re, s:dq_re, s:err_re], '\|').'\)\(\s*\)'
+let s:split_dq_by_eval_re = '\('.s:eval_re.'\|[^`]*\)\zs'
+let s:unmatched_backtick_re = '^`\%(\\`\|[^`]\)*$'
 let s:errors = {
       \ '\': 'trailing slash',
-      \ '"': 'unterminated double quote',
-      \ "'": 'unterminated single quote',
-      \ '`': 'unterminated backtick',
+      \ '"': 'unmatched double quote',
+      \ "'": 'unmatched single quote',
+      \ '`': 'unmatched backtick',
       \ }
 
 fu! esearch#shell#split(str) abort
-  if !g:esearch#has#posix_shell | return [a:str, 0] | endif
-
-  return s:split_posix(a:str)
+  return g:esearch#has#posix_shell ? s:split_posix_shell(a:str) : [a:str, 0]
 endfu
 
 " @return ([{str: String, meta: Bool, tokens: [(Bool, String)]}], Error)
-fu! s:split_posix(str) abort
+fu! s:split_posix_shell(str) abort
   let [args, tokens, offset] = [[], [], matchend(a:str, '^\s*')]
   let meta = 0
 
   while 1
     let matches = matchlist(a:str, s:word_re, offset)[0:2]
     if empty(matches) | break | endif
-    let [match, token, sep] = matches
+    let [match, text, sep] = matches
 
-    let err = get(s:errors, token)
+    let err = get(s:errors, text)
     if !empty(err) | return [args, err.' at byte '.offset] | endif
 
-    if has_key(s:is_metachar, token)
-      call add(tokens, [1, token])
+    if get(s:is_metachar, text) || text[0] ==# '`'
+      call add(tokens, [1, text])
       let meta = 1
-    elseif token[0] ==# '"'
-      let subtokens = split(token[1:-2], '\(`[^`]*`\|[^`]*\)\zs')
-      let meta = meta || len(subtokens) > 1 || token[0] ==# '`'
-      let tokens += map(subtokens, 'v:val[0] ==# "`" ? [1, v:val] : [0, s:unescape(v:val)]')
-    elseif token[0] ==# "'"
-      call add(tokens, [0, substitute(token[1:-2], "''", '', 'g')])
-    elseif token[0] ==# '`'
-      call add(tokens, [1, token])
-      let meta = 1
+    elseif text[0] ==# '"'
+      if text ==# '""'
+        call add(tokens, [0, ''])
+      else
+        let subtokens = split(text[1:-2], s:split_dq_by_eval_re)
+        let meta = meta || len(subtokens) > 1 || text[0] ==# '`'
+        if subtokens[-1] =~# s:unmatched_backtick_re | return [args, s:errors['`']] | endif
+
+        let tokens += map(subtokens, 'v:val[0] ==# "`" ? [1, v:val] : [0, s:unescape(v:val)]')
+      endif
+    elseif text[0] ==# "'"
+      call add(tokens, [0, substitute(text[1:-2], "''", '', 'g')])
     else
-      call add(tokens, [0, s:unescape(token)])
+      call add(tokens, [0, s:unescape(text)])
     endif
 
     if !empty(sep) || offset + len(match) ==# len(a:str)
@@ -76,13 +79,10 @@ endfu
 fu! esearch#shell#join_pathspec(args) abort
   if !g:esearch#has#posix_shell
     " temporarty workaround for windows shell
-    if match(a:args, ' [''"\\]\=-') >= 0 | return ' -- ' . a:args | endif
-
-    return  a:args . ' -- '
+    return  a:args =~# ' [''"\\]\=-' ?  ' -- ' . a:args : a:args . ' -- '
   endif
 
   let [trees, pathspecs] = s:List.partition(function('s:not_option'), a:args)
-
   return esearch#shell#join(trees)
         \.(empty(pathspecs) ? '' : ' -- '.esearch#shell#join(pathspecs))
 endfu
@@ -101,16 +101,13 @@ endfu
 " validation. Windows argv is represented as a string.
 fu! esearch#shell#argv(strs) abort
   if g:esearch#has#posix_shell | return map(copy(a:strs), 's:minimized_arg(v:val)') | endif
-
   return join(map(copy(a:strs), 'shellescape(v:val)'))
 endfu
 
 fu! s:minimized_arg(path) abort
-  if s:Filepath.is_relative(a:path)
-    return s:arg(a:path, 0, 0, [], 0)
-  endif
+  if s:Filepath.is_relative(a:path) | return s:arg(a:path, [], 0) | endif
 
-  return s:arg(fnamemodify(a:path, ':.'), 0, 0, [], 0)
+  return s:arg(fnamemodify(a:path, ':.'), [], 0)
 endfu
 
 fu! s:arg(str, tokens, meta) abort
