@@ -11,7 +11,8 @@ let s:regular = '\%(\\.\|[^''" `\\'.escape(s:metachars, ']').']\)\+'
 let s:sq_re = '''\%([^'']\+\|''''\)*'''
 let s:dq_re = '"\%([^"\\]\+\|\\.\)*"'
 let s:err_re = '[''"`]\|\\$'
-let s:word_re = '\('.s:matachar_re.'\|'.s:eval_re.'\|'.s:regular.'\|'.s:sq_re.'\|'.s:dq_re.'\|'.s:err_re.'\)\(\s*\|\s*$\)'
+" inspired by rb 3 shellwords implementation
+let s:word_re = '\('.join([s:matachar_re, s:eval_re, s:regular, s:sq_re, s:dq_re, s:err_re], '\|').'\)\(\s*\)'
 let s:errors = {
       \ '\': 'trailing slash',
       \ '"': 'unterminated double quote',
@@ -25,20 +26,18 @@ fu! esearch#shell#split(str) abort
   return s:split_posix(a:str)
 endfu
 
-" inspired by rb 3 shellwords implementation
+" @return ([{str: String, meta: Bool, tokens: [(Bool, String)]}], Error)
 fu! s:split_posix(str) abort
-  let [args, tokens, byte_offset] = [[], [], matchend(a:str, '^\s*')]
-  let [begin, end] = [byte_offset, byte_offset]
-  let offset = byte_offset
+  let [args, tokens, offset] = [[], [], matchend(a:str, '^\s*')]
   let meta = 0
 
   while 1
-    let matches = matchlist(a:str, s:word_re, byte_offset)[0:2]
+    let matches = matchlist(a:str, s:word_re, offset)[0:2]
     if empty(matches) | break | endif
     let [match, token, sep] = matches
 
     let err = get(s:errors, token)
-    if !empty(err) | return [args, err.' at col '.offset] | endif
+    if !empty(err) | return [args, err.' at byte '.offset] | endif
 
     if has_key(s:is_metachar, token)
       call add(tokens, [1, token])
@@ -56,14 +55,12 @@ fu! s:split_posix(str) abort
       call add(tokens, [0, s:unescape(token)])
     endif
 
-    if !empty(sep) || byte_offset + len(match) ==# len(a:str)
-      call add(args, s:arg(join(map(copy(tokens), 'v:val[1]'), ''), begin, offset + strchars(token), tokens, meta))
-      let begin = offset + strchars(match)
+    if !empty(sep) || offset + len(match) ==# len(a:str)
+      call add(args, s:arg(join(map(copy(tokens), 'v:val[1]'), ''), tokens, meta))
       let [tokens, meta] = [[], 0]
     endif
 
-    let byte_offset += len(match)
-    let offset += strchars(match)
+    let offset += len(match)
   endwhile
 
   return [args, 0]
@@ -96,8 +93,8 @@ fu! esearch#shell#join(args) abort
 endfu
 
 fu! esearch#shell#escape(path) abort
-  if !a:path.meta | return fnameescape(a:path.str) | endif
-  return join(map(copy(a:path.tokens), 'v:val[0] ? v:val[1] : fnameescape(v:val[1])'), '')
+  if !a:path.meta | return s:fnameescape(a:path.str) | endif
+  return join(map(copy(a:path.tokens), 'v:val[0] ? v:val[1] : s:fnameescape(v:val[1])'), '')
 endfu
 
 " Posix argv is represented as a list for better completion, highlights and
@@ -116,11 +113,24 @@ fu! s:minimized_arg(path) abort
   return s:arg(fnamemodify(a:path, ':.'), 0, 0, [], 0)
 endfu
 
-fu! s:arg(str, begin, end, tokens, meta) abort
-  return {'str': a:str, 'begin': a:begin, 'end': a:end, 'tokens': a:tokens, 'meta': a:meta}
+fu! s:arg(str, tokens, meta) abort
+  return {'str': a:str, 'tokens': a:tokens, 'meta': a:meta}
 endfu
 
 fu! s:not_option(p) abort
   return a:p.str[0] !=# '-'
 endfu
 let s:by_not_option = function('s:not_option')
+
+" From src/vim.h
+if g:esearch#has#windows
+  let s:path_esc_chars = " \t\n*?[{`%#'\"|!<"
+elseif g:esearch#has#vms
+  let s:path_esc_chars = " \t\n*?{`\\%#'\"|!"
+else
+  let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
+endif
+
+fu! s:fnameescape(string) abort
+  return escape(a:string, s:metachars . s:path_esc_chars)
+endfu

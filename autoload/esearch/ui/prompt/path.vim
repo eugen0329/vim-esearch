@@ -39,11 +39,7 @@ fu! s:PathPrompt.highlight_metachars(path) abort dict
 
   for [meta, text] in a:path.tokens
     if meta
-      if text[0] ==# '`'
-        call add(chunks, ['Special', text])
-      else
-        call add(chunks, ['Identifier', text])
-      endif
+      call add(chunks, [text[0] ==# '`' ? 'Special' : 'Identifier', text])
     else
       call add(chunks, ['None', fnameescape(text)])
     endif
