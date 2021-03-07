@@ -25,7 +25,7 @@ let s:errors = {
       \ '"': 'unmatched double quote',
       \ "'": 'unmatched single quote',
       \ '`': 'unmatched backtick',
-      \ }
+      \}
 
 fu! esearch#shell#split(str) abort
   return g:esearch#has#posix_shell ? s:split_posix_shell(a:str) : [a:str, 0]

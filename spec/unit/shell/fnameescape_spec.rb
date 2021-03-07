@@ -57,8 +57,14 @@ describe 'esearch#shell' do
       include_examples 'escapes char', '#'
       include_examples 'escapes char', '>'
       include_examples 'escapes char', '<'
-      include_examples 'escapes char', ' '
       include_examples 'escapes char', "\n"
+
+      describe 'handling \s' do
+        it { expect(split_and_escape("'a b'")).to   eq(['a\\ b'])     }
+        it { expect(split_and_escape("'a\\ b'")).to eq(['a\\\\\\ b']) }
+        it { expect(split_and_escape('a b')).to     eq(%w[a b])       }
+        it { expect(split_and_escape('a\\ b')).to   eq(['a\\ b'])     }
+      end
 
       describe 'handling \t' do
         it { expect(split_and_escape("'a\tb'")).to   eq(["a\\\tb"])     }
