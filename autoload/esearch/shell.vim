@@ -4,17 +4,15 @@ let s:Filepath = vital#esearch#import('System.Filepath')
 
 let s:metachars = '()[]{}?*+@!$^|'
 if g:esearch#has#windows " From src/vim.h
-  let s:path_esc_chars = s:metachars." \t\n*?[{`%#'\"|!<"
-elseif g:esearch#has#vms
-  let s:path_esc_chars = s:metachars." \t\n*?{`\\%#'\"|!"
+  let g:esearch#shell#esc_chars = join(uniq(split(s:metachars." \t\n*?[{`%#'\"|!<", '\zs')))
 else
-  let s:path_esc_chars = s:metachars." \t\n*?[{`$\\%#'\"|!<"
+  let g:esearch#shell#esc_chars = join(uniq(split(s:metachars." \t\n*?[{`$\\%#'\"|!<>();&", '\zs')))
 endif
 let s:is_metachar = s:Dict.make_index(split(s:metachars, '\zs'))
 let g:esearch#shell#metachar_re = '['.escape(s:metachars, ']').']'
 let s:matachar_re = g:esearch#shell#metachar_re
 let s:eval_re = '`\%(\\`\|[^`]\)*`'
-let s:regular = '\%(\\.\|[^''" `\\'.escape(s:metachars, ']').']\)\+'
+let s:regular = '\%(\\.\|[^''" \t`\\'.escape(s:metachars, ']').']\)\+'
 let s:sq_re   = '''\%([^'']\+\|''''\)*'''
 let s:dq_re   = '"\%(\\"\|[^"]\)*"'
 let s:err_re  = '[''"`]\|\\$'
@@ -96,9 +94,9 @@ endfu
 fu! esearch#shell#escape(path) abort
   if a:path.meta
     let str = join(map(copy(a:path.tokens),
-          \ 'v:val[0] ? v:val[1] : escape(v:val[1], s:path_esc_chars)'), '')
+          \ 'v:val[0] ? v:val[1] : escape(v:val[1], g:esearch#shell#esc_chars)'), '')
   else
-    let str = escape(a:path.str, s:path_esc_chars)
+    let str = escape(a:path.str, g:esearch#shell#esc_chars)
   endif
   return str =~# '^[+>]\|^-$' ? '\'.str : str
 endfu
