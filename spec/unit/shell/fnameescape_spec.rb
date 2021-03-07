@@ -16,15 +16,12 @@ describe 'esearch#shell' do
       shared_examples 'prevents special from escaping' do |c|
         it { expect(split_and_escape("#{c}b")).to          eq(["#{c}b"])          }
         it { expect(split_and_escape(c.to_s)).to           eq([c.to_s])           }
-        it { expect(split_and_escape("#{c}a")).to          eq(["#{c}a"])          }
-        it { expect(split_and_escape("#{c}abc")).to        eq(["#{c}abc"])        }
         it { expect(split_and_escape("#{c}a#{c}")).to      eq(["#{c}a#{c}"])      }
         it { expect(split_and_escape("#{c}b#{c}a")).to     eq(["#{c}b#{c}a"])     }
         it { expect(split_and_escape("#{c}b#{c}a#{c}")).to eq(["#{c}b#{c}a#{c}"]) }
 
         it { expect(split_and_escape("b#{c}c")).to         eq(["b#{c}c"])         }
         it { expect(split_and_escape("a#{c}")).to          eq(["a#{c}"])          }
-        it { expect(split_and_escape("a#{c}bc")).to        eq(["a#{c}bc"])        }
         it { expect(split_and_escape("a#{c}bcd")).to       eq(["a#{c}bcd"])       }
         it { expect(split_and_escape("abcd#{c}")).to       eq(["abcd#{c}"])       }
         it { expect(split_and_escape("b#{c}a#{c}")).to     eq(["b#{c}a#{c}"])     }
@@ -32,25 +29,14 @@ describe 'esearch#shell' do
 
       shared_examples 'prevents special from double escaping' do |c|
         it { expect(split_and_escape("\\#{c}")).to               eq(["\\#{c}"])               }
-        it { expect(split_and_escape("\\#{c}a")).to              eq(["\\#{c}a"])              }
         it { expect(split_and_escape("\\#{c}abc")).to            eq(["\\#{c}abc"])            }
-        it { expect(split_and_escape("\\#{c}a\\#{c}")).to        eq(["\\#{c}a\\#{c}"])        }
         it { expect(split_and_escape("\\#{c}b\\#{c}a")).to       eq(["\\#{c}b\\#{c}a"])       }
         it { expect(split_and_escape("\\#{c}b\\#{c}a\\#{c}")).to eq(["\\#{c}b\\#{c}a\\#{c}"]) }
 
         it { expect(split_and_escape("a\\#{c}")).to              eq(["a\\#{c}"])              }
-        it { expect(split_and_escape("a\\#{c}bc")).to            eq(["a\\#{c}bc"])            }
         it { expect(split_and_escape("a\\#{c}bcd")).to           eq(["a\\#{c}bcd"])           }
         it { expect(split_and_escape("abc\\#{c}")).to            eq(["abc\\#{c}"])            }
         it { expect(split_and_escape("b\\#{c}a\\#{c}")).to       eq(["b\\#{c}a\\#{c}"])       }
-
-        it { expect(split_and_escape("''a\\#{c}")).to            eq(["a\\#{c}"])              }
-        it { expect(split_and_escape("''a#{c}a")).to             eq(["a#{c}a"])               }
-        it { expect(split_and_escape("''a\\#{c}")).to            eq(["a\\#{c}"])              }
-        it { expect(split_and_escape("''a#{c}a")).to             eq(["a#{c}a"])               }
-
-        it { expect(split_and_escape("''a#{c}a\\")).to           eq(:error)                   }
-        it { expect(split_and_escape("''a#{c}a'")).to            eq(:error)                   }
       end
 
       shared_examples 'handles escaping of shell special' do |c|
@@ -62,7 +48,6 @@ describe 'esearch#shell' do
       include_examples 'handles escaping of shell special', '*'
       include_examples 'handles escaping of shell special', '!'
       include_examples 'handles escaping of shell special', '|'
-
       include_examples 'handles escaping of shell special', '^'
       include_examples 'handles escaping of shell special', '$'
       include_examples 'handles escaping of shell special', '['
@@ -72,20 +57,35 @@ describe 'esearch#shell' do
       include_examples 'handles escaping of shell special', ')'
       include_examples 'handles escaping of shell special', '{'
       include_examples 'handles escaping of shell special', '}'
-      include_examples 'handles escaping of shell special', '+'
+
+      include_examples 'prevents special from double escaping', '+'
     end
 
-    context 'when special only when leading' do
+    context 'when special only on leading position' do
       # Based on :h fnameescape() and src/vim.h
-      it { expect(split_and_escape('-')).to   eq(['\-'])  }
-      it { expect(split_and_escape('-a')).to  eq(['-a'])  }
-      it { expect(split_and_escape('a-')).to  eq(['a-'])  }
-      it { expect(split_and_escape('>')).to   eq(['\>'])  }
-      it { expect(split_and_escape('>a')).to  eq(['\>a']) }
-      it { expect(split_and_escape('a>')).to  eq(['a>'])  }
-      it { expect(split_and_escape('\+')).to  eq(['\+'])  }
-      it { expect(split_and_escape('\+a')).to eq(['\+a']) }
-      it { expect(split_and_escape('a\+')).to eq(['a\+']) }
+      context 'when not escaped yet' do
+        it { expect(split_and_escape('-')).to   eq(['\-'])  }
+        it { expect(split_and_escape('-a')).to  eq(['-a'])  }
+        it { expect(split_and_escape('a-')).to  eq(['a-'])  }
+        it { expect(split_and_escape('>')).to   eq(['\>'])  }
+        it { expect(split_and_escape('>a')).to  eq(['\>a']) }
+        it { expect(split_and_escape('a>')).to  eq(['a>'])  }
+        it { expect(split_and_escape('+')).to   eq(['\+'])  }
+        it { expect(split_and_escape('+a')).to  eq(['\+a']) }
+        it { expect(split_and_escape('a+')).to  eq(['a+']) }
+      end
+
+      context 'when already escaped' do
+        it { expect(split_and_escape('\-')).to  eq(['\-'])  }
+        it { expect(split_and_escape('\-a')).to eq(['-a'])  }
+        it { expect(split_and_escape('a\-')).to eq(['a-'])  }
+        it { expect(split_and_escape('\>')).to  eq(['\>'])  }
+        it { expect(split_and_escape('\>a')).to eq(['\>a']) }
+        it { expect(split_and_escape('a\>')).to eq(['a>'])  }
+        it { expect(split_and_escape('\+')).to  eq(['\+'])  }
+        it { expect(split_and_escape('\+a')).to eq(['\+a']) }
+        it { expect(split_and_escape('a\+')).to eq(['a\+']) }
+      end
     end
   end
 end

@@ -28,7 +28,7 @@ endfu
 
 " @return ([{str: String, meta: Bool, tokens: [(Bool, String)]}], Error)
 fu! s:split_posix_shell(str) abort
-  let [args, tokens, offset] = [[], [], matchend(a:str, '^\s*')]
+  let [argv, tokens, offset] = [[], [], matchend(a:str, '^\s*')]
   let meta = 0
 
   while 1
@@ -37,7 +37,7 @@ fu! s:split_posix_shell(str) abort
     let [match, text, sep] = matches
 
     let err = get(s:errors, text)
-    if !empty(err) | return [args, err.' at byte '.offset] | endif
+    if !empty(err) | return [argv, err.' at byte '.offset] | endif
 
     if get(s:is_metachar, text) || text[0] ==# '`'
       call add(tokens, [1, text])
@@ -48,7 +48,7 @@ fu! s:split_posix_shell(str) abort
       else
         let subtokens = split(text[1:-2], s:split_dq_by_eval_re)
         let meta = meta || len(subtokens) > 1 || text[0] ==# '`'
-        if subtokens[-1] =~# s:unmatched_backtick_re | return [args, s:errors['`']] | endif
+        if subtokens[-1] =~# s:unmatched_backtick_re | return [argv, s:errors['`']] | endif
 
         let tokens += map(subtokens, 'v:val[0] ==# "`" ? [1, v:val] : [0, s:unescape(v:val)]')
       endif
@@ -59,46 +59,44 @@ fu! s:split_posix_shell(str) abort
     endif
 
     if !empty(sep) || offset + len(match) ==# len(a:str)
-      call add(args, s:arg(join(map(copy(tokens), 'v:val[1]'), ''), tokens, meta))
+      call add(argv, s:arg(join(map(copy(tokens), 'v:val[1]'), ''), tokens, meta))
       let [tokens, meta] = [[], 0]
     endif
 
     let offset += len(match)
   endwhile
 
-  return [args, 0]
-endfu
-
-fu! s:unescape(str) abort
-  return substitute(a:str, '\\\(.\)', '\1', 'g')
+  return [argv, 0]
 endfu
 
 " If an element of <pathspec> starts with '-', it goes after '--' to prevent
 " parsing it as an option. <tree> cannot be passed after '--', so partitioning
 " is required.
-fu! esearch#shell#join_pathspec(args) abort
+fu! esearch#shell#join_pathspec(argv) abort
   if !g:esearch#has#posix_shell
     " temporarty workaround for windows shell
-    return  a:args =~# ' [''"\\]\=-' ?  ' -- ' . a:args : a:args . ' -- '
+    return  a:argv =~# ' [''"\\]\=-' ?  ' -- ' . a:argv : a:argv . ' -- '
   endif
 
-  let [trees, pathspecs] = s:List.partition(function('s:not_option'), a:args)
+  let [trees, pathspecs] = s:List.partition(function('s:not_option'), a:argv)
   return esearch#shell#join(trees)
         \.(empty(pathspecs) ? '' : ' -- '.esearch#shell#join(pathspecs))
 endfu
 
-fu! esearch#shell#join(args) abort
-  if !g:esearch#has#posix_shell | return a:args | endif
-  return join(map(copy(a:args), 'esearch#shell#escape(v:val)'), ' ')
+fu! esearch#shell#join(argv) abort
+  if !g:esearch#has#posix_shell | return a:argv | endif
+  return join(map(copy(a:argv), 'esearch#shell#escape(v:val)'), ' ')
 endfu
 
 fu! esearch#shell#escape(path) abort
-  if !a:path.meta | return s:fnameescape(a:path.str) | endif
-  return join(map(copy(a:path.tokens), 'v:val[0] ? v:val[1] : s:fnameescape(v:val[1])'), '')
+  if a:path.meta
+    let str = join(map(copy(a:path.tokens), 'v:val[0] ? v:val[1] : s:escape(v:val[1])'), '')
+  else
+    let str = s:escape(a:path.str)
+  endif
+  return str =~# '^[+>]\|^-$' ? '\'.str : str
 endfu
 
-" Posix argv is represented as a list for better completion, highlights and
-" validation. Windows argv is represented as a string.
 fu! esearch#shell#argv(strs) abort
   if g:esearch#has#posix_shell | return map(copy(a:strs), 's:minimized_arg(v:val)') | endif
   return join(map(copy(a:strs), 'shellescape(v:val)'))
@@ -106,7 +104,6 @@ endfu
 
 fu! s:minimized_arg(path) abort
   if s:Filepath.is_relative(a:path) | return s:arg(a:path, [], 0) | endif
-
   return s:arg(fnamemodify(a:path, ':.'), [], 0)
 endfu
 
@@ -128,6 +125,10 @@ else
   let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
 endif
 
-fu! s:fnameescape(string) abort
-  return escape(a:string, s:metachars . s:path_esc_chars)
+fu! s:escape(str) abort
+  return escape(a:str, s:metachars . s:path_esc_chars)
+endfu
+
+fu! s:unescape(str) abort
+  return substitute(a:str, '\\\(.\)', '\1', 'g')
 endfu
