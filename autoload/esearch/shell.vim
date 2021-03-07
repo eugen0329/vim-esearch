@@ -3,6 +3,13 @@ let s:List     = vital#esearch#import('Data.List')
 let s:Filepath = vital#esearch#import('System.Filepath')
 
 let s:metachars = '()[]{}?*+@!$^|'
+if g:esearch#has#windows " From src/vim.h
+  let s:path_esc_chars = s:metachars." \t\n*?[{`%#'\"|!<"
+elseif g:esearch#has#vms
+  let s:path_esc_chars = s:metachars." \t\n*?{`\\%#'\"|!"
+else
+  let s:path_esc_chars = s:metachars." \t\n*?[{`$\\%#'\"|!<"
+endif
 let s:is_metachar = s:Dict.make_index(split(s:metachars, '\zs'))
 let g:esearch#shell#metachar_re = '['.escape(s:metachars, ']').']'
 let s:matachar_re = g:esearch#shell#metachar_re
@@ -46,11 +53,11 @@ fu! s:split_posix_shell(str) abort
       if text ==# '""'
         call add(tokens, [0, ''])
       else
-        let subtokens = split(text[1:-2], s:split_dq_by_eval_re)
-        let meta = meta || len(subtokens) > 1 || text[0] ==# '`'
-        if subtokens[-1] =~# s:unmatched_backtick_re | return [argv, s:errors['`']] | endif
+        let sub = split(text[1:-2], s:split_dq_by_eval_re)
+        let meta = meta || len(sub) > 1 || text[0] ==# '`'
+        if sub[-1] =~# s:unmatched_backtick_re | return [argv, s:errors['`']] | endif
 
-        let tokens += map(subtokens, 'v:val[0] ==# "`" ? [1, v:val] : [0, s:unescape(v:val)]')
+        let tokens += map(sub, 'v:val[0] ==# "`" ? [1, v:val] : [0, s:unescape(v:val)]')
       endif
     elseif text[0] ==# "'"
       call add(tokens, [0, substitute(text[1:-2], "''", '', 'g')])
@@ -69,12 +76,10 @@ fu! s:split_posix_shell(str) abort
   return [argv, 0]
 endfu
 
-" If an element of <pathspec> starts with '-', it goes after '--' to prevent
-" parsing it as an option. <tree> cannot be passed after '--', so partitioning
-" is required.
+" Git grep recognizes args as <tree-or-path> -- <path>. We put everything before
+" '--' except paths that look like options and can't be before '--'.
 fu! esearch#shell#join_pathspec(argv) abort
-  if !g:esearch#has#posix_shell
-    " temporarty workaround for windows shell
+  if !g:esearch#has#posix_shell " temporarty workaround for windows shell
     return  a:argv =~# ' [''"\\]\=-' ?  ' -- ' . a:argv : a:argv . ' -- '
   endif
 
@@ -90,9 +95,10 @@ endfu
 
 fu! esearch#shell#escape(path) abort
   if a:path.meta
-    let str = join(map(copy(a:path.tokens), 'v:val[0] ? v:val[1] : s:escape(v:val[1])'), '')
+    let str = join(map(copy(a:path.tokens),
+          \ 'v:val[0] ? v:val[1] : escape(v:val[1], s:path_esc_chars)'), '')
   else
-    let str = s:escape(a:path.str)
+    let str = escape(a:path.str, s:path_esc_chars)
   endif
   return str =~# '^[+>]\|^-$' ? '\'.str : str
 endfu
@@ -115,19 +121,6 @@ fu! s:not_option(p) abort
   return a:p.str[0] !=# '-'
 endfu
 let s:by_not_option = function('s:not_option')
-
-" From src/vim.h
-if g:esearch#has#windows
-  let s:path_esc_chars = " \t\n*?[{`%#'\"|!<"
-elseif g:esearch#has#vms
-  let s:path_esc_chars = " \t\n*?{`\\%#'\"|!"
-else
-  let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
-endif
-
-fu! s:escape(str) abort
-  return escape(a:str, s:metachars . s:path_esc_chars)
-endfu
 
 fu! s:unescape(str) abort
   return substitute(a:str, '\\\(.\)', '\1', 'g')
