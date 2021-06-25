@@ -80,7 +80,7 @@ function M.set_timeout(callback, delay, ...)
   timer:start(delay, 0, function()
     timer:stop()
     timer:close()
-    callback(unpack(args))
+    callback(M.unpack(args))
   end)
   return timer
 end
