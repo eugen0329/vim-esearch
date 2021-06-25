@@ -1,5 +1,6 @@
 local ui       = require('esearch/nvim/appearance/ui')
 local debounce = require('esearch/shared/util').debounce
+local unpack   = require('esearch/shared/util').unpack
 
 local M = {
   MATCHES_NS       = vim.api.nvim_create_namespace('esearch_matches'),
