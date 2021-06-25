@@ -1,5 +1,6 @@
 local M = {}
 
+M.unpack = unpack and unpack or table.unpack
 
 if vim.funcref('has')('patch-8.2.1066') == 1 then
   M.ifirst = 1

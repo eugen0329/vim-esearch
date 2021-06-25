@@ -1,4 +1,4 @@
-local M
+local M = {}
 
 if vim.api then
   M = require('esearch/nvim/util')

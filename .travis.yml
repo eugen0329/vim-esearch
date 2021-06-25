@@ -64,6 +64,6 @@ jobs:
     - name: 'Linters'
       script:
         - luacheck lua/
-        - "vint autoload/esearch/ autoload/esearch.vim plugin syntax"
+        - vint autoload/esearch/ autoload/esearch.vim plugin syntax
         - bundle exec rubocop
       os: linux

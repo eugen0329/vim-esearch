@@ -1,5 +1,7 @@
 local M = {}
 
+M.unpack = unpack and unpack or table.unpack
+
 M.ifirst = 1
 
 function M.ilast(tbl)

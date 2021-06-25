@@ -5,7 +5,7 @@ local filereadable = util.filereadable
 local json_decode = util.json_decode
 local ifirst, ilast = util.ifirst, util.ilast
 local NIL = util.NIL
-local list, append = util.list, util.append
+local list, append, unpack = util.list, util.append, util.unpack
 
 local M = {}
 
