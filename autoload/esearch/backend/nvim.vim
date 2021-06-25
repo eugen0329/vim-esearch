@@ -1,15 +1,14 @@
-let s:jobs = {}
-
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
 endif
-
+let s:CLOSE_STDIN = g:esearch#has#posix_shell ? ' 0<&-' : ''
 let s:NVIM_JOB_IS_INVALID = -3
+let s:jobs = {}
 
 fu! esearch#backend#nvim#init(cwd, adapter, command) abort
   let request = {
         \ 'jobstart_args': {
-        \   'command': split(&shell) + split(&shellcmdflag) + [a:command],
+        \   'command': split(&shell) + split(&shellcmdflag) + [a:command . s:CLOSE_STDIN],
         \   'opts': {
         \     'on_stdout': function('s:stdout'),
         \     'on_stderr': function('s:stderr'),
