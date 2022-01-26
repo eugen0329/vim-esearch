@@ -1,4 +1,4 @@
-fu! esearch#backend#system#init(cwd, adapter, cmd) abort
+fu! esearch#backend#system#init(cwd, adapter, cmd, ...) abort
   let request = {
         \ 'command': a:cmd,
         \ 'cwd':     a:cwd,

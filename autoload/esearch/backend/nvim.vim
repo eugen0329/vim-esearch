@@ -1,14 +1,17 @@
 if !exists('g:esearch#backend#nvim#ticks')
   let g:esearch#backend#nvim#ticks = 3
 endif
+ " Rg 13 requires stdin to be closed, but g:esearch.paths can contain #xargs
+ " where a pipe is used. TODO improve esearch#backend#{}#init interface
 let s:CLOSE_STDIN = g:esearch#has#posix_shell ? ' 0<&-' : ''
 let s:NVIM_JOB_IS_INVALID = -3
 let s:jobs = {}
 
-fu! esearch#backend#nvim#init(cwd, adapter, command) abort
+fu! esearch#backend#nvim#init(cwd, adapter, command, ...) abort
+  let is_xargs = get(a:000, 0)
   let request = {
         \ 'jobstart_args': {
-        \   'command': split(&shell) + split(&shellcmdflag) + [a:command . s:CLOSE_STDIN],
+        \   'command': split(&shell) + split(&shellcmdflag) + [a:command . (is_xargs ? '' : s:CLOSE_STDIN)],
         \   'opts': {
         \     'on_stdout': function('s:stdout'),
         \     'on_stderr': function('s:stderr'),
