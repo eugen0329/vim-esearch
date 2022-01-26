@@ -4,7 +4,7 @@ endif
 let s:id = esearch#util#counter()
 let s:jobs = {}
 
-fu! esearch#backend#vim8#init(cwd, adapter, command) abort
+fu! esearch#backend#vim8#init(cwd, adapter, command, ...) abort
   " TODO add 'stoponexit'
   let id = s:id.next()
   let request = {
