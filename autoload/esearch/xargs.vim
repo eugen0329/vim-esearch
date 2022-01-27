@@ -46,7 +46,7 @@ let s:prepend_filenames_with_revisions = printf(s:prepend_filenames_with_revisio
 fu! s:git_log(adapter, esearch) abort dict
   let pipe = join([
         \ a:adapter.bin,
-        \ 'log --oneline --pretty=format:%H --name-only --diff-filter=drc --ignore-submodules=all',
+        \ 'log --oneline --pretty=format:%H --name-only --diff-filter=d --ignore-submodules=all',
         \ a:esearch.regex ==# 'literal' ? '' : '--pickaxe-regex',
         \ a:esearch.case ==# 'ignore' ?  '--regexp-ignore-case' : '',
         \ self.options,
@@ -77,7 +77,7 @@ fu! s:git_stash(adapter, esearch) abort dict
   " -S is claimed to work the same as in git-log, but it doesn't
   let pipe = join([
         \ a:adapter.bin,
-        \ 'stash list --oneline --pretty=format:%gd --name-only --diff-filter=drc',
+        \ 'stash list --oneline --pretty=format:%gd --name-only --diff-filter=d',
         \ self.options,
         \ printf(s:prepend_filenames_with_revisions_fmt, filter_paths),
         \ s:xargs_batched,
