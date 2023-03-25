@@ -44,11 +44,18 @@ endfu
 
 fu! s:MenuController.component_will_mount() abort dict
   let s:saved_winheight = winheight(0)
-  let s:saved_options = esearch#let#restorable({
+  let l:options = {
         \ '&cmdheight': self.menu.height,
         \ '&lazyredraw': 0,
-        \ '&more': 0,
-        \ '&t_ve': ''})
+        \ '&more': 0
+        \}
+
+  " t_ve is vim only.
+  if exists('&t_ve')
+      let l:options['&t_ve'] = ''
+  endif
+
+  let s:saved_options = esearch#let#restorable(l:options)
   call esearch#ui#soft_clear()
 endfu
 
