@@ -1,7 +1,7 @@
 let s:Log = esearch#log#import()
 let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
      \ s:t_list, s:t_number, s:t_string] = esearch#polyfill#definitions()
-let s:relative = 'win'
+let s:relative = 'editor'
 
 fu! esearch#preview#nvim#popup#import() abort
   return s:NvimPopup
@@ -85,7 +85,7 @@ fu! s:NvimPopup.enter() abort dict
   noau keepj call win_gotoid(self.id)
 endfu
 
-fu! s:NvimPopup.open() abort
+fu! s:NvimPopup.open() abort dict
   try
     let original_options = esearch#util#silence_swap_prompt()
     let self.id = nvim_open_win(self.buf.id, 0, {
@@ -193,23 +193,4 @@ endfu
 
 fu! s:NvimPopup.is_entered() abort dict
   return win_getid() ==# self.id
-endfu
-
-fu! s:NvimPopup.open() abort dict
-  try
-    let original_options = esearch#util#silence_swap_prompt()
-    let self.id = nvim_open_win(self.buf.id, 0, {
-          \ 'width':     self.shape.width,
-          \ 'height':    self.shape.height,
-          \ 'focusable': s:false,
-          \ 'anchor':    self.shape.anchor,
-          \ 'row':       self.shape.row,
-          \ 'col':       self.shape.col,
-          \ 'relative':  s:relative,
-          \})
-  finally
-    call original_options.restore()
-  endtry
-
-  return self
 endfu
