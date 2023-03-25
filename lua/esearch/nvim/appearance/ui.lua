@@ -8,10 +8,9 @@ local M = {
 
 local function highlight_header(bufnr, text)
   vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchHeader', 0, 0, -1)
-  local pos1, pos2 =  text:find('%d+')
+  local pos1, pos2 =  text:find('%S?%d+') -- Matches in (<)?N lines, N files
   if (pos1 or 0) < 2 then return end
-  -- 2 is subtracted to capture less-than-or-equl-to sign
-  vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 2, pos2)
+  vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)
   pos1, pos2 =  text:find('%d+', pos2 + 1)
   if (pos1 or 0) < 1 then return end
   vim.api.nvim_buf_add_highlight(bufnr, M.UI_NS, 'esearchStatistics', 0, pos1 - 1, pos2)

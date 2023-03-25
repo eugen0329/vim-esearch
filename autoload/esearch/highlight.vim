@@ -3,25 +3,45 @@ let g:esearch#highlight#float_lighter = 0.025
 let g:esearch#highlight#float_darker  = -0.05
 let g:esearch#highlight#match_lighter = 0.14
 let g:esearch#highlight#match_darker  = -0.10
+let s:cache = {}
 
 fu! esearch#highlight#init() abort
   aug esearch_highlight
     au!
-    au ColorScheme * call esearch#highlight#set()
+    au ColorScheme * let s:cache = {} | call s:init()
   aug END
-  call esearch#highlight#set()
+  call s:init()
 endfu
 
-fu! esearch#highlight#set() abort
+fu! esearch#highlight#bg(chunks, from) abort
+  let chunks = deepcopy(a:chunks)
+  let bg = esearch#util#slice(s:get(a:from), ['ctermbg', 'guibg'])
+  let ns = 'esearch'.a:from.'Bg'
+
+  for chunk in chunks
+    let new_name = ns.chunk[1]
+
+    if !has_key(s:cache, new_name)
+      let hl = s:get(chunk[1])
+      call s:set(new_name, extend(copy(hl), bg), {'default': 1})
+    endif
+
+    let chunk[1] = new_name
+  endfor
+
+  return chunks
+endfu
+
+fu! s:init() abort
   hi def link esearchStatistics   Number
   hi def link esearchFilename     Directory
   hi def link esearchLineNr       LineNr
   hi def link esearchCursorLineNr CursorLineNr
   hi def      esearchHeader       cterm=bold gui=bold
 
-  let esearchBasename = extend(s:resolvehl('esearchFilename', {'fallback': 'Directory'}),
+  let esearchBasename = extend(copy(s:get('esearchFilename', 'Directory')),
         \ {'cterm': 'bold', 'gui': 'bold'})
-  call s:sethl('esearchBasename', esearchBasename, {'default': 1})
+  call s:set('esearchBasename', esearchBasename, {'default': 1})
 
   let s:is_dark = s:detect_dark_background()
   call s:set_matches_highlight()
@@ -29,25 +49,25 @@ fu! esearch#highlight#set() abort
   call s:set_float_win_highlights()
 
   if hlexists('esearchLnum')
-    call s:copyhl('esearchLnum', 'esearchLineNr', {'force': 1})
+    call s:copy('esearchLnum', 'esearchLineNr', {'force': 1})
   endif
   if hlexists('esearchFName')
-    call s:copyhl('esearchFName', 'esearchFilename', {'force': 1})
+    call s:copy('esearchFName', 'esearchFilename', {'force': 1})
   endif
 endfu
 
 fu! s:set_virtual_sign_highlight() abort
-  let DiffAdd = s:gethl('DiffAdd')
-  silent! unlet DiffAdd['ctermbg']
-  silent! unlet DiffAdd['guibg']
-  call s:sethl('esearchDiffAdd', DiffAdd, {'default': 1})
+  let esearchDiffAdd = copy(s:get('DiffAdd'))
+  silent! unlet esearchDiffAdd['ctermbg']
+  silent! unlet esearchDiffAdd['guibg']
+  call s:set('esearchDiffAdd', esearchDiffAdd, {'default': 1})
 endfu
 
 " Try to emphasize enough without overruling foregrounds, that are used by
 " context syntaxes
 fu! s:set_matches_highlight() abort
-  let CursorLine = s:gethl('CursorLine')
-  let Normal = s:gethl('Normal')
+  let CursorLine = s:get('CursorLine')
+  let Normal = s:get('Normal')
   let esearchMatch = {}
 
   if has_key(CursorLine, 'ctermbg')
@@ -67,18 +87,19 @@ fu! s:set_matches_highlight() abort
     let esearchMatch.gui = 'bold,underline'
   endif
 
-  call s:sethl('esearchMatch', esearchMatch, {'default': 1})
+  call s:set('esearchMatch', esearchMatch, {'default': 1})
 endfu
 
 fu! s:set_float_win_highlights() abort
-  let hl = {}
-  let hl.NormalFloat  = s:resolvehl('NormalFloat', {'fallback': 'Pmenu'})
-  let hl.Normal       = s:gethl('Normal')
-  let hl.Conceal      = s:gethl('Conceal')
-  let hl.CursorLineNr = s:gethl('CursorLineNr')
-  let hl.LineNr       = s:gethl('LineNr')
-  let hl.SignColumn   = s:gethl('SignColumn')
-  let hl.CursorLine   = s:gethl('CursorLine')
+  let hl = deepcopy({
+        \ 'NormalFloat':  s:get('NormalFloat', 'Pmenu'),
+        \ 'Normal':       s:get('Normal', 'None'),
+        \ 'Conceal':      s:get('Conceal'),
+        \ 'CursorLineNr': s:get('CursorLineNr'),
+        \ 'LineNr':       s:get('LineNr'),
+        \ 'SignColumn':   s:get('SignColumn'),
+        \ 'CursorLine':   s:get('CursorLine'),
+        \})
 
   " For the most of dark colorschemes NormalFloat -> Pmenu is too light, so
   " Normal is adjusted to be slightly lighter
@@ -156,33 +177,20 @@ fu! s:set_float_win_highlights_with_adjusted_brightness(hl, percent) abort
 endfu
 
 fu! s:sethl_float_win(hl) abort
-  call s:sethl('esearchNormalFloat',       a:hl.Normal,       {'default': 1})
-  call s:sethl('esearchConcealFloat',      a:hl.Conceal,      {'default': 1})
-  call s:sethl('esearchCursorLineNrFloat', a:hl.CursorLineNr, {'default': 1})
-  call s:sethl('esearchCursorLineFloat',   a:hl.CursorLine,   {'default': 1})
-  call s:sethl('esearchLineNrFloat',       a:hl.LineNr,       {'default': 1})
-  call s:sethl('esearchSignColumnFloat',   a:hl.SignColumn,   {'default': 1})
-endfu
-
-fu! s:resolvehl(name, kwargs) abort
-  if hlexists(a:name)
-    let hl = s:gethl(a:name)
-    if has_key(hl, 'link') && hlexists(hl.link)
-      let hl = s:gethl(hl.link)
-    endif
-  else
-    let hl = s:gethl(a:kwargs.fallback)
-  endif
-
-  return hl
+  call s:set('esearchNormalFloat',       a:hl.Normal,       {'default': 1})
+  call s:set('esearchConcealFloat',      a:hl.Conceal,      {'default': 1})
+  call s:set('esearchCursorLineNrFloat', a:hl.CursorLineNr, {'default': 1})
+  call s:set('esearchCursorLineFloat',   a:hl.CursorLine,   {'default': 1})
+  call s:set('esearchLineNrFloat',       a:hl.LineNr,       {'default': 1})
+  call s:set('esearchSignColumnFloat',   a:hl.SignColumn,   {'default': 1})
 endfu
 
 fu! s:rgb2hex(rgb) abort
   return printf('#%02x%02x%02x', a:rgb[0], a:rgb[1], a:rgb[2])
 endfu
 
-fu! s:is_hex(hl, attribute) abort
-  return get(a:hl, a:attribute, '') =~# '^#\x\{6}$'
+fu! s:is_hex(hl, attr) abort
+  return get(a:hl, a:attr, '') =~# '^#\x\{6}$'
 endfu
 
 fu! s:hex2rgb(hex) abort
@@ -198,27 +206,30 @@ fu! s:change_brightness(hex, percent) abort
 endfu
 
 " TODO remove when deprecated highlights are dropped
-fu! s:copyhl(from, to, options) abort
-  let new_highlight = {'name': a:to, 'attrs': s:Highlight.get(a:from).attrs}
-
-  call s:Highlight.set(new_highlight, a:options)
+fu! s:copy(from, to, opts) abort
+  call s:Highlight.set(a:to, s:Highlight.get(a:from), a:opts)
 endfu
 
-fu! s:sethl(name, attributes, options) abort
-  if a:attributes ==# {'cleared': 1} || empty(a:attributes)
-    let new_highlight = {'name': a:name, 'attrs': {'clear': 1}}
+fu! s:get(name, ...) abort
+  let hl = get(s:cache, a:name)
+  if hl isnot 0 | return hl | endif
+
+  if hlexists(a:name)
+    let hl = s:Highlight.get(a:name)
+    if has_key(hl, 'link') | let hl = call('s:get', [hl.link] + a:000) | endif
+  elseif a:0
+    let hl = s:get(a:1)
   else
-    let new_highlight = {
-          \ 'name': a:name,
-          \ 'attrs': filter(a:attributes, '!empty(v:val) && v:key !=# "cleared"')
-          \}
+    let hl = {}
   endif
 
-  silent call s:Highlight.set(new_highlight, a:options)
+  let s:cache[a:name] = hl
+  return hl
 endfu
 
-fu! s:gethl(hightlight_name) abort
-  return s:Highlight.get(a:hightlight_name).attrs
+fu! s:set(name, attrs, opts) abort
+  let s:cache[a:name] = filter(copy(a:attrs), '!empty(v:val)')
+  silent call s:Highlight.set(a:name, s:cache[a:name], a:opts)
 endfu
 
 fu! s:hsp(hex) abort " Highly Sensitive Poo
@@ -229,7 +240,7 @@ endfu
 " &background can become out of sync when a colorscheme is switched, so hsp usage
 " is more reliable.
 fu! s:detect_dark_background() abort
-  let Normal = s:gethl('Normal')
+  let Normal = s:get('Normal')
   if g:esearch#has#gui_colors && s:is_hex(Normal, 'guibg')
     return s:hsp(Normal.guibg) <= 127.5
   endif

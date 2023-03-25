@@ -19,9 +19,9 @@ let s:Base = {
       \}
 
 fu! s:Base.command(esearch) abort dict
-  let regex = self.regex[a:esearch.regex].option
-  let case = self.textobj[a:esearch.textobj].option
-  let textobj = self.case[a:esearch.case].option
+  let regex = self.regex[a:esearch.regex].opt
+  let case = self.textobj[a:esearch.textobj].opt
+  let textobj = self.case[a:esearch.case].opt
 
   if empty(a:esearch.paths)
     let paths = self.pwd()
@@ -51,7 +51,7 @@ endfu
 
 let s:Base.filetypes = []
 
-fu! s:Base.glob(filetypes) abort dict
+fu! s:Base.glob_command(filetypes) abort dict
   throw 'NotAvailable'
 endfu
 

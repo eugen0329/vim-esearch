@@ -8,12 +8,15 @@ fu! esearch#middleware#input#apply(esearch) abort
     let [esearch.pattern, esearch.select_prefilled] = esearch#prefill#try(esearch)
     call esearch.pattern.adapt(esearch._adapter)
     if esearch.force_exec
+      " it cannot be considered live updatable if no pattern were provided
+      " TODO required for region prefiller
       let esearch.live_update = 0
     else
-      let esearch = esearch#cmdline#read(esearch)
+      let esearch = esearch#ui#app#run(esearch)
+      let esearch.live_update = esearch.live_update_bufnr != -1
     endif
 
-    if empty(esearch.pattern.peek().str) | call s:cancel(esearch, current_win) | endif
+    if empty(esearch.pattern.list) | call s:cancel(esearch, current_win) | endif
   else
     if type(esearch.pattern) ==# type('')
       let esearch.pattern = s:cached_or_new(esearch.pattern, esearch)
@@ -46,4 +49,3 @@ fu! s:cached_or_new(text, esearch) abort
 
   return pattern
 endfu
-

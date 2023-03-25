@@ -3,7 +3,7 @@ let s:Log  = esearch#log#import()
 " Is used to unobtrusive warn users about deprecations without blocking the
 " input or triggering 'more' prompt
 fu! esearch#middleware#warnings#apply(esearch) abort
-  if a:esearch.force_exec || empty(g:esearch.pending_warnings)
+  if empty(g:esearch.pending_warnings)
     return a:esearch
   endif
 

@@ -25,20 +25,20 @@ let s:Git.mandatory_options = '-H --no-color --line-number'
 call extend(s:Git, {
       \ 'bool2regex': ['literal', 'basic'],
       \ 'regex': {
-      \   'literal':  {'icon': '',  'option': '--fixed-strings'},
-      \   'basic':    {'icon': 'G', 'option': '--basic-regexp'},
-      \   'extended': {'icon': 'E', 'option': '--extended-regexp'},
-      \   'pcre':     {'icon': 'P', 'option': '--perl-regexp'},
+      \   'literal':  {'icon': '',  'opt': '--fixed-strings'},
+      \   'basic':    {'icon': 'G', 'opt': '--basic-regexp'},
+      \   'extended': {'icon': 'E', 'opt': '--extended-regexp'},
+      \   'pcre':     {'icon': 'P', 'opt': '--perl-regexp'},
       \ },
       \ 'bool2textobj': ['none', 'word'],
       \ 'textobj': {
-      \   'none':     {'icon': '',  'option': ''},
-      \   'word':     {'icon': 'w', 'option': '--word-regexp'},
+      \   'none':     {'icon': '',  'opt': ''},
+      \   'word':     {'icon': 'w', 'opt': '--word-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
       \ 'case': {
-      \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
-      \   'sensitive': {'icon': 's', 'option': ''},
+      \   'ignore':    {'icon':  '', 'opt': '--ignore-case'},
+      \   'sensitive': {'icon': 's', 'opt': ''},
       \ },
       \ 'multi_pattern': 1,
       \ 'pattern_kinds': [
@@ -50,9 +50,9 @@ call extend(s:Git, {
       \})
 
 fu! s:Git.command(esearch) abort dict
-  let regex = self.regex[a:esearch.regex].option
-  let textobj = self.textobj[a:esearch.textobj].option
-  let case = self.case[a:esearch.case].option
+  let regex = self.regex[a:esearch.regex].opt
+  let textobj = self.textobj[a:esearch.textobj].opt
+  let case = self.case[a:esearch.case].opt
 
   let pipe = ''
   if empty(a:esearch.paths)

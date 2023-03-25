@@ -21,28 +21,29 @@ let s:Rg.mandatory_options = '--no-heading --color=never --line-number --with-fi
 
 let s:glob = {'icon': '--glob',  'opt': '--glob '}
 let s:iglob = {'icon': '--iglob', 'opt': '--iglob '}
+" TODO investigate why regex: 1 in  \ 'pattern_kinds': [{'icon': '', 'opt': '-e ', 'regex': 1}],
 call extend(s:Rg, {
       \ 'bool2regex': ['literal', 'default'],
       \ 'regex': {
-      \   'literal':   {'icon': '',  'option': '--fixed-strings'},
-      \   'default':   {'icon': 'r', 'option': ''},
-      \   'auto':      {'icon': 'A', 'option': '--engine auto'},
-      \   'pcre':      {'icon': 'P', 'option': '--pcre2'},
+      \   'literal':   {'icon': '',  'opt': '--fixed-strings'},
+      \   'default':   {'icon': 'r', 'opt': ''},
+      \   'auto':      {'icon': 'A', 'opt': '--engine auto'},
+      \   'pcre':      {'icon': 'P', 'opt': '--pcre2'},
       \ },
       \ 'bool2textobj': ['none', 'word'],
       \ 'textobj': {
-      \   'none':     {'icon': '',  'option': ''},
-      \   'word':     {'icon': 'w', 'option': '--word-regexp'},
-      \   'line':     {'icon': 'l', 'option': '--line-regexp'},
+      \   'none':     {'icon': '',  'opt': ''},
+      \   'word':     {'icon': 'w', 'opt': '--word-regexp'},
+      \   'line':     {'icon': 'l', 'opt': '--line-regexp'},
       \ },
       \ 'bool2case': ['ignore', 'sensitive'],
+      \ 'case': {
+      \   'ignore':    {'icon':  '', 'opt': '--ignore-case'},
+      \   'sensitive': {'icon': 's', 'opt': '--case-sensitive'},
+      \   'smart':     {'icon': 'S', 'opt': '--smart-case'},
+      \ },
       \ 'multi_pattern': 1,
       \ 'pattern_kinds': [{'icon': '', 'opt': '-e ', 'regex': 1}],
-      \ 'case': {
-      \   'ignore':    {'icon':  '', 'option': '--ignore-case'},
-      \   'sensitive': {'icon': 's', 'option': '--case-sensitive'},
-      \   'smart':     {'icon': 'S', 'option': '--smart-case'},
-      \ },
       \ 'multi_glob': 1,
       \ 'glob_options': '--files --sort path',
       \ 'globs': [s:glob, s:iglob],
@@ -53,9 +54,9 @@ call extend(s:Rg, {
 let s:Rg.filetypes = split('agda aidl amake asciidoc asm asp ats avro awk bazel bitbake brotli buildstream bzip2 c cabal cbor ceylon clojure cmake coffeescript config coq cpp creole crystal cs csharp cshtml css csv cython d dart dhall diff docker ebuild edn elisp elixir elm erb erlang fidl fish fortran fsharp gap gn go gradle groovy gzip h haml haskell hbs hs html idris java jinja jl js json jsonl julia jupyter k kotlin less license lisp lock log lua lz4 lzma m4 make mako man markdown matlab md mk ml msbuild nim nix objc objcpp ocaml org pascal pdf perl php pod postscript protobuf ps puppet purs py qmake qml r rdoc readme robot rst ruby rust sass scala sh slim smarty sml soy spark spec sql stylus sv svg swift swig systemd taskpaper tcl tex textile tf thrift toml ts twig txt typoscript vala vb verilog vhdl vim vimscript webidl wiki xml xz yacc yaml zig zsh zstd')
 
 fu! s:Rg._command(esearch, glob_or_pattern) abort dict
-  let regex = self.regex[a:esearch.regex].option
-  let case = self.textobj[a:esearch.textobj].option
-  let textobj = self.case[a:esearch.case].option
+  let regex = self.regex[a:esearch.regex].opt
+  let case = self.textobj[a:esearch.textobj].opt
+  let textobj = self.case[a:esearch.case].opt
 
   if empty(a:esearch.paths)
     let paths = self.pwd()
@@ -85,12 +86,12 @@ fu! s:Rg.command(esearch) abort dict
   return self._command(a:esearch, a:esearch.pattern.arg)
 endfu
 
-fu! s:Rg.glob(esearch) abort dict
+fu! s:Rg.glob_command(esearch) abort dict
   return self._command(a:esearch, self.glob_options)
 endfu
 
 fu! s:Rg.filetypes2args(filetypes) abort dict
-  return substitute(a:filetypes, '\<', '--type ', 'g')
+  return substitute(a:filetypes, '\<\ze', '--type ', 'g')
 endfu
 
 fu! s:Rg.is_success(request) abort

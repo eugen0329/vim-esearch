@@ -32,14 +32,26 @@ fu! s:GlobSet.push(str) abort dict
 endfu
 
 fu! s:GlobSet.try_pop() abort dict
-  if self.globs.len() == 0 | return | endif
-  return self.globs.pop()
+  if empty(self.list) | return s:Glob.from_kind(self.kinds.peek(), '') | endif
+  let glob = self.globs.pop()
+  call self.kinds.seek(glob.kind)
+  return glob
 endfu
 
-fu! s:GlobSet.next() abort dict
-  if empty(self.list) | return s:Glob.from_kind(self.kinds.next(), self.peek().str) |  endif
+fu! s:GlobSet.remove(i) abort dict
+  if empty(self.list) | return s:Glob.from_kind(self.kinds.peek(), '') | endif
+  return remove(self.list, a:i)
+endfu
 
-  return self.globs.replace(s:Glob.from_kind(self.kinds.next(), self.peek().str))
+" TODO drop
+" fu! s:GlobSet.next() abort dict
+"   if empty(self.list) | return s:Glob.from_kind(self.kinds.next(), self.peek().str) |  endif
+
+"   return self.globs.replace(s:Glob.from_kind(self.kinds.next(), self.peek().str))
+" endfu
+
+fu! s:GlobSet.make(str) abort dict
+  return s:Glob.from_kind(self.kinds.peek(), a:str)
 endfu
 
 fu! s:GlobSet.peek() abort dict
@@ -48,12 +60,12 @@ endfu
 
 let s:Glob = {}
 
-fu! s:Glob.new(icon, opt, str) abort dict
-  return extend(copy(self), {'icon': a:icon, 'opt': a:opt, 'str': a:str})
+fu! s:Glob.new(kind, icon, opt, str) abort dict
+  return extend(copy(self), {'kind': a:kind, 'icon': a:icon, 'opt': a:opt, 'str': a:str})
 endfu
 
 fu! s:Glob.from_kind(kind, str) abort
-  return s:Glob.new(a:kind.icon, a:kind.opt, a:str)
+  return s:Glob.new(a:kind, a:kind.icon, a:kind.opt, a:str)
 endfu
 
 fu! s:Glob.convert(_esearch) abort dict

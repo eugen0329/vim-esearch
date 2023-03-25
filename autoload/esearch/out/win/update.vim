@@ -95,6 +95,7 @@ fu! s:early_update_cb(es) abort
   if es.request.cursor >= es.early_upd_max
     let es.request.cb.update = 0
     let es.request.cb.finish = 0
+    redr
     retu
   en
   if es.request.finished && len(es.request.data) == es.request.cursor
@@ -184,6 +185,7 @@ fu! esearch#out#win#update#finish(bufnr) abort
     cal esearch#stderr#finish(es)
   en
   let es.header_text = function('esearch#out#win#header#finished_render')
+  let es.request.finished = 2
   cal esearch#util#setline(a:bufnr, 1, es.header_text())
 
   cal setbufvar(a:bufnr, '&modified', 0)

@@ -199,6 +199,10 @@ fu! s:Cycle.peek() abort dict
   return self.list[self.i]
 endfu
 
+fu! s:Cycle.seek(elem) abort dict
+  let self.i = index(self.list, a:elem)
+endfu
+
 fu! s:Cycle.next() abort dict
   let next = self.list[self.i]
   let self.i = (self.i + 1) % len(self.list)
@@ -219,10 +223,6 @@ fu! s:Stack.top() abort dict
   return self.list[-1]
 endfu
 
-fu! s:Stack.len() abort dict
-  return len(self.list)
-endfu
-
 " .top() = val; in cpp
 fu! s:Stack.replace(new_top) abort dict
   let self.list[-1] = a:new_top
@@ -230,7 +230,8 @@ fu! s:Stack.replace(new_top) abort dict
 endfu
 
 fu! s:Stack.push(val) abort dict
-  return add(self.list, a:val)
+  call add(self.list, a:val)
+  return a:val
 endfu
 
 fu! s:Stack.pop() abort dict
@@ -303,4 +304,39 @@ endfu
 
 fu! esearch#util#noop(...) abort
   return 0
+endfu
+
+fu! esearch#util#unzip(list) abort
+  return [map(copy(a:list), 'v:val[0]'), map(copy(a:list), 'v:val[1]')]
+endfu
+
+fu! esearch#util#mod(a, b) abort
+  return (a:a % a:b + a:b) % a:b
+endfu
+
+" TODO test
+fu! esearch#util#intersperse(list, sep) abort
+  for i in range(len(a:list) - 1)
+    call insert(a:list, a:sep, i * 2 + 1)
+  endfor
+  return a:list
+endfu
+
+fu! esearch#util#join(list, sep) abort
+  let result = []
+
+  for elem in a:list[:-2]
+    if empty(elem) | continue | endif
+    let result += elem + [a:sep]
+  endfor
+
+  return result + a:list[-1]
+endfu
+
+fu! esearch#util#struct(prototype, ...) abort
+  exe printf("fu! a:prototype.new(%s) abort dict\n"
+    \."  retu extend(copy(self), {%s})\n"
+    \.'endf', join(a:000, ','), join(map(copy(a:000), '"''".v:val."'':a:".v:val'), ','))
+
+  return a:prototype
 endfu

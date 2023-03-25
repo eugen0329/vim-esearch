@@ -16,10 +16,8 @@ let g:esearch#unicode#ellipsis = '…'
 if has('osx')
   let g:esearch#unicode#up     = '∧'
   let g:esearch#unicode#down   = '∨'
-  let g:esearch#unicode#updown = '∧∨'
 else
   let g:esearch#unicode#up     = '🡑'
   let g:esearch#unicode#down   = '🡓'
-  let g:esearch#unicode#updown = '🡑🡓'
 endif
 let g:esearch#unicode#arrow_right = ' ➔'

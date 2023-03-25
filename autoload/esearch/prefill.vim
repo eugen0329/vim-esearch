@@ -23,20 +23,20 @@ fu! esearch#prefill#try(esearch) abort
 
     if !empty(pattern)
       if type(pattern) == s:t_string
-        let select = strtrans(pattern) ==# pattern
-        return [esearch#pattern#new(a:esearch._adapter, pattern), select]
+        let select = strtrans(pattern) ==# pattern " prevent preselect when <chars> are added
+        return [s:pattern(a:esearch._adapter, pattern), select]
       else
         return [pattern, select]
       endif
     endif
   endfor
 
-  return [esearch#pattern#new(a:esearch._adapter, ''), select]
+  return [s:pattern(a:esearch._adapter), select]
 endfu
 
 fu! esearch#prefill#region(get, esearch) abort
   if !empty(get(a:esearch, 'region'))
-    return esearch#pattern#new(a:esearch._adapter, a:get())
+    return s:pattern(a:esearch._adapter, a:get())
   endif
 endfu
 
@@ -56,7 +56,7 @@ fu! esearch#prefill#hlsearch(_, esearch) abort
     let text = esearch#pattern#vim2pcre#convert(str)
   endif
 
-  return esearch#pattern#new(a:esearch._adapter, text)
+  return s:pattern(a:esearch._adapter, text)
 endfu
 
 fu! esearch#prefill#last(_, _esearch) abort
@@ -72,12 +72,16 @@ endfu
 fu! esearch#prefill#cword(_, esearch) abort
   let cword = expand('<cword>')
   if !empty(cword)
-    return esearch#pattern#new(a:esearch._adapter, cword)
+    return s:pattern(a:esearch._adapter, cword)
   endif
 endfu
 
 fu! esearch#prefill#clipboard(_, esearch) abort
-  return esearch#pattern#new(a:esearch._adapter, getreg(esearch#util#clipboard_reg()))
+  return s:pattern(a:esearch._adapter, getreg(esearch#util#clipboard_reg()))
+endfu
+
+fu! s:pattern(adapter, ...) abort
+  return esearch#pattern#new(a:adapter, a:0 ? [[a:adapter.pattern_kinds[0], a:1]] : [])
 endfu
 
 fu! s:get_empty_string() abort

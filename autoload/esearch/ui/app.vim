@@ -1,62 +1,69 @@
-let s:OptionsMenu             = esearch#ui#menu#menu#import()
-let s:MenuController          = esearch#ui#controllers#menu#import()
-let s:GlobInputController     = esearch#ui#controllers#glob_input#import()
-let s:PathInputController     = esearch#ui#controllers#path_input#import()
-let s:FiletypeInputController = esearch#ui#controllers#filetype_input#import()
-let s:SearchInputController   = esearch#ui#controllers#search_input#import()
+let s:FiletypesInput = esearch#ui#locations#filetypes_input#import()
+let s:PatternInput = esearch#ui#locations#pattern_input#import()
+let s:MainMenu = esearch#ui#locations#main_menu#import()
+let s:GlobsInput = esearch#ui#locations#globs_input#import()
+let s:PathsInput = esearch#ui#locations#paths_input#import()
+let s:GlobsMenu = esearch#ui#locations#globs_menu#import()
 
-let s:App = esearch#ui#component()
+let g:esearch#ui#run#palette = {
+      \ '': '',
+      \}
 
-fu! s:App.new(store) abort dict
-  let instance = extend(copy(self), {'store': a:store})
-  let instance.current_route = 0
-  let instance.location = a:store.state.location
-  return instance
+fu! esearch#ui#app#run(esearch) abort
+  " TODO move to session
+  call extend(a:esearch, {
+        \ 'cmdline': '',
+        \ 'cmdpos': -1,
+        \ })
+  return esearch#ui#runtime#loop(s:App, a:esearch).esearch
 endfu
 
-fu! s:App.render() abort dict
-  if self.store.state.location ==# 'menu'
-    call self.route('menu', s:MenuController.new({'menu_class': s:OptionsMenu}))
-  elseif self.store.state.location ==# 'path_input'
-    call self.route('path_input', s:PathInputController.new())
-  elseif self.store.state.location ==# 'glob_input'
-    call self.route('glob_input', s:GlobInputController.new())
-  elseif self.store.state.location ==# 'filetype_input'
-    call self.route('filetype_input', s:FiletypeInputController.new())
-  elseif self.store.state.location ==# 'search_input'
-    call self.route('search_input', s:SearchInputController.new())
-  elseif self.store.state.location ==# 'exit'
-    call esearch#ui#soft_clear()
-    return 0
-  else
-    throw 'Unknown location'
-  endif
+let s:App = {}
 
-  call self.current_route.render()
-
-  return 1
+fu! s:App.init(...) abort dict
+  let session = {}
+  let [location, cmd] = s:PatternInput.init(a:1, session)
+  return [{
+        \ 'location': location,
+        \ 'esearch': a:1,
+        \}, cmd]
 endfu
 
-fu! s:App.route(location, component) abort dict
-  if self.location !=# a:location || empty(self.current_route)
-    let self.location = a:location
+let g:debug = []
 
-    if !empty(self.current_route)
-      call self.current_route.component_will_unmount()
+fu! s:App.update(msg, model) abort dict
+  if a:msg[0] ==# 'Route'
+    let route = a:msg[1]
+
+    if route[0] ==# 'quit'
+      return [a:model, ['cmd.quit']]
+    elseif route[0] ==# 'paths_input'
+      return s:route_to(route, s:PathsInput, a:model)
+    elseif route[0] ==# 'globs_input'
+      return s:route_to(route, s:GlobsInput, a:model)
+    elseif route[0] ==# 'main_menu'
+      return s:route_to(route, s:MainMenu, a:model)
+    elseif route[0] ==# 'globs_menu'
+      return s:route_to(route, s:GlobsMenu, a:model)
+    elseif route[0] ==# 'pattern_input'
+      return s:route_to(route, s:PatternInput, a:model)
+    elseif route[0] ==# 'filetypes_input'
+      return s:route_to(route, s:FiletypesInput, a:model)
+    else
+      throw 'unexpected message '.string(a:msg)
     endif
-    call a:component.component_will_mount()
-  endif
-  let self.current_route = a:component
-endfu
-
-fu! s:App.component_will_unmount() abort dict
-  if !empty(self.current_route)
-    call self.current_route.component_will_unmount()
+  else
+    let [location, cmd] = a:model.location.update(a:msg, a:model.location)
+    return [extend(a:model, {'location': location, 'esearch': location.esearch}), cmd]
   endif
 endfu
 
-let s:map_state_to_props = esearch#util#slice_factory(['location'])
+fu! s:route_to(route, handler, model) abort
+  let session = extend(a:model.location.session, {'route': a:route})
+  let [location, cmd] = a:handler.init(a:model.esearch, session)
+  return [extend(a:model, {'location': location}), cmd]
+endfu
 
-fu! esearch#ui#app#import() abort
-  return s:App
+fu! s:App.view(model) abort dict
+  return a:model.location.view(a:model.location)
 endfu
