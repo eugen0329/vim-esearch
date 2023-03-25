@@ -1,3 +1,4 @@
+let s:Lualine = esearch#ui#context#lualine#import()
 let s:PatternInputPrompt = esearch#ui#components#pattern_input_prompt#import()
 let s:LiveUpdate = esearch#ui#context#live_update#import()
 let s:PersistentStatusline = esearch#ui#context#persistent_statusline#import()
@@ -40,8 +41,13 @@ fu! s:PatternInput.init(esearch, session) abort
     let model.session = extend(a:session, session)
   endif
 
-  let cmds = [
+  let cmds = []
+  if g:esearch.lualine_integration
+    let cmds += [['cmd.context', s:Lualine.new(model)]]
+  endif
+  let cmds += [
         \ ['cmd.context', s:PersistentStatusline.new(model)],
+        \ ['cmd.statusline', [['', 'None']]],
         \ ['cmd.context', s:LiveUpdate.new(model, 'CmdlineChanged')],
         \]
 
@@ -56,6 +62,10 @@ fu! s:PatternInput.update(msg, model) abort
   let [msg, model] = [a:msg, a:model]
 
   if msg[0] ==# 'CmdlineChanged'
+    if len(msg[1]) < model.esearch.live_update_min_len
+      return [extend(model, {'executed_cmdline': msg[1]}), ['cmd.none']]
+    endif
+
     return [extend(model, {'executed_cmdline': msg[1]}), s:force_exec_cmd(model, msg[1])]
   elseif msg[0] ==# 'LiveExecuted'
     let esearch = extend(model.esearch, {'live_update_bufnr': msg[1].bufnr})
@@ -70,14 +80,9 @@ fu! s:PatternInput.update(msg, model) abort
     let session = extend(model.session, {'pattern_state': msg[1:]})
     return [extend(model, {'session': session}), ['cmd.none']]
   elseif msg[0] ==# 'Submit'
+    let force_exec_cmd = s:force_exec_cmd(model, msg[1])
     if !empty(msg[1]) | call model.esearch.pattern.push(msg[1]) | endif
-
-    if model.executed_cmdline !=# msg[1]
-      let model.esearch.live_update = 1
-      let model.esearch.force_exec = 0
-    endif
-
-    return [model, ['cmd.quit']]
+    return [model, ['cmd.batch', [force_exec_cmd, ['cmd.quit']]]]
   elseif msg[0] ==# 'PushPattern'
     if !model.esearch._adapter.multi_pattern
       return [model, ['cmd.none']]
@@ -144,7 +149,14 @@ endfu
 fu! s:cycle_mode(msg, model) abort
   let esearch = esearch#ui#util#cycle_mode(a:model.esearch, a:msg[1])
   let [prompt, cmd] = a:model.prompt.update(a:msg, a:model.prompt)
-  return [extend(a:model, {'prompt': prompt, 'esearch': esearch}), cmd]
+  let model = extend(a:model, {'prompt': prompt, 'esearch': esearch})
+
+  let esearch = copy(esearch)
+  let esearch.pattern = deepcopy(esearch.pattern)
+  call esearch.pattern.add(a:model.session.pattern_state[0])
+  let refresh_cmd = ['cmd.force_exec', esearch]
+
+  return [model, ['cmd.batch', [cmd, refresh_cmd]]]
 endfu
 
 fu! esearch#ui#locations#pattern_input#import() abort

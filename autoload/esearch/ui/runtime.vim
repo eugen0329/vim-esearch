@@ -2,8 +2,8 @@ let g:esearch#ui#runtime#statusline = 0
 let s:contexts = []
 let s:msgs = []
 let s:middleware_cache = esearch#cache#expiring#new({'max_age': 120, 'size': 1024})
-
 let s:redraw = g:esearch#has#nvim ? "echo ''|redraw"  : 'redraw!'
+let s:force_redraw = g:esearch#has#nvim ? "echo ''|mode"  : 'redraw!'
 
 if !exists('g:esearch#ui#runtime#clear_selection_chars')
   let g:esearch#ui#runtime#clear_selection_chars = []
@@ -46,9 +46,6 @@ if !exists('g:esearch#ui#runtime#insert_register_content_chars')
         \ "\<C-r>",
         \ ]
 endif
-
-
-
 
 fu! esearch#ui#runtime#loop(main, ...) abort
   let g:esearch#ui#runtime#statusline = 0
@@ -156,6 +153,8 @@ fu! s:handle(cmd) abort
     call add(s:msgs, a:cmd[1])
   elseif a:cmd[0] ==# 'cmd.cursor'
     call add(s:msgs, a:cmd[1:])
+  elseif a:cmd[0] ==# 'cmd.force_redraw'
+    exe s:force_redraw
   elseif a:cmd[0] ==# 'cmd.quit'
     throw 'QuitRuntime'
   elseif a:cmd[0] ==# 'cmd.context'

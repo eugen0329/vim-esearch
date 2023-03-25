@@ -34,7 +34,6 @@ fu! s:cmdline_changed(self, ...) abort
 
   let cmdline = getcmdline()
   call timer_start(0, function('s:resize', [cmdline]))
-  if len(cmdline) < a:self.model.esearch.live_update_min_len | return | endif
 
   call esearch#ui#runtime#update([a:self.onchange, cmdline])
 endfu

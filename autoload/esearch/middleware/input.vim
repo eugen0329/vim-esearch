@@ -8,6 +8,8 @@ fu! esearch#middleware#input#apply(esearch) abort
     let [esearch.pattern, esearch.select_prefilled] = esearch#prefill#try(esearch)
     call esearch.pattern.adapt(esearch._adapter)
     if esearch.force_exec
+      " it cannot be considered live updatable if no pattern were provided
+      " TODO required for region prefiller
       let esearch.live_update = 0
     else
       let esearch = esearch#ui#app#run(esearch)

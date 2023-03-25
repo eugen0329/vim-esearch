@@ -71,6 +71,7 @@ fu! esearch#config#init(esearch) abort
         \ 'live_update_bufnr':                     -1,
         \ 'bufnr':                                 -1,
         \ 'filemanager_integration':               1,
+        \ 'lualine_integration':                   0,
         \ 'pending_warnings':                      [],
         \}, 'keep')
   let g:esearch = extend(g:esearch, {

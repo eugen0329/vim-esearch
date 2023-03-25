@@ -74,7 +74,6 @@ fu! s:MainMenu.init(esearch, session) abort
   let items.case.focused = 1
   let prompt = s:PatternInputPrompt.init(a:esearch)
   let [menu, menu_cmd] = s:Menu.init({'quit_msg': 'Quit', 'is_next': s:is_next, 'is_prev': s:is_prev})
-
   let model = extend(extend(copy(self), {
         \ 'esearch': a:esearch,
         \ 'session': a:session,
@@ -82,10 +81,10 @@ fu! s:MainMenu.init(esearch, session) abort
         \ 'prompt': prompt,
         \ 'paths_prompt': s:PathsPrompt.init(a:esearch.cwd, a:esearch.paths, [' ', 'None'], {'normal': 'None'}),
         \}), items)
-
   return [model, ['cmd.batch', [
         \ ['cmd.context', s:VerticalMenu.new(len(items) + len([prompt]))],
         \ ['cmd.context', s:LiveUpdateGetchar.new(model)],
+        \ ['cmd.force_redraw'],
         \ menu_cmd]]]
 endfu
 
