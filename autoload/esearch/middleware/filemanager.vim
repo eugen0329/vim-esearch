@@ -3,6 +3,7 @@ let s:Filepath = vital#esearch#import('System.Filepath')
 let g:esearch#middleware#filemanager#filetype2filer = {
       \ 'defx':      'defx',
       \ 'fern':      'fern',
+      \ 'NvimTree': 'nvimtree',
       \ 'nerdtree':  'nerdtree',
       \ 'dirvish':   'dirvish',
       \ 'netranger': 'netranger',
