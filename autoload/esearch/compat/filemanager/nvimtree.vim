@@ -19,7 +19,7 @@ fu! s:NVIMTree.nearest_dir_or_selected_nodes() abort
   let nodes = luaeval("require'esearch.nvim.filemanager.nvimtree'.selected_nodes()")
 
   if len(nodes) == 0
-    return path_under_cursor()
+    return NVIMTree.path_under_cursor()
   else
     return nodes
   endif
