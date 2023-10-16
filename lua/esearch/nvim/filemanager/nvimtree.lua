@@ -13,4 +13,5 @@ function M.selected_nodes()
   end
   return paths
 end
+
 return M
