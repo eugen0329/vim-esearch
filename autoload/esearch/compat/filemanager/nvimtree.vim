@@ -16,5 +16,11 @@ fu! s:NVIMTree.nearest_dir_or_selected_nodes() abort
 "   let nodes = luaeval("require('nvim-tree.api').marks.list()")
 "   return map(nodes, 'v:val._path')
   " return [luaeval("require'esearch.nvim.filemanager.nvimtree'.path_under_cursor()")]
-  return luaeval("require'esearch.nvim.filemanager.nvimtree'.selected_nodes()")
+  let nodes = luaeval("require'esearch.nvim.filemanager.nvimtree'.selected_nodes()")
+
+  if len(nodes) == 0
+    return path_under_cursor()
+  else
+    return nodes
+  endif
 endfu
