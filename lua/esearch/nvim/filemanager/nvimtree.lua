@@ -9,7 +9,7 @@ end
 function M.selected_nodes()
   local paths = {}
   for i, node in ipairs(require('nvim-tree.api').marks.list()) do
-    table.insert(paths, node.absolute_path)
+    table.insert(paths, node['absolute_path'])
   end
 end
 return M
