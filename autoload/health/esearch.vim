@@ -3,7 +3,8 @@
 " available and fall back to the legacy functions on older versions.
 fu! s:report(level, msg, ...) abort
   if has('nvim-0.10')
-    call luaeval('vim.health[_A[1]](_A[2], _A[3])', [a:level, a:msg, get(a:, 1, v:null)])
+    " vim.health.warn(msg, vim.NIL) raises, pass the advice only when given
+    call luaeval('vim.health[_A[1]](_A[2], _A[3] ~= vim.NIL and _A[3] or nil)', [a:level, a:msg, get(a:, 1, v:null)])
   else
     call call('health#report_' . a:level, [a:msg] + a:000)
   endif

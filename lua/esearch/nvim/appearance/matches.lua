@@ -1,4 +1,5 @@
-local ui       = require('esearch/nvim/appearance/ui')
+local ui        = require('esearch/nvim/appearance/ui')
+local highlight = require('esearch/nvim/highlight')
 local debounce = require('esearch/shared/util').debounce
 local unpack   = require('esearch/shared/util').unpack
 
@@ -69,7 +70,7 @@ end
 local function set_matches_in_ranges(bufnr, ranges, lnum_from, lnum_to)
   vim.api.nvim_buf_clear_namespace(bufnr, M.MATCHES_NS, lnum_from, lnum_to)
   for _, range in pairs(ranges) do
-    vim.api.nvim_buf_add_highlight(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
+    highlight.add(bufnr, M.MATCHES_NS, 'esearchMatch', unpack(range))
   end
 end
 

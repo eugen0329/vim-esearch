@@ -129,7 +129,8 @@ fu! s:hl(esearch, from, to) abort
     if col_from < 0 | let wlnum += 1 | continue | endif
     let col_to = matchend(text, pattern, col_from)
 
-    call nvim_buf_add_highlight(0, a:esearch.matches_ns, 'esearchMatch', wlnum - 1, col_from, col_to)
+    call nvim_buf_set_extmark(0, a:esearch.matches_ns, wlnum - 1, col_from,
+          \ {'end_col': col_to, 'hl_group': 'esearchMatch', 'strict': v:false})
     let done[id][linenr] = 1
     let wlnum += 1
   endfor

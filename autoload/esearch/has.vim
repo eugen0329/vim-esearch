@@ -10,7 +10,7 @@ let g:esearch#has#throttle = has('timers')
 let g:esearch#has#bufadd = exists('*bufadd')
 let g:esearch#has#meta_key = has('nvim') || has('gui_running')
 let g:esearch#has#gui_colors = has('gui_running') || has('termguicolors') && &termguicolors || has('nvim') && $NVIM_TUI_ENABLE_TRUE_COLOR " from papercolors
-let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_add_highlight')
+let g:esearch#has#nvim_add_highlight = exists('*nvim_buf_clear_namespace') && exists('*nvim_buf_set_extmark')
 let g:esearch#has#unicode = has('multi_byte') && (&termencoding ==# 'utf-8' || &encoding ==# 'utf-8')
 let g:esearch#has#vim8_preview = exists('*popup_create')
 let g:esearch#has#nvim_preview = has('nvim') && exists('*nvim_open_win')
@@ -30,7 +30,7 @@ let g:esearch#has#vim_lua = !has('nvim') && has('lua') && !g:esearch#has#windows
 unlet s:fixed_lua
 let g:esearch#has#lua = g:esearch#has#nvim_lua || g:esearch#has#vim_lua
 let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#has#nvim_add_highlight
-let g:esearch#has#annotations = exists('*nvim_buf_attach') && exists('*nvim_buf_set_virtual_text') && g:esearch#has#lua
+let g:esearch#has#annotations = exists('*nvim_buf_attach') && exists('*nvim_buf_set_extmark') && g:esearch#has#lua
 let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight && g:esearch#has#lua
 let g:esearch#has#nvim_lua_regex = g:esearch#has#nvim_lua && luaeval('not not vim.regex')
 " Neovim 0.8+ detects filetypes in lua (vim.filetype), $VIMRUNTIME/filetype.vim no
