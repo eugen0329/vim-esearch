@@ -1,0 +1,38 @@
+Include: helper.vader
+
+Before:
+  " force the autoload script to load
+  call esearch#ftdetect#fast('')
+  let g:esearch_ftdetect_re2filetype_saved = copy(g:esearch_ftdetect_re2filetype)
+  let g:ft_ignore_pat_saved = get(g:, 'ft_ignore_pat', '')
+
+After:
+  let g:esearch_ftdetect_re2filetype = g:esearch_ftdetect_re2filetype_saved
+  let g:ft_ignore_pat = g:ft_ignore_pat_saved
+  silent! bwipe! esearch_ftdetect_spec.zzz
+
+Execute(#fast detects by extension from the runtime filetype rules):
+  AssertEqual esearch#ftdetect#fast('file.vim'), 'vim'
+
+Execute(#fast prefers g:esearch_ftdetect_re2filetype over the runtime rules):
+  let g:esearch_ftdetect_re2filetype['\.vim$'] = 'custom'
+  AssertEqual esearch#ftdetect#fast('file.vim'), 'custom'
+
+Execute(#fast returns null for an unknown extension):
+  AssertEqual esearch#ftdetect#fast('file.unknownext'), v:null
+
+Execute(#fast respects g:ft_ignore_pat):
+  let g:ft_ignore_pat = '\.vim$'
+  AssertEqual esearch#ftdetect#fast('file.vim'), v:null
+
+Execute(#fast falls back to the filetype of an opened buffer):
+  noswap edit esearch_ftdetect_spec.zzz
+  setf custom
+  AssertEqual esearch#ftdetect#fast('esearch_ftdetect_spec.zzz'), 'custom'
+
+Execute(#slow detects by a basename pattern):
+  AssertEqual esearch#ftdetect#slow('Rakefile'), 'ruby'
+  AssertEqual esearch#ftdetect#slow('dir/Dockerfile'), 'dockerfile'
+
+Execute(#slow returns null for an unknown file):
+  AssertEqual esearch#ftdetect#slow('file.unknownext'), v:null

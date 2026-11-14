@@ -33,5 +33,8 @@ let g:esearch#has#virtual_cursor_linenr_highlight = !has('nvim') || g:esearch#ha
 let g:esearch#has#annotations = exists('*nvim_buf_attach') && exists('*nvim_buf_set_virtual_text') && g:esearch#has#lua
 let g:esearch#has#nvim_lua_syntax = exists('*nvim_buf_attach') && g:esearch#has#nvim_add_highlight && g:esearch#has#lua
 let g:esearch#has#nvim_lua_regex = g:esearch#has#nvim_lua && luaeval('not not vim.regex')
+" Neovim 0.8+ detects filetypes in lua (vim.filetype), $VIMRUNTIME/filetype.vim no
+" longer defines parsable `setf` autocommands
+let g:esearch#has#nvim_filetype_match = g:esearch#has#nvim_lua && luaeval('vim.filetype ~= nil and vim.filetype.match ~= nil')
 let g:esearch#has#getbufinfo_linecount = has('patch-8.2.0019')
 let g:esearch#has#matchadd_win = has('patch-8.1.1084')
