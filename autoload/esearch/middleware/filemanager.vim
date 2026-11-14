@@ -19,10 +19,14 @@ fu! esearch#middleware#filemanager#apply(esearch) abort
   let cwd = esearch#win#lcd(a:esearch.cwd)
   try
     if empty(get(a:esearch, 'region'))
-      let paths = esearch#shell#argv(filer.nearest_dir_or_selected_nodes())
-      if paths ==# esearch#shell#argv([a:esearch.cwd])
-         let paths = esearch#shell#argv([])
+      let paths = filer.nearest_dir_or_selected_nodes()
+      " Searching in the root of the filer is searching in the cwd. Filers
+      " return absolute paths while a:esearch.cwd can be relative, compare
+      " resolved (getcwd() is a:esearch.cwd here, see esearch#win#lcd above).
+      if map(copy(paths), 'fnamemodify(v:val, ":p")') ==# [fnamemodify(getcwd(), ':p')]
+        let paths = []
       endif
+      let paths = esearch#shell#argv(paths)
     else
       let paths = s:paths_in_range(filer, a:esearch.region)
       call remove(a:esearch, 'region')

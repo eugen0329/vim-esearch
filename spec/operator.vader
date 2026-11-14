@@ -1,0 +1,23 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/operator/'
+After:
+  Restore g:esearch
+
+Execute(linewise region is searched without the trailing newline):
+  let file = Fixture(g:esearch.cwd.'file.txt', ['first needle', 'second needle', 'other'])
+  exe 'edit' file
+  exe "norm! ggV\<esc>"
+  call esearch#init({'prefill': ['region'], 'region': 'V', 'force_exec': 1})
+  AssertEqual 'first needle', b:esearch.pattern.str
+  AssertEqual 'Matches in 1 line, 1 file. Finished.', getline(1)
+
+Execute(g:esearch#cmdline#mappings can be overridden before the autoload script is loaded):
+  let saved = copy(g:esearch#cmdline#mappings)
+  unlet g:esearch#cmdline#mappings
+  let g:esearch#cmdline#mappings = [['c', '<c-x>', '<plug>(esearch-open-menu)']]
+  source autoload/esearch/cmdline.vim
+  AssertEqual [['c', '<c-x>', '<plug>(esearch-open-menu)']], g:esearch#cmdline#mappings
+  let g:esearch#cmdline#mappings = saved

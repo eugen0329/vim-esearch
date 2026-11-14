@@ -30,8 +30,15 @@ fu! s:Guard.store(maps) abort dict
   let instance = copy(self)
   let instance.maps = a:maps
   let [is_abbr, is_dict] = [0, 1]
-  let instance.original_mapargs = map(copy(instance.maps),
-        \ 'maparg(v:val[1], v:val[0], is_abbr, is_dict)')
+  " Query per single mode: maparg() with a multichar mode like 'ic' only
+  " reports one of the mappings, so the other one would be lost on restore.
+  let instance.original_mapargs = []
+  for map in a:maps
+    for mode in split(map[0], '\zs')
+      let maparg = maparg(map[1], mode, is_abbr, is_dict)
+      if !empty(maparg) | call add(instance.original_mapargs, maparg) | endif
+    endfor
+  endfor
 
   for map in a:maps
     call esearch#keymap#set(map[0], map[1], map[2], get(map, 3, {}))
@@ -46,9 +53,26 @@ fu! s:Guard.restore() abort dict
   endfor
 
   for maparg in self.original_mapargs
-    if !empty(maparg) | exe esearch#keymap#maparg2set_command(maparg) | endif
+    call esearch#keymap#restore_maparg(maparg)
   endfor
 endfu
+
+" Restore a mapping from a maparg() dict.
+"
+" mapset() (Vim 8.2.0807+, Neovim 0.8+) restores a mapping exactly as it was:
+" <SID> references, 'desc', 'replace_keycodes' and, most importantly, Neovim
+" Lua callbacks (vim.keymap.set(mode, lhs, function() ... end)), which have
+" no 'rhs' key at all. Rebuilding a :map command from the dict is kept only as
+" a fallback for older editors, where it's skipped for a mapping without rhs,
+" as there's no way to recreate a callback with a :map command.
+fu! esearch#keymap#restore_maparg(maparg) abort
+  if s:has_mapset
+    call mapset(a:maparg.mode, 0, a:maparg)
+  elseif has_key(a:maparg, 'rhs')
+    exe esearch#keymap#maparg2set_command(a:maparg)
+  endif
+endfu
+let s:has_mapset = exists('*mapset')
 
 fu! esearch#keymap#maparg2set_command(maparg) abort
   let maparg = a:maparg

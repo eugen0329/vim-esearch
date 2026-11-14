@@ -1,0 +1,47 @@
+Include: helper.vader
+
+Execute(#split keeps byte indexes of metachars, so multibyte paths are escaped correctly):
+  if !g:esearch#has#posix_shell | finish | endif
+  let [paths, error] = esearch#shell#split('тест/*.rb plain/*.txt')
+  Assert empty(error), string(error)
+  AssertEqual [strlen('тест/')], paths[0].metachars
+  AssertEqual 'тест/*.rb', esearch#shell#escape(paths[0])
+  AssertEqual 'plain/*.txt', esearch#shell#escape(paths[1])
+  AssertEqual [0, strlen('тест/*.rb')], [paths[0].begin, paths[0].end]
+
+Execute(#escape protects shell specials in paths):
+  if !g:esearch#has#posix_shell | finish | endif
+  for [path, expected] in [
+        \ ['dir>out',  'dir\>out'],
+        \ ['semi;dir', 'semi\;dir'],
+        \ ['amp & dir', 'amp\ \&\ dir'],
+        \ ['sub(1)',   'sub\(1\)'],
+        \ ['a<b',      'a\<b'],
+        \ ['~tmp',     '\~tmp'],
+        \]
+    AssertEqual expected, esearch#shell#escape(esearch#shell#argv([path])[0]), path
+  endfor
+
+Execute(#argv paths are passed to the search util as single arguments):
+  if !g:esearch#has#posix_shell | finish | endif
+  let g:esearch.cwd = 'spec/fixtures/shell/'
+  call Fixture(g:esearch.cwd.'dir>out/file.txt', ['needle'])
+  call Fixture(g:esearch.cwd.'semi;dir/file.txt', ['needle'])
+  call esearch#init({'pattern': 'needle', 'paths': esearch#shell#argv(['dir>out', 'semi;dir'])})
+  AssertEqual 'Matches in 2 lines, 2 files. Finished.', getline(1)
+  Assert !filereadable(g:esearch.cwd.'out'), 'the redirect must not create a file'
+
+Execute(paths given as a list of strings):
+  let g:esearch.cwd = 'spec/fixtures/shell/'
+  call Fixture(g:esearch.cwd.'list1/file.txt', ['needle'])
+  call Fixture(g:esearch.cwd.'list2/file.txt', ['needle'])
+  call Fixture(g:esearch.cwd.'other/file.txt', ['needle'])
+  call esearch#init({'pattern': 'needle', 'paths': ['list1', 'list2']})
+  AssertEqual 'Matches in 2 lines, 2 files. Finished.', getline(1)
+
+Execute(#complete#paths splits the current word by bytes):
+  if !g:esearch#has#posix_shell | finish | endif
+  let g:esearch.cwd = 'spec/fixtures/shell/'
+  call Fixture(g:esearch.cwd.'тест/ф.txt', ['needle'])
+  call Fixture(g:esearch.cwd.'тест/sp ace.txt', ['needle'])
+  AssertEqual ['тест/ф.txt тест/sp\ ace.txt'], esearch#ui#complete#paths#do(g:esearch.cwd, 'тест/ф.txt тест/sp', '', 0)

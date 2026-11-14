@@ -448,3 +448,66 @@ Expect esearch_test(rerender line numbers):
 
   untouched.txt
      1 untouched_line1
+
+### Integrity of the file on disk
+
+Execute (Failed write is reported as a conflict and the buffer is rolled back):
+  exe 'badd' g:file
+  call bufload(g:file)
+  call setfperm(g:file, 'r--r--r--')
+  call esearch#init()
+  exe "norm /l2\<CR>A~\<esc>:write\<CR>"
+Then:
+  call setfperm(g:file, 'rw-r--r--')
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+  AssertEqual split(execute('messages'), '\n')[-1], '  file.txt (write failed)'
+  Assert &modified, 'the window must stay unsaved'
+  Assert !getbufvar(bufnr(g:file), '&modified'), 'the target buffer must be rolled back'
+  AssertEqual getbufline(bufnr(g:file), 1, '$'), ['l1', 'l2', 'l3']
+
+Execute (Failed write into a buffer created for it wipes the buffer out):
+  call setfperm(g:file, 'r--r--r--')
+  call esearch#init()
+  exe "norm /l2\<CR>A~\<esc>:write\<CR>"
+Then:
+  call setfperm(g:file, 'rw-r--r--')
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+  AssertEqual split(execute('messages'), '\n')[-1], '  file.txt (write failed)'
+  Assert !bufloaded(g:file), 'the buffer created for the write must be wiped out'
+
+Execute (Hidden buffer older than the file is reloaded before the write):
+  exe 'badd' g:file
+  call bufload(g:file)
+  call writefile(['NEW1', 'NEW2'] + readfile(g:file), g:file)
+  call esearch#init()
+  exe "norm /l3\<CR>A~\<esc>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['NEW1', 'NEW2', 'l1', 'l2', 'l3~']
+  AssertEqual split(execute('messages'), '\n')[-1], 'Done.'
+
+Execute (Prepend to a file shifted on disk is a conflict):
+  call esearch#init()
+  call writefile(['NEW1', 'NEW2'] + readfile(g:file), g:file)
+  exe "norm /file.txt\<CR>A\<CR>inserted\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['NEW1', 'NEW2', 'l1', 'l2', 'l3']
+  Assert split(execute('messages'), '\n')[-1] =~# 'line 1 has changed', execute('messages')
+
+Execute (Unsaved changes of the target buffer are a conflict):
+  exe 'split' g:file
+  call setline(3, 'l3 unsaved')
+  call esearch#init()
+  exe "norm /l2\<CR>A~\<esc>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1', 'l2', 'l3']
+  Assert split(execute('messages'), '\n')[-1] =~# 'buffer has unsaved changes', execute('messages')
+  AssertEqual getbufline(bufnr(g:file), 1, '$'), ['l1', 'l2', 'l3 unsaved']
+  exe bufnr(g:file) 'bwipe!'
+
+Execute (Append after a line that no longer exists is a conflict):
+  call esearch#init()
+  call writefile(['l1'], g:file)
+  exe "norm /l3\<CR>A\<CR>tail\<ESC>:write\<CR>"
+Then:
+  AssertEqual readfile(g:file), ['l1']
+  Assert split(execute('messages'), '\n')[-1] =~# 'line 3 \(has changed\|does not exist\)', execute('messages')

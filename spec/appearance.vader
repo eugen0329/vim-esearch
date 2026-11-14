@@ -14,3 +14,20 @@ Execute(zero-length match highlight with viewport hl strategy):
   call esearch#init({'pattern': 'l|', 'regex': 1})
   norm! G
   AssertEqual line('.'), line('$'), 'expect no deadlocks'
+
+Execute(no match highlights when the pattern can't be converted to vim syntax):
+  if !has('nvim') | finish | endif
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': '\p{L}', 'regex': 1})
+  Assert !has_key(b:esearch.pattern, 'vim'), 'no vim pattern for \p{L}'
+  norm! G
+  AssertEqual [], nvim_buf_get_extmarks(0, luaeval('esearch.MATCHES_NS'), 0, -1, {}), string(nvim_buf_get_extmarks(0, luaeval('esearch.MATCHES_NS'), 0, -1, {'details': 1}))
+
+Execute(buf_attach bookkeeping is reset when the buffer is unloaded):
+  if !has('nvim') | finish | endif
+  call Fixture(g:file1, ['l1', 'l2'])
+  call esearch#init({'pattern': 'l'})
+  let bufnr = bufnr('%')
+  Assert luaeval('esearch.ATTACHED_UI[_A] == true', bufnr)
+  bdelete
+  Assert luaeval('esearch.ATTACHED_UI[_A] == nil', bufnr), 'on_detach must clear the flag'

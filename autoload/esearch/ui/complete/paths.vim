@@ -67,7 +67,7 @@ endfu
 fu! s:parse_posix_argled(arglead) abort
   let [leading_words, _] = esearch#shell#split(a:arglead)
   " no current word
-  if empty(leading_words) || leading_words[-1].end < strchars(a:arglead)
+  if empty(leading_words) || leading_words[-1].end < strlen(a:arglead)
     return ['' , a:arglead]
   endif
 

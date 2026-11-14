@@ -75,7 +75,7 @@ function M.debounce(callback, wait)
 end
 
 function M.set_timeout(callback, delay, ...)
-  local timer = vim.loop.new_timer()
+  local timer = (vim.uv or vim.loop).new_timer()
   local args = {...}
   timer:start(delay, 0, function()
     timer:stop()

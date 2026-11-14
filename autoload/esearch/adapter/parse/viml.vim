@@ -25,8 +25,8 @@ fu! s:semgrep(data, from, to) abort dict
         let filename = result.path
         let l = result.start.line
         for text in split(result.extra.lines, "\n")
-          call add(entries, {'filename': filename, 'lnum': string(result.start.line), 'text': text})
-          let l += l
+          call add(entries, {'filename': filename, 'lnum': string(l), 'text': text})
+          let l += 1
         endfor
       endfor
 
@@ -77,7 +77,8 @@ fu! s:with_col(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return [entries, lines_delta, 0]
+  " unparsed lines ("binary file matches", warnings) aren't matches either
+  return [entries, a:to + 1 - a:from - len(entries), 0]
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
@@ -122,7 +123,8 @@ fu! s:generic(data, from, to) abort dict
     let i += 1 " TODO notify error
   endwhile
 
-  return [entries, lines_delta, 0]
+  " unparsed lines ("binary file matches", warnings) aren't matches either
+  return [entries, a:to + 1 - a:from - len(entries), 0]
 endfu
 
 " Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename

@@ -57,7 +57,8 @@ let s:HighlightLineEmphasis = copy(s:Base)
 if g:esearch#has#nvim_add_highlight
   let s:line_ns = nvim_create_namespace('esearch_line_emphasis')
   fu! s:HighlightLineEmphasis.place() abort dict
-    call nvim_buf_add_highlight(self.bufnr, s:line_ns, 'esearchMatch', self.lnum - 1, 0, -1)
+    call nvim_buf_set_extmark(self.bufnr, s:line_ns, self.lnum - 1, 0,
+          \ {'end_row': self.lnum, 'end_col': 0, 'hl_group': 'esearchMatch', 'strict': v:false})
 
     return self
   endfu

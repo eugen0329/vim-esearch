@@ -9,7 +9,7 @@ local function on_lines(_event_name, bufnr, _changedtick, from, old_to, to, _old
   end
 end
 
-local function on_detach(bufnr)
+local function on_detach(_, bufnr) -- ('detach', bufnr)
   M.ATTACHED_ANNOTATIONS[bufnr] = nil
 end
 
@@ -35,11 +35,11 @@ function M.annotate(contexts)
 end
 
 function M.set_context_len_annotation(line, size)
-  if size == 1 then
-    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line - 1, {{size .. ' line', 'Comment'}}, {})
-  else
-    vim.api.nvim_buf_set_virtual_text(0, M.ANNOTATIONS_NS, line - 1, {{size .. ' lines', 'Comment'}}, {})
-  end
+  local text = size == 1 and (size .. ' line') or (size .. ' lines')
+  -- nvim_buf_set_virtual_text() replaced the text of the line, extmarks accumulate
+  vim.api.nvim_buf_clear_namespace(0, M.ANNOTATIONS_NS, line - 1, line)
+  pcall(vim.api.nvim_buf_set_extmark, 0, M.ANNOTATIONS_NS, line - 1, 0,
+    {virt_text = {{text, 'Comment'}}, virt_text_pos = 'eol', strict = false})
 end
 
 return M

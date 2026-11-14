@@ -184,7 +184,15 @@ fu! s:NvimPopup.update(buf, location, shape, close_on) abort dict
   let self.shape    = a:shape
   let self.close_on = a:close_on
   call self.guard.restore()
-  call nvim_win_set_buf(self.id, a:buf.id)
+  " nvim_win_set_buf() fires BufLeave/BufWinEnter/... which are among the
+  " autoclose events: the preview would be closed from within update() and
+  " the file would then be edited in the results window.
+  let eventignore = esearch#let#restorable({'&eventignore': g:esearch#preview#silent_open_eventignore})
+  try
+    call nvim_win_set_buf(self.id, a:buf.id)
+  finally
+    call eventignore.restore()
+  endtry
   " Emphasis must be removed as it doesn't correspond to a:location anymore
   call self.unplace_emphasis()
 

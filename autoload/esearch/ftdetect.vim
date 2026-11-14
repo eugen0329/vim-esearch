@@ -7,6 +7,8 @@ let [s:true, s:false, s:null, s:t_dict, s:t_float, s:t_func,
 let g:esearch#ftdetect#pattern2ft = {}
 let s:prewarm = s:null
 let s:setfiletype = ['setfiletype', 'setf']
+" an unescaped comma followed by balanced braces till the end of the string
+let s:patterns_separator_re = '\\\@<!,\%(\%([^{}]*{[^{}]*}\)*[^{}]*$\)\@='
 
 " TODO consider to define either syntax file which highlights for strings,
 " comments and keywords set for both languages with extension collisions (like
@@ -57,16 +59,21 @@ fu! esearch#ftdetect#fast(filename) abort
     return s:null
   endif
 
-  if empty(g:esearch#ftdetect#pattern2ft) && !s:make_cache()
-    return ''
-  endif
-
   let basename = s:Filepath.basename(a:filename)
   let extension_re = '\.' . fnamemodify(basename, ':e') . '$'
 
   if has_key(g:esearch_ftdetect_re2filetype, extension_re)
     return g:esearch_ftdetect_re2filetype[extension_re]
+  endif
 
+  if g:esearch#has#nvim_filetype_match
+    " Neovim detects filetypes with lua patterns, there are no `setf` autocommands
+    " to build the cache from. vim.filetype.match() is cheap when given a
+    " filename only (no file contents are read), returns v:null when unsure.
+    let filetype = luaeval('vim.filetype.match({filename = _A})', a:filename)
+    if filetype isnot# s:null | return filetype | endif
+  elseif empty(g:esearch#ftdetect#pattern2ft) && !s:make_cache()
+    return ''
   endif
 
   let basename_re = '^' . basename . '$'
@@ -88,6 +95,7 @@ fu! esearch#ftdetect#fast(filename) abort
 endfu
 
 fu! esearch#ftdetect#async_prewarm_cache() abort
+  if g:esearch#has#nvim_filetype_match | return | endif
   if empty(g:esearch#ftdetect#pattern2ft) && s:Promise.is_available()
     let s:prewarm = s:Promise
           \.new({resolve -> timer_start(0, resolve)})
@@ -130,7 +138,12 @@ fu! s:blocking_make_cache() abort
       continue
     endif
 
-    let g:esearch#ftdetect#pattern2ft[glob2regpat(tokens[0])] = filetype
+    " A single autocommand can be defined for several patterns: *.rb,*.rbw.
+    " Commas inside braces are alternatives of a single pattern: *.{frag,vert},
+    " escaped commas are literal: *\,v
+    for pattern in split(tokens[0], s:patterns_separator_re)
+      let g:esearch#ftdetect#pattern2ft[glob2regpat(pattern)] = filetype
+    endfor
 
     let tokens = []
   endfor

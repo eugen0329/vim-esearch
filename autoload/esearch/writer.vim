@@ -48,12 +48,20 @@ fu! s:Writer.write(bang) abort dict
         if !self.verify_not_modified(diff, buf) | continue | endif
       endif
 
+      let [win_undos, seq_before] = self.update_file(buf, diff)
+      if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
+      " A failed :write (readonly, permissions, disk) only warns. Report it
+      " and roll the buffer back instead of marking the changes as written.
+      if getbufvar(buf.bufnr, '&modified')
+        call self.revert_file(buf, seq_before)
+        call self.conflict(diff, 'write failed')
+        continue
+      endif
+
       let self.win_edits   = diff.win_edits + self.win_edits
-      let self.win_undos   = self.update_file(buf, diff) + self.win_undos
+      let self.win_undos   = win_undos + self.win_undos
       let self.esearch.contexts[diff.ctx.id].lines = diff.lines_b
       let self.esearch.contexts[diff.ctx.id].begin = diff.begin
-
-      if !empty(WriteCb) | call WriteCb(buf, a:bang) | endif
     endfor
   finally
     au! esearch_write
@@ -94,6 +102,10 @@ endfu
 
 fu! s:Writer.update_file(buf, diff) abort
   call a:buf.goto()
+  " close the current undo block (e.g. of a reload), so that the edits below
+  " form their own one and can be undone separately on a failed write
+  let &l:undolevels = &l:undolevels
+  let seq_before = undotree().seq_cur
 
   let edits = a:diff.edits
   for edit in edits[:-2]
@@ -106,7 +118,22 @@ fu! s:Writer.update_file(buf, diff) abort
   endif
   call call(a:buf[edits[-1].func], edits[-1].args)
 
-  return a:diff.win_undos
+  return [a:diff.win_undos, seq_before]
+endfu
+
+fu! s:Writer.revert_file(buf, seq_before) abort
+  call a:buf.goto()
+  if a:buf.existed
+    try
+      " the edits aren't synced into an undo block yet, :undo would skip them
+      let &l:undolevels = &l:undolevels
+      exe 'silent undo' a:seq_before
+    catch
+      call esearch#util#warn('esearch: ' . v:exception)
+    endtry
+  else
+    silent! exe a:buf.bufnr 'bwipeout!'
+  endif
 endfu
 
 fu! s:Writer.update_win(win_edits) abort
@@ -150,18 +177,32 @@ fu! s:Writer.verify_readable(diff, path) abort dict
 endfu
 
 fu! s:Writer.verify_not_modified(diff, buf) abort dict
-  let ours_lines = a:diff.ctx.lines
-  for edit in a:diff.edits
-    if !has_key(ours_lines, edit.args[0]) || a:buf.getline(edit.args[0]) is# ours_lines[edit.args[0]]
-      continue
-    endif
+  " The whole buffer is written, unsaved changes of the user would go to the
+  " disk with it
+  if a:buf.existed && getbufvar(a:buf.bufnr, '&modified')
+    return self.conflict(a:diff, 'buffer has unsaved changes')
+  endif
 
-    call add(self.conflicts, {
-          \ 'filename': a:diff.ctx.filename,
-          \ 'reason':   'line '.edit.args[0].' has changed',
-          \})
-    return 0
+  let ours_lines = a:diff.ctx.lines
+  let linecount = a:buf.linecount()
+  for edit in a:diff.edits
+    " args[0] of a prepend (^) is lnum-1, which is usually not among the
+    " searched lines, so the file shift was unnoticed: verify by the line the
+    " edit was made against
+    let lnum = edit.lnum
+    if has_key(ours_lines, lnum) && a:buf.getline(lnum) isnot# ours_lines[lnum]
+      return self.conflict(a:diff, 'line '.lnum.' has changed')
+    endif
+    " append() past the end of the buffer is a silent noop
+    if edit.func ==# 'appendline' && edit.args[0] > linecount
+      return self.conflict(a:diff, 'line '.lnum.' does not exist')
+    endif
   endfor
 
   return 1
+endfu
+
+fu! s:Writer.conflict(diff, reason) abort dict
+  call add(self.conflicts, {'filename': a:diff.ctx.filename, 'reason': a:reason})
+  return 0
 endfu

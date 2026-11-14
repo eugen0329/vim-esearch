@@ -1,4 +1,5 @@
-local ui = require('esearch/nvim/appearance/ui')
+local ui        = require('esearch/nvim/appearance/ui')
+local highlight = require('esearch/nvim/highlight')
 
 local M = {
   CURSOR_LINENR_NS = vim.api.nvim_create_namespace('esearch_cursor_linenr'),
@@ -19,7 +20,7 @@ function M.highlight_cursor_linenr()
 
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
     if last_col then
-      vim.api.nvim_buf_add_highlight(bufnr, ns, 'esearchCursorLineNr', lnum, 0, last_col)
+      highlight.add(bufnr, ns, 'esearchCursorLineNr', lnum, 0, last_col)
     end
   end)
 end

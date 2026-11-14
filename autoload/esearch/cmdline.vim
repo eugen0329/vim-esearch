@@ -1,16 +1,18 @@
 let s:Context = esearch#ui#context()
 let s:App  = esearch#ui#app#import()
 
-let g:esearch#cmdline#mappings = [
-      \ ['c', '<c-o>',      '<plug>(esearch-open-menu)'         ],
-      \ ['c', '<c-r><c-r>', '<plug>(esearch-cycle-regex)'       ],
-      \ ['c', '<c-s><c-s>', '<plug>(esearch-cycle-case)'        ],
-      \ ['c', '<c-t><c-t>', '<plug>(esearch-cycle-textobj)'     ],
-      \ ['c', '<c-p>',      '<plug>(esearch-push-pattern)'      ],
-      \ ['c', '<bs>',       '<plug>(esearch-bs)',  {'nowait': 1}],
-      \ ['c', '<c-w>',      '<plug>(esearch-c-w)', {'nowait': 1}],
-      \ ['c', '<c-h>',      '<plug>(esearch-c-h)', {'nowait': 1}],
-      \]
+if !exists('g:esearch#cmdline#mappings')
+  let g:esearch#cmdline#mappings = [
+        \ ['c', '<c-o>',      '<plug>(esearch-open-menu)'         ],
+        \ ['c', '<c-r><c-r>', '<plug>(esearch-cycle-regex)'       ],
+        \ ['c', '<c-s><c-s>', '<plug>(esearch-cycle-case)'        ],
+        \ ['c', '<c-t><c-t>', '<plug>(esearch-cycle-textobj)'     ],
+        \ ['c', '<c-p>',      '<plug>(esearch-push-pattern)'      ],
+        \ ['c', '<bs>',       '<plug>(esearch-bs)',  {'nowait': 1}],
+        \ ['c', '<c-w>',      '<plug>(esearch-c-w)', {'nowait': 1}],
+        \ ['c', '<c-h>',      '<plug>(esearch-c-h)', {'nowait': 1}],
+        \]
+endif
 
 if !exists('g:esearch#cmdline#dir_icon')
   if g:esearch#has#unicode
