@@ -92,7 +92,7 @@ Then:
   call esearch#init({'pattern': '.'})
   doau CursorMoved
   sleep 500m
-  AssertEqual nvim_win_get_config(g:esearch#preview#win.id).relative, 'win'
+  AssertEqual nvim_win_get_config(g:esearch#preview#win.id).relative, 'editor'
 
 Execute(float win_new):
   if  !has('nvim') | finish | endif
