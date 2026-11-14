@@ -143,6 +143,7 @@ if g:esearch#has#bufadd
     let existed = bufexists(a:filename)
     let bufnr = bufadd(a:filename)
     call bufload(bufnr)
+    call s:reload_if_stale(bufnr, existed)
     call setbufvar(bufnr, '&buflisted', 1) " required for bufdo
     return extend(copy(self), {'bufnr': bufnr, 'filename': a:filename, 'existed': existed})
   endfu
@@ -150,8 +151,32 @@ else
   fu! s:Buf.new(filename) abort dict
     let existed = bufexists(a:filename)
     exe (existed ? 'buffer!' : 'edit!') fnameescape(a:filename)
+    call s:reload_if_stale(bufnr('%'), existed)
     call setbufvar(bufnr('%'), '&buflisted', 1) " required for bufdo
     return extend(copy(self), {'bufnr': bufnr('%'), 'filename': a:filename, 'existed': existed})
+  endfu
+endif
+
+" A hidden buffer loaded long ago may be older than the file on disk. The
+" lines are verified against the buffer, but :buffer with 'autoread' reloads
+" the file, so the edits would land into shifted lines. Reload it upfront.
+fu! s:reload_if_stale(bufnr, existed) abort
+  if !a:existed || getbufvar(a:bufnr, '&modified') | return | endif
+  let autoread = esearch#let#restorable({'&autoread': 1})
+  try
+    exe 'silent checktime' a:bufnr
+  finally
+    call autoread.restore()
+  endtry
+endfu
+
+if g:esearch#has#getbufinfo_linecount
+  fu! s:Buf.linecount() abort dict
+    return getbufinfo(self.bufnr)[0].linecount
+  endfu
+else
+  fu! s:Buf.linecount() abort dict
+    return len(getbufline(self.bufnr, 1, '$'))
   endfu
 endif
 
