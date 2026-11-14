@@ -47,14 +47,21 @@ fu! esearch#out#win#appearance#matches#init(es) abort
   endif
 endfu
 
+" a:es is the previous search of the buffer when the buffer is reused
 fu! esearch#out#win#appearance#matches#uninit(es) abort
-  if has_key(a:es, 'hl_matches')
+  if exists('#esearch_win_hl_matches')
     aug esearch_win_hl_matches
       au! * <buffer>
     aug END
+  endif
+  if has_key(a:es, 'hl_matches')
     call a:es.hl_matches.cancel()
   elsei has_key(a:es, 'matches_hl_id')
     call esearch#util#safe_matchdelete(a:es.matches_hl_id)
+  endif
+  " the lua viewport strategy keeps nothing in a:es, clear its highlights explicitly
+  if g:esearch#has#nvim_lua && bufexists(bufnr('%'))
+    call nvim_buf_clear_namespace(0, luaeval('esearch.MATCHES_NS'), 0, -1)
   endif
 endfu
 

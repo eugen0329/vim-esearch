@@ -91,10 +91,18 @@ fu! s:Regex.convert(esearch) abort dict
   let self.arg = shellescape(self.str)
 
   if a:esearch.regex is# 'literal'
-    let self.vim = esearch#pattern#literal2vim#convert(self.str)
+    let vim = esearch#pattern#literal2vim#convert(self.str)
   else
-    let self.vim = esearch#pattern#pcre2vim#convert(self.str)
+    let vim = esearch#pattern#pcre2vim#convert(self.str)
   endif
+  " '' is returned when the pattern can't be expressed in vim syntax (\p{L},
+  " recursion etc). With the case flags appended it'd become '\c', that
+  " matches every position, so highlight nothing instead.
+  if empty(vim)
+    silent! unlet self.vim
+    return self
+  endif
+  let self.vim = vim
 
   if a:esearch.case ==# 'ignore'
     let self.vim = self.vim.'\c'
