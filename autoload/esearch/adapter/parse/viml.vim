@@ -25,8 +25,8 @@ fu! s:semgrep(data, from, to) abort dict
         let filename = result.path
         let l = result.start.line
         for text in split(result.extra.lines, "\n")
-          call add(entries, {'filename': filename, 'lnum': string(result.start.line), 'text': text})
-          let l += l
+          call add(entries, {'filename': filename, 'lnum': string(l), 'text': text})
+          let l += 1
         endfor
       endfor
 

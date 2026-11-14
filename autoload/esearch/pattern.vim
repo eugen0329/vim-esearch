@@ -10,7 +10,7 @@ let s:PatternSet = {}
 " .str     - in string representatino of a pattern for buffer names
 
 fu! s:PatternSet.splice(esearch) abort dict
-  silent! unlet self['vim']
+  if has_key(self, 'vim') | unlet self.vim | endif
   let self._arg = map(copy(self.patterns.list), '[v:val.opt, v:val.convert(a:esearch).arg]')
   let self.arg = join(map(copy(self._arg), 'join(v:val)'))
 
@@ -99,7 +99,7 @@ fu! s:Regex.convert(esearch) abort dict
   " recursion etc). With the case flags appended it'd become '\c', that
   " matches every position, so highlight nothing instead.
   if empty(vim)
-    silent! unlet self.vim
+    if has_key(self, 'vim') | unlet self.vim | endif
     return self
   endif
   let self.vim = vim

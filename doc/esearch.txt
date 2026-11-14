@@ -336,7 +336,7 @@ g:esearch.paths                                                  *g:esearch.path
         Default: `''` (search in any path within the cwd)
         Example:~
 >
-        let g:esearch.filetypes = 'node_modules/ configs/**/*.yml'
+        let g:esearch.paths = 'node_modules/ configs/**/*.yml'
 <
         NOTE To use all globbing features make ensure that 'shell' option
         contains required arguments. E.g. for bash globbing add to your vimrc:

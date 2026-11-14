@@ -36,7 +36,8 @@ fu! esearch#operator#text(wise) abort
   let options = esearch#let#restorable({'&selection': 'inclusive', '@@': ''})
   try
     exe esearch#operator#cmd(a:wise, 'y', '')
-    return @@
+    " a linewise yank ends with a newline, rg rejects it: "the literal \n is not allowed"
+    return esearch#operator#is_linewise(a:wise) ? substitute(@@, '\n$', '', '') : @@
   finally
     call options.restore()
   endtry
