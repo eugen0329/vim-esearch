@@ -103,7 +103,7 @@ endfu
 "   - finding unescaped special locations (for highlight and preserving from fnameescape)
 " Returns a list of dicts with fields:
 "   .str       - string
-"   .metachars - indexes where special chars are located
+"   .metachars - byte indexes where special chars are located
 fu! s:Splitter.split() abort dict
   let args = []
 
@@ -186,7 +186,7 @@ fu! s:Splitter.consume_arg() abort dict
     elseif self.next_is(['SQ'])
       let parsed .= self.consume_squote()
     elseif self.next_is(['METACHARS'])
-      call add(metachars, strchars(parsed))
+      call add(metachars, strlen(parsed)) " byte index, .str is sliced by bytes
       let parsed .= self.advance().matched_text
     elseif self.next_is(['WS'])
       break
@@ -216,7 +216,7 @@ endfu
 
 fu! s:Splitter.advance() abort dict
   let token = self.consume()
-  let self.p  += strchars(token.matched_text)
+  let self.p  += strlen(token.matched_text) " byte offset, like .begin/.end
 
   return token
 endfu
@@ -227,7 +227,9 @@ if g:esearch#has#windows
 elseif g:esearch#has#vms
   let s:path_esc_chars = " \t\n*?{`\\%#'\"|!"
 else
-  let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<"
+  " vim's list is for :edit and friends, the paths here go to a shell command:
+  " ;&<>()~ matter as well
+  let s:path_esc_chars = " \t\n*?[{`$\\%#'\"|!<>;&()~"
 endif
 
 fu! s:fnameescape(string) abort
