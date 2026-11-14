@@ -9,7 +9,7 @@ local function on_lines(_event_name, bufnr, _changedtick, from, old_to, to, _old
   end
 end
 
-local function on_detach(bufnr)
+local function on_detach(_, bufnr) -- ('detach', bufnr)
   M.ATTACHED_ANNOTATIONS[bufnr] = nil
 end
 

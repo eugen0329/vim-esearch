@@ -51,7 +51,7 @@ local function on_lines(_event_name, bufnr, _changedtick, from, _old_to, to, _ol
   vim.schedule(function() M.highlight_ui(bufnr, from, to) end)
 end
 
-local function on_detach(bufnr)
+local function on_detach(_, bufnr) -- ('detach', bufnr)
   M.ATTACHED_UI[bufnr] = nil
 end
 
