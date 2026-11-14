@@ -1,0 +1,10 @@
+Include: helper.vader
+
+Execute(stderr lines are split by newlines across chunks and the last one is flushed on exit):
+  if !has('nvim') | finish | endif
+  let request = esearch#backend#nvim#init(getcwd(), 'rg', "sh -c 'printf \"err1\\nerr\" >&2; sleep 0.2; printf \"2\\n\" >&2; sleep 0.2; printf \"err3\" >&2; exit 2'")
+  call esearch#backend#nvim#exec(request)
+  call jobwait([request.job_id], 3000)
+  sleep 100m
+  AssertEqual ['err1', 'err2', 'err3'], request.errors
+  AssertEqual 2, request.status

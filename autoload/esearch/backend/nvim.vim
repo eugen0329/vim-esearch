@@ -80,28 +80,32 @@ fu! s:stdout(job_id, data, event) dict abort
   endif
 endfu
 
+" Same chunking as in s:stdout: the first item continues the last line of the
+" previous chunk, the last item is an incomplete line.
 fu! s:stderr(job_id, data, event) dict abort
-  let job = s:jobs[a:job_id]
-  let data = a:data
-  if !has_key(job.request, 'errors')
-    let job.request.errors = []
-  endif
+  let request = s:jobs[a:job_id].request
+  if !has_key(request, 'errors') | let request.errors = [] | endif
 
-  if !empty(data) && data[0] !=# "\n" && !empty(job.request.errors)
-    let job.request.errors[-1] .= data[0]
-    call remove(data, 0)
-  endif
+  let data = a:data
+  let data[0] = get(request, 'stderr_intermediate', '') . data[0]
+  let request.stderr_intermediate = remove(data, -1)
   let errors = filter(data, "'' !=# v:val")
-  let job.request.errors += errors
   if empty(errors) | return | endif
 
-  call esearch#stderr#incremental(job.request.adapter, errors)
+  let request.errors += errors
+  call esearch#stderr#incremental(request.adapter, errors)
 endfu
 
 fu! s:exit(job_id, status, event) abort
   let job = s:jobs[a:job_id]
   let job.request.finished = 1
   let job.request.status = a:status
+  " flush the last stderr line without a trailing newline
+  if !empty(get(job.request, 'stderr_intermediate', ''))
+    let job.request.errors += [job.request.stderr_intermediate]
+    call esearch#stderr#incremental(job.request.adapter, [job.request.stderr_intermediate])
+    let job.request.stderr_intermediate = ''
+  endif
   if !job.request.aborted && !empty(job.request.cb.finish)
     call job.request.cb.finish()
   endif
