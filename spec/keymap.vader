@@ -2,6 +2,11 @@ Include: helper.vader
 
 Before:
   let g:spy = 'original'
+  fu! MapargWithoutCallback(name, mode) abort
+    let dict = Maparg(a:name, a:mode)
+    silent! call remove(dict, 'callback')
+    return dict
+  endfu
 
 After:
   silent! unmap [lhs]
@@ -129,3 +134,54 @@ Then:
   call g:original.restore()
   norm [lhs]
   AssertEqual g:spy, 'z'
+
+Execute(#restorable restores "ic" keymaps defined separately for "i" and "c"):
+  imap [lhs] a
+  cmap [lhs] b
+  let g:expected_mapargs = [Maparg('[lhs]', 'i'), Maparg('[lhs]', 'c')]
+  let g:original = esearch#keymap#restorable([['ic', '[lhs]', 'z']])
+Then:
+  AssertNotEqual [Maparg('[lhs]', 'i'), Maparg('[lhs]', 'c')], g:expected_mapargs
+  call g:original.restore()
+  AssertEqual [Maparg('[lhs]', 'i'), Maparg('[lhs]', 'c')], g:expected_mapargs
+
+Execute(#restorable restores a mapping without rhs, defined as a Lua callback):
+  if has('nvim')
+    lua vim.keymap.set('c', '[lhs]', function() vim.g.spy = 'a' end, {desc = 'lua rhs'})
+    Assert !has_key(maparg('[lhs]', 'c', 0, 1), 'rhs'), 'precondition: no rhs in maparg()'
+    " every maparg() call wraps the Lua function into a new funcref, so compare
+    " the dicts without it and verify the callback by invoking the mapping
+    let g:expected_maparg = MapargWithoutCallback('[lhs]', 'c')
+    let g:original = esearch#keymap#restorable([['c', '[lhs]', 'b']])
+  endif
+Then:
+  if has('nvim')
+    AssertNotEqual MapargWithoutCallback('[lhs]', 'c'), g:expected_maparg
+    call g:original.restore()
+    AssertEqual MapargWithoutCallback('[lhs]', 'c'), g:expected_maparg
+    call feedkeys(":[lhs]\<esc>", 'x')
+    AssertEqual g:spy, 'a'
+  endif
+
+Execute(#restorable restores an <expr> Lua callback mapping with replace_keycodes):
+  if has('nvim')
+    lua vim.keymap.set('n', '[lhs]', function() vim.g.spy = 'a'; return '<Ignore>' end, {expr = true, replace_keycodes = true})
+    let g:expected_maparg = MapargWithoutCallback('[lhs]', 'n')
+    let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b']])
+  endif
+Then:
+  if has('nvim')
+    AssertNotEqual MapargWithoutCallback('[lhs]', 'n'), g:expected_maparg
+    call g:original.restore()
+    AssertEqual MapargWithoutCallback('[lhs]', 'n'), g:expected_maparg
+    norm [lhs]
+    AssertEqual g:spy, 'a'
+  endif
+
+Execute(#restorable is a noop on restore when there was no original mapping):
+  silent! unmap [lhs]
+  let g:original = esearch#keymap#restorable([['n', '[lhs]', 'b']])
+Then:
+  AssertEqual maparg('[lhs]', 'n'), 'b'
+  call g:original.restore()
+  AssertEqual maparg('[lhs]', 'n'), ''
