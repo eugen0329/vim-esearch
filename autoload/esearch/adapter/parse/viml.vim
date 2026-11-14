@@ -77,7 +77,8 @@ fu! s:with_col(data, from, to) abort dict
     let i += 1
   endwhile
 
-  return [entries, lines_delta, 0]
+  " unparsed lines ("binary file matches", warnings) aren't matches either
+  return [entries, a:to + 1 - a:from - len(entries), 0]
 endfu
 
 let g:esearch#adapter#parse#viml#controls = {
@@ -122,7 +123,8 @@ fu! s:generic(data, from, to) abort dict
     let i += 1 " TODO notify error
   endwhile
 
-  return [entries, lines_delta, 0]
+  " unparsed lines ("binary file matches", warnings) aren't matches either
+  return [entries, a:to + 1 - a:from - len(entries), 0]
 endfu
 
 " Parse lines in format "filename"[-:]line_number[-:]text and unwrap the filename

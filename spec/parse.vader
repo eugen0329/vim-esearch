@@ -1,0 +1,18 @@
+Include: helper.vader
+
+Before:
+  Save g:esearch
+  let g:esearch.cwd = 'spec/fixtures/parse/'
+After:
+  Restore g:esearch
+
+Execute(lines that aren't entries don't count as matches in the header):
+  for strategy in (g:esearch#has#lua ? ['lua', 'viml'] : ['viml'])
+    let g:esearch.parse_strategy = strategy
+    call Fixture(g:esearch.cwd.'text.txt', ['needle'])
+    call writefile(["needle\n\0binary"], g:esearch.cwd.'bin.dat', 'b')
+    " an explicit binary path makes rg print "bin.dat: binary file matches"
+    call esearch#init({'pattern': 'needle', 'paths': ['bin.dat', 'text.txt']})
+    AssertEqual 'Matches in 1 line, 1 file. Finished.', getline(1), strategy
+    AssertEqual ['text.txt', '   1 needle'], getline(3, '$'), strategy
+  endfor

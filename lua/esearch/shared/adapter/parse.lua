@@ -201,6 +201,10 @@ function M.parse(parser_function, lines, entry)
           text     = text:gsub("[\r\n]", ''),
           rev      = rev,
         })
+      else
+        -- "file: binary file matches", warnings etc: not an entry, don't count
+        -- it as a matched line in the header
+        lines_delta = lines_delta + 1
       end
     end
   end
