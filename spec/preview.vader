@@ -104,6 +104,22 @@ Execute(enter and leave the preview):
     endfor
   endfor
 
+Execute(update opened window with another file keeps the results window):
+  if !has('nvim') | finish | endif
+  let g:file2 = g:esearch.cwd.'file2.txt'
+  call Fixture(g:file2, ['l1', 'l2'])
+  call esearch#init({'pattern': 'l1'})
+  let results_bufnr = bufnr('%')
+  exe "norm /^file\.txt\<cr>j"
+  call b:esearch.preview_open()
+  exe "norm /^file2\<cr>j"
+  call b:esearch.preview_open()
+  AssertEqual results_bufnr, bufnr('%'), 'the results window must still show the results'
+  Assert esearch#preview#is_open(), 'the preview must stay open'
+  AssertEqual fnamemodify(g:file2, ':p'), fnamemodify(bufname(winbufnr(g:esearch#preview#win.id)), ':p')
+  exe "norm \<CR>"
+  silent! exe 'bwipe' g:file2
+
 Execute(update opened window):
   for close_on in [[], ['CursorMoved']]
     if !has('nvim') | finish | endif
